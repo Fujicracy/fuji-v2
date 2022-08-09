@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "X-Fuji smart contracts",
   "scripts": {
-    "build": "forge build"
+    "build": "forge build",
+    "fmt:fix": "forge fmt"
   }
 }

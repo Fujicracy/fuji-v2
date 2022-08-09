@@ -19,6 +19,6 @@
     "lint-staged": ">=10"
   },
   "lint-staged": {
-    "*.sol": "forge fmt"
+    "*.sol": "yarn workspace @x-fuji/protocol fmt:fix"
   }
 }
