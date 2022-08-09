@@ -63,12 +63,19 @@ jobs:
       - name: Precompile using 0.8.14 and via-ir=false
         run: yarn protocol:build
 
-      - name: "Export env variables"
+      - name: "Create env file"
         run: |
-          export RPC_MAINNET="${{ secrets.RPC_MAINNET }}"
-          export RPC_RINKEBY="${{ secrets.RPC_RINKEBY }}"
-          export RPC_GOERLI="${{ secrets.RPC_GOERLI }}"
+          touch .env
+          echo export RPC_MAINNET="${{ secrets.RPC_MAINNET }}" >> .env
+          echo export RPC_RINKEBY="${{ secrets.RPC_RINKEBY }}" >> .env
+          echo export RPC_GOERLI="${{ secrets.RPC_GOERLI }}" >> .env
+          cat .env
+
+      - name: "Test env file"
+        run: |
+          cat .env
 
       - name: Run tests
         shell: bash
-        run: yarn protocol:test
+        run: |
+          source .env && yarn protocol:test
