@@ -5,6 +5,7 @@ node_modules
 
 # Foundry files
 cache
+out
 
 # Config files
 .env

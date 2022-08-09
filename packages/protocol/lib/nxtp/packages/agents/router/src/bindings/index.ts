@@ -1,0 +1,1 @@
+export { bindMetrics } from "./metrics";

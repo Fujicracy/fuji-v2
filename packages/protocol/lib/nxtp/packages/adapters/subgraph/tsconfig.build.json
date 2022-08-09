@@ -1,0 +1,12 @@
+{
+  "extends": "../../../config/tsconfig.node.json",
+  "compilerOptions": {
+    "rootDirs": ["./src", "./.graphclient"],
+    "outDir": "dist",
+    "composite": true,
+    "tsBuildInfoFile": "./tsconfig.tsBuildInfo"
+  },
+  "exclude": ["test/**/*.ts"],
+  "include": ["src/**/*.ts", ".graphclient/**/*.ts"],
+  "references": []
+}

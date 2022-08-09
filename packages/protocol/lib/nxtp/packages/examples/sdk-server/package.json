@@ -1,0 +1,34 @@
+{
+  "name": "@connext/nxtp-sdk-server",
+  "description": "Client-side package server for interacting with the NXTP protocol for crosschain packages",
+  "author": "Connext",
+  "license": "UNLICENSED",
+  "main": "index.js",
+  "files": [
+    "dist/**/*",
+    "src/**/*"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "yarn build && yarn start",
+    "lint": "eslint ./src --ext .ts --env node",
+    "clean": "rimraf ./dist ./tsconfig.tsBuildInfo",
+    "purge": "yarn clean && rimraf ./node_modules"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@connext/nxtp-sdk": "workspace:*",
+    "@connext/nxtp-utils": "workspace:*",
+    "ethers": "5.6.9",
+    "fastify": "4.2.0",
+    "pino": "8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "16.11.43",
+    "@types/pino": "7.0.5",
+    "pino-pretty": "8.1.0",
+    "rimraf": "3.0.2",
+    "typescript": "4.7.4"
+  }
+}

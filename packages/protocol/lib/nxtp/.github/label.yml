@@ -1,0 +1,22 @@
+sdk:
+  - packages/sdk/*
+  - packages/sdk/**/*
+
+txservice:
+  - packages/txservice/*
+  - packages/txservice/**/*
+
+contracts:
+  - packages/contracts/*
+  - packages/contracts/**/*
+
+router:
+  - packages/router/*
+  - packages/router/**/*
+
+utils:
+  - packages/utils/*
+  - packages/utils/**/*
+
+repo:
+  - ./*

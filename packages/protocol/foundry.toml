@@ -1,0 +1,16 @@
+[profile.default]
+src = 'src'
+out = 'out'
+libs = ['lib']
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config
+
+[rpc_endpoints]
+mainnet = "${RPC_MAINNET}"
+rinkeby = "${RPC_RINKEBY}"
+goerli = "${RPC_GOERLI}"
+
+[fmt]
+line_length = 100
+tab_width = 2
+bracket_spacing = false
