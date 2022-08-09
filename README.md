@@ -3,7 +3,13 @@ Cross-chain Lending Aggregator
 
 ## Quickstart
 
-1. Install **Foundry**
+1. Clone repository with the following command:
+
+`git clone --recurse-submodules https://github.com/Fujicracy/x-fuji`  
+
+**Note:** The 'protocol' workspace in this monorepo uses [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
+
+2. Install **Foundry**
 
 You can find the instructions [here](https://book.getfoundry.sh/getting-started/installation).
 
