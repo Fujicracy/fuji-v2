@@ -1,0 +1,80 @@
+name: CI-Contracts
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "packages/protocol/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/protocol/**"
+  
+  # Allows you to run this workflow manually from the Actions tab      
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  #lint:
+    #name: Run Linters
+    #runs-on: ubuntu-latest
+
+    #strategy:
+      #matrix:
+        #node-version: [16.x]
+
+    #steps:
+      #- uses: actions/checkout@v3
+
+      #- name: Use Node.js
+        #uses: actions/setup-node@v3
+        #with:
+          #node-version: ${{ matrix.node-version }}
+          #cache: "yarn"
+
+      #- name: Install Foundry
+        #uses: foundry-rs/foundry-toolchain@v1
+        #with:
+          #version: nightly
+
+      #- run: yarn lint:check
+
+  forge:
+    name: Run Unit and E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install forge dependencies
+        run: yarn protocol:install
+
+      - name: Precompile using 0.8.14 and via-ir=false
+        run: yarn protocol:build
+
+      - name: "Create env file"
+        run: |
+          touch .env
+          echo RPC_MAINNET="${{ secrets.RPC_MAINNET }}" >> .env
+          echo RPC_RINKEBY="${{ secrets.RPC_RINKEBY }}" >> .env
+          echo RPC_GOERLI="${{ secrets.RPC_GOERLI }}" >> .env
+          cat .env
+
+      - name: "Test env file"
+        run: |
+          cat .env
+
+      - name: Run tests
+        shell: bash
+        run: yarn protocol:test
