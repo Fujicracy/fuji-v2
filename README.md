@@ -1,6 +1,12 @@
 # X-Fuji
 Cross-chain Lending Aggregator
 
+## Quickstart
+
+1. Install **Foundry**
+
+You can find the instructions [here](https://book.getfoundry.sh/getting-started/installation).
+
 ## Code style
 
 - Solidity
