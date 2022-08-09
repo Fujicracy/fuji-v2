@@ -10,6 +10,10 @@
     "packages/*"
   ],
   "scripts": {
+    "protocol:install": "yarn workspace @x-fuji/protocol install",
+    "protocol:build": "yarn workspace @x-fuji/protocol build",
+    "protocol:test": "yarn workspace @x-fuji/protocol test",
+    "protocol:format:fix": "yarn workspace @x-fuji/protocol format:fix",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -19,6 +23,6 @@
     "lint-staged": ">=10"
   },
   "lint-staged": {
-    "*.sol": "yarn workspace @x-fuji/protocol fmt:fix"
+    "*.sol": "yarn protocol:format:fix"
   }
 }

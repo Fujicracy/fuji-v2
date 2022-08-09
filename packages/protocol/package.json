@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "X-Fuji smart contracts",
   "scripts": {
+    "install": "forge install",
     "build": "forge build",
-    "fmt:fix": "forge fmt"
+    "test": "forge test --no-match-contract '.Suite'",
+    "format:fix": "forge fmt"
   }
 }
