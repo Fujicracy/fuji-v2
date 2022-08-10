@@ -20,7 +20,7 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
   constructor(IWETH9 weth) PeripheryPayments(weth) {}
 
   // TODO nonReentrant
-  function cook(Action[] memory actions, bytes[] memory args) external override {
+  function bundle(Action[] memory actions, bytes[] memory args) external override {
     uint256 len = actions.length;
     for (uint256 i = 0; i < len; i++) {
       if (actions[i] == Action.Deposit) {

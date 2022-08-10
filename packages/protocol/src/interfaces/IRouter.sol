@@ -10,5 +10,5 @@ interface IRouter {
     BridgeTransfer
   }
 
-  function cook(Action[] memory actions, bytes[] memory args) external;
+  function bundle(Action[] memory actions, bytes[] memory args) external;
 }
