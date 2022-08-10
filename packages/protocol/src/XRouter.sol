@@ -21,6 +21,7 @@ contract XRouter is PeripheryPayments {
     Withdraw,
     Borrow,
     Payback,
+    //    FlashLoan,
     BridgeTransfer
   }
 
@@ -195,7 +196,7 @@ contract XRouter is PeripheryPayments {
   // callable only from the bridge
   function bridgeCall(uint256 originDomain, bytes memory params)
     external
-    onlyConnextExecutor(originDomain)
+    onlyConnextExecutor(originDomain) // nonReentrant?
   {
     (
       address vault,
@@ -237,9 +238,34 @@ contract XRouter is PeripheryPayments {
         (uint256 domain, address asset, uint256 amount, address receiver) =
           abi.decode(args[i], (uint256, address, uint256, address));
         _bridgeTransfer(domain, asset, amount, receiver);
+        //      } else if (actions[i] == Action.FlashLoan) {
+        //        _initiateFlashLoan(args[i]);
+        //        // flashloan should be already repaid here
+        //      } else if (actions[i] == Action.Liquidate) {
+        //        IVault(vault).liquidate();
       }
     }
   }
+
+  //  function _initiateFlashLoan(bytes32 args) internal {
+  //    // 1. Decode args and call Flasher
+  //    // 2. Flasher receives the flashloan and calls flashOperation() of Router
+  //    //    for the rest of the actions
+  //  }
+
+  //  function flashOperation() external onlyFlasher {
+  //    // Pull flashed amount
+  //
+  //    // 1. Close Own Position - current vault.flashClose()
+  //    // vault.payback()
+  //    // vault.withdraw() - needs approval/permit from user beforehand
+  //    // or
+  //    // 2. Liquidations
+  //    // vault.liquidate();
+  //
+  //    // Transfer back to the Flasher so it handles payback
+  //    // to the flashloan provider
+  //  }
 
   function _bridgeTransfer(uint256 destDomain, address asset, uint256 amount, address receiver)
     internal
