@@ -12,7 +12,7 @@ import "./helpers/PeripheryPayments.sol";
 // TODO inherit from SelfPermit, Multicall
 // for additional functionalitites
 // ref: https://github.com/fei-protocol/ERC4626/blob/main/src/ERC4626RouterBase.sol
-contract XRouter is IRouter, PeripheryPayments {
+contract XRouter is PeripheryPayments {
   IConnextHandler public connext;
   IExecutor public executor;
 
