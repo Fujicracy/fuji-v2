@@ -2,9 +2,9 @@
 pragma solidity ^0.8.9;
 
 /**
- * @title Vault Interface.
+ * @title Abstract contract for all vaults.
  * @author Fujidao Labs
- * @notice Defines the interface for vault operations extending from IERC4626.
+ * @notice Defines the interface and common functions for all vaults.
  */
 
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
