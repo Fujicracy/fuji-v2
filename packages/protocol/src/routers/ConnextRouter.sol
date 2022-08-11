@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.9;
 
+/**
+ * @title ConnextRouter.
+ * @author Fujidao Labs
+ * @notice A Router implementing Connext specific bridging logic.
+ */
+
 import {CallParams, XCallArgs} from "nxtp/core/connext/libraries/LibConnextStorage.sol";
 import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
 import {IExecutor} from "nxtp/core/connext/interfaces/IExecutor.sol";
