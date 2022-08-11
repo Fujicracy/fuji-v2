@@ -23,39 +23,6 @@ abstract contract BaseVault is ERC20, IVault {
   using Address for address;
   using SafeERC20 for IERC20;
 
-  /// Events
-
-  /*
-  * @notice Emitted when the oracle address is changed
-  * @param newOracle The new oracle address
-  */
-  event OracleChanged(IFujiOracle newOracle);
-
-  /*
-  * @notice Emitted when the available providers for the vault change
-  * @param newProviders the new providers available
-  */
-  event ProvidersChanged(ILendingProvider[] newProviders);
-
-  /*
-  * @notice Emitted when the active provider is changed
-  * @param newActiveProvider the new active provider
-  */
-  event ActiveProviderChanged(ILendingProvider newActiveProvider);
-
-  /*
-  * @notice Emitted when the max LTV is changed
-  * @param newMaxLtv the new max LTV
-  */
-  event MaxLtvChanged(Factor newMaxLtv);
-
-  /*
-  * @notice Emitted when the liquidation ratio is changed
-  * @param newLiqRatio the new liquidation ratio
-  */
-  event LiqRatioChanged(Factor newLiqRatio);
-
-
   address public immutable chief;
 
   IERC20Metadata internal immutable _asset;
