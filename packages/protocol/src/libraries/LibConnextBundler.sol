@@ -20,7 +20,7 @@ library LibConnextBundler {
   )
     public
     view
-    returns (IRouter.Action[] memory actions, bytes[] memory args)
+    returns (IRouter.Action[] memory, bytes[] memory)
   {
     IRouter.Action[] memory bActions = new IRouter.Action[](2);
     bytes[] memory bArgs = new bytes[](2);
@@ -31,13 +31,18 @@ library LibConnextBundler {
     bActions[1] = IRouter.Action.Borrow;
     bArgs[1] = abi.encode(borrowAmount, msg.sender, msg.sender);
 
-    bytes memory params = abi.encode(destVault, asset, amount, actions, args);
+    bytes memory params = abi.encode(destVault, asset, amount, bActions, bArgs);
 
     bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
 
     bytes memory callData = abi.encodeWithSelector(selector, params);
 
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
     actions[0] = IRouter.Action.XTransferWithCall;
     args[0] = abi.encode(destDomain, asset, amount, callData);
+
+    return (actions, args);
   }
 }
