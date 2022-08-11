@@ -29,7 +29,7 @@ abstract contract BaseVault is ERC20, IVault {
   * @notice Emitted when the oracle address is changed
   * @param newOracle The new oracle address
   */
-  event OracleChanged(address newOracle);
+  event OracleChanged(IFujiOracle newOracle);
 
   /*
   * @notice Emitted when the available providers for the vault change
@@ -419,37 +419,46 @@ abstract contract BaseVault is ERC20, IVault {
   function setOracle(IFujiOracle newOracle) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    oracle = newOracle; // TODO needs to emit event.
+    oracle = newOracle;
+
+    emit OracleChanged(newOracle);
   }
 
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    _providers = providers; // TODO needs to emit event.
+    _providers = providers;
+
+    emit ProvidersChanged(providers);
   }
 
   function setActiveProvider(ILendingProvider activeProvider_) external {
     // TODO needs admin restriction
     // TODO needs input validation
     activeProvider = activeProvider_;
-    // TODO needs to emit event.
     SafeERC20.safeApprove(
       IERC20(asset()), activeProvider.approvedOperator(asset()), type(uint256).max
     );
     if (debtAsset() != address(0)) SafeERC20.safeApprove(
       IERC20(debtAsset()), activeProvider.approvedOperator(debtAsset()), type(uint256).max
     );
+
+    emit ActiveProviderChanged(activeProvider_);
   }
 
   function setMaxLtv(Factor calldata maxLtv_) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    maxLtv = maxLtv_; // TODO needs to emit event.
+    maxLtv = maxLtv_;
+
+    emit MaxLtvChanged(maxLtv_);
   }
 
   function setLiqRatio(Factor calldata liqRatio_) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    liqRatio = liqRatio_; // TODO needs to emit event.
+    liqRatio = liqRatio_;
+
+    emit LiqRatioChanged(liqRatio_);
   }
 }
