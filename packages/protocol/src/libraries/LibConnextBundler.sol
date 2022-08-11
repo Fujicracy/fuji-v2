@@ -26,12 +26,12 @@ library LibConnextBundler {
     bytes[] memory bArgs = new bytes[](2);
 
     bActions[0] = IRouter.Action.Deposit;
-    bArgs[0] = abi.encode(amount, msg.sender);
+    bArgs[0] = abi.encode(destVault, amount, msg.sender);
 
     bActions[1] = IRouter.Action.Borrow;
-    bArgs[1] = abi.encode(borrowAmount, msg.sender, msg.sender);
+    bArgs[1] = abi.encode(destVault, borrowAmount, msg.sender, msg.sender);
 
-    bytes memory params = abi.encode(destVault, asset, amount, bActions, bArgs);
+    bytes memory params = abi.encode(bActions, bArgs);
 
     bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
 
