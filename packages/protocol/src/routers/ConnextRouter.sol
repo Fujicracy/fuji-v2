@@ -48,6 +48,11 @@ contract ConnextRouter is BaseRouter {
     (uint256 destDomain, address asset, uint256 amount, address receiver) =
       abi.decode(params, (uint256, address, uint256, address));
 
+    // need approval for connext to spend `amount`
+    // assuming it's an asset/debtAsset of a vault
+    // that's already registered with "registerVault(vault)"
+    pullToken(ERC20(asset), amount, address(this));
+
     CallParams memory callParams = CallParams({
       to: receiver,
       // empty here because we're only sending funds
@@ -80,6 +85,11 @@ contract ConnextRouter is BaseRouter {
   function _crossTransferWithCalldata(bytes memory params) internal override {
     (uint256 destDomain, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, address, uint256, bytes));
+
+    // need approval for connext to spend `amount`
+    // assuming it's an asset/debtAsset of a vault
+    // that's already registered with "registerVault(vault)"
+    pullToken(ERC20(asset), amount, address(this));
 
     CallParams memory callParams = CallParams({
       to: routerByDomain[destDomain],
