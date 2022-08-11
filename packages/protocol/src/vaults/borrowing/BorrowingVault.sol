@@ -66,7 +66,7 @@ contract BorrowingVault is BaseVault {
    * @dev Based on {IERC4626-deposit}.
    */
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
-    // TODO Need to add security to owner !!!!!!!!
+    require(owner == _msgSender(), "No permission");
     require(debt > 0, "Wrong input");
     require(debt <= maxBorrow(owner), "Not enough assets");
 
@@ -81,6 +81,7 @@ contract BorrowingVault is BaseVault {
    * - MUST emit the Payback event.
    */
   function payback(uint256 debt, address owner) public override returns (uint256) {
+    require(owner == _msgSender(), "No permission");
     require(debt > 0, "Wrong input");
     require(debt <= convertToDebt(_debtShares[owner]), "Payback more than max");
 
