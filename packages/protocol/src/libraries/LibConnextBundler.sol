@@ -33,7 +33,7 @@ library LibConnextBundler {
 
     bytes memory params = abi.encode(destVault, asset, amount, actions, args);
 
-    bytes4 selector = bytes4(keccak256("onXCall(bytes)"));
+    bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
 
     bytes memory callData = abi.encodeWithSelector(selector, params);
 

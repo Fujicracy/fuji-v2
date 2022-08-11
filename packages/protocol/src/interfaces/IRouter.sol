@@ -13,5 +13,5 @@ interface IRouter {
 
   function xBundle(Action[] memory actions, bytes[] memory args) external;
 
-  function onXCall(bytes memory params) external;
+  function inboundXCall(bytes memory params) external;
 }

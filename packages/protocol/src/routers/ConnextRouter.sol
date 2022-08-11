@@ -44,7 +44,7 @@ contract ConnextRouter is BaseRouter {
 
   // Connext specific functions
 
-  function onXCall(bytes memory params) external onlyConnextExecutor {
+  function inboundXCall(bytes memory params) external onlyConnextExecutor {
     (Action[] memory actions, bytes[] memory args) = abi.decode(params, (Action[], bytes[]));
 
     _bundleInternal(actions, args);
