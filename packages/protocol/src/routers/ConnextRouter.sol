@@ -20,7 +20,7 @@ contract ConnextRouter is BaseRouter {
   //       contract function is meant to be permissioned, it must check
   //       that the originating call is from the correct domain and contract.
   //       Also, check that the msg.sender is the Connext Executor address.
-  modifier onlyConnextExecutor(uint256 originDomain) {
+  modifier onlyConnextExecutor() {
     require(
       // TODO subject to change in the new version of amarok
       /*IExecutor(msg.sender).originSender() == routerByDomain[originDomain] &&*/
@@ -36,15 +36,77 @@ contract ConnextRouter is BaseRouter {
     executor = connext.executor();
   }
 
-  // TODO
   // Connext specific functions
 
-  function _bridgeTransfer(bytes memory args) internal pure override {
-    args;
+  function onXCall(bytes memory params) external onlyConnextExecutor {
+    (Action[] memory actions, bytes[] memory args) = abi.decode(params, (Action[], bytes[]));
+
+    _bundleInternal(actions, args);
   }
 
-  function _bridgeTransferWithCalldata(bytes memory args) internal pure override {
-    args;
+  function _crossTransfer(bytes memory params) internal override {
+    (uint256 destDomain, address asset, uint256 amount, address receiver) =
+      abi.decode(params, (uint256, address, uint256, address));
+
+    CallParams memory callParams = CallParams({
+      to: receiver,
+      // empty here because we're only sending funds
+      callData: "",
+      originDomain: uint32(connext.domain()),
+      destinationDomain: uint32(destDomain),
+      // address allowed to transaction on destination side in addition to relayers
+      agent: msg.sender,
+      // fallback address to send funds to if execution fails on destination side
+      recovery: msg.sender,
+      // option to force Nomad slow path (~30 mins) instead of paying 0.05% fee
+      forceSlow: false,
+      // option to receive the local Nomad-flavored asset instead of the adopted asset
+      receiveLocal: false,
+      // zero address because we don't expect a callback
+      callback: address(0),
+      // fee paid to relayers; relayers don't take any fees on testnet
+      callbackFee: 0,
+      // fee paid to relayers; relayers don't take any fees on testnet
+      relayerFee: 0,
+      slippageTol: 9995
+    });
+
+    XCallArgs memory xcallArgs =
+      XCallArgs({params: callParams, transactingAssetId: asset, amount: amount});
+
+    connext.xcall(xcallArgs);
+  }
+
+  function _crossTransferWithCalldata(bytes memory params) internal override {
+    (uint256 destDomain, address asset, uint256 amount, bytes memory callData) =
+      abi.decode(params, (uint256, address, uint256, bytes));
+
+    CallParams memory callParams = CallParams({
+      to: routerByDomain[destDomain],
+      callData: callData,
+      originDomain: uint32(connext.domain()),
+      destinationDomain: uint32(destDomain),
+      // address allowed to transaction on destination side in addition to relayers
+      agent: msg.sender,
+      // fallback address to send funds to if execution fails on destination side
+      recovery: msg.sender,
+      // option to force Nomad slow path (~30 mins) instead of paying 0.05% fee
+      forceSlow: true,
+      // option to receive the local Nomad-flavored asset instead of the adopted asset
+      receiveLocal: false,
+      // zero address because we don't expect a callback
+      callback: address(0),
+      // fee paid to relayers; relayers don't take any fees on testnet
+      callbackFee: 0,
+      // fee paid to relayers; relayers don't take any fees on testnet
+      relayerFee: 0,
+      slippageTol: 9995
+    });
+
+    XCallArgs memory xcallArgs =
+      XCallArgs({params: callParams, transactingAssetId: asset, amount: amount});
+
+    connext.xcall(xcallArgs);
   }
 
   ///////////////////////

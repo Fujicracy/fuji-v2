@@ -7,8 +7,11 @@ interface IRouter {
     Withdraw,
     Borrow,
     Payback,
-    BridgeTransfer
+    XTransfer,
+    XTransferWithCall
   }
 
-  function bundle(Action[] memory actions, bytes[] memory args) external;
+  function xBundle(Action[] memory actions, bytes[] memory args) external;
+
+  function onXCall(bytes memory params) external;
 }

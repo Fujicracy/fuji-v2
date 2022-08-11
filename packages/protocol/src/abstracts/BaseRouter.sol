@@ -11,16 +11,15 @@ import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
-//
-// TODO inherit from SelfPermit, Multicall
-// for additional functionalitites
-// ref: https://github.com/fei-protocol/ERC4626/blob/main/src/ERC4626RouterBase.sol
-
 abstract contract BaseRouter is PeripheryPayments, IRouter {
   constructor(IWETH9 weth) PeripheryPayments(weth) {}
 
   // TODO nonReentrant
-  function bundle(Action[] memory actions, bytes[] memory args) external override {
+  function xBundle(Action[] memory actions, bytes[] memory args) external override {
+    _bundleInternal(actions, args);
+  }
+
+  function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     uint256 len = actions.length;
     for (uint256 i = 0; i < len; i++) {
       if (actions[i] == Action.Deposit) {
@@ -53,15 +52,19 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
 
         pullToken(ERC20(vault.debtAsset()), amount, address(this));
         vault.payback(amount, receiver);
-      } else if (actions[i] == Action.BridgeTransfer) {
-        // BRIDGE TRANSFER
+      } else if (actions[i] == Action.XTransfer) {
+        // SIMPLE BRIDGE TRANSFER
 
-        _bridgeTransfer(args[i]);
+        _crossTransfer(args[i]);
+      } else if (actions[i] == Action.XTransferWithCall) {
+        // BRIDGE WITH CALLDATA
+
+        _crossTransferWithCalldata(args[i]);
       }
     }
   }
 
-  function _bridgeTransfer(bytes memory) internal virtual;
+  function _crossTransfer(bytes memory) internal virtual;
 
-  function _bridgeTransferWithCalldata(bytes memory) internal virtual;
+  function _crossTransferWithCalldata(bytes memory) internal virtual;
 }
