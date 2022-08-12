@@ -113,6 +113,11 @@ contract Setup is DSTestPlus {
       revert("No registry for this chain");
     }
 
+    vm.label(reg.asset, "Asset");
+    vm.label(reg.debtAsset, "DebtAsset");
+    vm.label(reg.weth, "WETH");
+    vm.label(reg.connextHandler, "ConnextHandler");
+
     weth = IWETH9(reg.weth);
     connextHandler = IConnextHandler(reg.connextHandler);
 

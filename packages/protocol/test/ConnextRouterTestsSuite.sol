@@ -20,6 +20,8 @@ contract ConnextRouterTestsSuite is Setup {
     deal(address(weth), alice, amount);
     assertEq(weth.balanceOf(alice), amount);
 
+    /*deal(address(weth), address(connextRouter), 10e18);*/
+
     vm.startPrank(alice);
 
     SafeERC20.safeApprove(IERC20(address(weth)), address(connextRouter), type(uint256).max);
@@ -27,7 +29,7 @@ contract ConnextRouterTestsSuite is Setup {
     uint256 domain = connextHandler.domain();
     uint256 destDomain = domain == 3331 ? 1111 : 3331;
     (IRouter.Action[] memory actions, bytes[] memory args) = LibConnextBundler
-      .bridgeDepositAndBorrow(destDomain, address(vault), address(weth), amount, borrowAmount);
+      .bridgeDepositAndBorrow(destDomain, address(0), address(weth), amount, borrowAmount);
 
     connextRouter.xBundle(actions, args);
   }
