@@ -20,7 +20,7 @@ contract ConnextRouterTestsSuite is Setup {
     deal(address(weth), alice, amount);
     assertEq(weth.balanceOf(alice), amount);
 
-    /*deal(address(weth), address(connextRouter), 10e18);*/
+    deal(address(weth), address(connextRouter), 10e18);
 
     vm.startPrank(alice);
 
@@ -39,19 +39,7 @@ contract ConnextRouterTestsSuite is Setup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    uint256 domain = connextHandler.domain();
     address executor = address(connextHandler.executor());
-
-    vm.mockCall(
-      executor,
-      abi.encodeWithSelector(IExecutor(executor).originSender.selector),
-      abi.encode(address(0xAbc1))
-    );
-    vm.mockCall(
-      executor,
-      abi.encodeWithSelector(IExecutor(executor).origin.selector),
-      abi.encode(domain == 3331 ? 1111 : 3331)
-    );
 
     IRouter.Action[] memory actions = new IRouter.Action[](2);
     actions[0] = IRouter.Action.Deposit;
@@ -62,13 +50,26 @@ contract ConnextRouterTestsSuite is Setup {
     args[1] = abi.encode(address(vault), borrowAmount, alice, alice);
 
     bytes memory params = abi.encode(actions, args);
+    bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
+    bytes memory callData = abi.encodeWithSelector(selector, params);
 
+    IExecutor.ExecutorArgs memory execArgs = IExecutor.ExecutorArgs({
+      assetId: address(weth),
+      amount: amount,
+      to: address(connextRouter),
+      callData: callData,
+      transferId: "",
+      recovery: address(0),
+      properties: ""
+    });
+    vm.expectCall(address(connextRouter), callData);
+
+    // connext has to send to the executor "amount"
+    // before calling it
     deal(address(weth), executor, amount);
-    vm.startPrank(executor);
-    // execute() function of the executor contains approval
-    SafeERC20.safeApprove(IERC20(address(weth)), address(connextRouter), type(uint256).max);
+    vm.startPrank(address(connextHandler));
+    IExecutor(executor).execute(execArgs);
 
-    connextRouter.inboundXCall(params);
     assertEq(vault.balanceOf(alice), amount);
   }
 }
