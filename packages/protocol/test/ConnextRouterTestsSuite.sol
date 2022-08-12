@@ -8,7 +8,8 @@ import {IExecutor} from "nxtp/core/connext/interfaces/IExecutor.sol";
 import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
-import {LibConnextBundler} from "../src/libraries/LibConnextBundler.sol";
+
+/*import {LibConnextBundler} from "../src/libraries/LibConnextBundler.sol";*/
 
 contract ConnextRouterTestsSuite is Setup {
   function testBridgeOutbound() public {
@@ -16,7 +17,7 @@ contract ConnextRouterTestsSuite is Setup {
     vm.label(address(alice), "alice");
 
     uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e6;
+    /*uint256 borrowAmount = 1000e6;*/
     deal(address(weth), alice, amount);
     assertEq(weth.balanceOf(alice), amount);
 
@@ -27,9 +28,14 @@ contract ConnextRouterTestsSuite is Setup {
     SafeERC20.safeApprove(IERC20(address(weth)), address(connextRouter), type(uint256).max);
 
     uint256 domain = connextHandler.domain();
-    uint256 destDomain = domain == 3331 ? 1111 : 3331;
-    (IRouter.Action[] memory actions, bytes[] memory args) = LibConnextBundler
-      .bridgeDepositAndBorrow(destDomain, address(0), address(weth), amount, borrowAmount);
+    uint256 destDomain = domain == 3331 ? 1111 : 3331; /*.bridgeDepositAndBorrow(destDomain, address(0), address(weth), amount, borrowAmount);*/
+    /*(IRouter.Action[] memory actions, bytes[] memory args) = LibConnextBundler*/
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.XTransferWithCall;
+    args[0] = abi.encode(destDomain, address(weth), amount, "");
 
     connextRouter.xBundle(actions, args);
   }
