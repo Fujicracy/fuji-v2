@@ -9,7 +9,8 @@ pragma solidity ^0.8.9;
  */
 
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
-import {IWETH9} from "../helpers/PeripheryPayments.sol";
+import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+import {IVault} from "../interfaces/IVault.sol";
 
 contract SimpleRouter is BaseRouter {
   error SimpleRouter__noCrossTransfersImplemented();
@@ -29,5 +30,14 @@ contract SimpleRouter is BaseRouter {
   function _crossTransferWithCalldata(bytes memory params) internal pure override {
     params;
     revert SimpleRouter__noCrossTransfersImplemented();
+  }
+
+  function registerVault(IVault vault) external {
+    // TODO onlyOwner
+    address asset = vault.asset();
+    approve(ERC20(asset), address(vault), type(uint256).max);
+
+    address debtAsset = vault.debtAsset();
+    approve(ERC20(debtAsset), address(vault), type(uint256).max);
   }
 }
