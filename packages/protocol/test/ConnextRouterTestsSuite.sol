@@ -9,15 +9,20 @@ import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
 
-/*import {LibConnextBundler} from "../src/libraries/LibConnextBundler.sol";*/
-
 contract ConnextRouterTestsSuite is Setup {
+  event Dispatch(
+    bytes32 indexed messageHash,
+    uint256 indexed leafIndex,
+    uint64 indexed destinationAndNonce,
+    bytes32 committedRoot,
+    bytes message
+  );
+
   function testBridgeOutbound() public {
     address alice = address(0xA);
     vm.label(address(alice), "alice");
 
     uint256 amount = 2 ether;
-    /*uint256 borrowAmount = 1000e6;*/
     deal(address(weth), alice, amount);
     assertEq(weth.balanceOf(alice), amount);
 
@@ -28,8 +33,7 @@ contract ConnextRouterTestsSuite is Setup {
     SafeERC20.safeApprove(IERC20(address(weth)), address(connextRouter), type(uint256).max);
 
     uint256 domain = connextHandler.domain();
-    uint256 destDomain = domain == 3331 ? 1111 : 3331; /*.bridgeDepositAndBorrow(destDomain, address(0), address(weth), amount, borrowAmount);*/
-    /*(IRouter.Action[] memory actions, bytes[] memory args) = LibConnextBundler*/
+    uint256 destDomain = domain == 3331 ? 1111 : 3331;
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
@@ -37,8 +41,15 @@ contract ConnextRouterTestsSuite is Setup {
     actions[0] = IRouter.Action.XTransferWithCall;
     args[0] = abi.encode(destDomain, address(weth), amount, "");
 
+    vm.expectEmit(false, false, false, false);
+    emit Dispatch("", 1, 1, "", "");
+
     connextRouter.xBundle(actions, args);
   }
+
+  event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+
+  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
 
   function testBridgeInbound() public {
     address alice = address(0xA);
@@ -58,6 +69,12 @@ contract ConnextRouterTestsSuite is Setup {
     bytes memory params = abi.encode(actions, args);
     bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
     bytes memory callData = abi.encodeWithSelector(selector, params);
+
+    vm.expectEmit(true, true, true, false);
+    emit Deposit(address(connextRouter), alice, amount, amount);
+
+    vm.expectEmit(true, true, true, false);
+    emit Borrow(address(connextRouter), alice, borrowAmount, borrowAmount);
 
     IExecutor.ExecutorArgs memory execArgs = IExecutor.ExecutorArgs({
       assetId: address(weth),
