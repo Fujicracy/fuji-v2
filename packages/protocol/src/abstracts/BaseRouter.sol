@@ -14,7 +14,6 @@ import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol
 abstract contract BaseRouter is PeripheryPayments, IRouter {
   constructor(IWETH9 weth) PeripheryPayments(weth) {}
 
-  // TODO nonReentrant
   function xBundle(Action[] memory actions, bytes[] memory args) external override {
     _bundleInternal(actions, args);
   }
@@ -60,6 +59,14 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         // BRIDGE WITH CALLDATA
 
         _crossTransferWithCalldata(args[i]);
+      } else if (actions[i] == Action.Flashloan) {
+        // FLASHLOAN
+
+        _initiateFlashloan(args[i]);
+      } else if (actions[i] == Action.PaybackFlashloan) {
+        // PAYBACK FLASHLOAN
+
+        _paybackFlashloan(args[i]);
       }
     }
   }
@@ -67,4 +74,8 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
   function _crossTransfer(bytes memory) internal virtual;
 
   function _crossTransferWithCalldata(bytes memory) internal virtual;
+
+  function _initiateFlashloan(bytes memory) internal virtual;
+
+  function _paybackFlashloan(bytes memory) internal virtual;
 }

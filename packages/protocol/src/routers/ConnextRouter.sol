@@ -125,6 +125,14 @@ contract ConnextRouter is BaseRouter {
     connext.xcall(xcallArgs);
   }
 
+  function _initiateFlashloan(bytes memory params) internal pure override {
+    params;
+  }
+
+  function _paybackFlashloan(bytes memory params) internal pure override {
+    params;
+  }
+
   ///////////////////////
   /// Admin functions ///
   ///////////////////////

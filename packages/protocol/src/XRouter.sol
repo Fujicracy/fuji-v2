@@ -237,12 +237,11 @@ contract XRouter is PeripheryPayments {
       } else if (actions[i] == Action.BridgeTransfer) {
         (uint256 domain, address asset, uint256 amount, address receiver) =
           abi.decode(args[i], (uint256, address, uint256, address));
-        _bridgeTransfer(domain, asset, amount, receiver);
-        //      } else if (actions[i] == Action.FlashLoan) {
-        //        _initiateFlashLoan(args[i]);
-        //        // flashloan should be already repaid here
-        //      } else if (actions[i] == Action.Liquidate) {
-        //        IVault(vault).liquidate();
+        _bridgeTransfer(domain, asset, amount, receiver); //      } else if (actions[i] == Action.FlashLoan) {
+          //        _initiateFlashLoan(args[i]);
+          //        // flashloan should be already repaid here
+          //      } else if (actions[i] == Action.Liquidate) {
+          //        IVault(vault).liquidate();
       }
     }
   }

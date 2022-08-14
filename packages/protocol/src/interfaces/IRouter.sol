@@ -9,6 +9,8 @@ interface IRouter {
     Withdraw,
     Borrow,
     Payback,
+    Flashloan,
+    PaybackFlashloan,
     XTransfer,
     XTransferWithCall
   }

@@ -11,9 +11,12 @@ pragma solidity ^0.8.9;
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IFlasher} from "../interfaces/IFlasher.sol";
 
 contract SimpleRouter is BaseRouter {
   error SimpleRouter__noCrossTransfersImplemented();
+
+  IFlasher public flasher;
 
   constructor(IWETH9 weth) BaseRouter(weth) {}
 
@@ -30,6 +33,26 @@ contract SimpleRouter is BaseRouter {
   function _crossTransferWithCalldata(bytes memory params) internal pure override {
     params;
     revert SimpleRouter__noCrossTransfersImplemented();
+  }
+
+  function _initiateFlashloan(bytes memory params) internal override {
+    // Decode params
+    (IFlasher.FlashloanParams memory flParams, uint8 providerId) =
+      abi.decode(params, (IFlasher.FlashloanParams, uint8));
+
+    // Call Flasher
+    flasher.initiateFlashloan(flParams, providerId);
+  }
+
+  function _paybackFlashloan(bytes memory params) internal override { // need Swapper and Oracle
+      // Decode params
+      // amount + fee + vault
+      // swap asset to repay flashloan
+  }
+
+  function setFlasher(IFlasher newFlasher) external {
+    // TODO onlyOwner
+    flasher = newFlasher;
   }
 
   function registerVault(IVault vault) external {
