@@ -86,16 +86,27 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) revert
       Flasher__invalidEntryPoint();
 
-    // Transfer to Router the flashloan Amount
-    // Router will pull tokens
-    /*IERC20(asset).safeTransfer(router, amount);*/
+    // approve Router to pull flashloaned amount
+    IERC20(asset).safeApprove(params.router, amount);
+
+    // decode args of the last acton
+    uint256 len = params.args.length;
+    (address assetIn, address assetOut, uint256 amountOut, uint256 slippage) =
+      abi.decode(params.args[len - 1], (address, address, uint256, uint256));
+
+    // add up the premium to args of PaybackFlashloan action
+    // which should be the last one
+    params.args[len - 1] = abi.encode(assetIn, assetOut, amountOut + premium, slippage);
 
     // call back Router
     IRouter(params.router).xBundle(params.actions, params.args);
+    // after this call Router should have transferred to Flasher
+    // amount + fee
 
-    //Approve aavev3LP to spend to repay flashloan
+    // approve aaveV3 to spend to repay flashloan
     IERC20(asset).safeApprove(aaveV3Pool, amount + premium);
 
+    // re-init
     _entryPoint = "";
     return true;
   }
