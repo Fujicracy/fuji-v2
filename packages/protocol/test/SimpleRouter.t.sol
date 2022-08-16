@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.9;
 
+import "forge-std/console2.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IUniswapV2Router01} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../src/routers/SimpleRouter.sol";
 import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
+import {IFlasher} from "../src/interfaces/IFlasher.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
+import {MockFlasher} from "./utils/mocks/MockFlasher.sol";
+import {MockSwapper} from "./utils/mocks/MockSwapper.sol";
 import {MockProvider} from "./utils/mocks/MockProvider.sol";
 import {MockERC20} from "./utils/mocks/MockERC20.sol";
 import {MockOracle} from "./utils/mocks/MockOracle.sol";
@@ -31,7 +36,9 @@ contract SimpleRouterTest is DSTestPlus {
   IVault public vault;
   ILendingProvider public mockProvider;
   IRouter public simpleRouter;
+  IUniswapV2Router01 public swapper;
 
+  MockFlasher public flasher;
   MockOracle public oracle;
   MockERC20 public asset;
   MockERC20 public debtAsset;
@@ -61,6 +68,8 @@ contract SimpleRouterTest is DSTestPlus {
 
     utils_setupOracle(address(asset), address(debtAsset));
 
+    swapper = IUniswapV2Router01(address(new MockSwapper(oracle)));
+    flasher = new MockFlasher();
     mockProvider = new MockProvider();
 
     vault = new BorrowingVault(
@@ -69,7 +78,7 @@ contract SimpleRouterTest is DSTestPlus {
       address(oracle),
       address(0)
     );
-    simpleRouter = new SimpleRouter(IWETH9(address(1)));
+    simpleRouter = new SimpleRouter(IWETH9(address(asset)), flasher, swapper);
 
     vault.setActiveProvider(mockProvider);
     simpleRouter.registerVault(vault);
@@ -122,6 +131,44 @@ contract SimpleRouterTest is DSTestPlus {
 
     vm.expectEmit(true, true, true, true);
     emit Withdraw(address(simpleRouter), alice, alice, amount, amount);
+
+    SafeERC20.safeApprove(debtAsset, address(simpleRouter), type(uint256).max);
+
+    simpleRouter.xBundle(actions, args);
+
+    assertEq(vault.balanceOf(alice), 0);
+  }
+
+  function testClosePosition() public {
+    uint256 withdrawAmount = 2 ether;
+    uint256 flashAmount = 1000e18;
+
+    testDepositAndBorrow();
+
+    IRouter.Action[] memory actions = new IRouter.Action[](2);
+    bytes[] memory args = new bytes[](2);
+
+    actions[0] = IRouter.Action.Flashloan;
+
+    // construct inner actions
+    IRouter.Action[] memory innerActions = new IRouter.Action[](2);
+    bytes[] memory innerArgs = new bytes[](2);
+
+    innerActions[0] = IRouter.Action.Payback;
+    innerArgs[0] = abi.encode(address(vault), flashAmount, alice);
+
+    innerActions[1] = IRouter.Action.Withdraw;
+    innerArgs[1] = abi.encode(address(vault), withdrawAmount, address(simpleRouter), alice);
+    // ------------
+
+    IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
+      address(debtAsset), flashAmount, address(simpleRouter), innerActions, innerArgs
+    );
+    uint8 providerId = 0;
+    args[0] = abi.encode(params, providerId);
+
+    actions[1] = IRouter.Action.PaybackFlashloan;
+    args[1] = abi.encode(address(asset), address(debtAsset), flashAmount, 0);
 
     SafeERC20.safeApprove(debtAsset, address(simpleRouter), type(uint256).max);
 
