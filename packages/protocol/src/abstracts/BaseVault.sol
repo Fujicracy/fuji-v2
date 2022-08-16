@@ -249,45 +249,28 @@ abstract contract BaseVault is ERC20, IVault {
   /// Debt management: based on IERC4626 semantics ///
   ////////////////////////////////////////////////////
 
-  /**
-   * @dev Inspired on {IERC20Metadata-decimals}.
-   */
+  /// inheritdoc IVault
   function debtDecimals() public view virtual override returns (uint8);
 
-  /**
-   * @dev Based on {IERC4626-asset}.
-   */
+  /// inheritdoc IVault
   function debtAsset() public view virtual returns (address);
 
-  /**
-   * @dev Based on {IERC4626-totalAssets}.
-   */
+  /// inheritdoc IVault
   function totalDebt() public view virtual returns (uint256);
 
-  /**
-   * @dev Based on {IERC4626-convertToShares}.
-   */
+  /// inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view virtual returns (uint256 shares);
 
-  /**
-   * @dev Based on {IERC4626-convertToAssets}.
-   */
+  /// inheritdoc IVault
   function convertToDebt(uint256 shares) public view virtual returns (uint256 debt);
 
-  /**
-   * @dev Based on {IERC4626-maxDeposit}.
-   */
+  /// inheritdoc IVault
   function maxBorrow(address borrower) public view virtual returns (uint256);
 
-  /**
-   * @dev Based on {IERC4626-deposit}.
-   */
+  /// inheritdoc IVault
   function borrow(uint256 debt, address receiver, address owner) public virtual returns (uint256);
 
-  /**
-   * @dev Burns debtShares from owner.
-   * - MUST emit the Payback event.
-   */
+  /// inheritdoc IVault
   function payback(uint256 debt, address owner) public virtual returns (uint256);
 
   function _computeMaxBorrow(address borrower) internal view virtual returns (uint256);
@@ -364,6 +347,7 @@ abstract contract BaseVault is ERC20, IVault {
     _providers = providers; // TODO needs to emit event.
   }
 
+  /// inheritdoc IVault
   function setActiveProvider(ILendingProvider activeProvider_) external {
     // TODO needs admin restriction
     // TODO needs input validation
