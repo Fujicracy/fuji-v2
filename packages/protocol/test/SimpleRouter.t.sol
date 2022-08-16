@@ -82,7 +82,6 @@ contract SimpleRouterTest is DSTestPlus {
     simpleRouter = new SimpleRouter(IWETH9(address(asset)), flasher);
 
     vault.setActiveProvider(mockProvider);
-    simpleRouter.registerVault(vault);
   }
 
   function testDepositAndBorrow() public {

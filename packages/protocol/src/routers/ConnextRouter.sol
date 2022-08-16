@@ -54,10 +54,8 @@ contract ConnextRouter is BaseRouter {
     (uint256 destDomain, address asset, uint256 amount, address receiver) =
       abi.decode(params, (uint256, address, uint256, address));
 
-    // need approval for connext to spend `amount`
-    // assuming it's an asset/debtAsset of a vault
-    // that's already registered with "registerVault(vault)"
     pullToken(ERC20(asset), amount, address(this));
+    approve(ERC20(asset), address(connext), amount);
 
     CallParams memory callParams = CallParams({
       to: receiver,
@@ -92,10 +90,8 @@ contract ConnextRouter is BaseRouter {
     (uint256 destDomain, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, address, uint256, bytes));
 
-    // need approval for connext to spend `amount`
-    // assuming it's an asset/debtAsset of a vault
-    // that's already registered with "registerVault(vault)"
     pullToken(ERC20(asset), amount, address(this));
+    approve(ERC20(asset), address(connext), amount);
 
     CallParams memory callParams = CallParams({
       to: routerByDomain[destDomain],
@@ -137,16 +133,5 @@ contract ConnextRouter is BaseRouter {
     // TODO only owner
     // TODO verify params
     routerByDomain[domain] = router;
-  }
-
-  function registerVault(IVault vault) external {
-    // TODO onlyOwner
-    address asset = vault.asset();
-    approve(ERC20(asset), address(vault), type(uint256).max);
-    approve(ERC20(asset), address(connext), type(uint256).max);
-
-    address debtAsset = vault.debtAsset();
-    approve(ERC20(debtAsset), address(vault), type(uint256).max);
-    approve(ERC20(debtAsset), address(connext), type(uint256).max);
   }
 }

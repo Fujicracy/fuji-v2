@@ -102,7 +102,6 @@ contract Setup is DSTestPlus {
 
     // Configs
     vault.setActiveProvider(aaveV3);
-    router.registerVault(vault);
     router.setTestnetToken(reg.testToken);
     router.setRouter(domain == 3331 ? 1111 : 3331, address(0xAbc1));
   }
@@ -143,7 +142,6 @@ contract Setup is DSTestPlus {
 
     // Configs
     vault.setActiveProvider(aaveV3);
-    connextRouter.registerVault(vault);
     connextRouter.setRouter(domain == 3331 ? 1111 : 3331, address(0xAbc1));
   }
 }

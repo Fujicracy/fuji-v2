@@ -50,14 +50,4 @@ contract SimpleRouter is BaseRouter {
     // TODO onlyOwner
     flasher = newFlasher;
   }
-
-  // TODO replace this with safeIncreaseAllowance in xBundle
-  function registerVault(IVault vault) external {
-    // TODO onlyOwner
-    address asset = vault.asset();
-    approve(ERC20(asset), address(vault), type(uint256).max);
-
-    address debtAsset = vault.debtAsset();
-    approve(ERC20(debtAsset), address(vault), type(uint256).max);
-  }
 }
