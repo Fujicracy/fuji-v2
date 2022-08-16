@@ -24,33 +24,31 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
     for (uint256 i = 0; i < len;) {
       if (actions[i] == Action.Deposit) {
         // DEPOSIT
-        (address vaultAddr, uint256 amount, address receiver) =
-          abi.decode(args[i], (address, uint256, address));
-        IVault vault = IVault(vaultAddr);
+        (IVault vault, uint256 amount, address receiver) =
+          abi.decode(args[i], (IVault, uint256, address));
 
         pullToken(ERC20(vault.asset()), amount, address(this));
+        approve(ERC20(vault.asset()), address(vault), amount);
         vault.deposit(amount, receiver);
       } else if (actions[i] == Action.Withdraw) {
         // WITHDRAW
-        (address vaultAddr, uint256 amount, address receiver, address owner) =
-          abi.decode(args[i], (address, uint256, address, address));
-        IVault vault = IVault(vaultAddr);
+        (IVault vault, uint256 amount, address receiver, address owner) =
+          abi.decode(args[i], (IVault, uint256, address, address));
 
         vault.withdraw(amount, receiver, owner);
       } else if (actions[i] == Action.Borrow) {
         // BORROW
-        (address vaultAddr, uint256 amount, address receiver, address owner) =
-          abi.decode(args[i], (address, uint256, address, address));
-        IVault vault = IVault(vaultAddr);
+        (IVault vault, uint256 amount, address receiver, address owner) =
+          abi.decode(args[i], (IVault, uint256, address, address));
 
         vault.borrow(amount, receiver, owner);
       } else if (actions[i] == Action.Payback) {
         // PAYBACK
-        (address vaultAddr, uint256 amount, address receiver) =
-          abi.decode(args[i], (address, uint256, address));
-        IVault vault = IVault(vaultAddr);
+        (IVault vault, uint256 amount, address receiver) =
+          abi.decode(args[i], (IVault, uint256, address));
 
         pullToken(ERC20(vault.debtAsset()), amount, address(this));
+        approve(ERC20(vault.debtAsset()), address(vault), amount);
         vault.payback(amount, receiver);
       } else if (actions[i] == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER

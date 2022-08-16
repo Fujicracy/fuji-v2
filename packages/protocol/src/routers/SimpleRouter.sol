@@ -31,13 +31,4 @@ contract SimpleRouter is BaseRouter {
     params;
     revert SimpleRouter__noCrossTransfersImplemented();
   }
-
-  function registerVault(IVault vault) external {
-    // TODO onlyOwner
-    address asset = vault.asset();
-    approve(ERC20(asset), address(vault), type(uint256).max);
-
-    address debtAsset = vault.debtAsset();
-    approve(ERC20(debtAsset), address(vault), type(uint256).max);
-  }
 }
