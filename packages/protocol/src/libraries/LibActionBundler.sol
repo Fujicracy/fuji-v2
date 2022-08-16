@@ -30,8 +30,10 @@ library LibActionBundler {
   }
 
   function closeWithFlashloan(
+    IVault vault,
     address router,
-    address vault,
+    address swapper,
+    address flasher,
     uint256 withdrawAmount,
     uint256 flashAmount
   )
@@ -39,30 +41,30 @@ library LibActionBundler {
     view
     returns (IRouter.Action[] memory, bytes[] memory)
   {
-    IRouter.Action[] memory actions = new IRouter.Action[](2);
-    bytes[] memory args = new bytes[](2);
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
 
     actions[0] = IRouter.Action.Flashloan;
 
     // construct inner actions
-    IRouter.Action[] memory innerActions = new IRouter.Action[](2);
-    bytes[] memory innerArgs = new bytes[](2);
+    IRouter.Action[] memory innerActions = new IRouter.Action[](3);
+    bytes[] memory innerArgs = new bytes[](3);
 
     innerActions[0] = IRouter.Action.Payback;
     innerArgs[0] = abi.encode(vault, flashAmount, msg.sender);
 
     innerActions[1] = IRouter.Action.Withdraw;
     innerArgs[1] = abi.encode(vault, withdrawAmount, router, msg.sender);
+
+    innerActions[2] = IRouter.Action.Swap;
+    innerArgs[2] =
+      abi.encode(swapper, vault.asset(), vault.debtAsset(), withdrawAmount, flashAmount, flasher, 0);
     // ------------
 
-    IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
-      IVault(vault).debtAsset(), flashAmount, router, innerActions, innerArgs
-    );
+    IFlasher.FlashloanParams memory params =
+      IFlasher.FlashloanParams(vault.debtAsset(), flashAmount, router, innerActions, innerArgs);
     uint8 providerId = 0;
     args[0] = abi.encode(params, providerId);
-
-    actions[1] = IRouter.Action.PaybackFlashloan;
-    args[1] = abi.encode(IVault(vault).asset(), IVault(vault).debtAsset(), flashAmount, 0);
 
     return (actions, args);
   }

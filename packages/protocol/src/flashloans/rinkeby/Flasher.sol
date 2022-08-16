@@ -22,6 +22,7 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
   error Flasher__invalidEntryPoint();
   error Flasher__notEmptyEntryPoint();
   error Flasher__notAuthorized();
+  error Flasher__lastActionMustBeSwap();
 
   address public immutable NATIVE = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
   address public immutable aaveV3Pool = 0xE039BdF1d874d27338e09B55CB09879Dedca52D8;
@@ -90,13 +91,16 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     IERC20(asset).safeApprove(params.router, amount);
 
     // decode args of the last acton
-    uint256 len = params.args.length;
-    (address assetIn, address assetOut, uint256 amountOut, uint256 slippage) =
-      abi.decode(params.args[len - 1], (address, address, uint256, uint256));
+    if (params.actions[params.actions.length - 1] != IRouter.Action.Swap) revert
+      Flasher__lastActionMustBeSwap();
+
+    (address assetIn, address assetOut, uint256 amountOut, address receiver, uint256 slippage) =
+      abi.decode(params.args[params.args.length - 1], (address, address, uint256, address, uint256));
 
     // add up the premium to args of PaybackFlashloan action
     // which should be the last one
-    params.args[len - 1] = abi.encode(assetIn, assetOut, amountOut + premium, slippage);
+    params.args[params.args.length - 1] =
+      abi.encode(assetIn, assetOut, amountOut + premium, receiver, slippage);
 
     // call back Router
     IRouter(params.router).xBundle(params.actions, params.args);

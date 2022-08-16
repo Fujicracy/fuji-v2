@@ -8,6 +8,7 @@ pragma solidity ^0.8.9;
  */
 
 import {IRouter} from "../interfaces/IRouter.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
@@ -59,14 +60,26 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         // BRIDGE WITH CALLDATA
 
         _crossTransferWithCalldata(args[i]);
+      } else if (actions[i] == Action.Swap) {
+        // SWAP
+        (
+          ISwapper swapper,
+          address assetIn,
+          address assetOut,
+          uint256 maxAmountIn,
+          uint256 amountOut,
+          address receiver,
+          uint256 slippage
+        ) = abi.decode(args[i], (ISwapper, address, address, uint256, uint256, address, uint256));
+
+        approve(ERC20(assetIn), address(swapper), maxAmountIn);
+
+        // pull tokens and swap
+        swapper.swap(assetIn, assetOut, amountOut, receiver, slippage);
       } else if (actions[i] == Action.Flashloan) {
         // FLASHLOAN
 
         _initiateFlashloan(args[i]);
-      } else if (actions[i] == Action.PaybackFlashloan) {
-        // PAYBACK FLASHLOAN
-
-        _paybackFlashloan(args[i]);
       }
     }
   }
@@ -76,6 +89,4 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
   function _crossTransferWithCalldata(bytes memory) internal virtual;
 
   function _initiateFlashloan(bytes memory) internal virtual;
-
-  function _paybackFlashloan(bytes memory) internal virtual;
 }

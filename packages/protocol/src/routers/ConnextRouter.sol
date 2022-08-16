@@ -129,10 +129,6 @@ contract ConnextRouter is BaseRouter {
     params;
   }
 
-  function _paybackFlashloan(bytes memory params) internal pure override {
-    params;
-  }
-
   ///////////////////////
   /// Admin functions ///
   ///////////////////////

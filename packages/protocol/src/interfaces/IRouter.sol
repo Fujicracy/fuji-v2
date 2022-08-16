@@ -10,7 +10,7 @@ interface IRouter {
     Borrow,
     Payback,
     Flashloan,
-    PaybackFlashloan,
+    Swap,
     XTransfer,
     XTransferWithCall
   }
