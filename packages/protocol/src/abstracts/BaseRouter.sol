@@ -21,7 +21,7 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
 
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     uint256 len = actions.length;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len;) {
       if (actions[i] == Action.Deposit) {
         // DEPOSIT
         (address vaultAddr, uint256 amount, address receiver) =
@@ -60,6 +60,9 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         // BRIDGE WITH CALLDATA
 
         _crossTransferWithCalldata(args[i]);
+      }
+      unchecked {
+        ++i;
       }
     }
   }
