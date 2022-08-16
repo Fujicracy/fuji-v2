@@ -1,7 +1,18 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.9;
 
+import {MockERC20} from "./MockERC20.sol";
+import {MockOracle} from "./MockOracle.sol";
+
 contract MockSwapper {
+  MockOracle public oracle;
+
+  constructor(MockOracle _oracle) {
+    oracle = _oracle;
+  }
+
+  // dummy burns input asset and mints output asset
+  // to the address "to"
   function swapTokensForExactTokens(
     uint256 amountOut,
     uint256 amountInMax,
@@ -10,24 +21,31 @@ contract MockSwapper {
     uint256 deadline
   )
     external
-    pure
-    returns (uint256[] memory amounts)
+    returns (uint256[] memory)
   {
-    amountOut;
-    amountInMax;
-    path;
-    to;
     deadline;
-    amounts;
+    uint256 len = path.length;
+    MockERC20(path[0]).burn(msg.sender, amountInMax);
+    MockERC20(path[len - 1]).mint(to, amountOut);
+
+    uint256[] memory amounts = new uint256[](1);
+    amounts[0] = 1;
+    return amounts;
   }
 
+  // dummy calculates the amountIn based on data from the oracle
   function getAmountsIn(uint256 amountOut, address[] memory path)
     public
-    pure
-    returns (uint256[] memory amounts)
+    view
+    returns (uint256[] memory)
   {
-    amountOut;
-    path;
-    amounts;
+    uint256 len = path.length;
+    address asset = path[0];
+    address debtAsset = path[len - 1];
+    uint256 amount = oracle.getPriceOf(debtAsset, asset, 18);
+
+    uint256[] memory amounts = new uint256[](1);
+    amounts[0] = amountOut / amount;
+    return amounts;
   }
 }

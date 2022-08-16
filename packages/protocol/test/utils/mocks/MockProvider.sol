@@ -25,7 +25,7 @@ contract MockProvider is ILendingProvider {
    * @notice See {ILendingProvider}
    */
   function borrow(address asset, uint256 amount) external override returns (bool success) {
-    MockERC20(asset).mint(address(this), amount);
+    MockERC20(asset).mintDebt(address(this), amount);
     success = true;
   }
 
@@ -40,9 +40,8 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address asset, uint256 amount) external pure override returns (bool success) {
-    asset;
-    amount;
+  function payback(address asset, uint256 amount) external override returns (bool success) {
+    MockERC20(asset).burn(address(this), amount);
     success = true;
   }
 
@@ -83,7 +82,6 @@ contract MockProvider is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    user;
-    balance = MockERC20(asset).totalSupply();
+    balance = MockERC20(asset).balanceOfDebt(user);
   }
 }
