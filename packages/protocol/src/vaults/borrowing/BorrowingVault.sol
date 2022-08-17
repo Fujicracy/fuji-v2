@@ -74,7 +74,6 @@ contract BorrowingVault is BaseVault {
    * @dev Based on {IERC4626-deposit}.
    */
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
-    require(owner == _msgSender(), "No permission");
     require(debt > 0, "Wrong input");
     require(debt <= maxBorrow(owner), "Not enough assets");
 
@@ -120,7 +119,7 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
-   * @dev Base on {ERC20-_approve}.
+   * @dev Based on {ERC20-_approve}.
    */
   function _borrowApprove(
     address owner,
@@ -132,6 +131,23 @@ contract BorrowingVault is BaseVault {
 
     _borrowAllowances[owner][spender] = amount;
     emit BorrowApproval(owner, spender, amount);
+  }
+
+  /**
+   * @dev Based on {ERC20-_spendAllowance}.
+   */
+  function _spendBorrowAllowance(
+    address owner,
+    address spender,
+    uint256 amount
+  ) internal {
+    uint256 currentAllowance = borrowAllowance(owner, spender);
+    if (currentAllowance != type(uint256).max) {
+      require(currentAllowance >= amount, "ERC20: insufficient allowance");
+      unchecked {
+        _borrowApprove(owner, spender, currentAllowance - amount);
+      }
+    }
   }
 
   function _computeMaxBorrow(address borrower) internal view override returns (uint256 max) {
@@ -204,6 +220,10 @@ contract BorrowingVault is BaseVault {
     internal
     override
   {
+    if (caller != owner) {
+      _spendBorrowAllowance(owner, caller, shares);
+    }
+
     _mintDebtShares(owner, shares);
 
     address asset = debtAsset();
