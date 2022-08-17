@@ -24,10 +24,15 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
     for (uint256 i = 0; i < len;) {
       if (actions[i] == Action.Deposit) {
         // DEPOSIT
-        (IVault vault, uint256 amount, address receiver) =
-          abi.decode(args[i], (IVault, uint256, address));
+        (IVault vault, uint256 amount, address receiver, address sender) =
+          abi.decode(args[i], (IVault, uint256, address, address));
 
-        pullToken(ERC20(vault.asset()), amount, address(this));
+        // this check is needed because when we bundle mulptiple actions
+        // it can happen the router already holds the assets in question;
+        // for. example when we withdraw from a vault and deposit to another one
+        if (sender != address(this)) pullTokenFrom(
+          ERC20(vault.asset()), amount, address(this), sender
+        );
         approve(ERC20(vault.asset()), address(vault), amount);
         vault.deposit(amount, receiver);
       } else if (actions[i] == Action.Withdraw) {
@@ -44,10 +49,12 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         vault.borrow(amount, receiver, owner);
       } else if (actions[i] == Action.Payback) {
         // PAYBACK
-        (IVault vault, uint256 amount, address receiver) =
-          abi.decode(args[i], (IVault, uint256, address));
+        (IVault vault, uint256 amount, address receiver, address sender) =
+          abi.decode(args[i], (IVault, uint256, address, address));
 
-        pullToken(ERC20(vault.debtAsset()), amount, address(this));
+        if (sender != address(this)) pullTokenFrom(
+          ERC20(vault.debtAsset()), amount, address(this), sender
+        );
         approve(ERC20(vault.debtAsset()), address(vault), amount);
         vault.payback(amount, receiver);
       } else if (actions[i] == Action.XTransfer) {

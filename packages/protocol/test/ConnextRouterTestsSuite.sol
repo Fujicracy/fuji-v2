@@ -63,7 +63,7 @@ contract ConnextRouterTestsSuite is Setup {
     actions[1] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](2);
-    args[0] = abi.encode(address(vault), amount, alice);
+    args[0] = abi.encode(address(vault), amount, alice, executor);
     args[1] = abi.encode(address(vault), borrowAmount, alice, alice);
 
     bytes memory params = abi.encode(actions, args);

@@ -21,7 +21,7 @@ library LibActionBundler {
     bytes[] memory args = new bytes[](2);
 
     actions[0] = IRouter.Action.Deposit;
-    args[0] = abi.encode(vault, amount, msg.sender);
+    args[0] = abi.encode(vault, amount, msg.sender, msg.sender);
 
     actions[1] = IRouter.Action.Borrow;
     args[1] = abi.encode(vault, borrowAmount, msg.sender, msg.sender);
@@ -51,7 +51,7 @@ library LibActionBundler {
     bytes[] memory innerArgs = new bytes[](3);
 
     innerActions[0] = IRouter.Action.Payback;
-    innerArgs[0] = abi.encode(vault, flashAmount, msg.sender);
+    innerArgs[0] = abi.encode(vault, flashAmount, msg.sender, msg.sender);
 
     innerActions[1] = IRouter.Action.Withdraw;
     innerArgs[1] = abi.encode(vault, withdrawAmount, router, msg.sender);

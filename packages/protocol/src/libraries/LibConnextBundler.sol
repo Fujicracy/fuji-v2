@@ -26,7 +26,7 @@ library LibConnextBundler {
     bytes[] memory bArgs = new bytes[](2);
 
     bActions[0] = IRouter.Action.Deposit;
-    bArgs[0] = abi.encode(destVault, amount, msg.sender);
+    bArgs[0] = abi.encode(destVault, amount, msg.sender, msg.sender);
 
     bActions[1] = IRouter.Action.Borrow;
     bArgs[1] = abi.encode(destVault, borrowAmount, msg.sender, msg.sender);
