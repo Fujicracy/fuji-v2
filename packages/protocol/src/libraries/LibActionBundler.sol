@@ -64,7 +64,7 @@ library LibActionBundler {
     IFlasher.FlashloanParams memory params =
       IFlasher.FlashloanParams(vault.debtAsset(), flashAmount, router, innerActions, innerArgs);
     uint8 providerId = 0;
-    args[0] = abi.encode(params, providerId);
+    args[0] = abi.encode(address(flasher), params, providerId);
 
     return (actions, args);
   }

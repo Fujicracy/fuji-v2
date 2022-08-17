@@ -10,6 +10,7 @@ pragma solidity ^0.8.9;
 import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IFlasher} from "../interfaces/IFlasher.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
 abstract contract BaseRouter is PeripheryPayments, IRouter {
@@ -84,7 +85,12 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
       } else if (actions[i] == Action.Flashloan) {
         // FLASHLOAN
 
-        _initiateFlashloan(args[i]);
+        // Decode params
+        (IFlasher flasher, IFlasher.FlashloanParams memory flParams, uint8 providerId) =
+          abi.decode(args[i], (IFlasher, IFlasher.FlashloanParams, uint8));
+
+        // Call Flasher
+        flasher.initiateFlashloan(flParams, providerId);
       }
       unchecked {
         ++i;
@@ -95,6 +101,4 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
   function _crossTransfer(bytes memory) internal virtual;
 
   function _crossTransferWithCalldata(bytes memory) internal virtual;
-
-  function _initiateFlashloan(bytes memory) internal virtual;
 }

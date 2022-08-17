@@ -105,7 +105,7 @@ contract SimpleRouterTest is DSTestPlus {
       address(oracle),
       address(0)
     );
-    simpleRouter = new SimpleRouter(IWETH9(address(asset)), flasher);
+    simpleRouter = new SimpleRouter(IWETH9(address(asset)));
 
     vault.setActiveProvider(mockProvider);
   }
@@ -228,7 +228,7 @@ contract SimpleRouterTest is DSTestPlus {
       vault.debtAsset(), borrowAmount, address(simpleRouter), innerActions, innerArgs
     );
     uint8 providerId = 0;
-    args[0] = abi.encode(params, providerId);
+    args[0] = abi.encode(address(flasher), params, providerId);
 
     vm.prank(alice);
     simpleRouter.xBundle(actions, args);
@@ -274,7 +274,7 @@ contract SimpleRouterTest is DSTestPlus {
       address(debtAsset), flashAmount, address(simpleRouter), innerActions, innerArgs
     );
     uint8 providerId = 0;
-    args[0] = abi.encode(params, providerId);
+    args[0] = abi.encode(address(flasher), params, providerId);
 
     vm.prank(alice);
     simpleRouter.xBundle(actions, args);
