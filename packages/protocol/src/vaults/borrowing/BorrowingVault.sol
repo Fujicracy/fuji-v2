@@ -12,6 +12,14 @@ contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20;
 
+  /**
+   * @dev Emitted when the borrow allowance of a `spender` for an `owner` is set by
+   * a call to {borrowApprove}. `value` is the new allowance.
+   */
+  event BorrowApproval(address indexed owner, address indexed spender, uint256 value);
+
+  mapping(address => mapping(address => uint256)) private _borrowAllowances;
+
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
     BaseVault(asset_, debtAsset_, oracle_, chief_)
   {}
@@ -89,6 +97,41 @@ contract BorrowingVault is BaseVault {
     _payback(_msgSender(), owner, debt, shares);
 
     return shares;
+  }
+
+  /////////////////////////
+  /// Borrow allowances ///
+  /////////////////////////
+
+  /**
+   * @dev Based on {IERC20-allowance}.
+   */
+  function borrowAllowance(address owner, address spender) public view returns (uint256) {
+    return _borrowAllowances[owner][spender];
+  }
+
+  /**
+   * @dev Based on {IERC20-approve}.
+   */
+  function borrowApprove(address spender, uint256 amount) public returns (bool) {
+    address owner = _msgSender();
+    _borrowApprove(owner, spender, amount);
+    return true;
+  }
+
+  /**
+   * @dev Base on {ERC20-_approve}.
+   */
+  function _borrowApprove(
+    address owner,
+    address spender,
+    uint256 amount
+  ) internal {
+    require(owner != address(0), "ERC20: approve from the zero address");
+    require(spender != address(0), "ERC20: approve to the zero address");
+
+    _borrowAllowances[owner][spender] = amount;
+    emit BorrowApproval(owner, spender, amount);
   }
 
   function _computeMaxBorrow(address borrower) internal view override returns (uint256 max) {
