@@ -175,7 +175,6 @@ abstract contract BaseVault is ERC20, IVault {
     override
     returns (uint256)
   {
-    // TODO Need to add security to owner !!!!!!!!
     require(assets > 0, "Wrong input");
     require(assets <= maxWithdraw(owner), "Withdraw more than max");
 
@@ -259,6 +258,10 @@ abstract contract BaseVault is ERC20, IVault {
   )
     internal
   {
+    if (caller != owner) {
+      _spendAllowance(owner, caller, shares);
+    }
+
     _burn(owner, shares);
     _executeProviderAction(asset(), assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
