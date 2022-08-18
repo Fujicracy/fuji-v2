@@ -1,0 +1,58 @@
+{
+  "name": "@x-fuji/sdk",
+  "version": "0.1.0",
+  "author": "Fujidao Labs OÜ",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "module": "dist/sdk.esm.js",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "size-limit": [
+    {
+      "path": "dist/sdk.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/sdk.esm.js",
+      "limit": "10 KB"
+    }
+  ],
+  "dependencies": {
+    "@ethersproject/abi": "^5.4.0",
+    "@ethersproject/contracts": "^5.4.0"
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.0.1",
+    "husky": "^8.0.1",
+    "size-limit": "^8.0.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.4"
+  }
+}
