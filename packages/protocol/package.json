@@ -2,7 +2,6 @@
   "name": "@x-fuji/protocol",
   "version": "1.0.0",
   "description": "X-Fuji smart contracts",
-  "type": "module",
   "scripts": {
     "install": "forge install",
     "build": "forge build",
