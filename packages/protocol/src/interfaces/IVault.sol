@@ -9,6 +9,7 @@ pragma solidity ^0.8.9;
 
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {ILendingProvider} from "./ILendingProvider.sol";
+import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
   struct Factor {
@@ -21,8 +22,35 @@ interface IVault is IERC4626 {
   event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
 
   /**
-   * @dev Inspired on {IERC20Metadata-decimals}.
+   * @dev Emitted when the oracle address is changed
+   * @param newOracle The new oracle address
    */
+  event OracleChanged(IFujiOracle newOracle);
+
+  /**
+   * @dev Emitted when the available providers for the vault change
+   * @param newProviders the new providers available
+   */
+  event ProvidersChanged(ILendingProvider[] newProviders);
+
+  /**
+   * @dev Emitted when the active provider is changed
+   * @param newActiveProvider the new active provider
+   */
+  event ActiveProviderChanged(ILendingProvider newActiveProvider);
+
+  /**
+   * @dev Emitted when the max LTV is changed
+   * @param newMaxLtv the new max LTV
+   */
+  event MaxLtvChanged(Factor newMaxLtv);
+
+  /**
+   * @dev Emitted when the liquidation ratio is changed
+   * @param newLiqRatio the new liquidation ratio
+   */
+  event LiqRatioChanged(Factor newLiqRatio);
+
   function debtDecimals() external view returns (uint8);
 
   /**
