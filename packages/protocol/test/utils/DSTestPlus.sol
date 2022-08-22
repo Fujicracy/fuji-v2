@@ -3,8 +3,6 @@ pragma solidity ^0.8.10;
 
 import {XConsole} from "./Console.sol";
 
-import {ERC20} from "@solmate/tokens/ERC20.sol";
-
 import {Vm} from "@std/Vm.sol";
 import {Test} from "forge-std/Test.sol";
 

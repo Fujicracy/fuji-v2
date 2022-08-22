@@ -2,6 +2,5 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 # 1. Build the contracts
-# 2. Stage build output
 # 2. Lint and stage style improvements
-yarn workspace @x-fuji/protocol build && git add packages/protocol && npx lint-staged
+yarn workspace @x-fuji/protocol build && npx lint-staged

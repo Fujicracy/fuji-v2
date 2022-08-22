@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Setup} from "./utils/Setup.sol";
-import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
-
-interface IMintable {
-  function mint(address, uint256) external;
-}
 
 contract VaultTestsSuite is Setup {
   function testConfigs() public {
@@ -18,59 +14,20 @@ contract VaultTestsSuite is Setup {
   }
 
   function testDepositAndWithdraw() public {
-    address userChainA = address(0xA);
-    vm.label(address(userChainA), "userChainA");
-
-    /*vm.deal(userChainA, amount);*/
-    uint256 amount = 2 ether;
-    IMintable(address(weth)).mint(userChainA, amount);
-    assertEq(weth.balanceOf(userChainA), amount);
-
-    vm.startPrank(userChainA);
-
-    SafeTransferLib.safeApprove(weth, address(vault), amount);
-    vault.deposit(amount, userChainA);
-
-    assertEq(vault.balanceOf(userChainA), amount);
-    vault.withdraw(amount, userChainA, userChainA);
-    assertEq(vault.balanceOf(userChainA), 0);
-    assertEq(weth.balanceOf(userChainA), amount);
-  }
-
-  function testDepositAndWithdrawFromRouter() public {
-    address userChainA = address(0xA);
-    vm.label(address(userChainA), "userChainA");
-
-    /*vm.deal(userChainA, amount);*/
-    uint256 amount = 2 ether;
-    IMintable(address(weth)).mint(userChainA, amount);
-    assertEq(weth.balanceOf(userChainA), amount);
-
-    vm.startPrank(userChainA);
-
-    SafeTransferLib.safeApprove(weth, address(router), type(uint256).max);
-    router.depositToVault(IVault(address(vault)), amount);
-
-    assertEq(vault.balanceOf(userChainA), amount);
-    router.withdrawFromVault(IVault(address(vault)), amount);
-    assertEq(vault.balanceOf(userChainA), 0);
-    assertEq(weth.balanceOf(userChainA), amount);
-  }
-
-  function testDepositAndBorrowFromRouter() public {
-    address userChainA = address(0xA);
-    vm.label(address(userChainA), "userChainA");
+    address alice = address(0xA);
+    vm.label(address(alice), "alice");
 
     uint256 amount = 2 ether;
-    uint256 debtAmount = 100000000;
+    deal(address(weth), alice, amount);
 
-    IMintable(address(weth)).mint(userChainA, amount);
-    assertEq(weth.balanceOf(userChainA), amount);
+    vm.startPrank(alice);
 
-    vm.startPrank(userChainA);
+    SafeERC20.safeApprove(IERC20(address(weth)), address(vault), amount);
+    vault.deposit(amount, alice);
 
-    SafeTransferLib.safeApprove(weth, address(router), type(uint256).max);
-    router.depositAndBorrow(IVault(address(vault)), amount, debtAmount);
-    assertEq(ERC20(debtAsset).balanceOf(userChainA), debtAmount);
+    assertEq(vault.balanceOf(alice), amount);
+    vault.withdraw(amount, alice, alice);
+    assertEq(vault.balanceOf(alice), 0);
+    assertEq(weth.balanceOf(alice), amount);
   }
 }
