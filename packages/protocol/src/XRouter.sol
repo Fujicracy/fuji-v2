@@ -12,7 +12,7 @@ import "./helpers/PeripheryPayments.sol";
 // TODO inherit from SelfPermit, Multicall
 // for additional functionalitites
 // ref: https://github.com/fei-protocol/ERC4626/blob/main/src/ERC4626RouterBase.sol
-contract XRouter is IRouter, PeripheryPayments {
+contract XRouter is PeripheryPayments {
   IConnextHandler public connext;
   IExecutor public executor;
 
@@ -217,22 +217,25 @@ contract XRouter is IRouter, PeripheryPayments {
     IERC20Mintable(address(WETH9)).mint(address(this), bridgedAmount);
     // <------
 
+    IVault v = IVault(vault);
     uint256 len = actions.length;
     for (uint256 i = 0; i < len; i++) {
       if (actions[i] == Action.Deposit) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
-        IVault(vault).deposit(amount, receiver);
+        approve(ERC20(v.asset()), vault, amount);
+        v.deposit(amount, receiver);
       } else if (actions[i] == Action.Withdraw) {
         (uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (uint256, address, address));
-        IVault(vault).withdraw(amount, receiver, owner);
+        v.withdraw(amount, receiver, owner);
       } else if (actions[i] == Action.Borrow) {
         (uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (uint256, address, address));
-        IVault(vault).borrow(amount, receiver, owner);
+        v.borrow(amount, receiver, owner);
       } else if (actions[i] == Action.Payback) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
-        IVault(vault).payback(amount, receiver);
+        approve(ERC20(v.debtAsset()), vault, amount);
+        v.payback(amount, receiver);
       } else if (actions[i] == Action.BridgeTransfer) {
         (uint256 domain, address asset, uint256 amount, address receiver) =
           abi.decode(args[i], (uint256, address, uint256, address));
@@ -329,17 +332,5 @@ contract XRouter is IRouter, PeripheryPayments {
     connextTestToken = token;
     approve(ERC20(token), address(connext), type(uint256).max);
   }
-
-  // <------
-
-  function registerVault(IVault vault) external {
-    // TODO onlyOwner
-    address asset = vault.asset();
-    approve(ERC20(asset), address(vault), type(uint256).max);
-    approve(ERC20(asset), address(connext), type(uint256).max);
-
-    address debtAsset = vault.debtAsset();
-    approve(ERC20(debtAsset), address(vault), type(uint256).max);
-    approve(ERC20(debtAsset), address(connext), type(uint256).max);
-  }
+// <------
 }
