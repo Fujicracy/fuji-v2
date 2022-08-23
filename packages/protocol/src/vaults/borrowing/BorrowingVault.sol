@@ -28,51 +28,37 @@ contract BorrowingVault is BaseVault {
   /// Debt management overrides ///
   /////////////////////////////////
 
-  /**
-   * @dev Inspired on {IERC20Metadata-decimals}.
-   */
+  /// @inheritdoc BaseVault
   function debtDecimals() public view override returns (uint8) {
     return _debtAsset.decimals();
   }
 
-  /**
-   * @dev Based on {IERC4626-asset}.
-   */
+  /// @inheritdoc BaseVault
   function debtAsset() public view override returns (address) {
     return address(_debtAsset);
   }
 
-  /**
-   * @dev Based on {IERC4626-totalAssets}.
-   */
+  /// @inheritdoc BaseVault
   function totalDebt() public view override returns (uint256) {
     return activeProvider.getBorrowBalance(debtAsset(), address(this));
   }
 
-  /**
-   * @dev Based on {IERC4626-convertToShares}.
-   */
+  /// @inheritdoc BaseVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
-  /**
-   * @dev Based on {IERC4626-convertToAssets}.
-   */
+  /// @inheritdoc BaseVault
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Down);
   }
 
-  /**
-   * @dev Based on {IERC4626-maxDeposit}.
-   */
+  /// @inheritdoc BaseVault
   function maxBorrow(address borrower) public view override returns (uint256) {
     return _computeMaxBorrow(borrower);
   }
 
-  /**
-   * @dev Based on {IERC4626-deposit}.
-   */
+  /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     require(debt > 0, "Wrong input");
     require(debt <= maxBorrow(owner), "Not enough assets");
@@ -83,10 +69,7 @@ contract BorrowingVault is BaseVault {
     return shares;
   }
 
-  /**
-   * @dev Burns debtShares from owner.
-   * - MUST emit the Payback event.
-   */
+  /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
     require(owner == _msgSender(), "No permission");
     require(debt > 0, "Wrong input");

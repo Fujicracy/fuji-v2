@@ -52,7 +52,6 @@ contract DeployRinkeby is ScriptPlus {
     saveAddress("./deployments/rinkeby/BorrowingVault", address(vault));
 
     vault.setActiveProvider(aaveV3);
-    router.registerVault(IVault(address(vault)));
 
     router.setTestnetToken(connextTestToken);
 

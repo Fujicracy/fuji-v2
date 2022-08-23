@@ -52,7 +52,6 @@ contract DeployGoerli is ScriptPlus {
     saveAddress("./deployments/goerli/BorrowingVault", address(vault));
 
     vault.setActiveProvider(aaveV3);
-    router.registerVault(IVault(address(vault)));
 
     router.setTestnetToken(connextTestToken);
 
