@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.15;
 
 contract MockOracle {
   function getPriceOf(address _currencyAsset, address _commodityAsset, uint8 _decimals)

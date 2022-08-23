@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.8.9;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.15;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 

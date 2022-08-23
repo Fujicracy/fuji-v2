@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later-only
-pragma solidity >=0.8.9;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.15;
 
 /// @dev Custom Errors
 error Unauthorized();
