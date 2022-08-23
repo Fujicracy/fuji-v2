@@ -18,6 +18,7 @@ import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
+import {VaultPermissions} from "./VaultPermissions.sol";
 
 abstract contract BaseVault is ERC20, IVault {
   using Math for uint256;

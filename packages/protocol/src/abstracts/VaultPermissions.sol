@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 
-contract VaultPermissions is EIP712 {
+contract VaultPermissions is IVaultPermissions, EIP712 {
     using Counters for Counters.Counter;
-
-    event AssetApproval(address indexed owner, address spender, uint256 amount);
-    event DebtApproval(address indexed owner, address spender, uint256 amount);
 
     mapping(address => mapping(address => uint256)) internal _assetAllowance;
     mapping(address => mapping(address => uint256)) internal _debtAllowance;
@@ -34,42 +32,38 @@ contract VaultPermissions is EIP712 {
     bytes32 private _PERMIT_TYPEHASH_DEPRECATED_SLOT;
 
     /**
-     * @dev Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to `"1"`.
+     * @dev Initializes the {EIP712} domain separator using the `name` parameter, and setting `version`.
      * It's a good idea to use the same `name` that is defined as the BaseVault token name.
      */
     constructor(string memory name_, string memory version_)
         EIP712(name_, version_)
     {}
 
-    /**
-     * @dev Based on {IERC20-allowance} for assets.
-     * Should be used to override {IERC4626-allowance}.
-     */
+    /// @inheritdoc IVaultPermissions
     function assetAllowance(address owner, address spender)
         public
+        override
         view
         returns (uint256)
     {
         return _assetAllowance[owner][spender];
     }
 
-    /**
-     * @dev Based on {IERC20-allowance} for debt.
-     */
+    /// @inheritdoc IVaultPermissions
     function debtAllowance(address owner, address spender)
         public
         view
+        override
         virtual
         returns (uint256)
     {
         return _debtAllowance[owner][spender];
     }
 
-    /**
-     * @dev Based on OZ {ERC20-increaseAllowance} for assets.
-     */
+    /// @inheritdoc IVaultPermissions
     function increaseAssetAllowance(address spender, uint256 byAmount)
         public
+        override
         returns (bool)
     {
         address owner = msg.sender;
@@ -81,11 +75,10 @@ contract VaultPermissions is EIP712 {
         return true;
     }
 
-    /**
-     * @dev Based on OZ {ERC20-decreaseAllowance} for assets.
-     */
+    /// @inheritdoc IVaultPermissions
     function decreaseAssetAllowance(address spender, uint256 byAmount)
         public
+        override
         returns (bool)
     {
         address owner = msg.sender;
@@ -104,11 +97,10 @@ contract VaultPermissions is EIP712 {
         return true;
     }
 
-    /**
-     * @dev Based on OZ {ERC20-increaseAllowance} for debt.
-     */
+    /// @inheritdoc IVaultPermissions
     function increaseDebtAllowance(address spender, uint256 byAmount)
         public
+        override
         virtual
         returns (bool)
     {
@@ -121,11 +113,10 @@ contract VaultPermissions is EIP712 {
         return true;
     }
 
-    /**
-     * @dev Based on OZ {ERC20-decreaseAllowance} for debt.
-     */
+    /// @inheritdoc IVaultPermissions
     function decreaseDebtAllowance(address spender, uint256 byAmount)
         public
+        override
         virtual
         returns (bool)
     {
@@ -145,10 +136,8 @@ contract VaultPermissions is EIP712 {
         return true;
     }
 
-    /**
-     * @dev See {IERC20Permit-nonces}.
-     */
-    function nonces(address owner) public view returns (uint256) {
+    /// @inheritdoc IVaultPermissions
+    function nonces(address owner) public override view returns (uint256) {
         return _nonces[owner].current();
     }
 
@@ -160,9 +149,7 @@ contract VaultPermissions is EIP712 {
         return _domainSeparatorV4();
     }
 
-    /**
-     * @dev Inspired by {IERC20Permit-permit} for assets.
-     */
+    /// @inheritdoc IVaultPermissions
     function permitAssets(
         address owner,
         address spender,
@@ -171,7 +158,7 @@ contract VaultPermissions is EIP712 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public {
+    ) public override {
         require(block.timestamp <= deadline, "Expired deadline");
         bytes32 structHash = keccak256(
             abi.encode(
@@ -191,9 +178,7 @@ contract VaultPermissions is EIP712 {
         _setAssetAllowance(owner, spender, value);
     }
 
-    /**
-     * @dev Inspired by {IERC20Permit-permit} for debt.
-     */
+    /// @inheritdoc IVaultPermissions
     function permitDebt(
         address owner,
         address spender,
@@ -202,7 +187,7 @@ contract VaultPermissions is EIP712 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public virtual {
+    ) public override virtual {
         require(block.timestamp <= deadline, "Expired deadline");
 
         bytes32 structHash = keccak256(
