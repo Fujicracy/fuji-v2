@@ -6,8 +6,6 @@ import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/draft-
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 
-import "forge-std/console.sol";
-
 contract VaultPermissions is IVaultPermissions, EIP712 {
   using Counters for Counters.Counter;
 
@@ -126,7 +124,6 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     require(block.timestamp <= deadline, "Expired deadline");
     bytes32 structHash =
       keccak256(abi.encode(_PERMIT_ASSET_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
-
     bytes32 digest = _hashTypedDataV4(structHash);
     address signer = ECDSA.recover(digest, v, r, s);
     require(signer == owner, "Invalid signature");
@@ -148,16 +145,12 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     virtual
     override
   {
-    console.log("owner", owner);
     require(block.timestamp <= deadline, "Expired deadline");
-
     bytes32 structHash = keccak256(
       abi.encode(_PERMIT_BORROW_TYPEHASH, owner, spender, value, _useNonce(owner), deadline)
     );
-
     bytes32 digest = _hashTypedDataV4(structHash);
     address signer = ECDSA.recover(digest, v, r, s);
-    console.log("expected signer", signer);
     require(signer == owner, "Invalid signature");
 
     _setBorrowAllowance(owner, spender, value);

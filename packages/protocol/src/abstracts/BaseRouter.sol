@@ -12,8 +12,6 @@ import {IVault} from "../interfaces/IVault.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
-import "forge-std/console.sol";
-
 abstract contract BaseRouter is PeripheryPayments, IRouter {
   constructor(IWETH9 weth) PeripheryPayments(weth) {}
 
@@ -85,7 +83,6 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         );
 
         vault.permitBorrow(owner, spender, value, deadline, v, r, s);
-        console.log("borrowAllowance", vault.borrowAllowance(owner, spender));
       } else if (actions[i] == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 

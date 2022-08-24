@@ -33,8 +33,8 @@ contract SigUtilsHelper {
     );
   }
 
-  // computes the hash of a permit-debt
-  function getStructHashDebt(Permit memory _permit) public pure returns (bytes32) {
+  // computes the hash of a permit-borrow
+  function getStructHashBorrow(Permit memory _permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
         _PERMIT_DEBT_TYPEHASH,

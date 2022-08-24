@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/Test.sol";
+
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../src/routers/SimpleRouter.sol";
@@ -16,6 +18,8 @@ import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 import {SigUtilsHelper} from "./utils/SigUtilsHelper.sol";
 
 contract SimpleRouterTest is DSTestPlus {
+  using stdStorage for StdStorage;
+
   event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
@@ -88,7 +92,7 @@ contract SimpleRouterTest is DSTestPlus {
     uint256 borrowAmount = 100e18;
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getBorrowPermitArgs(alice, address(simpleRouter), borrowAmount);
+      _getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount);
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
@@ -123,12 +127,17 @@ contract SimpleRouterTest is DSTestPlus {
 
     testDepositAndBorrow();
 
-    IRouter.Action[] memory actions = new IRouter.Action[](2);
-    actions[0] = IRouter.Action.Payback;
-    actions[1] = IRouter.Action.Withdraw;
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitAssetsArgs(alice, address(simpleRouter), amount);
 
-    bytes[] memory args = new bytes[](2);
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Payback;
+    actions[1] = IRouter.Action.PermitAssets;
+    actions[2] = IRouter.Action.Withdraw;
+
+    bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), borrowAmount, alice);
+    args[1] = abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
     args[1] = abi.encode(address(vault), amount, alice, alice);
 
     vm.expectEmit(true, true, true, true);
@@ -137,14 +146,29 @@ contract SimpleRouterTest is DSTestPlus {
     vm.expectEmit(true, true, true, true);
     emit Withdraw(address(simpleRouter), alice, alice, amount, amount);
 
-    SafeERC20.safeApprove(debtAsset, address(simpleRouter), type(uint256).max);
+    stdstore
+    .target(address(debtAsset))
+    .sig("allowance(address,address)")
+    .with_key(alice)
+    .with_key(address(simpleRouter))
+    .checked_write(borrowAmount);
+    console.log("debtAsset.allowance(alice,address(vault))", debtAsset.allowance(alice,address(simpleRouter)));
+  
+    stdstore
+    .target(address(debtAsset))
+    .sig("allowance(address,address)")
+    .with_key(address(simpleRouter))
+    .with_key(address(vault))
+    .checked_write(borrowAmount);
+
+    console.log("debtAsset.allowance(address(simpleRouter),address(vault))", debtAsset.allowance(address(simpleRouter),address(vault)));
 
     simpleRouter.xBundle(actions, args);
 
     assertEq(vault.balanceOf(alice), 0);
   }
 
-  function _getBorrowPermitArgs(address owner, address operator, uint256 borrowAmount)
+  function _getPermitBorrowArgs(address owner, address operator, uint256 borrowAmount)
     internal
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
@@ -159,7 +183,27 @@ contract SimpleRouterTest is DSTestPlus {
     bytes32 digest = sigUtils.gethashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.
       IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
-      sigUtils.getStructHashDebt(permit)
+      sigUtils.getStructHashBorrow(permit)
+    );
+    (v, r, s) = vm.sign(alicePkey, digest);
+  }
+
+  function _getPermitAssetsArgs(address owner, address operator, uint256 amount)
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    deadline = block.timestamp + 1 days;
+    SigUtilsHelper.Permit memory permit = SigUtilsHelper.Permit({
+      owner: owner,
+      spender: operator,
+      value: amount,
+      nonce: IVaultPermissions(address(vault)).nonces(owner),
+      deadline: deadline
+    });
+    bytes32 digest = sigUtils.gethashTypedDataV4Digest(
+      // This domain should be obtained from the chain on which state will change.
+      IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
+      sigUtils.getStructHashAsset(permit)
     );
     (v, r, s) = vm.sign(alicePkey, digest);
   }
