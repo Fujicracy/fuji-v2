@@ -9,7 +9,10 @@ pragma solidity 0.8.15;
 
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+
+import "forge-std/console.sol";
 
 abstract contract BaseRouter is PeripheryPayments, IRouter {
   constructor(IWETH9 weth) PeripheryPayments(weth) {}
@@ -50,6 +53,39 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         pullToken(ERC20(vault.debtAsset()), amount, address(this));
         approve(ERC20(vault.debtAsset()), address(vault), amount);
         vault.payback(amount, receiver);
+      } else if (actions[i] == Action.PermitAssets) {
+        // PERMITASSETS
+        (
+          IVaultPermissions vault,
+          address owner,
+          address spender,
+          uint256 value,
+          uint256 deadline,
+          uint8 v,
+          bytes32 r,
+          bytes32 s
+        ) = abi.decode(
+          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+        );
+
+        vault.permitAssets(owner, spender, value, deadline, v, r, s);
+      } else if (actions[i] == Action.PermitBorrow) {
+        // PERMITBORROW
+        (
+          IVaultPermissions vault,
+          address owner,
+          address spender,
+          uint256 value,
+          uint256 deadline,
+          uint8 v,
+          bytes32 r,
+          bytes32 s
+        ) = abi.decode(
+          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+        );
+
+        vault.permitBorrow(owner, spender, value, deadline, v, r, s);
+        console.log("borrowAllowance", vault.borrowAllowance(owner, spender));
       } else if (actions[i] == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 

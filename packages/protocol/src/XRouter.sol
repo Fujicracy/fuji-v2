@@ -332,5 +332,5 @@ contract XRouter is PeripheryPayments {
     connextTestToken = token;
     approve(ERC20(token), address(connext), type(uint256).max);
   }
-// <------
+  // <------
 }

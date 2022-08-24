@@ -14,12 +14,16 @@ abstract contract VaultDeployer {
   mapping(bytes32 => address) public configAddress;
 
   modifier onlyChief() {
-    if (msg.sender != chief) revert Unauthorized();
+    if (msg.sender != chief) {
+      revert Unauthorized();
+    }
     _;
   }
 
   constructor(address _chief) {
-    if (_chief == address(0)) revert ZeroAddress();
+    if (_chief == address(0)) {
+      revert ZeroAddress();
+    }
     chief = _chief;
   }
 

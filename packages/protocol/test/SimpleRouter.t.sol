@@ -12,6 +12,8 @@ import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {MockProvider} from "./utils/mocks/MockProvider.sol";
 import {MockERC20} from "./utils/mocks/MockERC20.sol";
 import {MockOracle} from "./utils/mocks/MockOracle.sol";
+import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
+import {SigUtilsHelper} from "./utils/SigUtilsHelper.sol";
 
 contract SimpleRouterTest is DSTestPlus {
   event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
@@ -31,12 +33,14 @@ contract SimpleRouterTest is DSTestPlus {
   IVault public vault;
   ILendingProvider public mockProvider;
   IRouter public simpleRouter;
+  SigUtilsHelper public sigUtils;
 
   MockOracle public oracle;
   MockERC20 public asset;
   MockERC20 public debtAsset;
 
-  address alice = address(0xA);
+  uint256 alicePkey = 0xA;
+  address alice = vm.addr(alicePkey);
 
   function utils_setupOracle(address asset1, address asset2) internal {
     oracle = new MockOracle();
@@ -53,6 +57,10 @@ contract SimpleRouterTest is DSTestPlus {
     );
   }
 
+  function utils_setupSigUtils() internal {
+    sigUtils = new SigUtilsHelper();
+  }
+
   function setUp() public {
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
@@ -60,15 +68,16 @@ contract SimpleRouterTest is DSTestPlus {
     vm.label(address(debtAsset), "tDAI");
 
     utils_setupOracle(address(asset), address(debtAsset));
+    utils_setupSigUtils();
 
     mockProvider = new MockProvider();
 
     vault = new BorrowingVault(
-      address(asset),
-      address(debtAsset),
-      address(oracle),
-      address(0)
-    );
+            address(asset),
+            address(debtAsset),
+            address(oracle),
+            address(0)
+        );
     simpleRouter = new SimpleRouter(IWETH9(address(1)));
 
     vault.setActiveProvider(mockProvider);
@@ -76,15 +85,21 @@ contract SimpleRouterTest is DSTestPlus {
 
   function testDepositAndBorrow() public {
     uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e18;
+    uint256 borrowAmount = 100e18;
 
-    IRouter.Action[] memory actions = new IRouter.Action[](2);
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getBorrowPermitArgs(alice, address(simpleRouter), borrowAmount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
-    actions[1] = IRouter.Action.Borrow;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
 
-    bytes[] memory args = new bytes[](2);
+    bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), amount, alice);
-    args[1] = abi.encode(address(vault), borrowAmount, alice, alice);
+    args[1] =
+      abi.encode(address(vault), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
+    args[2] = abi.encode(address(vault), borrowAmount, alice, alice);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(simpleRouter), alice, amount, amount);
@@ -127,5 +142,25 @@ contract SimpleRouterTest is DSTestPlus {
     simpleRouter.xBundle(actions, args);
 
     assertEq(vault.balanceOf(alice), 0);
+  }
+
+  function _getBorrowPermitArgs(address owner, address operator, uint256 borrowAmount)
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    deadline = block.timestamp + 1 days;
+    SigUtilsHelper.Permit memory permit = SigUtilsHelper.Permit({
+      owner: owner,
+      spender: operator,
+      value: borrowAmount,
+      nonce: IVaultPermissions(address(vault)).nonces(owner),
+      deadline: deadline
+    });
+    bytes32 digest = sigUtils.gethashTypedDataV4Digest(
+      // This domain should be obtained from the chain on which state will change.
+      IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
+      sigUtils.getStructHashDebt(permit)
+    );
+    (v, r, s) = vm.sign(alicePkey, digest);
   }
 }

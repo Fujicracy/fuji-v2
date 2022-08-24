@@ -21,7 +21,9 @@ contract FujiOracle is IFujiOracle, Ownable {
    * @dev Initializes the contract setting '_priceFeeds' addresses for '_assets'
    */
   constructor(address[] memory _assets, address[] memory _priceFeeds) {
-    if (_assets.length != _priceFeeds.length) revert FujiOracle__lengthMismatch();
+    if (_assets.length != _priceFeeds.length) {
+      revert FujiOracle__lengthMismatch();
+    }
 
     for (uint256 i = 0; i < _assets.length; i++) {
       usdPriceFeeds[_assets[i]] = _priceFeeds[i];
@@ -34,7 +36,9 @@ contract FujiOracle is IFujiOracle, Ownable {
    * Emits a {AssetPriceFeedChanged} event.
    */
   function setPriceFeed(address _asset, address _priceFeed) public onlyOwner {
-    if (_priceFeed == address(0)) revert FujiOracle__noZeroAddress();
+    if (_priceFeed == address(0)) {
+      revert FujiOracle__noZeroAddress();
+    }
 
     usdPriceFeeds[_asset] = _priceFeed;
     emit AssetPriceFeedChanged(_asset, _priceFeed);
@@ -42,7 +46,7 @@ contract FujiOracle is IFujiOracle, Ownable {
 
   /**
    * @dev Calculates the exchange rate between two assets, with price oracle given in specified decimals.
-   *      Format is: (_currencyAsset per unit of _commodityAsset Exchange Rate).
+   * Format is: (_currencyAsset per unit of _commodityAsset Exchange Rate).
    * @param _currencyAsset: the currency asset, zero-address for USD.
    * @param _commodityAsset: the commodity asset, zero-address for USD.
    * @param _decimals: the decimals of the price output.
@@ -75,7 +79,9 @@ contract FujiOracle is IFujiOracle, Ownable {
    * Returns the USD price of the given asset
    */
   function _getUSDPrice(address _asset) internal view returns (uint256 price) {
-    if (usdPriceFeeds[_asset] == address(0)) revert FujiOracle__noPriceFeed();
+    if (usdPriceFeeds[_asset] == address(0)) {
+      revert FujiOracle__noPriceFeed();
+    }
 
     (, int256 latestPrice,,,) = IAggregatorV3(usdPriceFeeds[_asset]).latestRoundData();
 

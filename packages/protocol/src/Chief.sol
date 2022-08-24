@@ -23,7 +23,9 @@ contract Chief is Ownable {
     external
     returns (address vault)
   {
-    if (!allowedFactories[_factory]) revert NotAllowed();
+    if (!allowedFactories[_factory]) {
+      revert NotAllowed();
+    }
     vault = IVaultFactory(_factory).deployVault(_deployData);
     vaults[vault] = true;
     emit DeployVault(_factory, vault, _deployData);
