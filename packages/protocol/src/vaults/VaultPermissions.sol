@@ -10,7 +10,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     using Counters for Counters.Counter;
 
     mapping(address => mapping(address => uint256)) internal _assetAllowance;
-    mapping(address => mapping(address => uint256)) internal _debtAllowance;
+    mapping(address => mapping(address => uint256)) internal _borrowAllowance;
 
     mapping(address => Counters.Counter) private _nonces;
 
@@ -20,9 +20,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
             "PermitAssets(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
         );
     // solhint-disable-next-line var-name-mixedcase
-    bytes32 private constant _PERMIT_DEBT_TYPEHASH =
+    bytes32 private constant _PERMIT_BORROW_TYPEHASH =
         keccak256(
-            "PermitDebt(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+            "PermitBorrow(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
         );
 
     /**
@@ -50,14 +50,14 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     }
 
     /// @inheritdoc IVaultPermissions
-    function debtAllowance(address owner, address spender)
+    function borrowAllowance(address owner, address spender)
         public
         view
         override
         virtual
         returns (uint256)
     {
-        return _debtAllowance[owner][spender];
+        return _borrowAllowance[owner][spender];
     }
 
     /// @inheritdoc IVaultPermissions
@@ -98,23 +98,23 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     }
 
     /// @inheritdoc IVaultPermissions
-    function increaseDebtAllowance(address spender, uint256 byAmount)
+    function increaseBorrowAllowance(address spender, uint256 byAmount)
         public
         override
         virtual
         returns (bool)
     {
         address owner = msg.sender;
-        _setDebtAllowance(
+        _setBorrowAllowance(
             owner,
             spender,
-            _debtAllowance[owner][spender] + byAmount
+            _borrowAllowance[owner][spender] + byAmount
         );
         return true;
     }
 
     /// @inheritdoc IVaultPermissions
-    function decreaseDebtAllowance(address spender, uint256 byAmount)
+    function decreaseBorrowAllowance(address spender, uint256 byAmount)
         public
         override
         virtual
@@ -127,10 +127,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
             "ERC20: decreased allowance below zero"
         );
         unchecked {
-            _setDebtAllowance(
+            _setBorrowAllowance(
                 owner,
                 spender,
-                _debtAllowance[owner][spender] - byAmount
+                _borrowAllowance[owner][spender] - byAmount
             );
         }
         return true;
@@ -179,7 +179,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     }
 
     /// @inheritdoc IVaultPermissions
-    function permitDebt(
+    function permitBorrow(
         address owner,
         address spender,
         uint256 value,
@@ -192,7 +192,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
         bytes32 structHash = keccak256(
             abi.encode(
-                _PERMIT_DEBT_TYPEHASH,
+                _PERMIT_BORROW_TYPEHASH,
                 owner,
                 spender,
                 value,
@@ -205,7 +205,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
         address signer = ECDSA.recover(digest, v, r, s);
         require(signer == owner, "Invalid signature");
 
-        _setDebtAllowance(owner, spender, value);
+        _setBorrowAllowance(owner, spender, value);
     }
 
     /// Internal Functions
@@ -231,23 +231,23 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     }
 
     /**
-     * @dev Sets `debt amount` as the allowance of `spender` over the `owner`'s debt.
+     * @dev Sets `amount` as the borrow allowance of `spender` over the `owner`'s debt.
      * This internal function is equivalent to `approve`, and can be used to
      * ONLY on 'borrow()'
-     * Emits an {DebtApproval} event.
+     * Emits an {BorrowApproval} event.
      * Requirements:
      * - `owner` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _setDebtAllowance(
+    function _setBorrowAllowance(
         address owner,
         address spender,
         uint256 amount
     ) internal {
         require(owner != address(0), "Zero address");
         require(spender != address(0), "Zero address");
-        _debtAllowance[owner][spender] = amount;
-        emit DebtApproval(owner, spender, amount);
+        _borrowAllowance[owner][spender] = amount;
+        emit BorrowApproval(owner, spender, amount);
     }
 
     /**
@@ -270,16 +270,16 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     /**
      * @dev Based on OZ {ERC20-spendAllowance} for assets.
      */
-    function _spendDebtAllowance(
+    function _spendBorrowAllowance(
         address owner,
         address spender,
         uint256 amount
     ) internal virtual {
-        uint256 currentAllowance = debtAllowance(owner, spender);
+        uint256 currentAllowance = borrowAllowance(owner, spender);
         if (currentAllowance != type(uint256).max) {
-            require(currentAllowance >= amount, "Insufficient debtAllowance");
+            require(currentAllowance >= amount, "Insufficient borrowAllowance");
             unchecked {
-                _setDebtAllowance(owner, spender, currentAllowance - amount);
+                _setBorrowAllowance(owner, spender, currentAllowance - amount);
             }
         }
     }

@@ -47,7 +47,8 @@ contract DeployRinkeby is ScriptPlus {
       asset,
       debtAsset,
       oracle,
-      address(0)
+      address(0),
+      "1"
     );
     saveAddress("./deployments/rinkeby/BorrowingVault", address(vault));
 

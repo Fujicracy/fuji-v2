@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 /**
  * @title VaultPermissions Interface.
  * @author Fujidao Labs
- * @notice Defines the interface for vault signed permit operations.
+ * @notice Defines the interface for vault signed permit operations and borrow allowance.
  */
 
 interface IVaultPermissions {
@@ -15,11 +15,11 @@ interface IVaultPermissions {
      */
     event AssetApproval(address indexed owner, address spender, uint256 amount);
     /**
-     * @dev Emitted when the debt allowance of a `spender` for an `owner` is set by
-     * a call to {approveDebt}. `value` is the new allowance.
+     * @dev Emitted when the borrow allowance of a `spender` for an `owner` is set by
+     * a call to {approveBorrow}. `value` is the new allowance.
      * Allows `spender` to incur debt on behalf `owner`.
      */
-    event DebtApproval(address indexed owner, address spender, uint256 amount);
+    event BorrowApproval(address indexed owner, address spender, uint256 amount);
 
     /**
      * @dev Based on {IERC20-allowance} for assets, instead of shares.
@@ -35,7 +35,7 @@ interface IVaultPermissions {
     /**
      * @dev Based on {IERC20-allowance} for debt.
      */
-    function debtAllowance(address owner, address spender)
+    function borrowAllowance(address owner, address spender)
         external
         view
         returns (uint256);
@@ -66,28 +66,28 @@ interface IVaultPermissions {
         returns (bool);
 
     /**
-     * @dev Atomically increases the `debtAllowance` granted to `spender` by the caller.
+     * @dev Atomically increases the `borrowAllowance` granted to `spender` by the caller.
      * Based on OZ {ERC20-increaseAllowance} for assets.
-     * Emits an {debtApproval} event indicating the updated debt allowance.
+     * Emits an {BorrowApproval} event indicating the updated borrow allowance.
      *
      * Requirements:
      * - `spender` cannot be the zero address.
      */
-    function increaseDebtAllowance(address spender, uint256 byAmount)
+    function increaseBorrowAllowance(address spender, uint256 byAmount)
         external
         returns (bool);
     
     /**
-     * @dev Atomically decrease the `debtAllowance` granted to `spender` by the caller.
+     * @dev Atomically decrease the `borrowAllowance` granted to `spender` by the caller.
      * Based on OZ {ERC20-decreaseAllowance} for assets, and 
      * inspired on credit delegation by Aave.
-     * Emits an {debtApproval} event indicating the updated debt allowance.
+     * Emits an {BorrowApproval} event indicating the updated borrow allowance.
      *
      * Requirements:
      * - `spender` cannot be the zero address.
-     * - `spender` must have `debtAllowance` for the caller of at least `byAmount`
+     * - `spender` must have `borrowAllowance` for the caller of at least `byAmount`
      */
-    function decreaseDebtAllowance(address spender, uint256 byAmount)
+    function decreaseBorrowAllowance(address spender, uint256 byAmount)
         external
         returns (bool);
     
@@ -124,12 +124,12 @@ interface IVaultPermissions {
 
     /**
      * @dev Inspired by {IERC20Permit-permit} for debt.
-     * Sets `value` as the `debtAllowance` of `spender` over ``owner``'s borrowing powwer,
+     * Sets `value` as the `borrowAllowance` of `spender` over ``owner``'s borrowing powwer,
      * given ``owner``'s signed approval.
      * IMPORTANT: The same issues {IERC20-approve} has related to transaction
      * ordering also apply here.
      *
-     * Emits an {DebtApproval} event.
+     * Emits an {BorrowApproval} event.
      *
      * Requirements:
      * - `spender` cannot be the zero address.
@@ -138,7 +138,7 @@ interface IVaultPermissions {
      * over the EIP712-formatted function arguments.
      * - the signature must use ``owner``'s current nonce (see {nonces}).
      */
-    function permitDebt(
+    function permitBorrow(
         address owner,
         address spender,
         uint256 value,
