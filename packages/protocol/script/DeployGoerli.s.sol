@@ -47,8 +47,7 @@ contract DeployGoerli is ScriptPlus {
       asset,
       debtAsset,
       oracle,
-      address(0),
-      "1"
+      address(0)
     );
     saveAddress("./deployments/goerli/BorrowingVault", address(vault));
 

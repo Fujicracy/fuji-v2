@@ -48,9 +48,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
         address oracle_,
         address chief_,
         string memory name_,
-        string memory symbol_,
-        string memory version_
-    ) ERC20(name_, symbol_) VaultPermissions(name_, version_) {
+        string memory symbol_
+    ) ERC20(name_, symbol_) VaultPermissions(name_) {
         _asset = IERC20Metadata(asset_);
         _debtAsset = IERC20Metadata(debtAsset_);
         oracle = IFujiOracle(oracle_);

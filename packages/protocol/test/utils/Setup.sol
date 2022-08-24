@@ -97,8 +97,7 @@ contract Setup is DSTestPlus {
       reg.asset,
       reg.debtAsset,
       reg.oracle,
-      address(0),
-      "1"
+      address(0)
     );
 
     // Configs
@@ -138,8 +137,7 @@ contract Setup is DSTestPlus {
       reg.asset,
       reg.debtAsset,
       reg.oracle,
-      address(0),
-      "1"
+      address(0)
     );
 
     // Configs

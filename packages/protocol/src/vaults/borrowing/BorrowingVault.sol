@@ -17,8 +17,7 @@ contract BorrowingVault is BaseVault {
         address asset_,
         address debtAsset_,
         address oracle_,
-        address chief_,
-        string memory version_
+        address chief_
     )
         BaseVault(
             asset_,
@@ -34,8 +33,7 @@ contract BorrowingVault is BaseVault {
                 )
             ),
             // symbol_, ex: xfDAI
-            string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol())),
-            version_
+            string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol()))
         )
     {}
 

@@ -13,7 +13,7 @@ contract BorrowingVaultFactory is VaultDeployer {
 
     // @dev Salt is not actually needed since `_deployData` is part of creationCode and already contains the salt.
     bytes32 salt = keccak256(_deployData);
-    vault = address(new BorrowingVault{salt: salt}(asset, debtAsset, oracle, chief, "1"));
+    vault = address(new BorrowingVault{salt: salt}(asset, debtAsset, oracle, chief));
     _registerVault(vault, asset, salt);
   }
 }

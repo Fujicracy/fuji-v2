@@ -32,11 +32,11 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     bytes32 private _PERMIT_TYPEHASH_DEPRECATED_SLOT;
 
     /**
-     * @dev Initializes the {EIP712} domain separator using the `name` parameter, and setting `version`.
+     * @dev Initializes the {EIP712} domain separator using the `name` parameter, and setting `version` to "1".
      * It's a good idea to use the same `name` that is defined as the BaseVault token name.
      */
-    constructor(string memory name_, string memory version_)
-        EIP712(name_, version_)
+    constructor(string memory name_)
+        EIP712(name_, "1")
     {}
 
     /// @inheritdoc IVaultPermissions

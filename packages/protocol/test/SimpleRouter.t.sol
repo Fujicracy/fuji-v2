@@ -67,8 +67,7 @@ contract SimpleRouterTest is DSTestPlus {
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0),
-      "1"
+      address(0)
     );
     simpleRouter = new SimpleRouter(IWETH9(address(1)));
 
