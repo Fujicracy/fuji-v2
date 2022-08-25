@@ -117,13 +117,15 @@ contract SimpleRouterTest is DSTestPlus {
     SafeERC20.safeApprove(asset, address(simpleRouter), type(uint256).max);
 
     simpleRouter.xBundle(actions, args);
+    vm.stopPrank();
 
     assertEq(vault.balanceOf(alice), amount);
+    assertEq(debtAsset.balanceOf(alice), borrowAmount);
   }
 
   function testPaybackAndWithdraw() public {
     uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e18;
+    uint256 borrowAmount = 100e18;
 
     testDepositAndBorrow();
 
@@ -138,7 +140,7 @@ contract SimpleRouterTest is DSTestPlus {
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), borrowAmount, alice);
     args[1] = abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
-    args[1] = abi.encode(address(vault), amount, alice, alice);
+    args[2] = abi.encode(address(vault), amount, alice, alice);
 
     vm.expectEmit(true, true, true, true);
     emit Payback(address(simpleRouter), alice, borrowAmount, borrowAmount);
@@ -146,25 +148,19 @@ contract SimpleRouterTest is DSTestPlus {
     vm.expectEmit(true, true, true, true);
     emit Withdraw(address(simpleRouter), alice, alice, amount, amount);
 
-    stdstore
-    .target(address(debtAsset))
-    .sig("allowance(address,address)")
-    .with_key(alice)
-    .with_key(address(simpleRouter))
-    .checked_write(borrowAmount);
-    console.log("debtAsset.allowance(alice,address(vault))", debtAsset.allowance(alice,address(simpleRouter)));
-  
+    vm.startPrank(alice);
+    SafeERC20.safeApprove(debtAsset, address(simpleRouter), borrowAmount);
+
     stdstore
     .target(address(debtAsset))
     .sig("allowance(address,address)")
     .with_key(address(simpleRouter))
     .with_key(address(vault))
-    .checked_write(borrowAmount);
-
-    console.log("debtAsset.allowance(address(simpleRouter),address(vault))", debtAsset.allowance(address(simpleRouter),address(vault)));
+    .checked_write(type(uint256).max);
 
     simpleRouter.xBundle(actions, args);
-
+    vm.stopPrank();
+    
     assertEq(vault.balanceOf(alice), 0);
   }
 

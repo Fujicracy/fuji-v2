@@ -65,7 +65,6 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         ) = abi.decode(
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
-
         vault.permitAssets(owner, spender, value, deadline, v, r, s);
       } else if (actions[i] == Action.PermitBorrow) {
         // PERMITBORROW

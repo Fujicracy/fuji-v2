@@ -79,7 +79,6 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
-    require(owner == _msgSender(), "No permission");
     require(debt > 0, "Wrong input");
     require(debt <= convertToDebt(_debtShares[owner]), "Payback more than max");
 
