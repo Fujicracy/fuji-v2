@@ -1,13 +1,13 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.7.5;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
 import "solmate/utils/SafeTransferLib.sol";
 
 /**
- @title Periphery Payments
- @notice Immutable state used by periphery contracts
- Largely Forked from https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/PeripheryPayments.sol 
- Changes:
+ * @title Periphery Payments
+ * @notice Immutable state used by periphery contracts
+ * Largely Forked from https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/PeripheryPayments.sol
+ * Changes:
  * no interface
  * no inheritdoc
  * add immutable WETH9 in constructor instead of PeripheryImmutableState
@@ -15,7 +15,8 @@ import "solmate/utils/SafeTransferLib.sol";
  * Solmate interfaces and transfer lib
  * casting
  * add approve, wrapWETH9 and pullToken
- * https://github.com/fei-protocol/ERC4626/blob/main/src/external/PeripheryPayments.sol*/
+ * https://github.com/fei-protocol/ERC4626/blob/main/src/external/PeripheryPayments.sol
+ */
 abstract contract PeripheryPayments {
   using SafeTransferLib for *;
 
@@ -42,7 +43,9 @@ abstract contract PeripheryPayments {
   }
 
   function wrapWETH9() public payable {
-    if (address(this).balance > 0) WETH9.deposit{value: address(this).balance}(); // wrap everything
+    if (address(this).balance > 0) {
+      WETH9.deposit{value: address(this).balance}();
+    } // wrap everything
   }
 
   function pullToken(ERC20 token, uint256 amount, address recipient) public payable {
@@ -59,9 +62,9 @@ abstract contract PeripheryPayments {
   }
 
   function refundETH() external payable {
-    if (address(this).balance > 0) SafeTransferLib.safeTransferETH(
-      msg.sender, address(this).balance
-    );
+    if (address(this).balance > 0) {
+      SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+    }
   }
 }
 
