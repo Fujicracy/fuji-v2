@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.15;
 
 /**
  * @title Abstract contract for all routers.
@@ -11,6 +11,7 @@ import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
+import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
 abstract contract BaseRouter is PeripheryPayments, IRouter {
@@ -58,6 +59,37 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         );
         approve(ERC20(vault.debtAsset()), address(vault), amount);
         vault.payback(amount, receiver);
+      } else if (actions[i] == Action.PermitAssets) {
+        // PERMIT ASSETS
+        (
+          IVaultPermissions vault,
+          address owner,
+          address spender,
+          uint256 amount,
+          uint256 deadline,
+          uint8 v,
+          bytes32 r,
+          bytes32 s
+        ) = abi.decode(
+          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+        );
+        vault.permitAssets(owner, spender, amount, deadline, v, r, s);
+      } else if (actions[i] == Action.PermitBorrow) {
+        // PERMIT BORROW
+        (
+          IVaultPermissions vault,
+          address owner,
+          address spender,
+          uint256 amount,
+          uint256 deadline,
+          uint8 v,
+          bytes32 r,
+          bytes32 s
+        ) = abi.decode(
+          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+        );
+
+        vault.permitBorrow(owner, spender, amount, deadline, v, r, s);
       } else if (actions[i] == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 

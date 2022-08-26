@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
 import "nxtp/core/connext/libraries/LibConnextStorage.sol";
 import "nxtp/core/connext/interfaces/IConnextHandler.sol";
@@ -356,6 +356,5 @@ contract XRouter is PeripheryPayments {
   function setTestnetToken(address token) external {
     connextTestToken = token;
     approve(ERC20(token), address(connext), type(uint256).max);
-  }
-// <------
+  } // <------
 }
