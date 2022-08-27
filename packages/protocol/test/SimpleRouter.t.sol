@@ -14,6 +14,7 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {IFlasher} from "../src/interfaces/IFlasher.sol";
 import {ISwapper} from "../src/interfaces/ISwapper.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
+import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {MockFlasher} from "./utils/mocks/MockFlasher.sol";
 import {MockSwapper} from "./utils/mocks/MockSwapper.sol";
@@ -21,11 +22,8 @@ import {MockProvider} from "./utils/mocks/MockProvider.sol";
 import {MockERC20} from "./utils/mocks/MockERC20.sol";
 import {MockOracle} from "./utils/mocks/MockOracle.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
-import {SigUtilsHelper} from "./utils/SigUtilsHelper.sol";
 
 contract SimpleRouterTest is DSTestPlus {
-  using stdStorage for StdStorage;
-
   event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
@@ -44,7 +42,6 @@ contract SimpleRouterTest is DSTestPlus {
   ILendingProvider public mockProvider;
   IRouter public simpleRouter;
   ISwapper public swapper;
-  SigUtilsHelper public sigUtils;
 
   MockFlasher public flasher;
   MockOracle public oracle;
@@ -105,17 +102,17 @@ contract SimpleRouterTest is DSTestPlus {
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
     deadline = block.timestamp + 1 days;
-    SigUtilsHelper.Permit memory permit = SigUtilsHelper.Permit({
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
       spender: operator,
       amount: borrowAmount,
       nonce: IVaultPermissions(address(vault)).nonces(owner) + plusNonce,
       deadline: deadline
     });
-    bytes32 digest = sigUtils.gethashTypedDataV4Digest(
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.
       IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
-      sigUtils.getStructHashBorrow(permit)
+      LibSigUtils.getStructHashBorrow(permit)
     );
     (v, r, s) = vm.sign(alicePkey, digest);
   }
@@ -132,17 +129,17 @@ contract SimpleRouterTest is DSTestPlus {
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
     deadline = block.timestamp + 1 days;
-    SigUtilsHelper.Permit memory permit = SigUtilsHelper.Permit({
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
       spender: operator,
       amount: amount,
       nonce: IVaultPermissions(address(vault)).nonces(owner) + plusNonce,
       deadline: deadline
     });
-    bytes32 digest = sigUtils.gethashTypedDataV4Digest(
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.
       IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
-      sigUtils.getStructHashAsset(permit)
+      LibSigUtils.getStructHashAsset(permit)
     );
     (v, r, s) = vm.sign(alicePkey, digest);
   }
@@ -154,7 +151,6 @@ contract SimpleRouterTest is DSTestPlus {
     vm.label(address(debtAsset), "tDAI");
 
     oracle = new MockOracle();
-    sigUtils = new SigUtilsHelper();
     utils_setupOracle(address(asset), address(debtAsset));
 
     swapper = new MockSwapper(oracle);
