@@ -29,4 +29,9 @@ contract ScriptPlus is Script {
 
     addr = abi.decode(res, (address));
   }
+
+  function getPrivKey() internal returns (uint256 key) {
+    bytes32 k = vm.envBytes32("PRIVATE_KEY");
+    key = uint256(k);
+  }
 }
