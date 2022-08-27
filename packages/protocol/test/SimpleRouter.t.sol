@@ -108,7 +108,7 @@ contract SimpleRouterTest is DSTestPlus {
     SigUtilsHelper.Permit memory permit = SigUtilsHelper.Permit({
       owner: owner,
       spender: operator,
-      value: borrowAmount,
+      amount: borrowAmount,
       nonce: IVaultPermissions(address(vault)).nonces(owner) + plusNonce,
       deadline: deadline
     });
@@ -135,7 +135,7 @@ contract SimpleRouterTest is DSTestPlus {
     SigUtilsHelper.Permit memory permit = SigUtilsHelper.Permit({
       owner: owner,
       spender: operator,
-      value: amount,
+      amount: amount,
       nonce: IVaultPermissions(address(vault)).nonces(owner) + plusNonce,
       deadline: deadline
     });
