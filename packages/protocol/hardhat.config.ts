@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-abi-exporter";
 import "hardhat-preprocessor";
 import * as fs from "fs";
 
@@ -19,6 +20,12 @@ const config: HardhatUserConfig = {
   paths: {
     sources: "./src",
     cache: "./cache_hardhat",
+  },
+  abiExporter: {
+    path: './abis',
+    runOnCompile: false,
+    clear: true,
+    spacing: 2,
   },
   solidity: {
     compilers: [
