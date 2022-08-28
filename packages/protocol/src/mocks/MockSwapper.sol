@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import {MockERC20} from "./MockERC20.sol";
 import {MockOracle} from "./MockOracle.sol";
-import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 
 contract MockSwapper is ISwapper {
   MockOracle public oracle;

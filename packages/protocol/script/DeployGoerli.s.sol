@@ -8,9 +8,9 @@ import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
-import {MockProvider} from "../test/utils/mocks/MockProvider.sol";
-import {MockERC20} from "../test/utils/mocks/MockERC20.sol";
-import {MockOracle} from "../test/utils/mocks/MockOracle.sol";
+import {MockProvider} from "../src/mocks/MockProvider.sol";
+import {MockERC20} from "../src/mocks/MockERC20.sol";
+import {MockOracle} from "../src/mocks/MockOracle.sol";
 
 contract DeployGoerli is ScriptPlus {
   IVault public vault;

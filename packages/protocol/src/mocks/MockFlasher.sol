@@ -3,8 +3,8 @@ pragma solidity ^0.8.9;
 
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
-import {IRouter} from "../../../src/interfaces/IRouter.sol";
+import {IFlasher} from "../interfaces/IFlasher.sol";
+import {IRouter} from "../interfaces/IRouter.sol";
 import {MockERC20} from "./MockERC20.sol";
 
 contract MockFlasher is IFlasher {

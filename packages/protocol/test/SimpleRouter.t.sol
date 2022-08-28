@@ -16,11 +16,11 @@ import {ISwapper} from "../src/interfaces/ISwapper.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
-import {MockFlasher} from "./utils/mocks/MockFlasher.sol";
-import {MockSwapper} from "./utils/mocks/MockSwapper.sol";
-import {MockProvider} from "./utils/mocks/MockProvider.sol";
-import {MockERC20} from "./utils/mocks/MockERC20.sol";
-import {MockOracle} from "./utils/mocks/MockOracle.sol";
+import {MockFlasher} from "../src/mocks/MockFlasher.sol";
+import {MockSwapper} from "../src/mocks/MockSwapper.sol";
+import {MockProvider} from "../src/mocks/MockProvider.sol";
+import {MockERC20} from "../src/mocks/MockERC20.sol";
+import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract SimpleRouterTest is DSTestPlus {

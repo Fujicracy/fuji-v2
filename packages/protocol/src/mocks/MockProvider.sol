@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
-import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {MockERC20} from "./MockERC20.sol";
 
 contract MockProvider is ILendingProvider {

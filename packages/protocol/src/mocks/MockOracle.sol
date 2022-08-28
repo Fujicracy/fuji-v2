@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
-import {IFujiOracle} from "../../../src/interfaces/IFujiOracle.sol";
+import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 
 contract MockOracle is IFujiOracle {
   mapping(address => mapping(address => uint256)) public prices;
