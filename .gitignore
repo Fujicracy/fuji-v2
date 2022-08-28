@@ -13,8 +13,9 @@ out
 # Avoid ignoring gitkeep
 !/**/.gitkeep
 
+broadcast
 # Keep the latest deployment only
-broadcast/*/*/*
-!broadcast/*/*/run-latest.json
+#!broadcast/*/*/run-latest.json
 
 sdk
+.local
