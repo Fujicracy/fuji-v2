@@ -10,13 +10,14 @@ pragma solidity 0.8.15;
 interface IVaultPermissions {
   /**
    * @dev Emitted when the asset allowance of a `spender` for an `owner` is set by
-   * a call to {approveAsset}. `value` is the new allowance.
+   * a call to {approveAsset}. `amount` is the new allowance.
    * Allows `spender` to withdraw collateral from owner.
    */
   event AssetApproval(address indexed owner, address spender, uint256 amount);
+
   /**
    * @dev Emitted when the borrow allowance of a `spender` for an `owner` is set by
-   * a call to {approveBorrow}. `value` is the new allowance.
+   * a call to {approveBorrow}. `amount` is the new allowance.
    * Allows `spender` to incur debt on behalf `owner`.
    */
   event BorrowApproval(address indexed owner, address spender, uint256 amount);
@@ -90,7 +91,7 @@ interface IVaultPermissions {
 
   /**
    * @dev Inspired by {IERC20Permit-permit} for assets.
-   * Sets `value` as the `assetAllowance` of `spender` over ``owner``'s tokens,
+   * Sets `amount` as the `assetAllowance` of `spender` over ``owner``'s tokens,
    * given ``owner``'s signed approval.
    * IMPORTANT: The same issues {IERC20-approve} has related to transaction
    * ordering also apply here.
@@ -107,7 +108,7 @@ interface IVaultPermissions {
   function permitAssets(
     address owner,
     address spender,
-    uint256 value,
+    uint256 amount,
     uint256 deadline,
     uint8 v,
     bytes32 r,
@@ -117,7 +118,7 @@ interface IVaultPermissions {
 
   /**
    * @dev Inspired by {IERC20Permit-permit} for debt.
-   * Sets `value` as the `borrowAllowance` of `spender` over ``owner``'s borrowing powwer,
+   * Sets `amount` as the `borrowAllowance` of `spender` over ``owner``'s borrowing powwer,
    * given ``owner``'s signed approval.
    * IMPORTANT: The same issues {IERC20-approve} has related to transaction
    * ordering also apply here.
@@ -135,7 +136,7 @@ interface IVaultPermissions {
   function permitBorrow(
     address owner,
     address spender,
-    uint256 value,
+    uint256 amount,
     uint256 deadline,
     uint8 v,
     bytes32 r,

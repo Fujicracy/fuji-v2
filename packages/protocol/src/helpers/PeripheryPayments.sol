@@ -52,6 +52,13 @@ abstract contract PeripheryPayments {
     token.safeTransferFrom(msg.sender, recipient, amount);
   }
 
+  function pullTokenFrom(ERC20 token, uint256 amount, address recipient, address sender)
+    public
+    payable
+  {
+    token.safeTransferFrom(sender, recipient, amount);
+  }
+
   function sweepToken(ERC20 token, uint256 amountMinimum, address recipient) public payable {
     uint256 balanceToken = token.balanceOf(address(this));
     require(balanceToken >= amountMinimum, "Insufficient token");

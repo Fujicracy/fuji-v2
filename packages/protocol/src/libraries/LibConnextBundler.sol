@@ -11,30 +11,19 @@ pragma solidity 0.8.15;
 import {IRouter} from "../interfaces/IRouter.sol";
 
 library LibConnextBundler {
-  function bridgeDepositAndBorrow(
+  function bridgeWithCall(
     uint256 destDomain,
-    address destVault,
     address asset,
     uint256 amount,
-    uint256 borrowAmount
+    IRouter.Action[] calldata innerActions,
+    bytes[] calldata innerArgs
   )
     public
-    view
+    pure
     returns (IRouter.Action[] memory, bytes[] memory)
   {
-    IRouter.Action[] memory bActions = new IRouter.Action[](2);
-    bytes[] memory bArgs = new bytes[](2);
-
-    bActions[0] = IRouter.Action.Deposit;
-    bArgs[0] = abi.encode(destVault, amount, msg.sender);
-
-    bActions[1] = IRouter.Action.Borrow;
-    bArgs[1] = abi.encode(destVault, borrowAmount, msg.sender, msg.sender);
-
-    bytes memory params = abi.encode(bActions, bArgs);
-
+    bytes memory params = abi.encode(innerActions, innerArgs);
     bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
-
     bytes memory callData = abi.encodeWithSelector(selector, params);
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
@@ -42,6 +31,35 @@ library LibConnextBundler {
 
     actions[0] = IRouter.Action.XTransferWithCall;
     args[0] = abi.encode(destDomain, asset, amount, callData);
+
+    return (actions, args);
+  }
+
+  function depositAndBorrow(
+    address vault,
+    address router,
+    uint256 amount,
+    uint256 borrowAmount,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  )
+    public
+    view
+    returns (IRouter.Action[] memory, bytes[] memory)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    bytes[] memory args = new bytes[](3);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(vault, amount, msg.sender, msg.sender);
+
+    actions[1] = IRouter.Action.PermitBorrow;
+    args[1] = abi.encode(vault, msg.sender, router, borrowAmount, deadline, v, r, s);
+
+    actions[2] = IRouter.Action.Borrow;
+    args[2] = abi.encode(vault, borrowAmount, msg.sender, msg.sender);
 
     return (actions, args);
   }

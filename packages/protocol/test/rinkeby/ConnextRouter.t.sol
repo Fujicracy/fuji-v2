@@ -6,6 +6,6 @@ import {ConnextRouterTestsSuite} from "../ConnextRouterTestsSuite.sol";
 contract ConnextRouterTest is ConnextRouterTestsSuite {
   function setUp() public {
     vm.selectFork(rinkebyFork);
-    deploy2(1111);
+    deploy(1111);
   }
 }

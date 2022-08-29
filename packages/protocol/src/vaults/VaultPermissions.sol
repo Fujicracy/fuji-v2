@@ -16,11 +16,11 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant _PERMIT_ASSET_TYPEHASH = keccak256(
-    "PermitAssets(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+    "PermitAssets(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant _PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+    "PermitBorrow(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
   /**
@@ -112,7 +112,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   function permitAssets(
     address owner,
     address spender,
-    uint256 value,
+    uint256 amount,
     uint256 deadline,
     uint8 v,
     bytes32 r,
@@ -122,20 +122,21 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     override
   {
     require(block.timestamp <= deadline, "Expired deadline");
-    bytes32 structHash =
-      keccak256(abi.encode(_PERMIT_ASSET_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
+    bytes32 structHash = keccak256(
+      abi.encode(_PERMIT_ASSET_TYPEHASH, owner, spender, amount, _useNonce(owner), deadline)
+    );
     bytes32 digest = _hashTypedDataV4(structHash);
     address signer = ECDSA.recover(digest, v, r, s);
     require(signer == owner, "Invalid signature");
 
-    _setAssetAllowance(owner, spender, value);
+    _setAssetAllowance(owner, spender, amount);
   }
 
   /// @inheritdoc IVaultPermissions
   function permitBorrow(
     address owner,
     address spender,
-    uint256 value,
+    uint256 amount,
     uint256 deadline,
     uint8 v,
     bytes32 r,
@@ -147,13 +148,13 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   {
     require(block.timestamp <= deadline, "Expired deadline");
     bytes32 structHash = keccak256(
-      abi.encode(_PERMIT_BORROW_TYPEHASH, owner, spender, value, _useNonce(owner), deadline)
+      abi.encode(_PERMIT_BORROW_TYPEHASH, owner, spender, amount, _useNonce(owner), deadline)
     );
     bytes32 digest = _hashTypedDataV4(structHash);
     address signer = ECDSA.recover(digest, v, r, s);
     require(signer == owner, "Invalid signature");
 
-    _setBorrowAllowance(owner, spender, value);
+    _setBorrowAllowance(owner, spender, amount);
   }
 
   /// Internal Functions
@@ -217,7 +218,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /**
-   * @dev "Consume a nonce": return the current value and increment.
+   * @dev "Consume a nonce": return the current amount and increment.
    * _Available since v4.1._
    */
   function _useNonce(address owner) internal returns (uint256 current) {

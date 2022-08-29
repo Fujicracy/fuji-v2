@@ -3,7 +3,6 @@ pragma solidity 0.8.15;
 
 import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
-import {XRouter} from "../../src/XRouter.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
 import {AaveV3Goerli} from "../../src/providers/goerli/AaveV3Goerli.sol";
@@ -32,7 +31,6 @@ contract Setup is DSTestPlus {
   mapping(uint256 => Registry) public registry;
 
   IVault public vault;
-  XRouter public router;
   ConnextRouter public connextRouter;
   ILendingProvider public aaveV3;
 
@@ -69,44 +67,7 @@ contract Setup is DSTestPlus {
     registry[1111] = rinkeby;
   }
 
-  // to be replaced by deploy2 after
-  // finishing experiments with XRouter
   function deploy(uint256 domain) public {
-    Registry memory reg = registry[domain];
-    if (reg.asset == address(0)) {
-      revert("No registry for this chain");
-    }
-
-    weth = IWETH9(reg.weth);
-    connextHandler = IConnextHandler(reg.connextHandler);
-
-    connextTestToken = reg.testToken;
-    asset = reg.asset;
-    debtAsset = reg.debtAsset;
-
-    if (domain == 3331) {
-      aaveV3 = new AaveV3Goerli();
-    } else {
-      aaveV3 = new AaveV3Rinkeby();
-    }
-    router = new XRouter(
-      IWETH9(reg.weth),
-      IConnextHandler(reg.connextHandler)
-    );
-    vault = new BorrowingVault(
-      reg.asset,
-      reg.debtAsset,
-      reg.oracle,
-      address(0)
-    );
-
-    // Configs
-    vault.setActiveProvider(aaveV3);
-    router.setTestnetToken(reg.testToken);
-    router.setRouter(domain == 3331 ? 1111 : 3331, address(0xAbc1));
-  }
-
-  function deploy2(uint256 domain) public {
     Registry memory reg = registry[domain];
     if (reg.asset == address(0)) {
       revert("No registry for this chain");

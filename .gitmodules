@@ -10,3 +10,6 @@
 [submodule "packages/protocol/lib/nxtp"]
 	path = packages/protocol/lib/nxtp
 	url = https://github.com/connext/nxtp
+[submodule "packages/protocol/lib/v2-periphery"]
+	path = packages/protocol/lib/v2-periphery
+	url = https://github.com/Uniswap/v2-periphery

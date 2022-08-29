@@ -7,6 +7,8 @@ interface IRouter {
     Withdraw,
     Borrow,
     Payback,
+    Flashloan,
+    Swap,
     PermitAssets,
     PermitBorrow,
     XTransfer,
