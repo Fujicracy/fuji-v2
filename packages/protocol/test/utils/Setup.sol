@@ -4,105 +4,92 @@ pragma solidity 0.8.15;
 import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
+import {MockProvider} from "../../src/mocks/MockProvider.sol";
+import {MockOracle} from "../../src/mocks/MockOracle.sol";
+import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
-import {AaveV3Goerli} from "../../src/providers/goerli/AaveV3Goerli.sol";
-import {AaveV3Rinkeby} from "../../src/providers/rinkeby/AaveV3Rinkeby.sol";
-import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {DSTestPlus} from "./DSTestPlus.sol";
 
 contract Setup is DSTestPlus {
   struct Registry {
-    address asset;
-    address debtAsset;
-    address oracle;
-    address weth;
-    address testToken;
+  /*address weth;*/
     address connextHandler;
   }
 
-  // Domains
-  // goerli -> 3331
-  // rinkeby -> 1111
-
   uint256 goerliFork;
-  uint256 rinkebyFork;
+  uint256 optimismGoerliFork;
 
-  mapping(uint256 => Registry) public registry;
+  mapping(uint256 => Registry) private registry;
 
   IVault public vault;
   ConnextRouter public connextRouter;
-  ILendingProvider public aaveV3;
 
   IWETH9 public weth;
   IConnextHandler public connextHandler;
 
-  address public connextTestToken;
-  address public asset;
   address public debtAsset;
   address public oracle;
 
   constructor() {
     goerliFork = vm.createFork("goerli");
-    rinkebyFork = vm.createFork("rinkeby");
+    optimismGoerliFork = vm.createFork("optimism_goerli");
 
     Registry memory goerli = Registry({
-      asset: 0x2e3A2fb8473316A02b8A297B982498E661E1f6f5,
-      debtAsset: 0xA2025B15a1757311bfD68cb14eaeFCc237AF5b43,
-      oracle: 0xD7E3AE6f48A1D442069b32a5Aa6e315B111B992C,
-      weth: 0x2e3A2fb8473316A02b8A297B982498E661E1f6f5,
-      testToken: 0x26FE8a8f86511d678d031a022E48FfF41c6a3e3b,
-      connextHandler: 0x6c9a905Ab3f4495E2b47f5cA131ab71281E0546e
+      /*weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,*/
+      connextHandler: 0xB4C1340434920d70aD774309C75f9a4B679d801e
     });
-    registry[3331] = goerli;
+    registry[GOERLI_DOMAIN] = goerli;
 
-    Registry memory rinkeby = Registry({
-      asset: 0xd74047010D77c5901df5b0f9ca518aED56C85e8D,
-      debtAsset: 0xb18d016cDD2d9439A19f15633005A6b2cd6Aa774,
-      oracle: 0xD7E3AE6f48A1D442069b32a5Aa6e315B111B992C,
-      weth: 0xd74047010D77c5901df5b0f9ca518aED56C85e8D,
-      testToken: 0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9,
-      connextHandler: 0x4cAA6358a3d9d1906B5DABDE60A626AAfD80186F
+    Registry memory optimismGoerli = Registry({
+      /*weth: 0x4E283927E35b7118eA546Ef58Ea60bfF59E857DB,*/
+      connextHandler: 0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7
     });
-    registry[1111] = rinkeby;
+    registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
   }
 
   function deploy(uint256 domain) public {
     Registry memory reg = registry[domain];
-    if (reg.asset == address(0)) {
+    if (reg.connextHandler == address(0)) {
       revert("No registry for this chain");
     }
 
-    vm.label(reg.asset, "Asset");
-    vm.label(reg.debtAsset, "DebtAsset");
-    vm.label(reg.weth, "WETH");
     vm.label(reg.connextHandler, "ConnextHandler");
 
-    weth = IWETH9(reg.weth);
+    /*weth = IWETH9(reg.weth);*/
+    /*vm.label(reg.weth, "WETH");*/
+    MockERC20 tWETH = new MockERC20("Test WETH", "tWETH");
+    weth = IWETH9(address(tWETH));
+    vm.label(address(tWETH), "tWETH");
+
+    MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
+    debtAsset = address(tDAI);
+    vm.label(debtAsset, "tDAI");
+
     connextHandler = IConnextHandler(reg.connextHandler);
 
-    connextTestToken = reg.testToken;
-    asset = reg.asset;
-    debtAsset = reg.debtAsset;
+    MockProvider mockProvider = new MockProvider();
+    MockOracle mockOracle = new MockOracle();
 
-    if (domain == 3331) {
-      aaveV3 = new AaveV3Goerli();
-    } else {
-      aaveV3 = new AaveV3Rinkeby();
-    }
+    // WETH and DAI prices by Aug 12h 2022
+    /*mockOracle.setPriceOf(address(weth), address(debtAsset), 528881643782407);*/
+    /*mockOracle.setPriceOf(address(debtAsset), address(weth), 1889069940262927605990);*/
+
     connextRouter = new ConnextRouter(
-      IWETH9(reg.weth),
+      weth,
       IConnextHandler(reg.connextHandler)
     );
     vault = new BorrowingVault(
-      reg.asset,
-      reg.debtAsset,
-      reg.oracle,
+      address(tWETH),
+      debtAsset,
+      address(mockOracle),
       address(0)
     );
 
     // Configs
-    vault.setActiveProvider(aaveV3);
-    connextRouter.setRouter(domain == 3331 ? 1111 : 3331, address(0xAbc1));
+    vault.setActiveProvider(mockProvider);
+    connextRouter.setRouter(
+      domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN, address(0xAbc1)
+    );
   }
 }

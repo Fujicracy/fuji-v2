@@ -7,13 +7,7 @@ import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 
 contract VaultTestsSuite is Setup {
-  function testConfigs() public {
-    assertEq(vault.asset(), asset);
-    assertEq(vault.debtAsset(), debtAsset);
-    assertEq(address(vault.activeProvider()), address(aaveV3));
-  }
-
-  function testDepositAndWithdraw() public {
+  function test_depositAndWithdraw() public {
     address alice = address(0xA);
     vm.label(address(alice), "alice");
 

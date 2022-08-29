@@ -33,7 +33,7 @@ contract ConnextRouterTestsSuite is Setup {
     SafeERC20.safeApprove(IERC20(address(weth)), address(connextRouter), type(uint256).max);
 
     uint256 domain = connextHandler.domain();
-    uint256 destDomain = domain == 3331 ? 1111 : 3331;
+    uint256 destDomain = domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
