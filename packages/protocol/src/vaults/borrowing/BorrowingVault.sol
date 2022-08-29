@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
@@ -7,6 +7,7 @@ import {IERC20Metadata} from
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
+import {VaultPermissions} from "../VaultPermissions.sol";
 
 contract BorrowingVault is BaseVault {
   using Math for uint256;
@@ -17,61 +18,62 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__payback_wrongInput();
   error BorrowingVault__payback_moreThanMax();
 
+  mapping(address => mapping(address => uint256)) private _borrowAllowances;
+
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
-    BaseVault(asset_, debtAsset_, oracle_, chief_)
+    BaseVault(
+      asset_,
+      debtAsset_,
+      oracle_,
+      chief_,
+      // name_, ex: X-Fuji Dai Stablecoin Vault Shares
+      string(abi.encodePacked("X-Fuji ", IERC20Metadata(asset_).name(), " Vault Shares")),
+      // symbol_, ex: xfDAI
+      string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol()))
+    )
   {}
 
   /////////////////////////////////
   /// Debt management overrides ///
   /////////////////////////////////
 
-  /**
-   * @dev Inspired on {IERC20Metadata-decimals}.
-   */
+  /// @inheritdoc BaseVault
   function debtDecimals() public view override returns (uint8) {
     return _debtAsset.decimals();
   }
 
-  /**
-   * @dev Based on {IERC4626-asset}.
-   */
+  /// @inheritdoc BaseVault
   function debtAsset() public view override returns (address) {
     return address(_debtAsset);
   }
 
-  /**
-   * @dev Based on {IERC4626-totalAssets}.
-   */
+  /// @inheritdoc BaseVault
   function totalDebt() public view override returns (uint256) {
     return activeProvider.getBorrowBalance(debtAsset(), address(this));
   }
 
-  /**
-   * @dev Based on {IERC4626-convertToShares}.
-   */
+  /// @inheritdoc BaseVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
-  /**
-   * @dev Based on {IERC4626-convertToAssets}.
-   */
+  /// @inheritdoc BaseVault
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Down);
   }
 
-  /**
-   * @dev Based on {IERC4626-maxDeposit}.
-   */
+  /// @inheritdoc BaseVault
   function maxBorrow(address borrower) public view override returns (uint256) {
     return _computeMaxBorrow(borrower);
   }
 
-  /**
-   * @dev Based on {IERC4626-deposit}.
-   */
+  /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
-    // TODO Need to add security to owner !!!!!!!!
+    address caller = _msgSender();
+    if (caller != owner) {
+      _setBorrowAllowance(owner, caller, debt);
+    }
+
     if (debt == 0) {
       revert BorrowingVault__borrow_wrongInput();
     }
@@ -81,15 +83,12 @@ contract BorrowingVault is BaseVault {
     }
 
     uint256 shares = convertDebtToShares(debt);
-    _borrow(_msgSender(), receiver, owner, debt, shares);
+    _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
   }
 
-  /**
-   * @dev Burns debtShares from owner.
-   * - MUST emit the Payback event.
-   */
+  /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
     if (debt == 0) {
       revert BorrowingVault__payback_wrongInput();
@@ -103,6 +102,63 @@ contract BorrowingVault is BaseVault {
     _payback(_msgSender(), owner, debt, shares);
 
     return shares;
+  }
+
+  /////////////////////////
+  /// Borrow allowances ///
+  /////////////////////////
+
+  /**
+   * @dev See {IVaultPermissions-borrowAllowance}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function borrowAllowance(address owner, address spender)
+    public
+    view
+    virtual
+    override
+    returns (uint256)
+  {}
+
+  /**
+   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function increaseBorrowAllowance(address spender, uint256 byAmount)
+    public
+    virtual
+    override
+    returns (bool)
+  {}
+
+  /**
+   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function decreaseBorrowAllowance(address spender, uint256 byAmount)
+    public
+    virtual
+    override
+    returns (bool)
+  {}
+
+  /**
+   * @dev See {IVaultPermissions-permitBorrow}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function permitBorrow(
+    address owner,
+    address spender,
+    uint256 value,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  )
+    public
+    override
+  {
+    VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
   }
 
   function _computeMaxBorrow(address borrower) internal view override returns (uint256 max) {

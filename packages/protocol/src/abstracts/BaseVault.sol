@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.15;
 
 /**
- * @title Vault Interface.
+ * @title Abstract contract for all vaults.
  * @author Fujidao Labs
- * @notice Defines the interface for vault operations extending from IERC4626.
+ * @notice Defines the interface and common functions for all vaults.
  */
 
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -17,8 +17,10 @@ import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
+import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
+import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 
-abstract contract BaseVault is ERC20, IVault {
+abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
   using SafeERC20 for IERC20;
@@ -47,13 +49,16 @@ abstract contract BaseVault is ERC20, IVault {
 
   Factor public liqRatio = Factor(5, 100);
 
-  constructor(address asset_, address debtAsset_, address oracle_, address chief_)
-    // ex: X-Fuji Dai Stablecoin Vault Shares
-    ERC20(
-      string(abi.encodePacked("X-Fuji ", IERC20Metadata(asset_).name(), " Vault Shares")),
-      // ex: xfDAI
-      string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol()))
-    )
+  constructor(
+    address asset_,
+    address debtAsset_,
+    address oracle_,
+    address chief_,
+    string memory name_,
+    string memory symbol_
+  )
+    ERC20(name_, symbol_)
+    VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
     _debtAsset = IERC20Metadata(debtAsset_);
@@ -61,97 +66,131 @@ abstract contract BaseVault is ERC20, IVault {
     chief = chief_;
   }
 
+  ////////////////////////////////////////////////////
+  /// Asset management: allowance-overrides IERC20 ///
+  /// Overrides to handle all in assetsAllowance   ///
+  ////////////////////////////////////////////////////
+
+  /**
+   * @dev Override to call {VaultPermissions-assetAllowance}.
+   * Returns the share amount of VaultPermissions-assetAllowance.
+   */
+  function allowance(address owner, address spender)
+    public
+    view
+    override (ERC20, IERC20)
+    returns (uint256)
+  {
+    return convertToShares(assetAllowance(owner, spender));
+  }
+
+  /**
+   * @dev Override to call {VaultPermissions-_setAssetAllowance}.
+   * Converts approve shares argument to assets in VaultPermissions-_assetAllowance.
+   * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
+   */
+  function approve(address spender, uint256 shares) public override (ERC20, IERC20) returns (bool) {
+    address owner = _msgSender();
+    _setAssetAllowance(owner, spender, convertToAssets(shares));
+    return true;
+  }
+
+  /**
+   * @dev Override to call {VaultPermissions-increaseAssetAllowance}.
+   * Converts extraShares argument to assets in VaultPermissions-increaseAssetAllowance.
+   */
+  function increaseAllowance(address spender, uint256 extraShares) public override returns (bool) {
+    increaseAssetAllowance(spender, convertToAssets(extraShares));
+    return true;
+  }
+
+  /**
+   * @dev Override to call {VaultPermissions-decreaseAssetAllowance}.
+   * Converts subtractedShares argument to assets in VaultPermissions-decreaseAssetAllowance.
+   */
+  function decreaseAllowance(address spender, uint256 subtractedShares)
+    public
+    override
+    returns (bool)
+  {
+    decreaseAssetAllowance(spender, convertToAssets(subtractedShares));
+    return true;
+  }
+
+  /**
+   * @dev Override to call {VaultPermissions-_spendAssetAllowance}.
+   * Converts shares argument to assets in VaultPermissions-_spendAssetAllowance.
+   * This internal function is called during ERC4626-transferFrom.
+   */
+  function _spendAllowance(address owner, address spender, uint256 shares) internal override {
+    _spendAssetAllowance(owner, spender, convertToAssets(shares));
+  }
+
   ////////////////////////////////////////////
   /// Asset management: overrides IERC4626 ///
   ////////////////////////////////////////////
 
-  /**
-   * @dev See {IERC4626-asset}.
-   */
+  /// @inheritdoc IERC4626
   function asset() public view virtual override returns (address) {
     return address(_asset);
   }
 
-  /**
-   * @dev Overriden to check assets locked in activeProvider {IERC4626-totalAssets}.
-   */
+  /// @inheritdoc IERC4626
   function totalAssets() public view virtual override returns (uint256) {
     return activeProvider.getDepositBalance(asset(), address(this));
   }
 
-  /**
-   * @dev See {IERC4626-convertToShares}.
-   */
+  /// @inheritdoc IERC4626
   function convertToShares(uint256 assets) public view virtual override returns (uint256 shares) {
     return _convertToShares(assets, Math.Rounding.Down);
   }
 
-  /**
-   * @dev See {IERC4626-convertToAssets}.
-   */
+  /// @inheritdoc IERC4626
   function convertToAssets(uint256 shares) public view virtual override returns (uint256 assets) {
     return _convertToAssets(shares, Math.Rounding.Down);
   }
 
-  /**
-   * @dev See {IERC4626-maxDeposit}.
-   */
+  /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
     return _isVaultCollateralized() ? type(uint256).max : 0;
   }
 
-  /**
-   * @dev See {IERC4626-maxMint}.
-   */
+  /// @inheritdoc IERC4626
   function maxMint(address) public view virtual override returns (uint256) {
     return type(uint256).max;
   }
 
-  /**
-   * @dev Overriden to check assets locked by debt {IERC4626-maxWithdraw}.
-   */
+  /// @inheritdoc IERC4626
   function maxWithdraw(address owner) public view override returns (uint256) {
     return _computeFreeAssets(owner);
   }
 
-  /**
-   * @dev Overriden to check shares locked by debt {IERC4626-maxRedeem}.
-   */
+  /// @inheritdoc IERC4626
   function maxRedeem(address owner) public view override returns (uint256) {
     return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Down);
   }
 
-  /**
-   * @dev See {IERC4626-previewDeposit}.
-   */
+  /// @inheritdoc IERC4626
   function previewDeposit(uint256 assets) public view virtual override returns (uint256) {
     return _convertToShares(assets, Math.Rounding.Down);
   }
 
-  /**
-   * @dev See {IERC4626-previewMint}.
-   */
+  /// @inheritdoc IERC4626
   function previewMint(uint256 shares) public view virtual override returns (uint256) {
     return _convertToAssets(shares, Math.Rounding.Up);
   }
 
-  /**
-   * @dev See {IERC4626-previewWithdraw}.
-   */
+  /// @inheritdoc IERC4626
   function previewWithdraw(uint256 assets) public view virtual override returns (uint256) {
     return _convertToShares(assets, Math.Rounding.Up);
   }
 
-  /**
-   * @dev See {IERC4626-previewRedeem}.
-   */
+  /// @inheritdoc IERC4626
   function previewRedeem(uint256 shares) public view virtual override returns (uint256) {
     return _convertToAssets(shares, Math.Rounding.Down);
   }
 
-  /**
-   * @dev See {IERC4626-deposit}.
-   */
+  /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     if (assets > maxDeposit(receiver)) {
       revert BaseVault__deposit_moreThanMax();
@@ -163,9 +202,7 @@ abstract contract BaseVault is ERC20, IVault {
     return shares;
   }
 
-  /**
-   * @dev See {IERC4626-mint}.
-   */
+  /// @inheritdoc IERC4626
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
     if (shares > maxMint(receiver)) {
       revert BaseVault__mint_moreThanMax();
@@ -177,14 +214,17 @@ abstract contract BaseVault is ERC20, IVault {
     return assets;
   }
 
-  /**
-   * @dev Overriden to perform withdraw checks {IERC4626-withdraw}.
-   */
+  /// @inheritdoc IERC4626
   function withdraw(uint256 assets, address receiver, address owner)
     public
     override
     returns (uint256)
   {
+    address caller = _msgSender();
+    if (caller != owner) {
+      _spendAllowance(owner, caller, assets);
+    }
+
     if (assets == 0) {
       revert BaseVault__withdraw_wrongInput();
     }
@@ -194,14 +234,12 @@ abstract contract BaseVault is ERC20, IVault {
     }
 
     uint256 shares = previewWithdraw(assets);
-    _withdraw(_msgSender(), receiver, owner, assets, shares);
+    _withdraw(caller, receiver, owner, assets, shares);
 
     return shares;
   }
 
-  /**
-   * @dev Overriden See {IERC4626-redeem}.
-   */
+  /// @inheritdoc IERC4626
   function redeem(uint256 shares, address receiver, address owner)
     public
     override
@@ -286,56 +324,93 @@ abstract contract BaseVault is ERC20, IVault {
     return totalAssets() > 0 || totalSupply() == 0;
   }
 
-  /// Token transfer hooks.
+  /// @inheritdoc ERC20
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
     to;
-    if (from != address(0)) require(amount <= maxRedeem(from), "Transfer more than max");
+    if (from != address(0)) {
+      require(amount <= maxRedeem(from), "Transfer more than max");
+    }
   }
 
   ////////////////////////////////////////////////////
   /// Debt management: based on IERC4626 semantics ///
   ////////////////////////////////////////////////////
 
-  /**
-   * @dev Inspired on {IERC20Metadata-decimals}.
-   */
-  function debtDecimals() public view virtual returns (uint8);
+  /// inheritdoc IVault
+  function debtDecimals() public view virtual override returns (uint8);
 
-  /**
-   * @dev Based on {IERC4626-asset}.
-   */
+  /// inheritdoc IVault
   function debtAsset() public view virtual returns (address);
 
-  /**
-   * @dev Based on {IERC4626-totalAssets}.
-   */
+  /// inheritdoc IVault
   function totalDebt() public view virtual returns (uint256);
 
-  /**
-   * @dev Based on {IERC4626-convertToShares}.
-   */
+  /// inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view virtual returns (uint256 shares);
 
-  /**
-   * @dev Based on {IERC4626-convertToAssets}.
-   */
+  /// inheritdoc IVault
   function convertToDebt(uint256 shares) public view virtual returns (uint256 debt);
 
-  /**
-   * @dev Based on {IERC4626-maxDeposit}.
-   */
+  /// inheritdoc IVault
   function maxBorrow(address borrower) public view virtual returns (uint256);
 
-  /**
-   * @dev Based on {IERC4626-deposit}.
-   */
+  /// inheritdoc IVault
   function borrow(uint256 debt, address receiver, address owner) public virtual returns (uint256);
 
-  /**
-   * @dev Burns debtShares from owner.
-   * - MUST emit the Payback event.
-   */
+  /// inheritdoc IVault
   function payback(uint256 debt, address owner) public virtual returns (uint256);
+
+  /**
+   * @dev See {IVaultPermissions-borrowAllowance}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function borrowAllowance(address owner, address spender)
+    public
+    view
+    virtual
+    override
+    returns (uint256)
+  {}
+
+  /**
+   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function increaseBorrowAllowance(address spender, uint256 byAmount)
+    public
+    virtual
+    override
+    returns (bool)
+  {}
+
+  /**
+   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function decreaseBorrowAllowance(address spender, uint256 byAmount)
+    public
+    virtual
+    override
+    returns (bool)
+  {}
+
+  /**
+   * @dev See {IVaultPermissions-permitBorrow}.
+   * Implement in {BorrowingVault}, revert in {LendingVault}
+   */
+  function permitBorrow(
+    address owner,
+    address spender,
+    uint256 value,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  )
+    public
+    virtual
+    override
+  {}
 
   function _computeMaxBorrow(address borrower) internal view virtual returns (uint256);
 
@@ -402,37 +477,49 @@ abstract contract BaseVault is ERC20, IVault {
   function setOracle(IFujiOracle newOracle) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    oracle = newOracle; // TODO needs to emit event.
+    oracle = newOracle;
+
+    emit OracleChanged(newOracle);
   }
 
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    _providers = providers; // TODO needs to emit event.
+    _providers = providers;
+
+    emit ProvidersChanged(providers);
   }
 
+  /// inheritdoc IVault
   function setActiveProvider(ILendingProvider activeProvider_) external {
     // TODO needs admin restriction
     // TODO needs input validation
     activeProvider = activeProvider_;
-    // TODO needs to emit event.
     SafeERC20.safeApprove(
       IERC20(asset()), activeProvider.approvedOperator(asset()), type(uint256).max
     );
-    if (debtAsset() != address(0)) SafeERC20.safeApprove(
-      IERC20(debtAsset()), activeProvider.approvedOperator(debtAsset()), type(uint256).max
-    );
+    if (debtAsset() != address(0)) {
+      SafeERC20.safeApprove(
+        IERC20(debtAsset()), activeProvider.approvedOperator(debtAsset()), type(uint256).max
+      );
+    }
+
+    emit ActiveProviderChanged(activeProvider_);
   }
 
   function setMaxLtv(Factor calldata maxLtv_) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    maxLtv = maxLtv_; // TODO needs to emit event.
+    maxLtv = maxLtv_;
+
+    emit MaxLtvChanged(maxLtv_);
   }
 
   function setLiqRatio(Factor calldata liqRatio_) external {
     // TODO needs admin restriction
     // TODO needs input validation
-    liqRatio = liqRatio_; // TODO needs to emit event.
+    liqRatio = liqRatio_;
+
+    emit LiqRatioChanged(liqRatio_);
   }
 }

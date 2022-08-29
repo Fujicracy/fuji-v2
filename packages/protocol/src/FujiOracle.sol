@@ -1,16 +1,19 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
-import "./interfaces/chainlink/IAggregatorV3.sol";
-import "./interfaces/IFujiOracle.sol";
-import "./libraries/Errors.sol";
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {IAggregatorV3} from "./interfaces/chainlink/IAggregatorV3.sol";
+import {IFujiOracle} from "./interfaces/IFujiOracle.sol";
 
 /**
  * @dev Contract that returns and computes prices for the Fuji protocol
  */
 
 contract FujiOracle is IFujiOracle, Ownable {
+  error FujiOracle__lengthMismatch();
+  error FujiOracle__noZeroAddress();
+  error FujiOracle__noPriceFeed();
+
   // mapping from asset address to its price feed oracle in USD - decimals: 8
   mapping(address => address) public usdPriceFeeds;
 
@@ -18,7 +21,10 @@ contract FujiOracle is IFujiOracle, Ownable {
    * @dev Initializes the contract setting '_priceFeeds' addresses for '_assets'
    */
   constructor(address[] memory _assets, address[] memory _priceFeeds) {
-    require(_assets.length == _priceFeeds.length, Errors.ORACLE_INVALID_LENGTH);
+    if (_assets.length != _priceFeeds.length) {
+      revert FujiOracle__lengthMismatch();
+    }
+
     for (uint256 i = 0; i < _assets.length; i++) {
       usdPriceFeeds[_assets[i]] = _priceFeeds[i];
     }
@@ -30,14 +36,17 @@ contract FujiOracle is IFujiOracle, Ownable {
    * Emits a {AssetPriceFeedChanged} event.
    */
   function setPriceFeed(address _asset, address _priceFeed) public onlyOwner {
-    require(_priceFeed != address(0), Errors.VL_ZERO_ADDR);
+    if (_priceFeed == address(0)) {
+      revert FujiOracle__noZeroAddress();
+    }
+
     usdPriceFeeds[_asset] = _priceFeed;
     emit AssetPriceFeedChanged(_asset, _priceFeed);
   }
 
   /**
    * @dev Calculates the exchange rate between two assets, with price oracle given in specified decimals.
-   *      Format is: (_currencyAsset per unit of _commodityAsset Exchange Rate).
+   * Format is: (_currencyAsset per unit of _commodityAsset Exchange Rate).
    * @param _currencyAsset: the currency asset, zero-address for USD.
    * @param _commodityAsset: the commodity asset, zero-address for USD.
    * @param _decimals: the decimals of the price output.
@@ -70,7 +79,9 @@ contract FujiOracle is IFujiOracle, Ownable {
    * Returns the USD price of the given asset
    */
   function _getUSDPrice(address _asset) internal view returns (uint256 price) {
-    require(usdPriceFeeds[_asset] != address(0), Errors.ORACLE_NONE_PRICE_FEED);
+    if (usdPriceFeeds[_asset] == address(0)) {
+      revert FujiOracle__noPriceFeed();
+    }
 
     (, int256 latestPrice,,,) = IAggregatorV3(usdPriceFeeds[_asset]).latestRoundData();
 

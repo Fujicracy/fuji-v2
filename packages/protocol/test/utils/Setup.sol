@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.15;
 
 import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
-import {XRouter} from "../../src/XRouter.sol";
+import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
 import {AaveV3Goerli} from "../../src/providers/goerli/AaveV3Goerli.sol";
 import {AaveV3Rinkeby} from "../../src/providers/rinkeby/AaveV3Rinkeby.sol";
@@ -31,7 +31,7 @@ contract Setup is DSTestPlus {
   mapping(uint256 => Registry) public registry;
 
   IVault public vault;
-  XRouter public router;
+  ConnextRouter public connextRouter;
   ILendingProvider public aaveV3;
 
   IWETH9 public weth;
@@ -73,6 +73,11 @@ contract Setup is DSTestPlus {
       revert("No registry for this chain");
     }
 
+    vm.label(reg.asset, "Asset");
+    vm.label(reg.debtAsset, "DebtAsset");
+    vm.label(reg.weth, "WETH");
+    vm.label(reg.connextHandler, "ConnextHandler");
+
     weth = IWETH9(reg.weth);
     connextHandler = IConnextHandler(reg.connextHandler);
 
@@ -85,7 +90,7 @@ contract Setup is DSTestPlus {
     } else {
       aaveV3 = new AaveV3Rinkeby();
     }
-    router = new XRouter(
+    connextRouter = new ConnextRouter(
       IWETH9(reg.weth),
       IConnextHandler(reg.connextHandler)
     );
@@ -98,8 +103,6 @@ contract Setup is DSTestPlus {
 
     // Configs
     vault.setActiveProvider(aaveV3);
-    router.registerVault(vault);
-    router.setTestnetToken(reg.testToken);
-    router.setRouter(domain == 3331 ? 1111 : 3331, address(0xAbc1));
+    connextRouter.setRouter(domain == 3331 ? 1111 : 3331, address(0xAbc1));
   }
 }

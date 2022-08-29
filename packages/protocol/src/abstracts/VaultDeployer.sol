@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later-only
-pragma solidity >=0.8.9;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.15;
 
 /// @dev Custom Errors
 error Unauthorized();
@@ -14,12 +14,16 @@ abstract contract VaultDeployer {
   mapping(bytes32 => address) public configAddress;
 
   modifier onlyChief() {
-    if (msg.sender != chief) revert Unauthorized();
+    if (msg.sender != chief) {
+      revert Unauthorized();
+    }
     _;
   }
 
   constructor(address _chief) {
-    if (_chief == address(0)) revert ZeroAddress();
+    if (_chief == address(0)) {
+      revert ZeroAddress();
+    }
     chief = _chief;
   }
 
