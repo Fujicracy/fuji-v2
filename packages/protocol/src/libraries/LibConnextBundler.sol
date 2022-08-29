@@ -23,9 +23,7 @@ library LibConnextBundler {
     returns (IRouter.Action[] memory, bytes[] memory)
   {
     bytes memory params = abi.encode(innerActions, innerArgs);
-
     bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
-
     bytes memory callData = abi.encodeWithSelector(selector, params);
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
@@ -42,6 +40,7 @@ library LibConnextBundler {
     address router,
     uint256 amount,
     uint256 borrowAmount,
+    uint256 deadline,
     uint8 v,
     bytes32 r,
     bytes32 s
@@ -57,7 +56,7 @@ library LibConnextBundler {
     args[0] = abi.encode(vault, amount, msg.sender, msg.sender);
 
     actions[1] = IRouter.Action.PermitBorrow;
-    args[1] = abi.encode(vault, msg.sender, router, borrowAmount, block.timestamp + 1 days, v, r, s);
+    args[1] = abi.encode(vault, msg.sender, router, borrowAmount, deadline, v, r, s);
 
     actions[2] = IRouter.Action.Borrow;
     args[2] = abi.encode(vault, borrowAmount, msg.sender, msg.sender);

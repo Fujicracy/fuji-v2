@@ -12,7 +12,7 @@ import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 
-contract DeployGoerli is ScriptPlus {
+contract DeployOptimismGoerli is ScriptPlus {
   IVault public vault;
   IWETH9 public weth;
   IConnextHandler public connextHandler;
@@ -24,26 +24,26 @@ contract DeployGoerli is ScriptPlus {
   MockOracle public mockOracle;
 
   function setUp() public {
-    weth = IWETH9(0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6);
-    connextHandler = IConnextHandler(0xB4C1340434920d70aD774309C75f9a4B679d801e);
+    chainName = "optimism-goerli";
+
+    weth = IWETH9(0x4E283927E35b7118eA546Ef58Ea60bfF59E857DB);
+    connextHandler = IConnextHandler(0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7);
   }
 
   function run() public {
     vm.startBroadcast();
-    /*uint256 privKey = getPrivKey();*/
-    /*(uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, "digest");*/
 
     mockDAI = new MockERC20("Test DAI", "tDAI");
-    saveAddress("./deployments/goerli/MockDAI", address(mockDAI));
+    saveAddress("MockDAI", address(mockDAI));
 
     mockOracle = new MockOracle();
-    saveAddress("./deployments/goerli/MockOracle", address(mockOracle));
+    saveAddress("MockOracle", address(mockOracle));
 
     mockProvider = new MockProvider();
-    saveAddress("./deployments/goerli/MockProvider", address(mockProvider));
+    saveAddress("MockProvider", address(mockProvider));
 
     connextRouter = new ConnextRouter(weth, connextHandler);
-    saveAddress("./deployments/goerli/ConnextRouter", address(connextRouter));
+    saveAddress("ConnextRouter", address(connextRouter));
 
     vault = new BorrowingVault(
       address(weth),
@@ -51,7 +51,7 @@ contract DeployGoerli is ScriptPlus {
       address(mockOracle),
       address(0)
     );
-    saveAddress("./deployments/goerli/BorrowingVault", address(vault));
+    saveAddress("BorrowingVault", address(vault));
 
     vault.setActiveProvider(mockProvider);
 
