@@ -10,39 +10,25 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
 
 contract ConnextRouterTestsSuite is Setup {
-  event Dispatch(
-    bytes32 indexed messageHash,
-    uint256 indexed leafIndex,
-    uint64 indexed destinationAndNonce,
-    bytes32 committedRoot,
-    bytes message
-  );
+  event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
-  function testBridgeOutbound() public {
-    address alice = address(0xA);
-    vm.label(address(alice), "alice");
-
+  function test_bridgeOutbound() public {
     uint256 amount = 2 ether;
-    deal(address(weth), alice, amount);
-    assertEq(weth.balanceOf(alice), amount);
-
-    deal(address(weth), address(connextRouter), 10e18);
+    deal(connextWETH, alice, amount);
+    assertEq(IERC20(connextWETH).balanceOf(alice), amount);
 
     vm.startPrank(alice);
 
-    SafeERC20.safeApprove(IERC20(address(weth)), address(connextRouter), type(uint256).max);
-
-    uint256 domain = connextHandler.domain();
-    uint256 destDomain = domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
+    SafeERC20.safeApprove(IERC20(connextWETH), address(connextRouter), type(uint256).max);
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
 
     actions[0] = IRouter.Action.XTransferWithCall;
-    args[0] = abi.encode(destDomain, address(weth), amount, "");
+    args[0] = abi.encode(destDomain, connextWETH, amount, "");
 
     vm.expectEmit(false, false, false, false);
-    emit Dispatch("", 1, 1, "", "");
+    emit Dispatch("", 1, "", "");
 
     connextRouter.xBundle(actions, args);
   }
@@ -51,8 +37,7 @@ contract ConnextRouterTestsSuite is Setup {
 
   event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
 
-  function testBridgeInbound() public {
-    address alice = address(0xA);
+  function test_bridgeInbound() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
@@ -77,19 +62,20 @@ contract ConnextRouterTestsSuite is Setup {
     emit Borrow(address(connextRouter), alice, borrowAmount, borrowAmount);
 
     IExecutor.ExecutorArgs memory execArgs = IExecutor.ExecutorArgs({
-      assetId: address(weth),
+      assetId: collateralAsset,
       amount: amount,
       to: address(connextRouter),
       callData: callData,
       transferId: "",
       recovery: address(0),
-      properties: ""
+      originSender: address(connextRouter),
+      originDomain: originDomain
     });
     vm.expectCall(address(connextRouter), callData);
 
     // connext has to send to the executor "amount"
     // before calling it
-    deal(address(weth), executor, amount);
+    deal(collateralAsset, executor, amount);
     vm.startPrank(address(connextHandler));
     IExecutor(executor).execute(execArgs);
 

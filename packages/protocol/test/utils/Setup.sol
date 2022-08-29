@@ -13,21 +13,28 @@ import {DSTestPlus} from "./DSTestPlus.sol";
 
 contract Setup is DSTestPlus {
   struct Registry {
-  /*address weth;*/
+    address weth;
     address connextHandler;
   }
 
+  address alice = address(0xA);
+  address bob = address(0xB);
+
   uint256 goerliFork;
   uint256 optimismGoerliFork;
+
+  uint32 originDomain;
+  uint32 destDomain;
 
   mapping(uint256 => Registry) private registry;
 
   IVault public vault;
   ConnextRouter public connextRouter;
 
-  IWETH9 public weth;
   IConnextHandler public connextHandler;
+  address public connextWETH;
 
+  address public collateralAsset;
   address public debtAsset;
   address public oracle;
 
@@ -35,32 +42,39 @@ contract Setup is DSTestPlus {
     goerliFork = vm.createFork("goerli");
     optimismGoerliFork = vm.createFork("optimism_goerli");
 
+    vm.label(address(alice), "alice");
+    vm.label(address(bob), "bob");
+
     Registry memory goerli = Registry({
-      /*weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,*/
+      weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
       connextHandler: 0xB4C1340434920d70aD774309C75f9a4B679d801e
     });
     registry[GOERLI_DOMAIN] = goerli;
 
     Registry memory optimismGoerli = Registry({
-      /*weth: 0x4E283927E35b7118eA546Ef58Ea60bfF59E857DB,*/
+      weth: 0x4E283927E35b7118eA546Ef58Ea60bfF59E857DB,
       connextHandler: 0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
   }
 
-  function deploy(uint256 domain) public {
+  function deploy(uint32 domain) public {
     Registry memory reg = registry[domain];
     if (reg.connextHandler == address(0)) {
       revert("No registry for this chain");
     }
 
+    originDomain = domain;
+    destDomain = domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
+
     vm.label(reg.connextHandler, "ConnextHandler");
 
-    /*weth = IWETH9(reg.weth);*/
-    /*vm.label(reg.weth, "WETH");*/
-    MockERC20 tWETH = new MockERC20("Test WETH", "tWETH");
-    weth = IWETH9(address(tWETH));
-    vm.label(address(tWETH), "tWETH");
+    connextWETH = reg.weth;
+    vm.label(reg.weth, "ConnextWETH");
+
+    MockERC20 tCollateral = new MockERC20("Test COLL", "tCOLL");
+    collateralAsset = address(tCollateral);
+    vm.label(address(tCollateral), "tCOLL");
 
     MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
     debtAsset = address(tDAI);
@@ -76,11 +90,11 @@ contract Setup is DSTestPlus {
     /*mockOracle.setPriceOf(address(debtAsset), address(weth), 1889069940262927605990);*/
 
     connextRouter = new ConnextRouter(
-      weth,
+      IWETH9(connextWETH),
       IConnextHandler(reg.connextHandler)
     );
     vault = new BorrowingVault(
-      address(tWETH),
+      collateralAsset,
       debtAsset,
       address(mockOracle),
       address(0)
