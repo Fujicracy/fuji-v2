@@ -45,6 +45,13 @@ contract VaultTest is DSTestPlus {
     vm.stopPrank();
   }
 
+  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault v) public {
+    utils_doDeposit(depositAmount, v);
+
+    vm.prank(alice);
+    v.borrow(borrowAmount, alice, alice);
+  }
+
   function setUp() public {
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
@@ -80,5 +87,14 @@ contract VaultTest is DSTestPlus {
     vault.withdraw(amount, alice, alice);
 
     assertEq(vault.balanceOf(alice), 0);
+  }
+
+  function test_borrow() public {
+    uint amount = 2 ether;
+    uint256 borrowAmount = 100e18;
+
+    utils_doDepositAndBorrow(amount, borrowAmount, vault);
+    
+    assertEq(debtAsset.balanceOf(alice), borrowAmount);
   }
 }
