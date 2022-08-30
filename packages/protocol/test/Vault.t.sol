@@ -89,12 +89,27 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOf(alice), 0);
   }
 
-  function test_borrow() public {
+  function test_depositAndBorrow() public {
     uint amount = 2 ether;
     uint256 borrowAmount = 100e18;
 
     utils_doDepositAndBorrow(amount, borrowAmount, vault);
     
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
+  }
+
+  function test_paybackAndWithdraw() public {
+    uint amount = 2 ether;
+    uint256 borrowAmount = 100e18;
+
+    utils_doDepositAndBorrow(amount, borrowAmount, vault);
+
+    vm.startPrank(alice);
+    SafeERC20.safeApprove(debtAsset, address(vault), borrowAmount);
+    vault.payback(borrowAmount, alice);
+    vault.withdraw(amount, alice, alice);
+    vm.stopPrank();
+
+    assertEq(vault.balanceOf(alice), 0);
   }
 }
