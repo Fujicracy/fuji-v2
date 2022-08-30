@@ -36,6 +36,15 @@ contract VaultTest is DSTestPlus {
     );
   }
 
+  function utils_doDeposit(uint256 amount, IVault v) public {
+    deal(address(asset), alice, amount);
+
+    vm.startPrank(alice);
+    SafeERC20.safeApprove(asset, address(v), amount);
+    v.deposit(amount, alice);
+    vm.stopPrank();
+  }
+
   function setUp() public {
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
@@ -59,13 +68,17 @@ contract VaultTest is DSTestPlus {
 
   function test_deposit() public {
     uint amount = 2 ether;
-    deal(address(asset), alice, amount);
-
-    vm.startPrank(alice);
-    SafeERC20.safeApprove(asset, address(vault), amount);
-    vault.deposit(amount, alice);
-    vm.stopPrank();
-
+    utils_doDeposit(amount, vault);
     assertEq(vault.balanceOf(alice), amount);
+  }
+
+  function test_withdraw() public {
+    uint amount = 2 ether;
+    utils_doDeposit(amount, vault);
+
+    vm.prank(alice);
+    vault.withdraw(amount, alice, alice);
+
+    assertEq(vault.balanceOf(alice), 0);
   }
 }
