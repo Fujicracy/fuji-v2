@@ -6,12 +6,12 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
-import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
+import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 
 contract VaultTest is DSTestPlus {
-  IVault public vault;
+  BorrowingVault public vault;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -28,66 +28,6 @@ contract VaultTest is DSTestPlus {
   uint256 public withdrawDelegated = 3 * 1e18;
   uint256 public borrowDelegated = 200 * 1e6;
 
-  // solhint-disable-next-line var-name-mixedcase
-  bytes32 private constant _PERMIT_ASSET_TYPEHASH =
-    keccak256(
-      "PermitAssets(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-    );
-  // solhint-disable-next-line var-name-mixedcase
-  bytes32 private constant _PERMIT_DEBT_TYPEHASH =
-    keccak256(
-      "PermitDebt(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-    );
-
-  struct Permit {
-      address owner;
-      address spender;
-      uint256 value;
-      uint256 nonce;
-      uint256 deadline;
-  }
-
-  // computes the hash of a permit-asset
-  function utils_getStructHashAsset(Permit memory _permit)
-    public
-    pure
-    returns (bytes32)
-  {
-    return keccak256(
-      abi.encode(
-        _PERMIT_ASSET_TYPEHASH,
-        _permit.owner,
-        _permit.spender,
-        _permit.value,
-        _permit.nonce,
-        _permit.deadline
-      )
-    );
-  }
-
-  // computes the hash of a permit-debt
-  function utils_getStructHashDebt(Permit memory _permit)
-    public
-    pure
-    returns (bytes32)
-  {
-    return keccak256(
-      abi.encode(
-        _PERMIT_DEBT_TYPEHASH,
-        _permit.owner,
-        _permit.spender,
-        _permit.value,
-        _permit.nonce,
-        _permit.deadline
-      )
-    );
-  }
-
-  // computes the digest
-  function utils_gethashTypedDataV4Digest(bytes32 domainSeperator_, bytes32 structHash_) external pure returns (bytes32) {
-    return keccak256(abi.encodePacked("\x19\x01", domainSeperator_, structHash_));
-  }
-
   function utils_setupOracle(address asset1, address asset2) internal {
     // WETH and DAI prices by Aug 12h 2022
     vm.mockCall(
@@ -102,7 +42,7 @@ contract VaultTest is DSTestPlus {
     );
   }
 
-  function utils_doDeposit(uint256 amount, IVault v) public {
+  function utils_doDeposit(uint256 amount, BorrowingVault v) public {
     deal(address(asset), owner, amount);
 
     vm.startPrank(owner);
@@ -137,5 +77,41 @@ contract VaultTest is DSTestPlus {
 
     vm.prank(operator);
     vault.withdraw(withdrawDelegated, operator, owner);
+  }
+
+  function testWithdrawWithPermit() public {
+    utils_doDeposit(depositAmount, vault);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      owner: owner,
+      spender: operator,
+      amount: withdrawDelegated,
+      nonce: vault.nonces(owner),
+      deadline: block.timestamp + 1 days
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
+      LibSigUtils.getStructHashAsset(permit)
+    );
+
+    // This message signing is supposed to be off-chain
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+    vault.permitAssets(
+      permit.owner,
+      permit.spender,
+      permit.amount,
+      permit.deadline,
+      v,
+      r,
+      s
+    );
+
+    assertEq(vault.assetAllowance(owner, operator), withdrawDelegated);
+
+    vm.prank(operator);
+    vault.withdraw(withdrawDelegated, operator, owner);
+
+    assertEq(asset.balanceOf(operator), withdrawDelegated);
   }
 }
