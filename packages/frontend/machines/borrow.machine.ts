@@ -3,17 +3,21 @@ import { createMachine } from "xstate"
 import { assign } from "xstate/lib/actions"
 
 interface Context {
-  collateralAmount: number
-  collateralBalance: number
-  collateralUSDValue: number
-  collateralTotalValue: number
+  collateral: {
+    amount: number
+    balance: number
+    USDValue: number
+    totalValue: number
+  }
 }
 
 const initialContext: Context = {
-  collateralAmount: 0,
-  collateralBalance: 5,
-  collateralUSDValue: 1600,
-  collateralTotalValue: 0,
+  collateral: {
+    amount: 0,
+    balance: 5,
+    USDValue: 1600,
+    totalValue: 0,
+  },
 }
 
 type Events =
@@ -27,7 +31,7 @@ type Events =
 const borrowMachine = createMachine(
   {
     id: "borrowMachine",
-    initial: "initial",
+    initial: "editing",
     schema: {
       context: {} as Context,
       events: {} as Events,
@@ -67,8 +71,11 @@ const borrowMachine = createMachine(
   {
     actions: {
       updateCollateralAmount: assign({
-        collateralAmount: (_, evt) => evt.value,
-        collateralTotalValue: (ctx, evt) => ctx.collateralUSDValue * evt.value,
+        collateral: (ctx, evt) => ({
+          ...ctx.collateral,
+          value: evt.value,
+          totalValue: ctx.collateral.USDValue * evt.value,
+        }),
       }),
     },
   }

@@ -3,8 +3,8 @@ import { useMachine } from "@xstate/react"
 
 export default function Borrow() {
   const [current, send] = useMachine(borrowMachine, { devTools: true })
-  console.log(current)
-
+  const { collateral } = current.context
+  console.log(collateral)
   return (
     <>
       <p>
@@ -30,20 +30,20 @@ export default function Borrow() {
                 value: evt.target.value,
               })
             }
-            value={current.context.collateralAmount}
+            value={collateral.amount}
           />
           <select>
             <option>ETH</option>
             <option>USDC</option>
           </select>
           <br />
-          Value: <strong>{current.context.collateralTotalValue}$</strong>-
-          Balance: <strong>{current.context.collateralBalance}</strong>{" "}
+          Value: <strong>{collateral.totalValue}$</strong>- Balance:{" "}
+          <strong>{collateral.balance}</strong>{" "}
           <button
             onClick={() =>
               send({
                 type: "changeCollateralAmount",
-                value: current.context.collateralBalance,
+                value: collateral.balance,
               })
             }
           >
@@ -61,6 +61,9 @@ export default function Borrow() {
             <option>ETH</option>
             <option>USDC</option>
           </select>
+          <br />
+          <br />
+          <button onClick={() => alert("not implemented")}>Borrow</button>
         </div>
       )}
     </>

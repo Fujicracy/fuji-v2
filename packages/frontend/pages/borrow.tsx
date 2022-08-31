@@ -2,7 +2,7 @@ import type { NextPage } from "next"
 import Head from "next/head"
 import Borrow from "../components/Borrow"
 
-const Home: NextPage = () => {
+const BorrowPage: NextPage = () => {
   return (
     <div>
       <Head>
@@ -23,4 +23,4 @@ const Home: NextPage = () => {
   )
 }
 
-export default Home
+export default BorrowPage
