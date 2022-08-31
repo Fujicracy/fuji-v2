@@ -73,8 +73,8 @@ contract VaultTest is DSTestPlus {
     vault.setActiveProvider(mockProvider);
   }
 
-  function test_deposit() public {
-    uint amount = 2 ether;
+  //fuzz testing example
+  function test_deposit(uint256 amount) public {
     utils_doDeposit(amount, vault);
     assertEq(vault.balanceOf(alice), amount);
   }
