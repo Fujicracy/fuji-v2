@@ -121,4 +121,40 @@ contract VaultTest is DSTestPlus {
     vm.prank(operator);
     vault.borrow(borrowDelegated, operator, owner);
   }
+
+  function test_borrowWithPermit() public {
+    utils_doDeposit(depositAmount, vault);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      owner: owner,
+      spender: operator,
+      amount: borrowDelegated,
+      nonce: vault.nonces(owner),
+      deadline: block.timestamp + 1 days
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
+      LibSigUtils.getStructHashBorrow(permit)
+    );
+
+    // This message signing is supposed to be off-chain
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+    vault.permitBorrow(
+      permit.owner,
+      permit.spender,
+      permit.amount,
+      permit.deadline,
+      v,
+      r,
+      s
+    );
+
+    assertEq(vault.borrowAllowance(owner, operator), borrowDelegated);
+
+    vm.prank(operator);
+    vault.borrow(borrowDelegated, operator, owner);
+
+    assertEq(debtAsset.balanceOf(operator), borrowDelegated);
+  }
 }
