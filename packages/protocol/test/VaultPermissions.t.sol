@@ -114,4 +114,11 @@ contract VaultTest is DSTestPlus {
 
     assertEq(asset.balanceOf(operator), withdrawDelegated);
   }
+
+  function testFail_operatorTriesBorrow() public {
+    utils_doDeposit(depositAmount, vault);
+
+    vm.prank(operator);
+    vault.borrow(borrowDelegated, operator, owner);
+  }
 }
