@@ -66,7 +66,7 @@ contract BorrowingVault is BaseVault {
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
     if (caller != owner) {
-      _setBorrowAllowance(owner, caller, debt);
+      _spendBorrowAllowance(owner, caller, debt);
     }
     require(debt > 0, "Wrong input");
     require(debt <= maxBorrow(owner), "Not enough assets");
