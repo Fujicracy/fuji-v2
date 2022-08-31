@@ -112,4 +112,21 @@ contract VaultTest is DSTestPlus {
 
     assertEq(vault.balanceOf(alice), 0);
   }
+
+  function testFail_borrowWithoutCollateral() public {
+    uint256 borrowAmount = 100e18;
+
+    vm.prank(alice);
+    vault.borrow(borrowAmount, alice, alice);
+  }
+
+  function testFail_withdrawWithoutRepay() public {
+    uint amount = 2 ether;
+    uint256 borrowAmount = 100e18;
+
+    utils_doDepositAndBorrow(amount, borrowAmount, vault);
+
+    vm.prank(alice);
+    vault.withdraw(amount, alice, alice);
+  }
 }
