@@ -47,17 +47,23 @@ contract DeployOptimismGoerli is ScriptPlus {
 
     vault = new BorrowingVault(
       address(weth),
-      address(mockDAI),
-      address(mockOracle),
+      getAddress("MockDAI"),
+      getAddress("MockOracle"),
       address(0)
     );
     saveAddress("BorrowingVault", address(vault));
 
-    vault.setActiveProvider(mockProvider);
+    BorrowingVault(getAddress("BorrowingVault")).setActiveProvider(
+      MockProvider(getAddress("MockProvider"))
+    );
 
     // WETH and DAI prices by Aug 12h 2022
-    mockOracle.setPriceOf(address(weth), address(mockDAI), 528881643782407);
-    mockOracle.setPriceOf(address(mockDAI), address(weth), 1889069940262927605990);
+    MockOracle(getAddress("MockOracle")).setPriceOf(
+      address(weth), getAddress("MockDAI"), 528881643782407
+    );
+    MockOracle(getAddress("MockOracle")).setPriceOf(
+      getAddress("MockDAI"), address(weth), 1889069940262927605990
+    );
 
     vm.stopBroadcast();
   }

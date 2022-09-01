@@ -77,11 +77,16 @@ contract ConnextRouter is BaseRouter {
       callbackFee: 0,
       // fee paid to relayers; relayers don't take any fees on testnet
       relayerFee: 0,
-      slippageTol: 9995
+      // the minimum amount that the user will accept due to slippage from the StableSwap pool
+      destinationMinOut: (amount / 100) * 99
     });
 
-    XCallArgs memory xcallArgs =
-      XCallArgs({params: callParams, transactingAssetId: asset, amount: amount});
+    XCallArgs memory xcallArgs = XCallArgs({
+      params: callParams,
+      transactingAsset: asset,
+      transactingAmount: amount,
+      originMinOut: (amount / 100) * 99
+    });
 
     connext.xcall(xcallArgs);
   }
@@ -112,11 +117,16 @@ contract ConnextRouter is BaseRouter {
       callbackFee: 0,
       // fee paid to relayers; relayers don't take any fees on testnet
       relayerFee: 0,
-      slippageTol: 9995
+      // the minimum amount that the user will accept due to slippage from the StableSwap pool
+      destinationMinOut: (amount / 100) * 99
     });
 
-    XCallArgs memory xcallArgs =
-      XCallArgs({params: callParams, transactingAssetId: asset, amount: amount});
+    XCallArgs memory xcallArgs = XCallArgs({
+      params: callParams,
+      transactingAsset: asset,
+      transactingAmount: amount,
+      originMinOut: (amount / 100) * 99
+    });
 
     connext.xcall(xcallArgs);
   }
