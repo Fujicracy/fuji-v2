@@ -16,7 +16,6 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
-import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 
@@ -28,35 +27,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   address public immutable chief;
 
   IERC20Metadata internal immutable _asset;
-  IERC20Metadata internal immutable _debtAsset;
-
-  uint256 public debtSharesSupply;
-
-  mapping(address => uint256) internal _debtShares;
 
   ILendingProvider[] internal _providers;
   ILendingProvider public activeProvider;
 
-  IFujiOracle public oracle;
-
-  Factor public maxLtv = Factor(75, 100);
-
-  Factor public liqRatio = Factor(5, 100);
-
-  constructor(
-    address asset_,
-    address debtAsset_,
-    address oracle_,
-    address chief_,
-    string memory name_,
-    string memory symbol_
-  )
+  constructor(address asset_, address chief_, string memory name_, string memory symbol_)
     ERC20(name_, symbol_)
     VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
-    _debtAsset = IERC20Metadata(debtAsset_);
-    oracle = IFujiOracle(oracle_);
     chief = chief_;
   }
 
@@ -394,45 +373,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
   {}
 
-  function _computeMaxBorrow(address borrower) internal view virtual returns (uint256);
-
   function _computeFreeAssets(address owner) internal view virtual returns (uint256);
-
-  /**
-   * @dev Internal conversion function (from debt to shares) with support for rounding direction.
-   * Will revert if debt > 0, debtSharesSupply > 0 and totalDebt = 0. That corresponds to a case where debt
-   * would represent an infinite amout of shares.
-   */
-  function _convertDebtToShares(uint256 debt, Math.Rounding rounding)
-    internal
-    view
-    virtual
-    returns (uint256);
-
-  /**
-   * @dev Internal conversion function (from shares to debt) with support for rounding direction.
-   */
-  function _convertToDebt(uint256 shares, Math.Rounding rounding)
-    internal
-    view
-    virtual
-    returns (uint256);
-
-  /**
-   * @dev Borrow/mintDebtShares common workflow.
-   */
-  function _borrow(address caller, address receiver, address owner, uint256 assets, uint256 shares)
-    internal
-    virtual;
-
-  /**
-   * @dev Payback/burnDebtShares common workflow.
-   */
-  function _payback(address caller, address owner, uint256 assets, uint256 shares) internal virtual;
-
-  function _mintDebtShares(address account, uint256 amount) internal virtual;
-
-  function _burnDebtShares(address account, uint256 amount) internal virtual;
 
   ////////////////////////////
   /// Fuji Vault functions ///
@@ -455,14 +396,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   ///////////////////////////
   /// Admin set functions ///
   ///////////////////////////
-
-  function setOracle(IFujiOracle newOracle) external {
-    // TODO needs admin restriction
-    // TODO needs input validation
-    oracle = newOracle;
-
-    emit OracleChanged(newOracle);
-  }
 
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
@@ -487,21 +420,5 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     }
 
     emit ActiveProviderChanged(activeProvider_);
-  }
-
-  function setMaxLtv(Factor calldata maxLtv_) external {
-    // TODO needs admin restriction
-    // TODO needs input validation
-    maxLtv = maxLtv_;
-
-    emit MaxLtvChanged(maxLtv_);
-  }
-
-  function setLiqRatio(Factor calldata liqRatio_) external {
-    // TODO needs admin restriction
-    // TODO needs input validation
-    liqRatio = liqRatio_;
-
-    emit LiqRatioChanged(liqRatio_);
   }
 }

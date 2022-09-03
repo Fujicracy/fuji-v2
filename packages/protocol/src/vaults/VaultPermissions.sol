@@ -208,7 +208,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * @dev Based on OZ {ERC20-spendAllowance} for assets.
    */
   function _spendBorrowAllowance(address owner, address spender, uint256 amount) internal virtual {
-    uint256 currentAllowance = borrowAllowance(owner, spender);
+    uint256 currentAllowance = _borrowAllowance[owner][spender];
     if (currentAllowance != type(uint256).max) {
       require(currentAllowance >= amount, "Insufficient borrowAllowance");
       unchecked {
