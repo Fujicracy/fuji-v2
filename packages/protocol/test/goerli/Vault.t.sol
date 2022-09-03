@@ -6,6 +6,6 @@ import {VaultTestsSuite} from "../VaultTestsSuite.sol";
 contract VaultTest is VaultTestsSuite {
   function setUp() public {
     vm.selectFork(goerliFork);
-    deploy(3331);
+    deploy(GOERLI_DOMAIN);
   }
 }

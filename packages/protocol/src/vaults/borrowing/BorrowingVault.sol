@@ -13,6 +13,11 @@ contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20;
 
+  error BorrowingVault__borrow_wrongInput();
+  error BorrowingVault__borrow_notEnoughAssets();
+  error BorrowingVault__payback_wrongInput();
+  error BorrowingVault__payback_moreThanMax();
+
   mapping(address => mapping(address => uint256)) private _borrowAllowances;
 
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
@@ -68,8 +73,14 @@ contract BorrowingVault is BaseVault {
     if (caller != owner) {
       _spendBorrowAllowance(owner, caller, debt);
     }
-    require(debt > 0, "Wrong input");
-    require(debt <= maxBorrow(owner), "Not enough assets");
+
+    if (debt == 0) {
+      revert BorrowingVault__borrow_wrongInput();
+    }
+
+    if (debt > maxBorrow(owner)) {
+      revert BorrowingVault__borrow_notEnoughAssets();
+    }
 
     uint256 shares = convertDebtToShares(debt);
     _borrow(caller, receiver, owner, debt, shares);
@@ -79,8 +90,13 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
-    require(debt > 0, "Wrong input");
-    require(debt <= convertToDebt(_debtShares[owner]), "Payback more than max");
+    if (debt == 0) {
+      revert BorrowingVault__payback_wrongInput();
+    }
+
+    if (debt > convertToDebt(_debtShares[owner])) {
+      revert BorrowingVault__payback_moreThanMax();
+    }
 
     uint256 shares = convertDebtToShares(debt);
     _payback(_msgSender(), owner, debt, shares);

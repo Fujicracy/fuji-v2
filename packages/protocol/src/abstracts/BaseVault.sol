@@ -25,6 +25,12 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   using Address for address;
   using SafeERC20 for IERC20;
 
+  error BaseVault__deposit_moreThanMax();
+  error BaseVault__mint_moreThanMax();
+  error BaseVault__withdraw_wrongInput();
+  error BaseVault__withdraw_moreThanMax();
+  error BaseVault__redeem_moreThanMax();
+
   address public immutable chief;
 
   IERC20Metadata internal immutable _asset;
@@ -186,7 +192,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    require(assets <= maxDeposit(receiver), "ERC4626: deposit more than max");
+    if (assets > maxDeposit(receiver)) {
+      revert BaseVault__deposit_moreThanMax();
+    }
 
     uint256 shares = previewDeposit(assets);
     _deposit(_msgSender(), receiver, assets, shares);
@@ -196,7 +204,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
-    require(shares <= maxMint(receiver), "ERC4626: mint more than max");
+    if (shares > maxMint(receiver)) {
+      revert BaseVault__mint_moreThanMax();
+    }
 
     uint256 assets = previewMint(shares);
     _deposit(_msgSender(), receiver, assets, shares);
@@ -214,8 +224,14 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     if (caller != owner) {
       _spendAllowance(owner, caller, assets);
     }
-    require(assets > 0, "Wrong input");
-    require(assets <= maxWithdraw(owner), "Withdraw more than max");
+
+    if (assets == 0) {
+      revert BaseVault__withdraw_wrongInput();
+    }
+
+    if (assets > maxWithdraw(owner)) {
+      revert BaseVault__withdraw_moreThanMax();
+    }
 
     uint256 shares = previewWithdraw(assets);
     _withdraw(caller, receiver, owner, assets, shares);
@@ -229,7 +245,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
     returns (uint256)
   {
-    require(shares <= maxRedeem(owner), "Redeem more than max");
+    if (shares > maxRedeem(owner)) {
+      revert BaseVault__redeem_moreThanMax();
+    }
 
     uint256 assets = previewRedeem(shares);
     _withdraw(_msgSender(), receiver, owner, assets, shares);

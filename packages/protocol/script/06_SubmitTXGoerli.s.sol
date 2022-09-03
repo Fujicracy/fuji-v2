@@ -38,8 +38,9 @@ contract SubmitTXGoerli is ScriptPlus {
     console.logBytes32(r);
     console.logBytes32(s);
 
+    vm.startBroadcast();
     // need to mint some WETH too
-    /*SafeERC20.safeApprove(IERC20(weth), srcRouter, type(uint256).max);*/
+    SafeERC20.safeApprove(IERC20(weth), srcRouter, type(uint256).max);
 
     (IRouter.Action[] memory innerActions, bytes[] memory innerArgs) = LibConnextBundler
       .depositAndBorrow(destVault, destRouter, amount, borrowAmount, deadline, v, r, s);
@@ -48,7 +49,6 @@ contract SubmitTXGoerli is ScriptPlus {
     (IRouter.Action[] memory actions, bytes[] memory args) =
       LibConnextBundler.bridgeWithCall(destDomain, weth, amount + 1e15, innerActions, innerArgs);
 
-    vm.startBroadcast();
     ConnextRouter(payable(srcRouter)).xBundle(actions, args);
     vm.stopBroadcast();
   }

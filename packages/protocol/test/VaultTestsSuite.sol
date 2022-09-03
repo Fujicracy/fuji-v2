@@ -7,27 +7,20 @@ import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 
 contract VaultTestsSuite is Setup {
-  function testConfigs() public {
-    assertEq(vault.asset(), asset);
-    assertEq(vault.debtAsset(), debtAsset);
-    assertEq(address(vault.activeProvider()), address(aaveV3));
-  }
-
-  function testDepositAndWithdraw() public {
-    address alice = address(0xA);
+  function test_depositAndWithdraw() public {
     vm.label(address(alice), "alice");
 
     uint256 amount = 2 ether;
-    deal(address(weth), alice, amount);
+    deal(collateralAsset, alice, amount);
 
     vm.startPrank(alice);
 
-    SafeERC20.safeApprove(IERC20(address(weth)), address(vault), amount);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(vault), amount);
     vault.deposit(amount, alice);
 
     assertEq(vault.balanceOf(alice), amount);
     vault.withdraw(amount, alice, alice);
     assertEq(vault.balanceOf(alice), 0);
-    assertEq(weth.balanceOf(alice), amount);
+    assertEq(IERC20(collateralAsset).balanceOf(alice), amount);
   }
 }
