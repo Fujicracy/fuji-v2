@@ -1,7 +1,7 @@
 import { createMachine, assign } from "xstate"
-
-import Onboard, { WalletState } from "@web3-onboard/core"
+import Onboard, { AppState, InitOptions, WalletState } from "@web3-onboard/core"
 import injectedModule from "@web3-onboard/injected-wallets"
+import walletConnectModule from "@web3-onboard/walletconnect"
 
 // TODO: get INFURA_KEY & ALCHEMY and put it in .env
 const ETH_MAINNET_RPC =
@@ -12,47 +12,64 @@ const ETH_MAINNET_RPC =
 //   `https://eth-rinkeby.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`
 // const MATIC_MAINNET_RPC = "https://matic-mainnet.chainstacklabs.com"
 
+// initialize the module with options
+const walletConnect = walletConnectModule({
+  // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
+  qrcodeModalOptions: {
+    mobileLinks: [
+      "rainbow",
+      "metamask",
+      "argent",
+      "trust",
+      "imtoken",
+      "pillar",
+    ],
+  },
+})
+
+export const chains: InitOptions["chains"] = [
+  {
+    id: 1,
+    token: "ETH",
+    label: "Ethereum",
+    rpcUrl: ETH_MAINNET_RPC,
+  },
+  {
+    id: 137,
+    token: "MATIC",
+    label: "Polygon",
+    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+  },
+  {
+    id: 250,
+    token: "FTM",
+    label: "Fantom",
+    rpcUrl: "https://rpc.ftm.tools/",
+  },
+  {
+    id: 10,
+    token: "ETH",
+    label: "Optimism",
+    rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
+  },
+  // TODO: if testnet {
+  //   id: "0x3",
+  //   token: "tROP",
+  //   label: "Ethereum Ropsten Testnet",
+  //   rpcUrl: ETH_ROPSTEN_RPC,
+  // },
+  // {
+  //   id: "0x4",
+  //   token: "rETH",
+  //   label: "Ethereum Rinkeby Testnet",
+  //   rpcUrl: ETH_RINKEBY_RPC,
+  // },
+]
+
 const injected = injectedModule()
 const onboard = Onboard({
-  wallets: [injected],
-  chains: [
-    {
-      id: "0x1",
-      token: "ETH",
-      label: "Ethereum Mainnet",
-      rpcUrl: ETH_MAINNET_RPC,
-    },
-    // TODO: if testnet {
-    //   id: "0x3",
-    //   token: "tROP",
-    //   label: "Ethereum Ropsten Testnet",
-    //   rpcUrl: ETH_ROPSTEN_RPC,
-    // },
-    // {
-    //   id: "0x4",
-    //   token: "rETH",
-    //   label: "Ethereum Rinkeby Testnet",
-    //   rpcUrl: ETH_RINKEBY_RPC,
-    // },
-    {
-      id: "0x89",
-      token: "MATIC",
-      label: "Matic",
-      rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-    },
-    {
-      id: "0xfa",
-      token: "FTM",
-      label: "Fantom",
-      rpcUrl: "https://rpc.ftm.tools/",
-    },
-    {
-      id: "0x10",
-      token: "ETH",
-      label: "Optimism",
-      rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
-    },
-  ],
+  wallets: [injected, walletConnect],
+  chains,
   // apiKey: yourApiKey, // get this for free at https://explorer.blocknative.com/?signup=true
   // TODO appMetadata: {
   // name: 'Token Swap',
@@ -67,7 +84,7 @@ const onboard = Onboard({
     desktop: {
       position: "topRight",
       enabled: true,
-      minimal: true,
+      minimal: false,
     },
     mobile: {
       position: "topRight",
@@ -85,7 +102,17 @@ const onboard = Onboard({
   // },
   // },
 })
+interface MachineContext {
+  unsubscribe?: Function
+}
+const initialContext: MachineContext = {
+  unsubscribe: undefined,
+}
+type MachineEvent = { type: "INITIALIZE" } | { type: "LOGOUT" }
 
+/**
+ * Events
+ */
 const login = async () => {
   console.log("login")
   const wallets = await onboard.connectWallet()
@@ -104,22 +131,47 @@ const reconnect = async () => {
 
   const wallets = JSON.parse(previouslyConnectedWallets)
 
-  onboard.connectWallet({ autoSelect: wallets[0] })
-
-  // onboard.connectWallet({
-  //   autoSelect: { label: previouslyConnectedWallets[0], disableModals: true }
-  // })
+  await onboard.connectWallet({
+    autoSelect: { label: wallets[0], disableModals: true },
+  })
 }
 
-interface MachineContext {
-  unsubscribe?: Function
-}
-const initialContext: MachineContext = {
-  unsubscribe: undefined,
+/**
+ * Actions
+ */
+const saveWalletInLocalStorage = () => {
+  const { wallets } = onboard.state.get()
+  const json = JSON.stringify(wallets.map(({ label }) => label))
+  localStorage.setItem("connectedWallets", json)
 }
 
-type MachineEvent = { type: "INITIALIZE" } | { type: "LOGOUT" }
+const unubscribeToWalletChange = assign(
+  (ctx: MachineContext, evt: MachineEvent) => {
+    if (ctx.unsubscribe) {
+      ctx.unsubscribe()
+    }
+    return { unsubscribe: undefined }
+  }
+)
 
+const subscribeToWalletChange = assign(
+  (ctx: MachineContext, evt: MachineEvent) => {
+    const walletsSub = onboard.state.select("wallets")
+    const { unsubscribe } = walletsSub.subscribe((wallets: WalletState[]) => {
+      const connectedWallets = wallets.map(({ label }) => label)
+      localStorage.setItem("connectedWallets", JSON.stringify(connectedWallets))
+    })
+    return { unsubscribe }
+  }
+)
+
+const reset = async (ctx: MachineContext, evt: MachineEvent) => {
+  // disconnect the first wallet in the wallets array
+  const [primaryWallet] = onboard.state.get().wallets
+  await onboard.disconnectWallet({ label: primaryWallet.label })
+}
+
+// TODO: Should be renamed usermachine and store user wallets and balance ?
 const authMachine = createMachine(
   {
     id: "auth",
@@ -153,6 +205,7 @@ const authMachine = createMachine(
           src: "login",
           onDone: {
             target: "loggedIn",
+            actions: "saveWalletInLocalStorage",
           },
           onError: {
             target: "error",
@@ -182,26 +235,10 @@ const authMachine = createMachine(
   },
   {
     actions: {
-      subscribeToWalletChange: assign((ctx, evt) => {
-        const walletsSub = onboard.state.select("wallets")
-        const { unsubscribe } = walletsSub.subscribe(
-          (wallets: WalletState[]) => {
-            const connectedWallets = wallets.map(({ label }) => label)
-            localStorage.setItem(
-              "connectedWallets",
-              JSON.stringify(connectedWallets)
-            )
-          }
-        )
-
-        return { unsubscribe }
-      }),
-      unubscribeToWalletChange: assign((ctx, evt) => {
-        if (ctx.unsubscribe) ctx.unsubscribe()
-        return {
-          unsubscribe: undefined,
-        }
-      }),
+      subscribeToWalletChange,
+      unubscribeToWalletChange,
+      saveWalletInLocalStorage,
+      reset,
     },
     services: { login, reconnect },
   }

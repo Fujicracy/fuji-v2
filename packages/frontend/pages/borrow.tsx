@@ -1,6 +1,7 @@
 import type { NextPage } from "next"
 import Head from "next/head"
 import Borrow from "../components/Borrow"
+import Header from "../components/Header"
 
 const BorrowPage: NextPage = () => {
   return (
@@ -13,6 +14,8 @@ const BorrowPage: NextPage = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
+      <Header />
 
       <main>
         <Borrow />
