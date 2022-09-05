@@ -1,12 +1,37 @@
-import borrowMachine from "../machines/borrow.machine"
+import { useState } from "react"
 import { useMachine } from "@xstate/react"
+import FormControl from "@mui/material/FormControl"
+import InputLabel from "@mui/material/InputLabel"
+import Select from "@mui/material/Select"
+import MenuItem from "@mui/material/MenuItem"
+import Card from "@mui/material/Card"
+import CardContent from "@mui/material/CardContent"
+import Typography from "@mui/material/Typography"
+import Container from "@mui/material/Container"
+import TextField from "@mui/material/TextField"
+import Button from "@mui/material/Button"
+import Box from "@mui/material/Box"
+
+import borrowMachine from "../machines/borrow.machine"
+import { chains } from "../machines/auth.machine"
+
+type Chain = typeof chains[0]
 
 export default function Borrow() {
   const [current, send] = useMachine(borrowMachine, { devTools: true })
   const { collateral } = current.context
-  console.log(collateral)
+  const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
+
+  const [collateralChainId, setCollateralChain] = useState(chains[0].id)
+  const [collateralValue, setCollateralValue] = useState("")
+  const [collateralToken, setCollateralToken] = useState(tokens[0])
+
+  const [borrowChaiIdn, setBorrowChaiIdn] = useState(chains[0].id)
+  const [borrowValue, setBorrowValue] = useState("")
+  const [borrowToken, setBorrowToken] = useState(tokens[1])
+
   return (
-    <>
+    <Container>
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
@@ -15,57 +40,103 @@ export default function Borrow() {
       )}
 
       {current.matches("editing") && (
-        <div>
-          Collateral from
-          <select>
-            <option>Arbitrum</option>
-            <option>Optimism</option>
-          </select>
-          <input
-            id="collateralAmount"
-            type="number"
-            onChange={evt =>
-              send({
-                type: "changeCollateralAmount",
-                value: evt.target.value,
-              })
-            }
-            value={collateral.amount}
-          />
-          <select>
-            <option>ETH</option>
-            <option>USDC</option>
-          </select>
-          <br />
-          Value: <strong>{collateral.totalValue}$</strong>- Balance:{" "}
-          <strong>{collateral.balance}</strong>{" "}
-          <button
-            onClick={() =>
-              send({
-                type: "changeCollateralAmount",
-                value: collateral.balance,
-              })
-            }
-          >
-            max
-          </button>
-          <br />
-          <br />
-          Borrow on
-          <select>
-            <option>Arbitrum</option>
-            <option>Optimism</option>
-          </select>
-          <input id="borrowAmount" />
-          <select>
-            <option>ETH</option>
-            <option>USDC</option>
-          </select>
-          <br />
-          <br />
-          <button onClick={() => alert("not implemented")}>Borrow</button>
-        </div>
+        <Card variant="outlined" sx={{ maxWidth: 500 }}>
+          <CardContent>
+            <Typography variant="h4" mb="1rem">
+              Borrow
+            </Typography>
+            <FormControl>
+              <InputLabel id="collateral-chain-label">
+                Collateral from
+              </InputLabel>
+              <Select
+                labelId="collateral-chain-label"
+                id="collateral-chain"
+                value={collateralChainId}
+                onChange={e => setCollateralChain(e.target.value)}
+              >
+                {chains.map((chain: Chain) => (
+                  <MenuItem key={chain.id} value={chain.id}>
+                    {chain.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              id="collateral-amount"
+              type="number"
+              label="amount"
+              value={collateralValue}
+              onChange={e => setCollateralValue(e.target.value)}
+            />
+            <FormControl>
+              <InputLabel id="collateral-token-label">Select coin</InputLabel>
+              <Select
+                labelId="collateral-token-label"
+                id="collateral-token"
+                value={collateralToken}
+                onChange={e => setCollateralToken(e.target.value)}
+              >
+                {tokens.map(t => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <br />
+            Value: <strong>?? $</strong>- Balance: <strong>??</strong>
+            <Button variant="text">max</Button>
+            <br />
+            <br />
+            <FormControl>
+              <InputLabel id="borrow-chain-label">Borrow on</InputLabel>
+              <Select
+                labelId="borrow-chain-label"
+                id="borrow-chain"
+                value={borrowChaiIdn}
+                onChange={e => setBorrowChaiIdn(e.target.value)}
+              >
+                {chains.map((chain: Chain) => (
+                  <MenuItem key={chain.id} value={chain.id}>
+                    {chain.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              id="borrow-amount"
+              type="number"
+              label="amount"
+              value={borrowValue}
+              onChange={e => setBorrowValue(e.target.value)}
+            />
+            <FormControl>
+              <InputLabel id="borrow-token-label">Select coin</InputLabel>
+              <Select
+                labelId="borrow-token-label"
+                id="borrow-token"
+                value={borrowToken}
+                onChange={e => setBorrowToken(e.target.value)}
+              >
+                {tokens.map(t => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <br />
+            <br />
+            <Button
+              variant="contained"
+              onClick={() => alert("not implemented")}
+            >
+              Borrow
+            </Button>
+          </CardContent>
+        </Card>
       )}
-    </>
+    </Container>
   )
 }
