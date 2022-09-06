@@ -9,4 +9,6 @@ interface IBeefyVaultV6 is IERC20 {
   function withdraw(uint256 shares) external;
 
   function want() external pure returns (address);
+
+  function getPricePerFullShare() external view returns (uint256);
 }

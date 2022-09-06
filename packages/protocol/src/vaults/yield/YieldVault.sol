@@ -19,6 +19,8 @@ contract YieldVault is BaseVault {
     )
   {}
 
+  receive() external payable {}
+
   /////////////////////////////////
   /// Debt management overrides ///
   /////////////////////////////////

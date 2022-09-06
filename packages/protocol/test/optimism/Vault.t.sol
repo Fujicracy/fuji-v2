@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
@@ -35,8 +36,8 @@ contract VaultTest is DSTestPlus {
     vault.setActiveProvider(beefy);
   }
 
-  function test_deposit() public {
-    uint256 amount = 2 ether;
+  function test_depositAndWithdraw() public {
+    uint256 amount = 0.5 ether;
     deal(address(weth), alice, amount);
 
     vm.startPrank(alice);
@@ -44,6 +45,10 @@ contract VaultTest is DSTestPlus {
     SafeERC20.safeApprove(IERC20(address(weth)), address(vault), amount);
     vault.deposit(amount, alice);
 
-    assertEq(vault.balanceOf(alice), amount); /*vault.withdraw(amount, alice, alice);*/ /*assertEq(vault.balanceOf(alice), 0);*/ /*assertEq(IERC20(address(weth)).balanceOf(alice), amount);*/
+    assertEq(vault.balanceOf(alice), amount);
+    /*console.log(vault.maxWithdraw(alice));*/
+    /*console.log(vault.totalAssets());*/
+    vault.withdraw(vault.maxWithdraw(alice), alice, alice);
+    assertEq(vault.balanceOf(alice), 0); /*assertEq(IERC20(address(weth)).balanceOf(alice), amount);*/
   }
 }
