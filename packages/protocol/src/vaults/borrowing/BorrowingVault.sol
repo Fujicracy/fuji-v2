@@ -48,6 +48,11 @@ contract BorrowingVault is BaseVault {
   }
 
   /// @inheritdoc BaseVault
+  function balanceOfDebt(address account) public view override returns (uint256 debt) {
+    return convertToDebt(_debtShares[account]);
+  }
+
+  /// @inheritdoc BaseVault
   function totalDebt() public view override returns (uint256) {
     return activeProvider.getBorrowBalance(debtAsset(), address(this));
   }

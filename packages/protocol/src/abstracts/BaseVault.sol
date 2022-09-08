@@ -357,6 +357,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   function debtAsset() public view virtual returns (address);
 
   /// inheritdoc IVault
+  function balanceOfDebt(address account) public view virtual override returns (uint256 debt);
+
+  /// inheritdoc IVault
   function totalDebt() public view virtual returns (uint256);
 
   /// inheritdoc IVault

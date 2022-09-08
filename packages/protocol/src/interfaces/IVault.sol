@@ -61,6 +61,11 @@ interface IVault is IERC4626 {
   function debtAsset() external view returns (address);
 
   /**
+   * @dev Returns the amount of debt owned by `account`.
+   */
+  function balanceOfDebt(address account) external view returns (uint256 debt);
+
+  /**
    * @dev Based on {IERC4626-totalAssets}.
    * @dev Returns the total amount of the underlying debt asset that is “managed” by Vault.
    *
