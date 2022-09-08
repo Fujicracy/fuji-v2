@@ -7,7 +7,7 @@ pragma solidity 0.8.15;
  * @notice Wrapper of UniswapV2 to to be called from the router.
  */
 
-import {IUniswapV2Router01} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import {IUniswapV2Router01} from "../interfaces/uniswap/IUniswapV2Router01.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
