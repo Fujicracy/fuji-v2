@@ -2,6 +2,7 @@ import { createMachine, assign } from "xstate"
 import Onboard, { AppState, InitOptions, WalletState } from "@web3-onboard/core"
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect"
+import mixpanel from "mixpanel-browser"
 
 // TODO: get INFURA_KEY & ALCHEMY and put it in .env
 const ETH_MAINNET_RPC =
@@ -171,6 +172,11 @@ const reset = async (ctx: MachineContext, evt: MachineEvent) => {
   await onboard.disconnectWallet({ label: primaryWallet.label })
 }
 
+const trackLogin = (ctx: MachineContext, evt: MachineEvent) => {
+  const address = onboard.state.get().wallets[0].accounts[0].address
+  mixpanel.track("login", { address })
+}
+
 // TODO: Should be renamed usermachine and store user wallets and balance ?
 const authMachine = createMachine(
   {
@@ -214,7 +220,7 @@ const authMachine = createMachine(
         },
       },
       loggedIn: {
-        entry: "subscribeToWalletChange",
+        entry: ["subscribeToWalletChange", "trackLogin"],
         exit: "unubscribeToWalletChange",
         on: {
           LOGOUT: {
@@ -239,6 +245,7 @@ const authMachine = createMachine(
       unubscribeToWalletChange,
       saveWalletInLocalStorage,
       reset,
+      trackLogin,
     },
     services: { login, reconnect },
   }
