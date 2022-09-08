@@ -15,6 +15,9 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
 abstract contract BaseRouter is PeripheryPayments, IRouter {
+
+  error BaseRouter__bundleInternal_wrongInput();
+
   constructor(IWETH9 weth) PeripheryPayments(weth) {}
 
   function xBundle(Action[] memory actions, bytes[] memory args) external override {
@@ -22,6 +25,10 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
   }
 
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
+    if(actions.length != args.length) {
+      revert BaseRouter__bundleInternal_wrongInput();
+    }
+
     uint256 len = actions.length;
     for (uint256 i = 0; i < len;) {
       if (actions[i] == Action.Deposit) {
