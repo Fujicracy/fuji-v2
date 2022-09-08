@@ -29,6 +29,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   error BaseVault__withdraw_wrongInput();
   error BaseVault__withdraw_moreThanMax();
   error BaseVault__redeem_moreThanMax();
+  error BaseVault__setter_invalidInput();
 
   address public immutable chief;
 
@@ -44,9 +45,21 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   IFujiOracle public oracle;
 
-  Factor public maxLtv = Factor(75, 100);
+  /*
+  Factors
+  See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+  */
 
-  Factor public liqRatio = Factor(5, 100);
+  /**
+   * @dev A factor that defines 
+   * the maximum Loan-To-Value a user can take.
+   */
+  uint256 public maxLtv; 
+  /**
+   * @dev A factor that defines the Loan-To-Value
+   * at which a user can be liquidated.
+   */
+  uint256 public liqRatio;
 
   constructor(
     address asset_,
@@ -63,12 +76,14 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     _debtAsset = IERC20Metadata(debtAsset_);
     oracle = IFujiOracle(oracle_);
     chief = chief_;
+    maxLtv = 75 * 1e16;
+    liqRatio = 80 * 1e16;
   }
 
-  ////////////////////////////////////////////////////
-  /// Asset management: allowance-overrides IERC20 ///
-  /// Overrides to handle all in withdrawAllowance   ///
-  ////////////////////////////////////////////////////
+  /*////////////////////////////////////////////////////
+      Asset management: allowance-overrides IERC20 
+      Overrides to handle all in withdrawAllowance
+  ///////////////////////////////////////////////////*/
 
   /**
    * @dev Override to call {VaultPermissions-withdrawAllowance}.
@@ -506,19 +521,35 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     emit ActiveProviderChanged(activeProvider_);
   }
 
-  function setMaxLtv(Factor calldata maxLtv_) external {
+  /**
+   * @dev Sets the maximum Loan-To-Value factor of this vault.
+   * See factor:
+   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * Restrictions:
+   * - SHOULD be at least 1%.
+   */
+  function setMaxLtv(uint256 maxLtv_) external {
+    if (maxLtv_ < 1e16) {
+      revert BaseVault__setter_invalidInput();
+    }
     // TODO needs admin restriction
-    // TODO needs input validation
     maxLtv = maxLtv_;
-
-    emit MaxLtvChanged(maxLtv_);
+    emit MaxLtvChanged(maxLtv);
   }
 
-  function setLiqRatio(Factor calldata liqRatio_) external {
+  /**
+   * @dev Sets the Loan-To-Value liquidation threshold factor of this vault.
+   * See factor:
+   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * Restrictions:
+   * - SHOULD be greater than 'maxLTV'.
+   */
+  function setLiqRatio(uint256 liqRatio_) external {
+    if (liqRatio_ < maxLtv) {
+      revert BaseVault__setter_invalidInput();
+    }
     // TODO needs admin restriction
-    // TODO needs input validation
     liqRatio = liqRatio_;
-
-    emit LiqRatioChanged(liqRatio_);
+    emit LiqRatioChanged(liqRatio);
   }
 }

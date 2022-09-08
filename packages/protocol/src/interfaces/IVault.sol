@@ -12,10 +12,6 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
-  struct Factor {
-    uint64 num;
-    uint64 denum;
-  }
 
   event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
 
@@ -41,15 +37,17 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Emitted when the max LTV is changed
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * @param newMaxLtv the new max LTV
    */
-  event MaxLtvChanged(Factor newMaxLtv);
+  event MaxLtvChanged(uint256 newMaxLtv);
 
   /**
    * @dev Emitted when the liquidation ratio is changed
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * @param newLiqRatio the new liquidation ratio
    */
-  event LiqRatioChanged(Factor newLiqRatio);
+  event LiqRatioChanged(uint256 newLiqRatio);
 
   function debtDecimals() external view returns (uint8);
 

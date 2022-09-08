@@ -176,7 +176,7 @@ contract BorrowingVault is BaseVault {
     uint256 debt = convertToDebt(debtShares);
 
     uint256 baseUserMaxBorrow =
-      ((assets * maxLtv.num * price) / (maxLtv.denum * 10 ** IERC20Metadata(asset()).decimals()));
+      ((assets * maxLtv * price) / (1e18 * 10 ** IERC20Metadata(asset()).decimals()));
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
@@ -190,7 +190,7 @@ contract BorrowingVault is BaseVault {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
       uint256 lockedAssets =
-        (debt * maxLtv.denum * price) / (maxLtv.num * 10 ** _debtAsset.decimals());
+        (debt * maxLtv * price) / (1e18 * 10 ** _debtAsset.decimals());
       uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
