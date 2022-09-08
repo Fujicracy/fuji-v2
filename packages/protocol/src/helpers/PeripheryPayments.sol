@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "solmate/utils/SafeTransferLib.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title Periphery Payments
@@ -18,7 +19,7 @@ import "solmate/utils/SafeTransferLib.sol";
  * https://github.com/fei-protocol/ERC4626/blob/main/src/external/PeripheryPayments.sol
  */
 abstract contract PeripheryPayments {
-  using SafeTransferLib for *;
+  using SafeERC20 for ERC20;
 
   IWETH9 public immutable WETH9;
 
@@ -27,6 +28,19 @@ abstract contract PeripheryPayments {
   }
 
   receive() external payable {}
+
+  /*//////////////////////////////////////////////////////////////
+                             ETH OPERATIONS
+  //////////////////////////////////////////////////////////////*/
+
+  function safeTransferETH(address to, uint256 amount) internal {
+      bool success;
+      assembly {
+          // Transfer the ETH and store if it succeeded or not.
+          success := call(gas(), to, amount, 0, 0, 0, 0)
+      }
+      require(success, "ETH_TRANSFER_FAILED");
+  }
 
   function approve(ERC20 token, address to, uint256 amount) public payable {
     token.safeApprove(to, amount);
@@ -38,7 +52,7 @@ abstract contract PeripheryPayments {
 
     if (balanceWETH9 > 0) {
       WETH9.withdraw(balanceWETH9);
-      recipient.safeTransferETH(balanceWETH9);
+      safeTransferETH(recipient, balanceWETH9);
     }
   }
 
@@ -70,7 +84,7 @@ abstract contract PeripheryPayments {
 
   function refundETH() external payable {
     if (address(this).balance > 0) {
-      SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+      safeTransferETH(msg.sender, address(this).balance);
     }
   }
 }
