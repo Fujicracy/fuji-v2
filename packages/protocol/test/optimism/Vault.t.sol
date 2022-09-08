@@ -47,7 +47,7 @@ contract VaultTest is DSTestPlus {
 
     assertEq(vault.balanceOf(alice), amount);
     /*console.log(vault.maxWithdraw(alice));*/
-    /*console.log(vault.totalAssets());*/
+    console.log("totalAssets", vault.totalAssets());
     vault.withdraw(vault.maxWithdraw(alice), alice, alice);
     assertEq(vault.balanceOf(alice), 0); /*assertEq(IERC20(address(weth)).balanceOf(alice), amount);*/
   }
