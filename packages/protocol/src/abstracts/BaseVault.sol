@@ -23,7 +23,6 @@ import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
-  using SafeERC20 for IERC20;
 
   error BaseVault__deposit_moreThanMax();
   error BaseVault__mint_moreThanMax();
