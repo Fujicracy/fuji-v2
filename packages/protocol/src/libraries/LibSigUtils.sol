@@ -1,5 +1,12 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
+
+/**
+ * @title LibSigUtils
+ * @author Fujidao Labs
+ * @notice Helper library for permit signing of the vault 'permitWithdraw' and
+  * 'permitBorrow'.
+ */
 
 library LibSigUtils {
   // solhint-disable-next-line var-name-mixedcase

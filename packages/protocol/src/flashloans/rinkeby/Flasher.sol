@@ -1,6 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -10,9 +9,11 @@ import {IPool} from "../../interfaces/aaveV3/IPool.sol";
 import {IRouter} from "../../interfaces/IRouter.sol";
 import {IFlasher} from "../../interfaces/IFlasher.sol";
 
-/**
- * @dev Contract that handles Fuji protocol flash loan logic and
- * the specific logic of all active flash loan providers used by Fuji protocol.
+ /**
+ * @title Flasher
+ * @author Fujidao Labs
+ * @notice Handles protocol flash loan execturion and the specific 
+ * logic for all active flash loan providers
  */
 
 contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
