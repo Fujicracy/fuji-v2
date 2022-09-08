@@ -17,8 +17,10 @@ contract Setup is DSTestPlus {
     address connextHandler;
   }
 
-  address alice = address(0xA);
-  address bob = address(0xB);
+  uint256 alicePkey = 0xA;
+  address alice = vm.addr(alicePkey);
+  uint256 bobPkey = 0xB;
+  address bob = vm.addr(bobPkey);
 
   uint256 goerliFork;
   uint256 optimismGoerliFork;

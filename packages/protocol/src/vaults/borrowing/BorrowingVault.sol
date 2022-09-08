@@ -9,6 +9,8 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
+import "forge-std/console.sol";
+
 contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20;
@@ -17,8 +19,6 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_notEnoughAssets();
   error BorrowingVault__payback_wrongInput();
   error BorrowingVault__payback_moreThanMax();
-
-  mapping(address => mapping(address => uint256)) private _borrowAllowances;
 
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
     BaseVault(
@@ -70,8 +70,9 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
+    console.log("inside borrow: caller", caller);
     if (caller != owner) {
-      _setBorrowAllowance(owner, caller, debt);
+      _spendBorrowAllowance(owner, caller, debt);
     }
 
     if (debt == 0) {
@@ -118,7 +119,9 @@ contract BorrowingVault is BaseVault {
     virtual
     override
     returns (uint256)
-  {}
+  {
+    return VaultPermissions.borrowAllowance(owner, spender);
+  }
 
   /**
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
@@ -129,7 +132,9 @@ contract BorrowingVault is BaseVault {
     virtual
     override
     returns (bool)
-  {}
+  {
+    return VaultPermissions.increaseBorrowAllowance(spender, byAmount);
+  }
 
   /**
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
@@ -140,7 +145,9 @@ contract BorrowingVault is BaseVault {
     virtual
     override
     returns (bool)
-  {}
+  {
+    return VaultPermissions.decreaseBorrowAllowance(spender, byAmount);
+  }
 
   /**
    * @dev See {IVaultPermissions-permitBorrow}.
