@@ -68,12 +68,12 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   ////////////////////////////////////////////////////
   /// Asset management: allowance-overrides IERC20 ///
-  /// Overrides to handle all in assetsAllowance   ///
+  /// Overrides to handle all in withdrawAllowance   ///
   ////////////////////////////////////////////////////
 
   /**
-   * @dev Override to call {VaultPermissions-assetAllowance}.
-   * Returns the share amount of VaultPermissions-assetAllowance.
+   * @dev Override to call {VaultPermissions-withdrawAllowance}.
+   * Returns the share amount of VaultPermissions-withdrawAllowance.
    */
   function allowance(address owner, address spender)
     public
@@ -81,49 +81,49 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override (ERC20, IERC20)
     returns (uint256)
   {
-    return convertToShares(assetAllowance(owner, spender));
+    return convertToShares(withdrawAllowance(owner, spender));
   }
 
   /**
-   * @dev Override to call {VaultPermissions-_setAssetAllowance}.
-   * Converts approve shares argument to assets in VaultPermissions-_assetAllowance.
+   * @dev Override to call {VaultPermissions-_setWithdrawAllowance}.
+   * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
    * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
    */
   function approve(address spender, uint256 shares) public override (ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
-    _setAssetAllowance(owner, spender, convertToAssets(shares));
+    _setWithdrawAllowance(owner, spender, convertToAssets(shares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-increaseAssetAllowance}.
-   * Converts extraShares argument to assets in VaultPermissions-increaseAssetAllowance.
+   * @dev Override to call {VaultPermissions-increaseWithdrawAllowance}.
+   * Converts extraShares argument to assets in VaultPermissions-increaseWithdrawAllowance.
    */
   function increaseAllowance(address spender, uint256 extraShares) public override returns (bool) {
-    increaseAssetAllowance(spender, convertToAssets(extraShares));
+    increaseWithdrawAllowance(spender, convertToAssets(extraShares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-decreaseAssetAllowance}.
-   * Converts subtractedShares argument to assets in VaultPermissions-decreaseAssetAllowance.
+   * @dev Override to call {VaultPermissions-decreaseWithdrawAllowance}.
+   * Converts subtractedShares argument to assets in VaultPermissions-decreaseWithdrawAllowance.
    */
   function decreaseAllowance(address spender, uint256 subtractedShares)
     public
     override
     returns (bool)
   {
-    decreaseAssetAllowance(spender, convertToAssets(subtractedShares));
+    decreaseWithdrawAllowance(spender, convertToAssets(subtractedShares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-_spendAssetAllowance}.
-   * Converts shares argument to assets in VaultPermissions-_spendAssetAllowance.
+   * @dev Override to call {VaultPermissions-_spendWithdrawAllowance}.
+   * Converts shares argument to assets in VaultPermissions-_spendWithdrawAllowance.
    * This internal function is called during ERC4626-transferFrom.
    */
   function _spendAllowance(address owner, address spender, uint256 shares) internal override {
-    _spendAssetAllowance(owner, spender, convertToAssets(shares));
+    _spendWithdrawAllowance(owner, spender, convertToAssets(shares));
   }
 
   ////////////////////////////////////////////

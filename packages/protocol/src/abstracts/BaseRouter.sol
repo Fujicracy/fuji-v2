@@ -59,7 +59,7 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         );
         approve(ERC20(vault.debtAsset()), address(vault), amount);
         vault.payback(amount, receiver);
-      } else if (actions[i] == Action.PermitAssets) {
+      } else if (actions[i] == Action.PermitWithdraw) {
         // PERMIT ASSETS
         (
           IVaultPermissions vault,
@@ -73,7 +73,7 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         ) = abi.decode(
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
-        vault.permitAssets(owner, spender, amount, deadline, v, r, s);
+        vault.permitWithdraw(owner, spender, amount, deadline, v, r, s);
       } else if (actions[i] == Action.PermitBorrow) {
         // PERMIT BORROW
         (

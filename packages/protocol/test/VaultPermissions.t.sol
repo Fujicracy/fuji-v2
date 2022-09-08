@@ -97,7 +97,7 @@ contract VaultTest is DSTestPlus {
 
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
-    vault.permitAssets(
+    vault.permitWithdraw(
       permit.owner,
       permit.spender,
       permit.amount,
@@ -107,7 +107,7 @@ contract VaultTest is DSTestPlus {
       s
     );
 
-    assertEq(vault.assetAllowance(owner, operator), withdrawDelegated);
+    assertEq(vault.withdrawAllowance(owner, operator), withdrawDelegated);
 
     vm.prank(operator);
     vault.withdraw(withdrawDelegated, operator, owner);

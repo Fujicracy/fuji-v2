@@ -152,7 +152,7 @@ contract SimpleRouterTest is DSTestPlus {
 
   // plusNonce is necessary for compound operations,
   // those that needs more than one signiture in the same tx
-  function utils_getPermitAssetsArgs(
+  function utils_getPermitWithdrawArgs(
     address owner,
     address operator,
     uint256 amount,
@@ -221,11 +221,11 @@ contract SimpleRouterTest is DSTestPlus {
     utils_doDepositAndBorrow(amount, borrowAmount, vault);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), amount, 0, address(vault));
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Payback;
-    actions[1] = IRouter.Action.PermitAssets;
+    actions[1] = IRouter.Action.PermitWithdraw;
     actions[2] = IRouter.Action.Withdraw;
 
     bytes[] memory args = new bytes[](3);
@@ -255,7 +255,7 @@ contract SimpleRouterTest is DSTestPlus {
     utils_doDepositAndBorrow(withdrawAmount, flashAmount, vault);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), withdrawAmount, 0, address(vault));
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), withdrawAmount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
@@ -267,7 +267,7 @@ contract SimpleRouterTest is DSTestPlus {
     bytes[] memory innerArgs = new bytes[](4);
 
     innerActions[0] = IRouter.Action.Payback;
-    innerActions[1] = IRouter.Action.PermitAssets;
+    innerActions[1] = IRouter.Action.PermitWithdraw;
     innerActions[2] = IRouter.Action.Withdraw;
     innerActions[3] = IRouter.Action.Swap;
 
@@ -329,7 +329,7 @@ contract SimpleRouterTest is DSTestPlus {
     bytes[] memory innerArgs = new bytes[](7);
 
     innerActions[0] = IRouter.Action.Payback; // at initial vault
-    innerActions[1] = IRouter.Action.PermitAssets; // at initial vault
+    innerActions[1] = IRouter.Action.PermitWithdraw; // at initial vault
     innerActions[2] = IRouter.Action.Withdraw; // at initial vault
     innerActions[3] = IRouter.Action.Deposit; // at newVault
     innerActions[4] = IRouter.Action.PermitBorrow; // at newVault
@@ -338,7 +338,7 @@ contract SimpleRouterTest is DSTestPlus {
 
     innerArgs[0] = abi.encode(address(vault), borrowAmount, alice, address(flasher));
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), amount, 0, address(vault));
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
     innerArgs[1] =
       abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
     innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), alice);
