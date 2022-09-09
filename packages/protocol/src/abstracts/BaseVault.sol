@@ -29,6 +29,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   error BaseVault__withdraw_wrongInput();
   error BaseVault__withdraw_moreThanMax();
   error BaseVault__redeem_moreThanMax();
+  error BaseVault__redeem_wrongInput();
   error BaseVault__setter_invalidInput();
 
   address public immutable chief;
@@ -236,7 +237,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   {
     address caller = _msgSender();
     if (caller != owner) {
-      _spendAllowance(owner, caller, assets);
+      _spendAllowance(owner, caller, convertToShares(assets));
     }
 
     if (assets == 0) {
@@ -259,6 +260,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
     returns (uint256)
   {
+    address caller = _msgSender();
+    if (caller != owner) {
+      _spendAllowance(owner, caller, shares);
+    }
+
+    if (shares == 0) {
+      revert BaseVault__redeem_wrongInput();
+    }
+
     if (shares > maxRedeem(owner)) {
       revert BaseVault__redeem_moreThanMax();
     }
