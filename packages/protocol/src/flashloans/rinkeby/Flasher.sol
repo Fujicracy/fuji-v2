@@ -9,10 +9,10 @@ import {IPool} from "../../interfaces/aaveV3/IPool.sol";
 import {IRouter} from "../../interfaces/IRouter.sol";
 import {IFlasher} from "../../interfaces/IFlasher.sol";
 
- /**
+/**
  * @title Flasher
  * @author Fujidao Labs
- * @notice Handles protocol flash loan execturion and the specific 
+ * @notice Handles protocol flash loan execturion and the specific
  * logic for all active flash loan providers
  */
 
@@ -41,7 +41,9 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     external
     override /*isAuthorized*/
   {
-    if (_entryPoint != "") revert Flasher__notEmptyEntryPoint();
+    if (_entryPoint != "") {
+      revert Flasher__notEmptyEntryPoint();
+    }
 
     _entryPoint = keccak256(abi.encode(params));
     if (providerId == 0) {
@@ -81,19 +83,23 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     override
     returns (bool)
   {
-    if (msg.sender != aaveV3Pool || initiator != address(this)) revert Flasher__notAuthorized();
+    if (msg.sender != aaveV3Pool || initiator != address(this)) {
+      revert Flasher__notAuthorized();
+    }
 
     FlashloanParams memory params = abi.decode(data, (FlashloanParams));
 
-    if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) revert
-      Flasher__invalidEntryPoint();
+    if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) {
+      revert Flasher__invalidEntryPoint();
+    }
 
     // approve Router to pull flashloaned amount
     IERC20(asset).safeApprove(params.router, amount);
 
     // decode args of the last acton
-    if (params.actions[params.actions.length - 1] != IRouter.Action.Swap) revert
-      Flasher__lastActionMustBeSwap();
+    if (params.actions[params.actions.length - 1] != IRouter.Action.Swap) {
+      revert Flasher__lastActionMustBeSwap();
+    }
 
     (address assetIn, address assetOut, uint256 amountOut, address receiver, uint256 slippage) =
       abi.decode(params.args[params.args.length - 1], (address, address, uint256, address, uint256));

@@ -12,6 +12,16 @@ import {IRouter} from "../src/interfaces/IRouter.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract ConnextRouterTestsSuite is Setup {
+  event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
+
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
+
   event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
   // plusNonce is necessary for compound operations,
@@ -64,10 +74,6 @@ contract ConnextRouterTestsSuite is Setup {
     connextRouter.xBundle(actions, args);
   }
 
-  event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
-
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
-
   function test_bridgeInbound() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
@@ -95,7 +101,7 @@ contract ConnextRouterTestsSuite is Setup {
     emit Deposit(address(connextRouter), alice, amount, amount);
 
     vm.expectEmit(true, true, true, false);
-    emit Borrow(address(connextRouter), alice, borrowAmount, borrowAmount);
+    emit Borrow(address(connextRouter), alice, alice, borrowAmount, borrowAmount);
 
     IExecutor.ExecutorArgs memory execArgs = IExecutor.ExecutorArgs({
       assetId: collateralAsset,

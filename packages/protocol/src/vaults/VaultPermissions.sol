@@ -52,14 +52,22 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /// @inheritdoc IVaultPermissions
-  function increaseWithdrawAllowance(address spender, uint256 byAmount) public override returns (bool) {
+  function increaseWithdrawAllowance(address spender, uint256 byAmount)
+    public
+    override
+    returns (bool)
+  {
     address owner = msg.sender;
     _setWithdrawAllowance(owner, spender, _withdrawAllowance[owner][spender] + byAmount);
     return true;
   }
 
   /// @inheritdoc IVaultPermissions
-  function decreaseWithdrawAllowance(address spender, uint256 byAmount) public override returns (bool) {
+  function decreaseWithdrawAllowance(address spender, uint256 byAmount)
+    public
+    override
+    returns (bool)
+  {
     address owner = msg.sender;
     uint256 currentAllowance = withdrawAllowance(owner, spender);
     require(currentAllowance >= byAmount, "ERC20: decreased allowance below zero");

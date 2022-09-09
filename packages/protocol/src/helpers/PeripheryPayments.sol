@@ -34,12 +34,12 @@ abstract contract PeripheryPayments {
   //////////////////////////////////////////////////////////////*/
 
   function safeTransferETH(address to, uint256 amount) internal {
-      bool success;
-      assembly {
-          // Transfer the ETH and store if it succeeded or not.
-          success := call(gas(), to, amount, 0, 0, 0, 0)
-      }
-      require(success, "ETH_TRANSFER_FAILED");
+    bool success;
+    assembly {
+      // Transfer the ETH and store if it succeeded or not.
+      success := call(gas(), to, amount, 0, 0, 0, 0)
+    }
+    require(success, "ETH_TRANSFER_FAILED");
   }
 
   function approve(ERC20 token, address to, uint256 amount) public payable {

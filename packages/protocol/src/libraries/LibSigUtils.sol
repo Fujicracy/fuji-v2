@@ -5,7 +5,7 @@ pragma solidity 0.8.15;
  * @title LibSigUtils
  * @author Fujidao Labs
  * @notice Helper library for permit signing of the vault 'permitWithdraw' and
-  * 'permitBorrow'.
+ * 'permitBorrow'.
  */
 
 library LibSigUtils {
@@ -30,7 +30,12 @@ library LibSigUtils {
   function getStructHashAsset(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
-        PERMIT_WITHDRAW_TYPEHASH, permit.owner, permit.spender, permit.amount, permit.nonce, permit.deadline
+        PERMIT_WITHDRAW_TYPEHASH,
+        permit.owner,
+        permit.spender,
+        permit.amount,
+        permit.nonce,
+        permit.deadline
       )
     );
   }
@@ -39,7 +44,12 @@ library LibSigUtils {
   function getStructHashBorrow(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
-        _PERMIT_BORROW_TYPEHASH, permit.owner, permit.spender, permit.amount, permit.nonce, permit.deadline
+        _PERMIT_BORROW_TYPEHASH,
+        permit.owner,
+        permit.spender,
+        permit.amount,
+        permit.nonce,
+        permit.deadline
       )
     );
   }

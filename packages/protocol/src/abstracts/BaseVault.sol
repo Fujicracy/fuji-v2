@@ -51,10 +51,10 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   */
 
   /**
-   * @dev A factor that defines 
+   * @dev A factor that defines
    * the maximum Loan-To-Value a user can take.
    */
-  uint256 public maxLtv; 
+  uint256 public maxLtv;
   /**
    * @dev A factor that defines the Loan-To-Value
    * at which a user can be liquidated.

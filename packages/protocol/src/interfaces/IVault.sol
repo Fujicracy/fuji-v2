@@ -12,10 +12,15 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
 
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
-
-  event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
    * @dev Emitted when the oracle address is changed

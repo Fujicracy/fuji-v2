@@ -194,8 +194,7 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
-      uint256 lockedAssets =
-        (debt * maxLtv * price) / (1e18 * 10 ** _debtAsset.decimals());
+      uint256 lockedAssets = (debt * maxLtv * price) / (1e18 * 10 ** _debtAsset.decimals());
       uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
@@ -250,7 +249,7 @@ contract BorrowingVault is BaseVault {
 
     SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
 
-    emit Borrow(caller, owner, assets, shares);
+    emit Borrow(caller, receiver, owner, assets, shares);
   }
 
   /**

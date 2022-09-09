@@ -24,19 +24,25 @@ import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract SimpleRouterTest is DSTestPlus {
-  event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+  event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
-    address indexed caller,
+    address indexed sender,
     address indexed receiver,
     address indexed owner,
     uint256 assets,
     uint256 shares
   );
 
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
 
-  event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   IVault public vault;
   ILendingProvider public mockProvider;
@@ -90,7 +96,9 @@ contract SimpleRouterTest is DSTestPlus {
     );
   }
 
-  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_) public {
+  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_)
+    public
+  {
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     bytes[] memory args = new bytes[](3);
 
@@ -110,7 +118,7 @@ contract SimpleRouterTest is DSTestPlus {
     emit Deposit(address(simpleRouter), alice, depositAmount, depositAmount);
 
     vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), alice, borrowAmount, borrowAmount);
+    emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
     deal(vault_.asset(), alice, depositAmount);
 
@@ -200,7 +208,7 @@ contract SimpleRouterTest is DSTestPlus {
     emit Deposit(address(simpleRouter), alice, amount, amount);
 
     vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), alice, borrowAmount, borrowAmount);
+    emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
     deal(address(asset), alice, amount);
 
@@ -343,7 +351,8 @@ contract SimpleRouterTest is DSTestPlus {
       abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
     innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), alice);
     innerArgs[3] = abi.encode(address(newVault), amount, alice, address(simpleRouter));
-    (deadline, v, r, s) = utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(newVault));
+    (deadline, v, r, s) =
+      utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(newVault));
     innerArgs[4] =
       abi.encode(address(newVault), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
     innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), alice);
