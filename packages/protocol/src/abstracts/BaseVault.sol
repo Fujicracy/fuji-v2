@@ -315,7 +315,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /**
-   * @dev Overriden to perform _deposit adding flow at lending provider {IERC4626-deposit}.
+   * @dev Perform _deposit adding flow at provider {IERC4626-deposit}.
    */
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
@@ -326,7 +326,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /**
-   * @dev Overriden to perform _withdraw adding flow at lending provider {IERC4626-withdraw}.
+   * @dev Perform _withdraw adding flow at provider {IERC4626-withdraw}.
    */
   function _withdraw(
     address caller,
@@ -439,8 +439,26 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
   {}
 
+  /**
+   * @dev Internal function that computes how much debt
+   * a user can take against its 'asset' deposits.
+   *
+   * Requirements:
+   * - SHOULD be implemented in {BorrowingVault} contract.
+   * - SHOULD NOT be implemented in a {LendingVault} contract.
+   * - SHOULD read price from {FujiOracle}.
+   */
   function _computeMaxBorrow(address borrower) internal view virtual returns (uint256);
 
+  /**
+   * @dev Internal function that computes how much free 'assets'
+   * a user can withdraw or transfer given their 'debt' balance.
+   *
+   * Requirements:
+   * - SHOULD be implemented in {BorrowingVault} contract.
+   * - SHOULD NOT be implemented in a {LendingVault} contract.
+   * - SHOULD read price from {FujiOracle}.
+   */
   function _computeFreeAssets(address owner) internal view virtual returns (uint256);
 
   /**

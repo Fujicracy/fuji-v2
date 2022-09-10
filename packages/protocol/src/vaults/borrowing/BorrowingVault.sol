@@ -173,6 +173,7 @@ contract BorrowingVault is BaseVault {
     VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
   }
 
+  /// @inheritdoc BaseVault
   function _computeMaxBorrow(address borrower) internal view override returns (uint256 max) {
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
     uint256 assetShares = balanceOf(borrower);
@@ -185,6 +186,7 @@ contract BorrowingVault is BaseVault {
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
+  /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
 
@@ -194,7 +196,7 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
-      uint256 lockedAssets = (debt * maxLtv * price) / (1e18 * 10 ** _debtAsset.decimals());
+      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtAsset.decimals());
       uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
