@@ -80,7 +80,7 @@ contract VaultTest is DSTestPlus {
   }
 
   function test_withdraw() public {
-    uint amount = 2 ether;
+    uint256 amount = 2 ether;
     utils_doDeposit(amount, vault);
 
     vm.prank(alice);
@@ -90,16 +90,16 @@ contract VaultTest is DSTestPlus {
   }
 
   function test_depositAndBorrow() public {
-    uint amount = 2 ether;
+    uint256 amount = 2 ether;
     uint256 borrowAmount = 100e18;
 
     utils_doDepositAndBorrow(amount, borrowAmount, vault);
-    
+
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
   }
 
   function test_paybackAndWithdraw() public {
-    uint amount = 2 ether;
+    uint256 amount = 2 ether;
     uint256 borrowAmount = 100e18;
 
     utils_doDepositAndBorrow(amount, borrowAmount, vault);
@@ -121,7 +121,7 @@ contract VaultTest is DSTestPlus {
   }
 
   function testFail_withdrawWithoutRepay() public {
-    uint amount = 2 ether;
+    uint256 amount = 2 ether;
     uint256 borrowAmount = 100e18;
 
     utils_doDepositAndBorrow(amount, borrowAmount, vault);

@@ -11,9 +11,9 @@ interface IVaultPermissions {
   /**
    * @dev Emitted when the asset allowance of a `spender` for an `owner` is set by
    * a call to {approveAsset}. `amount` is the new allowance.
-   * Allows `spender` to withdraw collateral from owner.
+   * Allows `spender` to withdraw/transfer collateral from owner.
    */
-  event AssetApproval(address indexed owner, address spender, uint256 amount);
+  event WithdrawApproval(address indexed owner, address spender, uint256 amount);
 
   /**
    * @dev Emitted when the borrow allowance of a `spender` for an `owner` is set by
@@ -34,7 +34,7 @@ interface IVaultPermissions {
    * Requirements:
    * - By convention this SHOULD be used over {IERC4626-allowance}.
    */
-  function assetAllowance(address owner, address spender) external view returns (uint256);
+  function withdrawAllowance(address owner, address spender) external view returns (uint256);
 
   /**
    * @dev Based on {IERC20-allowance} for debt.
@@ -42,25 +42,25 @@ interface IVaultPermissions {
   function borrowAllowance(address owner, address spender) external view returns (uint256);
 
   /**
-   * @dev Atomically increases the `assetAllowance` granted to `spender` by the caller.
+   * @dev Atomically increases the `withdrawAllowance` granted to `spender` by the caller.
    * Based on OZ {ERC20-increaseAllowance} for assets.
-   * Emits an {AssetApproval} event indicating the updated asset allowance.
+   * Emits an {WithdrawApproval} event indicating the updated asset allowance.
    *
    * Requirements:
    * - `spender` cannot be the zero address.
    */
-  function increaseAssetAllowance(address spender, uint256 byAmount) external returns (bool);
+  function increaseWithdrawAllowance(address spender, uint256 byAmount) external returns (bool);
 
   /**
-   * @dev Atomically decrease the `assetAllowance` granted to `spender` by the caller.
+   * @dev Atomically decrease the `withdrawAllowance` granted to `spender` by the caller.
    * Based on OZ {ERC20-decreaseAllowance} for assets.
-   * Emits an {AssetApproval} event indicating the updated asset allowance.
+   * Emits an {WithdrawApproval} event indicating the updated asset allowance.
    *
    * Requirements:
    * - `spender` cannot be the zero address.
-   * - `spender` must have `assetAllowance` for the caller of at least `byAmount`
+   * - `spender` must have `withdrawAllowance` for the caller of at least `byAmount`
    */
-  function decreaseAssetAllowance(address spender, uint256 byAmount) external returns (bool);
+  function decreaseWithdrawAllowance(address spender, uint256 byAmount) external returns (bool);
 
   /**
    * @dev Atomically increases the `borrowAllowance` granted to `spender` by the caller.
@@ -91,9 +91,9 @@ interface IVaultPermissions {
 
   /**
    * @dev Inspired by {IERC20Permit-permit} for assets.
-   * Sets `amount` as the `assetAllowance` of `spender` over ``owner``'s tokens,
+   * Sets `amount` as the `withdrawAllowance` of `spender` over ``owner``'s tokens,
    * given ``owner``'s signed approval.
-   * IMPORTANT: The same issues {IERC20-approve} has related to transaction
+   * IMPORTANT: The same issues {IERC20-approve} related to transaction
    * ordering also apply here.
    *
    * Emits an {AssetsApproval} event.
@@ -105,7 +105,7 @@ interface IVaultPermissions {
    * over the EIP712-formatted function arguments.
    * - the signature must use ``owner``'s current nonce (see {nonces}).
    */
-  function permitAssets(
+  function permitWithdraw(
     address owner,
     address spender,
     uint256 amount,

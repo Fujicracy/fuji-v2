@@ -12,14 +12,15 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
-  struct Factor {
-    uint64 num;
-    uint64 denum;
-  }
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
 
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
-
-  event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
    * @dev Emitted when the oracle address is changed
@@ -41,15 +42,17 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Emitted when the max LTV is changed
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * @param newMaxLtv the new max LTV
    */
-  event MaxLtvChanged(Factor newMaxLtv);
+  event MaxLtvChanged(uint256 newMaxLtv);
 
   /**
    * @dev Emitted when the liquidation ratio is changed
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * @param newLiqRatio the new liquidation ratio
    */
-  event LiqRatioChanged(Factor newLiqRatio);
+  event LiqRatioChanged(uint256 newLiqRatio);
 
   function debtDecimals() external view returns (uint8);
 
@@ -61,6 +64,11 @@ interface IVault is IERC4626 {
    * - MUST NOT revert.
    */
   function debtAsset() external view returns (address);
+
+  /**
+   * @dev Returns the amount of debt owned by `account`.
+   */
+  function balanceOfDebt(address account) external view returns (uint256 debt);
 
   /**
    * @dev Based on {IERC4626-totalAssets}.

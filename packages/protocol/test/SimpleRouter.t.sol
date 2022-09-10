@@ -24,19 +24,25 @@ import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract SimpleRouterTest is DSTestPlus {
-  event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+  event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
-    address indexed caller,
+    address indexed sender,
     address indexed receiver,
     address indexed owner,
     uint256 assets,
     uint256 shares
   );
 
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
 
-  event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   IVault public vault;
   ILendingProvider public mockProvider;
@@ -90,7 +96,9 @@ contract SimpleRouterTest is DSTestPlus {
     );
   }
 
-  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_) public {
+  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_)
+    public
+  {
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     bytes[] memory args = new bytes[](3);
 
@@ -110,7 +118,7 @@ contract SimpleRouterTest is DSTestPlus {
     emit Deposit(address(simpleRouter), alice, depositAmount, depositAmount);
 
     vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), alice, borrowAmount, borrowAmount);
+    emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
     deal(vault_.asset(), alice, depositAmount);
 
@@ -152,7 +160,7 @@ contract SimpleRouterTest is DSTestPlus {
 
   // plusNonce is necessary for compound operations,
   // those that needs more than one signiture in the same tx
-  function utils_getPermitAssetsArgs(
+  function utils_getPermitWithdrawArgs(
     address owner,
     address operator,
     uint256 amount,
@@ -200,7 +208,7 @@ contract SimpleRouterTest is DSTestPlus {
     emit Deposit(address(simpleRouter), alice, amount, amount);
 
     vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), alice, borrowAmount, borrowAmount);
+    emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
     deal(address(asset), alice, amount);
 
@@ -221,11 +229,11 @@ contract SimpleRouterTest is DSTestPlus {
     utils_doDepositAndBorrow(amount, borrowAmount, vault);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), amount, 0, address(vault));
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Payback;
-    actions[1] = IRouter.Action.PermitAssets;
+    actions[1] = IRouter.Action.PermitWithdraw;
     actions[2] = IRouter.Action.Withdraw;
 
     bytes[] memory args = new bytes[](3);
@@ -255,7 +263,7 @@ contract SimpleRouterTest is DSTestPlus {
     utils_doDepositAndBorrow(withdrawAmount, flashAmount, vault);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), withdrawAmount, 0, address(vault));
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), withdrawAmount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
@@ -267,7 +275,7 @@ contract SimpleRouterTest is DSTestPlus {
     bytes[] memory innerArgs = new bytes[](4);
 
     innerActions[0] = IRouter.Action.Payback;
-    innerActions[1] = IRouter.Action.PermitAssets;
+    innerActions[1] = IRouter.Action.PermitWithdraw;
     innerActions[2] = IRouter.Action.Withdraw;
     innerActions[3] = IRouter.Action.Swap;
 
@@ -329,7 +337,7 @@ contract SimpleRouterTest is DSTestPlus {
     bytes[] memory innerArgs = new bytes[](7);
 
     innerActions[0] = IRouter.Action.Payback; // at initial vault
-    innerActions[1] = IRouter.Action.PermitAssets; // at initial vault
+    innerActions[1] = IRouter.Action.PermitWithdraw; // at initial vault
     innerActions[2] = IRouter.Action.Withdraw; // at initial vault
     innerActions[3] = IRouter.Action.Deposit; // at newVault
     innerActions[4] = IRouter.Action.PermitBorrow; // at newVault
@@ -338,12 +346,13 @@ contract SimpleRouterTest is DSTestPlus {
 
     innerArgs[0] = abi.encode(address(vault), borrowAmount, alice, address(flasher));
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), amount, 0, address(vault));
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
     innerArgs[1] =
       abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
     innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), alice);
     innerArgs[3] = abi.encode(address(newVault), amount, alice, address(simpleRouter));
-    (deadline, v, r, s) = utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(newVault));
+    (deadline, v, r, s) =
+      utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(newVault));
     innerArgs[4] =
       abi.encode(address(newVault), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
     innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), alice);

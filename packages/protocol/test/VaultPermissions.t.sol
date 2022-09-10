@@ -20,7 +20,7 @@ contract VaultTest is DSTestPlus {
   MockERC20 public debtAsset;
 
   uint256 ownerPkey = 0xA;
-  uint operatorPkey = 0xB;
+  uint256 operatorPkey = 0xB;
   address owner = vm.addr(ownerPkey);
   address operator = vm.addr(operatorPkey);
 
@@ -97,17 +97,9 @@ contract VaultTest is DSTestPlus {
 
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
-    vault.permitAssets(
-      permit.owner,
-      permit.spender,
-      permit.amount,
-      permit.deadline,
-      v,
-      r,
-      s
-    );
+    vault.permitWithdraw(permit.owner, permit.spender, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.assetAllowance(owner, operator), withdrawDelegated);
+    assertEq(vault.withdrawAllowance(owner, operator), withdrawDelegated);
 
     vm.prank(operator);
     vault.withdraw(withdrawDelegated, operator, owner);
@@ -140,15 +132,7 @@ contract VaultTest is DSTestPlus {
 
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
-    vault.permitBorrow(
-      permit.owner,
-      permit.spender,
-      permit.amount,
-      permit.deadline,
-      v,
-      r,
-      s
-    );
+    vault.permitBorrow(permit.owner, permit.spender, permit.amount, permit.deadline, v, r, s);
 
     assertEq(vault.borrowAllowance(owner, operator), borrowDelegated);
 
