@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.15;
 
 /**
  * @title UniswapV2Swapper.
@@ -7,7 +7,7 @@ pragma solidity ^0.8.9;
  * @notice Wrapper of UniswapV2 to to be called from the router.
  */
 
-import {IUniswapV2Router01} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import {IUniswapV2Router01} from "../interfaces/uniswap/IUniswapV2Router01.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IFujiOracle} from "../interfaces/IFujiOracle.sol";

@@ -10,9 +10,16 @@ import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
+import "forge-std/console.sol";
+
 contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20;
+
+  error BorrowingVault__borrow_wrongInput();
+  error BorrowingVault__borrow_notEnoughAssets();
+  error BorrowingVault__payback_wrongInput();
+  error BorrowingVault__payback_moreThanMax();
 
   IERC20Metadata internal immutable _debtAsset;
 
@@ -23,9 +30,22 @@ contract BorrowingVault is BaseVault {
 
   IFujiOracle public oracle;
 
-  Factor public maxLtv = Factor(75, 100);
+  /*
+  Factors
+  See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+  */
 
-  Factor public liqRatio = Factor(5, 100);
+  /**
+   * @dev A factor that defines
+   * the maximum Loan-To-Value a user can take.
+   */
+  uint256 public maxLtv;
+
+  /**
+   * @dev A factor that defines the Loan-To-Value
+   * at which a user can be liquidated.
+   */
+  uint256 public liqRatio;
 
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
     BaseVault(
@@ -39,6 +59,8 @@ contract BorrowingVault is BaseVault {
   {
     _debtAsset = IERC20Metadata(debtAsset_);
     oracle = IFujiOracle(oracle_);
+    maxLtv = 75 * 1e16;
+    liqRatio = 80 * 1e16;
   }
 
   /////////////////////////////////
@@ -53,6 +75,11 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function debtAsset() public view override returns (address) {
     return address(_debtAsset);
+  }
+
+  /// @inheritdoc BaseVault
+  function balanceOfDebt(address account) public view override returns (uint256 debt) {
+    return convertToDebt(_debtShares[account]);
   }
 
   /// @inheritdoc BaseVault
@@ -78,11 +105,18 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
+    console.log("inside borrow: caller", caller);
     if (caller != owner) {
-      _setBorrowAllowance(owner, caller, debt);
+      _spendBorrowAllowance(owner, caller, debt);
     }
-    require(debt > 0, "Wrong input");
-    require(debt <= maxBorrow(owner), "Not enough assets");
+
+    if (debt == 0) {
+      revert BorrowingVault__borrow_wrongInput();
+    }
+
+    if (debt > maxBorrow(owner)) {
+      revert BorrowingVault__borrow_notEnoughAssets();
+    }
 
     uint256 shares = convertDebtToShares(debt);
     _borrow(caller, receiver, owner, debt, shares);
@@ -92,8 +126,13 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
-    require(debt > 0, "Wrong input");
-    require(debt <= convertToDebt(_debtShares[owner]), "Payback more than max");
+    if (debt == 0) {
+      revert BorrowingVault__payback_wrongInput();
+    }
+
+    if (debt > convertToDebt(_debtShares[owner])) {
+      revert BorrowingVault__payback_moreThanMax();
+    }
 
     uint256 shares = convertDebtToShares(debt);
     _payback(_msgSender(), owner, debt, shares);
@@ -115,7 +154,9 @@ contract BorrowingVault is BaseVault {
     virtual
     override
     returns (uint256)
-  {}
+  {
+    return VaultPermissions.borrowAllowance(owner, spender);
+  }
 
   /**
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
@@ -126,7 +167,9 @@ contract BorrowingVault is BaseVault {
     virtual
     override
     returns (bool)
-  {}
+  {
+    return VaultPermissions.increaseBorrowAllowance(spender, byAmount);
+  }
 
   /**
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
@@ -137,7 +180,9 @@ contract BorrowingVault is BaseVault {
     virtual
     override
     returns (bool)
-  {}
+  {
+    return VaultPermissions.decreaseBorrowAllowance(spender, byAmount);
+  }
 
   /**
    * @dev See {IVaultPermissions-permitBorrow}.
@@ -158,6 +203,15 @@ contract BorrowingVault is BaseVault {
     VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
   }
 
+  /**
+   * @dev Internal function that computes how much debt
+   * a user can take against its 'asset' deposits.
+   *
+   * Requirements:
+   * - SHOULD be implemented in {BorrowingVault} contract.
+   * - SHOULD NOT be implemented in a {LendingVault} contract.
+   * - SHOULD read price from {FujiOracle}.
+   */
   function _computeMaxBorrow(address borrower) internal view returns (uint256 max) {
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
     uint256 assetShares = balanceOf(borrower);
@@ -166,10 +220,11 @@ contract BorrowingVault is BaseVault {
     uint256 debt = convertToDebt(debtShares);
 
     uint256 baseUserMaxBorrow =
-      ((assets * maxLtv.num * price) / (maxLtv.denum * 10 ** IERC20Metadata(asset()).decimals()));
+      ((assets * maxLtv * price) / (1e18 * 10 ** IERC20Metadata(asset()).decimals()));
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
+  /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
 
@@ -179,8 +234,7 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
-      uint256 lockedAssets =
-        (debt * maxLtv.denum * price) / (maxLtv.num * 10 ** _debtAsset.decimals());
+      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtAsset.decimals());
       uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
@@ -232,7 +286,7 @@ contract BorrowingVault is BaseVault {
 
     SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
 
-    emit Borrow(caller, owner, assets, shares);
+    emit Borrow(caller, receiver, owner, assets, shares);
   }
 
   /**
@@ -277,19 +331,35 @@ contract BorrowingVault is BaseVault {
     emit OracleChanged(newOracle);
   }
 
-  function setMaxLtv(Factor calldata maxLtv_) external {
+  /**
+   * @dev Sets the maximum Loan-To-Value factor of this vault.
+   * See factor:
+   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * Restrictions:
+   * - SHOULD be at least 1%.
+   */
+  function setMaxLtv(uint256 maxLtv_) external {
+    if (maxLtv_ < 1e16) {
+      revert BaseVault__setter_invalidInput();
+    }
     // TODO needs admin restriction
-    // TODO needs input validation
     maxLtv = maxLtv_;
-
-    emit MaxLtvChanged(maxLtv_);
+    emit MaxLtvChanged(maxLtv);
   }
 
-  function setLiqRatio(Factor calldata liqRatio_) external {
+  /**
+   * @dev Sets the Loan-To-Value liquidation threshold factor of this vault.
+   * See factor:
+   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * Restrictions:
+   * - SHOULD be greater than 'maxLTV'.
+   */
+  function setLiqRatio(uint256 liqRatio_) external {
+    if (liqRatio_ < maxLtv) {
+      revert BaseVault__setter_invalidInput();
+    }
     // TODO needs admin restriction
-    // TODO needs input validation
     liqRatio = liqRatio_;
-
-    emit LiqRatioChanged(liqRatio_);
+    emit LiqRatioChanged(liqRatio);
   }
 }

@@ -24,19 +24,25 @@ import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract SimpleRouterTest is DSTestPlus {
-  event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+  event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
-    address indexed caller,
+    address indexed sender,
     address indexed receiver,
     address indexed owner,
     uint256 assets,
     uint256 shares
   );
 
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
 
-  event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   IVault public vault;
   ILendingProvider public mockProvider;
@@ -50,99 +56,6 @@ contract SimpleRouterTest is DSTestPlus {
 
   uint256 alicePkey = 0xA;
   address alice = vm.addr(alicePkey);
-
-  function utils_setupOracle(address asset1, address asset2) internal {
-    // WETH and DAI prices by Aug 12h 2022
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
-      abi.encode(528881643782407)
-    );
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset2, asset1, 18),
-      abi.encode(1889069940262927605990)
-    );
-  }
-
-  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault v) public {
-    IRouter.Action[] memory actions = new IRouter.Action[](2);
-    bytes[] memory args = new bytes[](2);
-
-    actions[0] = IRouter.Action.Deposit;
-    args[0] = abi.encode(address(v), depositAmount, alice, alice);
-
-    actions[1] = IRouter.Action.Borrow;
-    args[1] = abi.encode(address(v), borrowAmount, alice, alice);
-
-    vm.expectEmit(true, true, true, true);
-    emit Deposit(address(simpleRouter), alice, depositAmount, depositAmount);
-
-    vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), alice, borrowAmount, borrowAmount);
-
-    deal(v.asset(), alice, depositAmount);
-
-    vm.startPrank(alice);
-    SafeERC20.safeApprove(IERC20(v.asset()), address(simpleRouter), depositAmount);
-
-    simpleRouter.xBundle(actions, args);
-    vm.stopPrank();
-  }
-
-  // plusNonce is necessary for compound operations,
-  // those that needs more than one signiture in the same tx
-  function utils_getPermitBorrowArgs(
-    address owner,
-    address operator,
-    uint256 borrowAmount,
-    uint256 plusNonce
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
-    deadline = block.timestamp + 1 days;
-    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-      owner: owner,
-      spender: operator,
-      amount: borrowAmount,
-      nonce: IVaultPermissions(address(vault)).nonces(owner) + plusNonce,
-      deadline: deadline
-    });
-    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
-      // This domain should be obtained from the chain on which state will change.
-      IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
-      LibSigUtils.getStructHashBorrow(permit)
-    );
-    (v, r, s) = vm.sign(alicePkey, digest);
-  }
-
-  // plusNonce is necessary for compound operations,
-  // those that needs more than one signiture in the same tx
-  function utils_getPermitAssetsArgs(
-    address owner,
-    address operator,
-    uint256 amount,
-    uint256 plusNonce
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
-    deadline = block.timestamp + 1 days;
-    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-      owner: owner,
-      spender: operator,
-      amount: amount,
-      nonce: IVaultPermissions(address(vault)).nonces(owner) + plusNonce,
-      deadline: deadline
-    });
-    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
-      // This domain should be obtained from the chain on which state will change.
-      IVaultPermissions(address(vault)).DOMAIN_SEPARATOR(),
-      LibSigUtils.getStructHashAsset(permit)
-    );
-    (v, r, s) = vm.sign(alicePkey, digest);
-  }
 
   function setUp() public {
     asset = new MockERC20("Test WETH", "tWETH");
@@ -169,12 +82,116 @@ contract SimpleRouterTest is DSTestPlus {
     vault.setActiveProvider(mockProvider);
   }
 
+  function utils_setupOracle(address asset1, address asset2) internal {
+    // WETH and DAI prices by Aug 12h 2022
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
+      abi.encode(528881643782407)
+    );
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset2, asset1, 18),
+      abi.encode(1889069940262927605990)
+    );
+  }
+
+  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_)
+    public
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    bytes[] memory args = new bytes[](3);
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(vault_));
+
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
+
+    args[0] = abi.encode(address(vault_), depositAmount, alice, alice);
+    args[1] =
+      abi.encode(address(vault_), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
+    args[2] = abi.encode(address(vault_), borrowAmount, alice, alice);
+
+    vm.expectEmit(true, true, true, true);
+    emit Deposit(address(simpleRouter), alice, depositAmount, depositAmount);
+
+    vm.expectEmit(true, true, true, true);
+    emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
+
+    deal(vault_.asset(), alice, depositAmount);
+
+    vm.startPrank(alice);
+    SafeERC20.safeApprove(IERC20(vault_.asset()), address(simpleRouter), depositAmount);
+
+    simpleRouter.xBundle(actions, args);
+    vm.stopPrank();
+  }
+
+  // plusNonce is necessary for compound operations,
+  // those that needs more than one signiture in the same tx
+  function utils_getPermitBorrowArgs(
+    address owner,
+    address operator,
+    uint256 borrowAmount,
+    uint256 plusNonce,
+    address vault_
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    deadline = block.timestamp + 1 days;
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      owner: owner,
+      spender: operator,
+      amount: borrowAmount,
+      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
+      deadline: deadline
+    });
+    bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      // This domain should be obtained from the chain on which state will change.
+      IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
+      structHash
+    );
+    (v, r, s) = vm.sign(alicePkey, digest);
+  }
+
+  // plusNonce is necessary for compound operations,
+  // those that needs more than one signiture in the same tx
+  function utils_getPermitWithdrawArgs(
+    address owner,
+    address operator,
+    uint256 amount,
+    uint256 plusNonce,
+    address vault_
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    deadline = block.timestamp + 1 days;
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      owner: owner,
+      spender: operator,
+      amount: amount,
+      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
+      deadline: deadline
+    });
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      // This domain should be obtained from the chain on which state will change.
+      IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
+      LibSigUtils.getStructHashAsset(permit)
+    );
+    (v, r, s) = vm.sign(alicePkey, digest);
+  }
+
   function test_depositAndBorrow() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 100e18;
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0);
+      utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
@@ -191,7 +208,7 @@ contract SimpleRouterTest is DSTestPlus {
     emit Deposit(address(simpleRouter), alice, amount, amount);
 
     vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), alice, borrowAmount, borrowAmount);
+    emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
     deal(address(asset), alice, amount);
 
@@ -212,11 +229,11 @@ contract SimpleRouterTest is DSTestPlus {
     utils_doDepositAndBorrow(amount, borrowAmount, vault);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), amount, 0);
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Payback;
-    actions[1] = IRouter.Action.PermitAssets;
+    actions[1] = IRouter.Action.PermitWithdraw;
     actions[2] = IRouter.Action.Withdraw;
 
     bytes[] memory args = new bytes[](3);
@@ -246,7 +263,7 @@ contract SimpleRouterTest is DSTestPlus {
     utils_doDepositAndBorrow(withdrawAmount, flashAmount, vault);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), withdrawAmount, 0);
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), withdrawAmount, 0, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
@@ -258,7 +275,7 @@ contract SimpleRouterTest is DSTestPlus {
     bytes[] memory innerArgs = new bytes[](4);
 
     innerActions[0] = IRouter.Action.Payback;
-    innerActions[1] = IRouter.Action.PermitAssets;
+    innerActions[1] = IRouter.Action.PermitWithdraw;
     innerActions[2] = IRouter.Action.Withdraw;
     innerActions[3] = IRouter.Action.Swap;
 
@@ -319,24 +336,25 @@ contract SimpleRouterTest is DSTestPlus {
     IRouter.Action[] memory innerActions = new IRouter.Action[](7);
     bytes[] memory innerArgs = new bytes[](7);
 
-    innerActions[0] = IRouter.Action.Payback;
-    innerActions[1] = IRouter.Action.PermitAssets;
-    innerActions[2] = IRouter.Action.Withdraw;
-    innerActions[3] = IRouter.Action.Deposit;
-    innerActions[4] = IRouter.Action.PermitBorrow;
-    innerActions[5] = IRouter.Action.Borrow;
+    innerActions[0] = IRouter.Action.Payback; // at initial vault
+    innerActions[1] = IRouter.Action.PermitWithdraw; // at initial vault
+    innerActions[2] = IRouter.Action.Withdraw; // at initial vault
+    innerActions[3] = IRouter.Action.Deposit; // at newVault
+    innerActions[4] = IRouter.Action.PermitBorrow; // at newVault
+    innerActions[5] = IRouter.Action.Borrow; // at newVault
     innerActions[6] = IRouter.Action.Swap;
 
     innerArgs[0] = abi.encode(address(vault), borrowAmount, alice, address(flasher));
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitAssetsArgs(alice, address(simpleRouter), amount, 0);
+      utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
     innerArgs[1] =
       abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
     innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), alice);
     innerArgs[3] = abi.encode(address(newVault), amount, alice, address(simpleRouter));
-    (deadline, v, r, s) = utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 1);
+    (deadline, v, r, s) =
+      utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(newVault));
     innerArgs[4] =
-      abi.encode(address(vault), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
+      abi.encode(address(newVault), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
     innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), alice);
     innerArgs[6] = abi.encode(
       address(swapper),

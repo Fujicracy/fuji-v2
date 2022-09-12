@@ -1,13 +1,20 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
+
+/**
+ * @title LibSigUtils
+ * @author Fujidao Labs
+ * @notice Helper library for permit signing of the vault 'permitWithdraw' and
+ * 'permitBorrow'.
+ */
 
 library LibSigUtils {
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 internal constant PERMIT_ASSET_TYPEHASH = keccak256(
-    "PermitAssets(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
+  bytes32 internal constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
+    "PermitWithdraw(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 internal constant PERMIT_DEBT_TYPEHASH = keccak256(
+  bytes32 internal constant _PERMIT_BORROW_TYPEHASH = keccak256(
     "PermitBorrow(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
@@ -23,7 +30,12 @@ library LibSigUtils {
   function getStructHashAsset(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
-        PERMIT_ASSET_TYPEHASH, permit.owner, permit.spender, permit.amount, permit.nonce, permit.deadline
+        PERMIT_WITHDRAW_TYPEHASH,
+        permit.owner,
+        permit.spender,
+        permit.amount,
+        permit.nonce,
+        permit.deadline
       )
     );
   }
@@ -32,7 +44,12 @@ library LibSigUtils {
   function getStructHashBorrow(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
-        PERMIT_DEBT_TYPEHASH, permit.owner, permit.spender, permit.amount, permit.nonce, permit.deadline
+        _PERMIT_BORROW_TYPEHASH,
+        permit.owner,
+        permit.spender,
+        permit.amount,
+        permit.nonce,
+        permit.deadline
       )
     );
   }

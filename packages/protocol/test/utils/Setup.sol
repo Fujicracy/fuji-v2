@@ -17,8 +17,10 @@ contract Setup is DSTestPlus {
     address connextHandler;
   }
 
-  address alice = address(0xA);
-  address bob = address(0xB);
+  uint256 alicePkey = 0xA;
+  address alice = vm.addr(alicePkey);
+  uint256 bobPkey = 0xB;
+  address bob = vm.addr(bobPkey);
 
   uint256 goerliFork;
   uint256 optimismGoerliFork;
@@ -46,13 +48,13 @@ contract Setup is DSTestPlus {
     vm.label(address(bob), "bob");
 
     Registry memory goerli = Registry({
-      weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
+      weth: 0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1,
       connextHandler: 0xB4C1340434920d70aD774309C75f9a4B679d801e
     });
     registry[GOERLI_DOMAIN] = goerli;
 
     Registry memory optimismGoerli = Registry({
-      weth: 0x4E283927E35b7118eA546Ef58Ea60bfF59E857DB,
+      weth: 0x68Db1c8d85C09d546097C65ec7DCBFF4D6497CbF,
       connextHandler: 0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;

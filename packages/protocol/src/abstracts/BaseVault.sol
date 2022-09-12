@@ -22,7 +22,14 @@ import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
-  using SafeERC20 for IERC20;
+
+  error BaseVault__deposit_moreThanMax();
+  error BaseVault__mint_moreThanMax();
+  error BaseVault__withdraw_wrongInput();
+  error BaseVault__withdraw_moreThanMax();
+  error BaseVault__redeem_moreThanMax();
+  error BaseVault__redeem_wrongInput();
+  error BaseVault__setter_invalidInput();
 
   address public immutable chief;
 
@@ -39,14 +46,14 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     chief = chief_;
   }
 
-  ////////////////////////////////////////////////////
-  /// Asset management: allowance-overrides IERC20 ///
-  /// Overrides to handle all in assetsAllowance   ///
-  ////////////////////////////////////////////////////
+  /*////////////////////////////////////////////////////
+      Asset management: allowance-overrides IERC20 
+      Overrides to handle all in withdrawAllowance
+  ///////////////////////////////////////////////////*/
 
   /**
-   * @dev Override to call {VaultPermissions-assetAllowance}.
-   * Returns the share amount of VaultPermissions-assetAllowance.
+   * @dev Override to call {VaultPermissions-withdrawAllowance}.
+   * Returns the share amount of VaultPermissions-withdrawAllowance.
    */
   function allowance(address owner, address spender)
     public
@@ -54,49 +61,49 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override (ERC20, IERC20)
     returns (uint256)
   {
-    return convertToShares(assetAllowance(owner, spender));
+    return convertToShares(withdrawAllowance(owner, spender));
   }
 
   /**
-   * @dev Override to call {VaultPermissions-_setAssetAllowance}.
-   * Converts approve shares argument to assets in VaultPermissions-_assetAllowance.
+   * @dev Override to call {VaultPermissions-_setWithdrawAllowance}.
+   * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
    * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
    */
   function approve(address spender, uint256 shares) public override (ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
-    _setAssetAllowance(owner, spender, convertToAssets(shares));
+    _setWithdrawAllowance(owner, spender, convertToAssets(shares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-increaseAssetAllowance}.
-   * Converts extraShares argument to assets in VaultPermissions-increaseAssetAllowance.
+   * @dev Override to call {VaultPermissions-increaseWithdrawAllowance}.
+   * Converts extraShares argument to assets in VaultPermissions-increaseWithdrawAllowance.
    */
   function increaseAllowance(address spender, uint256 extraShares) public override returns (bool) {
-    increaseAssetAllowance(spender, convertToAssets(extraShares));
+    increaseWithdrawAllowance(spender, convertToAssets(extraShares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-decreaseAssetAllowance}.
-   * Converts subtractedShares argument to assets in VaultPermissions-decreaseAssetAllowance.
+   * @dev Override to call {VaultPermissions-decreaseWithdrawAllowance}.
+   * Converts subtractedShares argument to assets in VaultPermissions-decreaseWithdrawAllowance.
    */
   function decreaseAllowance(address spender, uint256 subtractedShares)
     public
     override
     returns (bool)
   {
-    decreaseAssetAllowance(spender, convertToAssets(subtractedShares));
+    decreaseWithdrawAllowance(spender, convertToAssets(subtractedShares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-_spendAssetAllowance}.
-   * Converts shares argument to assets in VaultPermissions-_spendAssetAllowance.
+   * @dev Override to call {VaultPermissions-_spendWithdrawAllowance}.
+   * Converts shares argument to assets in VaultPermissions-_spendWithdrawAllowance.
    * This internal function is called during ERC4626-transferFrom.
    */
   function _spendAllowance(address owner, address spender, uint256 shares) internal override {
-    _spendAssetAllowance(owner, spender, convertToAssets(shares));
+    _spendWithdrawAllowance(owner, spender, convertToAssets(shares));
   }
 
   ////////////////////////////////////////////
@@ -165,7 +172,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    require(assets <= maxDeposit(receiver), "ERC4626: deposit more than max");
+    if (assets > maxDeposit(receiver)) {
+      revert BaseVault__deposit_moreThanMax();
+    }
 
     uint256 shares = previewDeposit(assets);
     _deposit(_msgSender(), receiver, assets, shares);
@@ -175,7 +184,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
-    require(shares <= maxMint(receiver), "ERC4626: mint more than max");
+    if (shares > maxMint(receiver)) {
+      revert BaseVault__mint_moreThanMax();
+    }
 
     uint256 assets = previewMint(shares);
     _deposit(_msgSender(), receiver, assets, shares);
@@ -191,10 +202,16 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   {
     address caller = _msgSender();
     if (caller != owner) {
-      _spendAllowance(owner, caller, assets);
+      _spendAllowance(owner, caller, convertToShares(assets));
     }
-    require(assets > 0, "Wrong input");
-    require(assets <= maxWithdraw(owner), "Withdraw more than max");
+
+    if (assets == 0) {
+      revert BaseVault__withdraw_wrongInput();
+    }
+
+    if (assets > maxWithdraw(owner)) {
+      revert BaseVault__withdraw_moreThanMax();
+    }
 
     uint256 shares = previewWithdraw(assets);
     _withdraw(caller, receiver, owner, assets, shares);
@@ -208,7 +225,18 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
     returns (uint256)
   {
-    require(shares <= maxRedeem(owner), "Redeem more than max");
+    address caller = _msgSender();
+    if (caller != owner) {
+      _spendAllowance(owner, caller, shares);
+    }
+
+    if (shares == 0) {
+      revert BaseVault__redeem_wrongInput();
+    }
+
+    if (shares > maxRedeem(owner)) {
+      revert BaseVault__redeem_moreThanMax();
+    }
 
     uint256 assets = previewRedeem(shares);
     _withdraw(_msgSender(), receiver, owner, assets, shares);
@@ -252,7 +280,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /**
-   * @dev Overriden to perform _deposit adding flow at lending provider {IERC4626-deposit}.
+   * @dev Perform _deposit adding flow at provider {IERC4626-deposit}.
    */
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
@@ -263,7 +291,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /**
-   * @dev Overriden to perform _withdraw adding flow at lending provider {IERC4626-withdraw}.
+   * @dev Perform _withdraw adding flow at provider {IERC4626-withdraw}.
    */
   function _withdraw(
     address caller,
@@ -302,6 +330,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// inheritdoc IVault
   function debtAsset() public view virtual returns (address);
+
+  /// inheritdoc IVault
+  function balanceOfDebt(address account) public view virtual override returns (uint256 debt);
 
   /// inheritdoc IVault
   function totalDebt() public view virtual returns (uint256);
@@ -373,6 +404,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
   {}
 
+  /**
+   * @dev Internal function that computes how much free 'assets'
+   * a user can withdraw or transfer given their 'debt' balance.
+   *
+   * Requirements:
+   * - SHOULD be implemented in {BorrowingVault} contract.
+   * - SHOULD NOT be implemented in a {LendingVault} contract.
+   * - SHOULD read price from {FujiOracle}.
+   */
   function _computeFreeAssets(address owner) internal view virtual returns (uint256);
 
   ////////////////////////////

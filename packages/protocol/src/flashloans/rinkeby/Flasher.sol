@@ -1,6 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -11,8 +10,10 @@ import {IRouter} from "../../interfaces/IRouter.sol";
 import {IFlasher} from "../../interfaces/IFlasher.sol";
 
 /**
- * @dev Contract that handles Fuji protocol flash loan logic and
- * the specific logic of all active flash loan providers used by Fuji protocol.
+ * @title Flasher
+ * @author Fujidao Labs
+ * @notice Handles protocol flash loan execturion and the specific
+ * logic for all active flash loan providers
  */
 
 contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
@@ -40,7 +41,9 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     external
     override /*isAuthorized*/
   {
-    if (_entryPoint != "") revert Flasher__notEmptyEntryPoint();
+    if (_entryPoint != "") {
+      revert Flasher__notEmptyEntryPoint();
+    }
 
     _entryPoint = keccak256(abi.encode(params));
     if (providerId == 0) {
@@ -80,19 +83,23 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     override
     returns (bool)
   {
-    if (msg.sender != aaveV3Pool || initiator != address(this)) revert Flasher__notAuthorized();
+    if (msg.sender != aaveV3Pool || initiator != address(this)) {
+      revert Flasher__notAuthorized();
+    }
 
     FlashloanParams memory params = abi.decode(data, (FlashloanParams));
 
-    if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) revert
-      Flasher__invalidEntryPoint();
+    if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) {
+      revert Flasher__invalidEntryPoint();
+    }
 
     // approve Router to pull flashloaned amount
     IERC20(asset).safeApprove(params.router, amount);
 
     // decode args of the last acton
-    if (params.actions[params.actions.length - 1] != IRouter.Action.Swap) revert
-      Flasher__lastActionMustBeSwap();
+    if (params.actions[params.actions.length - 1] != IRouter.Action.Swap) {
+      revert Flasher__lastActionMustBeSwap();
+    }
 
     (address assetIn, address assetOut, uint256 amountOut, address receiver, uint256 slippage) =
       abi.decode(params.args[params.args.length - 1], (address, address, uint256, address, uint256));
