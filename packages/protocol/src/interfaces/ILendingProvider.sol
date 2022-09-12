@@ -5,13 +5,15 @@ pragma solidity 0.8.15;
  * @title Lending provider interface.
  * @author fujidao Labs
  * @notice  Defines the interface for core engine to perform operations at lending providers.
+ * @dev Functions are intended to be called in the context of a Vault via delegateCall,
+ * except indicated.
  */
 interface ILendingProvider {
   /**
    * @notice Returns the operator address that requires ERC20-approval for deposits.
    * @param asset address.
    */
-  function approvedOperator(address asset) external returns (address operator);
+  function approvedOperator(address asset) external view returns (address operator);
 
   /**
    * @notice Performs deposit operation at lending provider on behalf caller.
@@ -45,16 +47,20 @@ interface ILendingProvider {
   /**
    * @notice Returns the latest SUPPLY annual percent rate (APR) at lending provider.
    * @param asset address.
-   * @dev Should return the rate in ray units (1e27)
+   *
+   * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
+   * - SHOULD NOT require Vault context.
    */
   function getDepositRateFor(address asset) external view returns (uint256 rate);
 
   /**
    * @notice Returns the latest BORROW annual percent rate (APR) at lending provider.
    * @param asset address.
-   * @dev Should return the rate in ray units (1e27)
+   *
+   * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
+   * - SHOULD NOT require Vault context.
    */
   function getBorrowRateFor(address asset) external view returns (uint256 rate);
 
@@ -62,6 +68,8 @@ interface ILendingProvider {
    * @notice Returns DEPOSIT balance of 'user' at lending provider.
    * @param asset address.
    * @param user address whom balance is needed.
+   *
+   * - SHOULD NOT require Vault context.
    */
   function getDepositBalance(address asset, address user) external view returns (uint256 balance);
 
@@ -69,6 +77,8 @@ interface ILendingProvider {
    * @notice Returns BORROW balance of 'user' at lending provider.
    * @param asset address.
    * @param user address whom balance is needed.
+   *
+   * - SHOULD NOT require Vault context.
    */
   function getBorrowBalance(address asset, address user) external view returns (uint256 balance);
 }
