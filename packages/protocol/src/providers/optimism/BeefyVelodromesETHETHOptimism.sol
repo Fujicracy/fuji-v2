@@ -1,49 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IBeefyVaultV6} from "../../interfaces/beefy/IBeefyVaultV6.sol";
-import {IBeefyUniV2ZapSolidly} from "../../interfaces/beefy/IBeefyUniV2ZapSolidly.sol";
-
-interface IUniswapV2Pair is IERC20 {
-  function tokens() external returns (address, address);
-  function transferFrom(address src, address dst, uint256 amount) external returns (bool);
-  function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data) external;
-  function burn(address to) external returns (uint256 amount0, uint256 amount1);
-  function mint(address to) external returns (uint256 liquidity);
-  function getReserves() external view returns (uint256 reserve0, uint256 reserve1, uint256 last);
-  function token0() external view returns (address);
-  function token1() external view returns (address);
-  function stable() external view returns (bool);
-  function getAmountOut(uint256, address) external view returns (uint256);
-}
-
-interface ISolidlyRouter {
-  function swapExactTokensForTokensSimple(
-    uint256,
-    uint256,
-    address,
-    address,
-    bool,
-    address,
-    uint256
-  )
-    external;
-
-  function quoteAddLiquidity(address, address, bool, uint256, uint256)
-    external
-    view
-    returns (uint256, uint256, uint256);
-
-  function quoteRemoveLiquidity(address, address, bool, uint256)
-    external
-    view
-    returns (uint256, uint256);
-}
+import {IBeefyUniV2ZapVelodrome} from "../../interfaces/beefy/IBeefyUniV2ZapVelodrome.sol";
+import {IVelodromePair} from "../../interfaces/velodrome/IVelodromePair.sol";
+import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol";
 
 /**
  * @title Beefy Velodrome sETH-ETH Optimism Lending Provider.
@@ -54,37 +19,39 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   using SafeERC20 for IERC20;
   using Math for uint256;
 
-  function _getBeefyVault() internal pure returns (address) {
-    return 0xf92129fE0923d766C2540796d4eA31Ff9FF65522;
+  function _getBeefyVault() internal pure returns (IBeefyVaultV6) {
+    return IBeefyVaultV6(0xf92129fE0923d766C2540796d4eA31Ff9FF65522);
   }
 
-  function _getSolidlyRouter() internal pure returns (address) {
-    return 0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9;
+  function _getBeefyZap() internal pure returns (IBeefyUniV2ZapVelodrome) {
+    return IBeefyUniV2ZapVelodrome(0x9b50B06B81f033ca86D70F0a44F30BD7E0155737);
   }
 
-  function _getBeefyZap() internal pure returns (address) {
-    return 0x9b50B06B81f033ca86D70F0a44F30BD7E0155737;
+  function _getVelodromePair() internal pure returns (IVelodromePair) {
+    return IVelodromePair(0xFd7FddFc0A729eCF45fB6B12fA3B71A575E1966F);
+  }
+
+  function _getVelodromeRouter() internal pure returns (IVelodromeRouter) {
+    return IVelodromeRouter(0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
   function approvedOperator(address) external pure override returns (address operator) {
-    operator = _getBeefyZap();
+    operator = address(_getBeefyZap());
   }
 
   /**
    * @notice See {ILendingProvider}
    */
   function deposit(address asset, uint256 amount) external override returns (bool success) {
-    address zap = _getBeefyZap();
-    address beefyVault = _getBeefyVault();
+    IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
+    IBeefyVaultV6 beefyVault = _getBeefyVault();
 
-    (, uint256 swapAmountOut,) = IBeefyUniV2ZapSolidly(zap).estimateSwap(beefyVault, asset, amount);
+    (, uint256 amountOut,) = zap.estimateSwap(address(beefyVault), asset, amount);
 
-    // allow up to 1% slippage
-    /*uint256 minAmountOut = swapAmountOut.mulDiv(999, 1000);*/
-    IBeefyUniV2ZapSolidly(zap).beefIn(beefyVault, swapAmountOut, asset, amount);
+    zap.beefIn(address(beefyVault), amountOut, asset, amount);
 
     return true;
   }
@@ -96,65 +63,66 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
 
   /**
    * @notice See {ILendingProvider}
+   * @dev We can use Beefy Zap as in deposit because 'zap.beefOutAndSwap(...)'
+   * returns ETH instead of WETH.
    */
   function withdraw(address asset, uint256 amount) external override returns (bool success) {
-    address zap = _getBeefyZap();
-    address beefyVault = _getBeefyVault();
+    IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
+    IBeefyVaultV6 beefyVault = _getBeefyVault();
 
-    uint256 totalBalance = IBeefyVaultV6(beefyVault).balanceOf(address(this));
-    console.log("totalBalance", totalBalance);
+    uint256 totalBalance = beefyVault.balanceOf(address(this));
 
     uint256 depositBalance = _getDepositBalance(asset, address(this));
     uint256 toWithdraw = amount * totalBalance / depositBalance;
-    console.log("toWithdraw", toWithdraw);
 
-    (, uint256 swapAmountOut,) = IBeefyUniV2ZapSolidly(zap).estimateSwap(beefyVault, asset, amount);
+    (, uint256 amountOut,) = zap.estimateSwap(address(beefyVault), asset, amount);
 
-    _outAndSwap(toWithdraw, asset, swapAmountOut);
+    // allow up to 1% slippage
+    _removeLiquidityAndSwap(toWithdraw, asset, amountOut.mulDiv(99, 100));
 
     return true;
   }
 
-  function _outAndSwap(uint256 withdrawAmount, address desiredToken, uint256 desiredTokenOutMin)
+  /**
+   * @notice See {ILendingProvider}
+   */
+  function _removeLiquidityAndSwap(
+    uint256 withdrawAmount,
+    address desiredToken,
+    uint256 desiredOutMin
+  )
     internal
   {
     IBeefyVaultV6 vault = IBeefyVaultV6(_getBeefyVault());
-    IUniswapV2Pair pair = IUniswapV2Pair(vault.want());
+    IVelodromePair pair = _getVelodromePair();
+
+    vault.withdraw(withdrawAmount);
 
     address token0 = pair.token0();
     address token1 = pair.token1();
-    require(
-      token0 == desiredToken || token1 == desiredToken,
-      "Beefy: desired token not present in liqudity pair"
-    );
 
-    vault.withdraw(withdrawAmount);
     // remove liquidity
-    IERC20(pair).safeTransfer(address(pair), IERC20(pair).balanceOf(address(this)));
-    IUniswapV2Pair(pair).burn(address(this));
+    IERC20(pair).safeTransfer(address(pair), pair.balanceOf(address(this)));
+    pair.burn(address(this));
 
     address swapToken = token1 == desiredToken ? token0 : token1;
     address[] memory path = new address[](2);
     path[0] = swapToken;
     path[1] = desiredToken;
 
-    address router = _getSolidlyRouter();
-    _approveTokenIfNeeded(path[0], router);
-    ISolidlyRouter(router).swapExactTokensForTokensSimple(
+    IVelodromeRouter router = _getVelodromeRouter();
+    if (IERC20(path[0]).allowance(address(this), address(router)) == 0) {
+      IERC20(path[0]).safeApprove(address(router), type(uint256).max);
+    }
+    router.swapExactTokensForTokensSimple(
       IERC20(swapToken).balanceOf(address(this)),
-      desiredTokenOutMin,
+      desiredOutMin,
       path[0],
       path[1],
-      pair.stable(),
+      true,
       address(this),
       block.timestamp
     );
-  }
-
-  function _approveTokenIfNeeded(address token, address spender) private {
-    if (IERC20(token).allowance(address(this), spender) == 0) {
-      IERC20(token).safeApprove(spender, type(uint256).max);
-    }
   }
 
   /**
@@ -195,16 +163,24 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   {}
 
   function _getDepositBalance(address asset, address user) internal view returns (uint256 balance) {
-    IBeefyVaultV6 beefyVault = IBeefyVaultV6(_getBeefyVault());
-    IUniswapV2Pair pair = IUniswapV2Pair(beefyVault.want());
-    ISolidlyRouter router = ISolidlyRouter(_getSolidlyRouter());
+    IVelodromeRouter router = _getVelodromeRouter();
+    IBeefyVaultV6 beefyVault = _getBeefyVault();
+    IVelodromePair pair = _getVelodromePair();
+
     // LP token per shares
     // beefy shares balance (LP)
     balance = beefyVault.balanceOf(user) * beefyVault.getPricePerFullShare() / 1e18;
     // decompose the LP
-    (uint256 amountA, uint256 amountB) =
-      router.quoteRemoveLiquidity(asset, pair.token1(), pair.stable(), balance);
+    address token0 = pair.token0();
+    address token1 = pair.token1();
+
+    (uint256 amountA, uint256 amountB) = router.quoteRemoveLiquidity(token0, token1, true, balance);
+
     // get the price of token1 in WETH
-    return pair.getAmountOut(amountB, pair.token1()) + amountA;
+    if (token0 == asset) {
+      balance = pair.getAmountOut(amountB, token1) + amountA;
+    } else {
+      balance = pair.getAmountOut(amountA, token0) + amountB;
+    }
   }
 }

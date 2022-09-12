@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
-interface IBeefyUniV2ZapSolidly {
+interface IBeefyUniV2ZapVelodrome {
   function beefIn(
     address beefyVault,
     uint256 tokenAmountOutMin,
