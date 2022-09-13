@@ -67,6 +67,7 @@ jobs:
         run: |
           touch .env
           echo export RPC_MAINNET="${{ secrets.RPC_MAINNET }}" >> .env
+          echo export RPC_OPTIMISM="${{ secrets.RPC_OPTIMISM }}" >> .env
           echo export RPC_RINKEBY="${{ secrets.RPC_RINKEBY }}" >> .env
           echo export RPC_GOERLI="${{ secrets.RPC_GOERLI }}" >> .env
           echo export RPC_OPTIMISM_GOERLI="${{ secrets.RPC_OPTIMISM_GOERLI }}" >> .env
