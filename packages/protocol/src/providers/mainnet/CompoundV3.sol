@@ -15,9 +15,7 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  */
 contract CompoundV3 is ILendingProvider {
   error CompoundV3__IAddrMapperMisconfigured();
-  error CompoundV3__delegateCallerIsNotaIVault();
-  error CompoundV3__userMustBeIVault();
-  error CompoundV3__user_asset_invalidInput();
+  error CompoundV3__callerIsNotaIVault();
 
   // Allows determining the context of the call.
   address private immutable _this;
@@ -27,12 +25,19 @@ contract CompoundV3 is ILendingProvider {
   }
 
   function _getMappingAddr() internal pure returns (address) {
-    return 0x6b09443595BFb8F91eA837c7CB4Fe1255782093b;
+    // TODO Define final address after deployment strategy is set.
+    return 0x5817437D2252A31EF315963289e5270811637dEb;
   }
 
   /// inheritdoc ILendingProvider
   function approvedOperator(address asset) external view returns (address operator) {
-    return address(_getCometMarketFromContext(asset));
+    address caller = msg.sender;
+    try IVault(caller).debtAsset() returns (address debtAsset_) {
+      address asset_ = IVault(caller).asset();
+      operator = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
+    } catch {
+      operator = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
+    }
   }
 
   /// inheritdoc ILendingProvider
@@ -122,15 +127,12 @@ contract CompoundV3 is ILendingProvider {
    * in where Comet.baseToken == 'asset_'
    */
   function _getCometMarketFromContext(address asset) private view returns (ICompoundV3 cAssetV3) {
-    if (_isDelegate()) {
-      address delegateCaller = address(this);
-      try IVault(delegateCaller).debtAsset() returns (address debtAsset_) {
-        address asset_ = IVault(delegateCaller).asset();
-        address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
-        cAssetV3 = ICompoundV3(market);
-      } catch {
-        revert CompoundV3__delegateCallerIsNotaIVault();
-      }
+    address delegateCaller = address(this);
+    if (_isDelegate() && _isABorrowingVault(delegateCaller)) {
+      address asset_ = IVault(delegateCaller).asset();
+      address debtAsset_ = IVault(delegateCaller).debtAsset();
+      address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
+      cAssetV3 = ICompoundV3(market);
     } else {
       address market = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
       cAssetV3 = ICompoundV3(market);
@@ -138,24 +140,23 @@ contract CompoundV3 is ILendingProvider {
   }
 
   /**
-   * @dev Returns corresponding Comet Market from passed `user` address.
+   * @dev Returns corresponding Comet Market from passed `vault` address.
    * See '_getCometMarketFromContext(address asset)' for IAddrMapper config specs.
-   * - `user` MUST be an IVault.
+   * - `vault` MUST be comply to IVault.
    */
-  function _getCometMarketFromContext(address asset, address user)
+  function _getCometMarketFromContext(address asset, address vault)
     private
     view
     returns (ICompoundV3 cAssetV3)
   {
-    try IVault(user).debtAsset() returns (address debtAsset_) {
-      address asset_ = IVault(user).asset();
+    if (_isABorrowingVault(vault)) {
+      address asset_ = IVault(vault).asset();
+      address debtAsset_ = IVault(vault).debtAsset();
       address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
-      if (asset != asset_) {
-        revert CompoundV3__user_asset_invalidInput();
-      }
       cAssetV3 = ICompoundV3(market);
-    } catch {
-      revert CompoundV3__userMustBeIVault();
+    } else {
+      address market = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
+      cAssetV3 = ICompoundV3(market);
     }
   }
 
@@ -164,6 +165,16 @@ contract CompoundV3 is ILendingProvider {
       // This is a call address(this) is this contract
       // We are executing in an external context.
       check = true;
+    }
+  }
+
+  function _isABorrowingVault(address callingVault) private view returns (bool check) {
+    try IVault(callingVault).debtAsset() returns (address debtAsset_) {
+      if (debtAsset_ != address(0)) {
+        check = true;
+      }
+    } catch {
+      revert CompoundV3__callerIsNotaIVault();
     }
   }
 }

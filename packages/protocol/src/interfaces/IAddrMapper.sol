@@ -10,4 +10,8 @@ interface IAddrMapper {
   function addressMapping(address) external view returns (address);
 
   function addressMapping(address, address) external view returns (address);
+
+  function setMapping(address, address) external;
+
+  function setMapping(address, address, address) external;
 }
