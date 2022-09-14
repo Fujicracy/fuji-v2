@@ -14,7 +14,9 @@ import {DSTestPlus} from "../../utils/DSTestPlus.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
 
-contract VaultTest is DSTestPlus {
+bool constant DEBUG = false;
+
+contract ProviderTest is DSTestPlus {
   address alice = address(0xA);
   address bob = address(0xB);
 
@@ -22,6 +24,7 @@ contract VaultTest is DSTestPlus {
 
   IVault public vault;
   IAddrMapper public mapper;
+  ILendingProvider public compoundV3;
 
   IWETH9 public weth;
   IERC20 public usdc;
@@ -49,7 +52,7 @@ contract VaultTest is DSTestPlus {
 
     mapper = IAddrMapper(mapDeployer.deployAddrMapper("CompoundV3"));
     mapper.setMapping(address(weth), address(usdc), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
-    console.log("mapper", address(mapper));
+    mapper.setMapping(address(usdc), address(0), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
 
     vault = new BorrowingVault(
       address(weth),
@@ -58,8 +61,8 @@ contract VaultTest is DSTestPlus {
       address(0)
     );
 
-    ILendingProvider compound = new CompoundV3();
-    vault.setActiveProvider(compound);
+    compoundV3 = new CompoundV3();
+    vault.setActiveProvider(compoundV3);
   }
 
   function _utils_doDepositRoutine(address who, uint256 amount) internal {
@@ -114,5 +117,23 @@ contract VaultTest is DSTestPlus {
 
     uint256 maxAmount = vault.maxWithdraw(alice);
     _utils_doWithdrawRoutine(alice, maxAmount);
+  }
+
+  function test_getInterestRates() public {
+    uint256 depositRate = compoundV3.getDepositRateFor(address(usdc));
+    assertGt(depositRate, 0);
+    
+    uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc));
+    assertGt(borrowRate, 0);
+    
+    if (DEBUG) {
+      console.log("depositRate", depositRate);
+      console.log("borrowRate", borrowRate);
+    }
+  }
+
+  // This test is applicable only for CompoundV3
+  function testFail_getInterestRatesWithNoMapping() public {
+    uint256 depositRate = compoundV3.getDepositRateFor(address(weth));
   }
 }

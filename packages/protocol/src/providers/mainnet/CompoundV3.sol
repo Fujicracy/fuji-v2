@@ -73,12 +73,15 @@ contract CompoundV3 is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getDepositRateFor(address asset) external view returns (uint256 rate) {
     ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
+    if(address(0) == address(cAssetV3)) {
+      revert CompoundV3__IAddrMapperMisconfigured();
+    }
     if (asset != cAssetV3.baseToken()) {
       rate = 0;
     } else {
       uint256 utilization = cAssetV3.getUtilization();
       // Scaled by 1e9 to return ray(1e27) per ILendingProvider specs, Compound uses base 1e18 number.
-      uint256 ratePerSecond = cAssetV3.getSupplyRate(utilization) * 10 ** 9;
+      uint256 ratePerSecond = cAssetV3.getBorrowRate(utilization) * 10 ** 9;
       // 31536000 seconds in a `year` = 60 * 60 * 24 * 365.
       rate = ratePerSecond * 31536000;
     }
@@ -87,6 +90,9 @@ contract CompoundV3 is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(address asset) external view returns (uint256 rate) {
     ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
+    if(address(0) == address(cAssetV3)) {
+      revert CompoundV3__IAddrMapperMisconfigured();
+    }
     if (asset != cAssetV3.baseToken()) {
       rate = 0;
     } else {
@@ -127,12 +133,14 @@ contract CompoundV3 is ILendingProvider {
    * in where Comet.baseToken == 'asset_'
    */
   function _getCometMarketFromContext(address asset) private view returns (ICompoundV3 cAssetV3) {
-    address delegateCaller = address(this);
-    if (_isDelegate() && _isABorrowingVault(delegateCaller)) {
-      address asset_ = IVault(delegateCaller).asset();
-      address debtAsset_ = IVault(delegateCaller).debtAsset();
-      address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
-      cAssetV3 = ICompoundV3(market);
+    address caller = address(this);
+    if (_isDelegate(caller)) {
+      if (_isABorrowingVault(caller)) {
+        address asset_ = IVault(caller).asset();
+        address debtAsset_ = IVault(caller).debtAsset();
+        address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
+        cAssetV3 = ICompoundV3(market);
+      }
     } else {
       address market = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
       cAssetV3 = ICompoundV3(market);
@@ -160,8 +168,8 @@ contract CompoundV3 is ILendingProvider {
     }
   }
 
-  function _isDelegate() private view returns (bool check) {
-    if (address(this) != _this) {
+  function _isDelegate(address caller) private view returns (bool check) {
+    if (caller != _this) {
       // This is a call address(this) is this contract
       // We are executing in an external context.
       check = true;
