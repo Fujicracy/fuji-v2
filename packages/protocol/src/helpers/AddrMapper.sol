@@ -40,9 +40,9 @@ contract AddrMapper is IAddrMapper, Ownable {
    */
   function setMapping(address keyAddr, address returnedAddr) public override onlyOwner {
     _addressMapping[keyAddr] = returnedAddr;
-    address[] memory inputAddresses = new address[](1);
-    inputAddresses[0] = keyAddr;
-    emit MappingChanged(inputAddresses, returnedAddr);
+    address[] memory inputAddrs = new address[](1);
+    inputAddrs[0] = keyAddr;
+    emit MappingChanged(inputAddrs, returnedAddr);
   }
 
   /**
@@ -54,9 +54,9 @@ contract AddrMapper is IAddrMapper, Ownable {
     onlyOwner
   {
     _addressNestedMapping[keyAddr1][keyAddr2] = returnedAddr;
-    address[] memory inputAddresses = new address[](2);
-    inputAddresses[0] = keyAddr1;
-    inputAddresses[1] = keyAddr2;
-    emit MappingChanged(inputAddresses, returnedAddr);
+    address[] memory inputAddrs = new address[](2);
+    inputAddrs[0] = keyAddr1;
+    inputAddrs[1] = keyAddr2;
+    emit MappingChanged(inputAddrs, returnedAddr);
   }
 }
