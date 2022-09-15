@@ -51,8 +51,10 @@ contract ProviderTest is DSTestPlus {
     AddrMapperDeployer mapDeployer = new AddrMapperDeployer();
 
     mapper = IAddrMapper(mapDeployer.deployAddrMapper("CompoundV3"));
-    mapper.setMapping(address(weth), address(usdc), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
-    mapper.setMapping(address(usdc), address(0), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
+    mapper.setNestedMapping(
+      address(weth), address(usdc), 0xc3d688B66703497DAA19211EEdff47f25384cdc3
+    );
+    mapper.setNestedMapping(address(usdc), address(0), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
 
     vault = new BorrowingVault(
       address(weth),
@@ -122,10 +124,10 @@ contract ProviderTest is DSTestPlus {
   function test_getInterestRates() public {
     uint256 depositRate = compoundV3.getDepositRateFor(address(usdc));
     assertGt(depositRate, 0);
-    
+
     uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc));
     assertGt(borrowRate, 0);
-    
+
     if (DEBUG) {
       console.log("depositRate", depositRate);
       console.log("borrowRate", borrowRate);
@@ -133,7 +135,7 @@ contract ProviderTest is DSTestPlus {
   }
 
   // This test is applicable only for CompoundV3
-  function testFail_getInterestRatesWithNoMapping() public {
-    uint256 depositRate = compoundV3.getDepositRateFor(address(weth));
+  function testFail_getInterestRatesWithNoMapping() public view returns (uint256) {
+    return compoundV3.getDepositRateFor(address(weth));
   }
 }

@@ -11,51 +11,52 @@ import {IAddrMapper} from "../interfaces/IAddrMapper.sol";
  */
 contract AddrMapper is IAddrMapper, Ownable {
   string public mapperName;
-  // Address input => address output
+  // key address => returned address
   // (e.g. public erc20 => protocol Token)
-  mapping(address => address) private _addressMappingT1;
-  // Address input_1, address input_2 => address output
-  mapping(address => mapping(address => address)) private _addressMappingT2;
+  mapping(address => address) private _addressMapping;
+  // key1 address, key2 address => returned address
+  // (e.g. collateral erc20 => borrow erc20 => Protocol market)
+  mapping(address => mapping(address => address)) private _addressNestedMapping;
 
   constructor(string memory _mapperName) {
     mapperName = _mapperName;
   }
 
-  function addressMapping(address inputAddr) external view override returns (address) {
-    return _addressMappingT1[inputAddr];
+  function getAddressMapping(address inputAddr) external view override returns (address) {
+    return _addressMapping[inputAddr];
   }
 
-  function addressMapping(address inputAddr1, address inputAddr2)
+  function getAddressNestedMapping(address inputAddr1, address inputAddr2)
     external
     view
     override
     returns (address)
   {
-    return _addressMappingT2[inputAddr1][inputAddr2];
+    return _addressNestedMapping[inputAddr1][inputAddr2];
   }
 
   /**
-   * @dev Adds a mapping 1:1
+   * @dev Adds an address mapping.
    */
-  function setMapping(address _addr, address _resultAddr) public override onlyOwner {
-    _addressMappingT1[_addr] = _resultAddr;
+  function setMapping(address keyAddr, address returnedAddr) public override onlyOwner {
+    _addressMapping[keyAddr] = returnedAddr;
     address[] memory inputAddresses = new address[](1);
-    inputAddresses[0] = _addr;
-    emit MappingChanged(inputAddresses, _resultAddr);
+    inputAddresses[0] = keyAddr;
+    emit MappingChanged(inputAddresses, returnedAddr);
   }
 
   /**
-   * @dev Adds a mapping 2:1
+   * @dev Adds a nested address mapping.
    */
-  function setMapping(address _addr1, address _addr2, address _resultAddr)
+  function setNestedMapping(address keyAddr1, address keyAddr2, address returnedAddr)
     public
     override
     onlyOwner
   {
-    _addressMappingT2[_addr1][_addr2] = _resultAddr;
+    _addressNestedMapping[keyAddr1][keyAddr2] = returnedAddr;
     address[] memory inputAddresses = new address[](2);
-    inputAddresses[0] = _addr1;
-    inputAddresses[1] = _addr2;
-    emit MappingChanged(inputAddresses, _resultAddr);
+    inputAddresses[0] = keyAddr1;
+    inputAddresses[1] = keyAddr2;
+    emit MappingChanged(inputAddresses, returnedAddr);
   }
 }

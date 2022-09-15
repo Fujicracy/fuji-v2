@@ -24,9 +24,9 @@ contract CompoundV3 is ILendingProvider {
     _this = address(this);
   }
 
-  function _getMappingAddr() internal pure returns (address) {
+  function _getMapper() internal pure returns (address) {
     // TODO Define final address after deployment strategy is set.
-    return 0x5817437D2252A31EF315963289e5270811637dEb;
+    return 0xe03839237FEFB9424fe7631D62E2D43Cba88e798;
   }
 
   /// inheritdoc ILendingProvider
@@ -34,9 +34,9 @@ contract CompoundV3 is ILendingProvider {
     address caller = msg.sender;
     try IVault(caller).debtAsset() returns (address debtAsset_) {
       address asset_ = IVault(caller).asset();
-      operator = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
+      operator = IAddrMapper(_getMapper()).getAddressNestedMapping(asset_, debtAsset_);
     } catch {
-      operator = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
+      operator = IAddrMapper(_getMapper()).getAddressNestedMapping(asset, address(0));
     }
   }
 
@@ -73,7 +73,7 @@ contract CompoundV3 is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getDepositRateFor(address asset) external view returns (uint256 rate) {
     ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
-    if(address(0) == address(cAssetV3)) {
+    if (address(0) == address(cAssetV3)) {
       revert CompoundV3__IAddrMapperMisconfigured();
     }
     if (asset != cAssetV3.baseToken()) {
@@ -90,7 +90,7 @@ contract CompoundV3 is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(address asset) external view returns (uint256 rate) {
     ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
-    if(address(0) == address(cAssetV3)) {
+    if (address(0) == address(cAssetV3)) {
       revert CompoundV3__IAddrMapperMisconfigured();
     }
     if (asset != cAssetV3.baseToken()) {
@@ -138,11 +138,11 @@ contract CompoundV3 is ILendingProvider {
       if (_isABorrowingVault(caller)) {
         address asset_ = IVault(caller).asset();
         address debtAsset_ = IVault(caller).debtAsset();
-        address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
+        address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset_, debtAsset_);
         cAssetV3 = ICompoundV3(market);
       }
     } else {
-      address market = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
+      address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset, address(0));
       cAssetV3 = ICompoundV3(market);
     }
   }
@@ -160,10 +160,10 @@ contract CompoundV3 is ILendingProvider {
     if (_isABorrowingVault(vault)) {
       address asset_ = IVault(vault).asset();
       address debtAsset_ = IVault(vault).debtAsset();
-      address market = IAddrMapper(_getMappingAddr()).addressMapping(asset_, debtAsset_);
+      address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset_, debtAsset_);
       cAssetV3 = ICompoundV3(market);
     } else {
-      address market = IAddrMapper(_getMappingAddr()).addressMapping(asset, address(0));
+      address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset, address(0));
       cAssetV3 = ICompoundV3(market);
     }
   }
