@@ -46,6 +46,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   IFujiOracle public oracle;
 
+  uint256 public minDepositAmount;
+  uint256 public depositCap;
+
   /*
   Factors
   See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
@@ -79,6 +82,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     chief = chief_;
     maxLtv = 75 * 1e16;
     liqRatio = 80 * 1e16;
+    depositCap = type(uint256).max;
   }
 
   /*////////////////////////////////////////////////////
@@ -167,7 +171,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return _isVaultCollateralized() ? type(uint256).max : 0;
+    return _isVaultCollateralized() ? depositCap : 0;
   }
 
   /// @inheritdoc IERC4626
@@ -207,7 +211,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    if (assets > maxDeposit(receiver)) {
+    if (assets > maxDeposit(receiver) || assets < minDepositAmount) {
       revert BaseVault__deposit_moreThanMax();
     }
 
@@ -502,8 +506,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   ////////////////////////////
 
   function _executeProviderAction(address assetAddr, uint256 assets, string memory name) internal {
-    bytes memory data =
-      abi.encodeWithSignature(string(abi.encodePacked(name, "(address,uint256)")), assetAddr, assets);
+    bytes memory data = abi.encodeWithSignature(
+      string(abi.encodePacked(name, "(address,uint256)")), assetAddr, assets
+    );
     address(activeProvider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))
     );
@@ -582,5 +587,23 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     // TODO needs admin restriction
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
+  }
+
+  /**
+   * @dev Sets the minimum deposit amount.
+   */
+  function setMinDepositAmount(uint256 amount) external {
+    // TODO needs admin restriction
+    minDepositAmount = amount;
+    emit minDepositAmountChanged(liqRatio);
+  }
+
+  /**
+   * @dev Sets the deposit cap amount of this vault.
+   */
+  function setDepositCap(uint256 newCap) external {
+    // TODO needs admin restriction
+    depositCap = newCap;
+    emit depositCapChanged(newCap);
   }
 }

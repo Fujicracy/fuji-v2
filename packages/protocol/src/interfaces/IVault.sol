@@ -54,6 +54,18 @@ interface IVault is IERC4626 {
    */
   event LiqRatioChanged(uint256 newLiqRatio);
 
+  /**
+   * @dev Emitted when the minumum deposit amount is changed
+   * @param newMinDeposit the new minimum deposit amount
+   */
+  event minDepositAmountChanged(uint256 newMinDeposit);
+
+  /**
+   * @dev Emitted when the deposit cap is changed
+   * @param newDepositCap the new deposit cap of this vault.
+   */
+  event depositCapChanged(uint256 newDepositCap);
+
   function debtDecimals() external view returns (uint8);
 
   /**
