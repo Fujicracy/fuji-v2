@@ -211,7 +211,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    if (assets > maxDeposit(receiver) || assets < minDepositAmount) {
+    if (assets + totalAssets() > maxDeposit(receiver) || assets < minDepositAmount) {
       revert BaseVault__deposit_moreThanMax();
     }
 
@@ -541,9 +541,11 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_) external {
+  function setActiveProvider(ILendingProvider activeProvider_) external override {
     // TODO needs admin restriction
-    // TODO needs input validation
+    if (address(activeProvider_) == address(0)) {
+      revert BaseVault__setter_invalidInput();
+    }
     activeProvider = activeProvider_;
     SafeERC20.safeApprove(
       IERC20(asset()), activeProvider.approvedOperator(asset()), type(uint256).max
@@ -558,11 +560,11 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /**
-   * @dev Sets the maximum Loan-To-Value factor of this vault.
+   * @dev Sets the Loan-To-Value liquidation threshold factor of this vault.
    * See factor:
    * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * Restrictions:
-   * - SHOULD be at least 1%.
+   * - SHOULD be greater than 'maxLTV'.
    */
   function setMaxLtv(uint256 maxLtv_) external {
     if (maxLtv_ < 1e16) {
@@ -589,21 +591,20 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     emit LiqRatioChanged(liqRatio);
   }
 
-  /**
-   * @dev Sets the minimum deposit amount.
-   */
-  function setMinDepositAmount(uint256 amount) external {
+  /// inheritdoc IVault
+  function setMinDepositAmount(uint256 amount) external override {
     // TODO needs admin restriction
     minDepositAmount = amount;
-    emit minDepositAmountChanged(liqRatio);
+    emit MinDepositAmountChanged(liqRatio);
   }
 
-  /**
-   * @dev Sets the deposit cap amount of this vault.
-   */
-  function setDepositCap(uint256 newCap) external {
+  /// inheritdoc IVault
+  function setDepositCap(uint256 newCap) external override {
     // TODO needs admin restriction
+    if (newCap == 0 || newCap <= minDepositAmount) {
+      revert BaseVault__setter_invalidInput();
+    }
     depositCap = newCap;
-    emit depositCapChanged(newCap);
+    emit DepositCapChanged(newCap);
   }
 }

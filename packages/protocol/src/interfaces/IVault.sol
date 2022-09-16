@@ -58,13 +58,13 @@ interface IVault is IERC4626 {
    * @dev Emitted when the minumum deposit amount is changed
    * @param newMinDeposit the new minimum deposit amount
    */
-  event minDepositAmountChanged(uint256 newMinDeposit);
+  event MinDepositAmountChanged(uint256 newMinDeposit);
 
   /**
    * @dev Emitted when the deposit cap is changed
    * @param newDepositCap the new deposit cap of this vault.
    */
-  event depositCapChanged(uint256 newDepositCap);
+  event DepositCapChanged(uint256 newDepositCap);
 
   function debtDecimals() external view returns (uint8);
 
@@ -156,12 +156,28 @@ interface IVault is IERC4626 {
   function payback(uint256 debt, address receiver) external returns (uint256);
 
   /**
+   * @notice Returns the active provider for the vault
+   */
+  function activeProvider() external returns (ILendingProvider);
+
+  ////////////////////////
+  /// Setter functions ///
+  ///////////////////////
+
+  /**
    * @notice Sets the active provider for the vault
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 
   /**
-   * @notice Returns the active provider for the vault
+   * @dev Sets the minimum deposit amount.
    */
-  function activeProvider() external returns (ILendingProvider);
+  function setMinDepositAmount(uint256 amount) external;
+
+  /**
+   * @dev Sets the deposit cap amount of this vault.
+   * Restrictions:
+   * - SHOULD be greater than zero.
+   */
+  function setDepositCap(uint256 newCap) external;
 }
