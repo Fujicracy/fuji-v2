@@ -72,7 +72,12 @@ contract VaultTest is DSTestPlus {
     vm.stopPrank();
   }
 
-  function _utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault v, address who)
+  function _utils_doDepositAndBorrow(
+    uint256 depositAmount,
+    uint256 borrowAmount,
+    IVault v,
+    address who
+  )
     internal
   {
     _utils_doDeposit(depositAmount, v, who);
