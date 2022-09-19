@@ -16,6 +16,10 @@ import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
 
 bool constant DEBUG = false;
 
+interface ITestingCompoundV3 {
+  function getMapper() external returns(address);
+}
+
 contract ProviderTest is DSTestPlus {
   address alice = address(0xA);
   address bob = address(0xB);
@@ -122,11 +126,14 @@ contract ProviderTest is DSTestPlus {
   }
 
   function test_getInterestRates() public {
-    uint256 depositRate = compoundV3.getDepositRateFor(address(usdc));
-    assertGt(depositRate, 0);
+    IAddrMapper _mapper = IAddrMapper(ITestingCompoundV3(address(compoundV3)).getMapper());
+    address market = _mapper.getAddressNestedMapping(vault.asset(), vault.debtAsset());
 
-    uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc));
-    assertGt(borrowRate, 0);
+    uint256 depositRate = compoundV3.getDepositRateFor(address(weth), market);
+    assertEq(depositRate, 0); // Should be zero.
+
+    uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc), market);
+    assertGt(borrowRate, 0); // Should be greater than zero.
 
     if (DEBUG) {
       console.log("depositRate", depositRate);
@@ -136,6 +143,6 @@ contract ProviderTest is DSTestPlus {
 
   // This test is applicable only for CompoundV3
   function testFail_getInterestRatesWithNoMapping() public view returns (uint256) {
-    return compoundV3.getDepositRateFor(address(weth));
+    return compoundV3.getDepositRateFor(address(weth), address(vault));
   }
 }

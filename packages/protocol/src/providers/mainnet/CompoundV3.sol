@@ -11,11 +11,14 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  * @author Fujidao Labs
  * @notice This contract allows interaction with CompoundV3.
  * @dev The IAddrMapper needs to be properly configured for CompoundV3
- * See `_getCometMarketFromContext`.
+ * See `_getCometMarket`.
  */
 contract CompoundV3 is ILendingProvider {
+  // Custom errors
   error CompoundV3__IAddrMapperMisconfigured();
   error CompoundV3__callerIsNotaIVault();
+  error CompoundV3__invalidInput();
+  error CompoundV3__wrongMarket();
 
   // Allows determining the context of the call.
   address private immutable _this;
@@ -24,165 +27,161 @@ contract CompoundV3 is ILendingProvider {
     _this = address(this);
   }
 
-  function _getMapper() internal pure returns (address) {
+  /**
+   * @notice Returns the {AddrMapper} contract applicable to this provider.
+   */
+  function getMapper() public pure returns (address) {
     // TODO Define final address after deployment strategy is set.
     return 0x312335b04C16E5eE85796aCa38BFd05450653C72;
   }
 
-  /// inheritdoc ILendingProvider
-  function approvedOperator(address asset) external view returns (address operator) {
-    address caller = msg.sender;
-    try IVault(caller).debtAsset() returns (address debtAsset_) {
-      address asset_ = IVault(caller).asset();
-      operator = IAddrMapper(_getMapper()).getAddressNestedMapping(asset_, debtAsset_);
-    } catch {
-      operator = IAddrMapper(_getMapper()).getAddressNestedMapping(asset, address(0));
+  /**
+   * @notice Refer to {ILendingProvider-approveOperator}.
+   * @dev `helper` address is used for `vault` in CompoundV3 Provider.
+   */
+  function approvedOperator(address, address vault) external view returns (address operator) {
+    if (vault == address(0)) {
+      revert CompoundV3__invalidInput();
     }
+    IVault ivault = IVault(vault);
+    address asset_ = ivault.asset();
+    address debtAsset_ = ivault.debtAsset();
+    operator = IAddrMapper(getMapper()).getAddressNestedMapping(asset_, debtAsset_);
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(address asset, uint256 amount) external returns (bool success) {
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
-    cAssetV3.supply(asset, amount);
+  function deposit(address asset, uint256 amount, IVault vault) external returns (bool success) {
+    ICompoundV3 cMarketV3 = _getCometMarket(vault);
+    cMarketV3.supply(asset, amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(address asset, uint256 amount) external returns (bool success) {
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
+  function borrow(address asset, uint256 amount, IVault vault) external returns (bool success) {
+    ICompoundV3 cMarketV3 = _getCometMarket(vault);
     // From Comet docs: "The base asset can be borrowed using the withdraw function"
-    cAssetV3.withdraw(asset, amount);
+    cMarketV3.withdraw(asset, amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(address asset, uint256 amount) external returns (bool success) {
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
-    cAssetV3.withdraw(asset, amount);
+  function withdraw(address asset, uint256 amount, IVault vault) external returns (bool success) {
+    ICompoundV3 cMarketV3 = _getCometMarket(vault);
+    cMarketV3.withdraw(asset, amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(address asset, uint256 amount) external returns (bool success) {
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
+  function payback(address asset, uint256 amount, IVault vault) external returns (bool success) {
+    ICompoundV3 cMarketV3 = _getCometMarket(vault);
     // From Coment docs: 'supply' the base asset to repay an open borrow of the base asset.
-    cAssetV3.supply(asset, amount);
+    cMarketV3.supply(asset, amount);
     success = true;
-  }
-
-  /// inheritdoc ILendingProvider
-  function getDepositRateFor(address asset) external view returns (uint256 rate) {
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
-    if (address(0) == address(cAssetV3)) {
-      revert CompoundV3__IAddrMapperMisconfigured();
-    }
-    if (asset != cAssetV3.baseToken()) {
-      rate = 0;
-    } else {
-      uint256 utilization = cAssetV3.getUtilization();
-      // Scaled by 1e9 to return ray(1e27) per ILendingProvider specs, Compound uses base 1e18 number.
-      uint256 ratePerSecond = cAssetV3.getBorrowRate(utilization) * 10 ** 9;
-      // 31536000 seconds in a `year` = 60 * 60 * 24 * 365.
-      rate = ratePerSecond * 31536000;
-    }
-  }
-
-  /// inheritdoc ILendingProvider
-  function getBorrowRateFor(address asset) external view returns (uint256 rate) {
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset);
-    if (address(0) == address(cAssetV3)) {
-      revert CompoundV3__IAddrMapperMisconfigured();
-    }
-    if (asset != cAssetV3.baseToken()) {
-      rate = 0;
-    } else {
-      uint256 utilization = cAssetV3.getUtilization();
-      // Scaled by 1e9 to return ray(1e27) per ILendingProvider specs, Compound uses base 1e18 number.
-      uint256 ratePerSecond = cAssetV3.getSupplyRate(utilization) * 10 ** 9;
-      // 31536000 seconds in a `year` = 60 * 60 * 24 * 365.
-      rate = ratePerSecond * 31536000;
-    }
-  }
-
-  /// inheritdoc ILendingProvider
-  function getDepositBalance(address asset, address user) external view returns (uint256 balance) {
-    // `user` must be a Vault in this provider.
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset, user);
-    return cAssetV3.collateralBalanceOf(user, asset);
-  }
-
-  /// inheritdoc ILendingProvider
-  function getBorrowBalance(address asset, address user) external view returns (uint256 balance) {
-    // `user` must be a Vault in this provider.
-    ICompoundV3 cAssetV3 = _getCometMarketFromContext(asset, user);
-    return cAssetV3.borrowBalanceOf(user);
   }
 
   /**
-   * @dev Determines call context and returns corresponding Comet Market
-   * IAddrMapper must be properly configured, see below:
-   *
-   * If context is delegate called and a {BorrowingVault}:
-   * - SHOULD return market {IAddrMapper.addressMapping(asset_, debtAsset_)}
-   * in where Comet.baseToken == IVault.debtAsset(), and IVault.debtAsset() != address(0).
-   * Else if context is delegate called and a {LendingVault}:
-   * - SHOULD return market {IAddrMapper.addressMapping(asset_, debtAsset_)}
-   * in where Comet.baseToken == IVault.asset(), and IVault.debtAsset() == address(0).
-   * Else if context is NOT delegate called:
-   * - SHOULD return market {IAddrMapper.addressMapping(asset_, address(0))}
-   * in where Comet.baseToken == 'asset_'
+   * @notice Refer to {ILendingProvider-getDepositRateFor}.
+   * @dev `helper` address is used as `market` in CompoundV3 Provider.
+   * You can obtain `market` from `getMapper()` seperately.
    */
-  function _getCometMarketFromContext(address asset) private view returns (ICompoundV3 cAssetV3) {
-    address caller = address(this);
-    if (_isDelegate(caller)) {
-      if (_isABorrowingVault(caller)) {
-        address asset_ = IVault(caller).asset();
-        address debtAsset_ = IVault(caller).debtAsset();
-        address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset_, debtAsset_);
-        cAssetV3 = ICompoundV3(market);
-      }
+  function getDepositRateFor(address asset, address market) external view returns (uint256 rate) {
+    if (market == address(0)) {
+      revert CompoundV3__invalidInput();
+    }
+    ICompoundV3 cMarketV3 = ICompoundV3(market);
+
+    if (asset == cMarketV3.baseToken()) {
+      uint256 utilization = cMarketV3.getUtilization();
+      // Scaled by 1e9 to return ray(1e27) per ILendingProvider specs, Compound uses base 1e18 number.
+      uint256 ratePerSecond = cMarketV3.getSupplyRate(utilization) * 10 ** 9;
+      // 31536000 seconds in a `year` = 60 * 60 * 24 * 365.
+      rate = ratePerSecond * 31536000;
     } else {
-      address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset, address(0));
-      cAssetV3 = ICompoundV3(market);
+      rate = 0;
+    }
+  }
+
+  /**
+   * @notice Refer to {ILendingProvider-getBorrowRateFor}.
+   * @dev `helper` address is used as `market` in CompoundV3 Provider.
+   * You can obtain `market` from `getMapper()` seperately.
+   */
+  function getBorrowRateFor(address asset, address market) external view returns (uint256 rate) {
+    if (market == address(0)) {
+      revert CompoundV3__invalidInput();
+    }
+    ICompoundV3 cMarketV3 = ICompoundV3(market);
+
+    if (asset == cMarketV3.baseToken()) {
+      uint256 utilization = cMarketV3.getUtilization();
+      // Scaled by 1e9 to return ray(1e27) per ILendingProvider specs, Compound uses base 1e18 number.
+      uint256 ratePerSecond = cMarketV3.getBorrowRate(utilization) * 10 ** 9;
+      // 31536000 seconds in a `year` = 60 * 60 * 24 * 365.
+      rate = ratePerSecond * 31536000;
+    } else {
+      revert CompoundV3__wrongMarket();
+    }
+  }
+
+  /**
+   * @notice Refer to {ILendingProvider-getDepositBalance}.
+   * @dev `helper` address is used as `vault` address in CompoundV3 Provider.
+   * The `vault` address is used to obtain the applicable CompoundV3 market.
+   * The market address cannot be provided directly since this function is also
+   * called within a vault context. Therefore, there is no way to determine the market
+   * from within the vault's logic.
+   */
+  function getDepositBalance(address asset, address user, address vault)
+    external
+    view
+    returns (uint256 balance)
+  {
+    if (vault == address(0)) {
+      revert CompoundV3__invalidInput();
+    }
+    ICompoundV3 cMarketV3 = _getCometMarket(IVault(vault));
+    return cMarketV3.collateralBalanceOf(user, asset);
+  }
+
+  /**
+   * @notice Refer to {ILendingProvider-getBorrowBalance}.
+   * @dev `helper` address is used as `vault` address in CompoundV3 Provider.
+   * The `vault` address is used to obtain the applicable CompoundV3 market.
+   * The market address cannot be provided directly since this function is also
+   * called within a vault context. Therefore, there is no way to determine the market
+   * from within the vault's logic.
+   */
+  function getBorrowBalance(address asset, address user, address vault)
+    external
+    view
+    returns (uint256 balance)
+  {
+    if (vault == address(0)) {
+      revert CompoundV3__invalidInput();
+    }
+    ICompoundV3 cMarketV3 = _getCometMarket(IVault(vault));
+    if (asset == cMarketV3.baseToken()) {
+      balance = cMarketV3.borrowBalanceOf(user);
     }
   }
 
   /**
    * @dev Returns corresponding Comet Market from passed `vault` address.
-   * See '_getCometMarketFromContext(address asset)' for IAddrMapper config specs.
-   * - `vault` MUST be comply to IVault.
+   * IAddrMapper must be properly configured, see below:
+   *
+   * If `vault` is a {BorrowingVault}:
+   * - SHOULD return market {IAddrMapper.addressMapping(asset_, debtAsset_)}
+   * in where:
+   * - Comet.baseToken() == IVault.debtAsset(), and IVault.debtAsset() != address(0).
+   * Else if `vault` is a {YieldVault}:
+   * - SHOULD return market {IAddrMapper.addressMapping(asset_, debtAsset_)}
+   * in where:
+   * - Comet.baseToken() == IVault.asset(), and IVault.debtAsset() == address(0).
    */
-  function _getCometMarketFromContext(address asset, address vault)
-    private
-    view
-    returns (ICompoundV3 cAssetV3)
-  {
-    if (_isABorrowingVault(vault)) {
-      address asset_ = IVault(vault).asset();
-      address debtAsset_ = IVault(vault).debtAsset();
-      address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset_, debtAsset_);
-      cAssetV3 = ICompoundV3(market);
-    } else {
-      address market = IAddrMapper(_getMapper()).getAddressNestedMapping(asset, address(0));
-      cAssetV3 = ICompoundV3(market);
-    }
-  }
-
-  function _isDelegate(address caller) private view returns (bool check) {
-    if (caller != _this) {
-      // This is a call address(this) is this contract
-      // We are executing in an external context.
-      check = true;
-    }
-  }
-
-  function _isABorrowingVault(address callingVault) private view returns (bool check) {
-    try IVault(callingVault).debtAsset() returns (address debtAsset_) {
-      if (debtAsset_ != address(0)) {
-        check = true;
-      }
-    } catch {
-      revert CompoundV3__callerIsNotaIVault();
-    }
+  function _getCometMarket(IVault vault) private view returns (ICompoundV3 cMarketV3) {
+    address asset_ = vault.asset();
+    address debtAsset_ = vault.debtAsset();
+    address market = IAddrMapper(getMapper()).getAddressNestedMapping(asset_, debtAsset_);
+    cMarketV3 = ICompoundV3(market);
   }
 }

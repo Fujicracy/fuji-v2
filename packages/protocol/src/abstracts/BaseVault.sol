@@ -152,7 +152,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function totalAssets() public view virtual override returns (uint256) {
-    return activeProvider.getDepositBalance(asset(), address(this));
+    return activeProvider.getDepositBalance(asset(), address(this), address(this));
   }
 
   /// @inheritdoc IERC4626
@@ -503,7 +503,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   function _executeProviderAction(address assetAddr, uint256 assets, string memory name) internal {
     bytes memory data = abi.encodeWithSignature(
-      string(abi.encodePacked(name, "(address,uint256)")), assetAddr, assets
+      string(abi.encodePacked(name, "(address,uint256,address)")), assetAddr, assets, address(this)
     );
     address(activeProvider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))
@@ -542,11 +542,13 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     // TODO needs input validation
     activeProvider = activeProvider_;
     SafeERC20.safeApprove(
-      IERC20(asset()), activeProvider.approvedOperator(asset()), type(uint256).max
+      IERC20(asset()), activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
     );
     if (debtAsset() != address(0)) {
       SafeERC20.safeApprove(
-        IERC20(debtAsset()), activeProvider.approvedOperator(debtAsset()), type(uint256).max
+        IERC20(debtAsset()),
+        activeProvider.approvedOperator(debtAsset(), address(this)),
+        type(uint256).max
       );
     }
 

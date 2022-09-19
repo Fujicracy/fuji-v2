@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IAaveProtocolDataProvider} from "../../interfaces/aaveV3/IAaveProtocolDataProvider.sol";
 import {IPool} from "../../interfaces/aaveV3/IPool.sol";
@@ -19,72 +20,72 @@ contract AaveV3Rinkeby is ILendingProvider {
     return IPool(0xE039BdF1d874d27338e09B55CB09879Dedca52D8);
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function approvedOperator(address) external pure override returns (address operator) {
+  /// inheritdoc ILendingProvider
+  function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(_getPool());
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function deposit(address asset, uint256 amount) external override returns (bool success) {
+  /// inheritdoc ILendingProvider
+  function deposit(address asset, uint256 amount, IVault vault)
+    external
+    override
+    returns (bool success)
+  {
     IPool aave = _getPool();
-    aave.supply(asset, amount, address(this), 0);
+    aave.supply(asset, amount, address(vault), 0);
     aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function borrow(address asset, uint256 amount) external override returns (bool success) {
+  /// inheritdoc ILendingProvider
+  function borrow(address asset, uint256 amount, IVault vault)
+    external
+    override
+    returns (bool success)
+  {
     IPool aave = _getPool();
-    aave.borrow(asset, amount, 2, 0, address(this));
+    aave.borrow(asset, amount, 2, 0, address(vault));
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function withdraw(address asset, uint256 amount) external override returns (bool success) {
+  /// inheritdoc ILendingProvider
+  function withdraw(address asset, uint256 amount, IVault vault)
+    external
+    override
+    returns (bool success)
+  {
     IPool aave = _getPool();
-    aave.withdraw(asset, amount, address(this));
+    aave.withdraw(asset, amount, address(vault));
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function payback(address asset, uint256 amount) external override returns (bool success) {
+  /// inheritdoc ILendingProvider
+  function payback(address asset, uint256 amount, IVault vault)
+    external
+    override
+    returns (bool success)
+  {
     IPool aave = _getPool();
-    aave.repay(asset, amount, 2, address(this));
+    aave.repay(asset, amount, 2, address(vault));
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getDepositRateFor(address asset) external view override returns (uint256 rate) {
+  /// inheritdoc ILendingProvider
+  function getDepositRateFor(address asset, address) external view override returns (uint256 rate) {
     IPool aaveData = _getPool();
     IPool.ReserveData memory rdata = aaveData.getReserveData(asset);
     rate = rdata.currentLiquidityRate;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getBorrowRateFor(address asset) external view override returns (uint256 rate) {
+  /// inheritdoc ILendingProvider
+  function getBorrowRateFor(address asset, address) external view override returns (uint256 rate) {
     IPool aaveData = _getPool();
     IPool.ReserveData memory rdata = aaveData.getReserveData(asset);
     rate = rdata.currentVariableBorrowRate;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getDepositBalance(address asset, address user)
+  /// inheritdoc ILendingProvider
+  function getDepositBalance(address asset, address user, address)
     external
     view
     override
@@ -94,10 +95,8 @@ contract AaveV3Rinkeby is ILendingProvider {
     (balance,,,,,,,,) = aaveData.getUserReserveData(asset, user);
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getBorrowBalance(address asset, address user)
+  /// inheritdoc ILendingProvider
+  function getBorrowBalance(address asset, address user, address)
     external
     view
     override
