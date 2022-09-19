@@ -1,0 +1,14 @@
+import { Ether, Fantom, Matic } from '../entities/Native'
+
+import { ChainId } from '../enums'
+import { NativeMap } from '../types'
+
+export const NATIVE: NativeMap = {
+  [ChainId.ETHEREUM]: Ether.onChain(ChainId.ETHEREUM),
+  [ChainId.GOERLI]: Ether.onChain(ChainId.GOERLI),
+  [ChainId.FANTOM]: Fantom.onChain(ChainId.FANTOM),
+  [ChainId.MATIC]: Matic.onChain(ChainId.MATIC),
+  [ChainId.ARBITRUM]: Ether.onChain(ChainId.ARBITRUM),
+  [ChainId.ARBITRUM_NOVA]: Ether.onChain(ChainId.ARBITRUM_NOVA),
+  [ChainId.OPTIMISM]: Ether.onChain(ChainId.OPTIMISM),
+}

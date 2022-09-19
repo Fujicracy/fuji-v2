@@ -48,7 +48,9 @@
     "@ethersproject/abi": "^5.4.0",
     "@ethersproject/contracts": "^5.4.0",
     "@ethersproject/providers": "^5.6.8",
-    "ethers": "^5.6.9"
+    "ethers": "^5.6.9",
+    "tiny-invariant": "^1.2.0",
+    "tiny-warning": "^1.0.3"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.0.1",
