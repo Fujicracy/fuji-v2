@@ -19,6 +19,11 @@ let colorTheme = createTheme({
       main: '#FE3477',
       dark: '#F0014F'
     },
+    text: {
+      primary: '#E8E8E8',
+      secondary: '#E2E8F0',
+      disabled: '#787883'
+    },
     success: {
       main: '#50FE34'
     },
@@ -30,7 +35,24 @@ let colorTheme = createTheme({
 
 const theme = createTheme(colorTheme, {
   typography: {
-    fontFamily: 'Inter'
+    fontFamily: 'Inter',
+    lineHeight: '150%',
+    h3: {
+      color: colorTheme.palette.text.secondary,
+      fontWeight: 500,
+      fontSize: '20px'
+    },
+    h4: {
+      color: colorTheme.palette.text.primary,
+      fontWeight: 700,
+      fontSize: '16px'
+    },
+    button: {
+      fontWeight: 600,
+      fontSize: '15px',
+      lineHeight: '18px',
+      color: 'red'
+    }
   },
   components: {
     MuiButton: {
@@ -46,7 +68,6 @@ const theme = createTheme(colorTheme, {
           fontSize: '16px',
           lineHeight: '19px'
         },
-        startIcon: {},
         disabled: {
           opacity: 0.5
         }
@@ -68,6 +89,14 @@ const theme = createTheme(colorTheme, {
           }
         }
       ]
+    },
+    MuiCircularProgress: {
+      styleOverrides: {
+        root: {
+          color: colorTheme.palette.text.primary,
+          fontSize: '2px'
+        }
+      }
     },
     MuiCard: {
       styleOverrides: {
