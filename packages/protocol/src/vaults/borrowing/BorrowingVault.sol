@@ -351,15 +351,14 @@ contract BorrowingVault is BaseVault {
     require(liquidationFactor > 0, "Can't liquidate colleteral of this owner.");
 
     // // State change
-
     uint256 assetShares = balanceOf(owner);
     uint256 assets = convertToAssets(assetShares);
 
     uint256 debtShares = _debtShares[account];
     uint256 debt = convertToDebt(debtShares);
 
-    uint256 assetSharesToLiquidate = mul(assetShares, liquidationFactor);
-    uint256 assetsToLiquidate = mul(assets, liquidationFactor); // are e4 magnitures correct in closing factor?
+    // uint256 assetSharesToLiquidate = mul(assetShares, liquidationFactor);
+    // uint256 assetsToLiquidate = mul(assets, liquidationFactor); // are e4 magnitures correct in closing factor?
 
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
     liquidationPenalty = 0.9; // TODO test: will this compile?
@@ -367,6 +366,9 @@ contract BorrowingVault is BaseVault {
 
     // How many assetshares to burn to cover debt?
     assetsLiquidator = div(debt, discountedPrice);
+
+    // liquidationFactor determines whether 50% or 100% of colleteral is liquidated
+    assetsLiquidator = mul(assetsLiquidator, liquidationFactor);
 
     // turn into asset shares
     assetsLiquidatorShares = convertToShares(assetsLiquidator);
