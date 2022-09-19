@@ -306,7 +306,7 @@ contract BorrowingVault is BaseVault {
   function computeHealthFactor(address account) public returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[account];
     uint256 debt = convertToDebt(debtShares);
-
+    
     if (debt == 0) {
       healthFactor = type(uint256).max;
     }
@@ -318,7 +318,7 @@ contract BorrowingVault is BaseVault {
       // healthFactor = (vars.totalCollateralInBaseCurrency.percentMul(vars.avgLiquidationThreshold)).wadDiv(
       // vars.totalDebtInBaseCurrency);
 
-      healthFactor = (assets * maxLtv.num * price) / (maxLtv.denum * debt); // TO TEST
+      healthFactor = (assets * maxLtv * price) / debt;
 
       // uint256 baseUserMaxBorrow =
       // ((assets * maxLtv.num * price) / (maxLtv.denum * 10 ** IERC20Metadata(asset()).decimals()));
@@ -330,7 +330,7 @@ contract BorrowingVault is BaseVault {
   uint256 public constant CLOSE_FACTOR_HF_THRESHOLD = 0.95e18;
 
   function computeLiquidationFactor(address account) public returns (uint256 liquidationFactor) {
-    healthFactor = computeHealthFactor(account);
+    uint256 healthFactor = computeHealthFactor(account);
 
     if (healthFactor >= 1) {
       liquidationFactor = 0;
@@ -347,31 +347,31 @@ contract BorrowingVault is BaseVault {
     address caller = _msgSender(); // liquidator
 
     // // Verify liquidation call
-    liquidationFactor = computeLiquidationFactor(owner);
+    uint256 liquidationFactor = computeLiquidationFactor(owner);
     require(liquidationFactor > 0, "Can't liquidate colleteral of this owner.");
 
     // // State change
     uint256 assetShares = balanceOf(owner);
     uint256 assets = convertToAssets(assetShares);
 
-    uint256 debtShares = _debtShares[account];
+    uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
 
     // uint256 assetSharesToLiquidate = mul(assetShares, liquidationFactor);
     // uint256 assetsToLiquidate = mul(assets, liquidationFactor); // are e4 magnitures correct in closing factor?
 
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
-    liquidationPenalty = 0.9; // TODO test: will this compile?
-    uint256 discountedPrice = unted = mul(price, liquidationPenalty);
+    uint256 liquidationPenalty = 90; // in percent
+    uint256 discountedPrice = Math.mulDiv(price, liquidationPenalty, 100);
 
     // How many assetshares to burn to cover debt?
-    assetsLiquidator = div(debt, discountedPrice);
+    uint256 assetsLiquidator = debt / discountedPrice;
 
     // liquidationFactor determines whether 50% or 100% of colleteral is liquidated
-    assetsLiquidator = mul(assetsLiquidator, liquidationFactor);
+    assetsLiquidator = assetsLiquidator * liquidationFactor;
 
     // turn into asset shares
-    assetsLiquidatorShares = convertToShares(assetsLiquidator);
+    uint256 assetsLiquidatorShares = convertToShares(assetsLiquidator);
 
     // burn asset shares of owner
     _burn(owner, assetsLiquidatorShares);
@@ -380,13 +380,7 @@ contract BorrowingVault is BaseVault {
     _mint(caller, assetsLiquidatorShares);
 
     // Liquidator (caller) pays back provider
-    // payback(debt, owner);
-    address debtAsset = debtAsset();
-    SafeERC20.safeTransferFrom(IERC20(debtAsset), caller, address(this), debtShares);
-
-    _executeProviderAction(debtAsset, debtShares, "payback");
-
-    _burnDebtShares(owner, debtShares);
+    _payback(caller, owner, debt, debtShares); // TODO this depends on the liquidation closing factor
 
     //emit liquidation event
     emit Liquidate(
