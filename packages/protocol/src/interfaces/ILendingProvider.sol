@@ -8,6 +8,9 @@ pragma solidity 0.8.15;
  * @dev Functions are intended to be called in the context of a Vault via delegateCall,
  * except indicated.
  */
+
+import {IVault} from "./IVault.sol";
+
 interface ILendingProvider {
   /**
    * @notice Returns the operator address that requires ERC20-approval for deposits.
@@ -16,33 +19,49 @@ interface ILendingProvider {
   function approvedOperator(address asset) external view returns (address operator);
 
   /**
-   * @notice Performs deposit operation at lending provider on behalf caller.
+   * @notice Performs deposit operation at lending provider on behalf vault.
    * @param asset address.
    * @param amount amount integer.
+   * @param vault address calling this function.
+   *
+   * Requirements:
+   * - This function should be delegate called in the context of a `vault`.
    */
-  function deposit(address asset, uint256 amount) external returns (bool success);
+  function deposit(address asset, uint256 amount, IVault vault) external returns (bool success);
 
   /**
-   * @notice Performs borrow operation at lending provider on behalf caller.
+   * @notice Performs borrow operation at lending provider on behalf vault.
    * @param asset address.
    * @param amount amount integer.
+   * @param vault address calling this function.
+   *
+   * Requirements:
+   * - This function should be delegate called in the context of a `vault`.
    */
-  function borrow(address asset, uint256 amount) external returns (bool success);
+  function borrow(address asset, uint256 amount, IVault vault) external returns (bool success);
 
   /**
-   * @notice Performs withdraw operation at lending provider on behalf caller.
+   * @notice Performs withdraw operation at lending provider on behalf vault.
    * @param asset address.
    * @param amount amount integer.
+   * @param vault address calling this function.
+   *
+   * Requirements:
+   * - This function should be delegate called in the context of a `vault`.
    */
-  function withdraw(address asset, uint256 amount) external returns (bool success);
+  function withdraw(address asset, uint256 amount, IVault vault) external returns (bool success);
 
-  /**
-   * @notice Performs payback operation at lending provider on behalf caller.
+  /**of a `vault`.
+   * @notice Performs payback operation at lending provider on behalf vault.
    * @param asset address.
    * @param amount amount integer.
-   * @dev Check erc20-approval to lending provider prior to call.
+   * @param vault address calling this function.
+   *
+   * Requirements:
+   * - This function should be delegate called in the context of a `vault`.
+   * - Check there is erc20-approval to `approvedOperator` prior to call.
    */
-  function payback(address asset, uint256 amount) external returns (bool success);
+  function payback(address asset, uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Returns the latest SUPPLY annual percent rate (APR) at lending provider.
@@ -52,7 +71,7 @@ interface ILendingProvider {
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getDepositRateFor(address asset) external view returns (uint256 rate);
+  function getDepositRateFor(address asset, bytes calldata helperData) external view returns (uint256 rate);
 
   /**
    * @notice Returns the latest BORROW annual percent rate (APR) at lending provider.
@@ -62,7 +81,7 @@ interface ILendingProvider {
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowRateFor(address asset) external view returns (uint256 rate);
+  function getBorrowRateFor(address asset, bytes calldata helperData) external view returns (uint256 rate);
 
   /**
    * @notice Returns DEPOSIT balance of 'user' at lending provider.
@@ -71,7 +90,7 @@ interface ILendingProvider {
    *
    * - SHOULD NOT require Vault context.
    */
-  function getDepositBalance(address asset, address user) external view returns (uint256 balance);
+  function getDepositBalance(address asset, address user, bytes calldata helperData) external view returns (uint256 balance);
 
   /**
    * @notice Returns BORROW balance of 'user' at lending provider.
@@ -80,5 +99,5 @@ interface ILendingProvider {
    *
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowBalance(address asset, address user) external view returns (uint256 balance);
+  function getBorrowBalance(address asset, address user, bytes calldata helperData) external view returns (uint256 balance);
 }
