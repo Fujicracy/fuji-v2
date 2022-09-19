@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../public/assets/fonts/Inter-Medium.ttf')
+}
+
 html,
 body {
   padding: 0;
@@ -19,6 +26,7 @@ a {
   html {
     color-scheme: dark;
   }
+
   body {
     color: white;
     background: black;
