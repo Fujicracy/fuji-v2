@@ -2,4 +2,5 @@
 @solmate=lib/solmate/src/
 nxtp=lib/nxtp/packages/deployments/contracts/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts
-@openzeppelin/contracts-upgradeable/=lib/nxtp/packages/deployments/contracts/lib/openzeppelin-contracts-upgradeable/contracts
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts
+@uniswap/v2-periphery/=lib/v2-periphery

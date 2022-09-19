@@ -1,5 +1,11 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
+
+/**
+ * @title Router Interface.
+ * @author Fujidao Labs
+ * @notice Defines the interface for router operations.
+ */
 
 interface IRouter {
   enum Action {
@@ -7,6 +13,10 @@ interface IRouter {
     Withdraw,
     Borrow,
     Payback,
+    Flashloan,
+    Swap,
+    PermitWithdraw,
+    PermitBorrow,
     XTransfer,
     XTransferWithCall
   }

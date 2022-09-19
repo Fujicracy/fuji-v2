@@ -9,6 +9,7 @@ libs = ['lib']
 mainnet = "${RPC_MAINNET}"
 rinkeby = "${RPC_RINKEBY}"
 goerli = "${RPC_GOERLI}"
+optimism_goerli = "${RPC_OPTIMISM_GOERLI}"
 
 [fmt]
 line_length = 100

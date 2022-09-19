@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.10;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.15;
 
 import {XConsole} from "./Console.sol";
 
@@ -9,14 +9,11 @@ import {Test} from "forge-std/Test.sol";
 contract DSTestPlus is Test {
   XConsole console = new XConsole();
 
-  // Nomad Domain IDs
-  uint32 public mainnetDomainId = 6648936;
-  uint32 public rinkebyDomainId = 1111;
-  uint32 public goerliDomainId = 3331;
+  uint32 public GOERLI_DOMAIN = 1735353714;
+  uint32 public OPTIMISM_GOERLI_DOMAIN = 1735356532;
 
   // Chain IDs
   uint32 public mainnetChainId = 1;
-  uint32 public ropstenChainId = 3;
-  uint32 public rinkebyChainId = 4;
   uint32 public goerliChainId = 5;
+  uint32 public opimismGoerliChainId = 420;
 }

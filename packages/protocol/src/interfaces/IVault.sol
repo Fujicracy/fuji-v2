@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
 /**
  * @title Vault Interface.
@@ -12,14 +12,15 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
-  struct Factor {
-    uint64 num;
-    uint64 denum;
-  }
+  event Borrow(
+    address indexed sender,
+    address indexed receiver,
+    address indexed owner,
+    uint256 debt,
+    uint256 shares
+  );
 
-  event Borrow(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
-
-  event Payback(address indexed caller, address indexed owner, uint256 debt, uint256 shares);
+  event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
    * @dev Emitted when the oracle address is changed
@@ -41,15 +42,29 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Emitted when the max LTV is changed
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * @param newMaxLtv the new max LTV
    */
-  event MaxLtvChanged(Factor newMaxLtv);
+  event MaxLtvChanged(uint256 newMaxLtv);
 
   /**
    * @dev Emitted when the liquidation ratio is changed
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * @param newLiqRatio the new liquidation ratio
    */
-  event LiqRatioChanged(Factor newLiqRatio);
+  event LiqRatioChanged(uint256 newLiqRatio);
+
+  /**
+   * @dev Emitted when the minumum deposit amount is changed
+   * @param newMinDeposit the new minimum deposit amount
+   */
+  event MinDepositAmountChanged(uint256 newMinDeposit);
+
+  /**
+   * @dev Emitted when the deposit cap is changed
+   * @param newDepositCap the new deposit cap of this vault.
+   */
+  event DepositCapChanged(uint256 newDepositCap);
 
   function debtDecimals() external view returns (uint8);
 
@@ -61,6 +76,11 @@ interface IVault is IERC4626 {
    * - MUST NOT revert.
    */
   function debtAsset() external view returns (address);
+
+  /**
+   * @dev Returns the amount of debt owned by `account`.
+   */
+  function balanceOfDebt(address account) external view returns (uint256 debt);
 
   /**
    * @dev Based on {IERC4626-totalAssets}.
@@ -136,12 +156,28 @@ interface IVault is IERC4626 {
   function payback(uint256 debt, address receiver) external returns (uint256);
 
   /**
+   * @notice Returns the active provider for the vault
+   */
+  function activeProvider() external returns (ILendingProvider);
+
+  ////////////////////////
+  /// Setter functions ///
+  ///////////////////////
+
+  /**
    * @notice Sets the active provider for the vault
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 
   /**
-   * @notice Returns the active provider for the vault
+   * @dev Sets the minimum deposit amount.
    */
-  function activeProvider() external returns (ILendingProvider);
+  function setMinDepositAmount(uint256 amount) external;
+
+  /**
+   * @dev Sets the deposit cap amount of this vault.
+   * Restrictions:
+   * - SHOULD be greater than zero.
+   */
+  function setDepositCap(uint256 newCap) external;
 }
