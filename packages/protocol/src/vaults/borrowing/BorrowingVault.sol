@@ -286,4 +286,112 @@ contract BorrowingVault is BaseVault {
     }
     debtSharesSupply -= amount;
   }
+
+
+  //////////////////////
+  ///  Liquidate    ////
+  //////////////////////
+
+  /**
+  * @dev Log when a user is liquidated
+  */
+  event Liquidate(
+    address owner,
+    uint256 amountCollateralSold, // naming review
+    uint256 amountDebtPaid,
+    address liquidator
+  );
+
+  // healthFactor
+  function computeHealthFactor(address account) public returns (uint256 healthFactor) {
+    uint256 debtShares = _debtShares[account];
+    uint256 debt = convertToDebt(debtShares);
+
+    if (debt == 0) {
+      healthFactor = type(uint256).max;
+    }
+    else {
+      uint256 assetShares = balanceOf(account);
+      uint256 assets = convertToAssets(assetShares); // put in internal function
+      uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+      
+      // healthFactor = (vars.totalCollateralInBaseCurrency.percentMul(vars.avgLiquidationThreshold)).wadDiv(
+      // vars.totalDebtInBaseCurrency);
+
+      healthFactor = (assets * maxLtv.num * price) / (maxLtv.denum * debt); // TO TEST
+
+      // uint256 baseUserMaxBorrow =
+      // ((assets * maxLtv.num * price) / (maxLtv.denum * 10 ** IERC20Metadata(asset()).decimals()));
+    }
+  }
+
+  uint256 internal constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e4; // 0.5 might not compile in older solidty version
+  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e4;
+  uint256 public constant CLOSE_FACTOR_HF_THRESHOLD = 0.95e18;
+
+  function computeLiquidationFactor(address account) public returns (uint256 liquidationFactor) {
+    healthFactor = computeHealthFactor(account);
+
+    if (healthFactor >= 1) {
+      liquidationFactor = 0;
+    }
+    else if (CLOSE_FACTOR_HF_THRESHOLD > healthFactor) {
+      liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50%
+    } 
+    else {
+      liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100%
+    }
+  }
+
+  function liquidate(address owner) public {
+    address caller = _msgSender(); // liquidator
+
+    // // Verify liquidation call
+    liquidationFactor = computeLiquidationFactor(owner);
+    require(liquidationFactor > 0, "Can't liquidate colleteral of this owner.");
+
+    // // State change
+
+    uint256 assetShares = balanceOf(owner);
+    uint256 assets = convertToAssets(assetShares);
+
+    uint256 debtShares = _debtShares[account];
+    uint256 debt = convertToDebt(debtShares);
+
+    uint256 assetSharesToLiquidate = mul(assetShares, liquidationFactor);
+    uint256 assetsToLiquidate = mul(assets, liquidationFactor); // are e4 magnitures correct in closing factor?
+
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+    liquidationPenalty = 0.9; // TODO test: will this compile?
+    uint256 discountedPrice = unted = mul(price, liquidationPenalty);
+
+    // How many assetshares to burn to cover debt?
+    assetsLiquidator = div(debt, discountedPrice);
+
+    // turn into asset shares
+    assetsLiquidatorShares = convertToShares(assetsLiquidator);
+
+    // burn asset shares of owner
+    _burn(owner, assetsLiquidatorShares);
+    
+    //mint same amount of asset shares for liquidator
+    _mint(caller, assetsLiquidatorShares);
+
+    // Liquidator (caller) pays back provider
+    // payback(debt, owner);
+    address debtAsset = debtAsset();
+    SafeERC20.safeTransferFrom(IERC20(debtAsset), caller, address(this), debtShares);
+
+    _executeProviderAction(debtAsset, debtShares, "payback");
+
+    _burnDebtShares(owner, debtShares);
+
+    //emit liquidation event
+    emit Liquidate(
+    owner,
+    assetsLiquidatorShares,
+    debt,
+    caller
+  );
+  }    
 }
