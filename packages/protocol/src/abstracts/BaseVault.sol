@@ -537,7 +537,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
     emit OracleChanged(newOracle);
   }
-
+  
+  /// inheritdoc IVault
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
     uint256 pLenght = providers.length;
