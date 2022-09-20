@@ -1,4 +1,4 @@
-import { Ether, Fantom, Matic } from '../entities/Native'
+import { Ether, Fantom, Matic } from '../entities/native'
 
 import { ChainId } from '../enums'
 import { NativeMap } from '../types'
