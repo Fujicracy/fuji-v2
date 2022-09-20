@@ -24,7 +24,7 @@
 
 function Footer() {
   return (
-    <footer style={{ textAlign: "center", borderTop: "1px solid grey" }}>
+    <footer style={{ textAlign: "center", borderTop: "0.063rem solid grey" }}>
       Footer
     </footer>
   )

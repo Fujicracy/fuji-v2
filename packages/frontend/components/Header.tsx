@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import Link from 'next/link'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -13,7 +14,7 @@ import MenuItem from '@mui/material/MenuItem'
 import AdbIcon from '@mui/icons-material/Adb'
 import Image from 'next/image'
 
-const pages = ['Borrow', 'Markets', 'My positions']
+const pages = ['Markets', 'Borrow', 'Lend', 'My positions']
 // const settings = ["Profile", "Account", "Dashboard", "Logout"]
 
 const Header = () => {
@@ -31,11 +32,11 @@ const Header = () => {
   return (
     <>
       <AppBar position='static'>
-        <Container maxWidth='xl'>
+        <Container maxWidth='xl' sx={{ background: 'black' }}>
           <Toolbar disableGutters>
             <Link href='/'>
-              <>
-                {/*<AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+              {/*<>
+                <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
                  <Typography
                   variant='h6'
                   noWrap
@@ -54,13 +55,13 @@ const Header = () => {
                   Fuji v2
                   {/* TODO: Logo 
                 </Typography> */}
-                <Image
-                  src='/assets/images/logo-title.svg'
-                  alt='Logo Fuji'
-                  width='120'
-                  height='80'
-                />
-              </>
+              <Image
+                src='/assets/images/logo/logo-title.svg'
+                alt='Logo Fuji'
+                width='120'
+                height='80'
+              />
+              {/* </> */}
             </Link>
 
             <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -94,7 +95,7 @@ const Header = () => {
               >
                 {pages.map(page => (
                   <MenuItem key={page} onClick={handleCloseNavMenu}>
-                    <Link href={`/${page.toLowerCase()}`}>
+                    <Link className='nav-link' href={`/${page.toLowerCase()}`}>
                       <Typography textAlign='center'>{page}</Typography>
                     </Link>
                   </MenuItem>
@@ -120,7 +121,16 @@ const Header = () => {
             >
               Fuji v2
             </Typography> */}
-            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+
+            {/* MENU */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: { xs: 'none', md: 'flex' },
+                justifyContent: 'center',
+                mt: 1
+              }}
+            >
               {pages.map(page => (
                 <Link key={page} href={`/${page.toLowerCase()}`}>
                   <Button
@@ -141,7 +151,7 @@ const Header = () => {
                 </IconButton>
               </Tooltip>
               <Menu
-                sx={{ mt: "45px" }}
+                sx={{ mt: "2.813rem" }}
                 id="menu-appbar"
                 anchorEl={anchorElUser}
                 anchorOrigin={{
