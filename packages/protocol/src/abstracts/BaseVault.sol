@@ -151,8 +151,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// @inheritdoc IERC4626
-  function totalAssets() public view virtual override returns (uint256) {
-    return activeProvider.getDepositBalance(asset(), address(this), address(this));
+  function totalAssets() public view virtual override returns (uint256 assets) {
+    address asset_ = asset();
+    uint256 pLenght = _providers.length;
+    for (uint256 i = 0; i < pLenght;) {
+      assets += _providers[i].getDepositBalance(asset_, address(this), address(this));
+      unchecked {
+        ++i;
+      }
+    }
   }
 
   /// @inheritdoc IERC4626
