@@ -17,7 +17,7 @@ import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
 bool constant DEBUG = false;
 
 interface ITestingCompoundV3 {
-  function getMapper() external returns(address);
+  function getMapper() external returns (address);
 }
 
 contract ProviderTest is DSTestPlus {
