@@ -24,9 +24,9 @@ export const USDC: TokenMap = {
     'USDC',
     'USD Coin'
   ),
-  [ChainId.MATIC_TESTNET]: new Token(
-    ChainId.MATIC_TESTNET,
-    USDC_ADDRESS[ChainId.MATIC_TESTNET],
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    USDC_ADDRESS[ChainId.MATIC_MUMBAI],
     6,
     'USDC',
     'USD Coin'
@@ -178,9 +178,9 @@ export const WETH9: TokenMap = {
     'WETH',
     'Wrapped Ether'
   ),
-  [ChainId.MATIC_TESTNET]: new Token(
-    ChainId.MATIC_TESTNET,
-    WETH9_ADDRESS[ChainId.MATIC_TESTNET],
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    WETH9_ADDRESS[ChainId.MATIC_MUMBAI],
     18,
     'WETH',
     'Wrapped Ether'
@@ -261,9 +261,9 @@ export const WNATIVE: TokenMap = {
     'WMATIC',
     'Wrapped Matic'
   ),
-  [ChainId.MATIC_TESTNET]: new Token(
-    ChainId.MATIC_TESTNET,
-    WNATIVE_ADDRESS[ChainId.MATIC_TESTNET],
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    WNATIVE_ADDRESS[ChainId.MATIC_MUMBAI],
     18,
     'WMATIC',
     'Wrapped Matic'
