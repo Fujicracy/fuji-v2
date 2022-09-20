@@ -46,6 +46,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   IFujiOracle public oracle;
 
+  uint256 public minDepositAmount;
+  uint256 public depositCap;
+
   /*
   Factors
   See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
@@ -56,6 +59,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
    * the maximum Loan-To-Value a user can take.
    */
   uint256 public maxLtv;
+
   /**
    * @dev A factor that defines the Loan-To-Value
    * at which a user can be liquidated.
@@ -79,6 +83,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     chief = chief_;
     maxLtv = 75 * 1e16;
     liqRatio = 80 * 1e16;
+    depositCap = type(uint256).max;
   }
 
   /*////////////////////////////////////////////////////
@@ -167,7 +172,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return _isVaultCollateralized() ? type(uint256).max : 0;
+    return _isVaultCollateralized() ? depositCap : 0;
   }
 
   /// @inheritdoc IERC4626
@@ -207,7 +212,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    if (assets > maxDeposit(receiver)) {
+    if (assets + totalAssets() > maxDeposit(receiver) || assets < minDepositAmount) {
       revert BaseVault__deposit_moreThanMax();
     }
 
@@ -536,9 +541,11 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_) external {
+  function setActiveProvider(ILendingProvider activeProvider_) external override {
     // TODO needs admin restriction
-    // TODO needs input validation
+    if (address(activeProvider_) == address(0)) {
+      revert BaseVault__setter_invalidInput();
+    }
     activeProvider = activeProvider_;
     SafeERC20.safeApprove(
       IERC20(asset()), activeProvider.approvedOperator(asset()), type(uint256).max
@@ -553,11 +560,11 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /**
-   * @dev Sets the maximum Loan-To-Value factor of this vault.
+   * @dev Sets the Loan-To-Value liquidation threshold factor of this vault.
    * See factor:
    * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
    * Restrictions:
-   * - SHOULD be at least 1%.
+   * - SHOULD be greater than 'maxLTV'.
    */
   function setMaxLtv(uint256 maxLtv_) external {
     if (maxLtv_ < 1e16) {
@@ -582,5 +589,22 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     // TODO needs admin restriction
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
+  }
+
+  /// inheritdoc IVault
+  function setMinDepositAmount(uint256 amount) external override {
+    // TODO needs admin restriction
+    minDepositAmount = amount;
+    emit MinDepositAmountChanged(liqRatio);
+  }
+
+  /// inheritdoc IVault
+  function setDepositCap(uint256 newCap) external override {
+    // TODO needs admin restriction
+    if (newCap == 0 || newCap <= minDepositAmount) {
+      revert BaseVault__setter_invalidInput();
+    }
+    depositCap = newCap;
+    emit DepositCapChanged(newCap);
   }
 }
