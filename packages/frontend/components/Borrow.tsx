@@ -6,13 +6,12 @@ import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import { CircularProgress } from '@mui/material'
 
 import borrowMachine from '../machines/borrow.machine'
 import { chains } from '../machines/auth.machine'
-import { CircularProgress } from '@mui/material'
 import CustomSelect from './Form/CustomSelect'
-
-type Chain = typeof chains[0]
+import styles from '../styles/components/Borrow.module.css'
 
 export default function Borrow () {
   const [current, send] = useMachine(borrowMachine, { devTools: true })
@@ -75,7 +74,13 @@ export default function Borrow () {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <strong>?? $</strong>
                 <div>
-                  <Button variant='text'>max</Button>
+                  <Button
+                    className={styles.maxBtn}
+                    sx={{ color: 'secondary.light' }}
+                    variant='text'
+                  >
+                    max
+                  </Button>
                   Balance: <strong>??</strong>
                 </div>
               </div>
@@ -119,6 +124,7 @@ export default function Borrow () {
               variant='gradient'
               onClick={() => alert('not implemented')}
               startIcon={<CircularProgress size={15} />}
+              sx={{ maxWidth: 400 }}
             >
               Sign
             </Button>
@@ -128,6 +134,7 @@ export default function Borrow () {
               variant='flat'
               //disabled
               onClick={() => alert('not implemented')}
+              sx={{ maxWidth: 400 }}
             >
               Borrow
             </Button>

@@ -1,18 +1,21 @@
 import { useState } from 'react'
 
 import Link from 'next/link'
-import AppBar from '@mui/material/AppBar'
-import Box from '@mui/material/Box'
-import Toolbar from '@mui/material/Toolbar'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Menu from '@mui/material/Menu'
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  MenuItem,
+  Container,
+  Button
+} from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
-import Container from '@mui/material/Container'
-import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
 import AdbIcon from '@mui/icons-material/Adb'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 
 const pages = ['Markets', 'Borrow', 'Lend', 'My positions']
 // const settings = ["Profile", "Account", "Dashboard", "Logout"]
@@ -20,6 +23,8 @@ const pages = ['Markets', 'Borrow', 'Lend', 'My positions']
 const Header = () => {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   // const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
+  const router = useRouter()
+  const currentPage = router.pathname.substring(1) // TODO: Maybe not the best way
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
@@ -35,7 +40,8 @@ const Header = () => {
         <Container maxWidth='xl' sx={{ background: 'black' }}>
           <Toolbar disableGutters>
             <Link href='/'>
-              {/*<>
+              <a>
+                {/*<>
                 <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
                  <Typography
                   variant='h6'
@@ -55,12 +61,13 @@ const Header = () => {
                   Fuji v2
                   {/* TODO: Logo 
                 </Typography> */}
-              <Image
-                src='/assets/images/logo/logo-title.svg'
-                alt='Logo Fuji'
-                width='120'
-                height='80'
-              />
+                <Image
+                  src='/assets/images/logo/logo-title.svg'
+                  alt='Logo Fuji'
+                  width='120'
+                  height='80'
+                />
+              </a>
               {/* </> */}
             </Link>
 
@@ -95,7 +102,7 @@ const Header = () => {
               >
                 {pages.map(page => (
                   <MenuItem key={page} onClick={handleCloseNavMenu}>
-                    <Link className='nav-link' href={`/${page.toLowerCase()}`}>
+                    <Link href={`/${page.toLowerCase()}`}>
                       <Typography textAlign='center'>{page}</Typography>
                     </Link>
                   </MenuItem>
@@ -131,12 +138,26 @@ const Header = () => {
                 mt: 1
               }}
             >
-              {pages.map(page => (
+              {pages.map((page: string) => (
                 <Link key={page} href={`/${page.toLowerCase()}`}>
                   <Button
                     key={page}
                     onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: 'white', display: 'block' }}
+                    sx={{
+                      color:
+                        page.toLowerCase() === currentPage
+                          ? 'secondary.main'
+                          : 'text.primary',
+                      textShadow:
+                        page.toLowerCase() === currentPage
+                          ? 'rgb(240 1 79) 0rem 0rem 0.125rem'
+                          : '',
+                      '&:hover': {
+                        color: 'secondary.main',
+                        background: 'transparent',
+                        textShadow: 'rgb(240 1 79) 0rem 0rem 0.125rem'
+                      }
+                    }}
                   >
                     {page}
                   </Button>

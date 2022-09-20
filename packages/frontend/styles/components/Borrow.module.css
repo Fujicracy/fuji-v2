@@ -1,0 +1,12 @@
+.maxBtn {
+    background: rgb(236, 38, 104, 0.2);
+    height: 0.938rem;
+    padding: 0.188rem 0rem;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    line-height: 0.938rem;
+}
+
+.maxBtn:hover {
+    background: rgb(236, 38, 104, 0.4);
+}

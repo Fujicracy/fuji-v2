@@ -45,7 +45,6 @@ const colorTheme = createTheme({
 
 const theme = createTheme(colorTheme, {
   typography: {
-    fontFamily: 'Inter',
     lineHeight: '150%',
     h3: {
       color: colorTheme.palette.text.secondary,
@@ -100,7 +99,7 @@ const theme = createTheme(colorTheme, {
             border: `0.063rem solid ${colorTheme.palette.secondary.main}`
           }
         },
-        {
+        /* {
           props: { variant: 'text' },
           style: {
             background: 'rgb(236,38,104, 0.2)',
@@ -114,7 +113,7 @@ const theme = createTheme(colorTheme, {
               background: 'rgb(236,38,104, 0.4)'
             }
           }
-        }
+        } */
       ]
     },
     MuiCircularProgress: {
@@ -159,7 +158,6 @@ const theme = createTheme(colorTheme, {
           fontSize: '0.875rem',
           lineHeight: '160%',
           color: colorTheme.palette.primary.light,
-          fontFamily: 'Inter'
         },
         icon: {
           color: '#FFFFFF'
@@ -174,7 +172,6 @@ const theme = createTheme(colorTheme, {
           lineHeight: '160%',
           color: colorTheme.palette.primary.light,
           opacity: 0.5,
-          fontFamily: 'Inter'
         }
       }
     }

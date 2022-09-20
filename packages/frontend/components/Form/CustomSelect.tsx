@@ -1,8 +1,9 @@
 import React from 'react'
-import { chains } from '../../machines/auth.machine'
 import { FormControl, Icon, InputLabel, MenuItem, Select } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import Image from 'next/image'
+
+import { chains } from '../../machines/auth.machine'
 
 type Chain = typeof chains[0]
 
