@@ -17,7 +17,9 @@ import AdbIcon from '@mui/icons-material/Adb'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 
-const pages = ['Markets', 'Borrow', 'Lend', 'My positions']
+import styles from '../styles/components/Header.module.css'
+
+const pages = ['Markets', 'Borrow', 'Lend', 'My positions', 'Theming'] // TODO: "Theming" page is for tests
 // const settings = ["Profile", "Account", "Dashboard", "Logout"]
 
 const Header = () => {
@@ -40,7 +42,7 @@ const Header = () => {
         <Container maxWidth='xl' sx={{ background: 'black' }}>
           <Toolbar disableGutters>
             <Link href='/'>
-              <a>
+              <a className={styles.logoTitle}>
                 {/*<>
                 <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
                  <Typography
@@ -146,14 +148,14 @@ const Header = () => {
                     sx={{
                       color:
                         page.toLowerCase() === currentPage
-                          ? 'secondary.main'
+                          ? 'primary.main'
                           : 'text.primary',
                       textShadow:
                         page.toLowerCase() === currentPage
                           ? 'rgb(240 1 79) 0rem 0rem 0.125rem'
                           : '',
                       '&:hover': {
-                        color: 'secondary.main',
+                        color: 'primary.main',
                         background: 'transparent',
                         textShadow: 'rgb(240 1 79) 0rem 0rem 0.125rem'
                       }

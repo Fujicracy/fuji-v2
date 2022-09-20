@@ -2,8 +2,22 @@ import { createTheme } from '@mui/material'
 
 declare module '@mui/material/Button' {
   interface ButtonPropsVariantOverrides {
-    flat: true
+    primary: true
+    secondary: true
+    secondary2: true
+    ghost: true
     gradient: true
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    display1: true
+    display2: true
+    body: true
+    small: true
+    xsmall: true
+    label: true
   }
 }
 
@@ -11,21 +25,27 @@ const colorTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      light: '#E2E8F0',
-      main: '#222429',
-      dark: '#191B1F'
+      main: '#F6145E',
+      light: '#FE3477',
+      dark: '#F0014F',
+      contrastText: 'rgba(254, 52, 119, 0)'
     },
     secondary: {
-      light: '#EC2668',
-      main: '#FE3477',
-      dark: '#F0014F'
+      main: '#2D2F35',
+      light: '#3B404A',
+      dark: '#222429',
+      contrastText: '#191B1F'
     },
     text: {
       primary: '#E8E8E8',
       secondary: '#E2E8F0',
-      disabled: '#787883'
+      disabled: '#6C7182'
     },
-    action: {
+    info: {
+      main: '#C3C5CB',
+      dark: '#787883'
+    },
+    /*action: {
       active: '#FE3477',
       hover: '#FE3477',
       hoverOpacity: 0.7,
@@ -33,34 +53,83 @@ const colorTheme = createTheme({
       focusOpacity: 1,
       selected: '#FE3477',
       selectedOpacity: 1
-    },
+    }, */
     success: {
-      main: '#50FE34'
+      main: '#42FF00'
     },
     warning: {
       main: '#F5AC37'
+    },
+    error: {
+      main: '#FD4040'
     }
   }
 })
 
 const theme = createTheme(colorTheme, {
   typography: {
-    lineHeight: '150%',
+    color: colorTheme.palette.text.primary,
+    letterSpacing: '0%',
+    display1: {
+      fontWeight: 700,
+      fontSize: '3rem',
+      lineHeight: '120%'
+    },
+    display2: {
+      fontWeight: 700,
+      fontSize: '2.75rem',
+      lineHeight: '120%'
+    },
+    h1: {
+      fontWeight: 700,
+      fontSize: '2.5rem',
+      lineHeight: '120%'
+    },
+    h2: {
+      fontWeight: 700,
+      fontSize: '2.25rem',
+      lineHeight: '150%'
+    },
     h3: {
-      color: colorTheme.palette.text.secondary,
-      fontWeight: 500,
-      fontSize: '1.25rem'
+      fontWeight: 700,
+      fontSize: '1.875rem',
+      lineHeight: '150%'
     },
     h4: {
-      color: colorTheme.palette.text.primary,
       fontWeight: 700,
-      fontSize: '1rem'
+      fontSize: '1.5rem',
+      lineHeight: '150%'
     },
-    button: {
-      fontWeight: 600,
-      fontSize: '0.938rem',
-      lineHeight: '1.125rem',
-      color: 'red'
+    h5: {
+      fontWeight: 400,
+      fontSize: '1.25rem',
+      lineHeight: '150%'
+    },
+    h6: {
+      fontWeight: 400,
+      fontSize: '1.125rem',
+      lineHeight: '160%'
+    },
+    body: {
+      fontWeight: 400,
+      fontSize: '1rem',
+      lineHeight: '160%'
+    },
+    small: {
+      fontWeight: 400,
+      fontSize: '0.875rem',
+      lineHeight: '160%'
+    },
+    xsmall: {
+      fontWeight: 400,
+      fontSize: '0.75rem',
+      lineHeight: '160%'
+    },
+    label: {
+      fontWeight: 700,
+      fontSize: '0.875rem',
+      lineHeight: '100%',
+      letterSpacing: '2%'
     }
   },
   components: {
@@ -68,24 +137,32 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           boxSizing: 'border-box',
-          color: colorTheme.palette.primary.light,
+          color: colorTheme.palette.text.primary,
           borderRadius: '0.5rem',
           padding: '0.75rem 1.25rem',
+          //width: '23em',
           textTransform: 'none',
           fontStyle: 'normal',
-          fontWeight: 500,
+          fontWeight: 400,
           fontSize: '1rem',
           lineHeight: '1.188rem',
-          height: '3.5rem',
+          height: '3.25rem',
           '&.Mui-disabled': {
             opacity: 0.5,
+            color: '#F5F5FD'
+          },
+          '&:hover': {
+            opacity: 0.9,
+            background:
+              'linear-gradient(to right, rgb(254, 52, 119), rgb(240, 1, 79))',
+            transition: 'all 0.17s ease 0s',
             color: '#F5F5FD'
           }
         }
       },
       variants: [
         {
-          props: { variant: 'flat' },
+          props: { variant: 'primary' },
           style: {
             background:
               'linear-gradient(92.29deg, rgba(254, 52, 119, 0.8) 0%, rgba(240, 1, 79, 0.8) 100%)',
@@ -93,27 +170,34 @@ const theme = createTheme(colorTheme, {
           }
         },
         {
+          props: { variant: 'secondary' },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            border: '0.063rem solid #3B404A',
+            color: colorTheme.palette.text.primary
+          }
+        },
+        {
+          props: { variant: 'secondary2' },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            border: '0.063rem solid #3B404A',
+            color: colorTheme.palette.primary.main
+          }
+        },
+        {
+          props: { variant: 'ghost' },
+          style: {
+            background: 'transparent'
+          }
+        },
+        {
           props: { variant: 'gradient' },
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.secondary.dark} 120.29%)`,
-            border: `0.063rem solid ${colorTheme.palette.secondary.main}`
+            border: `0.063rem solid ${colorTheme.palette.primary.light}`
           }
-        },
-        /* {
-          props: { variant: 'text' },
-          style: {
-            background: 'rgb(236,38,104, 0.2)',
-            height: '0.938rem',
-            color: colorTheme.palette.secondary.light,
-            padding: '0.188rem 0rem',
-            textTransform: 'uppercase',
-            fontSize: '0.75rem',
-            lineHeight: '0.938rem',
-            '&:hover': {
-              background: 'rgb(236,38,104, 0.4)'
-            }
-          }
-        } */
+        }
       ]
     },
     MuiCircularProgress: {
@@ -127,37 +211,28 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           background: '#191B1F',
-          borderRadius: '0.75rem',
-          color: colorTheme.palette.primary.light
+          borderRadius: '0.75rem'
+          //color: colorTheme.palette.primary.light
         }
       },
       variants: [
         {
           props: { variant: 'outlined' },
           style: {
-            background: colorTheme.palette.primary.main,
+            background: colorTheme.palette.secondary.contrastText,
             border: '0.063rem solid #3A3A3C',
             borderRadius: '0.5rem'
           }
         }
       ]
     },
-    /*     MuiInputBase: {
-      styleOverrides: {
-        root: {
-          fontSize: '1.25rem',
-          lineHeight: '150%',
-          color: colorTheme.palette.primary.light
-        }
-      }
-    }, */
     MuiSelect: {
       styleOverrides: {
         select: {
           fontWeight: 400,
           fontSize: '0.875rem',
           lineHeight: '160%',
-          color: colorTheme.palette.primary.light,
+          color: colorTheme.palette.text.secondary
         },
         icon: {
           color: '#FFFFFF'
@@ -170,22 +245,12 @@ const theme = createTheme(colorTheme, {
           fontWeight: 400,
           fontSize: '0.875rem',
           lineHeight: '160%',
-          color: colorTheme.palette.primary.light,
-          opacity: 0.5,
+          color: colorTheme.palette.text.secondary,
+          opacity: 0.5
         }
       }
     }
-    /* MuiButtonBase: {
-      styleOverrides: {
-        root: {
-          '&:hover': {
-            color: colorTheme.palette.action.hover,
-            background: 'transparent'
-          }
-        }
-      }
-    } */
   }
 })
 
-export default theme
+export { theme, colorTheme }

@@ -6,8 +6,9 @@ import { useInterpret } from '@xstate/react'
 import { authMachine } from '../machines/auth.machine'
 import { InterpreterFrom } from 'xstate'
 import mixpanel from 'mixpanel-browser'
-import theme from '../styles/theme'
 import { ThemeProvider } from '@mui/material'
+
+import {theme} from '../styles/theme'
 
 // if (typeof window !== "undefined") {
 //   inspect({

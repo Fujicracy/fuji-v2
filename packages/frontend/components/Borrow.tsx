@@ -76,7 +76,7 @@ export default function Borrow () {
                 <div>
                   <Button
                     className={styles.maxBtn}
-                    sx={{ color: 'secondary.light' }}
+                    sx={{ color: '#EC2668' }} // TODO: Color didn't find in reusables components list
                     variant='text'
                   >
                     max
@@ -122,19 +122,18 @@ export default function Borrow () {
             <br />
             <Button
               variant='gradient'
+              sx={{width: '23em'}}
               onClick={() => alert('not implemented')}
               startIcon={<CircularProgress size={15} />}
-              sx={{ maxWidth: 400 }}
             >
               Sign
             </Button>
             <br />
             <br />
             <Button
-              variant='flat'
-              //disabled
+              variant='primary'
+              sx={{width: '23em'}}
               onClick={() => alert('not implemented')}
-              sx={{ maxWidth: 400 }}
             >
               Borrow
             </Button>
