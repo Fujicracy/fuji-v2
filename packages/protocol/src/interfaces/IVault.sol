@@ -148,7 +148,7 @@ interface IVault is IERC4626 {
    * - MUST NOT contain zero addresses.
    */
   function setProviders(ILendingProvider[] memory providers) external;
-  
+
   /**
    * @notice Sets the active provider for the vault
    *
