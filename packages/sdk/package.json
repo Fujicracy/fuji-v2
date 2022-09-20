@@ -20,7 +20,7 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "size": "size-limit",
-    "generate-types": "yarn workspace @x-fuji/protocol build && typechain --target=ethers-v5 --out-dir src/constants/types '../protocol/out/**/*.json'",
+    "generate-types": "yarn workspace @x-fuji/protocol hardhat export-abi && typechain --target=ethers-v5 --out-dir src/types/contracts '../protocol/abis/**/*.json'",
     "analyze": "size-limit --why"
   },
   "husky": {
