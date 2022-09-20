@@ -144,6 +144,11 @@ interface IVault is IERC4626 {
   function payback(uint256 debt, address receiver) external returns (uint256);
 
   /**
+   * @notice Sets the lists of providers for the vault
+   */
+  function setProviders(ILendingProvider[] memory providers) external;
+  
+  /**
    * @notice Sets the active provider for the vault
    */
   function setActiveProvider(ILendingProvider activeProvider) external;

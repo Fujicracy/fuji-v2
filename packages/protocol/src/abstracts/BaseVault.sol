@@ -20,6 +20,8 @@ import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 
+import "forge-std/console.sol";
+
 abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
@@ -152,14 +154,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function totalAssets() public view virtual override returns (uint256 assets) {
-    address asset_ = asset();
+    address lasset = asset(); // read once from storage 2600, then local from memory for 3 gas.
     uint256 pLenght = _providers.length;
     for (uint256 i = 0; i < pLenght;) {
-      assets += _providers[i].getDepositBalance(asset_, address(this), address(this));
+      assets += _providers[i].getDepositBalance(lasset, address(this), address(this));
       unchecked {
         ++i;
       }
     }
+    console.log('totalAssets() assets', assets);
   }
 
   /// @inheritdoc IERC4626
@@ -537,7 +540,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
-    // TODO needs input validation
+    uint256 pLenght = providers.length;
+    for(uint256 i = 0; i < pLenght;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      unchecked {
+        ++i;
+      }
+    }
     _providers = providers;
 
     emit ProvidersChanged(providers);
@@ -546,7 +557,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   /// inheritdoc IVault
   function setActiveProvider(ILendingProvider activeProvider_) external {
     // TODO needs admin restriction
-    // TODO needs input validation
+    if(!_isValidProvider(address(activeProvider_))) {
+      revert BaseVault__setter_invalidInput();
+    }
     activeProvider = activeProvider_;
     SafeERC20.safeApprove(
       IERC20(asset()), activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
@@ -558,7 +571,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
         type(uint256).max
       );
     }
-
     emit ActiveProviderChanged(activeProvider_);
   }
 
@@ -592,5 +604,21 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     // TODO needs admin restriction
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
+  }
+
+  /**
+   * @dev Returns true if provider is in `_providers` array.
+   * Since providers are not many use of array is fine.
+   */
+  function _isValidProvider(address provider) private view returns (bool check) {
+    uint256 pLenght = _providers.length;
+    for(uint i = 0; i < pLenght;) {
+      if (provider == address(_providers[i])) {
+        check = true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
   }
 }

@@ -68,6 +68,9 @@ contract ProviderTest is DSTestPlus {
     );
 
     compoundV3 = new CompoundV3();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = compoundV3;
+    vault.setProviders(providers);
     vault.setActiveProvider(compoundV3);
   }
 
