@@ -1,1 +1,1 @@
-export { validateAndParseAddress } from './validateAndParseAddress'
+export { validateAndParseAddress } from './validateAndParseAddress';

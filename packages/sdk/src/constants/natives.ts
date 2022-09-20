@@ -1,7 +1,7 @@
-import { Ether, Fantom, Matic } from '../entities/native'
+import { Ether, Fantom, Matic } from '../entities/native';
 
-import { ChainId } from '../enums'
-import { NativeMap } from '../types'
+import { ChainId } from '../enums';
+import { NativeMap } from '../types';
 
 export const NATIVE: NativeMap = {
   [ChainId.ETHEREUM]: Ether.onChain(ChainId.ETHEREUM),
@@ -11,4 +11,4 @@ export const NATIVE: NativeMap = {
   [ChainId.ARBITRUM]: Ether.onChain(ChainId.ARBITRUM),
   [ChainId.ARBITRUM_NOVA]: Ether.onChain(ChainId.ARBITRUM_NOVA),
   [ChainId.OPTIMISM]: Ether.onChain(ChainId.OPTIMISM),
-}
+};

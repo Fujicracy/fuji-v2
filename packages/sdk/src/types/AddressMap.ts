@@ -1,1 +1,1 @@
-export type AddressMap = { [chainId: number]: string }
+export type AddressMap = { [chainId: number]: string };

@@ -1,3 +1,3 @@
-export { Ether } from './Ether'
-export { Fantom } from './Fantom'
-export { Matic } from './Matic'
+export { Ether } from './Ether';
+export { Fantom } from './Fantom';
+export { Matic } from './Matic';

@@ -1,3 +1,3 @@
-import { NativeCurrency } from '../entities'
+import { NativeCurrency } from '../entities';
 
-export type NativeMap = { [chainId: number]: NativeCurrency }
+export type NativeMap = { [chainId: number]: NativeCurrency };

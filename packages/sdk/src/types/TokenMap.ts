@@ -1,3 +1,3 @@
-import { Token } from '../entities'
+import { Token } from '../entities';
 
-export type TokenMap = { [chainId: number]: Token }
+export type TokenMap = { [chainId: number]: Token };
