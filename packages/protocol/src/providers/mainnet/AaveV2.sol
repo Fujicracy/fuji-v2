@@ -3,21 +3,21 @@ pragma solidity 0.8.15;
 
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IAaveV3DataProvider} from "../../interfaces/aaveV3/IAaveV3DataProvider.sol";
-import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
+import {IAaveV2DataProvider} from "../../interfaces/aaveV2/IAaveV2DataProvider.sol";
+import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
 /**
- * @title AaveV3 Lending Provider.
+ * @title AaveV2 Lending Provider.
  * @author fujidao Labs
- * @notice This contract allows interaction with AaveV3.
+ * @notice This contract allows interaction with AaveV2.
  */
-contract AaveV3Rinkeby is ILendingProvider {
-  function _getAaveDataProvider() internal pure returns (IAaveV3DataProvider) {
-    return IAaveV3DataProvider(0xBAB2E7afF5acea53a43aEeBa2BA6298D8056DcE5);
+contract AaveV2 is ILendingProvider {
+  function _getAaveProtocolDataProvider() internal pure returns (IAaveV2DataProvider) {
+    return IAaveV2DataProvider(0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d);
   }
 
-  function _getPool() internal pure returns (IV3Pool) {
-    return IV3Pool(0xE039BdF1d874d27338e09B55CB09879Dedca52D8);
+  function _getPool() internal pure returns (IV2Pool) {
+    return IV2Pool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
   }
 
   /// inheritdoc ILendingProvider
@@ -31,9 +31,9 @@ contract AaveV3Rinkeby is ILendingProvider {
     override
     returns (bool success)
   {
-    IV3Pool aave = _getPool();
-    aave.supply(asset, amount, address(vault), 0);
-    aave.setUserUseReserveAsCollateral(asset, true);
+    IV2Pool aave = _getPool();
+    aave.deposit(asset, amount, address(vault), 0);
+    // aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
@@ -43,7 +43,7 @@ contract AaveV3Rinkeby is ILendingProvider {
     override
     returns (bool success)
   {
-    IV3Pool aave = _getPool();
+    IV2Pool aave = _getPool();
     aave.borrow(asset, amount, 2, 0, address(vault));
     success = true;
   }
@@ -54,7 +54,7 @@ contract AaveV3Rinkeby is ILendingProvider {
     override
     returns (bool success)
   {
-    IV3Pool aave = _getPool();
+    IV2Pool aave = _getPool();
     aave.withdraw(asset, amount, address(vault));
     success = true;
   }
@@ -65,22 +65,22 @@ contract AaveV3Rinkeby is ILendingProvider {
     override
     returns (bool success)
   {
-    IV3Pool aave = _getPool();
+    IV2Pool aave = _getPool();
     aave.repay(asset, amount, 2, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
   function getDepositRateFor(address asset, address) external view override returns (uint256 rate) {
-    IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV2Pool aaveData = _getPool();
+    IV2Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
     rate = rdata.currentLiquidityRate;
   }
 
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(address asset, address) external view override returns (uint256 rate) {
-    IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV2Pool aaveData = _getPool();
+    IV2Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
     rate = rdata.currentVariableBorrowRate;
   }
 
@@ -91,7 +91,7 @@ contract AaveV3Rinkeby is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    IAaveV3DataProvider aaveData = _getAaveDataProvider();
+    IAaveV2DataProvider aaveData = _getAaveProtocolDataProvider();
     (balance,,,,,,,,) = aaveData.getUserReserveData(asset, user);
   }
 
@@ -102,7 +102,7 @@ contract AaveV3Rinkeby is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    IAaveV3DataProvider aaveData = _getAaveDataProvider();
+    IAaveV2DataProvider aaveData = _getAaveProtocolDataProvider();
     (,, balance,,,,,,) = aaveData.getUserReserveData(asset, user);
   }
 }
