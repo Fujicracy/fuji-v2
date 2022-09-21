@@ -28,14 +28,14 @@ export default function Borrow () {
   const [collateralValue, setCollateralValue] = useState('')
   const [collateralToken, setCollateralToken] = useState(tokens[0])
 
-  const [borrowChainId, setBorrowChainId] = useState(chains[0].id)
+  const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
   const [borrowValue, setBorrowValue] = useState('')
   const [borrowToken, setBorrowToken] = useState(tokens[1])
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(true)
 
   return (
-    <Container sx={{ marginLeft: '3.5rem' }}>
+    <Container sx={{ marginLeft: '3.5rem', marginBottom: "1rem" }}>
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
@@ -109,7 +109,7 @@ export default function Borrow () {
             />
 
             <br />
-            <Card variant='outlined' sx={{ maxWidth: '23em' }}>
+            <Card variant='outlined'>
               <div className={styles.cardLine}>
                 <Typography variant='small'>Estimated Cost</Typography>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -161,7 +161,7 @@ export default function Borrow () {
             <br />
             <br />
             <Button
-              variant='primary'
+              variant='gradient'
               disabled
               onClick={() => alert('not implemented')}
               sx={{ width: '100%' }}
@@ -173,12 +173,14 @@ export default function Borrow () {
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Typography variant='small'>
                 Powered by
-                <Image
-                  src='/assets/images/logo/connext.svg'
-                  height={16}
-                  width={95}
-                  alt='Connext logo'
-                />
+                <a href='https://www.connext.network/' target='_blank'>
+                  <Image
+                    src='/assets/images/logo/connext.svg'
+                    height={16}
+                    width={95}
+                    alt='Connext logo'
+                  />
+                </a>
               </Typography>
             </div>
           </CardContent>

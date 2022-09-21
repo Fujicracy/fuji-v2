@@ -16,13 +16,9 @@ declare interface SelectTokenCardProps {
 
 export default function SelectTokenCard (props: SelectTokenCardProps) {
   return (
-    <Card variant='outlined' sx={{ maxWidth: '23em' }}>
+    <Card variant='outlined'>
       <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center'
-        }}
+        className={styles.cardLine}
       >
         <TextField
           id='collateral-amount'

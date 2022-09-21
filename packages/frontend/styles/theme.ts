@@ -193,7 +193,7 @@ const theme = createTheme(colorTheme, {
         {
           props: { variant: 'gradient' },
           style: {
-            background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.secondary.dark} 120.29%)`,
+            background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
             border: `0.063rem solid ${colorTheme.palette.primary.light}`
           }
         }

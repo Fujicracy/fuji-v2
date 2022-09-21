@@ -1,95 +1,113 @@
-// const CONTACTS = {
-//   TWITTER: {
-//     id: "twitter",
-//     url: "https://twitter.com/FujiFinance",
-//     image: twitterImage,
-//     imageHover: twitterHoverImage,
-//     alt: "twitter",
-//   },
-//   DISCORD: {
-//     id: "discord",
-//     url: "https://discord.com/invite/dnvJeEMeDJ",
-//     image: discordImage,
-//     imageHover: discordHoverImage,
-//     alt: "discord",
-//   },
-//   TELEGRAM: {
-//     id: "telegram",
-//     url: "https://t.me/joinchat/U4cKWNCUevKVsrtY",
-//     image: telegramImage,
-//     imageHover: telegramHoverImage,
-//     alt: "telegram",
-//   },
-// }
+import React, { useState } from 'react'
+import { Box, Typography } from '@mui/material'
+import Link from 'next/link'
+import Image from 'next/image'
 
-function Footer() {
+import styles from '../styles/components/Footer.module.css'
+
+declare interface Social {
+  id: string
+  url: string
+  image: string
+  imageHover: string
+  alt: string
+}
+
+const socials: Social[] = [
+  {
+    id: 'twitter',
+    url: 'https://twitter.com/FujiFinance',
+    image: '/assets/images/logo/socials/twitter.svg',
+    imageHover: '/assets/images/logo/socials/twitter_hover.svg',
+    alt: 'twitter'
+  },
+  {
+    id: 'discord',
+    url: 'https://discord.com/invite/dnvJeEMeDJ',
+    image: '/assets/images/logo/socials/discord.svg',
+    imageHover: '/assets/images/logo/socials/discord_hover.svg',
+    alt: 'discord'
+  },
+  {
+    id: 'telegram',
+    url: 'https://t.me/joinchat/U4cKWNCUevKVsrtY',
+    image: '/assets/images/logo/socials/telegram.svg',
+    imageHover: '/assets/images/logo/socials/telegram_hover.svg',
+    alt: 'telegram'
+  }
+]
+
+function Footer () {
   return (
-    <footer style={{ textAlign: "center", borderTop: "0.063rem solid grey" }}>
-      Footer
+    <footer
+      style={{
+        textAlign: 'center',
+        width: '100%',
+        bottom: 0
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          margin: '1.5rem'
+        }}
+      >
+        <Box
+          style={{
+            display: 'flex',
+            justifyContent: 'space-around'
+          }}
+        >
+          {socials.map((social: Social) => (
+            <a href={social.url} target='_blank' key={social.id}>
+              <Logo social={social} />
+            </a>
+          ))}
+        </Box>
+
+        <div
+          style={{ display: 'flex', alignItems: 'center', color: '#F5F5FD' }}
+        >
+          <Typography variant='xsmall' className={styles.labels}>
+            <a href='/about' target='_blank' className={styles.labelLink}>
+              About
+            </a>
+            <a
+              href='https://docs.fujidao.org'
+              target='_blank'
+              className={styles.labelLink}
+            >
+              Documentation
+            </a>
+            © FujiDAO {new Date().getFullYear()}
+          </Typography>
+        </div>
+      </div>
     </footer>
   )
 }
 
-export default Footer
-
-/*
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
-
-import { NavImageLink, NavTextLink, Label } from 'components/UI';
-import { CONTACTS } from 'consts/contacts';
-import { Box, Flex } from 'rebass';
-import { map } from 'lodash';
-import themeGet from '@styled-system/theme-get';
-
-const NavText = styled.div`
-  margin-right: 10px;
-  font-size: 12px;
-
-  color: ${themeGet('colors.text64')};
-
-  &:hover {
-    color: ${themeGet('colors.primary')};
-  }
-`;
-
-function Footer() {
-  const { pathname } = useLocation();
-  const isHome = pathname === '/';
-
-  return (
-    <footer
-      style={
-        isHome
-          ? {
-              position: 'fixed',
-              bottom: '0px',
-              width: '100%',
-            }
-          : {
-              bottom: '57px',
-            }
-      }
-    >
-      <Flex justifyContent="space-between" p="3">
-        <Box border="1px solid red">
-          {map(Object.keys(CONTACTS), key => (
-            <NavImageLink key={key} contact={CONTACTS[key]} />
-          ))}
-        </Box>
-
-        <Flex alignItems="center">
-          <NavLink to="/about">
-            <NavText>About</NavText>
-          </NavLink>
-          <NavTextLink url="https://docs.fujidao.org">Documentation</NavTextLink>
-          <Label fontSize={12}>© FujiDAO {new Date().getFullYear()}</Label>
-        </Flex>
-      </Flex>
-    </footer>
-  );
+declare interface LogoProps {
+  social: Social
 }
 
-export default Footer;
- */
+const Logo = (props: LogoProps) => {
+  const [isHovering, setIsHovered] = useState(false)
+  const onMouseEnter = () => setIsHovered(true)
+  const onMouseLeave = () => setIsHovered(false)
+  return (
+    <Box mx={'0.5rem'}>
+      <Image
+        src={isHovering ? props.social.imageHover : props.social.image}
+        alt={props.social.alt}
+        width={16}
+        height={16}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      />
+    </Box>
+  )
+}
+
+export default Footer

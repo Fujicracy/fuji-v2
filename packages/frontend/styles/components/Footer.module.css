@@ -1,0 +1,8 @@
+.labels>* {
+    margin-right: 1.5rem;
+}
+
+.labelLink:hover {
+    color: #F6145E;
+    text-shadow: rgb(240 1 79) 0rem 0rem 0.125rem;
+}
