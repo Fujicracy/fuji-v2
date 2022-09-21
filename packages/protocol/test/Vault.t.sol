@@ -182,4 +182,16 @@ contract VaultTest is DSTestPlus {
     uint256 depositBob = 1 ether;
     _utils_doDeposit(depositBob, vault, bob);
   }
+
+  function test_computeHealthFactor() public {
+    uint256 HF = vault.computeHealthFactor(alice);
+    assertEq(HF, type(uint256).max);
+
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 100e18;
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    uint256 HF2 = vault.computeHealthFactor(alice);
+    assertEq(HF2, 2833);
+  }
 }
