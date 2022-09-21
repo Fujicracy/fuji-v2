@@ -140,7 +140,6 @@ const theme = createTheme(colorTheme, {
           color: colorTheme.palette.text.primary,
           borderRadius: '0.5rem',
           padding: '0.75rem 1.25rem',
-          //width: '23em',
           textTransform: 'none',
           fontStyle: 'normal',
           fontWeight: 400,
@@ -210,8 +209,13 @@ const theme = createTheme(colorTheme, {
     MuiCard: {
       styleOverrides: {
         root: {
-          background: '#191B1F',
-          borderRadius: '0.75rem'
+          background: colorTheme.palette.secondary.contrastText,
+          borderRadius: '0.75rem',
+          gap: '2rem',
+          //padding: '1.5rem 2rem 2rem',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start'
           //color: colorTheme.palette.primary.light
         }
       },
@@ -219,9 +223,16 @@ const theme = createTheme(colorTheme, {
         {
           props: { variant: 'outlined' },
           style: {
-            background: colorTheme.palette.secondary.contrastText,
+            boxSizing: 'border-box',
+            background: colorTheme.palette.secondary.dark,
             border: '0.063rem solid #3A3A3C',
-            borderRadius: '0.5rem'
+            flexDirection: 'column',
+            borderRadius: '0.5rem',
+            padding: '1rem',
+            gap: '24px',
+            flex: 'none',
+            order: 1,
+            flexGrow: 0
           }
         }
       ]
@@ -239,14 +250,26 @@ const theme = createTheme(colorTheme, {
         }
       }
     },
-    MuiFormLabel: {
+    MuiInputBase: {
       styleOverrides: {
         root: {
+          fontSize: '1.125rem',
+          color: colorTheme.palette.text.primary,
+          height: '1.813rem',
           fontWeight: 400,
-          fontSize: '0.875rem',
           lineHeight: '160%',
-          color: colorTheme.palette.text.secondary,
-          opacity: 0.5
+          display: 'flex',
+          alignItems: 'center',
+          flex: 'none',
+          order: 0,
+          flexGrow: 0
+        }
+      }
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        input: {
+          paddingLeft: "0.25rem"
         }
       }
     }

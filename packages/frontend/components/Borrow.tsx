@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { useMachine } from '@xstate/react'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import { CircularProgress } from '@mui/material'
+import {
+  Divider,
+  Button,
+  Container,
+  Typography,
+  CardContent,
+  Card,
+  Collapse
+} from '@mui/material'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import Image from 'next/image'
 
 import borrowMachine from '../machines/borrow.machine'
 import { chains } from '../machines/auth.machine'
 import CustomSelect from './Form/CustomSelect'
+import SelectTokenCard from './SelectTokenCard'
 import styles from '../styles/components/Borrow.module.css'
 
 export default function Borrow () {
@@ -26,8 +32,10 @@ export default function Borrow () {
   const [borrowValue, setBorrowValue] = useState('')
   const [borrowToken, setBorrowToken] = useState(tokens[1])
 
+  const [showTransactionDetails, setShowTransactionDetails] = useState(true)
+
   return (
-    <Container>
+    <Container sx={{ marginLeft: '3.5rem' }}>
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
@@ -36,11 +44,21 @@ export default function Borrow () {
       )}
 
       {current.matches('editing') && (
-        <Card sx={{ maxWidth: 500 }}>
+        <Card
+          sx={{
+            maxWidth: '27rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}
+        >
           <CardContent>
-            <Typography variant='h4' mb='1rem'>
+            <Typography variant='body' mb='1rem'>
               Borrow
             </Typography>
+
+            <Divider sx={{ mt: 1.5 }} />
+
             <CustomSelect
               labelId='collateral-chain-label'
               id='collateral-chain'
@@ -50,44 +68,21 @@ export default function Borrow () {
               }
               options={chains}
               label='Collateral from'
+              large={false}
             />
-            <Card variant='outlined'>
-              <TextField
-                id='collateral-amount'
-                type='number'
-                placeholder='0'
-                //label='amount'
-                value={collateralValue}
-                onChange={e => setCollateralValue(e.target.value)}
-              />
-              <CustomSelect
-                labelId='collateral-token-label'
-                id='collateral-token'
-                value={collateralToken}
-                onSelect={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCollateralToken(e.target.value)
-                }
-                options={tokens}
-                label={null}
-              />
-              <br />
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>?? $</strong>
-                <div>
-                  <Button
-                    className={styles.maxBtn}
-                    sx={{ color: '#EC2668' }} // TODO: Color didn't find in reusables components list
-                    variant='text'
-                  >
-                    max
-                  </Button>
-                  Balance: <strong>??</strong>
-                </div>
-              </div>
-            </Card>
 
-            <br />
-            <br />
+            <SelectTokenCard
+              value={collateralValue}
+              onChangeValue={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setCollateralValue(e.target.value)
+              }
+              token={collateralToken}
+              onChangeToken={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setCollateralToken(e.target.value)
+              }
+              tokens={tokens}
+              type='collateral'
+            />
             <CustomSelect
               labelId='borrow-chain-label'
               id='borrow-chain'
@@ -97,34 +92,69 @@ export default function Borrow () {
               }
               options={chains}
               label='Borrow to'
+              large={false}
             />
-            <Card variant='outlined'>
-              <TextField
-                id='borrow-amount'
-                type='number'
-                placeholder='0'
-                //label='amount'
-                value={borrowValue}
-                onChange={e => setBorrowValue(e.target.value)}
-              />
-              <CustomSelect
-                labelId='borrow-token-label'
-                id='borrow-token'
-                value={borrowToken}
-                onSelect={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setBorrowToken(e.target.value)
-                }
-                options={tokens}
-                label={null}
-              />
+
+            <SelectTokenCard
+              value={borrowValue}
+              onChangeValue={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBorrowValue(e.target.value)
+              }
+              token={borrowToken}
+              onChangeToken={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBorrowToken(e.target.value)
+              }
+              tokens={tokens}
+              type='borrow'
+            />
+
+            <br />
+            <Card variant='outlined' sx={{ maxWidth: '23em' }}>
+              <div className={styles.cardLine}>
+                <Typography variant='small'>Estimated Cost</Typography>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant='small'>~$3.90</Typography>
+                  {showTransactionDetails ? (
+                    <KeyboardArrowDownIcon
+                      onClick={() => setShowTransactionDetails(false)}
+                    />
+                  ) : (
+                    <KeyboardArrowUpIcon
+                      onClick={() => setShowTransactionDetails(true)}
+                    />
+                  )}
+                </div>
+              </div>
+              <Collapse in={showTransactionDetails} sx={{ width: '100%' }}>
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Gas fees</Typography>
+                  <Typography variant='small'>~$1.90</Typography>
+                </div>
+                <br />
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Bridges fees</Typography>
+                  <Typography variant='small'>~$2.00</Typography>
+                </div>
+                <br />
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Est. processing time</Typography>
+                  <Typography variant='small'>~2 Minutes</Typography>
+                </div>
+                <br />
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Route</Typography>
+                  <Typography variant='small'>
+                    <u>{'ETH > Polygon'}</u>
+                  </Typography>
+                </div>
+              </Collapse>
             </Card>
             <br />
             <br />
             <Button
-              variant='gradient'
-              sx={{width: '23em'}}
+              variant='primary'
               onClick={() => alert('not implemented')}
-              startIcon={<CircularProgress size={15} />}
+              sx={{ width: '100%' }}
             >
               Sign
             </Button>
@@ -132,11 +162,25 @@ export default function Borrow () {
             <br />
             <Button
               variant='primary'
-              sx={{width: '23em'}}
+              disabled
               onClick={() => alert('not implemented')}
+              sx={{ width: '100%' }}
             >
               Borrow
             </Button>
+            <br />
+            <br />
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <Typography variant='small'>
+                Powered by
+                <Image
+                  src='/assets/images/logo/connext.svg'
+                  height={16}
+                  width={95}
+                  alt='Connext logo'
+                />
+              </Typography>
+            </div>
           </CardContent>
         </Card>
       )}
