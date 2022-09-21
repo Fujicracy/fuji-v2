@@ -299,7 +299,7 @@ contract BorrowingVault is BaseVault {
     address liquidator
   );
 
-  // healthFactor
+  // healthFactor: a value below 100 means eligable for liquidation
   function computeHealthFactor(address account) public returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[account];
     uint256 debt = convertToDebt(debtShares);
@@ -311,14 +311,8 @@ contract BorrowingVault is BaseVault {
       uint256 assetShares = balanceOf(account);
       uint256 assets = convertToAssets(assetShares); // put in internal function
       uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
-      
-      // healthFactor = (vars.totalCollateralInBaseCurrency.percentMul(vars.avgLiquidationThreshold)).wadDiv(
-      // vars.totalDebtInBaseCurrency);
 
-      healthFactor = (assets * maxLtv * price) / debt;
-
-      // uint256 baseUserMaxBorrow =
-      // ((assets * maxLtv.num * price) / (maxLtv.denum * 10 ** IERC20Metadata(asset()).decimals()));
+      healthFactor = (assets * maxLtv * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
     }
   }
 

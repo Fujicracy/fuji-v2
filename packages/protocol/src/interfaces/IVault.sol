@@ -180,4 +180,9 @@ interface IVault is IERC4626 {
    * - SHOULD be greater than zero.
    */
   function setDepositCap(uint256 newCap) external;
+  
+  /**
+   * @dev Computes the health factor of an account to check if it can be liquidated.
+   */
+  function computeHealthFactor(address account) external returns (uint256 healthFactor);
 }
