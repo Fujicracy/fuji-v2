@@ -46,6 +46,7 @@
   ],
   "dependencies": {
     "@ethersproject/abi": "^5.4.0",
+    "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/contracts": "^5.4.0",
     "@ethersproject/providers": "^5.6.8",
     "ethers": "^5.6.9",

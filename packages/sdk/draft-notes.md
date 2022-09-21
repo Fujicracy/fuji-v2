@@ -62,7 +62,7 @@ class Vault {
 
   previewDepositAndBorrow(amountIn, amountOut, srcChain) {
     if (srcChain == chain) {
-      [DEPOSIT, PERMIT-BORROW, BORROW, X-TRANSFER]
+      [DEPOSIT, PERMIT-BORROW, BORROW]
     } else {
       [X-TRANSFER-WITH-CALL, DEPOSIT, PERMIT-BORROW, BORROW]
     }

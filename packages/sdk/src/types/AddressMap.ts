@@ -1,1 +1,3 @@
-export type AddressMap = { [chainId: number]: string };
+import { Address } from '../entities';
+
+export type AddressMap = { [chainId: number]: Address };
