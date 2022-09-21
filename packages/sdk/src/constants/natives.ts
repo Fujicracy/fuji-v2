@@ -9,6 +9,5 @@ export const NATIVE: NativeMap = {
   [ChainId.FANTOM]: Fantom.onChain(ChainId.FANTOM),
   [ChainId.MATIC]: Matic.onChain(ChainId.MATIC),
   [ChainId.ARBITRUM]: Ether.onChain(ChainId.ARBITRUM),
-  [ChainId.ARBITRUM_NOVA]: Ether.onChain(ChainId.ARBITRUM_NOVA),
   [ChainId.OPTIMISM]: Ether.onChain(ChainId.OPTIMISM),
 };
