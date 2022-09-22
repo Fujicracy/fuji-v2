@@ -316,17 +316,17 @@ contract BorrowingVault is BaseVault {
     }
   }
 
-  uint256 internal constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e4; // 0.5 might not compile in older solidty version
+  uint256 internal constant CLOSE_FACTOR_HF_THRESHOLD = 95;
+  uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e4;
   uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e4;
-  uint256 public constant CLOSE_FACTOR_HF_THRESHOLD = 0.95e18;
 
   function computeLiquidationFactor(address account) public returns (uint256 liquidationFactor) {
     uint256 healthFactor = computeHealthFactor(account);
 
-    if (healthFactor >= 1) {
+    if (healthFactor >= 100) {
       liquidationFactor = 0;
     }
-    else if (CLOSE_FACTOR_HF_THRESHOLD > healthFactor) {
+    else if (CLOSE_FACTOR_HF_THRESHOLD < healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50%
     } 
     else {
