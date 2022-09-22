@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IVault} from "../../interfaces/IVault.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IAaveV2DataProvider} from "../../interfaces/aaveV2/IAaveV2DataProvider.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 
 /**
  * @title AaveV2 Lending Provider.
@@ -12,10 +13,6 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
  * @notice This contract allows interaction with AaveV2.
  */
 contract AaveV2 is ILendingProvider {
-  function _getAaveProtocolDataProvider() internal pure returns (IAaveV2DataProvider) {
-    return IAaveV2DataProvider(0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d);
-  }
-
   function _getPool() internal pure returns (IV2Pool) {
     return IV2Pool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
   }
@@ -91,8 +88,9 @@ contract AaveV2 is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    IAaveV2DataProvider aaveData = _getAaveProtocolDataProvider();
-    (balance,,,,,,,,) = aaveData.getUserReserveData(asset, user);
+    IV2Pool aaveData = _getPool();
+    IV2Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
   /// inheritdoc ILendingProvider
@@ -102,7 +100,8 @@ contract AaveV2 is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    IAaveV2DataProvider aaveData = _getAaveProtocolDataProvider();
-    (,, balance,,,,,,) = aaveData.getUserReserveData(asset, user);
+    IV2Pool aaveData = _getPool();
+    IV2Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
 }
