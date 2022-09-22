@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IAaveV2DataProvider} from "../../interfaces/aaveV2/IAaveV2DataProvider.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";

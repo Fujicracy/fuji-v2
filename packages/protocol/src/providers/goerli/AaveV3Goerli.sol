@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IAaveV3DataProvider} from "../../interfaces/aaveV3/IAaveV3DataProvider.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
@@ -13,10 +12,6 @@ import {IVault} from "../../interfaces/IVault.sol";
  * @notice This contract allows interaction with AaveV3.
  */
 contract AaveV3Goerli is ILendingProvider {
-  function _getAaveDataProvider() internal pure returns (IAaveV3DataProvider) {
-    return IAaveV3DataProvider(0x9BE876c6DC42215B00d7efe892E2691C3bc35d10);
-  }
-
   function _getPool() internal pure returns (IV3Pool) {
     return IV3Pool(0x368EedF3f56ad10b9bC57eed4Dac65B26Bb667f6);
   }
