@@ -1,5 +1,4 @@
 import { Token } from './Token';
-import { SDK } from '../SDK';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ChainId, RouterAction } from '../enums';
 import { CONNEXT_ROUTER } from '../constants/connextRouters';
@@ -13,23 +12,15 @@ import {
 import invariant from 'tiny-invariant';
 
 export class Vault {
-  public readonly sdk: SDK;
-
   public readonly chainId: ChainId;
   public readonly address: Address;
 
   public readonly collateral: Token;
   public readonly debt: Token;
 
-  public constructor(
-    sdk: SDK,
-    address: Address,
-    collateral: Token,
-    debt: Token
-  ) {
-    invariant(debt.chainId != collateral.chainId, 'Chain mismatch!');
+  public constructor(address: Address, collateral: Token, debt: Token) {
+    invariant(debt.chainId !== collateral.chainId, 'Chain mismatch!');
 
-    this.sdk = sdk;
     this.address = address;
     this.collateral = collateral;
     this.chainId = collateral.chainId;
@@ -39,50 +30,56 @@ export class Vault {
   public previewDepositAndBorrow(
     amountIn: BigNumber,
     amountOut: BigNumber,
-    srcChainId: ChainId
+    srcChainId: ChainId,
+    account: Address
   ): RouterActionParams[] {
     // TODO estimate bridge cost
-    if (srcChainId == this.chainId) {
+    if (srcChainId === this.chainId) {
       const router: Address = CONNEXT_ROUTER[this.chainId];
       return [
-        this._previewDeposit(amountIn, this.sdk.account),
-        this._previewPermitBorrow(amountOut, router),
-        this._previewBorrow(amountOut),
+        this._previewDeposit(amountIn, account, account),
+        this._previewPermitBorrow(amountOut, router, account),
+        this._previewBorrow(amountOut, account),
       ];
     }
     return [];
   }
 
-  private _previewDeposit(amount: BigNumber, sender: Address): DepositParams {
+  private _previewDeposit(
+    amount: BigNumber,
+    sender: Address,
+    account: Address
+  ): DepositParams {
     return {
       action: RouterAction.DEPOSIT,
       vault: this.address,
       amount,
-      receiver: this.sdk.account,
+      receiver: account,
       sender,
     };
   }
 
-  private _previewBorrow(amount: BigNumber): BorrowParams {
+  private _previewBorrow(amount: BigNumber, account: Address): BorrowParams {
     return {
       action: RouterAction.BORROW,
       vault: this.address,
       amount,
-      receiver: this.sdk.account,
-      owner: this.sdk.account,
+      receiver: account,
+      owner: account,
     };
   }
 
   private _previewPermitBorrow(
     amount: BigNumber,
-    spender: Address
+    spender: Address,
+    account: Address
   ): PermitParams {
     return {
       action: RouterAction.PERMIT_BORROW,
       vault: this.address,
       amount,
       spender,
-      owner: this.sdk.account,
+      owner: account,
     };
   }
 }

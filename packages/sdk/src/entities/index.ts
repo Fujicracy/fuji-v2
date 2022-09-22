@@ -4,5 +4,6 @@ export * from './Token';
 
 export * from './Currency';
 export * from './Address';
+export * from './Vault';
 
 export * from './native';

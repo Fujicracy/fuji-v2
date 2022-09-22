@@ -2,22 +2,23 @@ import { AbstractCurrency } from './AbstractCurrency';
 import { Currency } from './Currency';
 import invariant from 'tiny-invariant';
 import { Address } from './Address';
+import { ChainId } from '../enums';
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.
  */
 export class Token extends AbstractCurrency {
-  public readonly chainId: number;
+  public readonly chainId: ChainId;
   public readonly address: Address;
 
   public readonly isNative: false = false;
   public readonly isToken: true = true;
 
   public constructor(
-    chainId: number,
+    chainId: ChainId,
     address: Address,
     decimals: number,
-    symbol?: string,
+    symbol: string,
     name?: string
   ) {
     super(chainId, decimals, symbol, name);

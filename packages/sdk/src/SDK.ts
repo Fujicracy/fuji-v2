@@ -4,10 +4,15 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { RPC_PROVIDER } from './constants/rpcs';
 import { Address, Currency, Token } from './entities';
 import { Vault } from './entities/Vault';
-import { ERC20__factory } from './types';
+import {
+  BorrowingVault__factory,
+  ERC20__factory,
+  ILendingProvider__factory,
+} from './types';
 import { CONNEXT_ROUTER } from './constants/connextRouters';
 import { ChainId } from './enums';
 import { COLLATERAL_LIST, DEBT_LIST } from './constants';
+import { VAULT_LIST } from './constants/vaults';
 
 // what address mappings do we need for each chain?
 // ROUTER
@@ -15,26 +20,20 @@ import { COLLATERAL_LIST, DEBT_LIST } from './constants';
 
 export class SDK {
   /**
-   * Address of a connected user, used to construct txns.
-   */
-  public account: Address;
-
-  public constructor(account: string) {
-    this.account = Address.from(account);
-  }
-
-  /**
    * Retruns the balance of {account} for a given {Currency},
    * checks if is native or token and returns accordingly.
    */
-  public async getBalanceFor(currency: Currency): Promise<BigNumber> {
+  public async getBalanceFor(
+    currency: Currency,
+    account: Address
+  ): Promise<BigNumber> {
     const provider: JsonRpcProvider = RPC_PROVIDER[currency.chainId];
 
     if (currency.isNative) {
-      return provider.getBalance(this.account.value);
+      return provider.getBalance(account.value);
     }
     return ERC20__factory.connect(currency.address.value, provider).balanceOf(
-      this.account.value
+      account.value
     );
   }
 
@@ -42,7 +41,10 @@ export class SDK {
    * Retruns the allowance of {account} for a given {Currency}
    * and the router of the same chain. If it's a native, returns MaxUint256.
    */
-  public async getAllowanceFor(currency: Currency): Promise<BigNumber> {
+  public async getAllowanceFor(
+    currency: Currency,
+    account: Address
+  ): Promise<BigNumber> {
     const provider: JsonRpcProvider = RPC_PROVIDER[currency.chainId];
     const router: Address = CONNEXT_ROUTER[currency.chainId];
 
@@ -51,9 +53,25 @@ export class SDK {
     }
 
     return ERC20__factory.connect(currency.address.value, provider).allowance(
-      this.account.value,
+      account.value,
       router.value
     );
+  }
+
+  public async getBorrowRateFor(vault: Vault): Promise<BigNumber> {
+    const rpcProvider = RPC_PROVIDER[vault.chainId];
+
+    // how to do MultiCall?
+    const activeProvider: string = await BorrowingVault__factory.connect(
+      vault.address.value,
+      rpcProvider
+    ).activeProvider();
+    const borrowRate: BigNumber = await ILendingProvider__factory.connect(
+      activeProvider,
+      rpcProvider
+    ).getBorrowRateFor(vault.debt.address.value);
+
+    return borrowRate;
   }
 
   /**
@@ -71,22 +89,64 @@ export class SDK {
   }
 
   /**
-   * Retruns a default vault for given currencies and chains.
-   * It's selected based on checks of the lowest APR for the debt currency.
+   * Retruns a default vault for given tokens and chains.
+   * It's selected based on checks of the lowest APR for the debt token.
    */
-  public getDefaultVaultFor(collateral: Token, debt: Token): Vault {
-    // determine "address"
-    const address: Address = Address.from('');
+  public async getBorrowingVaultFor(
+    collateral: Token,
+    debt: Token
+  ): Promise<Vault | undefined> {
+    // both tokens are from the same chain
+    if (collateral.chainId === debt.chainId) {
+      return this._findVaultByTokenAddr(collateral.chainId, collateral, debt);
+    }
 
-    return new Vault(this, address, collateral, debt);
+    // tokens are on different chains
+    const vaultA = this._findVaultByTokenSymbol(
+      collateral.chainId,
+      collateral,
+      debt
+    );
+    const vaultB = this._findVaultByTokenSymbol(debt.chainId, collateral, debt);
+
+    if (!vaultA) return vaultB;
+    if (!vaultB) return vaultA;
+
+    const borrowRateA: BigNumber = await this.getBorrowRateFor(vaultA);
+    const borrowRateB: BigNumber = await this.getBorrowRateFor(vaultB);
+
+    if (borrowRateA.lt(borrowRateB)) {
+      return vaultA;
+    }
+    return vaultB;
   }
 
-  /**
-   * Set the account for a newly connected user/wallet.
-   */
-  public setAccount(address: string): string {
-    this.account = Address.from(address);
+  private _findVaultByTokenSymbol(
+    chainId: ChainId,
+    collateral: Token,
+    debt: Token
+  ): Vault | undefined {
+    const collateralSym: string = collateral.symbol;
+    const debtSym: string = debt.symbol;
 
-    return this.account.value;
+    return VAULT_LIST[chainId].find(
+      (v: Vault) =>
+        v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
+    );
+  }
+
+  private _findVaultByTokenAddr(
+    chainId: ChainId,
+    collateral: Token,
+    debt: Token
+  ): Vault | undefined {
+    const collateralAddr: Address = collateral.address;
+    const debtAddr: Address = debt.address;
+
+    return VAULT_LIST[chainId].find(
+      (v: Vault) =>
+        v.collateral.address.equals(collateralAddr) &&
+        v.debt.address.equals(debtAddr)
+    );
   }
 }
