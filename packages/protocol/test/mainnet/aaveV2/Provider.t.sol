@@ -48,14 +48,6 @@ contract ProviderTest is DSTestPlus {
     mockOracle.setPriceOf(address(weth), address(usdc), 62500);
     mockOracle.setPriceOf(address(usdc), address(weth), 160000000000);
 
-    AddrMapperDeployer mapDeployer = new AddrMapperDeployer();
-
-    mapper = IAddrMapper(mapDeployer.deployAddrMapper("aaveV2"));
-    mapper.setNestedMapping(
-      address(weth), address(usdc), 0xc3d688B66703497DAA19211EEdff47f25384cdc3
-    );
-    mapper.setNestedMapping(address(usdc), address(0), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
-
     vault = new BorrowingVault(
       address(weth),
       address(usdc),

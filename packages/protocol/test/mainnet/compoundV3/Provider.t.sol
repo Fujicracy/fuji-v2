@@ -8,6 +8,7 @@ import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {CompoundV3} from "../../../src/providers/mainnet/CompoundV3.sol";
+import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {DSTestPlus} from "../../utils/DSTestPlus.sol";
@@ -136,6 +137,33 @@ contract ProviderTest is DSTestPlus {
     uint256 borrowBalance = vault.totalDebt();
     assertGe(depositBalance, DEPOSIT_AMOUNT);
     assertGe(borrowBalance, BORROW_AMOUNT);
+  }
+
+  function test_combinedGetBalances() public {
+    ILendingProvider aaveV2;
+    aaveV2 = new AaveV2();
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
+    providers[0] = aaveV2;
+    providers[1] = compoundV3;
+    vault.setProviders(providers);
+
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
+    _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
+
+    vault.setActiveProvider(aaveV2);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
+    _utils_doDepositRoutine(bob, DEPOSIT_AMOUNT);
+    _utils_doBorrowRoutine(bob, BORROW_AMOUNT);
+
+    uint256 depositBalance = vault.totalAssets();
+    uint256 borrowBalance = vault.totalDebt();
+    assertGe(depositBalance, DEPOSIT_AMOUNT * 2);
+    assertGe(borrowBalance, BORROW_AMOUNT * 2);
+    if (DEBUG) {
+      console.log("depositBalance", depositBalance);
+      console.log("borrowBalance", borrowBalance);
+    }
   }
 
   function test_getInterestRates() public {
