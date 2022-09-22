@@ -2,17 +2,21 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { RPC_PROVIDER } from './constants/rpcs';
-import { Address, Currency } from './entities';
+import { Address, Currency, Token } from './entities';
 import { Vault } from './entities/Vault';
 import { ERC20__factory } from './types';
-import { ChainId } from './enums';
 import { CONNEXT_ROUTER } from './constants/connextRouters';
+import { ChainId } from './enums';
+import { COLLATERAL_LIST, DEBT_LIST } from './constants';
 
 // what address mappings do we need for each chain?
 // ROUTER
 // CONNEXT EXECUTOR -> for x-chain deposits
 
 export class SDK {
+  /**
+   * Address of a connected user, used to construct txns.
+   */
   public account: Address;
 
   public constructor(account: string) {
@@ -52,21 +56,34 @@ export class SDK {
     );
   }
 
-  public getDefaultVaultFor(
-    collateral: Currency,
-    debt: Currency,
-    srcChainId: ChainId,
-    destChainId: ChainId
-  ): Vault {
-    console.log(srcChainId, destChainId);
-    // determine "chain"
-    const chain: ChainId = destChainId;
+  /**
+   * Retruns tokens to be used as collateral on a specific chain.
+   */
+  public getCollateralForChain(chainId: ChainId): Token[] {
+    return COLLATERAL_LIST[chainId];
+  }
+
+  /**
+   * Retruns tokens that can be borrowed on a specific chain.
+   */
+  public getDebtForChain(chainId: ChainId): Token[] {
+    return DEBT_LIST[chainId];
+  }
+
+  /**
+   * Retruns a default vault for given currencies and chains.
+   * It's selected based on checks of the lowest APR for the debt currency.
+   */
+  public getDefaultVaultFor(collateral: Token, debt: Token): Vault {
     // determine "address"
     const address: Address = Address.from('');
 
-    return new Vault(this, chain, address, collateral, debt);
+    return new Vault(this, address, collateral, debt);
   }
 
+  /**
+   * Set the account for a newly connected user/wallet.
+   */
   public setAccount(address: string): string {
     this.account = Address.from(address);
 

@@ -1,4 +1,4 @@
-import { Currency } from './Currency';
+import { Token } from './Token';
 import { SDK } from '../SDK';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ChainId, RouterAction } from '../enums';
@@ -10,6 +10,7 @@ import {
   PermitParams,
   RouterActionParams,
 } from '../types';
+import invariant from 'tiny-invariant';
 
 export class Vault {
   public readonly sdk: SDK;
@@ -17,20 +18,21 @@ export class Vault {
   public readonly chainId: ChainId;
   public readonly address: Address;
 
-  public readonly collateral: Currency;
-  public readonly debt: Currency;
+  public readonly collateral: Token;
+  public readonly debt: Token;
 
   public constructor(
     sdk: SDK,
-    chainId: ChainId,
     address: Address,
-    collateral: Currency,
-    debt: Currency
+    collateral: Token,
+    debt: Token
   ) {
+    invariant(debt.chainId != collateral.chainId, 'Chain mismatch!');
+
     this.sdk = sdk;
-    this.chainId = chainId;
     this.address = address;
     this.collateral = collateral;
+    this.chainId = collateral.chainId;
     this.debt = debt;
   }
 
