@@ -130,8 +130,12 @@ contract ProviderTest is DSTestPlus {
     _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
     uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();
-    assertGt(depositBalance, 0);
-    assertGt(borrowBalance, 0);
+    assertGe(depositBalance, DEPOSIT_AMOUNT);
+    assertGe(borrowBalance, BORROW_AMOUNT);
+    if (DEBUG) {
+      console.log("depositBalance", depositBalance);
+      console.log("borrowBalance", borrowBalance);
+    }
   }
 
   function test_getInterestRates() public {
