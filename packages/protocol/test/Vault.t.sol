@@ -49,18 +49,18 @@ contract VaultTest is DSTestPlus {
     vault.setActiveProvider(mockProvider);
   }
 
-  function _utils_setupOracle(address asset1, address asset2) internal {
-    // WETH and DAI prices by Aug 12h 2022
+  function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
     vm.mockCall(
       address(oracle),
       abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
-      abi.encode(528881643782407)
+      abi.encode(price)
     );
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset2, asset1, 18),
-      abi.encode(1889069940262927605990)
-    );
+  }
+
+  function _utils_setupOracle(address asset1, address asset2) internal {
+    // WETH and DAI prices by Aug 12h 2022
+    _utils_setPrice(asset1, asset2, 528881643782407);
+    _utils_setPrice(asset2, asset1, 1889069940262927605990);
   }
 
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
@@ -193,5 +193,27 @@ contract VaultTest is DSTestPlus {
 
     uint256 HF2 = vault.computeHealthFactor(alice);
     assertEq(HF2, 2833);
+  }
+
+  function test_computeLiquidationFactor() public {
+    uint256 liquidationFactor = vault.computeLiquidationFactor(alice);
+    assertEq(liquidationFactor, 0);
+
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 900e18;
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    uint256 liquidationFactor_2 = vault.computeLiquidationFactor(alice);
+    assertEq(liquidationFactor_2, 0);
+
+    _utils_setPrice(address(debtAsset), address(asset), 1164 * 1e18);
+
+    uint256 liquidationFactor_3 = vault.computeLiquidationFactor(alice);
+    assertEq(liquidationFactor_3, 5000);
+
+    _utils_setPrice(address(debtAsset), address(asset), 900 * 1e18);
+
+    uint256 liquidationFactor_4 = vault.computeLiquidationFactor(alice);
+    assertEq(liquidationFactor_4, 10000); 
   }
 }
