@@ -12,6 +12,13 @@ export const USDC: TokenMap = {
     'USDC',
     'USD Coin'
   ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    USDC_ADDRESS[ChainId.GOERLI],
+    6,
+    'USDC',
+    'USD Coin'
+  ),
   [ChainId.MATIC]: new Token(
     ChainId.MATIC,
     USDC_ADDRESS[ChainId.MATIC],
@@ -36,6 +43,20 @@ export const USDC: TokenMap = {
   [ChainId.ARBITRUM]: new Token(
     ChainId.ARBITRUM,
     USDC_ADDRESS[ChainId.ARBITRUM],
+    6,
+    'USDC',
+    'USD Coin'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    USDC_ADDRESS[ChainId.OPTIMISM],
+    6,
+    'USDC',
+    'USD Coin'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    USDC_ADDRESS[ChainId.OPTIMISM_GOERLI],
     6,
     'USDC',
     'USD Coin'
@@ -92,12 +113,20 @@ export const WETH9: TokenMap = {
     'WETH',
     'Wrapped Ether'
   ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    WETH9_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'WETH',
+    'Wrapped Ether'
+  ),
 };
 
 export const WNATIVE: TokenMap = {
   [ChainId.ETHEREUM]: WETH9[ChainId.ETHEREUM],
   [ChainId.GOERLI]: WETH9[ChainId.GOERLI],
   [ChainId.OPTIMISM]: WETH9[ChainId.OPTIMISM],
+  [ChainId.OPTIMISM_GOERLI]: WETH9[ChainId.OPTIMISM_GOERLI],
   [ChainId.FANTOM]: new Token(
     ChainId.FANTOM,
     WNATIVE_ADDRESS[ChainId.FANTOM],

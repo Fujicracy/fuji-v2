@@ -1,7 +1,8 @@
 import { Token } from './Token';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ChainId, RouterAction } from '../enums';
-import { CONNEXT_ADDRESS, LIB_SIG_UTILS_ADDRESS, RPC_PROVIDER } from '../constants';
+import { CONNEXT_ADDRESS, LIB_SIG_UTILS_ADDRESS } from '../constants/addresses';
+import { RPC_PROVIDER } from '../constants/rpcs';
 import { Address } from './Address';
 import {
   BorrowingVault__factory,
@@ -29,7 +30,7 @@ export class Vault {
   private _cachedNonce: BigNumber;
 
   public constructor(address: Address, collateral: Token, debt: Token) {
-    invariant(debt.chainId !== collateral.chainId, 'Chain mismatch!');
+    invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
     this.address = address;
     this.collateral = collateral;
@@ -37,6 +38,12 @@ export class Vault {
     this.debt = debt;
     this.rpcProvider = RPC_PROVIDER[this.chainId];
     this._cachedNonce = BigNumber.from(0);
+  }
+
+  async preLoad() {
+    // depositBalance
+    // borrowBalance
+    // nonce
   }
 
   public static needSignature(params: RouterActionParams[]): boolean {
@@ -87,7 +94,7 @@ export class Vault {
     let structHash: string;
     const libAddr: Address = LIB_SIG_UTILS_ADDRESS[this.chainId];
     const block = await this.rpcProvider.getBlock('latest');
-    const deadline: number = block.timestamp + (24 * 60 * 60);
+    const deadline: number = block.timestamp + 24 * 60 * 60;
     if (params.action === RouterAction.PERMIT_BORROW) {
       structHash = await LibSigUtils__factory.connect(
         libAddr.value,
@@ -97,7 +104,6 @@ export class Vault {
         spender: params.spender.value,
         amount: params.amount,
         nonce,
-        // TODO
         deadline,
       });
     } else {
@@ -109,8 +115,7 @@ export class Vault {
         spender: params.spender.value,
         amount: params.amount,
         nonce,
-        // TODO
-        deadline: 1,
+        deadline,
       });
     }
 
