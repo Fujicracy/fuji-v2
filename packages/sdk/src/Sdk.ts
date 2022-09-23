@@ -1,7 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { RPC_PROVIDER } from './constants/rpcs';
 import { Address, Currency, Token } from './entities';
 import { Vault } from './entities/Vault';
 import {
@@ -9,16 +8,20 @@ import {
   ERC20__factory,
   ILendingProvider__factory,
 } from './types';
-import { CONNEXT_ROUTER } from './constants/connextRouters';
 import { ChainId } from './enums';
-import { COLLATERAL_LIST, DEBT_LIST } from './constants';
-import { VAULT_LIST } from './constants/vaults';
+import {
+  COLLATERAL_LIST,
+  DEBT_LIST,
+  CONNEXT_ADDRESS,
+  RPC_PROVIDER,
+  VAULT_LIST,
+} from './constants';
 
 // what address mappings do we need for each chain?
-// ROUTER
+// LIB_SIG_UTILS
 // CONNEXT EXECUTOR -> for x-chain deposits
 
-export class SDK {
+export class Sdk {
   /**
    * Retruns the balance of {account} for a given {Currency},
    * checks if is native or token and returns accordingly.
@@ -46,7 +49,7 @@ export class SDK {
     account: Address
   ): Promise<BigNumber> {
     const provider: JsonRpcProvider = RPC_PROVIDER[currency.chainId];
-    const router: Address = CONNEXT_ROUTER[currency.chainId];
+    const router: Address = CONNEXT_ADDRESS[currency.chainId];
 
     if (currency.isNative) {
       return Promise.resolve(ethers.constants.MaxUint256);
@@ -58,10 +61,13 @@ export class SDK {
     );
   }
 
+  /**
+   * Retruns the borrowing interest rate of a vault by querying
+   * its activeProvider.
+   */
   public async getBorrowRateFor(vault: Vault): Promise<BigNumber> {
     const rpcProvider = RPC_PROVIDER[vault.chainId];
 
-    // how to do MultiCall?
     const activeProvider: string = await BorrowingVault__factory.connect(
       vault.address.value,
       rpcProvider
@@ -109,16 +115,15 @@ export class SDK {
     );
     const vaultB = this._findVaultByTokenSymbol(debt.chainId, collateral, debt);
 
-    if (!vaultA) return vaultB;
-    if (!vaultB) return vaultA;
+    // if one of the vaults doens't exist, return the other one
+    if (!vaultA || !vaultB) return vaultB ?? vaultB;
 
-    const borrowRateA: BigNumber = await this.getBorrowRateFor(vaultA);
-    const borrowRateB: BigNumber = await this.getBorrowRateFor(vaultB);
+    const [rateA, rateB] = await Promise.all([
+      this.getBorrowRateFor(vaultA),
+      this.getBorrowRateFor(vaultB),
+    ]);
 
-    if (borrowRateA.lt(borrowRateB)) {
-      return vaultA;
-    }
-    return vaultB;
+    return rateA.lt(rateB) ? vaultA : vaultB;
   }
 
   private _findVaultByTokenSymbol(

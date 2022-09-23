@@ -97,3 +97,15 @@ export const MULTICALL2_ADDRESS: AddressMap = {
   [ChainId.FANTOM]: Address.from('0x22D4cF72C45F8198CfbF4B568dBdB5A85e8DC0B5'),
   [ChainId.MATIC]: Address.from('0x02817C1e3543c2d908a590F5dB6bc97f933dB4BD'),
 };
+
+export const CONNEXT_ADDRESS: AddressMap = {
+  [ChainId.GOERLI]: Address.from(''),
+  [ChainId.MATIC_MUMBAI]: Address.from(''),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(''),
+};
+
+export const LIB_SIG_UTILS_ADDRESS: AddressMap = {
+  [ChainId.GOERLI]: Address.from(''),
+  [ChainId.MATIC_MUMBAI]: Address.from(''),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(''),
+};
