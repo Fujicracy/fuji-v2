@@ -17,6 +17,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_notEnoughAssets();
   error BorrowingVault__payback_wrongInput();
   error BorrowingVault__payback_moreThanMax();
+  error BorrowingVault__liquidate_accountHealthy();
 
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
     BaseVault(
@@ -352,7 +353,7 @@ contract BorrowingVault is BaseVault {
 
     uint256 liquidatorFactor = determineLiquidatorFactor(owner);
     if (liquidatorFactor == 0) {
-      revert BaseVault__liquidate_accountHealthy();
+      revert BorrowingVault__liquidate_accountHealthy();
     }
 
     uint256 assetShares = balanceOf(owner);
@@ -379,5 +380,5 @@ contract BorrowingVault is BaseVault {
     debt,
     caller
   );
-  }    
+  }
 }
