@@ -299,8 +299,11 @@ contract BorrowingVault is BaseVault {
     address liquidator
   );
 
-  // healthFactor: a value below 100 means eligable for liquidation
-  function computeHealthFactor(address account) public returns (uint256 healthFactor) {
+  /**
+   * @notice healthFactor: a value below 100 means eligable for liquidation
+   * @param account address of the owner of the position
+   */
+  function computeHealthFactor(address account) public view returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[account];
     uint256 debt = convertToDebt(debtShares);
     
@@ -320,60 +323,56 @@ contract BorrowingVault is BaseVault {
   uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e4;
   uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e4;
 
-  function computeLiquidationFactor(address account) public returns (uint256 liquidationFactor) {
+  /**
+   * @notice determine how much of the colletoral can be liquidated, based on health factor
+   * @param account address of the owner of the position
+   */
+  function determineLiquidatorFactor(address account) public view returns (uint256 liquidatorFactor) {
     uint256 healthFactor = computeHealthFactor(account);
 
     if (healthFactor >= 100) {
-      liquidationFactor = 0;
+      liquidatorFactor = 0;
     }
     else if (CLOSE_FACTOR_HF_THRESHOLD < healthFactor) {
-      liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50%
+      liquidatorFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50%
     } 
     else {
-      liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100%
+      liquidatorFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100%
     }
   }
 
+  /**
+   * @notice Performs liquidation of an unhealthy position, meaning a healthFacotor below 100. 
+   * The caller (= liquidator) pays back the debt of the owner and gets the proportional 
+   * amount of asset shares (collateral) at a discounted price. The owner keeps the debt but loses asset shares.
+   * @param owner address of the owner of the position
+   */
   function liquidate(address owner) public {
-    address caller = _msgSender(); // liquidator
+    address caller = _msgSender();
 
-    // // Verify liquidation call
-    uint256 liquidationFactor = computeLiquidationFactor(owner);
-    require(liquidationFactor > 0, "Can't liquidate colleteral of this owner.");
+    uint256 liquidatorFactor = determineLiquidatorFactor(owner);
+    if (liquidatorFactor == 0) {
+      revert BaseVault__liquidate_accountHealthy();
+    }
 
-    // // State change
     uint256 assetShares = balanceOf(owner);
     uint256 assets = convertToAssets(assetShares);
 
     uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
 
-    // uint256 assetSharesToLiquidate = mul(assetShares, liquidationFactor);
-    // uint256 assetsToLiquidate = mul(assets, liquidationFactor); // are e4 magnitures correct in closing factor?
-
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
     uint256 liquidationPenalty = 90; // in percent
     uint256 discountedPrice = Math.mulDiv(price, liquidationPenalty, 100);
 
-    // How many assetshares to burn to cover debt?
     uint256 assetsLiquidator = debt / discountedPrice;
-
-    // liquidationFactor determines whether 50% or 100% of colleteral is liquidated
-    assetsLiquidator = assetsLiquidator * liquidationFactor;
-
-    // turn into asset shares
+    assetsLiquidator = assetsLiquidator * liquidatorFactor;
     uint256 assetsLiquidatorShares = convertToShares(assetsLiquidator);
 
-    // burn asset shares of owner
+    _payback(caller, owner, debt, debtShares); // TODO this depends on the liquidation closing factor
     _burn(owner, assetsLiquidatorShares);
-    
-    //mint same amount of asset shares for liquidator
     _mint(caller, assetsLiquidatorShares);
 
-    // Liquidator (caller) pays back provider
-    _payback(caller, owner, debt, debtShares); // TODO this depends on the liquidation closing factor
-
-    //emit liquidation event
     emit Liquidate(
     owner,
     assetsLiquidatorShares,

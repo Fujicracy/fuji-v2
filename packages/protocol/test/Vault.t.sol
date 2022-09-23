@@ -195,25 +195,25 @@ contract VaultTest is DSTestPlus {
     assertEq(HF2, 2833);
   }
 
-  function test_computeLiquidationFactor() public {
-    uint256 liquidationFactor = vault.computeLiquidationFactor(alice);
+  function test_determineLiquidatorFactor() public {
+    uint256 liquidationFactor = vault.determineLiquidatorFactor(alice);
     assertEq(liquidationFactor, 0);
 
     uint256 amount = 1 ether;
     uint256 borrowAmount = 900e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
-    uint256 liquidationFactor_2 = vault.computeLiquidationFactor(alice);
+    uint256 liquidationFactor_2 = vault.determineLiquidatorFactor(alice);
     assertEq(liquidationFactor_2, 0);
 
     _utils_setPrice(address(debtAsset), address(asset), 1164 * 1e18);
 
-    uint256 liquidationFactor_3 = vault.computeLiquidationFactor(alice);
+    uint256 liquidationFactor_3 = vault.determineLiquidatorFactor(alice);
     assertEq(liquidationFactor_3, 5000);
 
     _utils_setPrice(address(debtAsset), address(asset), 900 * 1e18);
 
-    uint256 liquidationFactor_4 = vault.computeLiquidationFactor(alice);
+    uint256 liquidationFactor_4 = vault.determineLiquidatorFactor(alice);
     assertEq(liquidationFactor_4, 10000); 
   }
 }
