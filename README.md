@@ -1,4 +1,4 @@
-# X-Fuji
+# CrossFuji
 Cross-chain Lending Aggregator
 
 ## Quickstart
