@@ -1,7 +1,9 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "hardhat-preprocessor";
+import {DeployFunction} from 'hardhat-deploy/types';
 import * as fs from "fs";
 
 const config: HardhatUserConfig = {
@@ -40,6 +42,7 @@ const config: HardhatUserConfig = {
       }
     ],
   },
+
 };
 
 function getRemappings() {
