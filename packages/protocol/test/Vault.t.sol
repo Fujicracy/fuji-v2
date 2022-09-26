@@ -217,33 +217,33 @@ contract VaultTest is DSTestPlus {
     assertEq(liquidatorFactor_3, 1e18); 
   }
 
-  function test_liquidate(address who) public {
+  function test_liquidate() public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 900e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
-    vm.startPrank(who);
+    vm.startPrank(bob);
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(abi.encodeWithSelector(BorrowingVault.BorrowingVault__liquidate_accountHealthy.selector));
     vault.liquidate(alice);
     vm.stopPrank();
     
-    // price drop from approximately 1889*1e18 to 1000*1e18
+    // price drop from 1889*1e18 to 1000*1e18
     _utils_setPrice(address(debtAsset), address(asset), 1000e18);
     uint256 liquidatorAmount = 2000e18;
-    deal(address(debtAsset), who, liquidatorAmount);
+    deal(address(debtAsset), bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
     assertEq(vault.balanceOf(alice), amount);
     assertEq(vault.balanceOfDebt(alice), borrowAmount);
     
-    assertEq(asset.balanceOf(who), 0);
-    assertEq(debtAsset.balanceOf(who), liquidatorAmount);
-    assertEq(vault.balanceOf(who), 0);
-    assertEq(vault.balanceOfDebt(who), 0);
+    assertEq(asset.balanceOf(bob), 0);
+    assertEq(debtAsset.balanceOf(bob), liquidatorAmount);
+    assertEq(vault.balanceOf(bob), 0);
+    assertEq(vault.balanceOfDebt(bob), 0);
     
-    vm.startPrank(who);
+    vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice);
     vm.stopPrank();
@@ -253,10 +253,10 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOf(alice), 0);
     assertEq(vault.balanceOfDebt(alice), 0);
 
-    assertEq(asset.balanceOf(who), 0);
-    assertEq(debtAsset.balanceOf(who), liquidatorAmount - borrowAmount);
-    assertEq(vault.balanceOf(who), amount);
-    assertEq(vault.balanceOfDebt(who), 0);
+    assertEq(asset.balanceOf(bob), 0);
+    assertEq(debtAsset.balanceOf(bob), liquidatorAmount - borrowAmount);
+    assertEq(vault.balanceOf(bob), amount);
+    assertEq(vault.balanceOfDebt(bob), 0);
   }
 }
 
