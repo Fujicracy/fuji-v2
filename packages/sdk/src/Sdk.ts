@@ -2,7 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Address, Currency, Token } from './entities';
-import { Vault } from './entities/Vault';
+import { BorrowingVault } from './entities/BorrowingVault';
 import {
   BorrowingVault__factory,
   ERC20__factory,
@@ -65,7 +65,7 @@ export class Sdk {
    * Retruns the borrowing interest rate of a vault by querying
    * its activeProvider.
    */
-  public async getBorrowRateFor(vault: Vault): Promise<BigNumber> {
+  public async getBorrowRateFor(vault: BorrowingVault): Promise<BigNumber> {
     const rpcProvider = RPC_PROVIDER[vault.chainId];
 
     const activeProvider: string = await BorrowingVault__factory.connect(
@@ -101,7 +101,7 @@ export class Sdk {
   public async getBorrowingVaultFor(
     collateral: Token,
     debt: Token
-  ): Promise<Vault | undefined> {
+  ): Promise<BorrowingVault | undefined> {
     // both tokens are from the same chain
     if (collateral.chainId === debt.chainId) {
       return this._findVaultByTokenAddr(collateral.chainId, collateral, debt);
@@ -130,12 +130,12 @@ export class Sdk {
     chainId: ChainId,
     collateral: Token,
     debt: Token
-  ): Vault | undefined {
+  ): BorrowingVault | undefined {
     const collateralSym: string = collateral.symbol;
     const debtSym: string = debt.symbol;
 
     return VAULT_LIST[chainId].find(
-      (v: Vault) =>
+      (v: BorrowingVault) =>
         v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
     );
   }
@@ -144,12 +144,12 @@ export class Sdk {
     chainId: ChainId,
     collateral: Token,
     debt: Token
-  ): Vault | undefined {
+  ): BorrowingVault | undefined {
     const collateralAddr: Address = collateral.address;
     const debtAddr: Address = debt.address;
 
     return VAULT_LIST[chainId].find(
-      (v: Vault) =>
+      (v: BorrowingVault) =>
         v.collateral.address.equals(collateralAddr) &&
         v.debt.address.equals(debtAddr)
     );

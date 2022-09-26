@@ -1,21 +1,31 @@
 import { Token } from './Token';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ChainId, RouterAction } from '../enums';
-import { CONNEXT_ADDRESS, LIB_SIG_UTILS_ADDRESS } from '../constants/addresses';
+import {
+  CONNEXT_ADDRESS,
+  CONNEXT_EXECUTOR_ADDRESS,
+  LIB_SIG_UTILS_ADDRESS,
+} from '../constants/addresses';
 import { RPC_PROVIDER } from '../constants/rpcs';
 import { Address } from './Address';
 import {
   BorrowingVault__factory,
+  LibSigUtils__factory,
   BorrowParams,
   DepositParams,
-  LibSigUtils__factory,
   PermitParams,
   RouterActionParams,
 } from '../types';
 import invariant from 'tiny-invariant';
 import { JsonRpcProvider } from '@ethersproject/providers';
 
-export class Vault {
+export type AccountDetails = {
+  depositBalance: BigNumber;
+  debtBalance: BigNumber;
+  nonce: BigNumber;
+};
+
+export class BorrowingVault {
   public readonly rpcProvider: JsonRpcProvider;
 
   public readonly chainId: ChainId;
@@ -24,10 +34,12 @@ export class Vault {
   public readonly collateral: Token;
   public readonly debt: Token;
 
-  // _cachedNonce is necessary for compound operations,
-  // those that needs more than one signiture in the same tx.
-  // It will be added up to the value of nonce returned from the vault.
-  private _cachedNonce: BigNumber;
+  // Storing balances and nonces for this vault per account.
+  // Caching "nonce" is needed when composing compound operations.
+  // A compound operation is one that needs more then one signiture
+  // in the same tx.
+  private _cache: { [account: string]: AccountDetails } = {};
+  private _domainSeparator: string = '';
 
   public constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
@@ -37,13 +49,6 @@ export class Vault {
     this.chainId = collateral.chainId;
     this.debt = debt;
     this.rpcProvider = RPC_PROVIDER[this.chainId];
-    this._cachedNonce = BigNumber.from(0);
-  }
-
-  async preLoad() {
-    // depositBalance
-    // borrowBalance
-    // nonce
   }
 
   public static needSignature(params: RouterActionParams[]): boolean {
@@ -55,6 +60,39 @@ export class Vault {
     );
   }
 
+  // should be called only once?
+  async preLoad(account: Address): Promise<AccountDetails> {
+    const [
+      depositBalance,
+      debtBalance,
+      nonce,
+      domainSeparator,
+    ] = await Promise.all([
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).balanceOf(account.value),
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).balanceOfDebt(account.value),
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).nonces(account.value),
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).DOMAIN_SEPARATOR(),
+    ]);
+
+    const details: AccountDetails = { depositBalance, debtBalance, nonce };
+    this._cache[account.value] = details;
+    this._domainSeparator = domainSeparator;
+
+    return details;
+  }
+
   public previewDepositAndBorrow(
     amountIn: BigNumber,
     amountOut: BigNumber,
@@ -62,47 +100,47 @@ export class Vault {
     account: Address
   ): RouterActionParams[] {
     // TODO estimate bridge cost
+    const connextRouter: Address = CONNEXT_ADDRESS[this.chainId];
     if (srcChainId === this.chainId) {
-      const router: Address = CONNEXT_ADDRESS[this.chainId];
       return [
         this._previewDeposit(amountIn, account, account),
-        this._previewPermitBorrow(amountOut, router, account),
+        this._previewPermitBorrow(amountOut, connextRouter, account),
         this._previewBorrow(amountOut, account),
       ];
     }
-    return [];
+
+    const connextExecutor: Address = CONNEXT_EXECUTOR_ADDRESS[this.chainId];
+    return [
+      this._previewDeposit(amountIn, connextExecutor, account),
+      this._previewPermitBorrow(amountOut, connextRouter, account),
+      this._previewBorrow(amountOut, account),
+    ];
   }
 
   /**
    * Returns the digest to be signed by user's injected proivder/wallet.
    */
   public async signPermitFor(params: PermitParams): Promise<string> {
-    const storedNonce: BigNumber = await BorrowingVault__factory.connect(
-      this.address.value,
-      this.rpcProvider
-    ).nonces(params.owner.value);
+    const { owner, spender, amount } = params;
 
-    // TODO: how to sync with blockchain?
-    const nonce = storedNonce.add(this._cachedNonce);
-    this._cachedNonce = this._cachedNonce.add(BigNumber.from(1));
-
-    const domainSeparator: string = await BorrowingVault__factory.connect(
-      this.address.value,
-      this.rpcProvider
-    ).DOMAIN_SEPARATOR();
+    const nonce = this._cache[owner.value].nonce;
 
     let structHash: string;
     const libAddr: Address = LIB_SIG_UTILS_ADDRESS[this.chainId];
+
+    // TODO: do we need to query this for getting current timestamp?
     const block = await this.rpcProvider.getBlock('latest');
+    // deadline is 24h
     const deadline: number = block.timestamp + 24 * 60 * 60;
+
     if (params.action === RouterAction.PERMIT_BORROW) {
       structHash = await LibSigUtils__factory.connect(
         libAddr.value,
         this.rpcProvider
       ).getStructHashBorrow({
-        owner: params.owner.value,
-        spender: params.spender.value,
-        amount: params.amount,
+        owner: owner.value,
+        spender: spender.value,
+        amount,
         nonce,
         deadline,
       });
@@ -111,18 +149,21 @@ export class Vault {
         libAddr.value,
         this.rpcProvider
       ).getStructHashAsset({
-        owner: params.owner.value,
-        spender: params.spender.value,
-        amount: params.amount,
+        owner: owner.value,
+        spender: spender.value,
+        amount,
         nonce,
         deadline,
       });
     }
 
+    // update _cache if user has to sign another operation from the same tx
+    this._cache[owner.value].nonce = nonce.add(BigNumber.from(1));
+
     return await LibSigUtils__factory.connect(
       libAddr.value,
       this.rpcProvider
-    ).getHashTypedDataV4Digest(domainSeparator, structHash);
+    ).getHashTypedDataV4Digest(this._domainSeparator, structHash);
   }
 
   private _previewDeposit(

@@ -112,6 +112,12 @@ export const CONNEXT_ADDRESS: AddressMap = {
   ),
 };
 
+export const CONNEXT_EXECUTOR_ADDRESS: AddressMap = {
+  [ChainId.GOERLI]: Address.from('0x262C3A0228c8A1364A4E29a6cB14EE8a31c349ef'),
+  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+};
+
 export const LIB_SIG_UTILS_ADDRESS: AddressMap = {
   [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
