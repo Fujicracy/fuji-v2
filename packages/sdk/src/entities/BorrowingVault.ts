@@ -26,22 +26,22 @@ export type AccountDetails = {
 };
 
 export class BorrowingVault {
-  public readonly rpcProvider: JsonRpcProvider;
+  readonly rpcProvider: JsonRpcProvider;
 
-  public readonly chainId: ChainId;
-  public readonly address: Address;
+  readonly chainId: ChainId;
+  readonly address: Address;
 
-  public readonly collateral: Token;
-  public readonly debt: Token;
+  readonly collateral: Token;
+  readonly debt: Token;
 
-  // Storing balances and nonces for this vault per account.
+  // Storing nonce for this vault per account.
   // Caching "nonce" is needed when composing compound operations.
   // A compound operation is one that needs more then one signiture
   // in the same tx.
-  private _cache: { [account: string]: AccountDetails } = {};
+  private _cache: { [account: string]: BigNumber } = {};
   private _domainSeparator: string = '';
 
-  public constructor(address: Address, collateral: Token, debt: Token) {
+  constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
     this.address = address;
@@ -57,7 +57,7 @@ export class BorrowingVault {
    * or nested array of actions like
    * [X-CALL, FLASHLOAN, [PAYBACK, PERMIT_WITHDRAW, WITHDRAW, SWAP]]
    */
-  public static needSignature(
+  static needSignature(
     params: (RouterActionParams | RouterActionParams[])[]
   ): boolean {
     // TODO: do we need to check presence of r,v,s in PERMITs?
@@ -74,21 +74,8 @@ export class BorrowingVault {
   }
 
   // should be called only once?
-  async preLoad(account: Address): Promise<AccountDetails> {
-    const [
-      depositBalance,
-      debtBalance,
-      nonce,
-      domainSeparator,
-    ] = await Promise.all([
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).balanceOf(account.value),
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).balanceOfDebt(account.value),
+  async preLoad(account: Address) {
+    const [nonce, domainSeparator] = await Promise.all([
       BorrowingVault__factory.connect(
         this.address.value,
         this.rpcProvider
@@ -99,14 +86,28 @@ export class BorrowingVault {
       ).DOMAIN_SEPARATOR(),
     ]);
 
-    const details: AccountDetails = { depositBalance, debtBalance, nonce };
-    this._cache[account.value] = details;
+    this._cache[account.value] = nonce;
     this._domainSeparator = domainSeparator;
-
-    return details;
   }
 
-  public previewDepositAndBorrow(
+  async getBalances(
+    account: Address
+  ): Promise<{ deposit: BigNumber; borrow: BigNumber }> {
+    const [deposit, borrow] = await Promise.all([
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).balanceOf(account.value),
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).balanceOfDebt(account.value),
+    ]);
+
+    return { deposit, borrow };
+  }
+
+  previewDepositAndBorrow(
     amountIn: BigNumber,
     amountOut: BigNumber,
     srcChainId: ChainId,
@@ -133,10 +134,14 @@ export class BorrowingVault {
   /**
    * Returns the digest to be signed by user's injected proivder/wallet.
    */
-  public async signPermitFor(params: PermitParams): Promise<string> {
+  async signPermitFor(params: PermitParams): Promise<string> {
     const { owner, spender, amount } = params;
 
-    const nonce = this._cache[owner.value].nonce;
+    // if nonce for this user isn't loaded yet
+    if (!this._cache[owner.value]) {
+      await this.preLoad(owner);
+    }
+    const nonce = this._cache[owner.value];
 
     let structHash: string;
     const libAddr: Address = LIB_SIG_UTILS_ADDRESS[this.chainId];
@@ -171,7 +176,7 @@ export class BorrowingVault {
     }
 
     // update _cache if user has to sign another operation from the same tx
-    this._cache[owner.value].nonce = nonce.add(BigNumber.from(1));
+    this._cache[owner.value] = nonce.add(BigNumber.from(1));
 
     return await LibSigUtils__factory.connect(
       libAddr.value,

@@ -1,24 +1,25 @@
 import { validateAndParseAddress } from '../functions/validateAndParseAddress';
 import invariant from 'tiny-invariant';
+import { AddressZero } from '@ethersproject/constants';
 
 export class Address {
   private _address: string;
 
-  public constructor(addr: string) {
-    if (addr !== '') this._address = validateAndParseAddress(addr);
+  constructor(addr: string) {
+    if (addr !== AddressZero) this._address = validateAndParseAddress(addr);
     else this._address = addr;
   }
 
-  public static from(addr: string): Address {
+  static from(addr: string): Address {
     return new Address(addr);
   }
 
-  public equals(other: Address): boolean {
+  equals(other: Address): boolean {
     return this._address === other.value;
   }
 
-  public get value(): string {
-    if (this._address === '') invariant(false, 'Missing address!');
+  get value(): string {
+    if (this._address === AddressZero) invariant(false, 'Missing address!');
     return this._address;
   }
 }
