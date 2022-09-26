@@ -1,3 +1,4 @@
 import { Token } from '../entities';
+import { ChainId } from '../enums';
 
-export type TokenMap = { [chainId: number]: Token };
+export type TokenMap = Record<ChainId, Token>;

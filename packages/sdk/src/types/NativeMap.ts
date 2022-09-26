@@ -1,3 +1,4 @@
 import { NativeCurrency } from '../entities';
+import { ChainId } from '../enums';
 
-export type NativeMap = { [chainId: number]: NativeCurrency };
+export type NativeMap = Record<ChainId, NativeCurrency>;

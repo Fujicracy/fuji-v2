@@ -1,6 +1,6 @@
 import { ChainId } from '../enums';
-import { Vault } from '../entities';
+import { BorrowingVault } from '../entities';
 
 export type ChainVaultList = {
-  readonly [chainId in ChainId]: Vault[];
+  readonly [chainId in ChainId]: BorrowingVault[];
 };

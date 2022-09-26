@@ -1,7 +1,6 @@
-import { ChainId } from '../enums';
-import { ChainKey } from '../enums';
+import { ChainId, ChainKey } from '../enums';
 
-export const CHAIN: { [chainId: number]: ChainKey } = {
+export const CHAIN: Record<ChainId, ChainKey> = {
   [ChainId.ETHEREUM]: ChainKey.ETHEREUM,
   [ChainId.GOERLI]: ChainKey.GOERLI,
   [ChainId.MATIC]: ChainKey.MATIC,
