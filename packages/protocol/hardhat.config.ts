@@ -3,9 +3,17 @@ import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "hardhat-preprocessor";
-import {DeployFunction} from 'hardhat-deploy/types';
+import "hardhat-deploy";
 import * as fs from "fs";
 
+/** 
+ * Tasks
+*/
+import "./hardhat-tasks/generate";
+
+/** 
+ * Configuration
+*/
 const config: HardhatUserConfig = {
   preprocess: {
     eachLine: () => ({
@@ -42,7 +50,12 @@ const config: HardhatUserConfig = {
       }
     ],
   },
-
+  namedAccounts: {
+    deployer: { default: 0 },
+    alice: { default: 1 },
+    bob: { default: 2 },
+    rando: { default: 3 },
+  },
 };
 
 function getRemappings() {
