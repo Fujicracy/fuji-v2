@@ -321,8 +321,8 @@ contract BorrowingVault is BaseVault {
   }
 
   uint256 internal constant CLOSE_FACTOR_HF_THRESHOLD = 95;
-  uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e4;
-  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e4;
+  uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e18;
+  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
 
   /**
    * @notice determine how much of the colletoral can be liquidated, based on health factor
@@ -356,22 +356,26 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__liquidate_accountHealthy();
     }
 
-    uint256 assetShares = balanceOf(owner);
-    uint256 assets = convertToAssets(assetShares);
-
     uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
 
+    uint256 debtSharesToCover = Math.mulDiv(debtShares, liquidatorFactor, MAX_LIQUIDATION_CLOSE_FACTOR);
+    uint256 debtToCover = Math.mulDiv(debt, liquidatorFactor, MAX_LIQUIDATION_CLOSE_FACTOR);
+
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
-    uint256 liquidationPenalty = 90; // in percent
+    uint256 liquidationPenalty = 90;
     uint256 discountedPrice = Math.mulDiv(price, liquidationPenalty, 100);
 
-    uint256 assetsLiquidator = debt / discountedPrice;
-    assetsLiquidator = assetsLiquidator * liquidatorFactor;
+    uint256 assetsLiquidator = Math.mulDiv(debt, liquidatorFactor, discountedPrice);
     uint256 assetsLiquidatorShares = convertToShares(assetsLiquidator);
 
-    _payback(caller, owner, debt, debtShares); // TODO this depends on the liquidation closing factor
-    _burn(owner, assetsLiquidatorShares);
+    _payback(caller, owner, debtToCover, debtSharesToCover);
+    
+    uint256 assetShares = balanceOf(owner);
+    if (assetsLiquidatorShares >= assetShares) {
+      assetsLiquidatorShares = assetShares;
+    }
+    _burn(owner, assetsLiquidatorShares); 
     _mint(caller, assetsLiquidatorShares);
 
     emit Liquidate(

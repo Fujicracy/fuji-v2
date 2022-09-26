@@ -190,4 +190,9 @@ interface IVault is IERC4626 {
    * @dev Checks health factor to compute liquidation factor
    */
   function determineLiquidatorFactor(address account) external returns (uint256 liquidationFactor);
+
+  /**
+   * @dev Performs liquidation of owner's position
+   */  
+  function liquidate(address owner) external;
 }
