@@ -32,10 +32,10 @@ export default function Borrow () {
   const [borrowValue, setBorrowValue] = useState('')
   const [borrowToken, setBorrowToken] = useState(tokens[1])
 
-  const [showTransactionDetails, setShowTransactionDetails] = useState(true)
+  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   return (
-    <Container sx={{ marginLeft: '3.5rem', marginBottom: '1rem' }}>
+    <Container>
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
@@ -46,10 +46,10 @@ export default function Borrow () {
       {current.matches('editing') && (
         <Card
           sx={{
-            maxWidth: '27rem',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center'
+            alignItems: 'center',
+            padding: '1.5rem 2rem'
           }}
         >
           <CardContent>
@@ -110,7 +110,7 @@ export default function Borrow () {
 
             <br />
             <Card variant='outlined'>
-              <div className={styles.cardLine}>
+              <div className={styles.cardLine} style={{ height: 0 }}>
                 <Typography variant='small'>Estimated Cost</Typography>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='small'>~$3.90</Typography>
@@ -126,7 +126,10 @@ export default function Borrow () {
                 </div>
               </div>
               <Collapse in={showTransactionDetails} sx={{ width: '100%' }}>
-                <div className={styles.cardLine} style={{ width: '92%' }}>
+                <div
+                  className={styles.cardLine}
+                  style={{ width: '92%', marginTop: '1rem' }}
+                >
                   <Typography variant='small'>Gas fees</Typography>
                   <Typography variant='small'>~$1.90</Typography>
                 </div>

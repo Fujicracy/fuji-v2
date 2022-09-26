@@ -44,7 +44,7 @@ export default function CustomSelect (props: CustomSelectProps) {
               key={typeof option === 'string' ? option : option.id}
               value={typeof option === 'string' ? option : option.id}
             >
-              <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex', flexWrap: 'nowrap' }}>
                 <Image
                   src={`/assets/images/protocol-icons/${
                     typeof option === 'string' ? 'tokens' : 'networks'

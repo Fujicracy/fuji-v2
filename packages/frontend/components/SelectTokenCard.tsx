@@ -16,21 +16,19 @@ declare interface SelectTokenCardProps {
 
 export default function SelectTokenCard (props: SelectTokenCardProps) {
   return (
-    <Card variant='outlined' sx={{width: '23rem'}}>
-      <div
-        className={styles.cardLine}
-      >
+    <Card variant='outlined'>
+      <div className={styles.cardLine}>
         <TextField
           id='collateral-amount'
           type='number'
           placeholder='0'
-          //label='amount'
           value={props.value}
           onChange={props.onChangeValue}
           sx={{
             fontSize: '1.125rem',
             boxShadow: 'none',
-            '.MuiOutlinedInput-notchedOutline': { border: 0 }
+            '.MuiOutlinedInput-notchedOutline': { border: 0 },
+            width: '40%'
           }}
         />
         <CustomSelect

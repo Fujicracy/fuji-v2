@@ -14,11 +14,17 @@ export default function Theming () {
           justifyContent: 'space-around'
         }}
       >
-        <Button variant='primary' sx={{width: '23em'}}>Primary flat</Button>
-        <Button variant='primary' sx={{width: '23em'}} startIcon={<CircularProgress size={15} />}>
+        <Button variant='primary' sx={{ width: '23em' }}>
+          Primary flat
+        </Button>
+        <Button
+          variant='primary'
+          sx={{ width: '23em' }}
+          startIcon={<CircularProgress size={15} />}
+        >
           Primary flat Loading
         </Button>
-        <Button variant='primary' sx={{width: '23em'}} disabled>
+        <Button variant='primary' sx={{ width: '23em' }} disabled>
           Primary flat disabled
         </Button>
       </div>
@@ -30,7 +36,9 @@ export default function Theming () {
           justifyContent: 'space-around'
         }}
       >
-        <Button variant='secondary' sx={{width: '23em'}}>Secondary</Button>
+        <Button variant='secondary' sx={{ width: '23em' }}>
+          Secondary
+        </Button>
       </div>
       <br />
       <br />
@@ -40,8 +48,14 @@ export default function Theming () {
           justifyContent: 'space-around'
         }}
       >
-        <Button variant='secondary2' sx={{width: '23em'}}>Secondary 2</Button>
-        <Button variant='secondary2' sx={{width: '23em'}} startIcon={<CircularProgress size={15} />}>
+        <Button variant='secondary2' sx={{ width: '23em' }}>
+          Secondary 2
+        </Button>
+        <Button
+          variant='secondary2'
+          sx={{ width: '23em' }}
+          startIcon={<CircularProgress size={15} />}
+        >
           Secondary 2 Loading
         </Button>
       </div>
@@ -53,11 +67,17 @@ export default function Theming () {
           justifyContent: 'space-around'
         }}
       >
-        <Button variant='ghost' sx={{width: '23em'}}>Ghost</Button>
-        <Button variant='ghost' sx={{width: '23em'}} startIcon={<CircularProgress size={15} />}>
+        <Button variant='ghost' sx={{ width: '23em' }}>
+          Ghost
+        </Button>
+        <Button
+          variant='ghost'
+          sx={{ width: '23em' }}
+          startIcon={<CircularProgress size={15} />}
+        >
           Ghost Loading
         </Button>
-        <Button variant='ghost' sx={{width: '23em'}} disabled>
+        <Button variant='ghost' sx={{ width: '23em' }} disabled>
           Ghost disabled
         </Button>
       </div>
@@ -69,11 +89,17 @@ export default function Theming () {
           justifyContent: 'space-around'
         }}
       >
-        <Button variant='gradient' sx={{width: '23em'}}>Gradient</Button>
-        <Button variant='gradient' sx={{width: '23em'}} startIcon={<CircularProgress size={15} />}>
+        <Button variant='gradient' sx={{ width: '23em' }}>
+          Gradient
+        </Button>
+        <Button
+          variant='gradient'
+          sx={{ width: '23em' }}
+          startIcon={<CircularProgress size={15} />}
+        >
           Gradient Loading
         </Button>
-        <Button variant='gradient' sx={{width: '23em'}} disabled>
+        <Button variant='gradient' sx={{ width: '23em' }} disabled>
           Gradient disabled
         </Button>
       </div>
@@ -130,7 +156,7 @@ export default function Theming () {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-around'
+          gap: '1rem'
         }}
       >
         <Box
@@ -176,7 +202,7 @@ export default function Theming () {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-around'
+          gap: '1rem'
         }}
       >
         <Box
@@ -248,7 +274,7 @@ export default function Theming () {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-around'
+          gap: '1rem'
         }}
       >
         <Box
@@ -308,7 +334,7 @@ export default function Theming () {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-around'
+          gap: '1rem'
         }}
       >
         <Box

@@ -15,6 +15,7 @@ declare module '@mui/material/Typography' {
     display1: true
     display2: true
     body: true
+    body2: true
     small: true
     xsmall: true
     label: true
@@ -45,15 +46,6 @@ const colorTheme = createTheme({
       main: '#C3C5CB',
       dark: '#787883'
     },
-    /*action: {
-      active: '#FE3477',
-      hover: '#FE3477',
-      hoverOpacity: 0.7,
-      focus: '#FE3477',
-      focusOpacity: 1,
-      selected: '#FE3477',
-      selectedOpacity: 1
-    }, */
     success: {
       main: '#42FF00'
     },
@@ -115,6 +107,11 @@ const theme = createTheme(colorTheme, {
       fontSize: '1rem',
       lineHeight: '160%'
     },
+    body2: {
+      fontWeight: 700,
+      fontSize: '1rem',
+      lineHeight: '160%'
+    },
     small: {
       fontWeight: 400,
       fontSize: '0.875rem',
@@ -148,14 +145,14 @@ const theme = createTheme(colorTheme, {
           height: '3.25rem',
           '&.Mui-disabled': {
             opacity: 0.5,
-            color: '#F5F5FD'
+            color: colorTheme.palette.text.secondary
           },
           '&:hover': {
             opacity: 0.9,
             background:
               'linear-gradient(to right, rgb(254, 52, 119), rgb(240, 1, 79))',
             transition: 'all 0.17s ease 0s',
-            color: '#F5F5FD'
+            color: colorTheme.palette.text.secondary
           }
         }
       },
@@ -172,7 +169,7 @@ const theme = createTheme(colorTheme, {
           props: { variant: 'secondary' },
           style: {
             background: colorTheme.palette.secondary.dark,
-            border: '0.063rem solid #3B404A',
+            border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
             color: colorTheme.palette.text.primary
           }
         },
@@ -180,8 +177,12 @@ const theme = createTheme(colorTheme, {
           props: { variant: 'secondary2' },
           style: {
             background: colorTheme.palette.secondary.dark,
-            border: '0.063rem solid #3B404A',
-            color: colorTheme.palette.primary.main
+            border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
+            color: colorTheme.palette.primary.main,
+            '&:hover': {
+              background: 'transparent',
+              borderColor: colorTheme.palette.primary.main
+            }
           }
         },
         {
@@ -225,7 +226,7 @@ const theme = createTheme(colorTheme, {
           style: {
             boxSizing: 'border-box',
             background: colorTheme.palette.secondary.dark,
-            border: '0.063rem solid #3A3A3C',
+            border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
             flexDirection: 'column',
             borderRadius: '0.5rem',
             padding: '1rem',
@@ -246,7 +247,7 @@ const theme = createTheme(colorTheme, {
           color: colorTheme.palette.text.secondary
         },
         icon: {
-          color: '#FFFFFF'
+          color: colorTheme.palette.text.primary
         }
       }
     },
@@ -269,7 +270,7 @@ const theme = createTheme(colorTheme, {
     MuiOutlinedInput: {
       styleOverrides: {
         input: {
-          paddingLeft: "0.25rem"
+          paddingLeft: '0.25rem'
         }
       }
     }

@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material'
 import Image from 'next/image'
 
 import styles from '../styles/components/Footer.module.css'
+import { colorTheme } from '../styles/theme'
 
 declare interface Social {
   id: string
@@ -59,14 +60,23 @@ function Footer () {
           }}
         >
           {socials.map((social: Social) => (
-            <a href={social.url} target='_blank' key={social.id} rel="noreferrer">
+            <a
+              href={social.url}
+              target='_blank'
+              key={social.id}
+              rel='noreferrer'
+            >
               <Logo social={social} />
             </a>
           ))}
         </Box>
 
         <div
-          style={{ display: 'flex', alignItems: 'center', color: '#F5F5FD' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: colorTheme.palette.text.secondary
+          }}
         >
           <Typography variant='xsmall' className={styles.labels}>
             <a href='/about' target='_blank' className={styles.labelLink}>
@@ -75,7 +85,8 @@ function Footer () {
             <a
               href='https://docs.fujidao.org'
               target='_blank'
-              className={styles.labelLink} rel="noreferrer"
+              className={styles.labelLink}
+              rel='noreferrer'
             >
               Documentation
             </a>
