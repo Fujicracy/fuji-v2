@@ -2,7 +2,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  src: url('../public/assets/fonts/Inter-Medium.ttf')
+  src: url('../public/assets/fonts/Inter-Regular.ttf')
 }
 
 html,
@@ -23,8 +23,8 @@ a {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,4 +36,72 @@ input::-webkit-inner-spin-button {
     color: white;
     background: black;
   }
+}
+
+
+:root {
+  /* CUSTOMIZE THE COLOR  PALLETTE */
+  --onboard-white: #25262A;
+  --onboard-black: black;
+  --onboard-primary-1: #2f80ed;
+  --onboard-primary-100: #FE3477;
+  --onboard-primary-200: #FE3477;
+  --onboard-primary-300: #F6145E;
+  --onboard-primary-400: #F6145E;
+  --onboard-primary-500: #F6145E;
+  --onboard-primary-600: #F0014F;
+  --onboard-primary-700: #F0014F;
+  --onboard-gray-100: transparent;
+  --onboard-gray-200: #3B404A;
+  --onboard-gray-300: #3B404A;
+  --onboard-gray-400: #E8E8E8;
+  --onboard-gray-500: #E8E8E8;
+  --onboard-gray-600: #222429;
+  --onboard-gray-700: #222429;
+  --onboard-success-100: #d1fae3;
+  --onboard-success-200: #baf7d5;
+  --onboard-success-300: #a4f4c6;
+  --onboard-success-400: #8df2b8;
+  --onboard-success-500: #5aec99;
+  --onboard-success-600: #42FF00;
+  --onboard-success-700: #42FF00;
+  --onboard-danger-100: #ffe5e6;
+  --onboard-danger-200: #ffcccc;
+  --onboard-danger-300: #ffb3b3;
+  --onboard-danger-400: #ff8080;
+  --onboard-danger-500: #ff4f4f;
+  --onboard-danger-600: #FD4040;
+  --onboard-danger-700: #FD4040;
+  --onboard-warning-100: #ffefcc;
+  --onboard-warning-200: #ffe7b3;
+  --onboard-warning-300: #ffd780;
+  --onboard-warning-400: #ffc74c;
+  --onboard-warning-500: #ffaf00;
+  --onboard-warning-600: #F5AC37;
+  --onboard-warning-700: #F5AC37;
+
+  --account-center-minimized-address-color: #E8E8E8;
+  --account-center-maximized-address-color: #E8E8E8;
+
+  --onboard-font-family-normal: "Inter";
+  --onboard-font-family-semibold: "Inter";
+  --onboard-font-family-light: "Inter";
+  --account-center-app-btn-font-family: "Inter";
+  --account-select-modal-font-family-normal: "Inter";
+  --account-select-modal-font-family-light: "Inter";
+  --notify-onboard-font-family-normal: "Inter";
+  --account-center-app-btn-font-family: "Inter";
+
+  --account-center-minimized-network-selector-color: #E8E8E8;
+  --account-center-minimized-chain-select-background: #25262A;
+
+  --account-center-minimized-background: transparent;
+
+  --onboard-font-size-1: 3rem;
+  --onboard-font-size-2: 2.25rem;
+  --onboard-font-size-3: 1.5rem;
+  --onboard-font-size-4: 1.25rem;
+  --onboard-font-size-5: 1rem;
+  --onboard-font-size-6: 0.875rem;
+  --onboard-font-size-7: 0.875rem;
 }

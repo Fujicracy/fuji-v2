@@ -35,7 +35,7 @@ export default function Borrow () {
   const [showTransactionDetails, setShowTransactionDetails] = useState(true)
 
   return (
-    <Container sx={{ marginLeft: '3.5rem', marginBottom: "1rem" }}>
+    <Container sx={{ marginLeft: '3.5rem', marginBottom: '1rem' }}>
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
@@ -153,8 +153,9 @@ export default function Borrow () {
             <br />
             <Button
               variant='primary'
+              disabled
               onClick={() => alert('not implemented')}
-              sx={{ width: '100%' }}
+              fullWidth
             >
               Sign
             </Button>
@@ -164,7 +165,7 @@ export default function Borrow () {
               variant='gradient'
               disabled
               onClick={() => alert('not implemented')}
-              sx={{ width: '100%' }}
+              fullWidth
             >
               Borrow
             </Button>
@@ -173,7 +174,11 @@ export default function Borrow () {
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Typography variant='small'>
                 Powered by
-                <a href='https://www.connext.network/' target='_blank'>
+                <a
+                  href='https://www.connext.network/'
+                  target='_blank'
+                  rel='noreferrer'
+                >
                   <Image
                     src='/assets/images/logo/connext.svg'
                     height={16}

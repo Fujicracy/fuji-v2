@@ -16,7 +16,7 @@ declare interface SelectTokenCardProps {
 
 export default function SelectTokenCard (props: SelectTokenCardProps) {
   return (
-    <Card variant='outlined'>
+    <Card variant='outlined' sx={{width: '23rem'}}>
       <div
         className={styles.cardLine}
       >
@@ -72,12 +72,12 @@ export default function SelectTokenCard (props: SelectTokenCardProps) {
             <div>
               <Typography variant='small'>
                 <span style={{ color: colorTheme.palette.info.dark }}>
-                  LTV 45% (Recommended)
+                  LTV 45% (Recommended): n/a
                 </span>
-                :{' '}
-                <span style={{ color: colorTheme.palette.success.main }}>
+                {/*:{' '}
+                 <span style={{ color: colorTheme.palette.success.main }}>
                   900 USDC
-                </span>
+                </span> */}
               </Typography>
             </div>
           </>
