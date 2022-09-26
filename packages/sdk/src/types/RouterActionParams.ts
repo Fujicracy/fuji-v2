@@ -2,42 +2,38 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { RouterAction } from '../enums';
 import { Address } from '../entities';
 
-export type DepositParams = {
+export type BaseRouterActionParams = {
+  action: RouterAction;
+  vault: Address;
+  amount: BigNumber;
+};
+
+export type DepositParams = BaseRouterActionParams & {
   action: RouterAction.DEPOSIT;
-  vault: Address;
-  amount: BigNumber;
-  receiver: Address;
   sender: Address;
+  receiver: Address;
 };
 
-export type BorrowParams = {
+export type BorrowParams = BaseRouterActionParams & {
   action: RouterAction.BORROW;
-  vault: Address;
-  amount: BigNumber;
-  receiver: Address;
   owner: Address;
+  receiver: Address;
 };
 
-export type PaybackParams = {
+export type PaybackParams = BaseRouterActionParams & {
   action: RouterAction.PAYBACK;
-  vault: Address;
-  amount: BigNumber;
-  receiver: Address;
   sender: Address;
-};
-
-export type WithdrawParams = {
-  action: RouterAction.WITHDRAW;
-  vault: Address;
-  amount: BigNumber;
   receiver: Address;
-  owner: Address;
 };
 
-export type PermitParams = {
+export type WithdrawParams = BaseRouterActionParams & {
+  action: RouterAction.WITHDRAW;
+  owner: Address;
+  receiver: Address;
+};
+
+export type PermitParams = BaseRouterActionParams & {
   action: RouterAction.PERMIT_BORROW | RouterAction.PERMIT_WITHDRAW;
-  vault: Address;
-  amount: BigNumber;
   owner: Address;
   spender: Address;
   deadline?: number;

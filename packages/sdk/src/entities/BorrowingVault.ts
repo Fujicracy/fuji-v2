@@ -51,13 +51,26 @@ export class BorrowingVault {
     this.rpcProvider = RPC_PROVIDER[this.chainId];
   }
 
-  public static needSignature(params: RouterActionParams[]): boolean {
-    // TODO nested check and presence of r,v,s in PERMITs
-    return !!params.find(
-      ({ action }) =>
-        action === RouterAction.PERMIT_BORROW ||
-        action === RouterAction.PERMIT_WITHDRAW
-    );
+  /**
+   * Static method to check for PERMIT_BORROW or PERMIT_WITHDRAW
+   * in array of actions like [DEPOSIT, PERMIT_BORROW, BORROW]
+   * or nested array of actions like
+   * [X-CALL, FLASHLOAN, [PAYBACK, PERMIT_WITHDRAW, WITHDRAW, SWAP]]
+   */
+  public static needSignature(
+    params: (RouterActionParams | RouterActionParams[])[]
+  ): boolean {
+    // TODO: do we need to check presence of r,v,s in PERMITs?
+
+    return !!params.find(p => {
+      if (p instanceof Array) {
+        return BorrowingVault.needSignature(p);
+      }
+      return (
+        p.action === RouterAction.PERMIT_BORROW ||
+        p.action === RouterAction.PERMIT_WITHDRAW
+      );
+    });
   }
 
   // should be called only once?

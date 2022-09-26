@@ -37,7 +37,8 @@ describe('Sdk', () => {
     });
 
     it('returns a vault from chainA', async () => {
-      sdk.getBorrowRateFor = jest.fn()
+      sdk.getBorrowRateFor = jest
+        .fn()
         .mockResolvedValueOnce(BigNumber.from(1))
         .mockResolvedValueOnce(BigNumber.from(2));
 
@@ -49,7 +50,8 @@ describe('Sdk', () => {
     });
 
     it('returns a vault from chainB', async () => {
-      sdk.getBorrowRateFor = jest.fn()
+      sdk.getBorrowRateFor = jest
+        .fn()
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(1));
 
