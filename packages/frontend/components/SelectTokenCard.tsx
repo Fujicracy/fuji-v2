@@ -1,5 +1,11 @@
-import React from 'react'
-import { Button, Card, TextField, Typography } from '@mui/material'
+import React, { ReactNode } from 'react'
+import {
+  Button,
+  Card,
+  SelectChangeEvent,
+  TextField,
+  Typography
+} from '@mui/material'
 
 import CustomSelect from './Form/CustomSelect'
 import styles from '../styles/components/Borrow.module.css'
@@ -7,9 +13,9 @@ import { colorTheme } from '../styles/theme'
 
 declare interface SelectTokenCardProps {
   value: string
-  onChangeValue: any // TODO: give a good type!
+  onChangeValue: (e: React.ChangeEvent<HTMLInputElement>) => void
   token: string
-  onChangeToken: any // TODO: give a good type!
+  onChangeToken: (e: SelectChangeEvent<string>) => void
   tokens: string[]
   type: 'collateral' | 'borrow'
 }

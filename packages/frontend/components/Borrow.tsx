@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { useMachine } from '@xstate/react'
 import {
   Divider,
@@ -7,7 +7,8 @@ import {
   Typography,
   CardContent,
   Card,
-  Collapse
+  Collapse,
+  SelectChangeEvent
 } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
@@ -67,7 +68,7 @@ export default function Borrow () {
               labelId='collateral-chain-label'
               id='collateral-chain'
               value={collateralChainId}
-              onSelect={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onSelect={(e: SelectChangeEvent<string | number>) =>
                 setCollateralChain(e.target.value)
               }
               options={chains}
@@ -81,7 +82,7 @@ export default function Borrow () {
                 setCollateralValue(e.target.value)
               }
               token={collateralToken}
-              onChangeToken={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChangeToken={(e: SelectChangeEvent<string>) =>
                 setCollateralToken(e.target.value)
               }
               tokens={tokens}
@@ -92,7 +93,7 @@ export default function Borrow () {
               labelId='borrow-chain-label'
               id='borrow-chain'
               value={borrowChainId}
-              onSelect={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onSelect={(e: SelectChangeEvent<string | number>) =>
                 setBorrowChainId(e.target.value)
               }
               options={chains}
@@ -106,7 +107,7 @@ export default function Borrow () {
                 setBorrowValue(e.target.value)
               }
               token={borrowToken}
-              onChangeToken={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChangeToken={(e: SelectChangeEvent<string>) =>
                 setBorrowToken(e.target.value)
               }
               tokens={tokens}
@@ -114,19 +115,19 @@ export default function Borrow () {
             />
 
             <br />
-            <Card variant='outlined'>
+            <Card
+              variant='outlined'
+              style={{ cursor: 'pointer' }}
+              onClick={() => setShowTransactionDetails(!showTransactionDetails)}
+            >
               <div className={styles.cardLine} style={{ height: 0 }}>
                 <Typography variant='small'>Estimated Cost</Typography>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='small'>~$3.90</Typography>
                   {showTransactionDetails ? (
-                    <KeyboardArrowDownIcon
-                      onClick={() => setShowTransactionDetails(false)}
-                    />
+                    <KeyboardArrowDownIcon />
                   ) : (
-                    <KeyboardArrowUpIcon
-                      onClick={() => setShowTransactionDetails(true)}
-                    />
+                    <KeyboardArrowUpIcon />
                   )}
                 </div>
               </div>

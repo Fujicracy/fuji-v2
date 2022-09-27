@@ -1,5 +1,11 @@
-import React from 'react'
-import { FormControl, MenuItem, Select, Typography } from '@mui/material'
+import React, { ReactNode } from 'react'
+import {
+  FormControl,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Typography
+} from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import Image from 'next/image'
 
@@ -11,7 +17,7 @@ type Chain = typeof chains[0]
 declare interface CustomSelectProps {
   labelId: string
   id: string
-  onSelect: any // TODO: give a good type!
+  onSelect: (e: SelectChangeEvent<any>) => void
   value: string | number
   options: Chain[] | string[]
   label: string | null
