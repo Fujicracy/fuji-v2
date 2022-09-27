@@ -17,6 +17,7 @@ describe('BorrowingVault', () => {
   const ADDRESS_TWO = Address.from(
     '0x0000000000000000000000000000000000000002'
   );
+
   const depositActionParams: DepositParams = {
     action: RouterAction.DEPOSIT,
     vault: Address.from(AddressZero),
@@ -48,6 +49,19 @@ describe('BorrowingVault', () => {
     spender: Address.from(AddressZero),
     owner: Address.from(AddressZero),
   };
+
+  describe('#getProviders', () => {
+    it.only('fetches providers and borrowRate', async () => {
+      const vault = new BorrowingVault(
+        Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
+        WNATIVE[ChainId.GOERLI],
+        USDC[ChainId.GOERLI]
+      );
+
+      const providers = await vault.getProviders();
+      expect(providers).toBeTruthy();
+    });
+  });
 
   describe('#signPermitFor', () => {
     it('signs a separate borrow permit', async () => {

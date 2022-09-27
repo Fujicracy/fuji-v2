@@ -16,6 +16,7 @@ import {
   DepositParams,
   PermitParams,
   RouterActionParams,
+  LendingProviderDetails,
 } from '../types';
 import invariant from 'tiny-invariant';
 import { JsonRpcProvider } from '@ethersproject/providers';
@@ -106,6 +107,45 @@ export class BorrowingVault {
   }
 
   /**
+   * Retruns the list with all providers of the vault, marking the active one.
+   * Each element also includes the borrow and deposit rate.
+   */
+  async getProviders(): Promise<LendingProviderDetails[]> {
+    const allProvidersAddrs: string[] = await BorrowingVault__factory.connect(
+      this.address.value,
+      this.rpcProvider
+    ).getProviders();
+
+    const borrowPromises = allProvidersAddrs.map(addr =>
+      ILendingProvider__factory.connect(
+        addr,
+        this.rpcProvider
+      ).getBorrowRateFor(this.debt.address.value)
+    );
+    const borrowRates: BigNumber[] = await Promise.all(borrowPromises);
+
+    const depositPromises = allProvidersAddrs.map(addr =>
+      ILendingProvider__factory.connect(
+        addr,
+        this.rpcProvider
+      ).getBorrowRateFor(this.debt.address.value)
+    );
+    const depositRates: BigNumber[] = await Promise.all(depositPromises);
+
+    const activeProviderAddr: string = await BorrowingVault__factory.connect(
+      this.address.value,
+      this.rpcProvider
+    ).activeProvider();
+
+    return allProvidersAddrs.map((addr: string, i: number) => ({
+      name: `Provider ${i}`,
+      borrowRate: borrowRates[i],
+      depositRate: depositRates[i],
+      active: addr === activeProviderAddr,
+    }));
+  }
+
+  /**
    * Returns deposit and borrow balance for an account.
    */
   async getBalances(
@@ -125,6 +165,15 @@ export class BorrowingVault {
     return { deposit, borrow };
   }
 
+  /**
+   * Prepares and returns the bundle of actions that will be send to the router
+   * for a compound operation of deposit+borrow.
+   * The array that is returned should be first passed to "BorrowingVault.needSignature",
+   * If one of the actions must be signed by the user, we have to obtain the digest
+   * from "this.signPermitFor" and make the user sign it with their wallet.
+   * The last step is to obtain the txData and the address of the router from "this.getTxData"
+   * which is to be used in ethers.sendTransaction.
+   */
   previewDepositAndBorrow(
     amountIn: BigNumber,
     amountOut: BigNumber,
@@ -151,6 +200,9 @@ export class BorrowingVault {
 
   /**
    * Returns the digest to be signed by user's injected proivder/wallet.
+   * After the user signs, the next step is to obtain the txData and
+   * the address of the router from "this.getTxData" which is on its turn is
+   * to be used in ethers.sendTransaction.
    */
   async signPermitFor(params: PermitParams): Promise<string> {
     const { owner } = params;
