@@ -7,7 +7,10 @@ import {
 } from '../constants/addresses';
 import { RPC_PROVIDER } from '../constants/rpcs';
 import { Address } from './Address';
-import { BorrowingVault__factory } from '../types/contracts';
+import {
+  BorrowingVault__factory,
+  ILendingProvider__factory,
+} from '../types/contracts';
 import {
   BorrowParams,
   DepositParams,
@@ -84,6 +87,22 @@ export class BorrowingVault {
 
     this._cache[account.value] = nonce;
     this._domainSeparator = domainSeparator;
+  }
+
+  /**
+   * Retruns the borrow interest rate by querying the activeProvider.
+   */
+  async getBorrowRate(): Promise<BigNumber> {
+    const activeProvider: string = await BorrowingVault__factory.connect(
+      this.address.value,
+      this.rpcProvider
+    ).activeProvider();
+    const borrowRate: BigNumber = await ILendingProvider__factory.connect(
+      activeProvider,
+      this.rpcProvider
+    ).getBorrowRateFor(this.debt.address.value);
+
+    return borrowRate;
   }
 
   /**

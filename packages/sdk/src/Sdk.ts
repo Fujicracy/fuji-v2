@@ -3,11 +3,7 @@ import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import {
-  BorrowingVault__factory,
-  ERC20__factory,
-  ILendingProvider__factory,
-} from './types/contracts';
+import { ERC20__factory } from './types/contracts';
 import { ChainId } from './enums';
 import {
   COLLATERAL_LIST,
@@ -72,25 +68,6 @@ export class Sdk {
   }
 
   /**
-   * Retruns the borrowing interest rate of a vault by querying
-   * its activeProvider.
-   */
-  public async getBorrowRateFor(vault: BorrowingVault): Promise<BigNumber> {
-    const rpcProvider = RPC_PROVIDER[vault.chainId];
-
-    const activeProvider: string = await BorrowingVault__factory.connect(
-      vault.address.value,
-      rpcProvider
-    ).activeProvider();
-    const borrowRate: BigNumber = await ILendingProvider__factory.connect(
-      activeProvider,
-      rpcProvider
-    ).getBorrowRateFor(vault.debt.address.value);
-
-    return borrowRate;
-  }
-
-  /**
    * Retruns a default vault for given tokens and chains
    * that get selected after checks of the lowest APR for the debt token.
    * If such a vault exists only on one of the chains, it returns without
@@ -119,8 +96,8 @@ export class Sdk {
     if (!vaultA || !vaultB) return vaultA ?? vaultB;
 
     const [rateA, rateB] = await Promise.all([
-      this.getBorrowRateFor(vaultA),
-      this.getBorrowRateFor(vaultB),
+      vaultA.getBorrowRate(),
+      vaultB.getBorrowRate(),
     ]);
 
     return rateA.lt(rateB) ? vaultA : vaultB;

@@ -37,8 +37,8 @@ describe('Sdk', () => {
     });
 
     it('returns a vault from chainA based on an APR check', async () => {
-      sdk.getBorrowRateFor = jest
-        .fn()
+      jest
+        .spyOn(BorrowingVault.prototype as any, 'getBorrowRate')
         .mockResolvedValueOnce(BigNumber.from(1))
         .mockResolvedValueOnce(BigNumber.from(2));
 
@@ -50,8 +50,8 @@ describe('Sdk', () => {
     });
 
     it('returns a vault from chainB based on an APR check', async () => {
-      sdk.getBorrowRateFor = jest
-        .fn()
+      jest
+        .spyOn(BorrowingVault.prototype as any, 'getBorrowRate')
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(1));
 
