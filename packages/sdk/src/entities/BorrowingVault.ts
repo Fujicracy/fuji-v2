@@ -11,6 +11,8 @@ import { Address } from './Address';
 import {
   BorrowingVault__factory,
   LibSigUtils__factory,
+} from '../types/contracts';
+import {
   BorrowParams,
   DepositParams,
   PermitParams,

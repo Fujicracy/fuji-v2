@@ -126,6 +126,7 @@ export const WNATIVE: TokenMap = {
   [ChainId.ETHEREUM]: WETH9[ChainId.ETHEREUM],
   [ChainId.GOERLI]: WETH9[ChainId.GOERLI],
   [ChainId.OPTIMISM]: WETH9[ChainId.OPTIMISM],
+  [ChainId.ARBITRUM]: WETH9[ChainId.ARBITRUM],
   [ChainId.OPTIMISM_GOERLI]: WETH9[ChainId.OPTIMISM_GOERLI],
   [ChainId.FANTOM]: new Token(
     ChainId.FANTOM,

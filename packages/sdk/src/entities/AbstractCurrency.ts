@@ -1,6 +1,7 @@
 import { Currency } from './Currency';
 import { Token } from './Token';
 import invariant from 'tiny-invariant';
+import { ChainId } from '../enums';
 
 /**
  * A currency is any fungible financial instrument, including Ether, all ERC20 tokens, and other chain-native currencies
@@ -18,7 +19,7 @@ export abstract class AbstractCurrency {
   /**
    * The chain ID on which this currency resides
    */
-  public readonly chainId: number;
+  public readonly chainId: ChainId;
   /**
    * The decimals used in representing currency amounts
    */

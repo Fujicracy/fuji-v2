@@ -7,7 +7,7 @@ import {
   BorrowingVault__factory,
   ERC20__factory,
   ILendingProvider__factory,
-} from './types';
+} from './types/contracts';
 import { ChainId } from './enums';
 import {
   COLLATERAL_LIST,
