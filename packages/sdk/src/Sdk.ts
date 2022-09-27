@@ -17,14 +17,14 @@ export class Sdk {
   /**
    * Retruns tokens to be used as collateral on a specific chain.
    */
-  public getCollateralForChain(chainId: ChainId): Token[] {
+  getCollateralForChain(chainId: ChainId): Token[] {
     return COLLATERAL_LIST[chainId];
   }
 
   /**
    * Retruns tokens that can be borrowed on a specific chain.
    */
-  public getDebtForChain(chainId: ChainId): Token[] {
+  getDebtForChain(chainId: ChainId): Token[] {
     return DEBT_LIST[chainId];
   }
 
@@ -32,7 +32,7 @@ export class Sdk {
    * Retruns the balance of {account} for a given {Currency},
    * checks if is native or token and returns accordingly.
    */
-  public async getBalanceFor(
+  async getBalanceFor(
     currency: Currency,
     account: Address
   ): Promise<BigNumber> {
@@ -50,7 +50,7 @@ export class Sdk {
    * Retruns the allowance of {account} for a given {Currency}
    * and the router of the same chain. If it's a native, returns MaxUint256.
    */
-  public async getAllowanceFor(
+  async getAllowanceFor(
     currency: Currency,
     account: Address
   ): Promise<BigNumber> {
@@ -75,7 +75,7 @@ export class Sdk {
    * If there is no such vault because of the combination of tokens/chains,
    * it returns undefined.
    */
-  public async getBorrowingVaultFor(
+  async getBorrowingVaultFor(
     collateral: Token,
     debt: Token
   ): Promise<BorrowingVault | undefined> {
