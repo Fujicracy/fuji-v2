@@ -218,7 +218,7 @@ const theme = createTheme(colorTheme, {
           flexDirection: 'row',
           alignItems: 'flex-start',
           //color: colorTheme.palette.primary.light
-          ":last-child": { 
+          ':last-child': {
             paddingBottom: 0
           }
         }
@@ -274,6 +274,17 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         input: {
           paddingLeft: '0.25rem'
+        }
+      }
+    },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          color: colorTheme.palette.text.primary,
+          border: `1px solid ${colorTheme.palette.primary.main}`,
+          padding: '0.875rem 0.5rem',
+          fontSize: '0.75rem',
+          backgroundColor: 'rgba(18, 18, 21, 0.5)'
         }
       }
     }

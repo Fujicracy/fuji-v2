@@ -61,7 +61,7 @@ export default function Borrow () {
               Borrow
             </Typography>
 
-            <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
+            <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
 
             <CustomSelect
               labelId='collateral-chain-label'
@@ -87,7 +87,7 @@ export default function Borrow () {
               tokens={tokens}
               type='collateral'
             />
-            <br />
+
             <CustomSelect
               labelId='borrow-chain-label'
               id='borrow-chain'
@@ -182,7 +182,7 @@ export default function Borrow () {
 
             <br />
             <br />
-            
+
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Typography variant='small'>
                 Powered by

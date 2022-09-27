@@ -35,7 +35,7 @@ export default function Overview () {
           >
             Overview
           </Typography>
-          <Divider sx={{ mt: 1, mb: 1.5 }} />
+          <Divider sx={{ mt: '1rem', mb: '1.5rem' }} />
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <CurrencyCard
@@ -155,16 +155,15 @@ export default function Overview () {
                     display: 'inline'
                   }}
                 />
-                <Tooltip title='???'>
-                  <AddCircleIcon
-                    sx={{
-                      marginLeft: '0.25rem',
-                      fontSize: '0.875rem',
-                      color: colorTheme.palette.text.secondary
-                    }}
-                  />
-                </Tooltip>
               </Typography>
+              <AddCircleIcon
+                sx={{
+                  marginLeft: '0.25rem',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  color: colorTheme.palette.text.secondary
+                }}
+              />
             </div>
           </div>
         </CardContent>

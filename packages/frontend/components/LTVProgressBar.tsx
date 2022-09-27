@@ -18,12 +18,12 @@ declare interface LTVProgressBarProps {
 export default function LTVProgressBar (props: LTVProgressBarProps) {
   return (
     <Box>
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', marginLeft: "3.5rem" }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            marginLeft: '30%',
+            margin: 'auto',
             color: colorTheme.palette.text.primary
           }}
         >
@@ -39,8 +39,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            color: colorTheme.palette.text.primary,
-            marginLeft: '21%'
+            color: colorTheme.palette.text.primary
           }}
         >
           <Typography variant='xsmall'>75% LTV (MAX)</Typography>
