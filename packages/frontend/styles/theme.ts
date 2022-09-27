@@ -252,7 +252,23 @@ const theme = createTheme(colorTheme, {
         icon: {
           color: colorTheme.palette.text.primary
         }
-      }
+      },
+      variants: [
+        {
+          props: { variant: 'outlined' },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            color: colorTheme.palette.text.primary,
+            borderRadius: '6.25rem',
+            height: '2.25rem',
+            padding: '0.438rem 0.75rem',
+            fontWeight: 400,
+            fontSize: '0.875rem',
+            lineHeight: '160%',
+            '.MuiOutlinedInput-notchedOutline': { border: 0 }
+          }
+        }
+      ]
     },
     MuiInputBase: {
       styleOverrides: {

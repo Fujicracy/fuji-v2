@@ -18,6 +18,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 
 import styles from '../styles/components/Header.module.css'
+import Authentication from './Authentication'
 
 const pages = ['Markets', 'Borrow', 'Lend', 'My positions', 'Theming'] // TODO: "Theming" page is for tests
 // const settings = ["Profile", "Account", "Dashboard", "Logout"]
@@ -66,8 +67,9 @@ const Header = () => {
                 <Image
                   src='/assets/images/logo/logo-title.svg'
                   alt='Logo Fuji'
-                  width='120'
-                  height='80'
+                  width={120}
+                  height={80}
+                  layout="fixed"
                 />
               </a>
               {/* </> */}
@@ -137,6 +139,7 @@ const Header = () => {
                 flexGrow: 1,
                 display: { xs: 'none', md: 'flex' },
                 justifyContent: 'center',
+                ml: "12rem",
                 mt: 1
               }}
             >
@@ -196,6 +199,7 @@ const Header = () => {
                 ))}
               </Menu>
             </Box> */}
+            <Authentication />
           </Toolbar>
         </Container>
       </AppBar>

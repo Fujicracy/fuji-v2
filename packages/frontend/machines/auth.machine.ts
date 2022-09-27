@@ -83,7 +83,7 @@ const onboard = Onboard({
   // },
   accountCenter: {
     desktop: {
-      position: "topRight", // bottomLeft
+      position: "bottomLeft", // topRight
       enabled: true,
       minimal: false,
     },
