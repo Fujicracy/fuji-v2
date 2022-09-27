@@ -17,11 +17,21 @@ import {
   VAULT_LIST,
 } from './constants';
 
-// what address mappings do we need for each chain?
-// LIB_SIG_UTILS
-// CONNEXT EXECUTOR -> for x-chain deposits
-
 export class Sdk {
+  /**
+   * Retruns tokens to be used as collateral on a specific chain.
+   */
+  public getCollateralForChain(chainId: ChainId): Token[] {
+    return COLLATERAL_LIST[chainId];
+  }
+
+  /**
+   * Retruns tokens that can be borrowed on a specific chain.
+   */
+  public getDebtForChain(chainId: ChainId): Token[] {
+    return DEBT_LIST[chainId];
+  }
+
   /**
    * Retruns the balance of {account} for a given {Currency},
    * checks if is native or token and returns accordingly.
@@ -81,22 +91,12 @@ export class Sdk {
   }
 
   /**
-   * Retruns tokens to be used as collateral on a specific chain.
-   */
-  public getCollateralForChain(chainId: ChainId): Token[] {
-    return COLLATERAL_LIST[chainId];
-  }
-
-  /**
-   * Retruns tokens that can be borrowed on a specific chain.
-   */
-  public getDebtForChain(chainId: ChainId): Token[] {
-    return DEBT_LIST[chainId];
-  }
-
-  /**
-   * Retruns a default vault for given tokens and chains.
-   * It's selected based on checks of the lowest APR for the debt token.
+   * Retruns a default vault for given tokens and chains
+   * that get selected after checks of the lowest APR for the debt token.
+   * If such a vault exists only on one of the chains, it returns without
+   * an APR checks.
+   * If there is no such vault because of the combination of tokens/chains,
+   * it returns undefined.
    */
   public async getBorrowingVaultFor(
     collateral: Token,
@@ -116,7 +116,7 @@ export class Sdk {
     const vaultB = this._findVaultByTokenSymbol(debt.chainId, collateral, debt);
 
     // if one of the vaults doens't exist, return the other one
-    if (!vaultA || !vaultB) return vaultB ?? vaultB;
+    if (!vaultA || !vaultB) return vaultA ?? vaultB;
 
     const [rateA, rateB] = await Promise.all([
       this.getBorrowRateFor(vaultA),

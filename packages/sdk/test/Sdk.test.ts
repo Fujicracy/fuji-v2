@@ -1,14 +1,14 @@
 import { formatUnits } from '@ethersproject/units';
 import { BigNumber } from 'ethers';
 import { NATIVE, WNATIVE, USDC } from '../src/constants';
-import { Address, Token } from '../src/entities';
+import { Address, BorrowingVault, Token } from '../src/entities';
 import { ChainId } from '../src/enums';
 import { Sdk } from '../src/Sdk';
 
 describe('Sdk', () => {
-  //const ADDRESS_ONE = Address.from(
-  //'0x0000000000000000000000000000000000000001'
-  //);
+  const ADDRESS_ONE = Address.from(
+    '0x0000000000000000000000000000000000000001'
+  );
   //const ADDRESS_TWO = Address.from(
   //'0x0000000000000000000000000000000000000002'
   //);
@@ -36,7 +36,7 @@ describe('Sdk', () => {
       expect(vault?.chainId).toEqual(ChainId.GOERLI);
     });
 
-    it('returns a vault from chainA', async () => {
+    it('returns a vault from chainA based on an APR check', async () => {
       sdk.getBorrowRateFor = jest
         .fn()
         .mockResolvedValueOnce(BigNumber.from(1))
@@ -49,7 +49,7 @@ describe('Sdk', () => {
       expect(vault?.chainId).toEqual(ChainId.GOERLI);
     });
 
-    it('returns a vault from chainB', async () => {
+    it('returns a vault from chainB based on an APR check', async () => {
       sdk.getBorrowRateFor = jest
         .fn()
         .mockResolvedValueOnce(BigNumber.from(2))
@@ -57,6 +57,44 @@ describe('Sdk', () => {
 
       const collateralA = WNATIVE[ChainId.GOERLI];
       const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+
+      const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
+      expect(vault?.chainId).toEqual(ChainId.OPTIMISM_GOERLI);
+    });
+
+    it('returns a vault from chainA because it does not exist on chainB', async () => {
+      const collateralA = WNATIVE[ChainId.GOERLI];
+      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+      const vaultA = new BorrowingVault(
+        ADDRESS_ONE,
+        collateralA,
+        USDC[ChainId.GOERLI]
+      );
+
+      jest
+        .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
+        .mockImplementation(chainId =>
+          chainId === ChainId.GOERLI ? vaultA : undefined
+        );
+
+      const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
+      expect(vault?.chainId).toEqual(ChainId.GOERLI);
+    });
+
+    it('returns a vault from chainB because it does not exist on chainA', async () => {
+      const collateralA = WNATIVE[ChainId.GOERLI];
+      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+      const vaultB = new BorrowingVault(
+        ADDRESS_ONE,
+        WNATIVE[ChainId.OPTIMISM_GOERLI],
+        debtB
+      );
+
+      jest
+        .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
+        .mockImplementation(chainId =>
+          chainId === ChainId.OPTIMISM_GOERLI ? vaultB : undefined
+        );
 
       const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
       expect(vault?.chainId).toEqual(ChainId.OPTIMISM_GOERLI);
