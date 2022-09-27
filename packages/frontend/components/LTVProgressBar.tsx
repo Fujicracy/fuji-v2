@@ -23,7 +23,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            marginLeft: '36%',
+            marginLeft: '30%',
             color: colorTheme.palette.text.primary
           }}
         >
@@ -40,7 +40,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
             display: 'flex',
             alignItems: 'center',
             color: colorTheme.palette.text.primary,
-            marginLeft: '25%'
+            marginLeft: '21%'
           }}
         >
           <Typography variant='xsmall'>75% LTV (MAX)</Typography>

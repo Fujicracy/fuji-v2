@@ -13,9 +13,10 @@ export default function CurrencyCard (props: CurrencyCardProps) {
       sx={{
         borderRadius: '0.5rem',
         backgroundColor: colorTheme.palette.secondary.dark,
-        padding: '1.5rem',
+        padding: '1rem',
         display: 'block',
-        marginBottom: '1rem'
+        marginBottom: '1rem',
+        width: "100%"
       }}
     >
       <Typography

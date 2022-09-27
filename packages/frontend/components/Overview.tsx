@@ -8,6 +8,7 @@ import {
   Typography
 } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 
 import CurrencyCard from './CurrencyCard'
 import LTVProgressBar from './LTVProgressBar'
@@ -27,15 +28,14 @@ export default function Overview () {
           padding: '1.5rem 2rem'
         }}
       >
-        <CardContent>
+        <CardContent sx={{ width: '100%', padding: 0 }}>
           <Typography
             variant='body2'
-            mb='1rem'
             sx={{ color: colorTheme.palette.text.primary }}
           >
             Overview
           </Typography>
-          <Divider sx={{ mt: 1.5, mb: 1.5 }} />
+          <Divider sx={{ mt: 1, mb: 1.5 }} />
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <CurrencyCard
@@ -137,15 +137,35 @@ export default function Overview () {
               </Tooltip>
             </div>
 
-            <Typography
-              variant='small'
-              sx={{ color: colorTheme.palette.text.primary }}
-            >
-              Aave:{' '}
-              <span style={{ color: colorTheme.palette.success.main }}>
-                1.83%
-              </span>
-            </Typography>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant='small'
+                sx={{ color: colorTheme.palette.text.primary }}
+              >
+                Aave:{' '}
+                <span style={{ color: colorTheme.palette.success.main }}>
+                  1.83%
+                </span>
+                <Divider
+                  sx={{
+                    marginLeft: '0.531rem',
+                    marginRight: '0.25rem',
+                    borderRight: `0.063rem solid ${colorTheme.palette.text.secondary}`,
+                    borderBottom: 0,
+                    display: 'inline'
+                  }}
+                />
+                <Tooltip title='???'>
+                  <AddCircleIcon
+                    sx={{
+                      marginLeft: '0.25rem',
+                      fontSize: '0.875rem',
+                      color: colorTheme.palette.text.secondary
+                    }}
+                  />
+                </Tooltip>
+              </Typography>
+            </div>
           </div>
         </CardContent>
       </Card>

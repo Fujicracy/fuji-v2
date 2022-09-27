@@ -216,8 +216,11 @@ const theme = createTheme(colorTheme, {
           //padding: '1.5rem 2rem 2rem',
           display: 'flex',
           flexDirection: 'row',
-          alignItems: 'flex-start'
+          alignItems: 'flex-start',
           //color: colorTheme.palette.primary.light
+          ":last-child": { 
+            paddingBottom: 0
+          }
         }
       },
       variants: [
@@ -230,7 +233,7 @@ const theme = createTheme(colorTheme, {
             flexDirection: 'column',
             borderRadius: '0.5rem',
             padding: '1rem',
-            gap: '24px',
+            gap: '1.5rem',
             flex: 'none',
             order: 1,
             flexGrow: 0

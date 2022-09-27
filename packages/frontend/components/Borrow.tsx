@@ -18,6 +18,7 @@ import { chains } from '../machines/auth.machine'
 import CustomSelect from './Form/CustomSelect'
 import SelectTokenCard from './SelectTokenCard'
 import styles from '../styles/components/Borrow.module.css'
+import { colorTheme } from '../styles/theme'
 
 export default function Borrow () {
   const [current, send] = useMachine(borrowMachine, { devTools: true })
@@ -52,12 +53,15 @@ export default function Borrow () {
             padding: '1.5rem 2rem'
           }}
         >
-          <CardContent>
-            <Typography variant='body' mb='1rem'>
+          <CardContent sx={{ width: '100%', padding: 0 }}>
+            <Typography
+              variant='body2'
+              sx={{ color: colorTheme.palette.text.primary }}
+            >
               Borrow
             </Typography>
 
-            <Divider sx={{ mt: 1.5 }} />
+            <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
             <CustomSelect
               labelId='collateral-chain-label'
@@ -83,6 +87,7 @@ export default function Borrow () {
               tokens={tokens}
               type='collateral'
             />
+            <br />
             <CustomSelect
               labelId='borrow-chain-label'
               id='borrow-chain'
@@ -153,7 +158,7 @@ export default function Borrow () {
               </Collapse>
             </Card>
             <br />
-            <br />
+
             <Button
               variant='primary'
               disabled
@@ -162,8 +167,10 @@ export default function Borrow () {
             >
               Sign
             </Button>
+
             <br />
             <br />
+
             <Button
               variant='gradient'
               disabled
@@ -172,8 +179,10 @@ export default function Borrow () {
             >
               Borrow
             </Button>
+
             <br />
             <br />
+            
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Typography variant='small'>
                 Powered by

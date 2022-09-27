@@ -21,12 +21,16 @@ const BorrowPage: NextPage = () => {
 
       <Header />
 
-      <Container maxWidth='xl' >
-        <Grid container>
-          <Grid item xs={4}>
+      <Container>
+        <Grid container wrap='wrap' sx={{ display: 'flex', flexWrap: 'wrap' }}>
+          <Grid item xs={12} sm={12} md={5}>
             <Borrow />
           </Grid>
-          <Grid item xs={8}>
+          <Grid
+            sx={{ display: { xs: 'none', sm: 'none', md: 'block' } }}
+            item
+            xs={7}
+          >
             <Overview />
           </Grid>
         </Grid>
