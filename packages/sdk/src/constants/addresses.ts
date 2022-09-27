@@ -15,7 +15,7 @@ export const USDC_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM]: Address.from(
     '0x7F5c764cBc14f9669B88837ca1490cCa17c31607'
   ),
-  [ChainId.GOERLI]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from('0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x742DfA5Aa70a8212857966D491D67B09Ce7D6ec7'
@@ -127,17 +127,6 @@ export const CONNEXT_EXECUTOR_ADDRESS: AddressMap = {
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.MATIC]: Address.from(AddressZero),
   [ChainId.GOERLI]: Address.from('0x262C3A0228c8A1364A4E29a6cB14EE8a31c349ef'),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
-};
-
-export const LIB_SIG_UTILS_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
-  [ChainId.ARBITRUM]: Address.from(AddressZero),
-  [ChainId.OPTIMISM]: Address.from(AddressZero),
-  [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from(AddressZero),
-  [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
 };

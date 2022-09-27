@@ -4,14 +4,10 @@ import { ChainId, RouterAction } from '../enums';
 import {
   CONNEXT_ADDRESS,
   CONNEXT_EXECUTOR_ADDRESS,
-  LIB_SIG_UTILS_ADDRESS,
 } from '../constants/addresses';
 import { RPC_PROVIDER } from '../constants/rpcs';
 import { Address } from './Address';
-import {
-  BorrowingVault__factory,
-  LibSigUtils__factory,
-} from '../types/contracts';
+import { BorrowingVault__factory } from '../types/contracts';
 import {
   BorrowParams,
   DepositParams,
@@ -20,12 +16,7 @@ import {
 } from '../types';
 import invariant from 'tiny-invariant';
 import { JsonRpcProvider } from '@ethersproject/providers';
-
-export type AccountDetails = {
-  depositBalance: BigNumber;
-  debtBalance: BigNumber;
-  nonce: BigNumber;
-};
+import { getPermitDigest } from '../functions';
 
 export class BorrowingVault {
   readonly rpcProvider: JsonRpcProvider;
@@ -75,7 +66,10 @@ export class BorrowingVault {
     });
   }
 
-  // should be called only once?
+  /**
+   * Loads and sets domainSeparator and account's nonce
+   * that will be used when signing operations.
+   */
   async preLoad(account: Address) {
     const [nonce, domainSeparator] = await Promise.all([
       BorrowingVault__factory.connect(
@@ -92,6 +86,9 @@ export class BorrowingVault {
     this._domainSeparator = domainSeparator;
   }
 
+  /**
+   * Returns deposit and borrow balance for an account.
+   */
   async getBalances(
     account: Address
   ): Promise<{ deposit: BigNumber; borrow: BigNumber }> {
@@ -137,53 +134,30 @@ export class BorrowingVault {
    * Returns the digest to be signed by user's injected proivder/wallet.
    */
   async signPermitFor(params: PermitParams): Promise<string> {
-    const { owner, spender, amount } = params;
+    const { owner } = params;
 
-    // if nonce for this user isn't loaded yet
-    if (!this._cache[owner.value]) {
+    // if nonce for this user or domainSeparator aren't loaded yet
+    if (!this._cache[owner.value] || this._domainSeparator === '') {
       await this.preLoad(owner);
     }
     const nonce = this._cache[owner.value];
 
-    let structHash: string;
-    const libAddr: Address = LIB_SIG_UTILS_ADDRESS[this.chainId];
+    // if deadline is not given, then set it to approx. 24h
+    const deadline: number =
+      params.deadline ?? Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+    const digest: string = getPermitDigest(
+      params,
+      nonce,
+      deadline,
+      this._domainSeparator
+    );
 
-    // TODO: do we need to query this for getting current timestamp?
-    const block = await this.rpcProvider.getBlock('latest');
-    // deadline is 24h
-    const deadline: number = block.timestamp + 24 * 60 * 60;
-
-    if (params.action === RouterAction.PERMIT_BORROW) {
-      structHash = await LibSigUtils__factory.connect(
-        libAddr.value,
-        this.rpcProvider
-      ).getStructHashBorrow({
-        owner: owner.value,
-        spender: spender.value,
-        amount,
-        nonce,
-        deadline,
-      });
-    } else {
-      structHash = await LibSigUtils__factory.connect(
-        libAddr.value,
-        this.rpcProvider
-      ).getStructHashAsset({
-        owner: owner.value,
-        spender: spender.value,
-        amount,
-        nonce,
-        deadline,
-      });
-    }
-
-    // update _cache if user has to sign another operation from the same tx
+    // update _cache if user has to sign another operation in the same tx
+    // For ex. when shifting a position from one vault to another,
+    // user has to sign first WITHDRAW and then BORROW
     this._cache[owner.value] = nonce.add(BigNumber.from(1));
 
-    return await LibSigUtils__factory.connect(
-      libAddr.value,
-      this.rpcProvider
-    ).getHashTypedDataV4Digest(this._domainSeparator, structHash);
+    return digest;
   }
 
   private _previewDeposit(

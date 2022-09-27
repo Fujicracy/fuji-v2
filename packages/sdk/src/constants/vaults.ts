@@ -8,7 +8,7 @@ export const VAULT_LIST: ChainVaultList = {
   [ChainId.ETHEREUM]: [],
   [ChainId.GOERLI]: [
     new BorrowingVault(
-      Address.from(AddressZero),
+      Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
       WNATIVE[ChainId.GOERLI],
       USDC[ChainId.GOERLI]
     ),
