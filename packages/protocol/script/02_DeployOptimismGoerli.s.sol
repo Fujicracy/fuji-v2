@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
-import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
+import {IConnextHandler} from "../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
