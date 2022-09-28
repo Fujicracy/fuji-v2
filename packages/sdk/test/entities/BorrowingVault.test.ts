@@ -51,7 +51,7 @@ describe('BorrowingVault', () => {
   };
 
   describe('#getProviders', () => {
-    it.only('fetches providers and borrowRate', async () => {
+    it('fetches providers and borrowRate', async () => {
       const vault = new BorrowingVault(
         Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
         WNATIVE[ChainId.GOERLI],

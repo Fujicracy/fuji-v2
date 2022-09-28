@@ -31,6 +31,9 @@ export class BorrowingVault {
   readonly collateral: Token;
   readonly debt: Token;
 
+  maxLtv?: BigNumber;
+  liqRatio?: BigNumber;
+
   // Storing nonce for this vault per account.
   // Caching "nonce" is needed when composing compound operations.
   // A compound operation is one that needs more then one signiture
@@ -75,7 +78,15 @@ export class BorrowingVault {
    * that will be used when signing operations.
    */
   async preLoad(account: Address) {
-    const [nonce, domainSeparator] = await Promise.all([
+    const [maxLtv, liqRatio, nonce, domainSeparator] = await Promise.all([
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).maxLtv(),
+      BorrowingVault__factory.connect(
+        this.address.value,
+        this.rpcProvider
+      ).liqRatio(),
       BorrowingVault__factory.connect(
         this.address.value,
         this.rpcProvider
@@ -85,6 +96,9 @@ export class BorrowingVault {
         this.rpcProvider
       ).DOMAIN_SEPARATOR(),
     ]);
+
+    this.maxLtv = maxLtv;
+    this.liqRatio = liqRatio;
 
     this._cache[account.value] = nonce;
     this._domainSeparator = domainSeparator;
