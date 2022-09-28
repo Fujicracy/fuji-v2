@@ -20,7 +20,8 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "size": "size-limit",
-    "generate-types": "yarn workspace @x-fuji/protocol hardhat export-abi && typechain --target=ethers-v5 --out-dir src/types/contracts '../protocol/abis/**/*.json'",
+    "export-abis": "yarn workspace @x-fuji/protocol hardhat export-abi",
+    "generate-types": "typechain --target ../../node_modules/@hovoh/typechain-ethers-multicall --out-dir src/types/contracts '../protocol/abis/**/*.json'",
     "analyze": "size-limit --why"
   },
   "prettier": {
@@ -46,12 +47,14 @@
     "@ethersproject/contracts": "^5.4.0",
     "@ethersproject/providers": "^5.6.8",
     "@ethersproject/units": "^5.7.0",
+    "@hovoh/ethcall": "^9.9.8",
     "ethers": "^5.6.9",
     "tiny-invariant": "^1.2.0",
     "tiny-warning": "^1.0.3"
   },
   "devDependencies": {
     "@ethersproject/solidity": "^5.7.0",
+    "@hovoh/typechain-ethers-multicall": "^10.1.3",
     "@nomiclabs/hardhat-ethers": "^2.1.1",
     "@size-limit/preset-small-lib": "^8.0.1",
     "@typechain/ethers-v5": "^10.1.0",
