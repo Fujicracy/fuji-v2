@@ -22,6 +22,8 @@ import {
 import invariant from 'tiny-invariant';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { getPermitDigest } from '../functions';
+import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
+import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 
 export class BorrowingVault {
   /**
@@ -48,6 +50,11 @@ export class BorrowingVault {
   private _cache: { [account: string]: BigNumber } = {};
   private _domainSeparator: string = '';
 
+  private _multicall: {
+    proivder: IMulticallProvider;
+    contract: BorrowingVaultMulticall;
+  };
+
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
@@ -61,6 +68,10 @@ export class BorrowingVault {
       this.address.value,
       this.rpcProvider
     );
+    this._multicall = {
+      proivder: initSyncMulticallProvider(this.rpcProvider, this.chainId),
+      contract: BorrowingVault__factory.multicall(this.address.value),
+    };
   }
 
   /**
@@ -90,11 +101,16 @@ export class BorrowingVault {
    * that will be used when signing operations.
    */
   async preLoad(account: Address) {
-    const [maxLtv, liqRatio, nonce, domainSeparator] = await Promise.all([
-      this.contract.maxLtv(),
-      this.contract.liqRatio(),
-      this.contract.nonces(account.value),
-      this.contract.DOMAIN_SEPARATOR(),
+    const [
+      maxLtv,
+      liqRatio,
+      nonce,
+      domainSeparator,
+    ] = await this._multicall.proivder.all([
+      this._multicall.contract.maxLtv(),
+      this._multicall.contract.liqRatio(),
+      this._multicall.contract.nonces(account.value),
+      this._multicall.contract.DOMAIN_SEPARATOR(),
     ]);
 
     this.maxLtv = maxLtv;
@@ -122,30 +138,32 @@ export class BorrowingVault {
    * Each element also includes the borrow and deposit rate.
    */
   async getProviders(): Promise<LendingProviderDetails[]> {
+    // TODO: move this to preLoad and load them only if they are not init
     const allProvidersAddrs: string[] = await this.contract.getProviders();
-
-    const borrowPromises = allProvidersAddrs.map(addr =>
-      ILendingProvider__factory.connect(
-        addr,
-        this.rpcProvider
-      ).getBorrowRateFor(this.debt.address.value)
-    );
-    const borrowRates: BigNumber[] = await Promise.all(borrowPromises);
-
-    const depositPromises = allProvidersAddrs.map(addr =>
-      ILendingProvider__factory.connect(
-        addr,
-        this.rpcProvider
-      ).getBorrowRateFor(this.debt.address.value)
-    );
-    const depositRates: BigNumber[] = await Promise.all(depositPromises);
-
     const activeProviderAddr: string = await this.contract.activeProvider();
 
+    const depositCalls = allProvidersAddrs.map(addr =>
+      ILendingProvider__factory.multicall(addr).getDepositRateFor(
+        this.debt.address.value
+      )
+    );
+    const borrowCalls = allProvidersAddrs.map(addr =>
+      ILendingProvider__factory.multicall(addr).getBorrowRateFor(
+        this.debt.address.value
+      )
+    );
+
+    // do a common call for both types and use an index to split them below
+    const rates: BigNumber[] = await this._multicall.proivder.all([
+      ...depositCalls,
+      ...borrowCalls,
+    ]);
+
+    const splitIndex = rates.length / 2;
     return allProvidersAddrs.map((addr: string, i: number) => ({
       name: `Provider ${i}`,
-      borrowRate: borrowRates[i],
-      depositRate: depositRates[i],
+      depositRate: rates[i],
+      borrowRate: rates[i + splitIndex],
       active: addr === activeProviderAddr,
     }));
   }
@@ -156,9 +174,9 @@ export class BorrowingVault {
   async getBalances(
     account: Address
   ): Promise<{ deposit: BigNumber; borrow: BigNumber }> {
-    const [deposit, borrow] = await Promise.all([
-      this.contract.balanceOf(account.value),
-      this.contract.balanceOfDebt(account.value),
+    const [deposit, borrow] = await this._multicall.proivder.all([
+      this._multicall.contract.balanceOf(account.value),
+      this._multicall.contract.balanceOfDebt(account.value),
     ]);
 
     return { deposit, borrow };
