@@ -68,10 +68,10 @@ export class Sdk {
   }
 
   /**
-   * Retruns a default vault for given tokens and chains
-   * that get selected after checks of the lowest APR for the debt token.
+   * Retruns a default vault for given tokens and chains.
+   * that get selected after checks of the lowest borrow rate for the debt token.
    * If such a vault exists only on one of the chains, it returns without
-   * an APR checks.
+   * checks of the rate.
    * If there is no such vault because of the combination of tokens/chains,
    * it returns undefined.
    */
