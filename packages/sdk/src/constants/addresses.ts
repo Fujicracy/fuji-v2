@@ -16,7 +16,9 @@ export const USDC_ADDRESS: AddressMap = {
     '0x7F5c764cBc14f9669B88837ca1490cCa17c31607'
   ),
   [ChainId.GOERLI]: Address.from('0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'
+  ),
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x742DfA5Aa70a8212857966D491D67B09Ce7D6ec7'
   ),

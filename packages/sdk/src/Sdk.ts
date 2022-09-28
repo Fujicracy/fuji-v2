@@ -1,15 +1,11 @@
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ERC20__factory } from './types/contracts';
 import { ChainId } from './enums';
 import {
   COLLATERAL_LIST,
   DEBT_LIST,
   CONNEXT_ADDRESS,
-  RPC_PROVIDER,
   VAULT_LIST,
 } from './constants';
 
@@ -36,14 +32,7 @@ export class Sdk {
     currency: Currency,
     account: Address
   ): Promise<BigNumber> {
-    const provider: JsonRpcProvider = RPC_PROVIDER[currency.chainId];
-
-    if (currency.isNative) {
-      return provider.getBalance(account.value);
-    }
-    return ERC20__factory.connect(currency.address.value, provider).balanceOf(
-      account.value
-    );
+    return currency.balanceOf(account);
   }
 
   /**
@@ -54,17 +43,8 @@ export class Sdk {
     currency: Currency,
     account: Address
   ): Promise<BigNumber> {
-    const provider: JsonRpcProvider = RPC_PROVIDER[currency.chainId];
     const router: Address = CONNEXT_ADDRESS[currency.chainId];
-
-    if (currency.isNative) {
-      return Promise.resolve(ethers.constants.MaxUint256);
-    }
-
-    return ERC20__factory.connect(currency.address.value, provider).allowance(
-      account.value,
-      router.value
-    );
+    return currency.allowance(account, router);
   }
 
   /**

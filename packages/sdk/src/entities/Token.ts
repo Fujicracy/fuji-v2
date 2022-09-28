@@ -3,18 +3,29 @@ import { Currency } from './Currency';
 import invariant from 'tiny-invariant';
 import { Address } from './Address';
 import { ChainId } from '../enums';
+import { BigNumber } from '@ethersproject/bignumber';
+import { Contract } from '@ethersproject/contracts';
+import { ERC20__factory } from '../types/contracts';
+import { RPC_PROVIDER } from '../constants/rpcs';
+import { JsonRpcProvider } from '@ethersproject/providers';
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.
  */
 export class Token extends AbstractCurrency {
-  public readonly chainId: ChainId;
-  public readonly address: Address;
+  readonly chainId: ChainId;
+  readonly address: Address;
 
-  public readonly isNative: false = false;
-  public readonly isToken: true = true;
+  readonly isNative: false = false;
+  readonly isToken: true = true;
 
-  public constructor(
+  /**
+   * Instance of ethers Contract class, already initialized with address and rpc provider.
+   * It's ready to be used by calling the methods available on the smart contract.
+   */
+  readonly contract: Contract;
+
+  constructor(
     chainId: ChainId,
     address: Address,
     decimals: number,
@@ -24,13 +35,37 @@ export class Token extends AbstractCurrency {
     super(chainId, decimals, symbol, name);
     this.chainId = chainId;
     this.address = address;
+
+    const rpc: JsonRpcProvider = RPC_PROVIDER[this.chainId];
+    this.contract = ERC20__factory.connect(this.address.value, rpc);
+  }
+
+  /**
+   * Return this token, which does not need to be wrapped
+   */
+  get wrapped(): Token {
+    return this;
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.balanceOf}
+   */
+  async balanceOf(account: Address): Promise<BigNumber> {
+    return this.contract.balanceOf(account.value);
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.allowance}
+   */
+  async allowance(owner: Address, spender: Address): Promise<BigNumber> {
+    return this.contract.allowance(owner.value, spender.value);
   }
 
   /**
    * Returns true if the two tokens are equivalent, i.e. have the same chainId and address.
    * @param other other token to compare
    */
-  public equals(other: Currency): boolean {
+  equals(other: Currency): boolean {
     return (
       other.isToken &&
       this.chainId === other.chainId &&
@@ -44,25 +79,11 @@ export class Token extends AbstractCurrency {
    * @throws if the tokens have the same address
    * @throws if the tokens are on different chains
    */
-  public sortsBefore(other: Token): boolean {
+  sortsBefore(other: Token): boolean {
     invariant(this.chainId === other.chainId, 'CHAIN_IDS');
     invariant(this.address !== other.address, 'ADDRESSES');
     return this.address.value.toLowerCase() < other.address.value.toLowerCase();
   }
-
-  /**
-   * Return this token, which does not need to be wrapped
-   */
-  public get wrapped(): Token {
-    return this;
-  }
-
-  /**
-   * Return logo
-   */
-  // public get logo(): string | null {
-  //   return this.chainId in CHAIN_KEY ? `https://raw.githubusercontent.com/sushiswap/logos/main/network/${CHAIN_KEY[this.chainId]}/.jpg` : undefined
-  // }
 }
 
 /**
