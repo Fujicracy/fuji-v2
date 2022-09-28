@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { useMachine } from '@xstate/react'
 import {
   Divider,
@@ -8,7 +8,10 @@ import {
   CardContent,
   Card,
   Collapse,
-  SelectChangeEvent
+  Grid,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
@@ -19,7 +22,8 @@ import { chains } from '../machines/auth.machine'
 import CustomSelect from './Form/CustomSelect'
 import SelectTokenCard from './SelectTokenCard'
 import styles from '../styles/components/Borrow.module.css'
-import { colorTheme } from '../styles/theme'
+
+type Chain = typeof chains[0]
 
 export default function Borrow () {
   const [current, send] = useMachine(borrowMachine, { devTools: true })
@@ -46,70 +50,109 @@ export default function Borrow () {
       )}
 
       {current.matches('editing') && (
-        <Card
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '1.5rem 2rem'
-          }}
-        >
-          <CardContent sx={{ width: '100%', padding: 0 }}>
-            <Typography
-              variant='body2'
-              sx={{ color: colorTheme.palette.text.primary }}
-            >
-              Borrow
-            </Typography>
+        <Card>
+          <CardContent sx={{ p: '1.5rem 2rem' }}>
+            <Typography variant='body2'>Borrow</Typography>
 
             <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
 
-            <CustomSelect
-              labelId='collateral-chain-label'
-              id='collateral-chain'
-              value={collateralChainId}
-              onSelect={(e: SelectChangeEvent<string | number>) =>
-                setCollateralChain(e.target.value)
-              }
-              options={chains}
-              label='Collateral from'
-              large={false}
-            />
+            <FormControl>
+              <Grid container alignItems='center'>
+                <label
+                  id='collateral-chain-label'
+                  className={styles.selectLabel}
+                >
+                  Collateral from
+                </label>
+                <Select
+                  labelId='collateral-chain-label'
+                  id='collateral-chain'
+                  value={collateralChainId}
+                  onChange={e => setCollateralChain(e.target.value)}
+                  IconComponent={KeyboardArrowDownIcon}
+                  sx={{
+                    marginBottom: '1rem',
+                    boxShadow: 'none',
+                    '.MuiOutlinedInput-notchedOutline': { border: 0 }
+                  }}
+                  variant='standard'
+                  disableUnderline
+                >
+                  {chains.map((chain: Chain) => (
+                    <MenuItem key={chain.id} value={chain.id}>
+                      <Grid container>
+                        <Image
+                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                          height={18}
+                          width={18}
+                          alt={chain.label}
+                        />
+                        <span style={{ marginLeft: '0.5rem' }}>
+                          <Typography variant='small'>
+                            {chain.label} Network
+                          </Typography>
+                        </span>
+                      </Grid>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Grid>
+            </FormControl>
 
             <SelectTokenCard
               value={collateralValue}
-              onChangeValue={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setCollateralValue(e.target.value)
-              }
+              onChangeValue={e => setCollateralValue(e.target.value)}
               token={collateralToken}
-              onChangeToken={(e: SelectChangeEvent<string>) =>
-                setCollateralToken(e.target.value)
-              }
+              onChangeToken={e => setCollateralToken(e.target.value)}
               tokens={tokens}
               type='collateral'
             />
 
-            <CustomSelect
-              labelId='borrow-chain-label'
-              id='borrow-chain'
-              value={borrowChainId}
-              onSelect={(e: SelectChangeEvent<string | number>) =>
-                setBorrowChainId(e.target.value)
-              }
-              options={chains}
-              label='Borrow to'
-              large={false}
-            />
+            <FormControl>
+              <Grid container alignItems='center'>
+                <label id='borrow-chain-label' className={styles.selectLabel}>
+                  Borrow to
+                </label>
+                <Select
+                  labelId='borrow-chain-label'
+                  id='borrow-chain'
+                  value={borrowChainId}
+                  onChange={e => setBorrowChainId(e.target.value)}
+                  IconComponent={KeyboardArrowDownIcon}
+                  sx={{
+                    marginBottom: '1rem',
+                    boxShadow: 'none',
+                    '.MuiOutlinedInput-notchedOutline': { border: 0 }
+                  }}
+                  variant='standard'
+                  disableUnderline
+                >
+                  {chains.map((chain: Chain) => (
+                    <MenuItem key={chain.id} value={chain.id}>
+                      <Grid container>
+                        <Image
+                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                          height={18}
+                          width={18}
+                          alt={chain.label}
+                        />
+                        <span style={{ marginLeft: '0.5rem' }}>
+                          <Typography variant={'small'}>
+                            {chain.label} Network
+                          </Typography>
+                        </span>
+                      </Grid>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Grid>
+            </FormControl>
 
             <SelectTokenCard
               value={borrowValue}
-              onChangeValue={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setBorrowValue(e.target.value)
-              }
+              onChangeValue={e => setBorrowValue(e.target.value)}
               token={borrowToken}
-              onChangeToken={(e: SelectChangeEvent<string>) =>
-                setBorrowToken(e.target.value)
-              }
+              onChangeToken={e => setBorrowToken(e.target.value)}
               tokens={tokens}
               type='borrow'
             />
@@ -184,7 +227,7 @@ export default function Borrow () {
             <br />
             <br />
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Grid container justifyContent='center'>
               <Typography variant='small'>
                 Powered by
                 <a
@@ -200,7 +243,7 @@ export default function Borrow () {
                   />
                 </a>
               </Typography>
-            </div>
+            </Grid>
           </CardContent>
         </Card>
       )}

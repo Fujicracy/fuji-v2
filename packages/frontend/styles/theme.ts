@@ -10,6 +10,12 @@ declare module '@mui/material/Button' {
   }
 }
 
+declare module '@mui/material/Paper' {
+  interface PaperPropsVariantOverrides {
+    currency: true
+  }
+}
+
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     display1: true
@@ -17,8 +23,10 @@ declare module '@mui/material/Typography' {
     body: true
     body2: true
     small: true
+    smallDark: true
     xsmall: true
     label: true
+    regularH4: true
   }
 }
 
@@ -54,13 +62,16 @@ const colorTheme = createTheme({
     },
     error: {
       main: '#FD4040'
+    },
+    background: {
+      paper: 'black',
+      default: '#2D2F35'
     }
   }
 })
 
 const theme = createTheme(colorTheme, {
   typography: {
-    color: colorTheme.palette.text.primary,
     letterSpacing: '0%',
     display1: {
       fontWeight: 700,
@@ -92,6 +103,11 @@ const theme = createTheme(colorTheme, {
       fontSize: '1.5rem',
       lineHeight: '150%'
     },
+    regularH4: {
+      fontWeight: 600,
+      fontSize: '1.5rem',
+      lineHeight: '120%'
+    },
     h5: {
       fontWeight: 400,
       fontSize: '1.25rem',
@@ -117,6 +133,12 @@ const theme = createTheme(colorTheme, {
       fontSize: '0.875rem',
       lineHeight: '160%'
     },
+    smallDark: {
+      fontWeight: 400,
+      fontSize: '0.875rem',
+      lineHeight: '160%',
+      color: colorTheme.palette.info.dark
+    },
     xsmall: {
       fontWeight: 400,
       fontSize: '0.75rem',
@@ -134,7 +156,6 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           boxSizing: 'border-box',
-          color: colorTheme.palette.text.primary,
           borderRadius: '0.5rem',
           padding: '0.75rem 1.25rem',
           textTransform: 'none',
@@ -169,8 +190,7 @@ const theme = createTheme(colorTheme, {
           props: { variant: 'secondary' },
           style: {
             background: colorTheme.palette.secondary.dark,
-            border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
-            color: colorTheme.palette.text.primary
+            border: `0.063rem solid ${colorTheme.palette.secondary.light}`
           }
         },
         {
@@ -238,6 +258,17 @@ const theme = createTheme(colorTheme, {
             order: 1,
             flexGrow: 0
           }
+        },
+        {
+          props: { variant: 'currency' },
+          style: {
+            borderRadius: '0.5rem',
+            backgroundColor: colorTheme.palette.secondary.dark,
+            padding: '1rem',
+            display: 'block',
+            width: '100%',
+            marginBottom: '1rem'
+          }
         }
       ]
     },
@@ -248,9 +279,6 @@ const theme = createTheme(colorTheme, {
           fontSize: '0.875rem',
           lineHeight: '160%',
           color: colorTheme.palette.text.secondary
-        },
-        icon: {
-          color: colorTheme.palette.text.primary
         }
       },
       variants: [
@@ -258,7 +286,6 @@ const theme = createTheme(colorTheme, {
           props: { variant: 'outlined' },
           style: {
             background: colorTheme.palette.secondary.dark,
-            color: colorTheme.palette.text.primary,
             borderRadius: '6.25rem',
             height: '2.25rem',
             padding: '0.438rem 0.75rem',
@@ -274,7 +301,6 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           fontSize: '1.125rem',
-          color: colorTheme.palette.text.primary,
           height: '1.813rem',
           fontWeight: 400,
           lineHeight: '160%',
@@ -296,11 +322,30 @@ const theme = createTheme(colorTheme, {
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          color: colorTheme.palette.text.primary,
           border: `1px solid ${colorTheme.palette.primary.main}`,
           padding: '0.875rem 0.5rem',
           fontSize: '0.75rem',
           backgroundColor: 'rgba(18, 18, 21, 0.5)'
+        }
+      }
+    },
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: {
+          color: colorTheme.palette.text.secondary
+        }
+      }
+    },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          textDecoration: 'none',
+          color: colorTheme.palette.text.secondary,
+          cursor: 'pointer',
+          ':hover': {
+            color: colorTheme.palette.primary.main,
+            textShadow: `${colorTheme.palette.primary.main} 0rem 0rem 0.125rem`
+          }
         }
       }
     }

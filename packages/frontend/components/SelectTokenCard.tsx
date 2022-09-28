@@ -1,15 +1,20 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
-  Button,
   Card,
+  FormControl,
+  Grid,
+  MenuItem,
+  Select,
   SelectChangeEvent,
   TextField,
   Typography
 } from '@mui/material'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 
 import CustomSelect from './Form/CustomSelect'
 import styles from '../styles/components/Borrow.module.css'
-import { colorTheme } from '../styles/theme'
+import Image from 'next/image'
 
 declare interface SelectTokenCardProps {
   value: string
@@ -21,6 +26,8 @@ declare interface SelectTokenCardProps {
 }
 
 export default function SelectTokenCard (props: SelectTokenCardProps) {
+  const theme = useTheme()
+
   return (
     <Card variant='outlined'>
       <div className={styles.cardLine}>
@@ -37,53 +44,71 @@ export default function SelectTokenCard (props: SelectTokenCardProps) {
             width: '40%'
           }}
         />
-        <CustomSelect
-          labelId='collateral-token-label'
-          id='collateral-token'
-          value={props.token}
-          onSelect={props.onChangeToken}
-          options={props.tokens}
-          label={null}
-          large={true}
-        />
+
+        <FormControl>
+          <Grid container alignItems='center'>
+            <Select
+              labelId='collateral-token-label'
+              id='collateral-token'
+              value={props.token}
+              onChange={props.onChangeToken}
+              IconComponent={KeyboardArrowDownIcon}
+              sx={{
+                marginBottom: '1rem',
+                boxShadow: 'none',
+                '.MuiOutlinedInput-notchedOutline': { border: 0 }
+              }}
+              variant='standard'
+              disableUnderline
+            >
+              {props.tokens.map((token: string) => (
+                <MenuItem key={token} value={token}>
+                  <Grid container>
+                    <Image
+                      src={`/assets/images/protocol-icons/tokens/${token}.svg`}
+                      height={24}
+                      width={24}
+                      alt={token}
+                    />
+                    <span style={{ marginLeft: '0.5rem' }}>
+                      <Typography variant='h6'>{token}</Typography>
+                    </span>
+                  </Grid>
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+        </FormControl>
       </div>
       <div className={styles.cardLine}>
         {props.type === 'collateral' ? (
           <>
-            <Typography variant='small'>~$2000.00</Typography>
+            <Typography variant='small'>$0.00</Typography>
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                textAlign: 'center'
+                alignItems: 'center'
               }}
             >
-              <Typography variant='xsmall' className={styles.maxBtn}>
+              <Typography
+                variant='xsmall'
+                align='center'
+                className={styles.maxBtn}
+              >
                 MAX
               </Typography>
 
               <Typography variant='small'>
-                <span style={{ color: colorTheme.palette.info.dark }}>
-                  Balance
-                </span>
-                : 2.88 ETH
+                <Typography variant='smallDark'>Balance</Typography>: 2.88 ETH
               </Typography>
             </div>
           </>
         ) : (
           <>
-            <Typography variant='small'>~$675.00</Typography>
-            <div>
-              <Typography variant='small'>
-                <span style={{ color: colorTheme.palette.info.dark }}>
-                  LTV 45% (Recommended): n/a
-                </span>
-                {/*:{' '}
-                 <span style={{ color: colorTheme.palette.success.main }}>
-                  900 USDC
-                </span> */}
-              </Typography>
-            </div>
+            <Typography variant='small'>$0.00</Typography>
+            <Typography variant='smallDark'>
+              LTV 45% (Recommended): n/a
+            </Typography>
           </>
         )}
       </div>

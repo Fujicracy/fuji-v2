@@ -10,13 +10,6 @@ import { ThemeProvider } from '@mui/material'
 
 import {theme} from '../styles/theme'
 
-// if (typeof window !== "undefined") {
-//   inspect({
-//     // options
-//     // url: 'https://stately.ai/viz?inspect', // (default)
-//     iframe: false, // open in new window
-//   })
-// }
 interface GlobalStateContext {
   authService: InterpreterFrom<typeof authMachine>
 }

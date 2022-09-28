@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 import {
   FormControl,
+  Grid,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -14,7 +15,7 @@ import styles from '../../styles/components/Borrow.module.css'
 
 type Chain = typeof chains[0]
 
-declare interface CustomSelectProps {
+interface CustomSelectProps {
   labelId: string
   id: string
   onSelect: (e: SelectChangeEvent<any>) => void
@@ -27,7 +28,7 @@ declare interface CustomSelectProps {
 export default function CustomSelect (props: CustomSelectProps) {
   return (
     <FormControl>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <Grid container alignItems='center'>
         <label id={props.labelId} className={styles.selectLabel}>
           {props.label}
         </label>
@@ -50,7 +51,7 @@ export default function CustomSelect (props: CustomSelectProps) {
               key={typeof option === 'string' ? option : option.id}
               value={typeof option === 'string' ? option : option.id}
             >
-              <div style={{ display: 'flex', flexWrap: 'nowrap' }}>
+              <Grid container>
                 <Image
                   src={`/assets/images/protocol-icons/${
                     typeof option === 'string' ? 'tokens' : 'networks'
@@ -65,11 +66,11 @@ export default function CustomSelect (props: CustomSelectProps) {
                     {typeof option === 'string' ? '' : ' Network'}
                   </Typography>
                 </span>
-              </div>
+              </Grid>
             </MenuItem>
           ))}
         </Select>
-      </div>
+      </Grid>
     </FormControl>
   )
 }

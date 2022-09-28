@@ -1,162 +1,140 @@
 import React, { useEffect, useRef } from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Divider,
-  List,
-  ListItem,
-  ListItemButton,
+  Link,
   ListItemText,
+  MenuItem,
+  MenuList,
   Switch
 } from '@mui/material'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import Image from 'next/image'
 
-import { colorTheme } from '../styles/theme'
-
 type ParametersModalProps = {
   onClickOutside: () => void
 }
 
 export default function ParametersModal (props: ParametersModalProps) {
+  const theme = useTheme()
   const ref: any = useRef(null)
 
   useEffect(() => {
-    document.addEventListener(
-      'click',
-      (event: Event) => {
-        if (ref.current && !ref.current.contains(event.target)) {
-          props.onClickOutside && props.onClickOutside()
-        }
-      },
-      true
-    )
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        props.onClickOutside && props.onClickOutside()
+      }
+    }
+    document.addEventListener('click', handleClickOutside, true)
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
   }, [props.onClickOutside, props])
 
   return (
     <Box
       ref={ref}
       sx={{
-        background: colorTheme.palette.secondary.main,
+        background: theme.palette.background.default,
         borderRadius: '0.75rem',
-        border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
+        border: `0.063rem solid ${theme.palette.secondary.light}`,
         padding: '0.5rem',
         position: 'absolute',
         top: '4.5rem',
         right: '0.125rem',
-        color: colorTheme.palette.text.secondary
+        color: theme.palette.text.secondary
       }}
     >
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemText primary='Mode' />
-            <Switch icon={<DarkModeIcon />} checkedIcon={<LightModeIcon />} />
-          </ListItemButton>
-        </ListItem>
+      <MenuList>
+        <MenuItem>
+          <ListItemText>Mode</ListItemText>
+          <Switch icon={<DarkModeIcon />} checkedIcon={<LightModeIcon />} />
+        </MenuItem>
         <Divider />
-        <a
+        <Link
           href='https://discord.com/invite/dnvJeEMeDJ'
           target='_blank'
           rel='noreferrer'
         >
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary='Help' />
-              <Image
-                src='/assets/images/logo/socials/discord.svg'
-                alt='Discord'
-                width={16}
-                height={16}
-              />
-            </ListItemButton>
-          </ListItem>
-        </a>
-        <a
+          <MenuItem>
+            <ListItemText>Help</ListItemText>
+            <Image
+              src='/assets/images/logo/socials/discord.svg'
+              alt='Discord'
+              width={16}
+              height={16}
+            />
+          </MenuItem>
+        </Link>
+        <Link
           href='https://discord.com/invite/dnvJeEMeDJ'
           target='_blank'
           rel='noreferrer'
         >
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary='Feedback' />
-              <Image
-                src='/assets/images/logo/socials/discord.svg'
-                alt='Discord'
-                width={16}
-                height={16}
-              />
-            </ListItemButton>
-          </ListItem>
-        </a>
-        <a
+          <MenuItem>
+            <ListItemText>Feedback</ListItemText>
+            <Image
+              src='/assets/images/logo/socials/discord.svg'
+              alt='Discord'
+              width={16}
+              height={16}
+            />
+          </MenuItem>
+        </Link>
+        <Link
           href='https://twitter.com/FujiFinance'
           target='_blank'
           rel='noreferrer'
         >
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary='@FujiFinance' />
-              <Image
-                src='/assets/images/logo/socials/twitter.svg'
-                alt='Twitter'
-                width={16}
-                height={16}
-              />
-            </ListItemButton>
-          </ListItem>
-        </a>
-        <a
+          <MenuItem>
+            <ListItemText>@FujiFinance</ListItemText>
+            <Image
+              src='/assets/images/logo/socials/twitter.svg'
+              alt='Twitter'
+              width={16}
+              height={16}
+            />
+          </MenuItem>
+        </Link>
+        <Link
           href='https://t.me/joinchat/U4cKWNCUevKVsrtY'
           target='_blank'
           rel='noreferrer'
         >
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary='Message on Telegram' />
-              <Image
-                src='/assets/images/logo/socials/telegram.svg'
-                alt='Telegram'
-                width={16}
-                height={16}
-              />
-            </ListItemButton>
-          </ListItem>
-        </a>
+          <MenuItem>
+            <ListItemText>Message on Telegram</ListItemText>
+            <Image
+              src='/assets/images/logo/socials/telegram.svg'
+              alt='Telegram'
+              width={16}
+              height={16}
+            />
+          </MenuItem>
+        </Link>
         <Divider />
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemText primary='Redeem Receipt Tokens' />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemText primary='Token Allowances' />
-          </ListItemButton>
-        </ListItem>
-        <a href='https://docs.fujidao.org/' target='_blank' rel='noreferrer'>
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary='Docs' />
-            </ListItemButton>
-          </ListItem>
-        </a>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemText primary='Blog' />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemText primary='Careers' />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemText primary='Roadmap' />
-          </ListItemButton>
-        </ListItem>
-      </List>
+        <MenuItem>
+          <ListItemText>Redeem Receipt Tokens</ListItemText>
+        </MenuItem>
+        <MenuItem>
+          <ListItemText>Token Allowances</ListItemText>
+        </MenuItem>
+        <Link href='https://docs.fujidao.org/' target='_blank' rel='noreferrer'>
+          <MenuItem>
+            <ListItemText>Docs</ListItemText>
+          </MenuItem>
+        </Link>
+        <MenuItem>
+          <ListItemText>Blog</ListItemText>
+        </MenuItem>
+        <MenuItem>
+          <ListItemText>Careers</ListItemText>
+        </MenuItem>
+        <MenuItem>
+          <ListItemText>Roadmap</ListItemText>
+        </MenuItem>
+      </MenuList>
     </Box>
   )
 }

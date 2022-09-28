@@ -1,14 +1,14 @@
 import React from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Divider,
+  Grid,
   LinearProgress,
   Tooltip,
   Typography
 } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-
-import { colorTheme } from '../styles/theme'
 
 declare interface LTVProgressBarProps {
   borrowLimit: number
@@ -16,15 +16,16 @@ declare interface LTVProgressBarProps {
 }
 
 export default function LTVProgressBar (props: LTVProgressBarProps) {
+  const theme = useTheme()
+
   return (
     <Box>
-      <div style={{ display: 'flex', marginLeft: "3.5rem" }}>
+      <Grid container sx={{ marginLeft: '3rem' }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            margin: 'auto',
-            color: colorTheme.palette.text.primary
+            margin: 'auto'
           }}
         >
           <Tooltip title='???' placement='top'>
@@ -39,7 +40,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            color: colorTheme.palette.text.primary
+            marginRight: "3rem"
           }}
         >
           <Typography variant='xsmall'>75% LTV (MAX)</Typography>
@@ -49,13 +50,13 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
             />
           </Tooltip>
         </div>
-      </div>
+      </Grid>
 
-      <div style={{ display: 'flex' }}>
+      <Grid container>
         <Divider
           sx={{
             height: '0.813rem',
-            borderRight: `0.063rem solid ${colorTheme.palette.text.primary}`,
+            borderRight: `0.063rem solid`,
             borderBottom: 0,
             width: '60%',
             margin: 0
@@ -64,25 +65,24 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
         <Divider
           sx={{
             height: '0.813rem',
-            borderRight: `0.063rem solid ${colorTheme.palette.text.primary}`,
+            borderRight: `0.063rem solid`,
             borderBottom: 0,
             width: '40%',
             margin: 0
           }}
         />
-      </div>
+      </Grid>
       <LinearProgress
         sx={{
           borderRadius: '1.25rem',
-          background: colorTheme.palette.secondary.main,
+          background: theme.palette.background.default,
           height: '0.5rem',
           marginBottom: '0.5rem',
-          color: 'red',
           '.css-uu0lzf-MuiLinearProgress-bar1': {
             background:
               props.value <= 45
-                ? colorTheme.palette.success.main
-                : colorTheme.palette.warning.main,
+                ? theme.palette.success.main
+                : theme.palette.warning.main,
             borderRadius: '1.25rem'
           }
         }}
@@ -90,13 +90,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
         variant='determinate'
       />
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          color: colorTheme.palette.text.primary
-        }}
-      >
+      <Grid container justifyContent='space-between'>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant='xsmall'>LTV</Typography>
           <Tooltip title='???'>
@@ -116,7 +110,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
             Borrow Limit: ${props.borrowLimit.toFixed(2)}
           </Typography>
         </div>
-      </div>
+      </Grid>
     </Box>
   )
 }

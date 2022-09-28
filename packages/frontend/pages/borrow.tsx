@@ -23,13 +23,13 @@ const BorrowPage: NextPage = () => {
 
       <Container>
         <Grid container wrap='wrap' sx={{ display: 'flex', flexWrap: 'wrap' }}>
-          <Grid item xs={12} sm={12} md={5}>
+          <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>
           <Grid
-            sx={{ display: { xs: 'none', sm: 'none', md: 'block' } }}
+            sx={{ display: { xs: 'none', sm: 'block' } }}
             item
-            xs={7}
+            md={7}
           >
             <Overview />
           </Grid>

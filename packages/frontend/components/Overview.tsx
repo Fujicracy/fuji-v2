@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Card,
@@ -6,6 +7,7 @@ import {
   Collapse,
   Container,
   Divider,
+  Grid,
   Tooltip,
   Typography
 } from '@mui/material'
@@ -15,10 +17,10 @@ import CancelIcon from '@mui/icons-material/Cancel'
 
 import CurrencyCard from './CurrencyCard'
 import LTVProgressBar from './LTVProgressBar'
-import { colorTheme } from '../styles/theme'
 
 export default function Overview () {
-  const [showAaveDetails, setShowAaveDetails] = useState(false)
+  const theme = useTheme()
+  const [showProvider, setShowProvider] = useState(false)
 
   return (
     <Container>
@@ -33,48 +35,49 @@ export default function Overview () {
           padding: '1.5rem 2rem'
         }}
       >
-        <CardContent sx={{ width: '100%', padding: 0 }}>
-          <Typography
-            variant='body2'
-            sx={{ color: colorTheme.palette.text.primary }}
-          >
-            Overview
-          </Typography>
+        <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
+          <Typography variant='body2'>Overview</Typography>
           <Divider sx={{ mt: '1rem', mb: '1.5rem' }} />
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <CurrencyCard
-              informations={{
-                title: 'Collateral Provided',
-                amount: '0 ETH',
-                footer: '0.00 USD'
-              }}
-            />
-            <CurrencyCard
-              informations={{
-                title: 'Borrowed Value',
-                amount: '$0.00',
-                footer: '0.00 USDC'
-              }}
-            />
-          </div>
+          <Grid container rowSpacing='1rem' columnSpacing='1rem'>
+            <Grid item xs={6}>
+              <CurrencyCard
+                informations={{
+                  title: 'Collateral Provided',
+                  amount: '0 ETH',
+                  footer: '0.00 USD'
+                }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <CurrencyCard
+                informations={{
+                  title: 'Borrowed Value',
+                  amount: '$0.00',
+                  footer: '0.00 USDC'
+                }}
+              />
+            </Grid>
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <CurrencyCard
-              informations={{
-                title: 'Liquidation Price',
-                amount: '$0.00',
-                footer: 'n/a'
-              }}
-            />
-            <CurrencyCard
-              informations={{
-                title: 'Current Price',
-                amount: '$2000.00',
-                footer: 'ETH'
-              }}
-            />
-          </div>
+            <Grid item xs={6}>
+              <CurrencyCard
+                informations={{
+                  title: 'Liquidation Price',
+                  amount: '$0.00',
+                  footer: 'n/a'
+                }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <CurrencyCard
+                informations={{
+                  title: 'Current Price',
+                  amount: '$2000.00',
+                  footer: 'ETH'
+                }}
+              />
+            </Grid>
+          </Grid>
 
           <Divider sx={{ mt: 1.5, mb: 1.5 }} />
 
@@ -82,100 +85,63 @@ export default function Overview () {
 
           <Divider sx={{ mt: 1.5, mb: 2.5 }} />
 
-          <Typography
-            variant='body2'
-            sx={{ color: colorTheme.palette.text.primary }}
-          >
-            Details
-          </Typography>
+          <Typography variant='body2'>Details</Typography>
 
           <br />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography
-              variant='small'
-              sx={{ color: colorTheme.palette.info.dark }}
-            >
-              Current Loan-to-Value
-            </Typography>
+          <Grid container justifyContent='space-between'>
+            <Typography variant='smallDark'>Current Loan-to-Value</Typography>
 
-            <Typography
-              variant='small'
-              sx={{ color: colorTheme.palette.text.primary }}
-            >
-              45%
-            </Typography>
-          </div>
+            <Typography variant='small'>45%</Typography>
+          </Grid>
 
           <Divider sx={{ mt: 1.5, mb: 2.5 }} />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography
-              variant='small'
-              sx={{ color: colorTheme.palette.info.dark }}
-            >
+          <Grid container justifyContent='space-between'>
+            <Typography variant='smallDark'>
               LTV liquidation threshold
             </Typography>
 
-            <Typography
-              variant='small'
-              sx={{ color: colorTheme.palette.text.primary }}
-            >
-              75%
-            </Typography>
-          </div>
+            <Typography variant='small'>75%</Typography>
+          </Grid>
 
           <Divider sx={{ mt: 1.5, mb: 2.5 }} />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Grid container justifyContent='space-between'>
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Typography
-                variant='small'
-                sx={{ color: colorTheme.palette.info.dark }}
-              >
-                Borrow Interest (APR)
-              </Typography>
+              <Typography variant='smallDark'>Borrow Interest (APR)</Typography>
               <Tooltip title='???'>
                 <InfoOutlinedIcon
                   sx={{ marginLeft: '0.625rem', fontSize: '0.875rem' }}
                 />
               </Tooltip>
             </div>
-
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setShowAaveDetails(!showAaveDetails)}
+            <Box>
+              <Box
+                sx={{ alignItems: 'center', cursor: 'pointer' }}
+                onClick={() => setShowProvider(!showProvider)}
               >
-                <Typography
-                  variant='small'
-                  sx={{ color: colorTheme.palette.text.primary }}
-                >
+                <Typography variant='small'>
                   Aave:{' '}
-                  <span style={{ color: colorTheme.palette.success.main }}>
+                  <span style={{ color: theme.palette.success.main }}>
                     1.83%
                   </span>
                   <Divider
                     sx={{
                       marginLeft: '0.531rem',
                       marginRight: '0.25rem',
-                      borderRight: `0.063rem solid ${colorTheme.palette.text.secondary}`,
+                      borderRight: `0.063rem solid ${theme.palette.text.secondary}`,
                       borderBottom: 0,
                       display: 'inline'
                     }}
                   />
                 </Typography>
-                {showAaveDetails ? (
+                {showProvider ? (
                   <CancelIcon
                     sx={{
                       marginLeft: '0.25rem',
                       cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      color: colorTheme.palette.text.secondary
+                      fontSize: '0.875rem'
                     }}
                   />
                 ) : (
@@ -183,21 +149,19 @@ export default function Overview () {
                     sx={{
                       marginLeft: '0.25rem',
                       cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      color: colorTheme.palette.text.secondary
+                      fontSize: '0.875rem'
                     }}
                   />
                 )}
-              </div>
-              <Collapse in={showAaveDetails} sx={{ mt: '0.25rem' }}>
+              </Box>
+              <Collapse in={showProvider} sx={{ mt: '0.25rem' }}>
                 <Typography
-                  variant='small'
+                  variant='smallDark'
                   sx={{
-                    color: colorTheme.palette.info.dark,
                     display: 'flex',
                     justifyContent: 'space-between',
                     ':hover': {
-                      color: colorTheme.palette.text.primary
+                      color: theme.palette.text.primary
                     }
                   }}
                 >
@@ -205,8 +169,8 @@ export default function Overview () {
                   <span>3.33%</span>
                 </Typography>
               </Collapse>
-            </div>
-          </div>
+            </Box>
+          </Grid>
         </CardContent>
       </Card>
     </Container>

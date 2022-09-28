@@ -1,10 +1,12 @@
 import React from 'react'
+import { useTheme } from '@mui/material/styles'
 import { Button, CircularProgress, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 
-import { colorTheme } from '../styles/theme'
+import { theme } from '../styles/theme'
 
 export default function Theming () {
+  const theme = useTheme()
   return (
     <>
       <Typography variant='h2'>Buttons</Typography>
@@ -173,7 +175,7 @@ export default function Theming () {
         </Box>
         <Box
           sx={{
-            background: `linear-gradient(92.29deg, ${colorTheme.palette.primary.light} 0%, ${colorTheme.palette.primary.dark} 100%)`,
+            background: `linear-gradient(92.29deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
             borderRadius: '1rem',
@@ -186,7 +188,7 @@ export default function Theming () {
 
         <Box
           sx={{
-            background: `linear-gradient(287.45deg,  ${colorTheme.palette.primary.contrastText} 0%,  ${colorTheme.palette.primary.dark} 100%)`,
+            background: `linear-gradient(287.45deg,  ${theme.palette.primary.contrastText} 0%,  ${theme.palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
             borderRadius: '1rem',
@@ -279,7 +281,7 @@ export default function Theming () {
       >
         <Box
           sx={{
-            backgroundColor: 'secondary.main',
+            backgroundColor: 'background.default',
             width: 150,
             height: 100,
             borderRadius: '1rem',
