@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "hardhat-preprocessor";
 import "hardhat-deploy";
