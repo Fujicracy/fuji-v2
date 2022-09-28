@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IProposedOwnable,
   IProposedOwnableInterface,
+  IProposedOwnableMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/shared/interfaces/IProposedOwnable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -89,7 +90,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IProposedOwnable__factory {
   static readonly abi = _abi;
   static createInterface(): IProposedOwnableInterface {
@@ -100,5 +100,11 @@ export class IProposedOwnable__factory {
     signerOrProvider: Signer | Provider
   ): IProposedOwnable {
     return new Contract(address, _abi, signerOrProvider) as IProposedOwnable;
+  }
+  static multicall(address: string): IProposedOwnableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IProposedOwnableMulticall;
   }
 }

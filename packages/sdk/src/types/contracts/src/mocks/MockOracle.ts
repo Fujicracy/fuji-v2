@@ -14,17 +14,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface MockOracleInterface extends utils.Interface {
@@ -40,23 +41,15 @@ export interface MockOracleInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "getPriceOf",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "prices",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setPriceOf",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "getPriceOf", data: BytesLike): Result;
@@ -110,64 +103,64 @@ export interface MockOracle extends BaseContract {
 
   functions: {
     getPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      decimals: PromiseOrValue<BigNumberish>,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { price: BigNumber }>;
 
     prices(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
+      arg0: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     setPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      price: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      currencyAsset: string,
+      commodityAsset: string,
+      price: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   getPriceOf(
-    currencyAsset: PromiseOrValue<string>,
-    commodityAsset: PromiseOrValue<string>,
-    decimals: PromiseOrValue<BigNumberish>,
+    currencyAsset: string,
+    commodityAsset: string,
+    decimals: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   prices(
-    arg0: PromiseOrValue<string>,
-    arg1: PromiseOrValue<string>,
+    arg0: string,
+    arg1: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   setPriceOf(
-    currencyAsset: PromiseOrValue<string>,
-    commodityAsset: PromiseOrValue<string>,
-    price: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    currencyAsset: string,
+    commodityAsset: string,
+    price: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     getPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      decimals: PromiseOrValue<BigNumberish>,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     prices(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
+      arg0: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      price: PromiseOrValue<BigNumberish>,
+      currencyAsset: string,
+      commodityAsset: string,
+      price: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -185,45 +178,64 @@ export interface MockOracle extends BaseContract {
 
   estimateGas: {
     getPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      decimals: PromiseOrValue<BigNumberish>,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     prices(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
+      arg0: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      price: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      currencyAsset: string,
+      commodityAsset: string,
+      price: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     getPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      decimals: PromiseOrValue<BigNumberish>,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     prices(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
+      arg0: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setPriceOf(
-      currencyAsset: PromiseOrValue<string>,
-      commodityAsset: PromiseOrValue<string>,
-      price: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      currencyAsset: string,
+      commodityAsset: string,
+      price: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface MockOracleMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getPriceOf(
+    currencyAsset: string,
+    commodityAsset: string,
+    decimals: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  prices(
+    arg0: string,
+    arg1: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 }

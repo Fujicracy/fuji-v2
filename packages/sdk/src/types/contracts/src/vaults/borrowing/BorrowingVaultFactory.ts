@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface BorrowingVaultFactoryInterface extends utils.Interface {
@@ -46,28 +46,21 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "configAddress",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "deployVault",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getVaults",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "vaultsByAsset",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "vaultsCount",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "vaultsCount", values: [string]): string;
 
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(
@@ -121,94 +114,82 @@ export interface BorrowingVaultFactory extends BaseContract {
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     configAddress(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     deployVault(
-      _deployData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _deployData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getVaults(
-      asset: PromiseOrValue<string>,
-      startIndex: PromiseOrValue<BigNumberish>,
-      count: PromiseOrValue<BigNumberish>,
+      asset: string,
+      startIndex: BigNumberish,
+      count: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string[]] & { vaults: string[] }>;
 
     vaultsByAsset(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<BigNumberish>,
+      arg0: string,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     vaultsCount(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { count: BigNumber }>;
   };
 
   chief(overrides?: CallOverrides): Promise<string>;
 
-  configAddress(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  configAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   deployVault(
-    _deployData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _deployData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getVaults(
-    asset: PromiseOrValue<string>,
-    startIndex: PromiseOrValue<BigNumberish>,
-    count: PromiseOrValue<BigNumberish>,
+    asset: string,
+    startIndex: BigNumberish,
+    count: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string[]>;
 
   vaultsByAsset(
-    arg0: PromiseOrValue<string>,
-    arg1: PromiseOrValue<BigNumberish>,
+    arg0: string,
+    arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  vaultsCount(
-    asset: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     chief(overrides?: CallOverrides): Promise<string>;
 
-    configAddress(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    configAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     deployVault(
-      _deployData: PromiseOrValue<BytesLike>,
+      _deployData: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getVaults(
-      asset: PromiseOrValue<string>,
-      startIndex: PromiseOrValue<BigNumberish>,
-      count: PromiseOrValue<BigNumberish>,
+      asset: string,
+      startIndex: BigNumberish,
+      count: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string[]>;
 
     vaultsByAsset(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<BigNumberish>,
+      arg0: string,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    vaultsCount(
-      asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -217,63 +198,85 @@ export interface BorrowingVaultFactory extends BaseContract {
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     configAddress(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     deployVault(
-      _deployData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _deployData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getVaults(
-      asset: PromiseOrValue<string>,
-      startIndex: PromiseOrValue<BigNumberish>,
-      count: PromiseOrValue<BigNumberish>,
+      asset: string,
+      startIndex: BigNumberish,
+      count: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     vaultsByAsset(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<BigNumberish>,
+      arg0: string,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    vaultsCount(
-      asset: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     configAddress(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     deployVault(
-      _deployData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _deployData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getVaults(
-      asset: PromiseOrValue<string>,
-      startIndex: PromiseOrValue<BigNumberish>,
-      count: PromiseOrValue<BigNumberish>,
+      asset: string,
+      startIndex: BigNumberish,
+      count: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     vaultsByAsset(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<BigNumberish>,
+      arg0: string,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     vaultsCount(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface BorrowingVaultFactoryMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  chief(overrides?: CallOverrides): Call<string>;
+
+  configAddress(arg0: BytesLike, overrides?: CallOverrides): Call<string>;
+
+  getVaults(
+    asset: string,
+    startIndex: BigNumberish,
+    count: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<string[]>;
+
+  vaultsByAsset(
+    arg0: string,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  vaultsCount(asset: string, overrides?: CallOverrides): Call<BigNumber>;
 }

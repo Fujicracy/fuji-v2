@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   VaultPermissions,
   VaultPermissionsInterface,
+  VaultPermissionsMulticall,
 } from "../../../src/vaults/VaultPermissions";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -334,7 +335,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class VaultPermissions__factory {
   static readonly abi = _abi;
   static createInterface(): VaultPermissionsInterface {
@@ -345,5 +345,11 @@ export class VaultPermissions__factory {
     signerOrProvider: Signer | Provider
   ): VaultPermissions {
     return new Contract(address, _abi, signerOrProvider) as VaultPermissions;
+  }
+  static multicall(address: string): VaultPermissionsMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as VaultPermissionsMulticall;
   }
 }

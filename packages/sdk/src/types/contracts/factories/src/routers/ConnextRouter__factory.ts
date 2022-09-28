@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ConnextRouter,
   ConnextRouterInterface,
+  ConnextRouterMulticall,
 } from "../../../src/routers/ConnextRouter";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -272,7 +273,6 @@ const _abi = [
     type: "receive",
   },
 ];
-
 export class ConnextRouter__factory {
   static readonly abi = _abi;
   static createInterface(): ConnextRouterInterface {
@@ -283,5 +283,11 @@ export class ConnextRouter__factory {
     signerOrProvider: Signer | Provider
   ): ConnextRouter {
     return new Contract(address, _abi, signerOrProvider) as ConnextRouter;
+  }
+  static multicall(address: string): ConnextRouterMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ConnextRouterMulticall;
   }
 }

@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   UniswapV2Swapper,
   UniswapV2SwapperInterface,
+  UniswapV2SwapperMulticall,
 } from "../../../src/swappers/UniswapV2Swapper";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -237,7 +238,6 @@ const _abi = [
     type: "receive",
   },
 ];
-
 export class UniswapV2Swapper__factory {
   static readonly abi = _abi;
   static createInterface(): UniswapV2SwapperInterface {
@@ -248,5 +248,11 @@ export class UniswapV2Swapper__factory {
     signerOrProvider: Signer | Provider
   ): UniswapV2Swapper {
     return new Contract(address, _abi, signerOrProvider) as UniswapV2Swapper;
+  }
+  static multicall(address: string): UniswapV2SwapperMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as UniswapV2SwapperMulticall;
   }
 }

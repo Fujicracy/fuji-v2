@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   Unwrapper,
   UnwrapperInterface,
+  UnwrapperMulticall,
 } from "../../../src/helpers/Unwrapper";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -52,7 +53,6 @@ const _abi = [
     type: "receive",
   },
 ];
-
 export class Unwrapper__factory {
   static readonly abi = _abi;
   static createInterface(): UnwrapperInterface {
@@ -63,5 +63,11 @@ export class Unwrapper__factory {
     signerOrProvider: Signer | Provider
   ): Unwrapper {
     return new Contract(address, _abi, signerOrProvider) as Unwrapper;
+  }
+  static multicall(address: string): UnwrapperMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as UnwrapperMulticall;
   }
 }

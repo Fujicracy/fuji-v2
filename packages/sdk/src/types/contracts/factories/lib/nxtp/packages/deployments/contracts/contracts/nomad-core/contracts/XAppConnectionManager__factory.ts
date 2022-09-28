@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   XAppConnectionManager,
   XAppConnectionManagerInterface,
+  XAppConnectionManagerMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/contracts/XAppConnectionManager";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -328,7 +329,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class XAppConnectionManager__factory {
   static readonly abi = _abi;
   static createInterface(): XAppConnectionManagerInterface {
@@ -343,5 +343,11 @@ export class XAppConnectionManager__factory {
       _abi,
       signerOrProvider
     ) as XAppConnectionManager;
+  }
+  static multicall(address: string): XAppConnectionManagerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as XAppConnectionManagerMulticall;
   }
 }

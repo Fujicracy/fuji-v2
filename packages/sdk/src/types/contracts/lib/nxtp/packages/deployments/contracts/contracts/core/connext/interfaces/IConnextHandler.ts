@@ -15,23 +15,21 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
-export type TokenIdStruct = {
-  domain: PromiseOrValue<BigNumberish>;
-  id: PromiseOrValue<BytesLike>;
-};
+export type TokenIdStruct = { domain: BigNumberish; id: BytesLike };
 
 export type TokenIdStructOutput = [number, string] & {
   domain: number;
@@ -39,18 +37,18 @@ export type TokenIdStructOutput = [number, string] & {
 };
 
 export type CallParamsStruct = {
-  to: PromiseOrValue<string>;
-  callData: PromiseOrValue<BytesLike>;
-  originDomain: PromiseOrValue<BigNumberish>;
-  destinationDomain: PromiseOrValue<BigNumberish>;
-  agent: PromiseOrValue<string>;
-  recovery: PromiseOrValue<string>;
-  forceSlow: PromiseOrValue<boolean>;
-  receiveLocal: PromiseOrValue<boolean>;
-  callback: PromiseOrValue<string>;
-  callbackFee: PromiseOrValue<BigNumberish>;
-  relayerFee: PromiseOrValue<BigNumberish>;
-  destinationMinOut: PromiseOrValue<BigNumberish>;
+  to: string;
+  callData: BytesLike;
+  originDomain: BigNumberish;
+  destinationDomain: BigNumberish;
+  agent: string;
+  recovery: string;
+  forceSlow: boolean;
+  receiveLocal: boolean;
+  callback: string;
+  callbackFee: BigNumberish;
+  relayerFee: BigNumberish;
+  destinationMinOut: BigNumberish;
 };
 
 export type CallParamsStructOutput = [
@@ -83,14 +81,14 @@ export type CallParamsStructOutput = [
 
 export type ExecuteArgsStruct = {
   params: CallParamsStruct;
-  local: PromiseOrValue<string>;
-  routers: PromiseOrValue<string>[];
-  routerSignatures: PromiseOrValue<BytesLike>[];
-  sequencer: PromiseOrValue<string>;
-  sequencerSignature: PromiseOrValue<BytesLike>;
-  amount: PromiseOrValue<BigNumberish>;
-  nonce: PromiseOrValue<BigNumberish>;
-  originSender: PromiseOrValue<string>;
+  local: string;
+  routers: string[];
+  routerSignatures: BytesLike[];
+  sequencer: string;
+  sequencerSignature: BytesLike;
+  amount: BigNumberish;
+  nonce: BigNumberish;
+  originSender: string;
 };
 
 export type ExecuteArgsStructOutput = [
@@ -117,9 +115,9 @@ export type ExecuteArgsStructOutput = [
 
 export type XCallArgsStruct = {
   params: CallParamsStruct;
-  transactingAsset: PromiseOrValue<string>;
-  transactingAmount: PromiseOrValue<BigNumberish>;
-  originMinOut: PromiseOrValue<BigNumberish>;
+  transactingAsset: string;
+  transactingAmount: BigNumberish;
+  originMinOut: BigNumberish;
 };
 
 export type XCallArgsStructOutput = [
@@ -136,9 +134,9 @@ export type XCallArgsStructOutput = [
 
 export declare namespace IDiamondCut {
   export type FacetCutStruct = {
-    facetAddress: PromiseOrValue<string>;
-    action: PromiseOrValue<BigNumberish>;
-    functionSelectors: PromiseOrValue<BytesLike>[];
+    facetAddress: string;
+    action: BigNumberish;
+    functionSelectors: BytesLike[];
   };
 
   export type FacetCutStructOutput = [string, number, string[]] & {
@@ -150,8 +148,8 @@ export declare namespace IDiamondCut {
 
 export declare namespace IDiamondLoupe {
   export type FacetStruct = {
-    facetAddress: PromiseOrValue<string>;
-    functionSelectors: PromiseOrValue<BytesLike>[];
+    facetAddress: string;
+    functionSelectors: BytesLike[];
   };
 
   export type FacetStructOutput = [string, string[]] & {
@@ -162,18 +160,18 @@ export declare namespace IDiamondLoupe {
 
 export declare namespace SwapUtils {
   export type SwapStruct = {
-    key: PromiseOrValue<BytesLike>;
-    initialA: PromiseOrValue<BigNumberish>;
-    futureA: PromiseOrValue<BigNumberish>;
-    initialATime: PromiseOrValue<BigNumberish>;
-    futureATime: PromiseOrValue<BigNumberish>;
-    swapFee: PromiseOrValue<BigNumberish>;
-    adminFee: PromiseOrValue<BigNumberish>;
-    lpToken: PromiseOrValue<string>;
-    pooledTokens: PromiseOrValue<string>[];
-    tokenPrecisionMultipliers: PromiseOrValue<BigNumberish>[];
-    balances: PromiseOrValue<BigNumberish>[];
-    adminFees: PromiseOrValue<BigNumberish>[];
+    key: BytesLike;
+    initialA: BigNumberish;
+    futureA: BigNumberish;
+    initialATime: BigNumberish;
+    futureATime: BigNumberish;
+    swapFee: BigNumberish;
+    adminFee: BigNumberish;
+    lpToken: string;
+    pooledTokens: string[];
+    tokenPrecisionMultipliers: BigNumberish[];
+    balances: BigNumberish[];
+    adminFees: BigNumberish[];
   };
 
   export type SwapStructOutput = [
@@ -487,52 +485,40 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "acceptProposedRouterOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "addConnextion",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "addRelayer",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "addRelayer", values: [string]): string;
   encodeFunctionData(
     functionFragment: "addRouterLiquidity",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "addRouterLiquidityFor",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "addSequencer",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "addStableSwapPool",
-    values: [TokenIdStruct, PromiseOrValue<string>]
+    values: [TokenIdStruct, string]
   ): string;
   encodeFunctionData(
     functionFragment: "addSwapLiquidity",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "adoptedToCanonical",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "adoptedToLocalPools(bytes32)",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "adoptedToLocalPools((uint32,bytes32))",
@@ -540,11 +526,11 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "approveRouterForPortal",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "approvedAssets(bytes32)",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "approvedAssets((uint32,bytes32))",
@@ -552,11 +538,11 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "approvedRelayers",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "approvedSequencers",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "assetWhitelistRemoved",
@@ -572,40 +558,27 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "bumpTransfer",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateRemoveSwapLiquidity",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateRemoveSwapLiquidityOneToken",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwap",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwapTokenAmount",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<boolean>
-    ]
+    values: [BytesLike, BigNumberish[], boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "canonicalToAdopted(bytes32)",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "canonicalToAdopted((uint32,bytes32))",
@@ -613,20 +586,16 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "claim",
-    values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>[]]
+    values: [string, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "connextion",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "delay", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "diamondCut",
-    values: [
-      IDiamondCut.FacetCutStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [IDiamondCut.FacetCutStruct[], string, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "domain", values?: undefined): string;
   encodeFunctionData(
@@ -636,7 +605,7 @@ export interface IConnextHandlerInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "executor", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "facetAddress",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "facetAddresses",
@@ -644,109 +613,102 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "facetFunctionSelectors",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "facets", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "forceReceiveLocal",
     values: [
       CallParamsStruct,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BigNumberish,
+      string
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "getAavePortalDebt",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getAavePortalFeeDebt",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getProposedRouterOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getProposedRouterOwnerTimestamp",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRouterApproval",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRouterApprovalForPortal",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRouterOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRouterRecipient",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getSwapA",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "getSwapA", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "getSwapAPrecise",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapAdminBalance",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapLPToken",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapStorage",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapToken",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapTokenBalance",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapTokenIndex",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapVirtualPrice",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "initializeSwap",
     values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
+      BytesLike,
+      string[],
+      BigNumberish[],
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      string
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "initiateClaim",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>[]
-    ]
+    values: [BigNumberish, string, BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "maxRoutersPerTransfer",
@@ -756,13 +718,13 @@ export interface IConnextHandlerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "onReceive",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
+      BigNumberish,
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      string,
+      BigNumberish,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -777,19 +739,15 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "proposeDiamondCut",
-    values: [
-      IDiamondCut.FacetCutStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [IDiamondCut.FacetCutStruct[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "proposeNewOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "proposeRouterOwner",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "proposeRouterWhitelistRemoval",
@@ -802,15 +760,11 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "rampA",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "reconciledTransfers",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "relayerFeeRouter",
@@ -818,15 +772,15 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "relayerFees",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "removeAssetId((uint32,bytes32),address)",
-    values: [TokenIdStruct, PromiseOrValue<string>]
+    values: [TokenIdStruct, string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeAssetId(bytes32,address)",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeAssetWhitelist",
@@ -834,28 +788,19 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "removeRelayer",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeRouter",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeRouterLiquidity",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeRouterLiquidityFor",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeRouterWhitelist",
@@ -863,35 +808,19 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "removeSequencer",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeSwapLiquidity",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish, BigNumberish[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeSwapLiquidityImbalance",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeSwapLiquidityOneToken",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -902,42 +831,38 @@ export interface IConnextHandlerInterface extends utils.Interface {
     functionFragment: "repayAavePortal",
     values: [
       CallParamsStruct,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "repayAavePortalFor",
     values: [
       CallParamsStruct,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "rescindDiamondCut",
-    values: [
-      IDiamondCut.FacetCutStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [IDiamondCut.FacetCutStruct[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "routedTransfers",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "routerBalances",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "routerWhitelistRemoved",
@@ -947,69 +872,59 @@ export interface IConnextHandlerInterface extends utils.Interface {
     functionFragment: "routerWhitelistTimestamp",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "setAavePool",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setAavePool", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setAavePortalFee",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setBridgeRouter",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setExecutor",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setExecutor", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setLiquidityFeeNumerator",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxRoutersPerTransfer",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setPromiseRouter",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "setRelayerFeeRouter",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "setRouterRecipient",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setSponsorVault",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapAdminFee",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapFee",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTokenRegistry",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "setupAsset",
-    values: [TokenIdStruct, PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [TokenIdStruct, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setupRouter",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "sponsorVault",
@@ -1017,39 +932,39 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "stopRampA",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "swap",
     values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      BytesLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExact",
     values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      BytesLike,
+      BigNumberish,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactOut",
     values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      BytesLike,
+      BigNumberish,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
@@ -1058,16 +973,16 @@ export interface IConnextHandlerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferRelayer",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "unapproveRouterForPortal",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawSwapAdminFees",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "xcall",
@@ -1587,7 +1502,7 @@ export interface IConnextHandler extends BaseContract {
     LIQUIDITY_FEE_NUMERATOR(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     VERSION(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     aavePool(overrides?: CallOverrides): Promise<[string]>;
@@ -1595,64 +1510,64 @@ export interface IConnextHandler extends BaseContract {
     aavePortalFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     acceptProposedRouterOwner(
-      router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addConnextion(
-      _domain: PromiseOrValue<BigNumberish>,
-      _connext: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _connext: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _router: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sequencer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addStableSwapPool(
       _canonical: TokenIdStruct,
-      _stableSwapPool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _stableSwapPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     addSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     adoptedToCanonical(
-      _adopted: PromiseOrValue<string>,
+      _adopted: string,
       overrides?: CallOverrides
     ): Promise<[TokenIdStructOutput]>;
 
     "adoptedToLocalPools(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -1662,12 +1577,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<[string]>;
 
     approveRouterForPortal(
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "approvedAssets(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -1677,12 +1592,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<[boolean]>;
 
     approvedRelayers(
-      _relayer: PromiseOrValue<string>,
+      _relayer: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     approvedSequencers(
-      _sequencer: PromiseOrValue<string>,
+      _sequencer: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -1693,40 +1608,40 @@ export interface IConnextHandler extends BaseContract {
     bridgeRouter(overrides?: CallOverrides): Promise<[string]>;
 
     bumpTransfer(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     calculateRemoveSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
     calculateRemoveSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calculateSwap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calculateSwapTokenAmount(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "canonicalToAdopted(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -1736,13 +1651,13 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<[string]>;
 
     claim(
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _recipient: string,
+      _transferIds: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     connextion(
-      _domain: PromiseOrValue<BigNumberish>,
+      _domain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -1750,22 +1665,22 @@ export interface IConnextHandler extends BaseContract {
 
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     domain(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     execute(
       _args: ExecuteArgsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     executor(overrides?: CallOverrides): Promise<[string]>;
 
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string] & { facetAddress_: string }>;
 
@@ -1774,7 +1689,7 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<[string[]] & { facetAddresses_: string[] }>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<[string[]] & { facetFunctionSelectors_: string[] }>;
 
@@ -1788,121 +1703,121 @@ export interface IConnextHandler extends BaseContract {
 
     forceReceiveLocal(
       _params: CallParamsStruct,
-      _amount: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _canonicalDomain: PromiseOrValue<BigNumberish>,
-      _originSender: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _nonce: BigNumberish,
+      _canonicalId: BytesLike,
+      _canonicalDomain: BigNumberish,
+      _originSender: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getAavePortalDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getAavePortalFeeDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getProposedRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getProposedRouterOwnerTimestamp(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getRouterApproval(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     getRouterApprovalForPortal(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     getRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getRouterRecipient(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getSwapA(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getSwapAPrecise(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getSwapAdminBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getSwapLPToken(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getSwapStorage(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[SwapUtils.SwapStructOutput]>;
 
     getSwapToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getSwapTokenBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getSwapTokenIndex(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAddress: PromiseOrValue<string>,
+      canonicalId: BytesLike,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
     getSwapVirtualPrice(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     initializeSwap(
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      _a: PromiseOrValue<BigNumberish>,
-      _fee: PromiseOrValue<BigNumberish>,
-      _adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _canonicalId: BytesLike,
+      _pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      _a: BigNumberish,
+      _fee: BigNumberish,
+      _adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     initiateClaim(
-      _domain: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _recipient: string,
+      _transferIds: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     maxRoutersPerTransfer(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -1910,48 +1825,48 @@ export interface IConnextHandler extends BaseContract {
     nonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     onReceive(
-      _origin: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _tokenDomain: PromiseOrValue<BigNumberish>,
-      _tokenAddress: PromiseOrValue<BytesLike>,
-      _localToken: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _extraData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _tokenDomain: BigNumberish,
+      _tokenAddress: BytesLike,
+      _localToken: string,
+      _amount: BigNumberish,
+      _extraData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     promiseRouter(overrides?: CallOverrides): Promise<[string]>;
 
     proposeAssetWhitelistRemoval(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposeRouterOwner(
-      router: PromiseOrValue<string>,
-      proposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      proposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposeRouterWhitelistRemoval(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<[string]>;
@@ -1959,143 +1874,143 @@ export interface IConnextHandler extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     rampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      futureA: PromiseOrValue<BigNumberish>,
-      futureTime: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      futureA: BigNumberish,
+      futureTime: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     reconciledTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     relayerFeeRouter(overrides?: CallOverrides): Promise<[string]>;
 
     relayerFees(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     "removeAssetId((uint32,bytes32),address)"(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adoptedAssetId: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "removeAssetId(bytes32,address)"(
-      _key: PromiseOrValue<BytesLike>,
-      _adoptedAssetId: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _key: BytesLike,
+      _adoptedAssetId: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeAssetWhitelist(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeRouter(
-      router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeRouterWhitelist(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sequencer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeSwapLiquidityImbalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     renounced(overrides?: CallOverrides): Promise<[boolean]>;
 
     repayAavePortal(
       _params: CallParamsStruct,
-      _local: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      _maxIn: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _local: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      _maxIn: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     repayAavePortalFor(
       _params: CallParamsStruct,
-      _adopted: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adopted: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     routedTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string[]]>;
 
     routerBalances(
-      _router: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _router: string,
+      _asset: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -2104,148 +2019,148 @@ export interface IConnextHandler extends BaseContract {
     routerWhitelistTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     setAavePool(
-      _aavePool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _aavePool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setAavePortalFee(
-      _aavePortalFeeNumerator: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _aavePortalFeeNumerator: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setBridgeRouter(
-      _bridge: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _bridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setExecutor(
-      _executor: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _executor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setLiquidityFeeNumerator(
-      _numerator: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _numerator: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setMaxRoutersPerTransfer(
-      _newMaxRouters: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _newMaxRouters: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setPromiseRouter(
-      _promiseRouter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _promiseRouter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setRelayerFeeRouter(
-      _relayerFeeRouter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayerFeeRouter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setRouterRecipient(
-      router: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setSponsorVault(
-      _sponsorVault: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sponsorVault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setSwapAdminFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newAdminFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      newAdminFee: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setSwapFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newSwapFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      newSwapFee: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setTokenRegistry(
-      _tokenRegistry: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _tokenRegistry: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setupAsset(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      _stableSwapPool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adoptedAssetId: string,
+      _stableSwapPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setupRouter(
-      router: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      owner: string,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     sponsorVault(overrides?: CallOverrides): Promise<[string]>;
 
     stopRampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExact(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExactOut(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     tokenRegistry(overrides?: CallOverrides): Promise<[string]>;
 
     transferRelayer(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     unapproveRouterForPortal(
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawSwapAdminFees(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xcall(
       _args: XCallArgsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -2254,7 +2169,7 @@ export interface IConnextHandler extends BaseContract {
   LIQUIDITY_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
   VERSION(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   aavePool(overrides?: CallOverrides): Promise<string>;
@@ -2262,64 +2177,64 @@ export interface IConnextHandler extends BaseContract {
   aavePortalFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   acceptProposedOwner(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   acceptProposedRouterOwner(
-    router: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    router: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addConnextion(
-    _domain: PromiseOrValue<BigNumberish>,
-    _connext: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _domain: BigNumberish,
+    _connext: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addRelayer(
-    _relayer: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _relayer: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addRouterLiquidity(
-    _amount: PromiseOrValue<BigNumberish>,
-    _local: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _amount: BigNumberish,
+    _local: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addRouterLiquidityFor(
-    _amount: PromiseOrValue<BigNumberish>,
-    _local: PromiseOrValue<string>,
-    _router: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _amount: BigNumberish,
+    _local: string,
+    _router: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addSequencer(
-    _sequencer: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _sequencer: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addStableSwapPool(
     _canonical: TokenIdStruct,
-    _stableSwapPool: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _stableSwapPool: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   addSwapLiquidity(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amounts: PromiseOrValue<BigNumberish>[],
-    minToMint: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    amounts: BigNumberish[],
+    minToMint: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   adoptedToCanonical(
-    _adopted: PromiseOrValue<string>,
+    _adopted: string,
     overrides?: CallOverrides
   ): Promise<TokenIdStructOutput>;
 
   "adoptedToLocalPools(bytes32)"(
-    _key: PromiseOrValue<BytesLike>,
+    _key: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -2329,12 +2244,12 @@ export interface IConnextHandler extends BaseContract {
   ): Promise<string>;
 
   approveRouterForPortal(
-    _router: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _router: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "approvedAssets(bytes32)"(
-    _key: PromiseOrValue<BytesLike>,
+    _key: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -2344,12 +2259,12 @@ export interface IConnextHandler extends BaseContract {
   ): Promise<boolean>;
 
   approvedRelayers(
-    _relayer: PromiseOrValue<string>,
+    _relayer: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   approvedSequencers(
-    _sequencer: PromiseOrValue<string>,
+    _sequencer: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -2360,40 +2275,40 @@ export interface IConnextHandler extends BaseContract {
   bridgeRouter(overrides?: CallOverrides): Promise<string>;
 
   bumpTransfer(
-    _transferId: PromiseOrValue<BytesLike>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _transferId: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   calculateRemoveSwapLiquidity(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amount: PromiseOrValue<BigNumberish>,
+    canonicalId: BytesLike,
+    amount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
   calculateRemoveSwapLiquidityOneToken(
-    canonicalId: PromiseOrValue<BytesLike>,
-    tokenAmount: PromiseOrValue<BigNumberish>,
-    tokenIndex: PromiseOrValue<BigNumberish>,
+    canonicalId: BytesLike,
+    tokenAmount: BigNumberish,
+    tokenIndex: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateSwap(
-    canonicalId: PromiseOrValue<BytesLike>,
-    tokenIndexFrom: PromiseOrValue<BigNumberish>,
-    tokenIndexTo: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
+    canonicalId: BytesLike,
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dx: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateSwapTokenAmount(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amounts: PromiseOrValue<BigNumberish>[],
-    deposit: PromiseOrValue<boolean>,
+    canonicalId: BytesLike,
+    amounts: BigNumberish[],
+    deposit: boolean,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "canonicalToAdopted(bytes32)"(
-    _key: PromiseOrValue<BytesLike>,
+    _key: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -2403,43 +2318,40 @@ export interface IConnextHandler extends BaseContract {
   ): Promise<string>;
 
   claim(
-    _recipient: PromiseOrValue<string>,
-    _transferIds: PromiseOrValue<BytesLike>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _recipient: string,
+    _transferIds: BytesLike[],
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  connextion(
-    _domain: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  connextion(_domain: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   delay(overrides?: CallOverrides): Promise<BigNumber>;
 
   diamondCut(
     _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: PromiseOrValue<string>,
-    _calldata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _init: string,
+    _calldata: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   domain(overrides?: CallOverrides): Promise<BigNumber>;
 
   execute(
     _args: ExecuteArgsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   executor(overrides?: CallOverrides): Promise<string>;
 
   facetAddress(
-    _functionSelector: PromiseOrValue<BytesLike>,
+    _functionSelector: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   facetAddresses(overrides?: CallOverrides): Promise<string[]>;
 
   facetFunctionSelectors(
-    _facet: PromiseOrValue<string>,
+    _facet: string,
     overrides?: CallOverrides
   ): Promise<string[]>;
 
@@ -2447,121 +2359,118 @@ export interface IConnextHandler extends BaseContract {
 
   forceReceiveLocal(
     _params: CallParamsStruct,
-    _amount: PromiseOrValue<BigNumberish>,
-    _nonce: PromiseOrValue<BigNumberish>,
-    _canonicalId: PromiseOrValue<BytesLike>,
-    _canonicalDomain: PromiseOrValue<BigNumberish>,
-    _originSender: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _amount: BigNumberish,
+    _nonce: BigNumberish,
+    _canonicalId: BytesLike,
+    _canonicalDomain: BigNumberish,
+    _originSender: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getAavePortalDebt(
-    _transferId: PromiseOrValue<BytesLike>,
+    _transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getAavePortalFeeDebt(
-    _transferId: PromiseOrValue<BytesLike>,
+    _transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getProposedRouterOwner(
-    _router: PromiseOrValue<string>,
+    _router: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getProposedRouterOwnerTimestamp(
-    _router: PromiseOrValue<string>,
+    _router: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getRouterApproval(
-    _router: PromiseOrValue<string>,
+    _router: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   getRouterApprovalForPortal(
-    _router: PromiseOrValue<string>,
+    _router: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  getRouterOwner(
-    _router: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getRouterOwner(_router: string, overrides?: CallOverrides): Promise<string>;
 
   getRouterRecipient(
-    _router: PromiseOrValue<string>,
+    _router: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getSwapA(
-    canonicalId: PromiseOrValue<BytesLike>,
+    canonicalId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getSwapAPrecise(
-    canonicalId: PromiseOrValue<BytesLike>,
+    canonicalId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getSwapAdminBalance(
-    canonicalId: PromiseOrValue<BytesLike>,
-    index: PromiseOrValue<BigNumberish>,
+    canonicalId: BytesLike,
+    index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getSwapLPToken(
-    canonicalId: PromiseOrValue<BytesLike>,
+    canonicalId: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getSwapStorage(
-    canonicalId: PromiseOrValue<BytesLike>,
+    canonicalId: BytesLike,
     overrides?: CallOverrides
   ): Promise<SwapUtils.SwapStructOutput>;
 
   getSwapToken(
-    canonicalId: PromiseOrValue<BytesLike>,
-    index: PromiseOrValue<BigNumberish>,
+    canonicalId: BytesLike,
+    index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getSwapTokenBalance(
-    canonicalId: PromiseOrValue<BytesLike>,
-    index: PromiseOrValue<BigNumberish>,
+    canonicalId: BytesLike,
+    index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getSwapTokenIndex(
-    canonicalId: PromiseOrValue<BytesLike>,
-    tokenAddress: PromiseOrValue<string>,
+    canonicalId: BytesLike,
+    tokenAddress: string,
     overrides?: CallOverrides
   ): Promise<number>;
 
   getSwapVirtualPrice(
-    canonicalId: PromiseOrValue<BytesLike>,
+    canonicalId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   initializeSwap(
-    _canonicalId: PromiseOrValue<BytesLike>,
-    _pooledTokens: PromiseOrValue<string>[],
-    decimals: PromiseOrValue<BigNumberish>[],
-    lpTokenName: PromiseOrValue<string>,
-    lpTokenSymbol: PromiseOrValue<string>,
-    _a: PromiseOrValue<BigNumberish>,
-    _fee: PromiseOrValue<BigNumberish>,
-    _adminFee: PromiseOrValue<BigNumberish>,
-    lpTokenTargetAddress: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _canonicalId: BytesLike,
+    _pooledTokens: string[],
+    decimals: BigNumberish[],
+    lpTokenName: string,
+    lpTokenSymbol: string,
+    _a: BigNumberish,
+    _fee: BigNumberish,
+    _adminFee: BigNumberish,
+    lpTokenTargetAddress: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   initiateClaim(
-    _domain: PromiseOrValue<BigNumberish>,
-    _recipient: PromiseOrValue<string>,
-    _transferIds: PromiseOrValue<BytesLike>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _domain: BigNumberish,
+    _recipient: string,
+    _transferIds: BytesLike[],
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   maxRoutersPerTransfer(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2569,48 +2478,48 @@ export interface IConnextHandler extends BaseContract {
   nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
   onReceive(
-    _origin: PromiseOrValue<BigNumberish>,
-    _sender: PromiseOrValue<BytesLike>,
-    _tokenDomain: PromiseOrValue<BigNumberish>,
-    _tokenAddress: PromiseOrValue<BytesLike>,
-    _localToken: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    _extraData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _origin: BigNumberish,
+    _sender: BytesLike,
+    _tokenDomain: BigNumberish,
+    _tokenAddress: BytesLike,
+    _localToken: string,
+    _amount: BigNumberish,
+    _extraData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   pause(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   promiseRouter(overrides?: CallOverrides): Promise<string>;
 
   proposeAssetWhitelistRemoval(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposeDiamondCut(
     _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: PromiseOrValue<string>,
-    _calldata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _init: string,
+    _calldata: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposeNewOwner(
-    newlyProposed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newlyProposed: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposeRouterOwner(
-    router: PromiseOrValue<string>,
-    proposed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    router: string,
+    proposed: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposeRouterWhitelistRemoval(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposed(overrides?: CallOverrides): Promise<string>;
@@ -2618,143 +2527,143 @@ export interface IConnextHandler extends BaseContract {
   proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
   rampA(
-    canonicalId: PromiseOrValue<BytesLike>,
-    futureA: PromiseOrValue<BigNumberish>,
-    futureTime: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    futureA: BigNumberish,
+    futureTime: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   reconciledTransfers(
-    _transferId: PromiseOrValue<BytesLike>,
+    _transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   relayerFeeRouter(overrides?: CallOverrides): Promise<string>;
 
   relayerFees(
-    _transferId: PromiseOrValue<BytesLike>,
+    _transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   "removeAssetId((uint32,bytes32),address)"(
     _canonical: TokenIdStruct,
-    _adoptedAssetId: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _adoptedAssetId: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "removeAssetId(bytes32,address)"(
-    _key: PromiseOrValue<BytesLike>,
-    _adoptedAssetId: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _key: BytesLike,
+    _adoptedAssetId: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeAssetWhitelist(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeRelayer(
-    _relayer: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _relayer: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeRouter(
-    router: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    router: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeRouterLiquidity(
-    _amount: PromiseOrValue<BigNumberish>,
-    _local: PromiseOrValue<string>,
-    _to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _amount: BigNumberish,
+    _local: string,
+    _to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeRouterLiquidityFor(
-    _amount: PromiseOrValue<BigNumberish>,
-    _local: PromiseOrValue<string>,
-    _to: PromiseOrValue<string>,
-    _router: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _amount: BigNumberish,
+    _local: string,
+    _to: string,
+    _router: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeRouterWhitelist(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeSequencer(
-    _sequencer: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _sequencer: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeSwapLiquidity(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amount: PromiseOrValue<BigNumberish>,
-    minAmounts: PromiseOrValue<BigNumberish>[],
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    amount: BigNumberish,
+    minAmounts: BigNumberish[],
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeSwapLiquidityImbalance(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amounts: PromiseOrValue<BigNumberish>[],
-    maxBurnAmount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    amounts: BigNumberish[],
+    maxBurnAmount: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeSwapLiquidityOneToken(
-    canonicalId: PromiseOrValue<BytesLike>,
-    tokenAmount: PromiseOrValue<BigNumberish>,
-    tokenIndex: PromiseOrValue<BigNumberish>,
-    minAmount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    tokenAmount: BigNumberish,
+    tokenIndex: BigNumberish,
+    minAmount: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   renounced(overrides?: CallOverrides): Promise<boolean>;
 
   repayAavePortal(
     _params: CallParamsStruct,
-    _local: PromiseOrValue<string>,
-    _originSender: PromiseOrValue<string>,
-    _bridgedAmt: PromiseOrValue<BigNumberish>,
-    _nonce: PromiseOrValue<BigNumberish>,
-    _backingAmount: PromiseOrValue<BigNumberish>,
-    _feeAmount: PromiseOrValue<BigNumberish>,
-    _maxIn: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _local: string,
+    _originSender: string,
+    _bridgedAmt: BigNumberish,
+    _nonce: BigNumberish,
+    _backingAmount: BigNumberish,
+    _feeAmount: BigNumberish,
+    _maxIn: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   repayAavePortalFor(
     _params: CallParamsStruct,
-    _adopted: PromiseOrValue<string>,
-    _originSender: PromiseOrValue<string>,
-    _bridgedAmt: PromiseOrValue<BigNumberish>,
-    _nonce: PromiseOrValue<BigNumberish>,
-    _backingAmount: PromiseOrValue<BigNumberish>,
-    _feeAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _adopted: string,
+    _originSender: string,
+    _bridgedAmt: BigNumberish,
+    _nonce: BigNumberish,
+    _backingAmount: BigNumberish,
+    _feeAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   rescindDiamondCut(
     _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: PromiseOrValue<string>,
-    _calldata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _init: string,
+    _calldata: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   routedTransfers(
-    _transferId: PromiseOrValue<BytesLike>,
+    _transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<string[]>;
 
   routerBalances(
-    _router: PromiseOrValue<string>,
-    _asset: PromiseOrValue<string>,
+    _router: string,
+    _asset: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -2763,148 +2672,148 @@ export interface IConnextHandler extends BaseContract {
   routerWhitelistTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
   setAavePool(
-    _aavePool: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _aavePool: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setAavePortalFee(
-    _aavePortalFeeNumerator: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _aavePortalFeeNumerator: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setBridgeRouter(
-    _bridge: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _bridge: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setExecutor(
-    _executor: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _executor: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setLiquidityFeeNumerator(
-    _numerator: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _numerator: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setMaxRoutersPerTransfer(
-    _newMaxRouters: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _newMaxRouters: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setPromiseRouter(
-    _promiseRouter: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _promiseRouter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setRelayerFeeRouter(
-    _relayerFeeRouter: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _relayerFeeRouter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setRouterRecipient(
-    router: PromiseOrValue<string>,
-    recipient: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    router: string,
+    recipient: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setSponsorVault(
-    _sponsorVault: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _sponsorVault: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setSwapAdminFee(
-    canonicalId: PromiseOrValue<BytesLike>,
-    newAdminFee: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    newAdminFee: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setSwapFee(
-    canonicalId: PromiseOrValue<BytesLike>,
-    newSwapFee: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    newSwapFee: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setTokenRegistry(
-    _tokenRegistry: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _tokenRegistry: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setupAsset(
     _canonical: TokenIdStruct,
-    _adoptedAssetId: PromiseOrValue<string>,
-    _stableSwapPool: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _adoptedAssetId: string,
+    _stableSwapPool: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setupRouter(
-    router: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    recipient: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    router: string,
+    owner: string,
+    recipient: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   sponsorVault(overrides?: CallOverrides): Promise<string>;
 
   stopRampA(
-    canonicalId: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swap(
-    canonicalId: PromiseOrValue<BytesLike>,
-    tokenIndexFrom: PromiseOrValue<BigNumberish>,
-    tokenIndexTo: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
-    minDy: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dx: BigNumberish,
+    minDy: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExact(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amountIn: PromiseOrValue<BigNumberish>,
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    minAmountOut: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    amountIn: BigNumberish,
+    assetIn: string,
+    assetOut: string,
+    minAmountOut: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExactOut(
-    canonicalId: PromiseOrValue<BytesLike>,
-    amountOut: PromiseOrValue<BigNumberish>,
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    maxAmountIn: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    amountOut: BigNumberish,
+    assetIn: string,
+    assetOut: string,
+    maxAmountIn: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   tokenRegistry(overrides?: CallOverrides): Promise<string>;
 
   transferRelayer(
-    _transferId: PromiseOrValue<BytesLike>,
+    _transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   unapproveRouterForPortal(
-    _router: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _router: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unpause(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawSwapAdminFees(
-    canonicalId: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    canonicalId: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xcall(
     _args: XCallArgsStruct,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -2921,60 +2830,54 @@ export interface IConnextHandler extends BaseContract {
     acceptProposedOwner(overrides?: CallOverrides): Promise<void>;
 
     acceptProposedRouterOwner(
-      router: PromiseOrValue<string>,
+      router: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     addConnextion(
-      _domain: PromiseOrValue<BigNumberish>,
-      _connext: PromiseOrValue<string>,
+      _domain: BigNumberish,
+      _connext: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    addRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    addRelayer(_relayer: string, overrides?: CallOverrides): Promise<void>;
 
     addRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
+      _amount: BigNumberish,
+      _local: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     addRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
+      _amount: BigNumberish,
+      _local: string,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    addSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    addSequencer(_sequencer: string, overrides?: CallOverrides): Promise<void>;
 
     addStableSwapPool(
       _canonical: TokenIdStruct,
-      _stableSwapPool: PromiseOrValue<string>,
+      _stableSwapPool: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     addSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     adoptedToCanonical(
-      _adopted: PromiseOrValue<string>,
+      _adopted: string,
       overrides?: CallOverrides
     ): Promise<TokenIdStructOutput>;
 
     "adoptedToLocalPools(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -2984,12 +2887,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<string>;
 
     approveRouterForPortal(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "approvedAssets(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -2999,12 +2902,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<boolean>;
 
     approvedRelayers(
-      _relayer: PromiseOrValue<string>,
+      _relayer: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     approvedSequencers(
-      _sequencer: PromiseOrValue<string>,
+      _sequencer: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -3015,40 +2918,40 @@ export interface IConnextHandler extends BaseContract {
     bridgeRouter(overrides?: CallOverrides): Promise<string>;
 
     bumpTransfer(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     calculateRemoveSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
     calculateRemoveSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapTokenAmount(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "canonicalToAdopted(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -3058,13 +2961,13 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<string>;
 
     claim(
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
+      _recipient: string,
+      _transferIds: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     connextion(
-      _domain: PromiseOrValue<BigNumberish>,
+      _domain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -3072,8 +2975,8 @@ export interface IConnextHandler extends BaseContract {
 
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
+      _init: string,
+      _calldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3087,14 +2990,14 @@ export interface IConnextHandler extends BaseContract {
     executor(overrides?: CallOverrides): Promise<string>;
 
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     facetAddresses(overrides?: CallOverrides): Promise<string[]>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<string[]>;
 
@@ -3104,120 +3007,117 @@ export interface IConnextHandler extends BaseContract {
 
     forceReceiveLocal(
       _params: CallParamsStruct,
-      _amount: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _canonicalDomain: PromiseOrValue<BigNumberish>,
-      _originSender: PromiseOrValue<string>,
+      _amount: BigNumberish,
+      _nonce: BigNumberish,
+      _canonicalId: BytesLike,
+      _canonicalDomain: BigNumberish,
+      _originSender: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     getAavePortalDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getAavePortalFeeDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getProposedRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getProposedRouterOwnerTimestamp(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getRouterApproval(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     getRouterApprovalForPortal(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    getRouterOwner(
-      _router: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    getRouterOwner(_router: string, overrides?: CallOverrides): Promise<string>;
 
     getRouterRecipient(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getSwapA(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapAPrecise(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapAdminBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapLPToken(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getSwapStorage(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<SwapUtils.SwapStructOutput>;
 
     getSwapToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getSwapTokenBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapTokenIndex(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAddress: PromiseOrValue<string>,
+      canonicalId: BytesLike,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<number>;
 
     getSwapVirtualPrice(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     initializeSwap(
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      _a: PromiseOrValue<BigNumberish>,
-      _fee: PromiseOrValue<BigNumberish>,
-      _adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
+      _canonicalId: BytesLike,
+      _pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      _a: BigNumberish,
+      _fee: BigNumberish,
+      _adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     initiateClaim(
-      _domain: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
+      _domain: BigNumberish,
+      _recipient: string,
+      _transferIds: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3226,13 +3126,13 @@ export interface IConnextHandler extends BaseContract {
     nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     onReceive(
-      _origin: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _tokenDomain: PromiseOrValue<BigNumberish>,
-      _tokenAddress: PromiseOrValue<BytesLike>,
-      _localToken: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _extraData: PromiseOrValue<BytesLike>,
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _tokenDomain: BigNumberish,
+      _tokenAddress: BytesLike,
+      _localToken: string,
+      _amount: BigNumberish,
+      _extraData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3246,19 +3146,19 @@ export interface IConnextHandler extends BaseContract {
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
+      _init: string,
+      _calldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
+      newlyProposed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     proposeRouterOwner(
-      router: PromiseOrValue<string>,
-      proposed: PromiseOrValue<string>,
+      router: string,
+      proposed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3269,92 +3169,86 @@ export interface IConnextHandler extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     rampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      futureA: PromiseOrValue<BigNumberish>,
-      futureTime: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      futureA: BigNumberish,
+      futureTime: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     reconciledTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     relayerFeeRouter(overrides?: CallOverrides): Promise<string>;
 
     relayerFees(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "removeAssetId((uint32,bytes32),address)"(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
+      _adoptedAssetId: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "removeAssetId(bytes32,address)"(
-      _key: PromiseOrValue<BytesLike>,
-      _adoptedAssetId: PromiseOrValue<string>,
+      _key: BytesLike,
+      _adoptedAssetId: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     removeAssetWhitelist(overrides?: CallOverrides): Promise<void>;
 
-    removeRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    removeRelayer(_relayer: string, overrides?: CallOverrides): Promise<void>;
 
-    removeRouter(
-      router: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    removeRouter(router: string, overrides?: CallOverrides): Promise<void>;
 
     removeRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     removeRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     removeRouterWhitelist(overrides?: CallOverrides): Promise<void>;
 
     removeSequencer(
-      _sequencer: PromiseOrValue<string>,
+      _sequencer: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     removeSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
     removeSwapLiquidityImbalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     removeSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3364,42 +3258,42 @@ export interface IConnextHandler extends BaseContract {
 
     repayAavePortal(
       _params: CallParamsStruct,
-      _local: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      _maxIn: PromiseOrValue<BigNumberish>,
+      _local: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      _maxIn: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     repayAavePortalFor(
       _params: CallParamsStruct,
-      _adopted: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
+      _adopted: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
+      _init: string,
+      _calldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     routedTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<string[]>;
 
     routerBalances(
-      _router: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _router: string,
+      _asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3407,141 +3301,129 @@ export interface IConnextHandler extends BaseContract {
 
     routerWhitelistTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setAavePool(
-      _aavePool: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setAavePool(_aavePool: string, overrides?: CallOverrides): Promise<void>;
 
     setAavePortalFee(
-      _aavePortalFeeNumerator: PromiseOrValue<BigNumberish>,
+      _aavePortalFeeNumerator: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setBridgeRouter(
-      _bridge: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setBridgeRouter(_bridge: string, overrides?: CallOverrides): Promise<void>;
 
-    setExecutor(
-      _executor: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setExecutor(_executor: string, overrides?: CallOverrides): Promise<void>;
 
     setLiquidityFeeNumerator(
-      _numerator: PromiseOrValue<BigNumberish>,
+      _numerator: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setMaxRoutersPerTransfer(
-      _newMaxRouters: PromiseOrValue<BigNumberish>,
+      _newMaxRouters: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setPromiseRouter(
-      _promiseRouter: PromiseOrValue<string>,
+      _promiseRouter: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setRelayerFeeRouter(
-      _relayerFeeRouter: PromiseOrValue<string>,
+      _relayerFeeRouter: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setRouterRecipient(
-      router: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
+      router: string,
+      recipient: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setSponsorVault(
-      _sponsorVault: PromiseOrValue<string>,
+      _sponsorVault: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setSwapAdminFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newAdminFee: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      newAdminFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setSwapFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newSwapFee: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      newSwapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setTokenRegistry(
-      _tokenRegistry: PromiseOrValue<string>,
+      _tokenRegistry: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setupAsset(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      _stableSwapPool: PromiseOrValue<string>,
+      _adoptedAssetId: string,
+      _stableSwapPool: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setupRouter(
-      router: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
+      router: string,
+      owner: string,
+      recipient: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     sponsorVault(overrides?: CallOverrides): Promise<string>;
 
-    stopRampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    stopRampA(canonicalId: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     swap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     swapExact(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     swapExactOut(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     tokenRegistry(overrides?: CallOverrides): Promise<string>;
 
     transferRelayer(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     unapproveRouterForPortal(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
 
     withdrawSwapAdminFees(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3591,7 +3473,7 @@ export interface IConnextHandler extends BaseContract {
     LIQUIDITY_FEE_NUMERATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
     VERSION(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     aavePool(overrides?: CallOverrides): Promise<BigNumber>;
@@ -3599,64 +3481,64 @@ export interface IConnextHandler extends BaseContract {
     aavePortalFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     acceptProposedRouterOwner(
-      router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addConnextion(
-      _domain: PromiseOrValue<BigNumberish>,
-      _connext: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _connext: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _router: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sequencer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addStableSwapPool(
       _canonical: TokenIdStruct,
-      _stableSwapPool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _stableSwapPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     addSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     adoptedToCanonical(
-      _adopted: PromiseOrValue<string>,
+      _adopted: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "adoptedToLocalPools(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3666,12 +3548,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<BigNumber>;
 
     approveRouterForPortal(
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "approvedAssets(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3681,12 +3563,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<BigNumber>;
 
     approvedRelayers(
-      _relayer: PromiseOrValue<string>,
+      _relayer: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approvedSequencers(
-      _sequencer: PromiseOrValue<string>,
+      _sequencer: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3697,40 +3579,40 @@ export interface IConnextHandler extends BaseContract {
     bridgeRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
     bumpTransfer(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     calculateRemoveSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateRemoveSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapTokenAmount(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "canonicalToAdopted(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3740,13 +3622,13 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<BigNumber>;
 
     claim(
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _recipient: string,
+      _transferIds: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     connextion(
-      _domain: PromiseOrValue<BigNumberish>,
+      _domain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3754,29 +3636,29 @@ export interface IConnextHandler extends BaseContract {
 
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     domain(overrides?: CallOverrides): Promise<BigNumber>;
 
     execute(
       _args: ExecuteArgsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     executor(overrides?: CallOverrides): Promise<BigNumber>;
 
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     facetAddresses(overrides?: CallOverrides): Promise<BigNumber>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -3784,121 +3666,121 @@ export interface IConnextHandler extends BaseContract {
 
     forceReceiveLocal(
       _params: CallParamsStruct,
-      _amount: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _canonicalDomain: PromiseOrValue<BigNumberish>,
-      _originSender: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _nonce: BigNumberish,
+      _canonicalId: BytesLike,
+      _canonicalDomain: BigNumberish,
+      _originSender: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getAavePortalDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getAavePortalFeeDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getProposedRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getProposedRouterOwnerTimestamp(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getRouterApproval(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getRouterApprovalForPortal(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getRouterRecipient(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapA(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapAPrecise(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapAdminBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapLPToken(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapStorage(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapTokenBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapTokenIndex(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAddress: PromiseOrValue<string>,
+      canonicalId: BytesLike,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getSwapVirtualPrice(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     initializeSwap(
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      _a: PromiseOrValue<BigNumberish>,
-      _fee: PromiseOrValue<BigNumberish>,
-      _adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _canonicalId: BytesLike,
+      _pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      _a: BigNumberish,
+      _fee: BigNumberish,
+      _adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     initiateClaim(
-      _domain: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _recipient: string,
+      _transferIds: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     maxRoutersPerTransfer(overrides?: CallOverrides): Promise<BigNumber>;
@@ -3906,48 +3788,48 @@ export interface IConnextHandler extends BaseContract {
     nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     onReceive(
-      _origin: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _tokenDomain: PromiseOrValue<BigNumberish>,
-      _tokenAddress: PromiseOrValue<BytesLike>,
-      _localToken: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _extraData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _tokenDomain: BigNumberish,
+      _tokenAddress: BytesLike,
+      _localToken: string,
+      _amount: BigNumberish,
+      _extraData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     promiseRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposeAssetWhitelistRemoval(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposeRouterOwner(
-      router: PromiseOrValue<string>,
-      proposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      proposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposeRouterWhitelistRemoval(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposed(overrides?: CallOverrides): Promise<BigNumber>;
@@ -3955,143 +3837,143 @@ export interface IConnextHandler extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     rampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      futureA: PromiseOrValue<BigNumberish>,
-      futureTime: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      futureA: BigNumberish,
+      futureTime: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     reconciledTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     relayerFeeRouter(overrides?: CallOverrides): Promise<BigNumber>;
 
     relayerFees(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "removeAssetId((uint32,bytes32),address)"(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adoptedAssetId: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "removeAssetId(bytes32,address)"(
-      _key: PromiseOrValue<BytesLike>,
-      _adoptedAssetId: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _key: BytesLike,
+      _adoptedAssetId: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeAssetWhitelist(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeRouter(
-      router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeRouterWhitelist(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sequencer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeSwapLiquidityImbalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     renounced(overrides?: CallOverrides): Promise<BigNumber>;
 
     repayAavePortal(
       _params: CallParamsStruct,
-      _local: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      _maxIn: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _local: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      _maxIn: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     repayAavePortalFor(
       _params: CallParamsStruct,
-      _adopted: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adopted: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     routedTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     routerBalances(
-      _router: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _router: string,
+      _asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -4100,148 +3982,148 @@ export interface IConnextHandler extends BaseContract {
     routerWhitelistTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     setAavePool(
-      _aavePool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _aavePool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setAavePortalFee(
-      _aavePortalFeeNumerator: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _aavePortalFeeNumerator: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setBridgeRouter(
-      _bridge: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _bridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setExecutor(
-      _executor: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _executor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setLiquidityFeeNumerator(
-      _numerator: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _numerator: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setMaxRoutersPerTransfer(
-      _newMaxRouters: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _newMaxRouters: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setPromiseRouter(
-      _promiseRouter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _promiseRouter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setRelayerFeeRouter(
-      _relayerFeeRouter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayerFeeRouter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setRouterRecipient(
-      router: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setSponsorVault(
-      _sponsorVault: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sponsorVault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setSwapAdminFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newAdminFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      newAdminFee: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setSwapFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newSwapFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      newSwapFee: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setTokenRegistry(
-      _tokenRegistry: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _tokenRegistry: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setupAsset(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      _stableSwapPool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adoptedAssetId: string,
+      _stableSwapPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setupRouter(
-      router: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      owner: string,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     sponsorVault(overrides?: CallOverrides): Promise<BigNumber>;
 
     stopRampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExact(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExactOut(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     tokenRegistry(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferRelayer(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     unapproveRouterForPortal(
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawSwapAdminFees(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xcall(
       _args: XCallArgsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -4255,7 +4137,7 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     VERSION(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     aavePool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -4263,64 +4145,64 @@ export interface IConnextHandler extends BaseContract {
     aavePortalFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     acceptProposedRouterOwner(
-      router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addConnextion(
-      _domain: PromiseOrValue<BigNumberish>,
-      _connext: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _connext: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _router: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sequencer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addStableSwapPool(
       _canonical: TokenIdStruct,
-      _stableSwapPool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _stableSwapPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     addSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     adoptedToCanonical(
-      _adopted: PromiseOrValue<string>,
+      _adopted: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "adoptedToLocalPools(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4330,12 +4212,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     approveRouterForPortal(
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "approvedAssets(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4345,12 +4227,12 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     approvedRelayers(
-      _relayer: PromiseOrValue<string>,
+      _relayer: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     approvedSequencers(
-      _sequencer: PromiseOrValue<string>,
+      _sequencer: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4365,40 +4247,40 @@ export interface IConnextHandler extends BaseContract {
     bridgeRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     bumpTransfer(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     calculateRemoveSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateRemoveSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateSwap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateSwapTokenAmount(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "canonicalToAdopted(bytes32)"(
-      _key: PromiseOrValue<BytesLike>,
+      _key: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4408,13 +4290,13 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     claim(
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _recipient: string,
+      _transferIds: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     connextion(
-      _domain: PromiseOrValue<BigNumberish>,
+      _domain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4422,29 +4304,29 @@ export interface IConnextHandler extends BaseContract {
 
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     domain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     execute(
       _args: ExecuteArgsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     executor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     facetAddresses(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4452,121 +4334,121 @@ export interface IConnextHandler extends BaseContract {
 
     forceReceiveLocal(
       _params: CallParamsStruct,
-      _amount: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _canonicalDomain: PromiseOrValue<BigNumberish>,
-      _originSender: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _nonce: BigNumberish,
+      _canonicalId: BytesLike,
+      _canonicalDomain: BigNumberish,
+      _originSender: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getAavePortalDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getAavePortalFeeDebt(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getProposedRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getProposedRouterOwnerTimestamp(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getRouterApproval(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getRouterApprovalForPortal(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getRouterOwner(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getRouterRecipient(
-      _router: PromiseOrValue<string>,
+      _router: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapA(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapAPrecise(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapAdminBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapLPToken(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapStorage(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapTokenBalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      index: PromiseOrValue<BigNumberish>,
+      canonicalId: BytesLike,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapTokenIndex(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAddress: PromiseOrValue<string>,
+      canonicalId: BytesLike,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getSwapVirtualPrice(
-      canonicalId: PromiseOrValue<BytesLike>,
+      canonicalId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     initializeSwap(
-      _canonicalId: PromiseOrValue<BytesLike>,
-      _pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      _a: PromiseOrValue<BigNumberish>,
-      _fee: PromiseOrValue<BigNumberish>,
-      _adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _canonicalId: BytesLike,
+      _pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      _a: BigNumberish,
+      _fee: BigNumberish,
+      _adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     initiateClaim(
-      _domain: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<string>,
-      _transferIds: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _recipient: string,
+      _transferIds: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     maxRoutersPerTransfer(
@@ -4576,48 +4458,48 @@ export interface IConnextHandler extends BaseContract {
     nonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     onReceive(
-      _origin: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _tokenDomain: PromiseOrValue<BigNumberish>,
-      _tokenAddress: PromiseOrValue<BytesLike>,
-      _localToken: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _extraData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _sender: BytesLike,
+      _tokenDomain: BigNumberish,
+      _tokenAddress: BytesLike,
+      _localToken: string,
+      _amount: BigNumberish,
+      _extraData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     promiseRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposeAssetWhitelistRemoval(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposeRouterOwner(
-      router: PromiseOrValue<string>,
-      proposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      proposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposeRouterWhitelistRemoval(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -4625,143 +4507,143 @@ export interface IConnextHandler extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     rampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      futureA: PromiseOrValue<BigNumberish>,
-      futureTime: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      futureA: BigNumberish,
+      futureTime: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     reconciledTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     relayerFeeRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     relayerFees(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "removeAssetId((uint32,bytes32),address)"(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adoptedAssetId: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "removeAssetId(bytes32,address)"(
-      _key: PromiseOrValue<BytesLike>,
-      _adoptedAssetId: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _key: BytesLike,
+      _adoptedAssetId: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeAssetWhitelist(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeRelayer(
-      _relayer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeRouter(
-      router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeRouterLiquidity(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeRouterLiquidityFor(
-      _amount: PromiseOrValue<BigNumberish>,
-      _local: PromiseOrValue<string>,
-      _to: PromiseOrValue<string>,
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _amount: BigNumberish,
+      _local: string,
+      _to: string,
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeRouterWhitelist(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeSequencer(
-      _sequencer: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sequencer: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeSwapLiquidity(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeSwapLiquidityImbalance(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeSwapLiquidityOneToken(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     renounced(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     repayAavePortal(
       _params: CallParamsStruct,
-      _local: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      _maxIn: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _local: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      _maxIn: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     repayAavePortalFor(
       _params: CallParamsStruct,
-      _adopted: PromiseOrValue<string>,
-      _originSender: PromiseOrValue<string>,
-      _bridgedAmt: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _backingAmount: PromiseOrValue<BigNumberish>,
-      _feeAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adopted: string,
+      _originSender: string,
+      _bridgedAmt: BigNumberish,
+      _nonce: BigNumberish,
+      _backingAmount: BigNumberish,
+      _feeAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     routedTransfers(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     routerBalances(
-      _router: PromiseOrValue<string>,
-      _asset: PromiseOrValue<string>,
+      _router: string,
+      _asset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4774,148 +4656,387 @@ export interface IConnextHandler extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setAavePool(
-      _aavePool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _aavePool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setAavePortalFee(
-      _aavePortalFeeNumerator: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _aavePortalFeeNumerator: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setBridgeRouter(
-      _bridge: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _bridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setExecutor(
-      _executor: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _executor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setLiquidityFeeNumerator(
-      _numerator: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _numerator: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setMaxRoutersPerTransfer(
-      _newMaxRouters: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _newMaxRouters: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setPromiseRouter(
-      _promiseRouter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _promiseRouter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setRelayerFeeRouter(
-      _relayerFeeRouter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _relayerFeeRouter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setRouterRecipient(
-      router: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setSponsorVault(
-      _sponsorVault: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _sponsorVault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setSwapAdminFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newAdminFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      newAdminFee: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setSwapFee(
-      canonicalId: PromiseOrValue<BytesLike>,
-      newSwapFee: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      newSwapFee: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setTokenRegistry(
-      _tokenRegistry: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _tokenRegistry: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setupAsset(
       _canonical: TokenIdStruct,
-      _adoptedAssetId: PromiseOrValue<string>,
-      _stableSwapPool: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _adoptedAssetId: string,
+      _stableSwapPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setupRouter(
-      router: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      recipient: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      router: string,
+      owner: string,
+      recipient: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     sponsorVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     stopRampA(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swap(
-      canonicalId: PromiseOrValue<BytesLike>,
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExact(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExactOut(
-      canonicalId: PromiseOrValue<BytesLike>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     tokenRegistry(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferRelayer(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     unapproveRouterForPortal(
-      _router: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _router: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawSwapAdminFees(
-      canonicalId: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      canonicalId: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xcall(
       _args: XCallArgsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IConnextHandlerMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  LIQUIDITY_FEE_DENOMINATOR(overrides?: CallOverrides): Call<BigNumber>;
+
+  LIQUIDITY_FEE_NUMERATOR(overrides?: CallOverrides): Call<BigNumber>;
+
+  aavePool(overrides?: CallOverrides): Call<string>;
+
+  aavePortalFee(overrides?: CallOverrides): Call<BigNumber>;
+
+  adoptedToCanonical(
+    _adopted: string,
+    overrides?: CallOverrides
+  ): Call<TokenIdStructOutput>;
+
+  "adoptedToLocalPools(bytes32)"(
+    _key: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  "adoptedToLocalPools((uint32,bytes32))"(
+    _canonical: TokenIdStruct,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  "approvedAssets(bytes32)"(
+    _key: BytesLike,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  "approvedAssets((uint32,bytes32))"(
+    _canonical: TokenIdStruct,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  approvedRelayers(_relayer: string, overrides?: CallOverrides): Call<boolean>;
+
+  approvedSequencers(
+    _sequencer: string,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  assetWhitelistRemoved(overrides?: CallOverrides): Call<boolean>;
+
+  assetWhitelistTimestamp(overrides?: CallOverrides): Call<BigNumber>;
+
+  bridgeRouter(overrides?: CallOverrides): Call<string>;
+
+  calculateRemoveSwapLiquidity(
+    canonicalId: BytesLike,
+    amount: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber[]>;
+
+  calculateRemoveSwapLiquidityOneToken(
+    canonicalId: BytesLike,
+    tokenAmount: BigNumberish,
+    tokenIndex: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateSwap(
+    canonicalId: BytesLike,
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dx: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateSwapTokenAmount(
+    canonicalId: BytesLike,
+    amounts: BigNumberish[],
+    deposit: boolean,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  "canonicalToAdopted(bytes32)"(
+    _key: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  "canonicalToAdopted((uint32,bytes32))"(
+    _canonical: TokenIdStruct,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  connextion(_domain: BigNumberish, overrides?: CallOverrides): Call<string>;
+
+  delay(overrides?: CallOverrides): Call<BigNumber>;
+
+  domain(overrides?: CallOverrides): Call<BigNumber>;
+
+  executor(overrides?: CallOverrides): Call<string>;
+
+  facetAddress(
+    _functionSelector: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  facetAddresses(overrides?: CallOverrides): Call<string[]>;
+
+  facetFunctionSelectors(
+    _facet: string,
+    overrides?: CallOverrides
+  ): Call<string[]>;
+
+  facets(overrides?: CallOverrides): Call<IDiamondLoupe.FacetStructOutput[]>;
+
+  getAavePortalDebt(
+    _transferId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getAavePortalFeeDebt(
+    _transferId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getProposedRouterOwner(
+    _router: string,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getProposedRouterOwnerTimestamp(
+    _router: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getRouterApproval(_router: string, overrides?: CallOverrides): Call<boolean>;
+
+  getRouterApprovalForPortal(
+    _router: string,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  getRouterOwner(_router: string, overrides?: CallOverrides): Call<string>;
+
+  getRouterRecipient(_router: string, overrides?: CallOverrides): Call<string>;
+
+  getSwapA(canonicalId: BytesLike, overrides?: CallOverrides): Call<BigNumber>;
+
+  getSwapAPrecise(
+    canonicalId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getSwapAdminBalance(
+    canonicalId: BytesLike,
+    index: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getSwapLPToken(
+    canonicalId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getSwapStorage(
+    canonicalId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<SwapUtils.SwapStructOutput>;
+
+  getSwapToken(
+    canonicalId: BytesLike,
+    index: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getSwapTokenBalance(
+    canonicalId: BytesLike,
+    index: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getSwapTokenIndex(
+    canonicalId: BytesLike,
+    tokenAddress: string,
+    overrides?: CallOverrides
+  ): Call<number>;
+
+  getSwapVirtualPrice(
+    canonicalId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  maxRoutersPerTransfer(overrides?: CallOverrides): Call<BigNumber>;
+
+  nonce(overrides?: CallOverrides): Call<BigNumber>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  promiseRouter(overrides?: CallOverrides): Call<string>;
+
+  proposed(overrides?: CallOverrides): Call<string>;
+
+  proposedTimestamp(overrides?: CallOverrides): Call<BigNumber>;
+
+  reconciledTransfers(
+    _transferId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  relayerFeeRouter(overrides?: CallOverrides): Call<string>;
+
+  relayerFees(
+    _transferId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  renounced(overrides?: CallOverrides): Call<boolean>;
+
+  routedTransfers(
+    _transferId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string[]>;
+
+  routerBalances(
+    _router: string,
+    _asset: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  routerWhitelistRemoved(overrides?: CallOverrides): Call<boolean>;
+
+  routerWhitelistTimestamp(overrides?: CallOverrides): Call<BigNumber>;
+
+  sponsorVault(overrides?: CallOverrides): Call<string>;
+
+  tokenRegistry(overrides?: CallOverrides): Call<string>;
+
+  transferRelayer(
+    _transferId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
 }

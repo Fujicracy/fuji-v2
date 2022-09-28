@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IERC20Mintable,
   IERC20MintableInterface,
+  IERC20MintableMulticall,
 } from "../../../src/interfaces/IERC20Mintable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -42,7 +43,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IERC20Mintable__factory {
   static readonly abi = _abi;
   static createInterface(): IERC20MintableInterface {
@@ -53,5 +53,11 @@ export class IERC20Mintable__factory {
     signerOrProvider: Signer | Provider
   ): IERC20Mintable {
     return new Contract(address, _abi, signerOrProvider) as IERC20Mintable;
+  }
+  static multicall(address: string): IERC20MintableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IERC20MintableMulticall;
   }
 }

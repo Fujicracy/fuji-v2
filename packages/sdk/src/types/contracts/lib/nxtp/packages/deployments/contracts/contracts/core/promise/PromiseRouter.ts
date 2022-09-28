@@ -15,17 +15,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface PromiseRouterInterface extends utils.Interface {
@@ -100,47 +101,39 @@ export interface PromiseRouterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "bumpCallbackFee",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "callbackFees",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "connext", values?: undefined): string;
   encodeFunctionData(functionFragment: "delay", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "enrollRemoteRouter",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
+    values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "handle",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish, BigNumberish, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "initCallbackFee",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "messageHashes",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "process",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "proposeNewOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "proposed", values?: undefined): string;
   encodeFunctionData(
@@ -149,7 +142,7 @@ export interface PromiseRouterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "remotes",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -158,25 +151,16 @@ export interface PromiseRouterInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "renounced", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "send",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish, BytesLike, string, boolean, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setConnext",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setConnext", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setReserveGas",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setXAppConnectionManager",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "xAppConnectionManager",
@@ -413,16 +397,16 @@ export interface PromiseRouter extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<[number]>;
 
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     bumpCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     callbackFees(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -431,84 +415,81 @@ export interface PromiseRouter extends BaseContract {
     delay(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     enrollRemoteRouter(
-      _domain: PromiseOrValue<BigNumberish>,
-      _router: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     initCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     initialize(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     messageHashes(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     process(
-      transferId: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      transferId: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<[string]>;
 
     proposedTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    remotes(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     renounced(overrides?: CallOverrides): Promise<[boolean]>;
 
     send(
-      _domain: PromiseOrValue<BigNumberish>,
-      _transferId: PromiseOrValue<BytesLike>,
-      _callbackAddress: PromiseOrValue<string>,
-      _returnSuccess: PromiseOrValue<boolean>,
-      _returnData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _transferId: BytesLike,
+      _callbackAddress: string,
+      _returnSuccess: boolean,
+      _returnData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setConnext(
-      _connext: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _connext: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setReserveGas(
-      _reserve: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _reserve: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
@@ -521,102 +502,93 @@ export interface PromiseRouter extends BaseContract {
   VERSION(overrides?: CallOverrides): Promise<number>;
 
   acceptProposedOwner(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   bumpCallbackFee(
-    _transferId: PromiseOrValue<BytesLike>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _transferId: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  callbackFees(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  callbackFees(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
   connext(overrides?: CallOverrides): Promise<string>;
 
   delay(overrides?: CallOverrides): Promise<BigNumber>;
 
   enrollRemoteRouter(
-    _domain: PromiseOrValue<BigNumberish>,
-    _router: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _domain: BigNumberish,
+    _router: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   handle(
-    _origin: PromiseOrValue<BigNumberish>,
-    _nonce: PromiseOrValue<BigNumberish>,
-    _sender: PromiseOrValue<BytesLike>,
-    _message: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _origin: BigNumberish,
+    _nonce: BigNumberish,
+    _sender: BytesLike,
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   initCallbackFee(
-    _transferId: PromiseOrValue<BytesLike>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _transferId: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   initialize(
-    _xAppConnectionManager: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _xAppConnectionManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  messageHashes(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  messageHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   process(
-    transferId: PromiseOrValue<BytesLike>,
-    _message: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    transferId: BytesLike,
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposeNewOwner(
-    newlyProposed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newlyProposed: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposed(overrides?: CallOverrides): Promise<string>;
 
   proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-  remotes(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   renounced(overrides?: CallOverrides): Promise<boolean>;
 
   send(
-    _domain: PromiseOrValue<BigNumberish>,
-    _transferId: PromiseOrValue<BytesLike>,
-    _callbackAddress: PromiseOrValue<string>,
-    _returnSuccess: PromiseOrValue<boolean>,
-    _returnData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _domain: BigNumberish,
+    _transferId: BytesLike,
+    _callbackAddress: string,
+    _returnSuccess: boolean,
+    _returnData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setConnext(
-    _connext: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _connext: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setReserveGas(
-    _reserve: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _reserve: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setXAppConnectionManager(
-    _xAppConnectionManager: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _xAppConnectionManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
@@ -631,12 +603,12 @@ export interface PromiseRouter extends BaseContract {
     acceptProposedOwner(overrides?: CallOverrides): Promise<void>;
 
     bumpCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     callbackFees(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -645,44 +617,41 @@ export interface PromiseRouter extends BaseContract {
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
     enrollRemoteRouter(
-      _domain: PromiseOrValue<BigNumberish>,
-      _router: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _router: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     initCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
+      _transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     initialize(
-      _xAppConnectionManager: PromiseOrValue<string>,
+      _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    messageHashes(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    messageHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
     process(
-      transferId: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
+      transferId: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
+      newlyProposed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -690,36 +659,30 @@ export interface PromiseRouter extends BaseContract {
 
     proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-    remotes(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     renounced(overrides?: CallOverrides): Promise<boolean>;
 
     send(
-      _domain: PromiseOrValue<BigNumberish>,
-      _transferId: PromiseOrValue<BytesLike>,
-      _callbackAddress: PromiseOrValue<string>,
-      _returnSuccess: PromiseOrValue<boolean>,
-      _returnData: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _transferId: BytesLike,
+      _callbackAddress: string,
+      _returnSuccess: boolean,
+      _returnData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setConnext(
-      _connext: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setConnext(_connext: string, overrides?: CallOverrides): Promise<void>;
 
     setReserveGas(
-      _reserve: PromiseOrValue<BigNumberish>,
+      _reserve: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
+      _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -728,24 +691,24 @@ export interface PromiseRouter extends BaseContract {
 
   filters: {
     "CallbackExecuted(bytes32,bool,address)"(
-      transferId?: PromiseOrValue<BytesLike> | null,
+      transferId?: BytesLike | null,
       success?: null,
       relayer?: null
     ): CallbackExecutedEventFilter;
     CallbackExecuted(
-      transferId?: PromiseOrValue<BytesLike> | null,
+      transferId?: BytesLike | null,
       success?: null,
       relayer?: null
     ): CallbackExecutedEventFilter;
 
     "CallbackFeeAdded(bytes32,uint256,uint256,address)"(
-      transferId?: PromiseOrValue<BytesLike> | null,
+      transferId?: BytesLike | null,
       addedFee?: null,
       totalFee?: null,
       caller?: null
     ): CallbackFeeAddedEventFilter;
     CallbackFeeAdded(
-      transferId?: PromiseOrValue<BytesLike> | null,
+      transferId?: BytesLike | null,
       addedFee?: null,
       totalFee?: null,
       caller?: null
@@ -755,24 +718,24 @@ export interface PromiseRouter extends BaseContract {
     Initialized(version?: null): InitializedEventFilter;
 
     "OwnershipProposed(address)"(
-      proposedOwner?: PromiseOrValue<string> | null
+      proposedOwner?: string | null
     ): OwnershipProposedEventFilter;
     OwnershipProposed(
-      proposedOwner?: PromiseOrValue<string> | null
+      proposedOwner?: string | null
     ): OwnershipProposedEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
     "Receive(uint64,uint32,bytes32,address,bool,bytes,bytes)"(
-      originAndNonce?: PromiseOrValue<BigNumberish> | null,
-      origin?: PromiseOrValue<BigNumberish> | null,
+      originAndNonce?: BigNumberish | null,
+      origin?: BigNumberish | null,
       transferId?: null,
       callbackAddress?: null,
       success?: null,
@@ -780,8 +743,8 @@ export interface PromiseRouter extends BaseContract {
       message?: null
     ): ReceiveEventFilter;
     Receive(
-      originAndNonce?: PromiseOrValue<BigNumberish> | null,
-      origin?: PromiseOrValue<BigNumberish> | null,
+      originAndNonce?: BigNumberish | null,
+      origin?: BigNumberish | null,
       transferId?: null,
       callbackAddress?: null,
       success?: null,
@@ -814,10 +777,8 @@ export interface PromiseRouter extends BaseContract {
       message?: null
     ): SendEventFilter;
 
-    "SetConnext(address)"(
-      connext?: PromiseOrValue<string> | null
-    ): SetConnextEventFilter;
-    SetConnext(connext?: PromiseOrValue<string> | null): SetConnextEventFilter;
+    "SetConnext(address)"(connext?: string | null): SetConnextEventFilter;
+    SetConnext(connext?: string | null): SetConnextEventFilter;
   };
 
   estimateGas: {
@@ -828,16 +789,16 @@ export interface PromiseRouter extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<BigNumber>;
 
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     bumpCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     callbackFees(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -846,84 +807,81 @@ export interface PromiseRouter extends BaseContract {
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
     enrollRemoteRouter(
-      _domain: PromiseOrValue<BigNumberish>,
-      _router: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     initCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     initialize(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     messageHashes(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     process(
-      transferId: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      transferId: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposed(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-    remotes(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    remotes(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     renounced(overrides?: CallOverrides): Promise<BigNumber>;
 
     send(
-      _domain: PromiseOrValue<BigNumberish>,
-      _transferId: PromiseOrValue<BytesLike>,
-      _callbackAddress: PromiseOrValue<string>,
-      _returnSuccess: PromiseOrValue<boolean>,
-      _returnData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _transferId: BytesLike,
+      _callbackAddress: string,
+      _returnSuccess: boolean,
+      _returnData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setConnext(
-      _connext: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _connext: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setReserveGas(
-      _reserve: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _reserve: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xAppConnectionManager(overrides?: CallOverrides): Promise<BigNumber>;
@@ -937,16 +895,16 @@ export interface PromiseRouter extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     bumpCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     callbackFees(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -955,45 +913,45 @@ export interface PromiseRouter extends BaseContract {
     delay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     enrollRemoteRouter(
-      _domain: PromiseOrValue<BigNumberish>,
-      _router: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _router: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     initCallbackFee(
-      _transferId: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _transferId: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     messageHashes(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     process(
-      transferId: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      transferId: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1001,42 +959,74 @@ export interface PromiseRouter extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     remotes(
-      arg0: PromiseOrValue<BigNumberish>,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     renounced(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     send(
-      _domain: PromiseOrValue<BigNumberish>,
-      _transferId: PromiseOrValue<BytesLike>,
-      _callbackAddress: PromiseOrValue<string>,
-      _returnSuccess: PromiseOrValue<boolean>,
-      _returnData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _transferId: BytesLike,
+      _callbackAddress: string,
+      _returnSuccess: boolean,
+      _returnData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setConnext(
-      _connext: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _connext: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setReserveGas(
-      _reserve: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _reserve: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xAppConnectionManager(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface PromiseRouterMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  MAX_COPY(overrides?: CallOverrides): Call<number>;
+
+  RESERVE_GAS(overrides?: CallOverrides): Call<BigNumber>;
+
+  VERSION(overrides?: CallOverrides): Call<number>;
+
+  callbackFees(arg0: BytesLike, overrides?: CallOverrides): Call<BigNumber>;
+
+  connext(overrides?: CallOverrides): Call<string>;
+
+  delay(overrides?: CallOverrides): Call<BigNumber>;
+
+  messageHashes(arg0: BytesLike, overrides?: CallOverrides): Call<string>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  proposed(overrides?: CallOverrides): Call<string>;
+
+  proposedTimestamp(overrides?: CallOverrides): Call<BigNumber>;
+
+  remotes(arg0: BigNumberish, overrides?: CallOverrides): Call<string>;
+
+  renounced(overrides?: CallOverrides): Call<boolean>;
+
+  xAppConnectionManager(overrides?: CallOverrides): Call<string>;
 }

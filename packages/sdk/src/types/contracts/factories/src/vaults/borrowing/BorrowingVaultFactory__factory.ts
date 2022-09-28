@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   BorrowingVaultFactory,
   BorrowingVaultFactoryInterface,
+  BorrowingVaultFactoryMulticall,
 } from "../../../../src/vaults/borrowing/BorrowingVaultFactory";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -155,7 +156,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class BorrowingVaultFactory__factory {
   static readonly abi = _abi;
   static createInterface(): BorrowingVaultFactoryInterface {
@@ -170,5 +170,11 @@ export class BorrowingVaultFactory__factory {
       _abi,
       signerOrProvider
     ) as BorrowingVaultFactory;
+  }
+  static multicall(address: string): BorrowingVaultFactoryMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as BorrowingVaultFactoryMulticall;
   }
 }

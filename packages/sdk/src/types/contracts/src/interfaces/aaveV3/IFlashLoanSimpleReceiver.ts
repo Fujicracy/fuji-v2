@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface IFlashLoanSimpleReceiverInterface extends utils.Interface {
@@ -32,13 +32,7 @@ export interface IFlashLoanSimpleReceiverInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "executeOperation",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [string, BigNumberish, BigNumberish, string, BytesLike]
   ): string;
 
   decodeFunctionResult(
@@ -77,31 +71,31 @@ export interface IFlashLoanSimpleReceiver extends BaseContract {
 
   functions: {
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      params: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      params: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   executeOperation(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    premium: PromiseOrValue<BigNumberish>,
-    initiator: PromiseOrValue<string>,
-    params: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    premium: BigNumberish,
+    initiator: string,
+    params: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      params: PromiseOrValue<BytesLike>,
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      params: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -110,23 +104,29 @@ export interface IFlashLoanSimpleReceiver extends BaseContract {
 
   estimateGas: {
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      params: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      params: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      params: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      params: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IFlashLoanSimpleReceiverMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

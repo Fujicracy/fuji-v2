@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   SwapUtils,
   SwapUtilsInterface,
+  SwapUtilsMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/libraries/SwapUtils";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -252,7 +253,6 @@ const _abi = [
     type: "event",
   },
 ];
-
 export class SwapUtils__factory {
   static readonly abi = _abi;
   static createInterface(): SwapUtilsInterface {
@@ -263,5 +263,11 @@ export class SwapUtils__factory {
     signerOrProvider: Signer | Provider
   ): SwapUtils {
     return new Contract(address, _abi, signerOrProvider) as SwapUtils;
+  }
+  static multicall(address: string): SwapUtilsMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as SwapUtilsMulticall;
   }
 }

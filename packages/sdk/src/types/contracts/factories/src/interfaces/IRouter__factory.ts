@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IRouter,
   IRouterInterface,
+  IRouterMulticall,
 } from "../../../src/interfaces/IRouter";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -42,7 +43,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IRouter__factory {
   static readonly abi = _abi;
   static createInterface(): IRouterInterface {
@@ -53,5 +53,8 @@ export class IRouter__factory {
     signerOrProvider: Signer | Provider
   ): IRouter {
     return new Contract(address, _abi, signerOrProvider) as IRouter;
+  }
+  static multicall(address: string): IRouterMulticall {
+    return new MulticallContract(address, _abi) as unknown as IRouterMulticall;
   }
 }

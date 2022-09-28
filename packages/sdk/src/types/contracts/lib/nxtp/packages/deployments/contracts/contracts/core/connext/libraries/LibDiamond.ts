@@ -9,21 +9,25 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export declare namespace IDiamondCut {
   export type FacetCutStruct = {
-    facetAddress: PromiseOrValue<string>;
-    action: PromiseOrValue<BigNumberish>;
-    functionSelectors: PromiseOrValue<BytesLike>[];
+    facetAddress: string;
+    action: BigNumberish;
+    functionSelectors: BytesLike[];
   };
 
   export type FacetCutStructOutput = [string, number, string[]] & {
@@ -167,16 +171,22 @@ export interface LibDiamond extends BaseContract {
     ): DiamondCutRescindedEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {};
 
   populateTransaction: {};
+}
+
+export interface LibDiamondMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

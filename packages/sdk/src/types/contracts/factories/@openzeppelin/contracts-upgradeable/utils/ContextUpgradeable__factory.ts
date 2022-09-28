@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ContextUpgradeable,
   ContextUpgradeableInterface,
+  ContextUpgradeableMulticall,
 } from "../../../../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -24,7 +25,6 @@ const _abi = [
     type: "event",
   },
 ];
-
 export class ContextUpgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): ContextUpgradeableInterface {
@@ -35,5 +35,11 @@ export class ContextUpgradeable__factory {
     signerOrProvider: Signer | Provider
   ): ContextUpgradeable {
     return new Contract(address, _abi, signerOrProvider) as ContextUpgradeable;
+  }
+  static multicall(address: string): ContextUpgradeableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ContextUpgradeableMulticall;
   }
 }

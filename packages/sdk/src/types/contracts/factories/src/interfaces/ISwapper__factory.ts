@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ISwapper,
   ISwapperInterface,
+  ISwapperMulticall,
 } from "../../../src/interfaces/ISwapper";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -44,7 +45,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class ISwapper__factory {
   static readonly abi = _abi;
   static createInterface(): ISwapperInterface {
@@ -55,5 +55,8 @@ export class ISwapper__factory {
     signerOrProvider: Signer | Provider
   ): ISwapper {
     return new Contract(address, _abi, signerOrProvider) as ISwapper;
+  }
+  static multicall(address: string): ISwapperMulticall {
+    return new MulticallContract(address, _abi) as unknown as ISwapperMulticall;
   }
 }

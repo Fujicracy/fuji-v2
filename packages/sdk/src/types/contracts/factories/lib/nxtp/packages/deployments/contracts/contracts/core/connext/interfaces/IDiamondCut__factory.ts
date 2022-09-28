@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IDiamondCut,
   IDiamondCutInterface,
+  IDiamondCutMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/interfaces/IDiamondCut";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -263,7 +264,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IDiamondCut__factory {
   static readonly abi = _abi;
   static createInterface(): IDiamondCutInterface {
@@ -274,5 +274,11 @@ export class IDiamondCut__factory {
     signerOrProvider: Signer | Provider
   ): IDiamondCut {
     return new Contract(address, _abi, signerOrProvider) as IDiamondCut;
+  }
+  static multicall(address: string): IDiamondCutMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IDiamondCutMulticall;
   }
 }

@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface UnwrapperInterface extends utils.Interface {
@@ -34,7 +34,7 @@ export interface UnwrapperInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "wNative", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "wNative", data: BytesLike): Result;
@@ -73,25 +73,22 @@ export interface Unwrapper extends BaseContract {
     wNative(overrides?: CallOverrides): Promise<[string]>;
 
     withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   wNative(overrides?: CallOverrides): Promise<string>;
 
   withdraw(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     wNative(overrides?: CallOverrides): Promise<string>;
 
-    withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    withdraw(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {};
@@ -100,8 +97,8 @@ export interface Unwrapper extends BaseContract {
     wNative(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -109,8 +106,16 @@ export interface Unwrapper extends BaseContract {
     wNative(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdraw(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface UnwrapperMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  wNative(overrides?: CallOverrides): Call<string>;
 }

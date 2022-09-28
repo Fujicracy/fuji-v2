@@ -2,14 +2,18 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseContract, BigNumber, BytesLike, Signer, utils } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface SwapUtilsInterface extends utils.Interface {
@@ -163,16 +167,16 @@ export interface SwapUtils extends BaseContract {
 
   filters: {
     "AddLiquidity(bytes32,address,uint256[],uint256[],uint256,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
       lpTokenSupply?: null
     ): AddLiquidityEventFilter;
     AddLiquidity(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
@@ -180,47 +184,47 @@ export interface SwapUtils extends BaseContract {
     ): AddLiquidityEventFilter;
 
     "NewAdminFee(bytes32,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
+      key?: BytesLike | null,
       newAdminFee?: null
     ): NewAdminFeeEventFilter;
     NewAdminFee(
-      key?: PromiseOrValue<BytesLike> | null,
+      key?: BytesLike | null,
       newAdminFee?: null
     ): NewAdminFeeEventFilter;
 
     "NewSwapFee(bytes32,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
+      key?: BytesLike | null,
       newSwapFee?: null
     ): NewSwapFeeEventFilter;
     NewSwapFee(
-      key?: PromiseOrValue<BytesLike> | null,
+      key?: BytesLike | null,
       newSwapFee?: null
     ): NewSwapFeeEventFilter;
 
     "RemoveLiquidity(bytes32,address,uint256[],uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       tokenAmounts?: null,
       lpTokenSupply?: null
     ): RemoveLiquidityEventFilter;
     RemoveLiquidity(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       tokenAmounts?: null,
       lpTokenSupply?: null
     ): RemoveLiquidityEventFilter;
 
     "RemoveLiquidityImbalance(bytes32,address,uint256[],uint256[],uint256,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
       lpTokenSupply?: null
     ): RemoveLiquidityImbalanceEventFilter;
     RemoveLiquidityImbalance(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
@@ -228,16 +232,16 @@ export interface SwapUtils extends BaseContract {
     ): RemoveLiquidityImbalanceEventFilter;
 
     "RemoveLiquidityOne(bytes32,address,uint256,uint256,uint256,uint256)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       lpTokenAmount?: null,
       lpTokenSupply?: null,
       boughtId?: null,
       tokensBought?: null
     ): RemoveLiquidityOneEventFilter;
     RemoveLiquidityOne(
-      key?: PromiseOrValue<BytesLike> | null,
-      provider?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      provider?: string | null,
       lpTokenAmount?: null,
       lpTokenSupply?: null,
       boughtId?: null,
@@ -245,16 +249,16 @@ export interface SwapUtils extends BaseContract {
     ): RemoveLiquidityOneEventFilter;
 
     "TokenSwap(bytes32,address,uint256,uint256,uint128,uint128)"(
-      key?: PromiseOrValue<BytesLike> | null,
-      buyer?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      buyer?: string | null,
       tokensSold?: null,
       tokensBought?: null,
       soldId?: null,
       boughtId?: null
     ): TokenSwapEventFilter;
     TokenSwap(
-      key?: PromiseOrValue<BytesLike> | null,
-      buyer?: PromiseOrValue<string> | null,
+      key?: BytesLike | null,
+      buyer?: string | null,
       tokensSold?: null,
       tokensBought?: null,
       soldId?: null,
@@ -265,4 +269,10 @@ export interface SwapUtils extends BaseContract {
   estimateGas: {};
 
   populateTransaction: {};
+}
+
+export interface SwapUtilsMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

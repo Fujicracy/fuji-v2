@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   OwnableUpgradeable,
   OwnableUpgradeableInterface,
+  OwnableUpgradeableMulticall,
 } from "../../../../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -76,7 +77,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class OwnableUpgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): OwnableUpgradeableInterface {
@@ -87,5 +87,11 @@ export class OwnableUpgradeable__factory {
     signerOrProvider: Signer | Provider
   ): OwnableUpgradeable {
     return new Contract(address, _abi, signerOrProvider) as OwnableUpgradeable;
+  }
+  static multicall(address: string): OwnableUpgradeableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as OwnableUpgradeableMulticall;
   }
 }

@@ -10,14 +10,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface Version0Interface extends utils.Interface {
@@ -79,4 +79,12 @@ export interface Version0 extends BaseContract {
   populateTransaction: {
     VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface Version0Multicall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  VERSION(overrides?: CallOverrides): Call<number>;
 }

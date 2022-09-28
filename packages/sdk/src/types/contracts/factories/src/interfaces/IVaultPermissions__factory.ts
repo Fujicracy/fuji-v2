@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IVaultPermissions,
   IVaultPermissionsInterface,
+  IVaultPermissionsMulticall,
 } from "../../../src/interfaces/IVaultPermissions";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -323,7 +324,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IVaultPermissions__factory {
   static readonly abi = _abi;
   static createInterface(): IVaultPermissionsInterface {
@@ -334,5 +334,11 @@ export class IVaultPermissions__factory {
     signerOrProvider: Signer | Provider
   ): IVaultPermissions {
     return new Contract(address, _abi, signerOrProvider) as IVaultPermissions;
+  }
+  static multicall(address: string): IVaultPermissionsMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IVaultPermissionsMulticall;
   }
 }

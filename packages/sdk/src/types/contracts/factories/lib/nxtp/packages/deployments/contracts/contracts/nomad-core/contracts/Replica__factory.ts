@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   Replica,
   ReplicaInterface,
+  ReplicaMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/contracts/Replica";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -622,7 +623,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class Replica__factory {
   static readonly abi = _abi;
   static createInterface(): ReplicaInterface {
@@ -633,5 +633,8 @@ export class Replica__factory {
     signerOrProvider: Signer | Provider
   ): Replica {
     return new Contract(address, _abi, signerOrProvider) as Replica;
+  }
+  static multicall(address: string): ReplicaMulticall {
+    return new MulticallContract(address, _abi) as unknown as ReplicaMulticall;
   }
 }

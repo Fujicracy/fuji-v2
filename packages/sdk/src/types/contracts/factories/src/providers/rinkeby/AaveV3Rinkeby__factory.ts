@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   AaveV3Rinkeby,
   AaveV3RinkebyInterface,
+  AaveV3RinkebyMulticall,
 } from "../../../../src/providers/rinkeby/AaveV3Rinkeby";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -212,7 +213,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class AaveV3Rinkeby__factory {
   static readonly abi = _abi;
   static createInterface(): AaveV3RinkebyInterface {
@@ -223,5 +223,11 @@ export class AaveV3Rinkeby__factory {
     signerOrProvider: Signer | Provider
   ): AaveV3Rinkeby {
     return new Contract(address, _abi, signerOrProvider) as AaveV3Rinkeby;
+  }
+  static multicall(address: string): AaveV3RinkebyMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as AaveV3RinkebyMulticall;
   }
 }

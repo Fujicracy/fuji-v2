@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   BaseRouter,
   BaseRouterInterface,
+  BaseRouterMulticall,
 } from "../../../src/abstracts/BaseRouter";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -193,7 +194,6 @@ const _abi = [
     type: "receive",
   },
 ];
-
 export class BaseRouter__factory {
   static readonly abi = _abi;
   static createInterface(): BaseRouterInterface {
@@ -204,5 +204,11 @@ export class BaseRouter__factory {
     signerOrProvider: Signer | Provider
   ): BaseRouter {
     return new Contract(address, _abi, signerOrProvider) as BaseRouter;
+  }
+  static multicall(address: string): BaseRouterMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as BaseRouterMulticall;
   }
 }

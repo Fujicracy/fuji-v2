@@ -13,23 +13,23 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export declare namespace IFlasher {
   export type FlashloanParamsStruct = {
-    asset: PromiseOrValue<string>;
-    amount: PromiseOrValue<BigNumberish>;
-    router: PromiseOrValue<string>;
-    actions: PromiseOrValue<BigNumberish>[];
-    args: PromiseOrValue<BytesLike>[];
+    asset: string;
+    amount: BigNumberish;
+    router: string;
+    actions: BigNumberish[];
+    args: BytesLike[];
   };
 
   export type FlashloanParamsStructOutput = [
@@ -70,17 +70,11 @@ export interface FlasherInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "executeOperation",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [string, BigNumberish, BigNumberish, string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "initiateFlashloan",
-    values: [IFlasher.FlashloanParamsStruct, PromiseOrValue<BigNumberish>]
+    values: [IFlasher.FlashloanParamsStruct, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "NATIVE", data: BytesLike): Result;
@@ -129,18 +123,18 @@ export interface Flasher extends BaseContract {
     aaveV3Pool(overrides?: CallOverrides): Promise<[string]>;
 
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providerId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
@@ -149,18 +143,18 @@ export interface Flasher extends BaseContract {
   aaveV3Pool(overrides?: CallOverrides): Promise<string>;
 
   executeOperation(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    premium: PromiseOrValue<BigNumberish>,
-    initiator: PromiseOrValue<string>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    premium: BigNumberish,
+    initiator: string,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   initiateFlashloan(
     params: IFlasher.FlashloanParamsStruct,
-    providerId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    providerId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -169,17 +163,17 @@ export interface Flasher extends BaseContract {
     aaveV3Pool(overrides?: CallOverrides): Promise<string>;
 
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      data: PromiseOrValue<BytesLike>,
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
+      providerId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -192,18 +186,18 @@ export interface Flasher extends BaseContract {
     aaveV3Pool(overrides?: CallOverrides): Promise<BigNumber>;
 
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providerId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -213,18 +207,28 @@ export interface Flasher extends BaseContract {
     aaveV3Pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     executeOperation(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      premium: PromiseOrValue<BigNumberish>,
-      initiator: PromiseOrValue<string>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      premium: BigNumberish,
+      initiator: string,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providerId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface FlasherMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  NATIVE(overrides?: CallOverrides): Call<string>;
+
+  aaveV3Pool(overrides?: CallOverrides): Call<string>;
 }

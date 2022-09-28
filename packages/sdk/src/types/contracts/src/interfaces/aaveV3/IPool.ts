@@ -13,20 +13,18 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export declare namespace IPool {
-  export type ReserveConfigurationMapStruct = {
-    data: PromiseOrValue<BigNumberish>;
-  };
+  export type ReserveConfigurationMapStruct = { data: BigNumberish };
 
   export type ReserveConfigurationMapStructOutput = [BigNumber] & {
     data: BigNumber;
@@ -34,20 +32,20 @@ export declare namespace IPool {
 
   export type ReserveDataStruct = {
     configuration: IPool.ReserveConfigurationMapStruct;
-    liquidityIndex: PromiseOrValue<BigNumberish>;
-    currentLiquidityRate: PromiseOrValue<BigNumberish>;
-    variableBorrowIndex: PromiseOrValue<BigNumberish>;
-    currentVariableBorrowRate: PromiseOrValue<BigNumberish>;
-    currentStableBorrowRate: PromiseOrValue<BigNumberish>;
-    lastUpdateTimestamp: PromiseOrValue<BigNumberish>;
-    id: PromiseOrValue<BigNumberish>;
-    aTokenAddress: PromiseOrValue<string>;
-    stableDebtTokenAddress: PromiseOrValue<string>;
-    variableDebtTokenAddress: PromiseOrValue<string>;
-    interestRateStrategyAddress: PromiseOrValue<string>;
-    accruedToTreasury: PromiseOrValue<BigNumberish>;
-    unbacked: PromiseOrValue<BigNumberish>;
-    isolationModeTotalDebt: PromiseOrValue<BigNumberish>;
+    liquidityIndex: BigNumberish;
+    currentLiquidityRate: BigNumberish;
+    variableBorrowIndex: BigNumberish;
+    currentVariableBorrowRate: BigNumberish;
+    currentStableBorrowRate: BigNumberish;
+    lastUpdateTimestamp: BigNumberish;
+    id: BigNumberish;
+    aTokenAddress: string;
+    stableDebtTokenAddress: string;
+    variableDebtTokenAddress: string;
+    interestRateStrategyAddress: string;
+    accruedToTreasury: BigNumberish;
+    unbacked: BigNumberish;
+    isolationModeTotalDebt: BigNumberish;
   };
 
   export type ReserveDataStructOutput = [
@@ -109,57 +107,31 @@ export interface IPoolInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "borrow",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [string, BigNumberish, BigNumberish, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "flashLoanSimple",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getReserveData",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "repay",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [string, BigNumberish, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setUserUseReserveAsCollateral",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "supply",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [string, BigNumberish, string]
   ): string;
 
   decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
@@ -210,160 +182,160 @@ export interface IPool extends BaseContract {
 
   functions: {
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      referralCode: BigNumberish,
+      onBehalfOf: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     flashLoanSimple(
-      receiverAddress: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      params: PromiseOrValue<BytesLike>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      receiverAddress: string,
+      asset: string,
+      amount: BigNumberish,
+      params: BytesLike,
+      referralCode: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<[IPool.ReserveDataStructOutput]>;
 
     repay(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      onBehalfOf: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUserUseReserveAsCollateral(
-      asset: PromiseOrValue<string>,
-      useAsCollateral: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      useAsCollateral: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     supply(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      onBehalfOf: string,
+      referralCode: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   borrow(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    interestRateMode: PromiseOrValue<BigNumberish>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    onBehalfOf: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    interestRateMode: BigNumberish,
+    referralCode: BigNumberish,
+    onBehalfOf: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   flashLoanSimple(
-    receiverAddress: PromiseOrValue<string>,
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    params: PromiseOrValue<BytesLike>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    receiverAddress: string,
+    asset: string,
+    amount: BigNumberish,
+    params: BytesLike,
+    referralCode: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getReserveData(
-    asset: PromiseOrValue<string>,
+    asset: string,
     overrides?: CallOverrides
   ): Promise<IPool.ReserveDataStructOutput>;
 
   repay(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    interestRateMode: PromiseOrValue<BigNumberish>,
-    onBehalfOf: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    interestRateMode: BigNumberish,
+    onBehalfOf: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUserUseReserveAsCollateral(
-    asset: PromiseOrValue<string>,
-    useAsCollateral: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    useAsCollateral: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   supply(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    onBehalfOf: PromiseOrValue<string>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    onBehalfOf: string,
+    referralCode: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdraw(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      referralCode: BigNumberish,
+      onBehalfOf: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     flashLoanSimple(
-      receiverAddress: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      params: PromiseOrValue<BytesLike>,
-      referralCode: PromiseOrValue<BigNumberish>,
+      receiverAddress: string,
+      asset: string,
+      amount: BigNumberish,
+      params: BytesLike,
+      referralCode: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<IPool.ReserveDataStructOutput>;
 
     repay(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      onBehalfOf: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setUserUseReserveAsCollateral(
-      asset: PromiseOrValue<string>,
-      useAsCollateral: PromiseOrValue<boolean>,
+      asset: string,
+      useAsCollateral: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
     supply(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
+      asset: string,
+      amount: BigNumberish,
+      onBehalfOf: string,
+      referralCode: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
+      asset: string,
+      amount: BigNumberish,
+      to: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -372,109 +344,120 @@ export interface IPool extends BaseContract {
 
   estimateGas: {
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      referralCode: BigNumberish,
+      onBehalfOf: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     flashLoanSimple(
-      receiverAddress: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      params: PromiseOrValue<BytesLike>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      receiverAddress: string,
+      asset: string,
+      amount: BigNumberish,
+      params: BytesLike,
+      referralCode: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     repay(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      onBehalfOf: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUserUseReserveAsCollateral(
-      asset: PromiseOrValue<string>,
-      useAsCollateral: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      useAsCollateral: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     supply(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      onBehalfOf: string,
+      referralCode: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      referralCode: BigNumberish,
+      onBehalfOf: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     flashLoanSimple(
-      receiverAddress: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      params: PromiseOrValue<BytesLike>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      receiverAddress: string,
+      asset: string,
+      amount: BigNumberish,
+      params: BytesLike,
+      referralCode: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     repay(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      interestRateMode: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      interestRateMode: BigNumberish,
+      onBehalfOf: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUserUseReserveAsCollateral(
-      asset: PromiseOrValue<string>,
-      useAsCollateral: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      useAsCollateral: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     supply(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      onBehalfOf: PromiseOrValue<string>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      onBehalfOf: string,
+      referralCode: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IPoolMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getReserveData(
+    asset: string,
+    overrides?: CallOverrides
+  ): Call<IPool.ReserveDataStructOutput>;
 }

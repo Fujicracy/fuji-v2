@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ProposedOwnableUpgradeable,
   ProposedOwnableUpgradeableInterface,
+  ProposedOwnableUpgradeableMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/shared/ProposedOwnable.sol/ProposedOwnableUpgradeable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -188,7 +189,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class ProposedOwnableUpgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): ProposedOwnableUpgradeableInterface {
@@ -203,5 +203,11 @@ export class ProposedOwnableUpgradeable__factory {
       _abi,
       signerOrProvider
     ) as ProposedOwnableUpgradeable;
+  }
+  static multicall(address: string): ProposedOwnableUpgradeableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ProposedOwnableUpgradeableMulticall;
   }
 }

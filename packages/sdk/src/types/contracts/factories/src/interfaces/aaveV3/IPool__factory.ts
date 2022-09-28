@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IPool,
   IPoolInterface,
+  IPoolMulticall,
 } from "../../../../src/interfaces/aaveV3/IPool";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -289,7 +290,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IPool__factory {
   static readonly abi = _abi;
   static createInterface(): IPoolInterface {
@@ -297,5 +297,8 @@ export class IPool__factory {
   }
   static connect(address: string, signerOrProvider: Signer | Provider): IPool {
     return new Contract(address, _abi, signerOrProvider) as IPool;
+  }
+  static multicall(address: string): IPoolMulticall {
+    return new MulticallContract(address, _abi) as unknown as IPoolMulticall;
   }
 }

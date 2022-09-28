@@ -14,17 +14,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../common";
 
 export interface FujiOracleInterface extends utils.Interface {
@@ -49,11 +50,7 @@ export interface FujiOracleInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "getPriceOf",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -62,15 +59,15 @@ export interface FujiOracleInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setPriceFeed",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "usdPriceFeeds",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
 
   decodeFunctionResult(functionFragment: "getPriceOf", data: BytesLike): Result;
@@ -153,69 +150,63 @@ export interface FujiOracle extends BaseContract {
 
   functions: {
     getPriceOf(
-      _currencyAsset: PromiseOrValue<string>,
-      _commodityAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _currencyAsset: string,
+      _commodityAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { price: BigNumber }>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setPriceFeed(
-      _asset: PromiseOrValue<string>,
-      _priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _asset: string,
+      _priceFeed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    usdPriceFeeds(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    usdPriceFeeds(arg0: string, overrides?: CallOverrides): Promise<[string]>;
   };
 
   getPriceOf(
-    _currencyAsset: PromiseOrValue<string>,
-    _commodityAsset: PromiseOrValue<string>,
-    _decimals: PromiseOrValue<BigNumberish>,
+    _currencyAsset: string,
+    _commodityAsset: string,
+    _decimals: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setPriceFeed(
-    _asset: PromiseOrValue<string>,
-    _priceFeed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _asset: string,
+    _priceFeed: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
-    newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  usdPriceFeeds(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  usdPriceFeeds(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     getPriceOf(
-      _currencyAsset: PromiseOrValue<string>,
-      _commodityAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _currencyAsset: string,
+      _commodityAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -224,20 +215,17 @@ export interface FujiOracle extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     setPriceFeed(
-      _asset: PromiseOrValue<string>,
-      _priceFeed: PromiseOrValue<string>,
+      _asset: string,
+      _priceFeed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    usdPriceFeeds(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    usdPriceFeeds(arg0: string, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -251,74 +239,88 @@ export interface FujiOracle extends BaseContract {
     ): AssetPriceFeedChangedEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {
     getPriceOf(
-      _currencyAsset: PromiseOrValue<string>,
-      _commodityAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _currencyAsset: string,
+      _commodityAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setPriceFeed(
-      _asset: PromiseOrValue<string>,
-      _priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _asset: string,
+      _priceFeed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    usdPriceFeeds(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    usdPriceFeeds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     getPriceOf(
-      _currencyAsset: PromiseOrValue<string>,
-      _commodityAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _currencyAsset: string,
+      _commodityAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setPriceFeed(
-      _asset: PromiseOrValue<string>,
-      _priceFeed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _asset: string,
+      _priceFeed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     usdPriceFeeds(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface FujiOracleMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getPriceOf(
+    _currencyAsset: string,
+    _commodityAsset: string,
+    _decimals: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  usdPriceFeeds(arg0: string, overrides?: CallOverrides): Call<string>;
 }

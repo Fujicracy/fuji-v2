@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   NomadBase,
   NomadBaseInterface,
+  NomadBaseMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/contracts/NomadBase";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -250,7 +251,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class NomadBase__factory {
   static readonly abi = _abi;
   static createInterface(): NomadBaseInterface {
@@ -261,5 +261,11 @@ export class NomadBase__factory {
     signerOrProvider: Signer | Provider
   ): NomadBase {
     return new Contract(address, _abi, signerOrProvider) as NomadBase;
+  }
+  static multicall(address: string): NomadBaseMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as NomadBaseMulticall;
   }
 }

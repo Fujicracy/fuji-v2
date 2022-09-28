@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IExecutor,
   IExecutorInterface,
+  IExecutorMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/interfaces/IExecutor";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -157,7 +158,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IExecutor__factory {
   static readonly abi = _abi;
   static createInterface(): IExecutorInterface {
@@ -168,5 +168,11 @@ export class IExecutor__factory {
     signerOrProvider: Signer | Provider
   ): IExecutor {
     return new Contract(address, _abi, signerOrProvider) as IExecutor;
+  }
+  static multicall(address: string): IExecutorMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IExecutorMulticall;
   }
 }

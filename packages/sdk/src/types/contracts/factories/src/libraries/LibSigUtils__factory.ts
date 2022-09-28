@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   LibSigUtils,
   LibSigUtilsInterface,
+  LibSigUtilsMulticall,
 } from "../../../src/libraries/LibSigUtils";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -127,7 +128,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class LibSigUtils__factory {
   static readonly abi = _abi;
   static createInterface(): LibSigUtilsInterface {
@@ -138,5 +138,11 @@ export class LibSigUtils__factory {
     signerOrProvider: Signer | Provider
   ): LibSigUtils {
     return new Contract(address, _abi, signerOrProvider) as LibSigUtils;
+  }
+  static multicall(address: string): LibSigUtilsMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as LibSigUtilsMulticall;
   }
 }

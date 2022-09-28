@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IBridgeRouter,
   IBridgeRouterInterface,
+  IBridgeRouterMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/interfaces/IBridgeRouter";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -77,7 +78,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IBridgeRouter__factory {
   static readonly abi = _abi;
   static createInterface(): IBridgeRouterInterface {
@@ -88,5 +88,11 @@ export class IBridgeRouter__factory {
     signerOrProvider: Signer | Provider
   ): IBridgeRouter {
     return new Contract(address, _abi, signerOrProvider) as IBridgeRouter;
+  }
+  static multicall(address: string): IBridgeRouterMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IBridgeRouterMulticall;
   }
 }

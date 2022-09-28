@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   Initializable,
   InitializableInterface,
+  InitializableMulticall,
 } from "../../../../../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -24,7 +25,6 @@ const _abi = [
     type: "event",
   },
 ];
-
 export class Initializable__factory {
   static readonly abi = _abi;
   static createInterface(): InitializableInterface {
@@ -35,5 +35,11 @@ export class Initializable__factory {
     signerOrProvider: Signer | Provider
   ): Initializable {
     return new Contract(address, _abi, signerOrProvider) as Initializable;
+  }
+  static multicall(address: string): InitializableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as InitializableMulticall;
   }
 }

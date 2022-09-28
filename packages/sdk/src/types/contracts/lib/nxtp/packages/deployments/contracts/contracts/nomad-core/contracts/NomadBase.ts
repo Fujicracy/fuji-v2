@@ -14,17 +14,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface NomadBaseInterface extends utils.Interface {
@@ -59,12 +60,7 @@ export interface NomadBaseInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "doubleUpdate",
-    values: [
-      PromiseOrValue<BytesLike>,
-      [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BytesLike, [BytesLike, BytesLike], BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "homeDomainHash",
@@ -82,7 +78,7 @@ export interface NomadBaseInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
 
@@ -215,11 +211,11 @@ export interface NomadBase extends BaseContract {
     committedRoot(overrides?: CallOverrides): Promise<[string]>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<[string]>;
@@ -229,14 +225,14 @@ export interface NomadBase extends BaseContract {
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     state(overrides?: CallOverrides): Promise<[number]>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
@@ -245,11 +241,11 @@ export interface NomadBase extends BaseContract {
   committedRoot(overrides?: CallOverrides): Promise<string>;
 
   doubleUpdate(
-    _oldRoot: PromiseOrValue<BytesLike>,
-    _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-    _signature: PromiseOrValue<BytesLike>,
-    _signature2: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _oldRoot: BytesLike,
+    _newRoot: [BytesLike, BytesLike],
+    _signature: BytesLike,
+    _signature2: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   homeDomainHash(overrides?: CallOverrides): Promise<string>;
@@ -259,14 +255,14 @@ export interface NomadBase extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   state(overrides?: CallOverrides): Promise<number>;
 
   transferOwnership(
-    newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updater(overrides?: CallOverrides): Promise<string>;
@@ -275,10 +271,10 @@ export interface NomadBase extends BaseContract {
     committedRoot(overrides?: CallOverrides): Promise<string>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -293,7 +289,7 @@ export interface NomadBase extends BaseContract {
     state(overrides?: CallOverrides): Promise<number>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -324,24 +320,24 @@ export interface NomadBase extends BaseContract {
     NewUpdater(oldUpdater?: null, newUpdater?: null): NewUpdaterEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
     "Update(uint32,bytes32,bytes32,bytes)"(
-      homeDomain?: PromiseOrValue<BigNumberish> | null,
-      oldRoot?: PromiseOrValue<BytesLike> | null,
-      newRoot?: PromiseOrValue<BytesLike> | null,
+      homeDomain?: BigNumberish | null,
+      oldRoot?: BytesLike | null,
+      newRoot?: BytesLike | null,
       signature?: null
     ): UpdateEventFilter;
     Update(
-      homeDomain?: PromiseOrValue<BigNumberish> | null,
-      oldRoot?: PromiseOrValue<BytesLike> | null,
-      newRoot?: PromiseOrValue<BytesLike> | null,
+      homeDomain?: BigNumberish | null,
+      oldRoot?: BytesLike | null,
+      newRoot?: BytesLike | null,
       signature?: null
     ): UpdateEventFilter;
   };
@@ -350,11 +346,11 @@ export interface NomadBase extends BaseContract {
     committedRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<BigNumber>;
@@ -364,14 +360,14 @@ export interface NomadBase extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     state(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
@@ -381,11 +377,11 @@ export interface NomadBase extends BaseContract {
     committedRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -395,16 +391,34 @@ export interface NomadBase extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     state(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface NomadBaseMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  committedRoot(overrides?: CallOverrides): Call<string>;
+
+  homeDomainHash(overrides?: CallOverrides): Call<string>;
+
+  localDomain(overrides?: CallOverrides): Call<number>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  state(overrides?: CallOverrides): Call<number>;
+
+  updater(overrides?: CallOverrides): Call<string>;
 }

@@ -10,14 +10,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface IPoolAddressProviderInterface extends utils.Interface {
@@ -102,4 +102,14 @@ export interface IPoolAddressProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IPoolAddressProviderMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getPool(overrides?: CallOverrides): Call<string>;
+
+  getPoolDataProvider(overrides?: CallOverrides): Call<string>;
 }

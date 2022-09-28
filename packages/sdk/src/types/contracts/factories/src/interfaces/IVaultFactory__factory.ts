@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IVaultFactory,
   IVaultFactoryInterface,
+  IVaultFactoryMulticall,
 } from "../../../src/interfaces/IVaultFactory";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -49,7 +50,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IVaultFactory__factory {
   static readonly abi = _abi;
   static createInterface(): IVaultFactoryInterface {
@@ -60,5 +60,11 @@ export class IVaultFactory__factory {
     signerOrProvider: Signer | Provider
   ): IVaultFactory {
     return new Contract(address, _abi, signerOrProvider) as IVaultFactory;
+  }
+  static multicall(address: string): IVaultFactoryMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IVaultFactoryMulticall;
   }
 }

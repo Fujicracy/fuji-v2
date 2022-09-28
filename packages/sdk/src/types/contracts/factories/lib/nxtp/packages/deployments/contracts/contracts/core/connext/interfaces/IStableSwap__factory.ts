@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IStableSwap,
   IStableSwapInterface,
+  IStableSwapMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/interfaces/IStableSwap";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -825,7 +826,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IStableSwap__factory {
   static readonly abi = _abi;
   static createInterface(): IStableSwapInterface {
@@ -836,5 +836,11 @@ export class IStableSwap__factory {
     signerOrProvider: Signer | Provider
   ): IStableSwap {
     return new Contract(address, _abi, signerOrProvider) as IStableSwap;
+  }
+  static multicall(address: string): IStableSwapMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IStableSwapMulticall;
   }
 }

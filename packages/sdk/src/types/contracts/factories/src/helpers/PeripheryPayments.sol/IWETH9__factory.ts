@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IWETH9,
   IWETH9Interface,
+  IWETH9Multicall,
 } from "../../../../src/helpers/PeripheryPayments.sol/IWETH9";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -301,7 +302,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IWETH9__factory {
   static readonly abi = _abi;
   static createInterface(): IWETH9Interface {
@@ -309,5 +309,8 @@ export class IWETH9__factory {
   }
   static connect(address: string, signerOrProvider: Signer | Provider): IWETH9 {
     return new Contract(address, _abi, signerOrProvider) as IWETH9;
+  }
+  static multicall(address: string): IWETH9Multicall {
+    return new MulticallContract(address, _abi) as unknown as IWETH9Multicall;
   }
 }

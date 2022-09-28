@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ReentrancyGuardUpgradeable,
   ReentrancyGuardUpgradeableInterface,
+  ReentrancyGuardUpgradeableMulticall,
 } from "../../../../@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -24,7 +25,6 @@ const _abi = [
     type: "event",
   },
 ];
-
 export class ReentrancyGuardUpgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): ReentrancyGuardUpgradeableInterface {
@@ -39,5 +39,11 @@ export class ReentrancyGuardUpgradeable__factory {
       _abi,
       signerOrProvider
     ) as ReentrancyGuardUpgradeable;
+  }
+  static multicall(address: string): ReentrancyGuardUpgradeableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ReentrancyGuardUpgradeableMulticall;
   }
 }

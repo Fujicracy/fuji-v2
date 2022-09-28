@@ -13,30 +13,30 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export declare namespace IConnext {
   export type CallParamsStruct = {
-    to: PromiseOrValue<string>;
-    callData: PromiseOrValue<BytesLike>;
-    originDomain: PromiseOrValue<BigNumberish>;
-    destinationDomain: PromiseOrValue<BigNumberish>;
-    agent: PromiseOrValue<string>;
-    recovery: PromiseOrValue<string>;
-    forceSlow: PromiseOrValue<boolean>;
-    receiveLocal: PromiseOrValue<boolean>;
-    callback: PromiseOrValue<string>;
-    callbackFee: PromiseOrValue<BigNumberish>;
-    relayerFee: PromiseOrValue<BigNumberish>;
-    slippageTol: PromiseOrValue<BigNumberish>;
+    to: string;
+    callData: BytesLike;
+    originDomain: BigNumberish;
+    destinationDomain: BigNumberish;
+    agent: string;
+    recovery: string;
+    forceSlow: boolean;
+    receiveLocal: boolean;
+    callback: string;
+    callbackFee: BigNumberish;
+    relayerFee: BigNumberish;
+    slippageTol: BigNumberish;
   };
 
   export type CallParamsStructOutput = [
@@ -69,8 +69,8 @@ export declare namespace IConnext {
 
   export type XCallArgsStruct = {
     params: IConnext.CallParamsStruct;
-    transactingAssetId: PromiseOrValue<string>;
-    amount: PromiseOrValue<BigNumberish>;
+    transactingAssetId: string;
+    amount: BigNumberish;
   };
 
   export type XCallArgsStructOutput = [
@@ -130,13 +130,13 @@ export interface IConnext extends BaseContract {
   functions: {
     xcall(
       _args: IConnext.XCallArgsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   xcall(
     _args: IConnext.XCallArgsStruct,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -151,14 +151,20 @@ export interface IConnext extends BaseContract {
   estimateGas: {
     xcall(
       _args: IConnext.XCallArgsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     xcall(
       _args: IConnext.XCallArgsStruct,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IConnextMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

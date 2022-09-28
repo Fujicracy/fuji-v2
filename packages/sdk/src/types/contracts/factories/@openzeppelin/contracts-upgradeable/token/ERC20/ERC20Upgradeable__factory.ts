@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ERC20Upgradeable,
   ERC20UpgradeableInterface,
+  ERC20UpgradeableMulticall,
 } from "../../../../../@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -294,7 +295,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class ERC20Upgradeable__factory {
   static readonly abi = _abi;
   static createInterface(): ERC20UpgradeableInterface {
@@ -305,5 +305,11 @@ export class ERC20Upgradeable__factory {
     signerOrProvider: Signer | Provider
   ): ERC20Upgradeable {
     return new Contract(address, _abi, signerOrProvider) as ERC20Upgradeable;
+  }
+  static multicall(address: string): ERC20UpgradeableMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ERC20UpgradeableMulticall;
   }
 }

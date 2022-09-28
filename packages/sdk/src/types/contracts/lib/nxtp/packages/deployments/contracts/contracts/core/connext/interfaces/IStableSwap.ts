@@ -15,17 +15,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface IStableSwapInterface extends utils.Interface {
@@ -78,68 +79,48 @@ export interface IStableSwapInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "addLiquidity",
-    values: [
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateRemoveLiquidity",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateRemoveLiquidityOneToken",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwap",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwapFromAddress",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwapOut",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwapOutFromAddress",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateTokenAmount",
-    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<boolean>]
+    values: [BigNumberish[], boolean]
   ): string;
   encodeFunctionData(functionFragment: "getA", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getToken",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenBalance",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenIndex",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getVirtualPrice",
@@ -148,70 +129,45 @@ export interface IStableSwapInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "initialize",
     values: [
-      PromiseOrValue<string>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
+      string[],
+      BigNumberish[],
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      string
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidity",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityImbalance",
-    values: [
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityOneToken",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "swap",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExact",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactOut",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, string, string, BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -451,414 +407,405 @@ export interface IStableSwap extends BaseContract {
 
   functions: {
     addLiquidity(
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     calculateRemoveLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
     calculateRemoveLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { availableTokenAmount: BigNumber }>;
 
     calculateSwap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calculateSwapFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountIn: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calculateSwapOut(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dy: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calculateSwapOutFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     calculateTokenAmount(
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getA(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getToken(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    getToken(index: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     getTokenBalance(
-      index: PromiseOrValue<BigNumberish>,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getTokenIndex(
-      tokenAddress: PromiseOrValue<string>,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     initialize(
-      pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      a: PromiseOrValue<BigNumberish>,
-      fee: PromiseOrValue<BigNumberish>,
-      adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      a: BigNumberish,
+      fee: BigNumberish,
+      adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeLiquidityImbalance(
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     removeLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExact(
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     swapExactOut(
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   addLiquidity(
-    amounts: PromiseOrValue<BigNumberish>[],
-    minToMint: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    amounts: BigNumberish[],
+    minToMint: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   calculateRemoveLiquidity(
-    amount: PromiseOrValue<BigNumberish>,
+    amount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
   calculateRemoveLiquidityOneToken(
-    tokenAmount: PromiseOrValue<BigNumberish>,
-    tokenIndex: PromiseOrValue<BigNumberish>,
+    tokenAmount: BigNumberish,
+    tokenIndex: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateSwap(
-    tokenIndexFrom: PromiseOrValue<BigNumberish>,
-    tokenIndexTo: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dx: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateSwapFromAddress(
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    amountIn: PromiseOrValue<BigNumberish>,
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateSwapOut(
-    tokenIndexFrom: PromiseOrValue<BigNumberish>,
-    tokenIndexTo: PromiseOrValue<BigNumberish>,
-    dy: PromiseOrValue<BigNumberish>,
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dy: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateSwapOutFromAddress(
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    amountOut: PromiseOrValue<BigNumberish>,
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   calculateTokenAmount(
-    amounts: PromiseOrValue<BigNumberish>[],
-    deposit: PromiseOrValue<boolean>,
+    amounts: BigNumberish[],
+    deposit: boolean,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getA(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getToken(
-    index: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getToken(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   getTokenBalance(
-    index: PromiseOrValue<BigNumberish>,
+    index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getTokenIndex(
-    tokenAddress: PromiseOrValue<string>,
+    tokenAddress: string,
     overrides?: CallOverrides
   ): Promise<number>;
 
   getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
   initialize(
-    pooledTokens: PromiseOrValue<string>[],
-    decimals: PromiseOrValue<BigNumberish>[],
-    lpTokenName: PromiseOrValue<string>,
-    lpTokenSymbol: PromiseOrValue<string>,
-    a: PromiseOrValue<BigNumberish>,
-    fee: PromiseOrValue<BigNumberish>,
-    adminFee: PromiseOrValue<BigNumberish>,
-    lpTokenTargetAddress: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    pooledTokens: string[],
+    decimals: BigNumberish[],
+    lpTokenName: string,
+    lpTokenSymbol: string,
+    a: BigNumberish,
+    fee: BigNumberish,
+    adminFee: BigNumberish,
+    lpTokenTargetAddress: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeLiquidity(
-    amount: PromiseOrValue<BigNumberish>,
-    minAmounts: PromiseOrValue<BigNumberish>[],
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    amount: BigNumberish,
+    minAmounts: BigNumberish[],
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeLiquidityImbalance(
-    amounts: PromiseOrValue<BigNumberish>[],
-    maxBurnAmount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    amounts: BigNumberish[],
+    maxBurnAmount: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   removeLiquidityOneToken(
-    tokenAmount: PromiseOrValue<BigNumberish>,
-    tokenIndex: PromiseOrValue<BigNumberish>,
-    minAmount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    tokenAmount: BigNumberish,
+    tokenIndex: BigNumberish,
+    minAmount: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swap(
-    tokenIndexFrom: PromiseOrValue<BigNumberish>,
-    tokenIndexTo: PromiseOrValue<BigNumberish>,
-    dx: PromiseOrValue<BigNumberish>,
-    minDy: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dx: BigNumberish,
+    minDy: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExact(
-    amountIn: PromiseOrValue<BigNumberish>,
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    minAmountOut: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    amountIn: BigNumberish,
+    assetIn: string,
+    assetOut: string,
+    minAmountOut: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   swapExactOut(
-    amountOut: PromiseOrValue<BigNumberish>,
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    maxAmountIn: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    amountOut: BigNumberish,
+    assetIn: string,
+    assetOut: string,
+    maxAmountIn: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     addLiquidity(
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateRemoveLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
     calculateRemoveLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountIn: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapOut(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dy: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapOutFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateTokenAmount(
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getToken(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    getToken(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     getTokenBalance(
-      index: PromiseOrValue<BigNumberish>,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTokenIndex(
-      tokenAddress: PromiseOrValue<string>,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<number>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      a: PromiseOrValue<BigNumberish>,
-      fee: PromiseOrValue<BigNumberish>,
-      adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
+      pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      a: BigNumberish,
+      fee: BigNumberish,
+      adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     removeLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
     removeLiquidityImbalance(
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     removeLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     swap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     swapExact(
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     swapExactOut(
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   filters: {
     "AddLiquidity(address,uint256[],uint256[],uint256,uint256)"(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
       lpTokenSupply?: null
     ): AddLiquidityEventFilter;
     AddLiquidity(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
@@ -888,25 +835,25 @@ export interface IStableSwap extends BaseContract {
     ): RampAEventFilter;
 
     "RemoveLiquidity(address,uint256[],uint256)"(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       tokenAmounts?: null,
       lpTokenSupply?: null
     ): RemoveLiquidityEventFilter;
     RemoveLiquidity(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       tokenAmounts?: null,
       lpTokenSupply?: null
     ): RemoveLiquidityEventFilter;
 
     "RemoveLiquidityImbalance(address,uint256[],uint256[],uint256,uint256)"(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
       lpTokenSupply?: null
     ): RemoveLiquidityImbalanceEventFilter;
     RemoveLiquidityImbalance(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       tokenAmounts?: null,
       fees?: null,
       invariant?: null,
@@ -914,14 +861,14 @@ export interface IStableSwap extends BaseContract {
     ): RemoveLiquidityImbalanceEventFilter;
 
     "RemoveLiquidityOne(address,uint256,uint256,uint256,uint256)"(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       lpTokenAmount?: null,
       lpTokenSupply?: null,
       boughtId?: null,
       tokensBought?: null
     ): RemoveLiquidityOneEventFilter;
     RemoveLiquidityOne(
-      provider?: PromiseOrValue<string> | null,
+      provider?: string | null,
       lpTokenAmount?: null,
       lpTokenSupply?: null,
       boughtId?: null,
@@ -935,14 +882,14 @@ export interface IStableSwap extends BaseContract {
     StopRampA(currentA?: null, time?: null): StopRampAEventFilter;
 
     "TokenSwap(address,uint256,uint256,uint128,uint128)"(
-      buyer?: PromiseOrValue<string> | null,
+      buyer?: string | null,
       tokensSold?: null,
       tokensBought?: null,
       soldId?: null,
       boughtId?: null
     ): TokenSwapEventFilter;
     TokenSwap(
-      buyer?: PromiseOrValue<string> | null,
+      buyer?: string | null,
       tokensSold?: null,
       tokensBought?: null,
       soldId?: null,
@@ -952,269 +899,333 @@ export interface IStableSwap extends BaseContract {
 
   estimateGas: {
     addLiquidity(
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     calculateRemoveLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateRemoveLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountIn: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapOut(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dy: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateSwapOutFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateTokenAmount(
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
     getToken(
-      index: PromiseOrValue<BigNumberish>,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTokenBalance(
-      index: PromiseOrValue<BigNumberish>,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTokenIndex(
-      tokenAddress: PromiseOrValue<string>,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      a: PromiseOrValue<BigNumberish>,
-      fee: PromiseOrValue<BigNumberish>,
-      adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      a: BigNumberish,
+      fee: BigNumberish,
+      adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeLiquidityImbalance(
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExact(
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     swapExactOut(
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     addLiquidity(
-      amounts: PromiseOrValue<BigNumberish>[],
-      minToMint: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amounts: BigNumberish[],
+      minToMint: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     calculateRemoveLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateRemoveLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateSwap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateSwapFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountIn: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateSwapOut(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dy: PromiseOrValue<BigNumberish>,
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dy: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateSwapOutFromAddress(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateTokenAmount(
-      amounts: PromiseOrValue<BigNumberish>[],
-      deposit: PromiseOrValue<boolean>,
+      amounts: BigNumberish[],
+      deposit: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getToken(
-      index: PromiseOrValue<BigNumberish>,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTokenBalance(
-      index: PromiseOrValue<BigNumberish>,
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTokenIndex(
-      tokenAddress: PromiseOrValue<string>,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
-      pooledTokens: PromiseOrValue<string>[],
-      decimals: PromiseOrValue<BigNumberish>[],
-      lpTokenName: PromiseOrValue<string>,
-      lpTokenSymbol: PromiseOrValue<string>,
-      a: PromiseOrValue<BigNumberish>,
-      fee: PromiseOrValue<BigNumberish>,
-      adminFee: PromiseOrValue<BigNumberish>,
-      lpTokenTargetAddress: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      pooledTokens: string[],
+      decimals: BigNumberish[],
+      lpTokenName: string,
+      lpTokenSymbol: string,
+      a: BigNumberish,
+      fee: BigNumberish,
+      adminFee: BigNumberish,
+      lpTokenTargetAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeLiquidity(
-      amount: PromiseOrValue<BigNumberish>,
-      minAmounts: PromiseOrValue<BigNumberish>[],
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      minAmounts: BigNumberish[],
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityImbalance(
-      amounts: PromiseOrValue<BigNumberish>[],
-      maxBurnAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amounts: BigNumberish[],
+      maxBurnAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityOneToken(
-      tokenAmount: PromiseOrValue<BigNumberish>,
-      tokenIndex: PromiseOrValue<BigNumberish>,
-      minAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      tokenAmount: BigNumberish,
+      tokenIndex: BigNumberish,
+      minAmount: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swap(
-      tokenIndexFrom: PromiseOrValue<BigNumberish>,
-      tokenIndexTo: PromiseOrValue<BigNumberish>,
-      dx: PromiseOrValue<BigNumberish>,
-      minDy: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      tokenIndexFrom: BigNumberish,
+      tokenIndexTo: BigNumberish,
+      dx: BigNumberish,
+      minDy: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExact(
-      amountIn: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      minAmountOut: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      amountIn: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      minAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     swapExactOut(
-      amountOut: PromiseOrValue<BigNumberish>,
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      maxAmountIn: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      amountOut: BigNumberish,
+      assetIn: string,
+      assetOut: string,
+      maxAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IStableSwapMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  calculateRemoveLiquidity(
+    amount: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber[]>;
+
+  calculateRemoveLiquidityOneToken(
+    tokenAmount: BigNumberish,
+    tokenIndex: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateSwap(
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dx: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateSwapFromAddress(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateSwapOut(
+    tokenIndexFrom: BigNumberish,
+    tokenIndexTo: BigNumberish,
+    dy: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateSwapOutFromAddress(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  calculateTokenAmount(
+    amounts: BigNumberish[],
+    deposit: boolean,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getA(overrides?: CallOverrides): Call<BigNumber>;
+
+  getToken(index: BigNumberish, overrides?: CallOverrides): Call<string>;
+
+  getTokenBalance(
+    index: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getTokenIndex(tokenAddress: string, overrides?: CallOverrides): Call<number>;
+
+  getVirtualPrice(overrides?: CallOverrides): Call<BigNumber>;
 }

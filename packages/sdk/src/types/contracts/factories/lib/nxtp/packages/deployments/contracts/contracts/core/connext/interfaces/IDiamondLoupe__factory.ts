@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IDiamondLoupe,
   IDiamondLoupeInterface,
+  IDiamondLoupeMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/interfaces/IDiamondLoupe";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -87,7 +88,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IDiamondLoupe__factory {
   static readonly abi = _abi;
   static createInterface(): IDiamondLoupeInterface {
@@ -98,5 +98,11 @@ export class IDiamondLoupe__factory {
     signerOrProvider: Signer | Provider
   ): IDiamondLoupe {
     return new Contract(address, _abi, signerOrProvider) as IDiamondLoupe;
+  }
+  static multicall(address: string): IDiamondLoupeMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IDiamondLoupeMulticall;
   }
 }

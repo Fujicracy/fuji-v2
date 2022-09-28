@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IAaveProtocolDataProvider,
   IAaveProtocolDataProviderInterface,
+  IAaveProtocolDataProviderMulticall,
 } from "../../../../src/interfaces/aaveV3/IAaveProtocolDataProvider";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -149,7 +150,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IAaveProtocolDataProvider__factory {
   static readonly abi = _abi;
   static createInterface(): IAaveProtocolDataProviderInterface {
@@ -164,5 +164,11 @@ export class IAaveProtocolDataProvider__factory {
       _abi,
       signerOrProvider
     ) as IAaveProtocolDataProvider;
+  }
+  static multicall(address: string): IAaveProtocolDataProviderMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IAaveProtocolDataProviderMulticall;
   }
 }

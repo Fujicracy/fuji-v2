@@ -11,17 +11,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface QueueManagerInterface extends utils.Interface {
@@ -37,7 +38,7 @@ export interface QueueManagerInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "queueContains",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "queueEnd", values?: undefined): string;
   encodeFunctionData(
@@ -97,7 +98,7 @@ export interface QueueManager extends BaseContract {
 
   functions: {
     queueContains(
-      _item: PromiseOrValue<BytesLike>,
+      _item: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -106,10 +107,7 @@ export interface QueueManager extends BaseContract {
     queueLength(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  queueContains(
-    _item: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  queueContains(_item: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   queueEnd(overrides?: CallOverrides): Promise<string>;
 
@@ -117,7 +115,7 @@ export interface QueueManager extends BaseContract {
 
   callStatic: {
     queueContains(
-      _item: PromiseOrValue<BytesLike>,
+      _item: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -133,7 +131,7 @@ export interface QueueManager extends BaseContract {
 
   estimateGas: {
     queueContains(
-      _item: PromiseOrValue<BytesLike>,
+      _item: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -144,7 +142,7 @@ export interface QueueManager extends BaseContract {
 
   populateTransaction: {
     queueContains(
-      _item: PromiseOrValue<BytesLike>,
+      _item: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -152,4 +150,16 @@ export interface QueueManager extends BaseContract {
 
     queueLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface QueueManagerMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  queueContains(_item: BytesLike, overrides?: CallOverrides): Call<boolean>;
+
+  queueEnd(overrides?: CallOverrides): Call<string>;
+
+  queueLength(overrides?: CallOverrides): Call<BigNumber>;
 }

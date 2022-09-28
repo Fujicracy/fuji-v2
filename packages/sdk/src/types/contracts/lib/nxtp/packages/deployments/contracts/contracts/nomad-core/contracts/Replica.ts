@@ -14,17 +14,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface ReplicaInterface extends utils.Interface {
@@ -96,7 +97,7 @@ export interface ReplicaInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "acceptableRoot",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "committedRoot",
@@ -104,16 +105,11 @@ export interface ReplicaInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "confirmAt",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "doubleUpdate",
-    values: [
-      PromiseOrValue<BytesLike>,
-      [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BytesLike, [BytesLike, BytesLike], BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "homeDomainHash",
@@ -121,45 +117,26 @@ export interface ReplicaInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, string, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "localDomain",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "messages",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "messages", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "optimisticSeconds",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "process",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
+  encodeFunctionData(functionFragment: "process", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "prove",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BytesLike[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "proveAndProcess",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>[],
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BytesLike, BytesLike[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "remoteDomain",
@@ -171,28 +148,21 @@ export interface ReplicaInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setConfirmation",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BigNumberish>]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setOptimisticTimeout",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setUpdater",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setUpdater", values: [string]): string;
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "update",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
 
@@ -410,99 +380,93 @@ export interface Replica extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<[number]>;
 
     acceptableRoot(
-      _root: PromiseOrValue<BytesLike>,
+      _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     committedRoot(overrides?: CallOverrides): Promise<[string]>;
 
-    confirmAt(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<[string]>;
 
     initialize(
-      _remoteDomain: PromiseOrValue<BigNumberish>,
-      _updater: PromiseOrValue<string>,
-      _committedRoot: PromiseOrValue<BytesLike>,
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _remoteDomain: BigNumberish,
+      _updater: string,
+      _committedRoot: BytesLike,
+      _optimisticSeconds: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     localDomain(overrides?: CallOverrides): Promise<[number]>;
 
-    messages(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+    messages(arg0: BytesLike, overrides?: CallOverrides): Promise<[number]>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     process(
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     prove(
-      _leaf: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _leaf: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proveAndProcess(
-      _message: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _message: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     remoteDomain(overrides?: CallOverrides): Promise<[number]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setConfirmation(
-      _root: PromiseOrValue<BytesLike>,
-      _confirmAt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _root: BytesLike,
+      _confirmAt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setOptimisticTimeout(
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _optimisticSeconds: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setUpdater(
-      _updater: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _updater: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     state(overrides?: CallOverrides): Promise<[number]>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     update(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: BytesLike,
+      _signature: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
@@ -514,100 +478,91 @@ export interface Replica extends BaseContract {
 
   VERSION(overrides?: CallOverrides): Promise<number>;
 
-  acceptableRoot(
-    _root: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  acceptableRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   committedRoot(overrides?: CallOverrides): Promise<string>;
 
-  confirmAt(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
   doubleUpdate(
-    _oldRoot: PromiseOrValue<BytesLike>,
-    _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-    _signature: PromiseOrValue<BytesLike>,
-    _signature2: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _oldRoot: BytesLike,
+    _newRoot: [BytesLike, BytesLike],
+    _signature: BytesLike,
+    _signature2: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   homeDomainHash(overrides?: CallOverrides): Promise<string>;
 
   initialize(
-    _remoteDomain: PromiseOrValue<BigNumberish>,
-    _updater: PromiseOrValue<string>,
-    _committedRoot: PromiseOrValue<BytesLike>,
-    _optimisticSeconds: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _remoteDomain: BigNumberish,
+    _updater: string,
+    _committedRoot: BytesLike,
+    _optimisticSeconds: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   localDomain(overrides?: CallOverrides): Promise<number>;
 
-  messages(
-    arg0: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  messages(arg0: BytesLike, overrides?: CallOverrides): Promise<number>;
 
   optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   process(
-    _message: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   prove(
-    _leaf: PromiseOrValue<BytesLike>,
-    _proof: PromiseOrValue<BytesLike>[],
-    _index: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _leaf: BytesLike,
+    _proof: BytesLike[],
+    _index: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proveAndProcess(
-    _message: PromiseOrValue<BytesLike>,
-    _proof: PromiseOrValue<BytesLike>[],
-    _index: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _message: BytesLike,
+    _proof: BytesLike[],
+    _index: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   remoteDomain(overrides?: CallOverrides): Promise<number>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setConfirmation(
-    _root: PromiseOrValue<BytesLike>,
-    _confirmAt: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _root: BytesLike,
+    _confirmAt: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setOptimisticTimeout(
-    _optimisticSeconds: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _optimisticSeconds: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setUpdater(
-    _updater: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _updater: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   state(overrides?: CallOverrides): Promise<number>;
 
   transferOwnership(
-    newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   update(
-    _oldRoot: PromiseOrValue<BytesLike>,
-    _newRoot: PromiseOrValue<BytesLike>,
-    _signature: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _oldRoot: BytesLike,
+    _newRoot: BytesLike,
+    _signature: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updater(overrides?: CallOverrides): Promise<string>;
@@ -620,62 +575,53 @@ export interface Replica extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<number>;
 
     acceptableRoot(
-      _root: PromiseOrValue<BytesLike>,
+      _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     committedRoot(overrides?: CallOverrides): Promise<string>;
 
-    confirmAt(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<string>;
 
     initialize(
-      _remoteDomain: PromiseOrValue<BigNumberish>,
-      _updater: PromiseOrValue<string>,
-      _committedRoot: PromiseOrValue<BytesLike>,
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
+      _remoteDomain: BigNumberish,
+      _updater: string,
+      _committedRoot: BytesLike,
+      _optimisticSeconds: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     localDomain(overrides?: CallOverrides): Promise<number>;
 
-    messages(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    messages(arg0: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    process(
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    process(_message: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     prove(
-      _leaf: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
+      _leaf: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     proveAndProcess(
-      _message: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
+      _message: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -684,32 +630,29 @@ export interface Replica extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     setConfirmation(
-      _root: PromiseOrValue<BytesLike>,
-      _confirmAt: PromiseOrValue<BigNumberish>,
+      _root: BytesLike,
+      _confirmAt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setOptimisticTimeout(
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
+      _optimisticSeconds: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setUpdater(
-      _updater: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setUpdater(_updater: string, overrides?: CallOverrides): Promise<void>;
 
     state(overrides?: CallOverrides): Promise<number>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     update(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
+      _oldRoot: BytesLike,
+      _newRoot: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -740,32 +683,32 @@ export interface Replica extends BaseContract {
     NewUpdater(oldUpdater?: null, newUpdater?: null): NewUpdaterEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
     "Process(bytes32,bool,bytes)"(
-      messageHash?: PromiseOrValue<BytesLike> | null,
-      success?: PromiseOrValue<boolean> | null,
-      returnData?: PromiseOrValue<BytesLike> | null
+      messageHash?: BytesLike | null,
+      success?: boolean | null,
+      returnData?: BytesLike | null
     ): ProcessEventFilter;
     Process(
-      messageHash?: PromiseOrValue<BytesLike> | null,
-      success?: PromiseOrValue<boolean> | null,
-      returnData?: PromiseOrValue<BytesLike> | null
+      messageHash?: BytesLike | null,
+      success?: boolean | null,
+      returnData?: BytesLike | null
     ): ProcessEventFilter;
 
     "SetConfirmation(bytes32,uint256,uint256)"(
-      root?: PromiseOrValue<BytesLike> | null,
+      root?: BytesLike | null,
       previousConfirmAt?: null,
       newConfirmAt?: null
     ): SetConfirmationEventFilter;
     SetConfirmation(
-      root?: PromiseOrValue<BytesLike> | null,
+      root?: BytesLike | null,
       previousConfirmAt?: null,
       newConfirmAt?: null
     ): SetConfirmationEventFilter;
@@ -776,15 +719,15 @@ export interface Replica extends BaseContract {
     SetOptimisticTimeout(timeout?: null): SetOptimisticTimeoutEventFilter;
 
     "Update(uint32,bytes32,bytes32,bytes)"(
-      homeDomain?: PromiseOrValue<BigNumberish> | null,
-      oldRoot?: PromiseOrValue<BytesLike> | null,
-      newRoot?: PromiseOrValue<BytesLike> | null,
+      homeDomain?: BigNumberish | null,
+      oldRoot?: BytesLike | null,
+      newRoot?: BytesLike | null,
       signature?: null
     ): UpdateEventFilter;
     Update(
-      homeDomain?: PromiseOrValue<BigNumberish> | null,
-      oldRoot?: PromiseOrValue<BytesLike> | null,
-      newRoot?: PromiseOrValue<BytesLike> | null,
+      homeDomain?: BigNumberish | null,
+      oldRoot?: BytesLike | null,
+      newRoot?: BytesLike | null,
       signature?: null
     ): UpdateEventFilter;
   };
@@ -797,99 +740,93 @@ export interface Replica extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<BigNumber>;
 
     acceptableRoot(
-      _root: PromiseOrValue<BytesLike>,
+      _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     committedRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
-    confirmAt(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    confirmAt(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      _remoteDomain: PromiseOrValue<BigNumberish>,
-      _updater: PromiseOrValue<string>,
-      _committedRoot: PromiseOrValue<BytesLike>,
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _remoteDomain: BigNumberish,
+      _updater: string,
+      _committedRoot: BytesLike,
+      _optimisticSeconds: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     localDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
-    messages(
-      arg0: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    messages(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     optimisticSeconds(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     process(
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     prove(
-      _leaf: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _leaf: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proveAndProcess(
-      _message: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _message: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     remoteDomain(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setConfirmation(
-      _root: PromiseOrValue<BytesLike>,
-      _confirmAt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _root: BytesLike,
+      _confirmAt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setOptimisticTimeout(
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _optimisticSeconds: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setUpdater(
-      _updater: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _updater: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     state(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     update(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: BytesLike,
+      _signature: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
@@ -903,39 +840,39 @@ export interface Replica extends BaseContract {
     VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     acceptableRoot(
-      _root: PromiseOrValue<BytesLike>,
+      _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     committedRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     confirmAt(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     doubleUpdate(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>],
-      _signature: PromiseOrValue<BytesLike>,
-      _signature2: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: [BytesLike, BytesLike],
+      _signature: BytesLike,
+      _signature2: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     homeDomainHash(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
-      _remoteDomain: PromiseOrValue<BigNumberish>,
-      _updater: PromiseOrValue<string>,
-      _committedRoot: PromiseOrValue<BytesLike>,
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _remoteDomain: BigNumberish,
+      _updater: string,
+      _committedRoot: BytesLike,
+      _optimisticSeconds: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     localDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     messages(
-      arg0: PromiseOrValue<BytesLike>,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -944,60 +881,94 @@ export interface Replica extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     process(
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     prove(
-      _leaf: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _leaf: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proveAndProcess(
-      _message: PromiseOrValue<BytesLike>,
-      _proof: PromiseOrValue<BytesLike>[],
-      _index: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _message: BytesLike,
+      _proof: BytesLike[],
+      _index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     remoteDomain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setConfirmation(
-      _root: PromiseOrValue<BytesLike>,
-      _confirmAt: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _root: BytesLike,
+      _confirmAt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setOptimisticTimeout(
-      _optimisticSeconds: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _optimisticSeconds: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setUpdater(
-      _updater: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _updater: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     state(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     update(
-      _oldRoot: PromiseOrValue<BytesLike>,
-      _newRoot: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _oldRoot: BytesLike,
+      _newRoot: BytesLike,
+      _signature: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface ReplicaMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  PROCESS_GAS(overrides?: CallOverrides): Call<BigNumber>;
+
+  RESERVE_GAS(overrides?: CallOverrides): Call<BigNumber>;
+
+  VERSION(overrides?: CallOverrides): Call<number>;
+
+  acceptableRoot(_root: BytesLike, overrides?: CallOverrides): Call<boolean>;
+
+  committedRoot(overrides?: CallOverrides): Call<string>;
+
+  confirmAt(arg0: BytesLike, overrides?: CallOverrides): Call<BigNumber>;
+
+  homeDomainHash(overrides?: CallOverrides): Call<string>;
+
+  localDomain(overrides?: CallOverrides): Call<number>;
+
+  messages(arg0: BytesLike, overrides?: CallOverrides): Call<number>;
+
+  optimisticSeconds(overrides?: CallOverrides): Call<BigNumber>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  remoteDomain(overrides?: CallOverrides): Call<number>;
+
+  state(overrides?: CallOverrides): Call<number>;
+
+  updater(overrides?: CallOverrides): Call<string>;
 }

@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface ISwapperInterface extends utils.Interface {
@@ -32,13 +32,7 @@ export interface ISwapperInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "swap",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
@@ -74,31 +68,31 @@ export interface ISwapper extends BaseContract {
 
   functions: {
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   swap(
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    amountOut: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    slippage: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    receiver: string,
+    slippage: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -107,23 +101,29 @@ export interface ISwapper extends BaseContract {
 
   estimateGas: {
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface ISwapperMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

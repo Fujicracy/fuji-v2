@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IFlashLoanSimpleReceiver,
   IFlashLoanSimpleReceiverInterface,
+  IFlashLoanSimpleReceiverMulticall,
 } from "../../../../src/interfaces/aaveV3/IFlashLoanSimpleReceiver";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -50,7 +51,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IFlashLoanSimpleReceiver__factory {
   static readonly abi = _abi;
   static createInterface(): IFlashLoanSimpleReceiverInterface {
@@ -65,5 +65,11 @@ export class IFlashLoanSimpleReceiver__factory {
       _abi,
       signerOrProvider
     ) as IFlashLoanSimpleReceiver;
+  }
+  static multicall(address: string): IFlashLoanSimpleReceiverMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IFlashLoanSimpleReceiverMulticall;
   }
 }

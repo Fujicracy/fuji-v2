@@ -12,17 +12,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface IFujiOracleInterface extends utils.Interface {
@@ -34,11 +35,7 @@ export interface IFujiOracleInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "getPriceOf",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "getPriceOf", data: BytesLike): Result;
@@ -90,25 +87,25 @@ export interface IFujiOracle extends BaseContract {
 
   functions: {
     getPriceOf(
-      _collateralAsset: PromiseOrValue<string>,
-      _borrowAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _collateralAsset: string,
+      _borrowAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
   getPriceOf(
-    _collateralAsset: PromiseOrValue<string>,
-    _borrowAsset: PromiseOrValue<string>,
-    _decimals: PromiseOrValue<BigNumberish>,
+    _collateralAsset: string,
+    _borrowAsset: string,
+    _decimals: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
     getPriceOf(
-      _collateralAsset: PromiseOrValue<string>,
-      _borrowAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _collateralAsset: string,
+      _borrowAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -126,19 +123,32 @@ export interface IFujiOracle extends BaseContract {
 
   estimateGas: {
     getPriceOf(
-      _collateralAsset: PromiseOrValue<string>,
-      _borrowAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _collateralAsset: string,
+      _borrowAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     getPriceOf(
-      _collateralAsset: PromiseOrValue<string>,
-      _borrowAsset: PromiseOrValue<string>,
-      _decimals: PromiseOrValue<BigNumberish>,
+      _collateralAsset: string,
+      _borrowAsset: string,
+      _decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IFujiOracleMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getPriceOf(
+    _collateralAsset: string,
+    _borrowAsset: string,
+    _decimals: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 }

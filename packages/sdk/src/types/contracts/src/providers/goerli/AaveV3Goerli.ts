@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface AaveV3GoerliInterface extends utils.Interface {
@@ -51,39 +51,39 @@ export interface AaveV3GoerliInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "approvedOperator",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getBorrowBalance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getBorrowRateFor",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getDepositBalance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getDepositRateFor",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "payback",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -142,157 +142,151 @@ export interface AaveV3Goerli extends BaseContract {
 
   functions: {
     approvedOperator(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
 
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     deposit(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getBorrowBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     getBorrowRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { rate: BigNumber }>;
 
     getDepositBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     getDepositRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { rate: BigNumber }>;
 
     payback(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  approvedOperator(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  approvedOperator(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   borrow(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   deposit(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getBorrowBalance(
-    asset: PromiseOrValue<string>,
-    user: PromiseOrValue<string>,
+    asset: string,
+    user: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getBorrowRateFor(
-    asset: PromiseOrValue<string>,
+    asset: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getDepositBalance(
-    asset: PromiseOrValue<string>,
-    user: PromiseOrValue<string>,
+    asset: string,
+    user: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getDepositRateFor(
-    asset: PromiseOrValue<string>,
+    asset: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   payback(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdraw(
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    asset: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    approvedOperator(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    approvedOperator(arg0: string, overrides?: CallOverrides): Promise<string>;
 
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      asset: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     deposit(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      asset: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     getBorrowBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getBorrowRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     payback(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      asset: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      asset: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -301,107 +295,131 @@ export interface AaveV3Goerli extends BaseContract {
 
   estimateGas: {
     approvedOperator(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     deposit(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getBorrowBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getBorrowRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     payback(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     approvedOperator(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     borrow(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     deposit(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getBorrowBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getBorrowRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDepositBalance(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDepositRateFor(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     payback(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdraw(
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      asset: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface AaveV3GoerliMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  approvedOperator(arg0: string, overrides?: CallOverrides): Call<string>;
+
+  getBorrowBalance(
+    asset: string,
+    user: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getBorrowRateFor(asset: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  getDepositBalance(
+    asset: string,
+    user: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getDepositRateFor(asset: string, overrides?: CallOverrides): Call<BigNumber>;
 }

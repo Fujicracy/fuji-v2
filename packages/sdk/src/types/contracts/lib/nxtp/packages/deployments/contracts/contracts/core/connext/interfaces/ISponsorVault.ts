@@ -14,14 +14,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface ISponsorVaultInterface extends utils.Interface {
@@ -42,31 +42,19 @@ export interface ISponsorVaultInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "reimburseLiquidityFees",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>
-    ]
+    values: [string, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "reimburseRelayerFees",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
@@ -111,85 +99,85 @@ export interface ISponsorVault extends BaseContract {
 
   functions: {
     deposit(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     reimburseLiquidityFees(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      token: string,
+      amount: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     reimburseRelayerFees(
-      originDomain: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      originDomain: BigNumberish,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdraw(
-      token: PromiseOrValue<string>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      token: string,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   deposit(
-    _token: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    _token: string,
+    _amount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   reimburseLiquidityFees(
-    token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    token: string,
+    amount: BigNumberish,
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   reimburseRelayerFees(
-    originDomain: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    originDomain: BigNumberish,
+    receiver: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdraw(
-    token: PromiseOrValue<string>,
-    receiver: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    token: string,
+    receiver: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     deposit(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
+      _token: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     reimburseLiquidityFees(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
+      token: string,
+      amount: BigNumberish,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     reimburseRelayerFees(
-      originDomain: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      originDomain: BigNumberish,
+      receiver: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     withdraw(
-      token: PromiseOrValue<string>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      token: string,
+      receiver: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -198,59 +186,65 @@ export interface ISponsorVault extends BaseContract {
 
   estimateGas: {
     deposit(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     reimburseLiquidityFees(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      token: string,
+      amount: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     reimburseRelayerFees(
-      originDomain: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      originDomain: BigNumberish,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdraw(
-      token: PromiseOrValue<string>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      token: string,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     deposit(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     reimburseLiquidityFees(
-      token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      token: string,
+      amount: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     reimburseRelayerFees(
-      originDomain: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      originDomain: BigNumberish,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdraw(
-      token: PromiseOrValue<string>,
-      receiver: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      token: string,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface ISponsorVaultMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

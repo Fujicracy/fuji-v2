@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   MockOracle,
   MockOracleInterface,
+  MockOracleMulticall,
 } from "../../../src/mocks/MockOracle";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -106,7 +107,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class MockOracle__factory {
   static readonly abi = _abi;
   static createInterface(): MockOracleInterface {
@@ -117,5 +117,11 @@ export class MockOracle__factory {
     signerOrProvider: Signer | Provider
   ): MockOracle {
     return new Contract(address, _abi, signerOrProvider) as MockOracle;
+  }
+  static multicall(address: string): MockOracleMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as MockOracleMulticall;
   }
 }

@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   VaultDeployer,
   VaultDeployerInterface,
+  VaultDeployerMulticall,
 } from "../../../src/abstracts/VaultDeployer";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -120,7 +121,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class VaultDeployer__factory {
   static readonly abi = _abi;
   static createInterface(): VaultDeployerInterface {
@@ -131,5 +131,11 @@ export class VaultDeployer__factory {
     signerOrProvider: Signer | Provider
   ): VaultDeployer {
     return new Contract(address, _abi, signerOrProvider) as VaultDeployer;
+  }
+  static multicall(address: string): VaultDeployerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as VaultDeployerMulticall;
   }
 }

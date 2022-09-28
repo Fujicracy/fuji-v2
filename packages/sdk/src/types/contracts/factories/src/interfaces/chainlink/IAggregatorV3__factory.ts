@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IAggregatorV3,
   IAggregatorV3Interface,
+  IAggregatorV3Multicall,
 } from "../../../../src/interfaces/chainlink/IAggregatorV3";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -122,7 +123,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IAggregatorV3__factory {
   static readonly abi = _abi;
   static createInterface(): IAggregatorV3Interface {
@@ -133,5 +133,11 @@ export class IAggregatorV3__factory {
     signerOrProvider: Signer | Provider
   ): IAggregatorV3 {
     return new Contract(address, _abi, signerOrProvider) as IAggregatorV3;
+  }
+  static multicall(address: string): IAggregatorV3Multicall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IAggregatorV3Multicall;
   }
 }

@@ -11,14 +11,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface LibConnextBundlerInterface extends utils.Interface {
@@ -33,25 +33,19 @@ export interface LibConnextBundlerInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "bridgeWithCall",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BytesLike>[]
-    ]
+    values: [BigNumberish, string, BigNumberish, BigNumberish[], BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "depositAndBorrow",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
 
@@ -95,67 +89,67 @@ export interface LibConnextBundler extends BaseContract {
 
   functions: {
     bridgeWithCall(
-      destDomain: PromiseOrValue<BigNumberish>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      innerActions: PromiseOrValue<BigNumberish>[],
-      innerArgs: PromiseOrValue<BytesLike>[],
+      destDomain: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      innerActions: BigNumberish[],
+      innerArgs: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
+      vault: string,
+      router: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
   };
 
   bridgeWithCall(
-    destDomain: PromiseOrValue<BigNumberish>,
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    innerActions: PromiseOrValue<BigNumberish>[],
-    innerArgs: PromiseOrValue<BytesLike>[],
+    destDomain: BigNumberish,
+    asset: string,
+    amount: BigNumberish,
+    innerActions: BigNumberish[],
+    innerArgs: BytesLike[],
     overrides?: CallOverrides
   ): Promise<[number[], string[]]>;
 
   depositAndBorrow(
-    vault: PromiseOrValue<string>,
-    router: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    borrowAmount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
+    vault: string,
+    router: string,
+    amount: BigNumberish,
+    borrowAmount: BigNumberish,
+    deadline: BigNumberish,
+    v: BigNumberish,
+    r: BytesLike,
+    s: BytesLike,
     overrides?: CallOverrides
   ): Promise<[number[], string[]]>;
 
   callStatic: {
     bridgeWithCall(
-      destDomain: PromiseOrValue<BigNumberish>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      innerActions: PromiseOrValue<BigNumberish>[],
-      innerArgs: PromiseOrValue<BytesLike>[],
+      destDomain: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      innerActions: BigNumberish[],
+      innerArgs: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
+      vault: string,
+      router: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
   };
@@ -164,47 +158,74 @@ export interface LibConnextBundler extends BaseContract {
 
   estimateGas: {
     bridgeWithCall(
-      destDomain: PromiseOrValue<BigNumberish>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      innerActions: PromiseOrValue<BigNumberish>[],
-      innerArgs: PromiseOrValue<BytesLike>[],
+      destDomain: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      innerActions: BigNumberish[],
+      innerArgs: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
+      vault: string,
+      router: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     bridgeWithCall(
-      destDomain: PromiseOrValue<BigNumberish>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      innerActions: PromiseOrValue<BigNumberish>[],
-      innerArgs: PromiseOrValue<BytesLike>[],
+      destDomain: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      innerActions: BigNumberish[],
+      innerArgs: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
+      vault: string,
+      router: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface LibConnextBundlerMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  bridgeWithCall(
+    destDomain: BigNumberish,
+    asset: string,
+    amount: BigNumberish,
+    innerActions: BigNumberish[],
+    innerArgs: BytesLike[],
+    overrides?: CallOverrides
+  ): Call<[number[], string[]]>;
+
+  depositAndBorrow(
+    vault: string,
+    router: string,
+    amount: BigNumberish,
+    borrowAmount: BigNumberish,
+    deadline: BigNumberish,
+    v: BigNumberish,
+    r: BytesLike,
+    s: BytesLike,
+    overrides?: CallOverrides
+  ): Call<[number[], string[]]>;
 }

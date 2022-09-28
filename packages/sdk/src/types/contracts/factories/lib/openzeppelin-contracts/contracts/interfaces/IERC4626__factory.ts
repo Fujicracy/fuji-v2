@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IERC4626,
   IERC4626Interface,
+  IERC4626Multicall,
 } from "../../../../../lib/openzeppelin-contracts/contracts/interfaces/IERC4626";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -623,7 +624,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IERC4626__factory {
   static readonly abi = _abi;
   static createInterface(): IERC4626Interface {
@@ -634,5 +634,8 @@ export class IERC4626__factory {
     signerOrProvider: Signer | Provider
   ): IERC4626 {
     return new Contract(address, _abi, signerOrProvider) as IERC4626;
+  }
+  static multicall(address: string): IERC4626Multicall {
+    return new MulticallContract(address, _abi) as unknown as IERC4626Multicall;
   }
 }

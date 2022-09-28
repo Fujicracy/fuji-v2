@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   BaseVault,
   BaseVaultInterface,
+  BaseVaultMulticall,
 } from "../../../src/abstracts/BaseVault";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -1553,7 +1554,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class BaseVault__factory {
   static readonly abi = _abi;
   static createInterface(): BaseVaultInterface {
@@ -1564,5 +1564,11 @@ export class BaseVault__factory {
     signerOrProvider: Signer | Provider
   ): BaseVault {
     return new Contract(address, _abi, signerOrProvider) as BaseVault;
+  }
+  static multicall(address: string): BaseVaultMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as BaseVaultMulticall;
   }
 }

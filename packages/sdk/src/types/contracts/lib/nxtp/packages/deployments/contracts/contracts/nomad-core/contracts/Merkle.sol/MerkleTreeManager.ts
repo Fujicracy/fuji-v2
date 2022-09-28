@@ -10,14 +10,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface MerkleTreeManagerInterface extends utils.Interface {
@@ -109,4 +109,16 @@ export interface MerkleTreeManager extends BaseContract {
 
     tree(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface MerkleTreeManagerMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  count(overrides?: CallOverrides): Call<BigNumber>;
+
+  root(overrides?: CallOverrides): Call<string>;
+
+  tree(overrides?: CallOverrides): Call<BigNumber>;
 }

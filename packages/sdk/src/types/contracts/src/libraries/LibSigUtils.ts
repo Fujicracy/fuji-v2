@@ -11,23 +11,23 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export declare namespace LibSigUtils {
   export type PermitStruct = {
-    owner: PromiseOrValue<string>;
-    spender: PromiseOrValue<string>;
-    amount: PromiseOrValue<BigNumberish>;
-    nonce: PromiseOrValue<BigNumberish>;
-    deadline: PromiseOrValue<BigNumberish>;
+    owner: string;
+    spender: string;
+    amount: BigNumberish;
+    nonce: BigNumberish;
+    deadline: BigNumberish;
   };
 
   export type PermitStructOutput = [
@@ -61,7 +61,7 @@ export interface LibSigUtilsInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "getHashTypedDataV4Digest",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getStructHashAsset",
@@ -116,8 +116,8 @@ export interface LibSigUtils extends BaseContract {
 
   functions: {
     getHashTypedDataV4Digest(
-      domainSeperator: PromiseOrValue<BytesLike>,
-      structHash: PromiseOrValue<BytesLike>,
+      domainSeperator: BytesLike,
+      structHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -133,8 +133,8 @@ export interface LibSigUtils extends BaseContract {
   };
 
   getHashTypedDataV4Digest(
-    domainSeperator: PromiseOrValue<BytesLike>,
-    structHash: PromiseOrValue<BytesLike>,
+    domainSeperator: BytesLike,
+    structHash: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -150,8 +150,8 @@ export interface LibSigUtils extends BaseContract {
 
   callStatic: {
     getHashTypedDataV4Digest(
-      domainSeperator: PromiseOrValue<BytesLike>,
-      structHash: PromiseOrValue<BytesLike>,
+      domainSeperator: BytesLike,
+      structHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -170,8 +170,8 @@ export interface LibSigUtils extends BaseContract {
 
   estimateGas: {
     getHashTypedDataV4Digest(
-      domainSeperator: PromiseOrValue<BytesLike>,
-      structHash: PromiseOrValue<BytesLike>,
+      domainSeperator: BytesLike,
+      structHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -188,8 +188,8 @@ export interface LibSigUtils extends BaseContract {
 
   populateTransaction: {
     getHashTypedDataV4Digest(
-      domainSeperator: PromiseOrValue<BytesLike>,
-      structHash: PromiseOrValue<BytesLike>,
+      domainSeperator: BytesLike,
+      structHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -203,4 +203,26 @@ export interface LibSigUtils extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface LibSigUtilsMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getHashTypedDataV4Digest(
+    domainSeperator: BytesLike,
+    structHash: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getStructHashAsset(
+    permit: LibSigUtils.PermitStruct,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getStructHashBorrow(
+    permit: LibSigUtils.PermitStruct,
+    overrides?: CallOverrides
+  ): Call<string>;
 }

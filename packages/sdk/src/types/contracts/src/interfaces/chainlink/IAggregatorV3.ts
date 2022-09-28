@@ -11,14 +11,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface IAggregatorV3Interface extends utils.Interface {
@@ -46,7 +46,7 @@ export interface IAggregatorV3Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getRoundData",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "latestRoundData",
@@ -104,7 +104,7 @@ export interface IAggregatorV3 extends BaseContract {
     description(overrides?: CallOverrides): Promise<[string]>;
 
     getRoundData(
-      _roundId: PromiseOrValue<BigNumberish>,
+      _roundId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
@@ -136,7 +136,7 @@ export interface IAggregatorV3 extends BaseContract {
   description(overrides?: CallOverrides): Promise<string>;
 
   getRoundData(
-    _roundId: PromiseOrValue<BigNumberish>,
+    _roundId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
     [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
@@ -168,7 +168,7 @@ export interface IAggregatorV3 extends BaseContract {
     description(overrides?: CallOverrides): Promise<string>;
 
     getRoundData(
-      _roundId: PromiseOrValue<BigNumberish>,
+      _roundId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
@@ -203,7 +203,7 @@ export interface IAggregatorV3 extends BaseContract {
     description(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoundData(
-      _roundId: PromiseOrValue<BigNumberish>,
+      _roundId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -218,7 +218,7 @@ export interface IAggregatorV3 extends BaseContract {
     description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRoundData(
-      _roundId: PromiseOrValue<BigNumberish>,
+      _roundId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -226,4 +226,41 @@ export interface IAggregatorV3 extends BaseContract {
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IAggregatorV3Multicall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  decimals(overrides?: CallOverrides): Call<number>;
+
+  description(overrides?: CallOverrides): Call<string>;
+
+  getRoundData(
+    _roundId: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      roundId: BigNumber;
+      answer: BigNumber;
+      startedAt: BigNumber;
+      updatedAt: BigNumber;
+      answeredInRound: BigNumber;
+    }
+  >;
+
+  latestRoundData(
+    overrides?: CallOverrides
+  ): Call<
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      roundId: BigNumber;
+      answer: BigNumber;
+      startedAt: BigNumber;
+      updatedAt: BigNumber;
+      answeredInRound: BigNumber;
+    }
+  >;
+
+  version(overrides?: CallOverrides): Call<BigNumber>;
 }

@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface IRouterInterface extends utils.Interface {
@@ -35,11 +35,11 @@ export interface IRouterInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "inboundXCall",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "xBundle",
-    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BytesLike>[]]
+    values: [BigNumberish[], BytesLike[]]
   ): string;
 
   decodeFunctionResult(
@@ -79,37 +79,34 @@ export interface IRouter extends BaseContract {
 
   functions: {
     inboundXCall(
-      params: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      params: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xBundle(
-      actions: PromiseOrValue<BigNumberish>[],
-      args: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      actions: BigNumberish[],
+      args: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   inboundXCall(
-    params: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    params: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xBundle(
-    actions: PromiseOrValue<BigNumberish>[],
-    args: PromiseOrValue<BytesLike>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    actions: BigNumberish[],
+    args: BytesLike[],
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    inboundXCall(
-      params: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    inboundXCall(params: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     xBundle(
-      actions: PromiseOrValue<BigNumberish>[],
-      args: PromiseOrValue<BytesLike>[],
+      actions: BigNumberish[],
+      args: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -118,27 +115,33 @@ export interface IRouter extends BaseContract {
 
   estimateGas: {
     inboundXCall(
-      params: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      params: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xBundle(
-      actions: PromiseOrValue<BigNumberish>[],
-      args: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      actions: BigNumberish[],
+      args: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     inboundXCall(
-      params: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      params: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xBundle(
-      actions: PromiseOrValue<BigNumberish>[],
-      args: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      actions: BigNumberish[],
+      args: BytesLike[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IRouterMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ILendingProvider,
   ILendingProviderInterface,
+  ILendingProviderMulticall,
 } from "../../../src/interfaces/ILendingProvider";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -212,7 +213,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class ILendingProvider__factory {
   static readonly abi = _abi;
   static createInterface(): ILendingProviderInterface {
@@ -223,5 +223,11 @@ export class ILendingProvider__factory {
     signerOrProvider: Signer | Provider
   ): ILendingProvider {
     return new Contract(address, _abi, signerOrProvider) as ILendingProvider;
+  }
+  static multicall(address: string): ILendingProviderMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ILendingProviderMulticall;
   }
 }

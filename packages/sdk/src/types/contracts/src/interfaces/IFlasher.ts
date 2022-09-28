@@ -13,23 +13,23 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export declare namespace IFlasher {
   export type FlashloanParamsStruct = {
-    asset: PromiseOrValue<string>;
-    amount: PromiseOrValue<BigNumberish>;
-    router: PromiseOrValue<string>;
-    actions: PromiseOrValue<BigNumberish>[];
-    args: PromiseOrValue<BytesLike>[];
+    asset: string;
+    amount: BigNumberish;
+    router: string;
+    actions: BigNumberish[];
+    args: BytesLike[];
   };
 
   export type FlashloanParamsStructOutput = [
@@ -56,7 +56,7 @@ export interface IFlasherInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "initiateFlashloan",
-    values: [IFlasher.FlashloanParamsStruct, PromiseOrValue<BigNumberish>]
+    values: [IFlasher.FlashloanParamsStruct, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -96,21 +96,21 @@ export interface IFlasher extends BaseContract {
   functions: {
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providerId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   initiateFlashloan(
     params: IFlasher.FlashloanParamsStruct,
-    providerId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    providerId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
+      providerId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -120,16 +120,22 @@ export interface IFlasher extends BaseContract {
   estimateGas: {
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providerId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     initiateFlashloan(
       params: IFlasher.FlashloanParamsStruct,
-      providerId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providerId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IFlasherMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

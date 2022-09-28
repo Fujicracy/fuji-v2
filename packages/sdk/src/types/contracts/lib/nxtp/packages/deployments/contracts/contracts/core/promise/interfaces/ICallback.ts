@@ -12,14 +12,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface ICallbackInterface extends utils.Interface {
@@ -31,11 +31,7 @@ export interface ICallbackInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "callback",
-    values: [
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<boolean>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BytesLike, boolean, BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "callback", data: BytesLike): Result;
@@ -71,25 +67,25 @@ export interface ICallback extends BaseContract {
 
   functions: {
     callback(
-      transferId: PromiseOrValue<BytesLike>,
-      success: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      transferId: BytesLike,
+      success: boolean,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   callback(
-    transferId: PromiseOrValue<BytesLike>,
-    success: PromiseOrValue<boolean>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    transferId: BytesLike,
+    success: boolean,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     callback(
-      transferId: PromiseOrValue<BytesLike>,
-      success: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
+      transferId: BytesLike,
+      success: boolean,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -98,19 +94,25 @@ export interface ICallback extends BaseContract {
 
   estimateGas: {
     callback(
-      transferId: PromiseOrValue<BytesLike>,
-      success: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      transferId: BytesLike,
+      success: boolean,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     callback(
-      transferId: PromiseOrValue<BytesLike>,
-      success: PromiseOrValue<boolean>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      transferId: BytesLike,
+      success: boolean,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface ICallbackMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

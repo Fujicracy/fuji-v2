@@ -13,17 +13,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface IProposedOwnableInterface extends utils.Interface {
@@ -49,7 +50,7 @@ export interface IProposedOwnableInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proposeNewOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "proposed", values?: undefined): string;
 
@@ -124,14 +125,14 @@ export interface IProposedOwnable extends BaseContract {
 
   functions: {
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string] & { owner_: string }>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposed(
@@ -140,14 +141,14 @@ export interface IProposedOwnable extends BaseContract {
   };
 
   acceptProposedOwner(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   proposeNewOwner(
-    newlyProposed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newlyProposed: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposed(overrides?: CallOverrides): Promise<string>;
@@ -158,7 +159,7 @@ export interface IProposedOwnable extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
+      newlyProposed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -167,32 +168,32 @@ export interface IProposedOwnable extends BaseContract {
 
   filters: {
     "OwnershipProposed(address)"(
-      proposedOwner?: PromiseOrValue<string> | null
+      proposedOwner?: string | null
     ): OwnershipProposedEventFilter;
     OwnershipProposed(
-      proposedOwner?: PromiseOrValue<string> | null
+      proposedOwner?: string | null
     ): OwnershipProposedEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposed(overrides?: CallOverrides): Promise<BigNumber>;
@@ -200,16 +201,26 @@ export interface IProposedOwnable extends BaseContract {
 
   populateTransaction: {
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IProposedOwnableMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  proposed(overrides?: CallOverrides): Call<string>;
 }

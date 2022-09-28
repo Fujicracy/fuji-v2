@@ -13,17 +13,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../common";
 
 export interface ChiefInterface extends utils.Interface {
@@ -52,20 +53,20 @@ export interface ChiefInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "addToAllowed",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "allowedFactories",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "deployVault",
-    values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>]
+    values: [string, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "removeFromAllowed",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -73,12 +74,9 @@ export interface ChiefInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "vaults",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "vaults", values: [string]): string;
 
   decodeFunctionResult(
     functionFragment: "addToAllowed",
@@ -190,228 +188,213 @@ export interface Chief extends BaseContract {
 
   functions: {
     addToAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     allowedFactories(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     deployVault(
-      _factory: PromiseOrValue<string>,
-      _deployData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      _deployData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     removeFromAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    vaults(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    vaults(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
   };
 
   addToAllowed(
-    _factory: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _factory: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  allowedFactories(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  allowedFactories(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   deployVault(
-    _factory: PromiseOrValue<string>,
-    _deployData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _factory: string,
+    _deployData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
   removeFromAllowed(
-    _factory: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _factory: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
-    newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  vaults(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  vaults(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   callStatic: {
-    addToAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    addToAllowed(_factory: string, overrides?: CallOverrides): Promise<void>;
 
-    allowedFactories(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    allowedFactories(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     deployVault(
-      _factory: PromiseOrValue<string>,
-      _deployData: PromiseOrValue<BytesLike>,
+      _factory: string,
+      _deployData: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
     removeFromAllowed(
-      _factory: PromiseOrValue<string>,
+      _factory: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
+      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    vaults(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    vaults(arg0: string, overrides?: CallOverrides): Promise<boolean>;
   };
 
   filters: {
-    "AddToAllowed(address)"(
-      factory?: PromiseOrValue<string> | null
-    ): AddToAllowedEventFilter;
-    AddToAllowed(
-      factory?: PromiseOrValue<string> | null
-    ): AddToAllowedEventFilter;
+    "AddToAllowed(address)"(factory?: string | null): AddToAllowedEventFilter;
+    AddToAllowed(factory?: string | null): AddToAllowedEventFilter;
 
     "DeployVault(address,address,bytes)"(
-      factory?: PromiseOrValue<string> | null,
-      vault?: PromiseOrValue<string> | null,
+      factory?: string | null,
+      vault?: string | null,
       deployData?: null
     ): DeployVaultEventFilter;
     DeployVault(
-      factory?: PromiseOrValue<string> | null,
-      vault?: PromiseOrValue<string> | null,
+      factory?: string | null,
+      vault?: string | null,
       deployData?: null
     ): DeployVaultEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
     "RemoveFromAllowed(address)"(
-      factory?: PromiseOrValue<string> | null
+      factory?: string | null
     ): RemoveFromAllowedEventFilter;
-    RemoveFromAllowed(
-      factory?: PromiseOrValue<string> | null
-    ): RemoveFromAllowedEventFilter;
+    RemoveFromAllowed(factory?: string | null): RemoveFromAllowedEventFilter;
   };
 
   estimateGas: {
     addToAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     allowedFactories(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     deployVault(
-      _factory: PromiseOrValue<string>,
-      _deployData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      _deployData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     removeFromAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    vaults(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    vaults(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     addToAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     allowedFactories(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     deployVault(
-      _factory: PromiseOrValue<string>,
-      _deployData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      _deployData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeFromAllowed(
-      _factory: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _factory: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     vaults(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface ChiefMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  allowedFactories(arg0: string, overrides?: CallOverrides): Call<boolean>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  vaults(arg0: string, overrides?: CallOverrides): Call<boolean>;
 }

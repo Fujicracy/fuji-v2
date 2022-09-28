@@ -10,14 +10,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface IAaveProtocolDataProviderInterface extends utils.Interface {
@@ -32,11 +32,11 @@ export interface IAaveProtocolDataProviderInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "getReserveData",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getUserReserveData",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
 
   decodeFunctionResult(
@@ -79,7 +79,7 @@ export interface IAaveProtocolDataProvider extends BaseContract {
 
   functions: {
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<
       [
@@ -112,8 +112,8 @@ export interface IAaveProtocolDataProvider extends BaseContract {
     >;
 
     getUserReserveData(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<
       [
@@ -141,7 +141,7 @@ export interface IAaveProtocolDataProvider extends BaseContract {
   };
 
   getReserveData(
-    asset: PromiseOrValue<string>,
+    asset: string,
     overrides?: CallOverrides
   ): Promise<
     [
@@ -174,8 +174,8 @@ export interface IAaveProtocolDataProvider extends BaseContract {
   >;
 
   getUserReserveData(
-    asset: PromiseOrValue<string>,
-    user: PromiseOrValue<string>,
+    asset: string,
+    user: string,
     overrides?: CallOverrides
   ): Promise<
     [
@@ -203,7 +203,7 @@ export interface IAaveProtocolDataProvider extends BaseContract {
 
   callStatic: {
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<
       [
@@ -236,8 +236,8 @@ export interface IAaveProtocolDataProvider extends BaseContract {
     >;
 
     getUserReserveData(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<
       [
@@ -268,27 +268,94 @@ export interface IAaveProtocolDataProvider extends BaseContract {
 
   estimateGas: {
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getUserReserveData(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     getReserveData(
-      asset: PromiseOrValue<string>,
+      asset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getUserReserveData(
-      asset: PromiseOrValue<string>,
-      user: PromiseOrValue<string>,
+      asset: string,
+      user: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IAaveProtocolDataProviderMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getReserveData(
+    asset: string,
+    overrides?: CallOverrides
+  ): Call<
+    [
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      number
+    ] & {
+      unbacked: BigNumber;
+      accruedToTreasuryScaled: BigNumber;
+      totalAToken: BigNumber;
+      totalStableDebt: BigNumber;
+      totalVariableDebt: BigNumber;
+      liquidityRate: BigNumber;
+      variableBorrowRate: BigNumber;
+      stableBorrowRate: BigNumber;
+      averageStableBorrowRate: BigNumber;
+      liquidityIndex: BigNumber;
+      variableBorrowIndex: BigNumber;
+      lastUpdateTimestamp: number;
+    }
+  >;
+
+  getUserReserveData(
+    asset: string,
+    user: string,
+    overrides?: CallOverrides
+  ): Call<
+    [
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      number,
+      boolean
+    ] & {
+      currentATokenBalance: BigNumber;
+      currentStableDebt: BigNumber;
+      currentVariableDebt: BigNumber;
+      principalStableDebt: BigNumber;
+      scaledVariableDebt: BigNumber;
+      stableBorrowRate: BigNumber;
+      liquidityRate: BigNumber;
+      stableRateLastUpdated: number;
+      usageAsCollateralEnabled: boolean;
+    }
+  >;
 }

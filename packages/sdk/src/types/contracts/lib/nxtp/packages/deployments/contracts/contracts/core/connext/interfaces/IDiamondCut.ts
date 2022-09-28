@@ -14,24 +14,25 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export declare namespace IDiamondCut {
   export type FacetCutStruct = {
-    facetAddress: PromiseOrValue<string>;
-    action: PromiseOrValue<BigNumberish>;
-    functionSelectors: PromiseOrValue<BytesLike>[];
+    facetAddress: string;
+    action: BigNumberish;
+    functionSelectors: BytesLike[];
   };
 
   export type FacetCutStructOutput = [string, number, string[]] & {
@@ -57,27 +58,15 @@ export interface IDiamondCutInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "diamondCut",
-    values: [
-      IDiamondCut.FacetCutStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [IDiamondCut.FacetCutStruct[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "proposeDiamondCut",
-    values: [
-      IDiamondCut.FacetCutStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [IDiamondCut.FacetCutStruct[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "rescindDiamondCut",
-    values: [
-      IDiamondCut.FacetCutStruct[],
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [IDiamondCut.FacetCutStruct[], string, BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "diamondCut", data: BytesLike): Result;
@@ -169,66 +158,66 @@ export interface IDiamondCut extends BaseContract {
   functions: {
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   diamondCut(
     _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: PromiseOrValue<string>,
-    _calldata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _init: string,
+    _calldata: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposeDiamondCut(
     _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: PromiseOrValue<string>,
-    _calldata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _init: string,
+    _calldata: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   rescindDiamondCut(
     _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: PromiseOrValue<string>,
-    _calldata: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _init: string,
+    _calldata: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
+      _init: string,
+      _calldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
+      _init: string,
+      _calldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
+      _init: string,
+      _calldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -273,46 +262,52 @@ export interface IDiamondCut extends BaseContract {
   estimateGas: {
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     diamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposeDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     rescindDiamondCut(
       _diamondCut: IDiamondCut.FacetCutStruct[],
-      _init: PromiseOrValue<string>,
-      _calldata: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _init: string,
+      _calldata: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IDiamondCutMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

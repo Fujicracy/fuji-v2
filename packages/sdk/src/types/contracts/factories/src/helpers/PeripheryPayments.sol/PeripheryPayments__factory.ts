@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   PeripheryPayments,
   PeripheryPaymentsInterface,
+  PeripheryPaymentsMulticall,
 } from "../../../../src/helpers/PeripheryPayments.sol/PeripheryPayments";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -157,7 +158,6 @@ const _abi = [
     type: "receive",
   },
 ];
-
 export class PeripheryPayments__factory {
   static readonly abi = _abi;
   static createInterface(): PeripheryPaymentsInterface {
@@ -168,5 +168,11 @@ export class PeripheryPayments__factory {
     signerOrProvider: Signer | Provider
   ): PeripheryPayments {
     return new Contract(address, _abi, signerOrProvider) as PeripheryPayments;
+  }
+  static multicall(address: string): PeripheryPaymentsMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as PeripheryPaymentsMulticall;
   }
 }

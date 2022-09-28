@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface IMessageRecipientInterface extends utils.Interface {
@@ -32,12 +32,7 @@ export interface IMessageRecipientInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "handle",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish, BigNumberish, BytesLike, BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "handle", data: BytesLike): Result;
@@ -73,28 +68,28 @@ export interface IMessageRecipient extends BaseContract {
 
   functions: {
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   handle(
-    _origin: PromiseOrValue<BigNumberish>,
-    _nonce: PromiseOrValue<BigNumberish>,
-    _sender: PromiseOrValue<BytesLike>,
-    _message: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _origin: BigNumberish,
+    _nonce: BigNumberish,
+    _sender: BytesLike,
+    _message: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -103,21 +98,27 @@ export interface IMessageRecipient extends BaseContract {
 
   estimateGas: {
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     handle(
-      _origin: PromiseOrValue<BigNumberish>,
-      _nonce: PromiseOrValue<BigNumberish>,
-      _sender: PromiseOrValue<BytesLike>,
-      _message: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _origin: BigNumberish,
+      _nonce: BigNumberish,
+      _sender: BytesLike,
+      _message: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IMessageRecipientMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

@@ -10,20 +10,20 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export declare namespace IDiamondLoupe {
   export type FacetStruct = {
-    facetAddress: PromiseOrValue<string>;
-    functionSelectors: PromiseOrValue<BytesLike>[];
+    facetAddress: string;
+    functionSelectors: BytesLike[];
   };
 
   export type FacetStructOutput = [string, string[]] & {
@@ -50,7 +50,7 @@ export interface IDiamondLoupeInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "facetAddress",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "facetAddresses",
@@ -58,7 +58,7 @@ export interface IDiamondLoupeInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "facetFunctionSelectors",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "facets", values?: undefined): string;
 
@@ -107,7 +107,7 @@ export interface IDiamondLoupe extends BaseContract {
 
   functions: {
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string] & { facetAddress_: string }>;
 
@@ -116,7 +116,7 @@ export interface IDiamondLoupe extends BaseContract {
     ): Promise<[string[]] & { facetAddresses_: string[] }>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<[string[]] & { facetFunctionSelectors_: string[] }>;
 
@@ -130,14 +130,14 @@ export interface IDiamondLoupe extends BaseContract {
   };
 
   facetAddress(
-    _functionSelector: PromiseOrValue<BytesLike>,
+    _functionSelector: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   facetAddresses(overrides?: CallOverrides): Promise<string[]>;
 
   facetFunctionSelectors(
-    _facet: PromiseOrValue<string>,
+    _facet: string,
     overrides?: CallOverrides
   ): Promise<string[]>;
 
@@ -145,14 +145,14 @@ export interface IDiamondLoupe extends BaseContract {
 
   callStatic: {
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     facetAddresses(overrides?: CallOverrides): Promise<string[]>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<string[]>;
 
@@ -165,14 +165,14 @@ export interface IDiamondLoupe extends BaseContract {
 
   estimateGas: {
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     facetAddresses(overrides?: CallOverrides): Promise<BigNumber>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -181,17 +181,37 @@ export interface IDiamondLoupe extends BaseContract {
 
   populateTransaction: {
     facetAddress(
-      _functionSelector: PromiseOrValue<BytesLike>,
+      _functionSelector: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     facetAddresses(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     facetFunctionSelectors(
-      _facet: PromiseOrValue<string>,
+      _facet: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     facets(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IDiamondLoupeMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  facetAddress(
+    _functionSelector: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  facetAddresses(overrides?: CallOverrides): Call<string[]>;
+
+  facetFunctionSelectors(
+    _facet: string,
+    overrides?: CallOverrides
+  ): Call<string[]>;
+
+  facets(overrides?: CallOverrides): Call<IDiamondLoupe.FacetStructOutput[]>;
 }

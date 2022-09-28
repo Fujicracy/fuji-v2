@@ -14,17 +14,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../common";
 
 export interface IERC4626Interface extends utils.Interface {
@@ -87,74 +88,55 @@ export interface IERC4626Interface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "asset", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "convertToAssets",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToShares",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "maxDeposit",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxMint",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxRedeem",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxWithdraw",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "maxDeposit", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxMint", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxRedeem", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxWithdraw", values: [string]): string;
   encodeFunctionData(
     functionFragment: "mint",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "previewDeposit",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewMint",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewRedeem",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewWithdraw",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "redeem",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
@@ -167,23 +149,15 @@ export interface IERC4626Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
 
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
@@ -334,97 +308,94 @@ export interface IERC4626 extends BaseContract {
 
   functions: {
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     asset(
       overrides?: CallOverrides
     ): Promise<[string] & { assetTokenAddress: string }>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { assets: BigNumber }>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     maxDeposit(
-      receiver: PromiseOrValue<string>,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { maxAssets: BigNumber }>;
 
     maxMint(
-      receiver: PromiseOrValue<string>,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { maxShares: BigNumber }>;
 
     maxRedeem(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { maxShares: BigNumber }>;
 
     maxWithdraw(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { maxAssets: BigNumber }>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { assets: BigNumber }>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { assets: BigNumber }>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -436,116 +407,101 @@ export interface IERC4626 extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      from: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   allowance(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
+    owner: string,
+    spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   approve(
-    spender: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   asset(overrides?: CallOverrides): Promise<string>;
 
-  balanceOf(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   convertToAssets(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   convertToShares(
-    assets: PromiseOrValue<BigNumberish>,
+    assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
   deposit(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    assets: BigNumberish,
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  maxDeposit(
-    receiver: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxDeposit(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxMint(
-    receiver: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxMint(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxRedeem(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxWithdraw(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   mint(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    shares: BigNumberish,
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
   previewDeposit(
-    assets: PromiseOrValue<BigNumberish>,
+    assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewMint(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewRedeem(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewWithdraw(
-    assets: PromiseOrValue<BigNumberish>,
+    assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   redeem(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    shares: BigNumberish,
+    receiver: string,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -555,115 +511,100 @@ export interface IERC4626 extends BaseContract {
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   transfer(
-    to: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferFrom(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    from: string,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdraw(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    assets: BigNumberish,
+    receiver: string,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      spender: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     asset(overrides?: CallOverrides): Promise<string>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
+      assets: BigNumberish,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    maxDeposit(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxDeposit(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxMint(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxMint(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
+      shares: BigNumberish,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -674,73 +615,73 @@ export interface IERC4626 extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      to: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      from: string,
+      to: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   filters: {
     "Approval(address,address,uint256)"(
-      owner?: PromiseOrValue<string> | null,
-      spender?: PromiseOrValue<string> | null,
+      owner?: string | null,
+      spender?: string | null,
       value?: null
     ): ApprovalEventFilter;
     Approval(
-      owner?: PromiseOrValue<string> | null,
-      spender?: PromiseOrValue<string> | null,
+      owner?: string | null,
+      spender?: string | null,
       value?: null
     ): ApprovalEventFilter;
 
     "Deposit(address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): DepositEventFilter;
     Deposit(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): DepositEventFilter;
 
     "Transfer(address,address,uint256)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
+      from?: string | null,
+      to?: string | null,
       value?: null
     ): TransferEventFilter;
     Transfer(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
+      from?: string | null,
+      to?: string | null,
       value?: null
     ): TransferEventFilter;
 
     "Withdraw(address,address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      receiver?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): WithdrawEventFilter;
     Withdraw(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      receiver?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): WithdrawEventFilter;
@@ -748,95 +689,80 @@ export interface IERC4626 extends BaseContract {
 
   estimateGas: {
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     asset(overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    maxDeposit(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxDeposit(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxMint(
-      receiver: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxMint(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -846,117 +772,117 @@ export interface IERC4626 extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      from: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     asset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     balanceOf(
-      account: PromiseOrValue<string>,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     maxDeposit(
-      receiver: PromiseOrValue<string>,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxMint(
-      receiver: PromiseOrValue<string>,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxRedeem(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxWithdraw(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -966,23 +892,84 @@ export interface IERC4626 extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      from: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IERC4626Multicall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  allowance(
+    owner: string,
+    spender: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  asset(overrides?: CallOverrides): Call<string>;
+
+  balanceOf(account: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  convertToAssets(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  convertToShares(
+    assets: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Call<number>;
+
+  maxDeposit(receiver: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxMint(receiver: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxRedeem(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxWithdraw(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  name(overrides?: CallOverrides): Call<string>;
+
+  previewDeposit(
+    assets: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  previewMint(shares: BigNumberish, overrides?: CallOverrides): Call<BigNumber>;
+
+  previewRedeem(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  previewWithdraw(
+    assets: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Call<string>;
+
+  totalAssets(overrides?: CallOverrides): Call<BigNumber>;
+
+  totalSupply(overrides?: CallOverrides): Call<BigNumber>;
 }

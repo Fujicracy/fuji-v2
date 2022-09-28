@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   PromiseRouter,
   PromiseRouterInterface,
+  PromiseRouterMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/promise/PromiseRouter";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -726,7 +727,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class PromiseRouter__factory {
   static readonly abi = _abi;
   static createInterface(): PromiseRouterInterface {
@@ -737,5 +737,11 @@ export class PromiseRouter__factory {
     signerOrProvider: Signer | Provider
   ): PromiseRouter {
     return new Contract(address, _abi, signerOrProvider) as PromiseRouter;
+  }
+  static multicall(address: string): PromiseRouterMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as PromiseRouterMulticall;
   }
 }

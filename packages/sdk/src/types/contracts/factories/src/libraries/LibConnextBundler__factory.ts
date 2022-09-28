@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   LibConnextBundler,
   LibConnextBundlerInterface,
+  LibConnextBundlerMulticall,
 } from "../../../src/libraries/LibConnextBundler";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -114,7 +115,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class LibConnextBundler__factory {
   static readonly abi = _abi;
   static createInterface(): LibConnextBundlerInterface {
@@ -125,5 +125,11 @@ export class LibConnextBundler__factory {
     signerOrProvider: Signer | Provider
   ): LibConnextBundler {
     return new Contract(address, _abi, signerOrProvider) as LibConnextBundler;
+  }
+  static multicall(address: string): LibConnextBundlerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as LibConnextBundlerMulticall;
   }
 }

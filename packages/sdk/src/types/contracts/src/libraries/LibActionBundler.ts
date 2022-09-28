@@ -11,14 +11,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface LibActionBundlerInterface extends utils.Interface {
@@ -33,22 +33,11 @@ export interface LibActionBundlerInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "closeWithFlashloan",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "depositAndBorrow",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -91,55 +80,55 @@ export interface LibActionBundler extends BaseContract {
 
   functions: {
     closeWithFlashloan(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      swapper: PromiseOrValue<string>,
-      flasher: PromiseOrValue<string>,
-      withdrawAmount: PromiseOrValue<BigNumberish>,
-      flashAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      router: string,
+      swapper: string,
+      flasher: string,
+      withdrawAmount: BigNumberish,
+      flashAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
   };
 
   closeWithFlashloan(
-    vault: PromiseOrValue<string>,
-    router: PromiseOrValue<string>,
-    swapper: PromiseOrValue<string>,
-    flasher: PromiseOrValue<string>,
-    withdrawAmount: PromiseOrValue<BigNumberish>,
-    flashAmount: PromiseOrValue<BigNumberish>,
+    vault: string,
+    router: string,
+    swapper: string,
+    flasher: string,
+    withdrawAmount: BigNumberish,
+    flashAmount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<[number[], string[]]>;
 
   depositAndBorrow(
-    vault: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    borrowAmount: PromiseOrValue<BigNumberish>,
+    vault: string,
+    amount: BigNumberish,
+    borrowAmount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<[number[], string[]]>;
 
   callStatic: {
     closeWithFlashloan(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      swapper: PromiseOrValue<string>,
-      flasher: PromiseOrValue<string>,
-      withdrawAmount: PromiseOrValue<BigNumberish>,
-      flashAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      router: string,
+      swapper: string,
+      flasher: string,
+      withdrawAmount: BigNumberish,
+      flashAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number[], string[]]>;
   };
@@ -148,39 +137,62 @@ export interface LibActionBundler extends BaseContract {
 
   estimateGas: {
     closeWithFlashloan(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      swapper: PromiseOrValue<string>,
-      flasher: PromiseOrValue<string>,
-      withdrawAmount: PromiseOrValue<BigNumberish>,
-      flashAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      router: string,
+      swapper: string,
+      flasher: string,
+      withdrawAmount: BigNumberish,
+      flashAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     closeWithFlashloan(
-      vault: PromiseOrValue<string>,
-      router: PromiseOrValue<string>,
-      swapper: PromiseOrValue<string>,
-      flasher: PromiseOrValue<string>,
-      withdrawAmount: PromiseOrValue<BigNumberish>,
-      flashAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      router: string,
+      swapper: string,
+      flasher: string,
+      withdrawAmount: BigNumberish,
+      flashAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     depositAndBorrow(
-      vault: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      borrowAmount: PromiseOrValue<BigNumberish>,
+      vault: string,
+      amount: BigNumberish,
+      borrowAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface LibActionBundlerMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  closeWithFlashloan(
+    vault: string,
+    router: string,
+    swapper: string,
+    flasher: string,
+    withdrawAmount: BigNumberish,
+    flashAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<[number[], string[]]>;
+
+  depositAndBorrow(
+    vault: string,
+    amount: BigNumberish,
+    borrowAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<[number[], string[]]>;
 }

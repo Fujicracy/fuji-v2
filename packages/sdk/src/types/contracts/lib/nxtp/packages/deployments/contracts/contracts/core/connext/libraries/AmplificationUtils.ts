@@ -11,17 +11,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface AmplificationUtilsInterface extends utils.Interface {
@@ -153,4 +154,14 @@ export interface AmplificationUtils extends BaseContract {
 
     MAX_A(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface AmplificationUtilsMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  A_PRECISION(overrides?: CallOverrides): Call<BigNumber>;
+
+  MAX_A(overrides?: CallOverrides): Call<BigNumber>;
 }

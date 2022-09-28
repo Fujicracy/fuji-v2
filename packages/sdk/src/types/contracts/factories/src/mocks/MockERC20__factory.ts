@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   MockERC20,
   MockERC20Interface,
+  MockERC20Multicall,
 } from "../../../src/mocks/MockERC20";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -370,7 +371,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class MockERC20__factory {
   static readonly abi = _abi;
   static createInterface(): MockERC20Interface {
@@ -381,5 +381,11 @@ export class MockERC20__factory {
     signerOrProvider: Signer | Provider
   ): MockERC20 {
     return new Contract(address, _abi, signerOrProvider) as MockERC20;
+  }
+  static multicall(address: string): MockERC20Multicall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as MockERC20Multicall;
   }
 }

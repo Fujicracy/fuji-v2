@@ -14,17 +14,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface BorrowingVaultInterface extends utils.Interface {
@@ -169,49 +170,42 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "allowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "approve",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "asset", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "balanceOfDebt",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrowAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "convertDebtToShares",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToAssets",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToDebt",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "convertToShares",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "debtAsset", values?: undefined): string;
   encodeFunctionData(
@@ -225,19 +219,19 @@ export interface BorrowingVaultInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseBorrowAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseWithdrawAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "depositCap",
@@ -249,131 +243,106 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseBorrowAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseWithdrawAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "liqRatio", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "maxBorrow",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxDeposit",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "maxBorrow", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxDeposit", values: [string]): string;
   encodeFunctionData(functionFragment: "maxLtv", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "maxMint",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxRedeem",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxWithdraw",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "maxMint", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxRedeem", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxWithdraw", values: [string]): string;
   encodeFunctionData(
     functionFragment: "minDepositAmount",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "nonces",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "nonces", values: [string]): string;
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "payback",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "permitBorrow",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "permitWithdraw",
     values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "previewDeposit",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewMint",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewRedeem",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewWithdraw",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "redeem",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setActiveProvider",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "setDepositCap",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setLiqRatio",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMaxLtv",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMinDepositAmount",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setOracle",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setOracle", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setProviders",
-    values: [PromiseOrValue<string>[]]
+    values: [string[]]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
@@ -387,27 +356,19 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transfer",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllowance",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [string, string]
   ): string;
 
   decodeFunctionResult(
@@ -816,61 +777,58 @@ export interface BorrowingVault extends BaseContract {
     activeProvider(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      shares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     asset(overrides?: CallOverrides): Promise<[string]>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     balanceOfDebt(
-      account: PromiseOrValue<string>,
+      account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { debt: BigNumber }>;
 
     borrow(
-      debt: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      debt: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     borrowAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     convertDebtToShares(
-      debt: PromiseOrValue<BigNumberish>,
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { assets: BigNumber }>;
 
     convertToDebt(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { debt: BigNumber }>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
@@ -883,27 +841,27 @@ export interface BorrowingVault extends BaseContract {
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
     decreaseAllowance(
-      spender: PromiseOrValue<string>,
-      subtractedShares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      subtractedShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     decreaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     decreaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     depositCap(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -913,157 +871,142 @@ export interface BorrowingVault extends BaseContract {
     ): Promise<[string[]] & { list: string[] }>;
 
     increaseAllowance(
-      spender: PromiseOrValue<string>,
-      extraShares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      extraShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     increaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     increaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     liqRatio(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxBorrow(
-      borrower: PromiseOrValue<string>,
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    maxDeposit(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    maxDeposit(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxLtv(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    maxMint(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    maxMint(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    maxRedeem(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    maxWithdraw(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     minDepositAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    nonces(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     oracle(overrides?: CallOverrides): Promise<[string]>;
 
     payback(
-      debt: PromiseOrValue<BigNumberish>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      debt: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     permitBorrow(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     permitWithdraw(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      owner: string,
+      spender: string,
+      amount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setActiveProvider(
-      activeProvider_: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      activeProvider_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setDepositCap(
-      newCap: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newCap: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setLiqRatio(
-      liqRatio_: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      liqRatio_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setMaxLtv(
-      maxLtv_: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      maxLtv_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setMinDepositAmount(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setOracle(
-      newOracle: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOracle: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setProviders(
-      providers: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providers: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -1075,28 +1018,28 @@ export interface BorrowingVault extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      from: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     withdrawAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
@@ -1106,61 +1049,55 @@ export interface BorrowingVault extends BaseContract {
   activeProvider(overrides?: CallOverrides): Promise<string>;
 
   allowance(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
+    owner: string,
+    spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   approve(
-    spender: PromiseOrValue<string>,
-    shares: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    shares: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   asset(overrides?: CallOverrides): Promise<string>;
 
-  balanceOf(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  balanceOfDebt(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  balanceOfDebt(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   borrow(
-    debt: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    debt: BigNumberish,
+    receiver: string,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   borrowAllowance(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
+    owner: string,
+    spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   chief(overrides?: CallOverrides): Promise<string>;
 
   convertDebtToShares(
-    debt: PromiseOrValue<BigNumberish>,
+    debt: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   convertToAssets(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   convertToDebt(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   convertToShares(
-    assets: PromiseOrValue<BigNumberish>,
+    assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1173,27 +1110,27 @@ export interface BorrowingVault extends BaseContract {
   decimals(overrides?: CallOverrides): Promise<number>;
 
   decreaseAllowance(
-    spender: PromiseOrValue<string>,
-    subtractedShares: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    subtractedShares: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   decreaseBorrowAllowance(
-    spender: PromiseOrValue<string>,
-    byAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    byAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   decreaseWithdrawAllowance(
-    spender: PromiseOrValue<string>,
-    byAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    byAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   deposit(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    assets: BigNumberish,
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   depositCap(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1201,157 +1138,139 @@ export interface BorrowingVault extends BaseContract {
   getProviders(overrides?: CallOverrides): Promise<string[]>;
 
   increaseAllowance(
-    spender: PromiseOrValue<string>,
-    extraShares: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    extraShares: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   increaseBorrowAllowance(
-    spender: PromiseOrValue<string>,
-    byAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    byAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   increaseWithdrawAllowance(
-    spender: PromiseOrValue<string>,
-    byAmount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    spender: string,
+    byAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   liqRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxBorrow(
-    borrower: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxBorrow(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxDeposit(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxDeposit(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   maxLtv(overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxMint(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxMint(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxRedeem(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  maxWithdraw(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   minDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
   mint(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    shares: BigNumberish,
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
-  nonces(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   oracle(overrides?: CallOverrides): Promise<string>;
 
   payback(
-    debt: PromiseOrValue<BigNumberish>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    debt: BigNumberish,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   permitBorrow(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
-    value: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    owner: string,
+    spender: string,
+    value: BigNumberish,
+    deadline: BigNumberish,
+    v: BigNumberish,
+    r: BytesLike,
+    s: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   permitWithdraw(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    deadline: PromiseOrValue<BigNumberish>,
-    v: PromiseOrValue<BigNumberish>,
-    r: PromiseOrValue<BytesLike>,
-    s: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    owner: string,
+    spender: string,
+    amount: BigNumberish,
+    deadline: BigNumberish,
+    v: BigNumberish,
+    r: BytesLike,
+    s: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   previewDeposit(
-    assets: PromiseOrValue<BigNumberish>,
+    assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewMint(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewRedeem(
-    shares: PromiseOrValue<BigNumberish>,
+    shares: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   previewWithdraw(
-    assets: PromiseOrValue<BigNumberish>,
+    assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   redeem(
-    shares: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    shares: BigNumberish,
+    receiver: string,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setActiveProvider(
-    activeProvider_: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    activeProvider_: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setDepositCap(
-    newCap: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newCap: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setLiqRatio(
-    liqRatio_: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    liqRatio_: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setMaxLtv(
-    maxLtv_: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    maxLtv_: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setMinDepositAmount(
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setOracle(
-    newOracle: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newOracle: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setProviders(
-    providers: PromiseOrValue<string>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    providers: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -1363,28 +1282,28 @@ export interface BorrowingVault extends BaseContract {
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   transfer(
-    to: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferFrom(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    from: string,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdraw(
-    assets: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    owner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    assets: BigNumberish,
+    receiver: string,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   withdrawAllowance(
-    owner: PromiseOrValue<string>,
-    spender: PromiseOrValue<string>,
+    owner: string,
+    spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1394,61 +1313,58 @@ export interface BorrowingVault extends BaseContract {
     activeProvider(overrides?: CallOverrides): Promise<string>;
 
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      shares: PromiseOrValue<BigNumberish>,
+      spender: string,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     asset(overrides?: CallOverrides): Promise<string>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     balanceOfDebt(
-      account: PromiseOrValue<string>,
+      account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     borrow(
-      debt: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
+      debt: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     borrowAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     chief(overrides?: CallOverrides): Promise<string>;
 
     convertDebtToShares(
-      debt: PromiseOrValue<BigNumberish>,
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToDebt(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1461,26 +1377,26 @@ export interface BorrowingVault extends BaseContract {
     decimals(overrides?: CallOverrides): Promise<number>;
 
     decreaseAllowance(
-      spender: PromiseOrValue<string>,
-      subtractedShares: PromiseOrValue<BigNumberish>,
+      spender: string,
+      subtractedShares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     decreaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
+      spender: string,
+      byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     decreaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
+      spender: string,
+      byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
+      assets: BigNumberish,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1489,158 +1405,131 @@ export interface BorrowingVault extends BaseContract {
     getProviders(overrides?: CallOverrides): Promise<string[]>;
 
     increaseAllowance(
-      spender: PromiseOrValue<string>,
-      extraShares: PromiseOrValue<BigNumberish>,
+      spender: string,
+      extraShares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     increaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
+      spender: string,
+      byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     increaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
+      spender: string,
+      byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     liqRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxBorrow(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxBorrow(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxDeposit(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxDeposit(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxLtv(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxMint(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxMint(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     minDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
+      shares: BigNumberish,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     oracle(overrides?: CallOverrides): Promise<string>;
 
     payback(
-      debt: PromiseOrValue<BigNumberish>,
-      owner: PromiseOrValue<string>,
+      debt: BigNumberish,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     permitBorrow(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     permitWithdraw(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
+      owner: string,
+      spender: string,
+      amount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setActiveProvider(
-      activeProvider_: PromiseOrValue<string>,
+      activeProvider_: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setDepositCap(
-      newCap: PromiseOrValue<BigNumberish>,
+      newCap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setLiqRatio(
-      liqRatio_: PromiseOrValue<BigNumberish>,
+      liqRatio_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setMaxLtv(
-      maxLtv_: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setMaxLtv(maxLtv_: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     setMinDepositAmount(
-      amount: PromiseOrValue<BigNumberish>,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setOracle(
-      newOracle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setOracle(newOracle: string, overrides?: CallOverrides): Promise<void>;
 
-    setProviders(
-      providers: PromiseOrValue<string>[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setProviders(providers: string[], overrides?: CallOverrides): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -1651,28 +1540,28 @@ export interface BorrowingVault extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      to: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
+      from: string,
+      to: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     withdrawAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -1686,51 +1575,51 @@ export interface BorrowingVault extends BaseContract {
     ): ActiveProviderChangedEventFilter;
 
     "Approval(address,address,uint256)"(
-      owner?: PromiseOrValue<string> | null,
-      spender?: PromiseOrValue<string> | null,
+      owner?: string | null,
+      spender?: string | null,
       value?: null
     ): ApprovalEventFilter;
     Approval(
-      owner?: PromiseOrValue<string> | null,
-      spender?: PromiseOrValue<string> | null,
+      owner?: string | null,
+      spender?: string | null,
       value?: null
     ): ApprovalEventFilter;
 
     "Borrow(address,address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      receiver?: string | null,
+      owner?: string | null,
       debt?: null,
       shares?: null
     ): BorrowEventFilter;
     Borrow(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      receiver?: string | null,
+      owner?: string | null,
       debt?: null,
       shares?: null
     ): BorrowEventFilter;
 
     "BorrowApproval(address,address,uint256)"(
-      owner?: PromiseOrValue<string> | null,
+      owner?: string | null,
       spender?: null,
       amount?: null
     ): BorrowApprovalEventFilter;
     BorrowApproval(
-      owner?: PromiseOrValue<string> | null,
+      owner?: string | null,
       spender?: null,
       amount?: null
     ): BorrowApprovalEventFilter;
 
     "Deposit(address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): DepositEventFilter;
     Deposit(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): DepositEventFilter;
@@ -1757,14 +1646,14 @@ export interface BorrowingVault extends BaseContract {
     OracleChanged(newOracle?: null): OracleChangedEventFilter;
 
     "Payback(address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      owner?: string | null,
       debt?: null,
       shares?: null
     ): PaybackEventFilter;
     Payback(
-      sender?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      owner?: string | null,
       debt?: null,
       shares?: null
     ): PaybackEventFilter;
@@ -1775,38 +1664,38 @@ export interface BorrowingVault extends BaseContract {
     ProvidersChanged(newProviders?: null): ProvidersChangedEventFilter;
 
     "Transfer(address,address,uint256)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
+      from?: string | null,
+      to?: string | null,
       value?: null
     ): TransferEventFilter;
     Transfer(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
+      from?: string | null,
+      to?: string | null,
       value?: null
     ): TransferEventFilter;
 
     "Withdraw(address,address,address,uint256,uint256)"(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      receiver?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): WithdrawEventFilter;
     Withdraw(
-      sender?: PromiseOrValue<string> | null,
-      receiver?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null,
+      sender?: string | null,
+      receiver?: string | null,
+      owner?: string | null,
       assets?: null,
       shares?: null
     ): WithdrawEventFilter;
 
     "WithdrawApproval(address,address,uint256)"(
-      owner?: PromiseOrValue<string> | null,
+      owner?: string | null,
       spender?: null,
       amount?: null
     ): WithdrawApprovalEventFilter;
     WithdrawApproval(
-      owner?: PromiseOrValue<string> | null,
+      owner?: string | null,
       spender?: null,
       amount?: null
     ): WithdrawApprovalEventFilter;
@@ -1818,61 +1707,58 @@ export interface BorrowingVault extends BaseContract {
     activeProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      shares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     asset(overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     balanceOfDebt(
-      account: PromiseOrValue<string>,
+      account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     borrow(
-      debt: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      debt: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     borrowAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     convertDebtToShares(
-      debt: PromiseOrValue<BigNumberish>,
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToDebt(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1885,27 +1771,27 @@ export interface BorrowingVault extends BaseContract {
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     decreaseAllowance(
-      spender: PromiseOrValue<string>,
-      subtractedShares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      subtractedShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     decreaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     decreaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     depositCap(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1913,157 +1799,139 @@ export interface BorrowingVault extends BaseContract {
     getProviders(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseAllowance(
-      spender: PromiseOrValue<string>,
-      extraShares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      extraShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     increaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     increaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     liqRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxBorrow(
-      borrower: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxBorrow(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxDeposit(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxDeposit(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxLtv(overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxMint(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxMint(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxRedeem(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    maxWithdraw(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     minDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nonces(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     oracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     payback(
-      debt: PromiseOrValue<BigNumberish>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      debt: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     permitBorrow(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     permitWithdraw(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      owner: string,
+      spender: string,
+      amount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setActiveProvider(
-      activeProvider_: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      activeProvider_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setDepositCap(
-      newCap: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newCap: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setLiqRatio(
-      liqRatio_: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      liqRatio_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setMaxLtv(
-      maxLtv_: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      maxLtv_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setMinDepositAmount(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setOracle(
-      newOracle: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOracle: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setProviders(
-      providers: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providers: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2075,28 +1943,28 @@ export interface BorrowingVault extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      from: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     withdrawAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -2107,61 +1975,61 @@ export interface BorrowingVault extends BaseContract {
     activeProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     approve(
-      spender: PromiseOrValue<string>,
-      shares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      shares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     asset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     balanceOf(
-      account: PromiseOrValue<string>,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOfDebt(
-      account: PromiseOrValue<string>,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     borrow(
-      debt: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      debt: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     borrowAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     convertDebtToShares(
-      debt: PromiseOrValue<BigNumberish>,
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertToAssets(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertToDebt(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertToShares(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2174,27 +2042,27 @@ export interface BorrowingVault extends BaseContract {
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     decreaseAllowance(
-      spender: PromiseOrValue<string>,
-      subtractedShares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      subtractedShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     decreaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     decreaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     deposit(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     depositCap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2202,157 +2070,157 @@ export interface BorrowingVault extends BaseContract {
     getProviders(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseAllowance(
-      spender: PromiseOrValue<string>,
-      extraShares: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      extraShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     increaseBorrowAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     increaseWithdrawAllowance(
-      spender: PromiseOrValue<string>,
-      byAmount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      spender: string,
+      byAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     liqRatio(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxBorrow(
-      borrower: PromiseOrValue<string>,
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxDeposit(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxLtv(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxMint(
-      arg0: PromiseOrValue<string>,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxRedeem(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     maxWithdraw(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     minDepositAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     mint(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nonces(
-      owner: PromiseOrValue<string>,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     payback(
-      debt: PromiseOrValue<BigNumberish>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      debt: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     permitBorrow(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      value: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      owner: string,
+      spender: string,
+      value: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     permitWithdraw(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      deadline: PromiseOrValue<BigNumberish>,
-      v: PromiseOrValue<BigNumberish>,
-      r: PromiseOrValue<BytesLike>,
-      s: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      owner: string,
+      spender: string,
+      amount: BigNumberish,
+      deadline: BigNumberish,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     previewDeposit(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewMint(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewRedeem(
-      shares: PromiseOrValue<BigNumberish>,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewWithdraw(
-      assets: PromiseOrValue<BigNumberish>,
+      assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     redeem(
-      shares: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setActiveProvider(
-      activeProvider_: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      activeProvider_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setDepositCap(
-      newCap: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newCap: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setLiqRatio(
-      liqRatio_: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      liqRatio_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setMaxLtv(
-      maxLtv_: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      maxLtv_: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setMinDepositAmount(
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setOracle(
-      newOracle: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newOracle: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setProviders(
-      providers: PromiseOrValue<string>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      providers: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2364,29 +2232,144 @@ export interface BorrowingVault extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transfer(
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      from: string,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdraw(
-      assets: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      owner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     withdrawAllowance(
-      owner: PromiseOrValue<string>,
-      spender: PromiseOrValue<string>,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface BorrowingVaultMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  DOMAIN_SEPARATOR(overrides?: CallOverrides): Call<string>;
+
+  activeProvider(overrides?: CallOverrides): Call<string>;
+
+  allowance(
+    owner: string,
+    spender: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  asset(overrides?: CallOverrides): Call<string>;
+
+  balanceOf(account: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  balanceOfDebt(account: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  borrowAllowance(
+    owner: string,
+    spender: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  chief(overrides?: CallOverrides): Call<string>;
+
+  convertDebtToShares(
+    debt: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  convertToAssets(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  convertToDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  convertToShares(
+    assets: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  debtAsset(overrides?: CallOverrides): Call<string>;
+
+  debtDecimals(overrides?: CallOverrides): Call<number>;
+
+  debtSharesSupply(overrides?: CallOverrides): Call<BigNumber>;
+
+  decimals(overrides?: CallOverrides): Call<number>;
+
+  depositCap(overrides?: CallOverrides): Call<BigNumber>;
+
+  getProviders(overrides?: CallOverrides): Call<string[]>;
+
+  liqRatio(overrides?: CallOverrides): Call<BigNumber>;
+
+  maxBorrow(borrower: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxDeposit(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxLtv(overrides?: CallOverrides): Call<BigNumber>;
+
+  maxMint(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxRedeem(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxWithdraw(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  minDepositAmount(overrides?: CallOverrides): Call<BigNumber>;
+
+  name(overrides?: CallOverrides): Call<string>;
+
+  nonces(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  oracle(overrides?: CallOverrides): Call<string>;
+
+  previewDeposit(
+    assets: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  previewMint(shares: BigNumberish, overrides?: CallOverrides): Call<BigNumber>;
+
+  previewRedeem(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  previewWithdraw(
+    assets: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  symbol(overrides?: CallOverrides): Call<string>;
+
+  totalAssets(overrides?: CallOverrides): Call<BigNumber>;
+
+  totalDebt(overrides?: CallOverrides): Call<BigNumber>;
+
+  totalSupply(overrides?: CallOverrides): Call<BigNumber>;
+
+  withdrawAllowance(
+    owner: string,
+    spender: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 }

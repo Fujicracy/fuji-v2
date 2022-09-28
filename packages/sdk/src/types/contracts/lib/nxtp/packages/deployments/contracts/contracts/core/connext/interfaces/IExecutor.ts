@@ -14,29 +14,30 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export declare namespace IExecutor {
   export type ExecutorArgsStruct = {
-    transferId: PromiseOrValue<BytesLike>;
-    amount: PromiseOrValue<BigNumberish>;
-    to: PromiseOrValue<string>;
-    recovery: PromiseOrValue<string>;
-    assetId: PromiseOrValue<string>;
-    originSender: PromiseOrValue<string>;
-    originDomain: PromiseOrValue<BigNumberish>;
-    callData: PromiseOrValue<BytesLike>;
+    transferId: BytesLike;
+    amount: BigNumberish;
+    to: string;
+    recovery: string;
+    assetId: string;
+    originSender: string;
+    originDomain: BigNumberish;
+    callData: BytesLike;
   };
 
   export type ExecutorArgsStructOutput = [
@@ -148,21 +149,21 @@ export interface IExecutor extends BaseContract {
   functions: {
     execute(
       _args: IExecutor.ExecutorArgsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getConnext(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   execute(
     _args: IExecutor.ExecutorArgsStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getConnext(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -176,9 +177,9 @@ export interface IExecutor extends BaseContract {
 
   filters: {
     "Executed(bytes32,address,address,address,uint256,address,uint32,bytes,bytes,bool)"(
-      transferId?: PromiseOrValue<BytesLike> | null,
-      to?: PromiseOrValue<string> | null,
-      recovery?: PromiseOrValue<string> | null,
+      transferId?: BytesLike | null,
+      to?: string | null,
+      recovery?: string | null,
       assetId?: null,
       amount?: null,
       originSender?: null,
@@ -188,9 +189,9 @@ export interface IExecutor extends BaseContract {
       success?: null
     ): ExecutedEventFilter;
     Executed(
-      transferId?: PromiseOrValue<BytesLike> | null,
-      to?: PromiseOrValue<string> | null,
-      recovery?: PromiseOrValue<string> | null,
+      transferId?: BytesLike | null,
+      to?: string | null,
+      recovery?: string | null,
       assetId?: null,
       amount?: null,
       originSender?: null,
@@ -204,22 +205,28 @@ export interface IExecutor extends BaseContract {
   estimateGas: {
     execute(
       _args: IExecutor.ExecutorArgsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getConnext(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     execute(
       _args: IExecutor.ExecutorArgsStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getConnext(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IExecutorMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IMessageRecipient,
   IMessageRecipientInterface,
+  IMessageRecipientMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/interfaces/IMessageRecipient";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -39,7 +40,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IMessageRecipient__factory {
   static readonly abi = _abi;
   static createInterface(): IMessageRecipientInterface {
@@ -50,5 +50,11 @@ export class IMessageRecipient__factory {
     signerOrProvider: Signer | Provider
   ): IMessageRecipient {
     return new Contract(address, _abi, signerOrProvider) as IMessageRecipient;
+  }
+  static multicall(address: string): IMessageRecipientMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IMessageRecipientMulticall;
   }
 }

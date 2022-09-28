@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   Ownable,
   OwnableInterface,
+  OwnableMulticall,
 } from "../../../../../lib/openzeppelin-contracts/contracts/access/Ownable";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -63,7 +64,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class Ownable__factory {
   static readonly abi = _abi;
   static createInterface(): OwnableInterface {
@@ -74,5 +74,8 @@ export class Ownable__factory {
     signerOrProvider: Signer | Provider
   ): Ownable {
     return new Contract(address, _abi, signerOrProvider) as Ownable;
+  }
+  static multicall(address: string): OwnableMulticall {
+    return new MulticallContract(address, _abi) as unknown as OwnableMulticall;
   }
 }

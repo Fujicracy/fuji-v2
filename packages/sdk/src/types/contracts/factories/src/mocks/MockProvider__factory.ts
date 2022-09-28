@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   MockProvider,
   MockProviderInterface,
+  MockProviderMulticall,
 } from "../../../src/mocks/MockProvider";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -212,7 +213,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class MockProvider__factory {
   static readonly abi = _abi;
   static createInterface(): MockProviderInterface {
@@ -223,5 +223,11 @@ export class MockProvider__factory {
     signerOrProvider: Signer | Provider
   ): MockProvider {
     return new Contract(address, _abi, signerOrProvider) as MockProvider;
+  }
+  static multicall(address: string): MockProviderMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as MockProviderMulticall;
   }
 }

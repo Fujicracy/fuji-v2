@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IConnextHandler,
   IConnextHandlerInterface,
+  IConnextHandlerMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/interfaces/IConnextHandler";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -3136,7 +3137,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IConnextHandler__factory {
   static readonly abi = _abi;
   static createInterface(): IConnextHandlerInterface {
@@ -3147,5 +3147,11 @@ export class IConnextHandler__factory {
     signerOrProvider: Signer | Provider
   ): IConnextHandler {
     return new Contract(address, _abi, signerOrProvider) as IConnextHandler;
+  }
+  static multicall(address: string): IConnextHandlerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IConnextHandlerMulticall;
   }
 }

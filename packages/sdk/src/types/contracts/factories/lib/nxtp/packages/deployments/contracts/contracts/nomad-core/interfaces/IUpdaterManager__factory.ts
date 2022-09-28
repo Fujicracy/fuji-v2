@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IUpdaterManager,
   IUpdaterManagerInterface,
+  IUpdaterManagerMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/interfaces/IUpdaterManager";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -37,7 +38,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IUpdaterManager__factory {
   static readonly abi = _abi;
   static createInterface(): IUpdaterManagerInterface {
@@ -48,5 +48,11 @@ export class IUpdaterManager__factory {
     signerOrProvider: Signer | Provider
   ): IUpdaterManager {
     return new Contract(address, _abi, signerOrProvider) as IUpdaterManager;
+  }
+  static multicall(address: string): IUpdaterManagerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IUpdaterManagerMulticall;
   }
 }

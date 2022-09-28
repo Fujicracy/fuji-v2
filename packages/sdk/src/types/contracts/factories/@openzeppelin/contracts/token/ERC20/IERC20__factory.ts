@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IERC20,
   IERC20Interface,
+  IERC20Multicall,
 } from "../../../../../@openzeppelin/contracts/token/ERC20/IERC20";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -194,7 +195,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IERC20__factory {
   static readonly abi = _abi;
   static createInterface(): IERC20Interface {
@@ -202,5 +202,8 @@ export class IERC20__factory {
   }
   static connect(address: string, signerOrProvider: Signer | Provider): IERC20 {
     return new Contract(address, _abi, signerOrProvider) as IERC20;
+  }
+  static multicall(address: string): IERC20Multicall {
+    return new MulticallContract(address, _abi) as unknown as IERC20Multicall;
   }
 }

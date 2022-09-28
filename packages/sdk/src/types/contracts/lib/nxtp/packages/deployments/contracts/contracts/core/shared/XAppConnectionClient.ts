@@ -13,17 +13,18 @@ import type {
   utils,
 } from "ethers";
 import type {
+  Fragment,
   FunctionFragment,
   Result,
   EventFragment,
 } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface XAppConnectionClientInterface extends utils.Interface {
@@ -62,7 +63,7 @@ export interface XAppConnectionClientInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proposeNewOwner",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "proposed", values?: undefined): string;
   encodeFunctionData(
@@ -76,7 +77,7 @@ export interface XAppConnectionClientInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "renounced", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setXAppConnectionManager",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "xAppConnectionManager",
@@ -181,7 +182,7 @@ export interface XAppConnectionClient extends BaseContract {
 
   functions: {
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     delay(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -189,8 +190,8 @@ export interface XAppConnectionClient extends BaseContract {
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<[string]>;
@@ -198,21 +199,21 @@ export interface XAppConnectionClient extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     renounced(overrides?: CallOverrides): Promise<[boolean]>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xAppConnectionManager(overrides?: CallOverrides): Promise<[string]>;
   };
 
   acceptProposedOwner(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   delay(overrides?: CallOverrides): Promise<BigNumber>;
@@ -220,8 +221,8 @@ export interface XAppConnectionClient extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   proposeNewOwner(
-    newlyProposed: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    newlyProposed: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   proposed(overrides?: CallOverrides): Promise<string>;
@@ -229,14 +230,14 @@ export interface XAppConnectionClient extends BaseContract {
   proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   renounced(overrides?: CallOverrides): Promise<boolean>;
 
   setXAppConnectionManager(
-    _xAppConnectionManager: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _xAppConnectionManager: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xAppConnectionManager(overrides?: CallOverrides): Promise<string>;
@@ -249,7 +250,7 @@ export interface XAppConnectionClient extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
+      newlyProposed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -262,7 +263,7 @@ export interface XAppConnectionClient extends BaseContract {
     renounced(overrides?: CallOverrides): Promise<boolean>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
+      _xAppConnectionManager: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -274,25 +275,25 @@ export interface XAppConnectionClient extends BaseContract {
     Initialized(version?: null): InitializedEventFilter;
 
     "OwnershipProposed(address)"(
-      proposedOwner?: PromiseOrValue<string> | null
+      proposedOwner?: string | null
     ): OwnershipProposedEventFilter;
     OwnershipProposed(
-      proposedOwner?: PromiseOrValue<string> | null
+      proposedOwner?: string | null
     ): OwnershipProposedEventFilter;
 
     "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      previousOwner?: string | null,
+      newOwner?: string | null
     ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     delay(overrides?: CallOverrides): Promise<BigNumber>;
@@ -300,8 +301,8 @@ export interface XAppConnectionClient extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     proposed(overrides?: CallOverrides): Promise<BigNumber>;
@@ -309,14 +310,14 @@ export interface XAppConnectionClient extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     renounced(overrides?: CallOverrides): Promise<BigNumber>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xAppConnectionManager(overrides?: CallOverrides): Promise<BigNumber>;
@@ -324,7 +325,7 @@ export interface XAppConnectionClient extends BaseContract {
 
   populateTransaction: {
     acceptProposedOwner(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     delay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -332,8 +333,8 @@ export interface XAppConnectionClient extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposeNewOwner(
-      newlyProposed: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      newlyProposed: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     proposed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -341,18 +342,36 @@ export interface XAppConnectionClient extends BaseContract {
     proposedTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     renounced(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setXAppConnectionManager(
-      _xAppConnectionManager: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _xAppConnectionManager: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xAppConnectionManager(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface XAppConnectionClientMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  delay(overrides?: CallOverrides): Call<BigNumber>;
+
+  owner(overrides?: CallOverrides): Call<string>;
+
+  proposed(overrides?: CallOverrides): Call<string>;
+
+  proposedTimestamp(overrides?: CallOverrides): Call<BigNumber>;
+
+  renounced(overrides?: CallOverrides): Call<boolean>;
+
+  xAppConnectionManager(overrides?: CallOverrides): Call<string>;
 }

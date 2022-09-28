@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   MerkleTreeManager,
   MerkleTreeManagerInterface,
+  MerkleTreeManagerMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/contracts/Merkle.sol/MerkleTreeManager";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -50,7 +51,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class MerkleTreeManager__factory {
   static readonly abi = _abi;
   static createInterface(): MerkleTreeManagerInterface {
@@ -61,5 +61,11 @@ export class MerkleTreeManager__factory {
     signerOrProvider: Signer | Provider
   ): MerkleTreeManager {
     return new Contract(address, _abi, signerOrProvider) as MerkleTreeManager;
+  }
+  static multicall(address: string): MerkleTreeManagerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as MerkleTreeManagerMulticall;
   }
 }

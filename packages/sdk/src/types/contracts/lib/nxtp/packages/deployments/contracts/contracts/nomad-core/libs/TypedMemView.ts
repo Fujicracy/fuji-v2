@@ -10,14 +10,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface TypedMemViewInterface extends utils.Interface {
@@ -79,4 +79,12 @@ export interface TypedMemView extends BaseContract {
   populateTransaction: {
     NULL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface TypedMemViewMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  NULL(overrides?: CallOverrides): Call<string>;
 }

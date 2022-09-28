@@ -12,14 +12,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../common";
 
 export interface IUpdaterManagerInterface extends utils.Interface {
@@ -34,7 +34,7 @@ export interface IUpdaterManagerInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "slashUpdater",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "updater", values?: undefined): string;
 
@@ -75,25 +75,22 @@ export interface IUpdaterManager extends BaseContract {
 
   functions: {
     slashUpdater(
-      _reporter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _reporter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updater(overrides?: CallOverrides): Promise<[string]>;
   };
 
   slashUpdater(
-    _reporter: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _reporter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updater(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    slashUpdater(
-      _reporter: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    slashUpdater(_reporter: string, overrides?: CallOverrides): Promise<void>;
 
     updater(overrides?: CallOverrides): Promise<string>;
   };
@@ -102,8 +99,8 @@ export interface IUpdaterManager extends BaseContract {
 
   estimateGas: {
     slashUpdater(
-      _reporter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _reporter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updater(overrides?: CallOverrides): Promise<BigNumber>;
@@ -111,10 +108,18 @@ export interface IUpdaterManager extends BaseContract {
 
   populateTransaction: {
     slashUpdater(
-      _reporter: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _reporter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updater(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IUpdaterManagerMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  updater(overrides?: CallOverrides): Call<string>;
 }

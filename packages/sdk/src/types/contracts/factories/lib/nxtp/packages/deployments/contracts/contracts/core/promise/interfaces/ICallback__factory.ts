@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   ICallback,
   ICallbackInterface,
+  ICallbackMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/promise/interfaces/ICallback";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -34,7 +35,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class ICallback__factory {
   static readonly abi = _abi;
   static createInterface(): ICallbackInterface {
@@ -45,5 +45,11 @@ export class ICallback__factory {
     signerOrProvider: Signer | Provider
   ): ICallback {
     return new Contract(address, _abi, signerOrProvider) as ICallback;
+  }
+  static multicall(address: string): ICallbackMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as ICallbackMulticall;
   }
 }

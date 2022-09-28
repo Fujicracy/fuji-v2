@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface IBridgeRouterInterface extends utils.Interface {
@@ -33,23 +33,11 @@ export interface IBridgeRouterInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "send",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<boolean>
-    ]
+    values: [string, BigNumberish, BigNumberish, BytesLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "sendToHook",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [string, BigNumberish, BigNumberish, BytesLike, BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
@@ -86,58 +74,58 @@ export interface IBridgeRouter extends BaseContract {
 
   functions: {
     send(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<BytesLike>,
-      arg4: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      arg4: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     sendToHook(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _remoteHook: PromiseOrValue<BytesLike>,
-      _extraData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _remoteHook: BytesLike,
+      _extraData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   send(
-    _token: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    _destination: PromiseOrValue<BigNumberish>,
-    _recipient: PromiseOrValue<BytesLike>,
-    arg4: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _token: string,
+    _amount: BigNumberish,
+    _destination: BigNumberish,
+    _recipient: BytesLike,
+    arg4: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   sendToHook(
-    _token: PromiseOrValue<string>,
-    _amount: PromiseOrValue<BigNumberish>,
-    _destination: PromiseOrValue<BigNumberish>,
-    _remoteHook: PromiseOrValue<BytesLike>,
-    _extraData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _token: string,
+    _amount: BigNumberish,
+    _destination: BigNumberish,
+    _remoteHook: BytesLike,
+    _extraData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     send(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<BytesLike>,
-      arg4: PromiseOrValue<boolean>,
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      arg4: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
     sendToHook(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _remoteHook: PromiseOrValue<BytesLike>,
-      _extraData: PromiseOrValue<BytesLike>,
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _remoteHook: BytesLike,
+      _extraData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -146,41 +134,47 @@ export interface IBridgeRouter extends BaseContract {
 
   estimateGas: {
     send(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<BytesLike>,
-      arg4: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      arg4: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     sendToHook(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _remoteHook: PromiseOrValue<BytesLike>,
-      _extraData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _remoteHook: BytesLike,
+      _extraData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     send(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _recipient: PromiseOrValue<BytesLike>,
-      arg4: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _recipient: BytesLike,
+      arg4: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     sendToHook(
-      _token: PromiseOrValue<string>,
-      _amount: PromiseOrValue<BigNumberish>,
-      _destination: PromiseOrValue<BigNumberish>,
-      _remoteHook: PromiseOrValue<BytesLike>,
-      _extraData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _token: string,
+      _amount: BigNumberish,
+      _destination: BigNumberish,
+      _remoteHook: BytesLike,
+      _extraData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface IBridgeRouterMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

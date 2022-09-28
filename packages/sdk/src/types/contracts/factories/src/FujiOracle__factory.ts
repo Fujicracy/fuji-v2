@@ -2,10 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
-import type { FujiOracle, FujiOracleInterface } from "../../src/FujiOracle";
-
+import { Contract, Signer, utils } from "ethers";
+import type {
+  FujiOracle,
+  FujiOracleInterface,
+  FujiOracleMulticall,
+} from "../../src/FujiOracle";
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [
@@ -176,7 +180,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class FujiOracle__factory {
   static readonly abi = _abi;
   static createInterface(): FujiOracleInterface {
@@ -187,5 +190,11 @@ export class FujiOracle__factory {
     signerOrProvider: Signer | Provider
   ): FujiOracle {
     return new Contract(address, _abi, signerOrProvider) as FujiOracle;
+  }
+  static multicall(address: string): FujiOracleMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as FujiOracleMulticall;
   }
 }

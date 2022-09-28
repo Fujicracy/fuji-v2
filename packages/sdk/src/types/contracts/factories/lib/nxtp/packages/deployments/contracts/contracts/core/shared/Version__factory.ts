@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   Version,
   VersionInterface,
+  VersionMulticall,
 } from "../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/shared/Version";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -24,7 +25,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class Version__factory {
   static readonly abi = _abi;
   static createInterface(): VersionInterface {
@@ -35,5 +35,8 @@ export class Version__factory {
     signerOrProvider: Signer | Provider
   ): Version {
     return new Contract(address, _abi, signerOrProvider) as Version;
+  }
+  static multicall(address: string): VersionMulticall {
+    return new MulticallContract(address, _abi) as unknown as VersionMulticall;
   }
 }

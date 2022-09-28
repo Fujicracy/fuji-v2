@@ -2,14 +2,18 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseContract, Signer, utils } from "ethers";
-import type { EventFragment } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../common";
 
 export interface ReentrancyGuardUpgradeableInterface extends utils.Interface {
@@ -67,4 +71,10 @@ export interface ReentrancyGuardUpgradeable extends BaseContract {
   estimateGas: {};
 
   populateTransaction: {};
+}
+
+export interface ReentrancyGuardUpgradeableMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
 }

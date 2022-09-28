@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IUniswapV2Router01,
   IUniswapV2Router01Interface,
+  IUniswapV2Router01Multicall,
 } from "../../../../src/interfaces/uniswap/IUniswapV2Router01";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
@@ -760,7 +761,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IUniswapV2Router01__factory {
   static readonly abi = _abi;
   static createInterface(): IUniswapV2Router01Interface {
@@ -771,5 +771,11 @@ export class IUniswapV2Router01__factory {
     signerOrProvider: Signer | Provider
   ): IUniswapV2Router01 {
     return new Contract(address, _abi, signerOrProvider) as IUniswapV2Router01;
+  }
+  static multicall(address: string): IUniswapV2Router01Multicall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IUniswapV2Router01Multicall;
   }
 }

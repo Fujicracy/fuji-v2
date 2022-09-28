@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   QueueManager,
   QueueManagerInterface,
+  QueueManagerMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/nomad-core/contracts/Queue.sol/QueueManager";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -69,7 +70,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class QueueManager__factory {
   static readonly abi = _abi;
   static createInterface(): QueueManagerInterface {
@@ -80,5 +80,11 @@ export class QueueManager__factory {
     signerOrProvider: Signer | Provider
   ): QueueManager {
     return new Contract(address, _abi, signerOrProvider) as QueueManager;
+  }
+  static multicall(address: string): QueueManagerMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as QueueManagerMulticall;
   }
 }

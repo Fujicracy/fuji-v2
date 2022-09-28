@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   IERC20Metadata,
   IERC20MetadataInterface,
+  IERC20MetadataMulticall,
 } from "../../../../../../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -233,7 +234,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class IERC20Metadata__factory {
   static readonly abi = _abi;
   static createInterface(): IERC20MetadataInterface {
@@ -244,5 +244,11 @@ export class IERC20Metadata__factory {
     signerOrProvider: Signer | Provider
   ): IERC20Metadata {
     return new Contract(address, _abi, signerOrProvider) as IERC20Metadata;
+  }
+  static multicall(address: string): IERC20MetadataMulticall {
+    return new MulticallContract(
+      address,
+      _abi
+    ) as unknown as IERC20MetadataMulticall;
   }
 }

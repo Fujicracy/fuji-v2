@@ -2,13 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
 import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
 import type {
   LPToken,
   LPTokenInterface,
+  LPTokenMulticall,
 } from "../../../../../../../../../../lib/nxtp/packages/deployments/contracts/contracts/core/connext/helpers/LPToken";
-
+import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     anonymous: false,
@@ -419,7 +420,6 @@ const _abi = [
     type: "function",
   },
 ];
-
 export class LPToken__factory {
   static readonly abi = _abi;
   static createInterface(): LPTokenInterface {
@@ -430,5 +430,8 @@ export class LPToken__factory {
     signerOrProvider: Signer | Provider
   ): LPToken {
     return new Contract(address, _abi, signerOrProvider) as LPToken;
+  }
+  static multicall(address: string): LPTokenMulticall {
+    return new MulticallContract(address, _abi) as unknown as LPTokenMulticall;
   }
 }

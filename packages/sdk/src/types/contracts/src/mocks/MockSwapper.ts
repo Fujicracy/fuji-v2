@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../common";
 
 export interface MockSwapperInterface extends utils.Interface {
@@ -34,13 +34,7 @@ export interface MockSwapperInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "swap",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [string, string, BigNumberish, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
@@ -79,35 +73,35 @@ export interface MockSwapper extends BaseContract {
     oracle(overrides?: CallOverrides): Promise<[string]>;
 
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   oracle(overrides?: CallOverrides): Promise<string>;
 
   swap(
-    assetIn: PromiseOrValue<string>,
-    assetOut: PromiseOrValue<string>,
-    amountOut: PromiseOrValue<BigNumberish>,
-    receiver: PromiseOrValue<string>,
-    slippage: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    receiver: string,
+    slippage: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     oracle(overrides?: CallOverrides): Promise<string>;
 
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -118,12 +112,12 @@ export interface MockSwapper extends BaseContract {
     oracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -131,12 +125,20 @@ export interface MockSwapper extends BaseContract {
     oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     swap(
-      assetIn: PromiseOrValue<string>,
-      assetOut: PromiseOrValue<string>,
-      amountOut: PromiseOrValue<BigNumberish>,
-      receiver: PromiseOrValue<string>,
-      slippage: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      receiver: string,
+      slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface MockSwapperMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  oracle(overrides?: CallOverrides): Call<string>;
 }

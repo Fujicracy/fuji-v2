@@ -13,14 +13,14 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
-  PromiseOrValue,
 } from "../../../../../../../../../common";
 
 export interface ITokenRegistryInterface extends utils.Interface {
@@ -47,35 +47,28 @@ export interface ITokenRegistryInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "enrollCustom",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "ensureLocalToken",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
+    values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getLocalAddress",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
+    values: [BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenId",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "getTokenId", values: [string]): string;
   encodeFunctionData(
     functionFragment: "isLocalOrigin",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "mustHaveLocalToken",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
+    values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "oldReprToCurrentRepr",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
 
   decodeFunctionResult(
@@ -135,124 +128,118 @@ export interface ITokenRegistry extends BaseContract {
 
   functions: {
     enrollCustom(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      _custom: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _id: BytesLike,
+      _custom: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     ensureLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getLocalAddress(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string] & { _local: string }>;
 
     getTokenId(
-      _token: PromiseOrValue<string>,
+      _token: string,
       overrides?: CallOverrides
     ): Promise<[number, string]>;
 
     isLocalOrigin(
-      _token: PromiseOrValue<string>,
+      _token: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     mustHaveLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     oldReprToCurrentRepr(
-      _oldRepr: PromiseOrValue<string>,
+      _oldRepr: string,
       overrides?: CallOverrides
     ): Promise<[string] & { _currentRepr: string }>;
   };
 
   enrollCustom(
-    _domain: PromiseOrValue<BigNumberish>,
-    _id: PromiseOrValue<BytesLike>,
-    _custom: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _domain: BigNumberish,
+    _id: BytesLike,
+    _custom: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   ensureLocalToken(
-    _domain: PromiseOrValue<BigNumberish>,
-    _id: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    _domain: BigNumberish,
+    _id: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   getLocalAddress(
-    _domain: PromiseOrValue<BigNumberish>,
-    _id: PromiseOrValue<BytesLike>,
+    _domain: BigNumberish,
+    _id: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getTokenId(
-    _token: PromiseOrValue<string>,
+    _token: string,
     overrides?: CallOverrides
   ): Promise<[number, string]>;
 
-  isLocalOrigin(
-    _token: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isLocalOrigin(_token: string, overrides?: CallOverrides): Promise<boolean>;
 
   mustHaveLocalToken(
-    _domain: PromiseOrValue<BigNumberish>,
-    _id: PromiseOrValue<BytesLike>,
+    _domain: BigNumberish,
+    _id: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
   oldReprToCurrentRepr(
-    _oldRepr: PromiseOrValue<string>,
+    _oldRepr: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
   callStatic: {
     enrollCustom(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      _custom: PromiseOrValue<string>,
+      _domain: BigNumberish,
+      _id: BytesLike,
+      _custom: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     ensureLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getLocalAddress(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getTokenId(
-      _token: PromiseOrValue<string>,
+      _token: string,
       overrides?: CallOverrides
     ): Promise<[number, string]>;
 
-    isLocalOrigin(
-      _token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isLocalOrigin(_token: string, overrides?: CallOverrides): Promise<boolean>;
 
     mustHaveLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
     oldReprToCurrentRepr(
-      _oldRepr: PromiseOrValue<string>,
+      _oldRepr: string,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -261,85 +248,109 @@ export interface ITokenRegistry extends BaseContract {
 
   estimateGas: {
     enrollCustom(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      _custom: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _id: BytesLike,
+      _custom: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     ensureLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getLocalAddress(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getTokenId(
-      _token: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getTokenId(_token: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     isLocalOrigin(
-      _token: PromiseOrValue<string>,
+      _token: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     mustHaveLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     oldReprToCurrentRepr(
-      _oldRepr: PromiseOrValue<string>,
+      _oldRepr: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     enrollCustom(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      _custom: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _id: BytesLike,
+      _custom: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     ensureLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      _domain: BigNumberish,
+      _id: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getLocalAddress(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTokenId(
-      _token: PromiseOrValue<string>,
+      _token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isLocalOrigin(
-      _token: PromiseOrValue<string>,
+      _token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     mustHaveLocalToken(
-      _domain: PromiseOrValue<BigNumberish>,
-      _id: PromiseOrValue<BytesLike>,
+      _domain: BigNumberish,
+      _id: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     oldReprToCurrentRepr(
-      _oldRepr: PromiseOrValue<string>,
+      _oldRepr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
+}
+
+export interface ITokenRegistryMulticall {
+  address: string;
+  abi: Fragment[];
+  functions: FunctionFragment[];
+
+  getLocalAddress(
+    _domain: BigNumberish,
+    _id: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getTokenId(_token: string, overrides?: CallOverrides): Call<[number, string]>;
+
+  isLocalOrigin(_token: string, overrides?: CallOverrides): Call<boolean>;
+
+  mustHaveLocalToken(
+    _domain: BigNumberish,
+    _id: BytesLike,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  oldReprToCurrentRepr(
+    _oldRepr: string,
+    overrides?: CallOverrides
+  ): Call<string>;
 }
