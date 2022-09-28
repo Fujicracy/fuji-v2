@@ -13,17 +13,23 @@
 
 ### Chains and tokens selection
 
+**For collateral**
+
 ```
-  // for collateral
   // user selects chainA or chainA is selected by default
   // fetch collateral tokens available on chainA
+  
   const collaterals = sdk.getCollateralForChain(chainId);
 
   // user selects a "token1" as collateral
+```
 
-  // for debt
+**For debt**
+
+```
   // user selects chainB or chainB is selected by default
   // fetch debt tokens available on chainB
+  
   const debts = sdk.getDebtForChain(chainId);
 
   // user selects a "token2" as debt
@@ -33,13 +39,17 @@
 
 ```
   // get an instance of "vault"
+  
   const vault = await sdk.getBorrowingVaultFor(token1, token2);
+  
   // if vault is undefined, display error
 
   // pre-load some data for the vault so that it's available for a later use
+  
   await vault.preLoad(user);
+  
   // pre-load makes available:
-  // 1. TODO vault.maxLtv and vault.liqRatio that can be used to calculate health ratio and 
+  // 1. vault.maxLtv and vault.liqRatio that can be used to calculate health ratio and 
   // liquidation price based on the amounts inputs below
   // 2. TODO user deposit and borrow balances for this Vault
   // if there are not 0, they have to be used in the health ratio and liquidation price math,
@@ -47,6 +57,7 @@
   // 3. TODO prices of collateral and debt
 
   // fetch providers for this vault and their rates
+  
   const providers = await vault.getProviders();
 ```
 
@@ -56,12 +67,17 @@
   // user inputs "amount1" and "amount2"
 
   // check if there's enough allowance for token1 and amount1
+  
   await sdk.getAllowanceOf(token1, user);
   if (needApproval) {
     // approve token1
   }
+```
 
-  // srcChainId = token1.chainId
+### Transation
+
+```
+  const srcChainId = token1.chainId
   const { actions, cost } = await vault.previewDepositAndBorrow(amount1, amount2, srcChainId);
 
   // verify if user needs to sign a permit
@@ -75,6 +91,8 @@
   // TODO
   const txData = await vault.getTXDataFor(actions, signature?)
 ```
+
+### Misc
 
 ```
   // TODO
