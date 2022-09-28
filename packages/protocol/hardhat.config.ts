@@ -15,6 +15,22 @@ import "./hardhat-tasks/generate";
  * Configuration
 */
 const config: HardhatUserConfig = {
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.15",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 10000,
+          },
+        },
+      }
+    ],
+  },
+  networks: {
+
+  },
   preprocess: {
     eachLine: () => ({
       transform: (line: string) => {
@@ -30,25 +46,13 @@ const config: HardhatUserConfig = {
   paths: {
     sources: "./src",
     cache: "./cache_hardhat",
+    imports: './out'
   },
   abiExporter: {
     path: './abis',
     runOnCompile: false,
     clear: true,
     spacing: 2,
-  },
-  solidity: {
-    compilers: [
-      {
-        version: "0.8.15",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 10000,
-          },
-        },
-      }
-    ],
   },
   namedAccounts: {
     deployer: { default: 0 },
