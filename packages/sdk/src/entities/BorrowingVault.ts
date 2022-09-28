@@ -8,6 +8,7 @@ import {
 import { RPC_PROVIDER } from '../constants/rpcs';
 import { Address } from './Address';
 import {
+  BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
   ILendingProvider__factory,
 } from '../types/contracts';
@@ -23,6 +24,12 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { getPermitDigest } from '../functions';
 
 export class BorrowingVault {
+  /**
+   * Instance of ethers Contract class, already initialized with address and rpc provider.
+   * It's ready to be used by calling the methods available on the smart contract.
+   */
+  readonly contract: BorrowingVaultContract;
+
   readonly rpcProvider: JsonRpcProvider;
 
   readonly chainId: ChainId;
@@ -48,7 +55,12 @@ export class BorrowingVault {
     this.collateral = collateral;
     this.chainId = collateral.chainId;
     this.debt = debt;
+
     this.rpcProvider = RPC_PROVIDER[this.chainId];
+    this.contract = BorrowingVault__factory.connect(
+      this.address.value,
+      this.rpcProvider
+    );
   }
 
   /**
@@ -79,22 +91,10 @@ export class BorrowingVault {
    */
   async preLoad(account: Address) {
     const [maxLtv, liqRatio, nonce, domainSeparator] = await Promise.all([
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).maxLtv(),
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).liqRatio(),
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).nonces(account.value),
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).DOMAIN_SEPARATOR(),
+      this.contract.maxLtv(),
+      this.contract.liqRatio(),
+      this.contract.nonces(account.value),
+      this.contract.DOMAIN_SEPARATOR(),
     ]);
 
     this.maxLtv = maxLtv;
@@ -108,10 +108,7 @@ export class BorrowingVault {
    * Retruns the borrow interest rate by querying the activeProvider.
    */
   async getBorrowRate(): Promise<BigNumber> {
-    const activeProvider: string = await BorrowingVault__factory.connect(
-      this.address.value,
-      this.rpcProvider
-    ).activeProvider();
+    const activeProvider: string = await this.contract.activeProvider();
     const borrowRate: BigNumber = await ILendingProvider__factory.connect(
       activeProvider,
       this.rpcProvider
@@ -125,10 +122,7 @@ export class BorrowingVault {
    * Each element also includes the borrow and deposit rate.
    */
   async getProviders(): Promise<LendingProviderDetails[]> {
-    const allProvidersAddrs: string[] = await BorrowingVault__factory.connect(
-      this.address.value,
-      this.rpcProvider
-    ).getProviders();
+    const allProvidersAddrs: string[] = await this.contract.getProviders();
 
     const borrowPromises = allProvidersAddrs.map(addr =>
       ILendingProvider__factory.connect(
@@ -146,10 +140,7 @@ export class BorrowingVault {
     );
     const depositRates: BigNumber[] = await Promise.all(depositPromises);
 
-    const activeProviderAddr: string = await BorrowingVault__factory.connect(
-      this.address.value,
-      this.rpcProvider
-    ).activeProvider();
+    const activeProviderAddr: string = await this.contract.activeProvider();
 
     return allProvidersAddrs.map((addr: string, i: number) => ({
       name: `Provider ${i}`,
@@ -166,14 +157,8 @@ export class BorrowingVault {
     account: Address
   ): Promise<{ deposit: BigNumber; borrow: BigNumber }> {
     const [deposit, borrow] = await Promise.all([
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).balanceOf(account.value),
-      BorrowingVault__factory.connect(
-        this.address.value,
-        this.rpcProvider
-      ).balanceOfDebt(account.value),
+      this.contract.balanceOf(account.value),
+      this.contract.balanceOfDebt(account.value),
     ]);
 
     return { deposit, borrow };

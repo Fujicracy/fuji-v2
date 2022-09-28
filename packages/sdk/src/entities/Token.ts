@@ -4,8 +4,7 @@ import invariant from 'tiny-invariant';
 import { Address } from './Address';
 import { ChainId } from '../enums';
 import { BigNumber } from '@ethersproject/bignumber';
-import { Contract } from '@ethersproject/contracts';
-import { ERC20__factory } from '../types/contracts';
+import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
 import { RPC_PROVIDER } from '../constants/rpcs';
 import { JsonRpcProvider } from '@ethersproject/providers';
 
@@ -23,7 +22,7 @@ export class Token extends AbstractCurrency {
    * Instance of ethers Contract class, already initialized with address and rpc provider.
    * It's ready to be used by calling the methods available on the smart contract.
    */
-  readonly contract: Contract;
+  readonly contract: ERC20Contract;
 
   constructor(
     chainId: ChainId,

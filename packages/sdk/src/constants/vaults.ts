@@ -2,7 +2,6 @@ import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
 import { Address, BorrowingVault } from '../entities';
 import { USDC, WNATIVE } from './tokens';
-import { AddressZero } from '@ethersproject/constants';
 
 export const VAULT_LIST: ChainVaultList = {
   [ChainId.ETHEREUM]: [],
@@ -16,7 +15,7 @@ export const VAULT_LIST: ChainVaultList = {
   [ChainId.MATIC]: [],
   [ChainId.MATIC_MUMBAI]: [
     new BorrowingVault(
-      Address.from(AddressZero),
+      Address.from('0xBe170d083fB63CE3Eb62902C097E1656490B665F'),
       WNATIVE[ChainId.MATIC_MUMBAI],
       USDC[ChainId.MATIC_MUMBAI]
     ),
@@ -26,7 +25,7 @@ export const VAULT_LIST: ChainVaultList = {
   [ChainId.OPTIMISM]: [],
   [ChainId.OPTIMISM_GOERLI]: [
     new BorrowingVault(
-      Address.from(AddressZero),
+      Address.from('0xBe170d083fB63CE3Eb62902C097E1656490B665F'),
       WNATIVE[ChainId.OPTIMISM_GOERLI],
       USDC[ChainId.OPTIMISM_GOERLI]
     ),
