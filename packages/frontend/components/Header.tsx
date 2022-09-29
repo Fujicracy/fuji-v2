@@ -10,7 +10,6 @@ import {
   Menu,
   MenuItem,
   Container,
-  Button,
   MenuList
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
@@ -41,15 +40,17 @@ const Header = () => {
           sx={{ background: theme.palette.background.paper }}
         >
           <Toolbar disableGutters>
-            <a href='/' className={styles.logoTitle}>
-              <Image
-                src='/assets/images/logo/logo-title.svg'
-                alt='Logo Fuji'
-                width={120}
-                height={80}
-                layout='fixed'
-              />
-            </a>
+            <Link href='/'>
+              <a className={styles.logoTitle}>
+                <Image
+                  src='/assets/images/logo/logo-title.svg'
+                  alt='Logo Fuji'
+                  width={120}
+                  height={80}
+                  layout='fixed'
+                />
+              </a>
+            </Link>
 
             <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
               <IconButton
