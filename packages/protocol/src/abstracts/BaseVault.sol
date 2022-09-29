@@ -59,6 +59,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
    * the maximum Loan-To-Value a user can take.
    */
   uint256 public maxLtv;
+
   /**
    * @dev A factor that defines the Loan-To-Value
    * at which a user can be liquidated.
@@ -506,9 +507,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   ////////////////////////////
 
   function _executeProviderAction(address assetAddr, uint256 assets, string memory name) internal {
-    bytes memory data = abi.encodeWithSignature(
-      string(abi.encodePacked(name, "(address,uint256)")), assetAddr, assets
-    );
+    bytes memory data =
+      abi.encodeWithSignature(string(abi.encodePacked(name, "(address,uint256)")), assetAddr, assets);
     address(activeProvider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))
     );
