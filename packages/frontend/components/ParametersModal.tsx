@@ -9,9 +9,11 @@ import {
   MenuList,
   Switch
 } from '@mui/material'
+import TwitterIcon from '@mui/icons-material/Twitter';
+import TelegramIcon from '@mui/icons-material/Telegram';
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
-import Image from 'next/image'
+import { DiscordIcon } from './DiscordIcon'
 
 type ParametersModalProps = {
   onClickOutside: () => void
@@ -40,7 +42,6 @@ export default function ParametersModal (props: ParametersModalProps) {
         background: theme.palette.background.default,
         borderRadius: '0.75rem',
         border: `0.063rem solid ${theme.palette.secondary.light}`,
-        padding: '0.5rem',
         position: 'absolute',
         top: '4.5rem',
         right: '0.125rem',
@@ -60,12 +61,7 @@ export default function ParametersModal (props: ParametersModalProps) {
         >
           <MenuItem>
             <ListItemText>Help</ListItemText>
-            <Image
-              src='/assets/images/logo/socials/discord.svg'
-              alt='Discord'
-              width={16}
-              height={16}
-            />
+            <DiscordIcon />
           </MenuItem>
         </Link>
         <Link
@@ -75,12 +71,7 @@ export default function ParametersModal (props: ParametersModalProps) {
         >
           <MenuItem>
             <ListItemText>Feedback</ListItemText>
-            <Image
-              src='/assets/images/logo/socials/discord.svg'
-              alt='Discord'
-              width={16}
-              height={16}
-            />
+            <DiscordIcon />
           </MenuItem>
         </Link>
         <Link
@@ -90,12 +81,7 @@ export default function ParametersModal (props: ParametersModalProps) {
         >
           <MenuItem>
             <ListItemText>@FujiFinance</ListItemText>
-            <Image
-              src='/assets/images/logo/socials/twitter.svg'
-              alt='Twitter'
-              width={16}
-              height={16}
-            />
+            <TwitterIcon />
           </MenuItem>
         </Link>
         <Link
@@ -104,13 +90,8 @@ export default function ParametersModal (props: ParametersModalProps) {
           rel='noreferrer'
         >
           <MenuItem>
-            <ListItemText>Message on Telegram</ListItemText>
-            <Image
-              src='/assets/images/logo/socials/telegram.svg'
-              alt='Telegram'
-              width={16}
-              height={16}
-            />
+            <ListItemText>Telegram</ListItemText>
+            <TelegramIcon />
           </MenuItem>
         </Link>
         <Divider />
