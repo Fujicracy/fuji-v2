@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "author": "Fujidao Labs OÜ",
   "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "dist/index",
+  "typings": "dist/index",
   "files": [
     "dist",
     "src"
