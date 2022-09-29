@@ -7,6 +7,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": [
     "@typescript-eslint",
+    "eslint-plugin-tsdoc",
     "prettier"
   ],
   "ignorePatterns": [
@@ -14,6 +15,7 @@
     "dist"
   ],
   "rules": {
+    "tsdoc/syntax": "error",
     "prettier/prettier": 2
   },
   "root": true

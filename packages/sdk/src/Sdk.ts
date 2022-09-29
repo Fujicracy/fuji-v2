@@ -25,7 +25,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns the balance of {account} for a given {Currency},
+   * Retruns the balance of account for a given currency,
    * checks if is native or token and returns accordingly.
    */
   async getBalanceFor(
@@ -36,7 +36,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns the allowance of {account} for a given {Currency}
+   * Retruns the allowance of account for a given currency
    * and the router of the same chain. If it's a native, returns MaxUint256.
    */
   async getAllowanceFor(

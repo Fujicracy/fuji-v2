@@ -32,7 +32,7 @@ export class BorrowingVault {
    * methods available on the smart contract.
    *
    * @example
-   * ```
+   * ```ts
    * await vault.balanceOf(address);
    * ```
    * Use with caution, espesially for writes.
@@ -52,7 +52,7 @@ export class BorrowingVault {
   readonly chainId: ChainId;
 
   /**
-   * The address of the vault contract, wrapped in {Address}
+   * The address of the vault contract, wrapped in {@link Address}
    * @readonly
    */
   readonly address: Address;
@@ -73,7 +73,8 @@ export class BorrowingVault {
   /**
    * A factor that defines the maximum Loan-To-Value a user can take.
    *
-   * @note A factor refers to a fixed-digit decimal number. Specifically,
+   * @remarks
+   * A factor refers to a fixed-digit decimal number. Specifically,
    * a decimal number scaled by 1e18. These numbers should be treated as real
    * numbers scaled down by 1e18. For example, the number 50% would be
    * represented as 5*1e17.
@@ -83,7 +84,8 @@ export class BorrowingVault {
   /**
    * A factor that defines the Loan-To-Value at which a user can be liquidated.
    *
-   * @note A factor refers to a fixed-digit decimal number. Specifically,
+   * @remarks
+   * A factor refers to a fixed-digit decimal number. Specifically,
    * a decimal number scaled by 1e18. These numbers should be treated as real
    * numbers scaled down by 1e18. For example, the number 50% would be
    * represented as 5*1e17.
@@ -93,7 +95,8 @@ export class BorrowingVault {
   /**
    * Map of user address and their nonce for this vault.
    *
-   * @note Caching "nonce" is needed when composing compound operations.
+   * @remarks
+   * Caching "nonce" is needed when composing compound operations.
    * A compound operation is one that needs more then one signiture
    * in the same tx.
    */
@@ -107,7 +110,8 @@ export class BorrowingVault {
   /**
    * Extended instances of provider and contract used when there is a
    * possibility to perform a multicall read on the smart contract.
-   * @note A multicall read refers to a batch read done in a single call.
+   * @remarks
+   * A multicall read refers to a batch read done in a single call.
    */
   private _multicall: {
     rpcProvider: IMulticallProvider;
@@ -161,7 +165,7 @@ export class BorrowingVault {
   /**
    * Loads and sets domainSeparator and account's nonce
    * that will be used when signing operations.
-   * @param account - user address, wrapped in {Address}
+   * @param account - user address, wrapped in {@link Address}
    */
   async preLoad(account: Address) {
     const [
@@ -233,7 +237,8 @@ export class BorrowingVault {
 
   /**
    * Returns deposit and borrow balance for an account.
-   * @param account - user address, wrapped in {Address}
+   *
+   * @param account - user address, wrapped in {@link Address}
    */
   async getBalances(
     account: Address
@@ -250,16 +255,17 @@ export class BorrowingVault {
    * Prepares and returns the bundle of actions that will be send to the router
    * for a compound operation of deposit+borrow.
    *
-   * @note The array that is returned should be first passed to "BorrowingVault.needSignature".
+   * @remarks
+   * The array that is returned should be first passed to `BorrowingVault.needSignature`.
    * If one of the actions must be signed by the user, we have to obtain the digest
-   * from "this.signPermitFor" and make the user sign it with their wallet. The last step is
-   * to obtain the txData and the address of the router from "this.getTxData" which is to be
+   * from `this.signPermitFor` and make the user sign it with their wallet. The last step is
+   * to obtain the txData and the address of the router from `this.getTxData` which is to be
    * used in ethers.sendTransaction.
    *
    * @param amountIn - amount of provided collateral
    * @param amountOut - amount of loan
    * @param srcChainId - chain ID from which the tx is initated
-   * @param account - user address, wrapped in {Address}
+   * @param account - user address, wrapped in {@link Address}
    */
   previewDepositAndBorrow(
     amountIn: BigNumber,
@@ -288,7 +294,8 @@ export class BorrowingVault {
   /**
    * Returns the digest to be signed by user's injected rpcProvider/wallet.
    *
-   * @note After the user signs, the next step is to obtain the txData and
+   * @remarks
+   * After the user signs, the next step is to obtain the txData and
    * the address of the router from "this.getTxData" which is on its turn is
    * to be used in ethers.sendTransaction.
    *

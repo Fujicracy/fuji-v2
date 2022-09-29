@@ -43,10 +43,10 @@ export abstract class AbstractCurrency {
 
   /**
    * Constructs an instance of the base class `BaseCurrency`.
-   * @param chainId the chain ID on which this currency resides
-   * @param decimals decimals of the currency
-   * @param symbol symbol of the currency
-   * @param name of the currency
+   * @param chainId - the chain ID on which this currency resides
+   * @param decimals - decimals of the currency
+   * @param symbol - symbol of the currency
+   * @param name - name of the currency
    */
   protected constructor(
     chainId: number,
@@ -74,7 +74,7 @@ export abstract class AbstractCurrency {
 
   /**
    * Returns whether this currency is functionally equivalent to the other currency
-   * @param other the other currency
+   * @param other - the other currency
    */
   abstract equals(other: Currency): boolean;
 
