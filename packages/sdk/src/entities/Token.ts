@@ -1,12 +1,13 @@
-import { AbstractCurrency } from './AbstractCurrency';
-import { Currency } from './Currency';
-import invariant from 'tiny-invariant';
-import { Address } from './Address';
-import { ChainId } from '../enums';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
-import { RPC_PROVIDER } from '../constants/rpcs';
 import { JsonRpcProvider } from '@ethersproject/providers';
+import invariant from 'tiny-invariant';
+
+import { RPC_PROVIDER } from '../constants/rpcs';
+import { ChainId } from '../enums';
+import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
+import { AbstractCurrency } from './AbstractCurrency';
+import { Address } from './Address';
+import { Currency } from './Currency';
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.

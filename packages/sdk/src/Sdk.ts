@@ -1,13 +1,14 @@
 import { BigNumber } from '@ethersproject/bignumber';
+
+import {
+  COLLATERAL_LIST,
+  CONNEXT_ADDRESS,
+  DEBT_LIST,
+  VAULT_LIST,
+} from './constants';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId } from './enums';
-import {
-  COLLATERAL_LIST,
-  DEBT_LIST,
-  CONNEXT_ADDRESS,
-  VAULT_LIST,
-} from './constants';
 
 export class Sdk {
   /**

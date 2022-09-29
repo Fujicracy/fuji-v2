@@ -1,11 +1,12 @@
+import { BigNumber } from '@ethersproject/bignumber';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import invariant from 'tiny-invariant';
+
+import { RPC_PROVIDER } from '../constants/rpcs';
+import { ChainId } from '../enums';
+import { Address } from './Address';
 import { Currency } from './Currency';
 import { Token } from './Token';
-import invariant from 'tiny-invariant';
-import { ChainId } from '../enums';
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { RPC_PROVIDER } from '../constants/rpcs';
-import { Address } from './Address';
-import { BigNumber } from '@ethersproject/bignumber';
 
 /**
  * A currency is any fungible financial instrument, including Ether, all ERC20 tokens, and other chain-native currencies

@@ -1,6 +1,7 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { RouterAction } from '../enums';
+
 import { Address } from '../entities';
+import { RouterAction } from '../enums';
 
 export type BaseRouterActionParams = {
   action: RouterAction;

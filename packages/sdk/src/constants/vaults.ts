@@ -1,6 +1,6 @@
+import { Address, BorrowingVault } from '../entities';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
-import { Address, BorrowingVault } from '../entities';
 import { USDC, WNATIVE } from './tokens';
 
 export const VAULT_LIST: ChainVaultList = {

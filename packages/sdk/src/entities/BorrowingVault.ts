@@ -1,29 +1,30 @@
-import { Token } from './Token';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ChainId, RouterAction } from '../enums';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
+import invariant from 'tiny-invariant';
+
 import {
   CONNEXT_ADDRESS,
   CONNEXT_EXECUTOR_ADDRESS,
 } from '../constants/addresses';
 import { RPC_PROVIDER } from '../constants/rpcs';
-import { Address } from './Address';
+import { ChainId, RouterAction } from '../enums';
+import { getPermitDigest } from '../functions';
+import {
+  BorrowParams,
+  DepositParams,
+  LendingProviderDetails,
+  PermitParams,
+  RouterActionParams,
+} from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
   ILendingProvider__factory,
 } from '../types/contracts';
-import {
-  BorrowParams,
-  DepositParams,
-  PermitParams,
-  RouterActionParams,
-  LendingProviderDetails,
-} from '../types';
-import invariant from 'tiny-invariant';
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { getPermitDigest } from '../functions';
-import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
+import { Address } from './Address';
+import { Token } from './Token';
 
 export class BorrowingVault {
   /**

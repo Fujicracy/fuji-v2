@@ -1,7 +1,8 @@
-import { AddressMap } from '../types';
-import { ChainId } from '../enums';
-import { Address } from '../entities/Address';
 import { AddressZero } from '@ethersproject/constants';
+
+import { Address } from '../entities/Address';
+import { ChainId } from '../enums';
+import { AddressMap } from '../types';
 
 export const USDC_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(

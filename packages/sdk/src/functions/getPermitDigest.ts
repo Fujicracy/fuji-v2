@@ -1,9 +1,10 @@
-import { keccak256 } from '@ethersproject/solidity';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
+import { keccak256 } from '@ethersproject/solidity';
+import { arrayify, concat, toUtf8Bytes } from 'ethers/lib/utils';
+
 import { RouterAction } from '../enums';
 import { PermitParams } from '../types';
-import { arrayify, concat, toUtf8Bytes } from 'ethers/lib/utils';
 
 //"PermitBorrow(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
 const PERMIT_BORROW_TYPEHASH =

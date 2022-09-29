@@ -1,6 +1,7 @@
 import { formatUnits } from '@ethersproject/units';
 import { BigNumber } from 'ethers';
-import { NATIVE, WNATIVE, USDC } from '../src/constants';
+
+import { NATIVE, USDC, WNATIVE } from '../src/constants';
 import { Address, BorrowingVault, Token } from '../src/entities';
 import { ChainId } from '../src/enums';
 import { Sdk } from '../src/Sdk';

@@ -1,7 +1,8 @@
-import { AbstractCurrency } from './AbstractCurrency';
-import { Address } from './Address';
 import { BigNumber } from '@ethersproject/bignumber';
 import { MaxUint256 } from '@ethersproject/constants';
+
+import { AbstractCurrency } from './AbstractCurrency';
+import { Address } from './Address';
 
 /**
  * Represents the native currency of the chain on which it resides, e.g. ETH, MATIC

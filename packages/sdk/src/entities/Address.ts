@@ -1,6 +1,7 @@
-import { validateAndParseAddress } from '../functions/validateAndParseAddress';
-import invariant from 'tiny-invariant';
 import { AddressZero } from '@ethersproject/constants';
+import invariant from 'tiny-invariant';
+
+import { validateAndParseAddress } from '../functions/validateAndParseAddress';
 
 export class Address {
   private _address: string;

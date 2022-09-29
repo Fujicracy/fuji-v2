@@ -1,8 +1,7 @@
+import { Token } from '../entities/Token';
+import { ChainId } from '../enums';
 import { TokenMap } from '../types';
 import { USDC_ADDRESS, WETH9_ADDRESS, WNATIVE_ADDRESS } from './addresses';
-
-import { ChainId } from '../enums';
-import { Token } from '../entities/Token';
 
 export const USDC: TokenMap = {
   [ChainId.ETHEREUM]: new Token(

@@ -1,8 +1,9 @@
 import { AddressZero } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
+
+import { USDC, WNATIVE } from '../../src/constants';
 import { Address, BorrowingVault } from '../../src/entities';
 import { ChainId, RouterAction } from '../../src/enums';
-import { USDC, WNATIVE } from '../../src/constants';
 import {
   BorrowParams,
   DepositParams,

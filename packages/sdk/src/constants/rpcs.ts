@@ -1,5 +1,7 @@
 import 'dotenv/config';
+
 import { JsonRpcProvider } from '@ethersproject/providers';
+
 import { ChainId } from '../enums';
 
 const INFURA_ID = process.env.INFURA_ID;
