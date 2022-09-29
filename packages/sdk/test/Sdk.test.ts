@@ -38,7 +38,7 @@ describe('Sdk', () => {
 
     it('returns a vault from chainA based on an APR check', async () => {
       jest
-        .spyOn(BorrowingVault.prototype as any, 'getBorrowRate')
+        .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
         .mockResolvedValueOnce(BigNumber.from(1))
         .mockResolvedValueOnce(BigNumber.from(2));
 
@@ -51,7 +51,7 @@ describe('Sdk', () => {
 
     it('returns a vault from chainB based on an APR check', async () => {
       jest
-        .spyOn(BorrowingVault.prototype as any, 'getBorrowRate')
+        .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(1));
 
@@ -72,6 +72,7 @@ describe('Sdk', () => {
       );
 
       jest
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
         .mockImplementation(chainId =>
           chainId === ChainId.GOERLI ? vaultA : undefined
@@ -91,6 +92,7 @@ describe('Sdk', () => {
       );
 
       jest
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
         .mockImplementation(chainId =>
           chainId === ChainId.OPTIMISM_GOERLI ? vaultB : undefined

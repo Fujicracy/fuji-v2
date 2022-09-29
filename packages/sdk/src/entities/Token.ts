@@ -15,8 +15,8 @@ export class Token extends AbstractCurrency {
   readonly chainId: ChainId;
   readonly address: Address;
 
-  readonly isNative: false = false;
-  readonly isToken: true = true;
+  readonly isNative: false = false as const;
+  readonly isToken: true = true as const;
 
   /**
    * Instance of ethers Contract class, already initialized with address and rpc provider.

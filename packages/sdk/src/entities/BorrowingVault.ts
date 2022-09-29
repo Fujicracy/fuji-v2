@@ -97,12 +97,12 @@ export class BorrowingVault {
    * A compound operation is one that needs more then one signiture
    * in the same tx.
    */
-  private _cache: Map<Address, BigNumber> = new Map<Address, BigNumber>();
+  private _cache: Map<Address, BigNumber>;
 
   /**
    * Domain separator needed when signing a tx
    */
-  private _domainSeparator: string = '';
+  private _domainSeparator: string;
 
   /**
    * Extended instances of provider and contract used when there is a
@@ -131,6 +131,8 @@ export class BorrowingVault {
       rpcProvider: initSyncMulticallProvider(this.rpcProvider, this.chainId),
       contract: BorrowingVault__factory.multicall(this.address.value),
     };
+    this._cache = new Map<Address, BigNumber>();
+    this._domainSeparator = '';
   }
 
   /**

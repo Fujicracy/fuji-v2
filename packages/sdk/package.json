@@ -24,12 +24,6 @@
     "generate-types": "typechain --target ../../node_modules/@hovoh/typechain-ethers-multicall --out-dir src/types/contracts '../protocol/abis/**/*.json'",
     "analyze": "size-limit --why"
   },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
   "size-limit": [
     {
       "path": "dist/sdk.cjs.production.min.js",
@@ -61,8 +55,11 @@
     "@types/chai": "^4.3.3",
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.7.18",
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
+    "@typescript-eslint/parser": "^5.38.1",
     "chai": "^4.3.6",
     "dotenv": "^16.0.2",
+    "eslint": "^8.24.0",
     "hardhat": "^2.12.0-esm.0",
     "size-limit": "^8.0.1",
     "ts-node": "^10.9.1",
