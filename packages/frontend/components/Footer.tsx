@@ -1,9 +1,9 @@
-import React from 'react'
-import { useTheme } from '@mui/material/styles'
-import { Box, Grid, Link, SvgIcon, Typography } from '@mui/material'
-import TwitterIcon from '@mui/icons-material/Twitter'
-import TelegramIcon from '@mui/icons-material/Telegram'
-import { DiscordIcon } from './DiscordIcon'
+import React from "react"
+import { useTheme } from "@mui/material/styles"
+import { Box, Grid, Link, SvgIcon, Typography } from "@mui/material"
+import TwitterIcon from "@mui/icons-material/Twitter"
+import TelegramIcon from "@mui/icons-material/Telegram"
+import { DiscordIcon } from "./DiscordIcon"
 
 declare interface Social {
   id: string
@@ -11,86 +11,88 @@ declare interface Social {
   image: React.ReactElement
 }
 
-function Footer () {
+function Footer() {
   const theme = useTheme()
 
   const socials: Social[] = [
     {
-      id: 'twitter',
-      url: 'https://twitter.com/FujiFinance',
+      id: "twitter",
+      url: "https://twitter.com/FujiFinance",
       image: (
         <TwitterIcon
           sx={{
-            '&:hover': {
+            "&:hover": {
               color: theme.palette.primary.main,
-              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`
-            }
+              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+            },
           }}
         />
-      )
+      ),
     },
     {
-      id: 'telegram',
-      url: 'https://t.me/joinchat/U4cKWNCUevKVsrtY',
+      id: "telegram",
+      url: "https://t.me/joinchat/U4cKWNCUevKVsrtY",
       image: (
         <TelegramIcon
           sx={{
-            '&:hover': {
+            "&:hover": {
               color: theme.palette.primary.main,
-              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`
-            }
+              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+            },
           }}
         />
-      )
+      ),
     },
     {
-      id: 'discord',
-      url: 'https://discord.com/invite/dnvJeEMeDJ',
-      image: (<DiscordIcon />)
-    }
+      id: "discord",
+      url: "https://discord.com/invite/dnvJeEMeDJ",
+      image: <DiscordIcon />,
+    },
   ]
 
   return (
     <footer
       style={{
-        width: '100%',
+        width: "100%",
         bottom: 0,
-        color: theme.palette.text.secondary
+        color: theme.palette.text.secondary,
       }}
     >
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          margin: '1.5rem'
+          display: "flex",
+          justifyContent: "space-between",
+          margin: "1.5rem",
         }}
       >
-        <Box justifyContent='space-around'>
+        <Box justifyContent="space-around">
           {socials.map((social: Social) => (
             <Link
               href={social.url}
-              target='_blank'
+              target="_blank"
               key={social.id}
-              rel='noreferrer'
-              sx={{ ml: '0.813rem' }}
+              rel="noreferrer"
+              sx={{
+                ml: "0.813rem",
+              }}
             >
               {social.image}
             </Link>
           ))}
         </Box>
 
-        <Typography variant='xsmall'>
-          <Grid container columnGap='1rem'>
+        <Typography variant="xsmall">
+          <Grid container columnGap="1rem">
             <Grid item>
-              <Link href='/about' target='_blank'>
+              <Link href="/about" target="_blank">
                 About
               </Link>
             </Grid>
             <Grid item>
               <Link
-                href='https://docs.fujidao.org'
-                target='_blank'
-                rel='noreferrer'
+                href="https://docs.fujidao.org"
+                target="_blank"
+                rel="noreferrer"
               >
                 Documentation
               </Link>

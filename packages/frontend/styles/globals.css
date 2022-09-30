@@ -1,15 +1,15 @@
 @font-face {
-  font-family: 'Inter';
+  font-family: "Inter";
   font-style: normal;
   font-weight: 500;
-  src: url('../public/assets/fonts/Inter-Regular.ttf')
+  src: url("../public/assets/fonts/Inter-Regular.ttf");
 }
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: 'Inter';
+  font-family: "Inter";
   background: black;
 }
 
@@ -38,4 +38,3 @@ input::-webkit-inner-spin-button {
     background: black;
   }
 }
-
