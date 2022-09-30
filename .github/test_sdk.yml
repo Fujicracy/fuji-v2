@@ -1,5 +1,24 @@
-name: CI
-on: [push]
+name: CI-Sdk
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "packages/sdk/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/sdk/**"
+  
+  # Allows you to run this workflow manually from the Actions tab      
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
@@ -23,10 +42,10 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Lint
-        run: yarn lint
+        run: yarn sdk:lint
 
       - name: Test
-        run: yarn test --ci --coverage --maxWorkers=2
+        run: yarn sdk:test --ci --maxWorkers=2
 
       - name: Build
-        run: yarn build
+        run: yarn sdk:build

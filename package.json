@@ -14,6 +14,9 @@
     "protocol:build": "yarn workspace @x-fuji/protocol build",
     "protocol:test": "yarn workspace @x-fuji/protocol test",
     "protocol:format:fix": "yarn workspace @x-fuji/protocol format:fix",
+    "sdk:build": "yarn workspace @x-fuji/sdk build",
+    "sdk:test": "yarn workspace @x-fuji/sdk test",
+    "sdk:lint": "yarn workspace @x-fuji/sdk lint",
     "prepare": "husky install",
     "frontend:dev": "yarn workspace @x-fuji/frontend dev"
   },

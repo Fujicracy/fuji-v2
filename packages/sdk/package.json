@@ -17,7 +17,7 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test",
-    "lint": "tsdx lint",
+    "lint": "tsdx lint --ignore-pattern src/types/contracts",
     "prepare": "tsdx build",
     "size": "size-limit",
     "export-abis": "yarn workspace @x-fuji/protocol hardhat export-abi",
