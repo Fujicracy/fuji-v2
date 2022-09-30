@@ -5,10 +5,13 @@ import "hardhat-preprocessor";
 import "hardhat-deploy";
 import * as fs from "fs";
 
+const deployerPath: string = "./deployer.json";
+
 /** 
  * Tasks
 */
 import "./hardhat-tasks/generate";
+import {getWalletAddress, mnemonic} from "./hardhat-tasks/getWallet";
 
 /** 
  * Configuration
@@ -28,6 +31,11 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    mainnet: {
+      url: `${process.env.RPC_MAINNET}`,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: mnemonic(deployerPath) },
+      // accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: "test test test test test test test test test test test test" },
+    },
 
   },
   preprocess: {
@@ -54,7 +62,9 @@ const config: HardhatUserConfig = {
     spacing: 2,
   },
   namedAccounts: {
-    deployer: { default: 0 },
+    deployer: { 
+      default: 0,
+    },
     alice: { default: 1 },
     bob: { default: 2 },
     rando: { default: 3 },
