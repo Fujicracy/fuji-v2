@@ -10,8 +10,6 @@ import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
-import "forge-std/console.sol";
-
 contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20;
@@ -105,7 +103,6 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
-    console.log("inside borrow: caller", caller);
     if (caller != owner) {
       _spendBorrowAllowance(owner, caller, debt);
     }
