@@ -38,8 +38,9 @@ We use [eslint](https://eslint.org/) alongside with [prettier](https://prettier.
 Every time you commit files, they are automatically formatted thanks to hysky (pre commit hooks), but you may want to enable it in your editor, this way every time you save it'll format it.
 
 To do it in visual code:
-1. Install Prettier (link for [vscode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode))
-2. Change default formatter
-3. (optionnal) Enable "format on save"
+1. Install ESlint extension
+2. Install Prettier extension
+3. Change default formatter and choose "prettier" as default
+4. (optionnal) Enable "format on save"
 
 If you use another editor feel free to add it in this doc.
