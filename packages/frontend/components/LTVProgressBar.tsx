@@ -21,35 +21,22 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
   return (
     <Box>
       <Grid container sx={{ marginLeft: '3rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            margin: 'auto'
-          }}
-        >
+        <Grid item alignItems="center" margin="auto">
           <Tooltip title='???' placement='top'>
             <InfoOutlinedIcon
               sx={{ marginRight: '0.313rem', fontSize: '0.875rem' }}
             />
           </Tooltip>
           <Typography variant='xsmall'>45% LTV (Recommended)</Typography>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginRight: "3rem"
-          }}
-        >
+        </Grid>
+        <Grid item alignItems="center" marginRight="3rem">
           <Typography variant='xsmall'>75% LTV (MAX)</Typography>
           <Tooltip title='???' placement='top'>
             <InfoOutlinedIcon
               sx={{ marginLeft: '0.313rem', fontSize: '0.875rem' }}
             />
           </Tooltip>
-        </div>
+        </Grid>
       </Grid>
 
       <Grid container>
@@ -72,6 +59,7 @@ export default function LTVProgressBar (props: LTVProgressBarProps) {
           }}
         />
       </Grid>
+
       <LinearProgress
         sx={{
           borderRadius: '1.25rem',
