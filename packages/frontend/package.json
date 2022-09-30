@@ -3,7 +3,9 @@
   "description": "X-Fuji web application",
   "version": "0.1.0",
   "scripts": {
-    "dev": "yarn workspace @x-fuji/sdk prepare && next dev",
+    "predev": "yarn workspace @x-fuji/sdk prepare",
+    "prebuild": "yarn workspace @x-fuji/sdk prepare",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
