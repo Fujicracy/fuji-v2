@@ -35,5 +35,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
 
+      - run: yarn
       - run: yarn workspace @x-fuji/frontend run lint
       - run: yarn workspace @x-fuji/frontend run prettier --debug-check
