@@ -2,13 +2,15 @@
   "name": "@x-fuji/frontend",
   "description": "X-Fuji web application",
   "version": "0.1.0",
+  "license": "CC-BY-NC-4.0",
   "scripts": {
     "predev": "yarn workspace @x-fuji/sdk prepare",
     "prebuild": "yarn workspace @x-fuji/sdk prepare",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prettier": "prettier --config .prettierrc  ./**/*{.tsx,*.ts}"
   },
   "dependencies": {
     "@emotion/react": "^11.10.0",

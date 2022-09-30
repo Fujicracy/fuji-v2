@@ -1,0 +1,39 @@
+name: CI-Contracts
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "packages/frontend/**"
+  push:
+    paths:
+      - "packages/frontend/**"
+  
+  # Allows you to run this workflow manually from the Actions tab      
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Run Linters
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+
+      - run: yarn lint
+      - run: yarn prettier --debug-check
