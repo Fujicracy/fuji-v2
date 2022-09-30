@@ -333,7 +333,6 @@ const theme = createTheme(colorTheme, {
           cursor: 'pointer',
           ':hover': {
             color: colorTheme.palette.primary.main,
-            textShadow: `${colorTheme.palette.primary.main} 0rem 0rem 0.125rem`
           }
         }
       }
