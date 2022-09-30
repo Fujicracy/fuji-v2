@@ -157,23 +157,13 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: 'border-box',
           borderRadius: '0.5rem',
-          padding: '0.75rem 1.25rem',
-          textTransform: 'none',
-          fontStyle: 'normal',
-          fontWeight: 400,
-          fontSize: '1rem',
-          lineHeight: '1.188rem',
-          height: '3.25rem',
           '&.Mui-disabled': {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary
           },
           '&:hover': {
             opacity: 0.9,
-            background:
-              'linear-gradient(to right, rgb(254, 52, 119), rgb(240, 1, 79))',
-            transition: 'all 0.17s ease 0s',
-            color: colorTheme.palette.text.secondary
+            borderColor: colorTheme.palette.primary,
           }
         }
       },
@@ -200,7 +190,6 @@ const theme = createTheme(colorTheme, {
             border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
             color: colorTheme.palette.primary.main,
             '&:hover': {
-              background: 'transparent',
               borderColor: colorTheme.palette.primary.main
             }
           }
