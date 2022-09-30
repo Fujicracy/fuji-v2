@@ -1,20 +1,27 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { Address } from 'hardhat-deploy/types';
+import { ethers } from 'ethers';
 
-const deployBorrowingVaultFactory: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
-  const {deploy} = deployments;
+export let borrowingVaultFactory: Address;
 
-  const {deployer} = await getNamedAccounts();
+const deployBorrowingVaultFactory = async (hre: HardhatRuntimeEnvironment, chief: Address) => {
+  const { deployments, getNamedAccounts } = hre;
+  const { deploy } = deployments;
 
-  await deploy('BorrowingVaultFactory', {
+  const { deployer } = await getNamedAccounts();
+
+  const dx = await deploy('BorrowingVaultFactory', {
     from: deployer,
-    args: [],
+    args: [chief],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,
     waitConfirmations: 1
   });
+
+  borrowingVaultFactory = dx.address;
 };
+
 export default deployBorrowingVaultFactory;
 deployBorrowingVaultFactory.tags = ['BorrowingVaultFactory'];
+deployBorrowingVaultFactory.skip = async (env: HardhatRuntimeEnvironment) => true;

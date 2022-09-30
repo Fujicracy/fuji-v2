@@ -1,13 +1,15 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { Address } from 'hardhat-deploy/types';
 
-const deployChief: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
-  const {deploy} = deployments;
+export let chief: Address;
 
-  const {deployer} = await getNamedAccounts();
+const deployChief = async (hre: HardhatRuntimeEnvironment) => {
+  const { deployments, getNamedAccounts } = hre;
+  const { deploy } = deployments;
 
-  await deploy('Chief', {
+  const { deployer } = await getNamedAccounts();
+
+  let dx = await deploy('Chief', {
     from: deployer,
     args: [],
     log: true,
@@ -15,6 +17,10 @@ const deployChief: DeployFunction = async function (hre: HardhatRuntimeEnvironme
     skipIfAlreadyDeployed: true,
     waitConfirmations: 1
   });
+
+  chief = dx.address;
 };
+
 export default deployChief;
 deployChief.tags = ['Chief'];
+deployChief.skip = async (env: HardhatRuntimeEnvironment) => true;
