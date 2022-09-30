@@ -3,7 +3,7 @@
   "description": "X-Fuji web application",
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
+    "dev": "yarn workspace @x-fuji/sdk prepare && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -18,6 +18,7 @@
     "@web3-onboard/walletconnect": "^2.1.1",
     "@xstate/inspect": "^0.7.0",
     "@xstate/react": "^3.0.1",
+    "@x-fuji/sdk": "0.1.0",
     "ethers": "^5.7.0",
     "mixpanel-browser": "^2.45.0",
     "next": "12.2.5",
