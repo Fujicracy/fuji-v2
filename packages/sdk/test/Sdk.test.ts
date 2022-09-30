@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import { formatUnits } from '@ethersproject/units';
 import { BigNumber } from 'ethers';
 
@@ -17,7 +19,7 @@ describe('Sdk', () => {
     '0x33A875bD262C5cACAa1245ed8AC9734973da6108'
   );
 
-  const sdk = new Sdk();
+  const sdk = new Sdk({ infuraId: process.env.INFURA_ID ?? '' });
 
   describe('#getBalanceFor', () => {
     it('returns balance', async () => {

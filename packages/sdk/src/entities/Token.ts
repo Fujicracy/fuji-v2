@@ -2,11 +2,12 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import invariant from 'tiny-invariant';
 
-import { RPC_PROVIDER } from '../constants/rpcs';
 import { ChainId } from '../enums';
+import { ConfigParams } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
+import { Config } from './Config';
 import { Currency } from './Currency';
 
 /**
@@ -23,7 +24,7 @@ export class Token extends AbstractCurrency {
    * Instance of ethers Contract class, already initialized with address and rpc provider.
    * It's ready to be used by calling the methods available on the smart contract.
    */
-  readonly contract: ERC20Contract;
+  contract?: ERC20Contract;
 
   constructor(
     chainId: ChainId,
@@ -35,9 +36,6 @@ export class Token extends AbstractCurrency {
     super(chainId, decimals, symbol, name);
     this.chainId = chainId;
     this.address = address;
-
-    const rpc: JsonRpcProvider = RPC_PROVIDER[this.chainId];
-    this.contract = ERC20__factory.connect(this.address.value, rpc);
   }
 
   /**
@@ -48,21 +46,40 @@ export class Token extends AbstractCurrency {
   }
 
   /**
+   * {@inheritDoc AbstractCurrency.setConnection}
+   */
+  setConnection(configParams: ConfigParams): Token {
+    const rpcProvider: JsonRpcProvider = Config.rpcProviderFrom(
+      configParams,
+      this.chainId
+    );
+
+    this.contract = ERC20__factory.connect(this.address.value, rpcProvider);
+
+    return this;
+  }
+
+  /**
    * {@inheritDoc AbstractCurrency.balanceOf}
+   * @throws if {@link setConnection} was not called beforehand
    */
   async balanceOf(account: Address): Promise<BigNumber> {
+    invariant(this.contract, 'Connection not set!');
     return this.contract.balanceOf(account.value);
   }
 
   /**
    * {@inheritDoc AbstractCurrency.allowance}
+   * @throws if {@link setConnection} was not called
    */
   async allowance(owner: Address, spender: Address): Promise<BigNumber> {
+    invariant(this.contract, 'Connection not set!');
     return this.contract.allowance(owner.value, spender.value);
   }
 
   /**
    * Returns true if the two tokens are equivalent, i.e. have the same chainId and address.
+   *
    * @param other - other token to compare
    */
   equals(other: Currency): boolean {
@@ -75,6 +92,7 @@ export class Token extends AbstractCurrency {
 
   /**
    * Returns true if the address of this token sorts before the address of the other token
+   *
    * @param other - other token to compare
    * @throws if the tokens have the same address
    * @throws if the tokens are on different chains

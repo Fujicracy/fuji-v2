@@ -21,5 +21,13 @@
     "simple-import-sort/exports": "error",
     "prettier/prettier": "error"
   },
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
+      }
+    }
+  ],
   "root": true
 }

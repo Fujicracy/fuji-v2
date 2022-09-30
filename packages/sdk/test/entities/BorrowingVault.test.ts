@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import { AddressZero } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
 
@@ -6,10 +8,15 @@ import { Address, BorrowingVault } from '../../src/entities';
 import { ChainId, RouterAction } from '../../src/enums';
 import {
   BorrowParams,
+  ConfigParams,
   DepositParams,
   PermitParams,
   RouterActionParams,
 } from '../../src/types';
+
+const config: ConfigParams = {
+  infuraId: process.env.INFURA_ID ?? '',
+};
 
 describe('BorrowingVault', () => {
   const ADDRESS_ONE = Address.from(
@@ -57,7 +64,7 @@ describe('BorrowingVault', () => {
         Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
         WNATIVE[ChainId.GOERLI],
         USDC[ChainId.GOERLI]
-      );
+      ).setConnection(config);
 
       const providers = await vault.getProviders();
       expect(providers).toBeTruthy();
@@ -79,7 +86,7 @@ describe('BorrowingVault', () => {
         Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
         WNATIVE[ChainId.GOERLI],
         USDC[ChainId.GOERLI]
-      );
+      ).setConnection(config);
 
       const digest = await vault.signPermitFor(params);
       expect(digest).toEqual(
@@ -101,7 +108,7 @@ describe('BorrowingVault', () => {
         Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
         WNATIVE[ChainId.GOERLI],
         USDC[ChainId.GOERLI]
-      );
+      ).setConnection(config);
 
       const digest = await vault.signPermitFor(params);
       expect(digest).toEqual(
@@ -131,7 +138,7 @@ describe('BorrowingVault', () => {
         Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
         WNATIVE[ChainId.GOERLI],
         USDC[ChainId.GOERLI]
-      );
+      ).setConnection(config);
 
       const digestBorrow = await vault.signPermitFor(borrowParams);
       expect(digestBorrow).toEqual(

@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { MaxUint256 } from '@ethersproject/constants';
+import invariant from 'tiny-invariant';
 
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
@@ -13,19 +14,18 @@ export abstract class NativeCurrency extends AbstractCurrency {
 
   /**
    * {@inheritDoc AbstractCurrency.balanceOf}
+   * @throws if {@link AbstractCurrency.setConnection} was not called
    */
   async balanceOf(account: Address): Promise<BigNumber> {
+    invariant(this.rpcProvider, 'Connection not set!');
+
     return this.rpcProvider.getBalance(account.value);
   }
 
   /**
    * {@inheritDoc AbstractCurrency.allowance}
    */
-  async allowance(owner: Address, spender: Address): Promise<BigNumber> {
-    /* eslint-disable @typescript-eslint/no-unused-expressions */
-    owner;
-    spender;
-    /* eslint-enable @typescript-eslint/no-unused-expressions */
+  async allowance(_owner: Address, _spender: Address): Promise<BigNumber> {
     return Promise.resolve(MaxUint256);
   }
 }
