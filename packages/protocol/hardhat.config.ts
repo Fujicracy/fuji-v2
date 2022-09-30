@@ -11,7 +11,7 @@ const deployerPath: string = "./deployer.json";
  * Tasks
 */
 import "./hardhat-tasks/generate";
-import {getWalletAddress, mnemonic} from "./hardhat-tasks/getWallet";
+import { getWalletAddress, mnemonic } from "./hardhat-tasks/getWallet";
 
 /** 
  * Configuration
@@ -34,7 +34,6 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: `${process.env.RPC_MAINNET}`,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: mnemonic(deployerPath) },
-      // accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: "test test test test test test test test test test test test" },
     },
 
   },
@@ -62,7 +61,7 @@ const config: HardhatUserConfig = {
     spacing: 2,
   },
   namedAccounts: {
-    deployer: { 
+    deployer: {
       default: 0,
     },
     alice: { default: 1 },
@@ -73,8 +72,8 @@ const config: HardhatUserConfig = {
 
 function getRemappings() {
   return fs
-  .readFileSync("remappings_hardhat.txt", "utf8")
-  .split("\n")
+    .readFileSync("remappings_hardhat.txt", "utf8")
+    .split("\n")
     .filter(Boolean) // remove empty lines
     .map((line: string) => line.trim().split("="));
 }
