@@ -9,7 +9,7 @@ const readWallet = (walletPath: string): Wallet => {
   if (fs.existsSync(walletPath)) {
     walletJson = JSON.parse(fs.readFileSync(walletPath).toString());
     if (!process.env.WALLET_PASSWORD) {
-      throw "Missing WALLET_PASSWORD in .env";
+      throw "Missing PRIVATE_KEY OR WALLET_PASSWORD in .env";
     } else {
       walletPass = process.env.WALLET_PASSWORD;
     }
