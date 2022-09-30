@@ -179,7 +179,7 @@ export class BorrowingVault {
    * that will be used when signing operations.
    *
    * @param account - user address, wrapped in {@link Address}
-   * @throws if {@link setConnection} was not called
+   * @throws if {@link setConnection} was not called beforehand
    */
   async preLoad(account: Address) {
     invariant(this._multicall, 'Connection not set!');
@@ -205,7 +205,7 @@ export class BorrowingVault {
   /**
    * Retruns the borrow interest rate by querying the activeProvider.
    *
-   * @throws if {@link setConnection} was not called
+   * @throws if {@link setConnection} was not called beforehand
    */
   async getBorrowRate(): Promise<BigNumber> {
     invariant(this.contract && this.rpcProvider, 'Connection not set!');
@@ -223,7 +223,7 @@ export class BorrowingVault {
    * Retruns the list with all providers of the vault, marking the active one.
    * Each element also includes the borrow and deposit rate.
    *
-   * @throws if {@link setConnection} was not called
+   * @throws if {@link setConnection} was not called beforehand
    */
   async getProviders(): Promise<LendingProviderDetails[]> {
     invariant(this.contract && this._multicall, 'Connection not set?');
@@ -261,7 +261,7 @@ export class BorrowingVault {
    * Returns deposit and borrow balance for an account.
    *
    * @param account - user address, wrapped in {@link Address}
-   * @throws if {@link setConnection} was not called
+   * @throws if {@link setConnection} was not called beforehand
    */
   async getBalances(
     account: Address

@@ -1,103 +1,264 @@
-# TSDX User Guide
+// NOTE: Vault is an instance on a single chain, i.e. its collateral and debt token are from the same chain.
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+## Flow
 
-> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
+### Init
 
-> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
+```
+  // import all chains and chainIds
 
-## Commands
-
-TSDX scaffolds your new library inside `/src`.
-
-To run TSDX, use:
-
-```bash
-npm start # or yarn start
+  // init sdk
+  const sdk = new Sdk({ infuraId: INFURA_ID });
 ```
 
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+### Chains and tokens selection
 
-To do a one-off build, use `npm run build` or `yarn build`.
+**For collateral**
 
-To run tests, use `npm test` or `yarn test`.
+```
+  // user selects chainA or chainA is selected by default
+  // fetch collateral tokens available on chainA
 
-## Configuration
+  const collaterals = sdk.getCollateralForChain(chainId);
 
-Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
-
-### Jest
-
-Jest tests are set up to run with `npm test` or `yarn test`.
-
-### Bundle Analysis
-
-[`size-limit`](https://github.com/ai/size-limit) is set up to calculate the real cost of your library with `npm run size` and visualize the bundle with `npm run analyze`.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```txt
-/src
-  index.tsx       # EDIT THIS
-/test
-  blah.test.tsx   # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
+  // user selects a "token1" as collateral
 ```
 
-### Rollup
+**For debt**
 
-TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
+```
+  // user selects chainB or chainB is selected by default
+  // fetch debt tokens available on chainB
 
-### TypeScript
+  const debts = sdk.getDebtForChain(chainId);
 
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### GitHub Actions
-
-Two actions are added by default:
-
-- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
-- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
-
-## Optimizations
-
-Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
-
-```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
-
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
-}
+  // user selects a "token2" as debt
 ```
 
-You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
+### Vault data
 
-## Module Formats
+```
+  // 1. get an instance of "vault"
 
-CJS, ESModules, and UMD module formats are supported.
+  const vault = await sdk.getBorrowingVaultFor(token1, token2);
 
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+  // if vault is undefined, display error
 
-## Named Exports
+  // 2. pre-load some data for the vault so that it's available for a later use
 
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+  await vault.preLoad(user);
 
-## Including Styles
+  // pre-load makes available vault.maxLtv and vault.liqRatio
+  // that can be used to calculate health ratio and 
+  // liquidation price based on the amounts inputs below
 
-There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
+  // 3. get user deposit and borrow balances for this Vault
 
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+  const { deposit, borrow } = await vault.getBalances(user);
 
-## Publishing to NPM
+  // if they are not 0, they have to be used in the health ratio and liquidation price math,
+  // together with the amouts that the user has input
 
-We recommend using [np](https://github.com/sindresorhus/np).
+  // 4. TODO get prices of collateral and debt token in $
+
+  const { collateralPrice, debtPrice } = await vault.getPrices();
+
+  // 5. fetch providers for this vault and their rates
+
+  const providers = await vault.getProviders();
+```
+
+### Amounts
+
+```
+  // user inputs "amount1" and "amount2"
+
+  // check if there's enough allowance for token1 and amount1
+
+  await sdk.getAllowanceOf(token1, user);
+  if (needApproval) {
+    // approve token1
+  }
+```
+
+### Transation
+
+```
+  const srcChainId = token1.chainId
+  // TODO for cost
+  const { actions, cost } = await vault.previewDepositAndBorrow(amount1, amount2, srcChainId);
+
+  // verify if user needs to sign a permit
+  if (sdk.needPermit(actions)) {
+    const permitAction = actions.find(PERMIT_BORROW || PERMIT_WITHDRAW)
+    const digest = await vault.signPermitFor(permitAction)
+
+    const signature = await ethers.signMessage(digest)
+  }
+
+  // TODO
+  const txData = await vault.getTXDataFor(actions, signature?)
+```
+
+### Misc
+
+```
+  // TODO
+  getPriceOf(Currency, ChainId) -> Price
+
+  ---
+
+  class SDK {
+    // TODO
+    // if account has a position on srcChain or destChain, return the corresponding vault
+    // else return the vault with the lowest APR for currencyOut
+    getDefaultVaultFor(currencyIn, currencyOut, srcChain, destChain) {
+      // determine chain
+      return new Vault(this, currencyIn, currencyOut, chain)
+    }
+  }
+```
+
+## CASE: Borrowing (DRAFTS, Ignore this!)
+
+--- SIGN ---
+
+  ```
+  // if no vault specified, then choose the vault with the highest risk score
+  // returns: digest to be used to sign a message with wallet
+  sign(owner, currency, amount, destChain, vault?) -> SigDigest
+```
+
+--- DEPOSIT AND BORROW ---
+
+```
+  // determines the most optimal sequence of actions
+  // estimates costs
+  // if no vault specified, then choose the vault with the highest risk score
+  // returns: actions, cost and txData to be used in sendTransaction()
+
+  previewDepositAndBorrow(currencyIn, amountIn, currencyOut, amountOut, srcChain, destChain, signature, vault?)
+    -> actions: (Action, ChainId, Currency, Amount, LendingProvider?)[]
+    -> cost: Cost
+    -> txData: TxData (router address, data, value)
+
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - checks borrow rate for currencyOut on srcChain and destChain
+  //    A. if borrow rate on srcChain < borrow rate on destChain
+  //      [DEPOSIT, PERMIT-BORROW, BORROW, X-TRANSFER]
+  //    B. if borrow rate on srcChain > borrow rate on destChain
+  //      [X-TRANSFER-WITH-CALL, DEPOSIT, PERMIT-BORROW, BORROW]
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [DEPOSIT, PERMIT-BORROW, BORROW, X-TRANSFER]
+  //    B. if open position on destChain
+  //      [X-TRANSFER-WITH-CALL, DEPOSIT, PERMIT-BORROW, BORROW]
+```
+
+--- PAYBACK AND WITHDRAW ---
+
+```
+  // estimates costs
+  // returns: actions, cost and txData to be used in sendTransaction()
+
+  previewPaybackAndWithdraw(amountIn, amountOut, srcChain, destChain, signature, vault)
+    -> actions: (Action, ChainId, Currency, Amount, LendingProvider?)[]
+    -> cost: Cost
+    -> txData: TxData (router address, data, value)
+
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - N/A: if the account wants to payback and withdraw, they must already have an open position
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [PAYBACK, PERMIT-WITHDRAW, WITHDRAW, X-TRANSFER]
+  //    B. if open position on destChain
+  //      [X-TRANSFER-WITH-CALL, PAYBACK, PERMIT-WITHDRAW, WITHDRAW]
+```
+
+--- DEPOSIT ---
+
+```
+  // assuming account already has an open position so we must specify the vault
+  // estimates costs
+  // returns: actions, cost and txData to be used in sendTransaction()
+
+  previewDeposit(amountIn, srcChain, destChain, vault)
+
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - N/A: if the account wants to only deposit, we assume they already have an open position
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [DEPOSIT]
+  //    B. if open position on destChain
+  //      [X-TRANSFER-WITH-CALL, DEPOSIT]
+```
+
+--- BORROW ---
+
+```
+  // account must already have an open position so the vault must be specified
+  // estimates costs
+  // returns: actions, cost and txData to be used in sendTransaction()
+
+  previewBorrow(amountOut, srcChain, destChain, signature, vault)
+
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - N/A: if the account wants to only borrow, they must already have an open position
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [PERMIT-BORROW, BORROW, X-TRANSFER]
+  //    B. if open position on destChain
+  //      [X-CALL, PERMIT-BORROW, BORROW]
+```
+
+--- PAYBACK ---
+
+```
+  // account must already have an open position so the vault must be specified
+  // estimates costs
+  // returns: actions, cost and txData to be used in sendTransaction()
+
+    previewPayback(amountIn, srcChain, destChain, vault)
+
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - N/A: if the account wants to payback, they must already have an open position
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [PAYBACK]
+  //    B. if open position on destChain
+  //      [X-TRANSFER-WITH-CALL, PAYBACK]
+```
+
+--- WITHDRAW ---
+
+```
+  // account must already have an open position so the vault must be specified
+  // estimates costs
+  // returns: actions, cost and txData to be used in sendTransaction()
+
+    previewWithdraw(amountOut, srcChain, destChain, signature, vault)
+
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - N/A: if the account wants to withdraw, they must already have an open position
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [PERMIT-WITHDRAW, WITHDRAW]
+  //    B. if open position on destChain (optional: transfer withdrawn funds back to srcChain)
+  //      [X-CALL, PERMIT-WITHDRAW, WITHDRAW, X-TRANSFER?]
+```
+
+--- FLASHCLOSE ---
+
+```
+  // account must already have an open position so the vault must be specified
+  // estimates costs
+  // returns: actions, cost and txData to be used in sendTransaction()
+    previewFlashClose(amountOut, srcChain, destChain, signature, vault)
+  //  I. First-time (no open positions on srcChain and destChain)
+  //    - N/A: if the account wants to withdraw, they must already have an open position
+  //  II. Follow-up
+  //    A. if open position on srcChain
+  //      [FLASHLOAN, [PAYBACK, WITHDRAW, SWAP]]
+  //    B. if open position on destChain (optional: transfer withdrawn funds back to srcChain)
+  //      [X-CALL, FLASHLOAN, [PAYBACK, PERMIT-WITHDRAW, WITHDRAW, SWAP], X-TRANSFER?]
+```
