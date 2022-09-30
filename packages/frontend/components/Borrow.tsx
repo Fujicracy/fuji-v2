@@ -1,139 +1,249 @@
-import { useState } from "react"
-import { useMachine } from "@xstate/react"
-import FormControl from "@mui/material/FormControl"
-import InputLabel from "@mui/material/InputLabel"
-import Select from "@mui/material/Select"
-import MenuItem from "@mui/material/MenuItem"
-import Card from "@mui/material/Card"
-import CardContent from "@mui/material/CardContent"
-import Typography from "@mui/material/Typography"
-import Container from "@mui/material/Container"
-import TextField from "@mui/material/TextField"
-import Button from "@mui/material/Button"
-import Box from "@mui/material/Box"
+import { useState } from 'react'
+import { useMachine } from '@xstate/react'
+import {
+  Divider,
+  Button,
+  Container,
+  Typography,
+  CardContent,
+  Card,
+  Collapse,
+  Grid,
+  FormControl,
+  Select,
+  MenuItem
+} from '@mui/material'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import Image from 'next/image'
 
-import borrowMachine from "../machines/borrow.machine"
-import { chains } from "../machines/auth.machine"
+import borrowMachine from '../machines/borrow.machine'
+import { chains } from '../machines/auth.machine'
+import CustomSelect from './Form/CustomSelect'
+import SelectTokenCard from './SelectTokenCard'
+import styles from '../styles/components/Borrow.module.css'
 
 type Chain = typeof chains[0]
 
-export default function Borrow() {
+export default function Borrow () {
   const [current, send] = useMachine(borrowMachine, { devTools: true })
   const { collateral } = current.context
-  const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
+  const tokens = ['ETH', 'USDC'] // TODO: Should be selected depending on ??
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
-  const [collateralValue, setCollateralValue] = useState("")
+  const [collateralValue, setCollateralValue] = useState('')
   const [collateralToken, setCollateralToken] = useState(tokens[0])
 
-  const [borrowChaiIdn, setBorrowChaiIdn] = useState(chains[0].id)
-  const [borrowValue, setBorrowValue] = useState("")
+  const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
+  const [borrowValue, setBorrowValue] = useState('')
   const [borrowToken, setBorrowToken] = useState(tokens[1])
+
+  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   return (
     <Container>
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
-      {current.matches("initial") && (
-        <button onClick={() => send("initialize")}>Initialize</button>
+      {current.matches('initial') && (
+        <button onClick={() => send('initialize')}>Initialize</button>
       )}
 
-      {current.matches("editing") && (
-        <Card variant="outlined" sx={{ maxWidth: 500 }}>
-          <CardContent>
-            <Typography variant="h4" mb="1rem">
-              Borrow
-            </Typography>
+      {current.matches('editing') && (
+        <Card>
+          <CardContent sx={{ p: '1.5rem 2rem' }}>
+            <Typography variant='body2'>Borrow</Typography>
+
+            <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
+
             <FormControl>
-              <InputLabel id="collateral-chain-label">
-                Collateral from
-              </InputLabel>
-              <Select
-                labelId="collateral-chain-label"
-                id="collateral-chain"
-                value={collateralChainId}
-                onChange={e => setCollateralChain(e.target.value)}
-              >
-                {chains.map((chain: Chain) => (
-                  <MenuItem key={chain.id} value={chain.id}>
-                    {chain.label}
-                  </MenuItem>
-                ))}
-              </Select>
+              <Grid container alignItems='center'>
+                <label
+                  id='collateral-chain-label'
+                  className={styles.selectLabel}
+                >
+                  Collateral from
+                </label>
+                <Select
+                  labelId='collateral-chain-label'
+                  id='collateral-chain'
+                  value={collateralChainId}
+                  onChange={e => setCollateralChain(e.target.value)}
+                  IconComponent={KeyboardArrowDownIcon}
+                  sx={{
+                    marginBottom: '1rem',
+                    boxShadow: 'none',
+                    '.MuiOutlinedInput-notchedOutline': { border: 0 }
+                  }}
+                  variant='standard'
+                  disableUnderline
+                >
+                  {chains.map((chain: Chain) => (
+                    <MenuItem key={chain.id} value={chain.id}>
+                      <Grid container>
+                        <Image
+                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                          height={18}
+                          width={18}
+                          alt={chain.label}
+                        />
+                        <span style={{ marginLeft: '0.5rem' }}>
+                          <Typography variant='small'>
+                            {chain.label} Network
+                          </Typography>
+                        </span>
+                      </Grid>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Grid>
             </FormControl>
-            <TextField
-              id="collateral-amount"
-              type="number"
-              label="amount"
+
+            <SelectTokenCard
               value={collateralValue}
-              onChange={e => setCollateralValue(e.target.value)}
+              onChangeValue={e => setCollateralValue(e.target.value)}
+              token={collateralToken}
+              onChangeToken={e => setCollateralToken(e.target.value)}
+              tokens={tokens}
+              type='collateral'
             />
+
             <FormControl>
-              <InputLabel id="collateral-token-label">Select coin</InputLabel>
-              <Select
-                labelId="collateral-token-label"
-                id="collateral-token"
-                value={collateralToken}
-                onChange={e => setCollateralToken(e.target.value)}
-              >
-                {tokens.map(t => (
-                  <MenuItem key={t} value={t}>
-                    {t}
-                  </MenuItem>
-                ))}
-              </Select>
+              <Grid container alignItems='center'>
+                <label id='borrow-chain-label' className={styles.selectLabel}>
+                  Borrow to
+                </label>
+                <Select
+                  labelId='borrow-chain-label'
+                  id='borrow-chain'
+                  value={borrowChainId}
+                  onChange={e => setBorrowChainId(e.target.value)}
+                  IconComponent={KeyboardArrowDownIcon}
+                  sx={{
+                    marginBottom: '1rem',
+                    boxShadow: 'none',
+                    '.MuiOutlinedInput-notchedOutline': { border: 0 }
+                  }}
+                  variant='standard'
+                  disableUnderline
+                >
+                  {chains.map((chain: Chain) => (
+                    <MenuItem key={chain.id} value={chain.id}>
+                      <Grid container>
+                        <Image
+                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                          height={18}
+                          width={18}
+                          alt={chain.label}
+                        />
+                        <span style={{ marginLeft: '0.5rem' }}>
+                          <Typography variant={'small'}>
+                            {chain.label} Network
+                          </Typography>
+                        </span>
+                      </Grid>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Grid>
             </FormControl>
-            <br />
-            Value: <strong>?? $</strong>- Balance: <strong>??</strong>
-            <Button variant="text">max</Button>
-            <br />
-            <br />
-            <FormControl>
-              <InputLabel id="borrow-chain-label">Borrow on</InputLabel>
-              <Select
-                labelId="borrow-chain-label"
-                id="borrow-chain"
-                value={borrowChaiIdn}
-                onChange={e => setBorrowChaiIdn(e.target.value)}
-              >
-                {chains.map((chain: Chain) => (
-                  <MenuItem key={chain.id} value={chain.id}>
-                    {chain.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              id="borrow-amount"
-              type="number"
-              label="amount"
+
+            <SelectTokenCard
               value={borrowValue}
-              onChange={e => setBorrowValue(e.target.value)}
+              onChangeValue={e => setBorrowValue(e.target.value)}
+              token={borrowToken}
+              onChangeToken={e => setBorrowToken(e.target.value)}
+              tokens={tokens}
+              type='borrow'
             />
-            <FormControl>
-              <InputLabel id="borrow-token-label">Select coin</InputLabel>
-              <Select
-                labelId="borrow-token-label"
-                id="borrow-token"
-                value={borrowToken}
-                onChange={e => setBorrowToken(e.target.value)}
-              >
-                {tokens.map(t => (
-                  <MenuItem key={t} value={t}>
-                    {t}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+
             <br />
+            <Card
+              variant='outlined'
+              style={{ cursor: 'pointer' }}
+              onClick={() => setShowTransactionDetails(!showTransactionDetails)}
+            >
+              <div className={styles.cardLine} style={{ height: 0 }}>
+                <Typography variant='small'>Estimated Cost</Typography>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant='small'>~$3.90</Typography>
+                  {showTransactionDetails ? (
+                    <KeyboardArrowDownIcon />
+                  ) : (
+                    <KeyboardArrowUpIcon />
+                  )}
+                </div>
+              </div>
+              <Collapse in={showTransactionDetails} sx={{ width: '100%' }}>
+                <div
+                  className={styles.cardLine}
+                  style={{ width: '92%', marginTop: '1rem' }}
+                >
+                  <Typography variant='small'>Gas fees</Typography>
+                  <Typography variant='small'>~$1.90</Typography>
+                </div>
+                <br />
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Bridges fees</Typography>
+                  <Typography variant='small'>~$2.00</Typography>
+                </div>
+                <br />
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Est. processing time</Typography>
+                  <Typography variant='small'>~2 Minutes</Typography>
+                </div>
+                <br />
+                <div className={styles.cardLine} style={{ width: '92%' }}>
+                  <Typography variant='small'>Route</Typography>
+                  <Typography variant='small'>
+                    <u>{'ETH > Polygon'}</u>
+                  </Typography>
+                </div>
+              </Collapse>
+            </Card>
             <br />
+
             <Button
-              variant="contained"
-              onClick={() => alert("not implemented")}
+              variant='primary'
+              disabled
+              onClick={() => alert('not implemented')}
+              fullWidth
+            >
+              Sign
+            </Button>
+
+            <br />
+            <br />
+
+            <Button
+              variant='gradient'
+              disabled
+              onClick={() => alert('not implemented')}
+              fullWidth
             >
               Borrow
             </Button>
+
+            <br />
+            <br />
+
+            <Grid container justifyContent='center'>
+              <Typography variant='small'>
+                Powered by
+                <a
+                  href='https://www.connext.network/'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  <Image
+                    src='/assets/images/logo/connext.svg'
+                    height={16}
+                    width={95}
+                    alt='Connext logo'
+                  />
+                </a>
+              </Typography>
+            </Grid>
           </CardContent>
         </Card>
       )}
