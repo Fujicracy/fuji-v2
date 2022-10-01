@@ -11,7 +11,7 @@ import { ChainId, RouterAction } from '../enums';
 import { getPermitDigest } from '../functions';
 import {
   BorrowParams,
-  ConfigParams,
+  ChainConfigParams,
   DepositParams,
   LendingProviderDetails,
   PermitParams,
@@ -24,7 +24,7 @@ import {
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
-import { Config } from './Config';
+import { ChainConnection } from './ChainConnection';
 import { Token } from './Token';
 
 export class BorrowingVault {
@@ -157,10 +157,11 @@ export class BorrowingVault {
   /**
    * Creates a connection by setting an rpc provider.
    *
-   * @param configParams - {@link ConfigParams} object with infura and alchemy ids
+   * @param configParams - {@link ChainConfigParams} object with infura and alchemy ids
    */
-  setConnection(configParams: ConfigParams): BorrowingVault {
-    this.rpcProvider = Config.rpcProviderFrom(configParams, this.chainId);
+  setConnection(configParams: ChainConfigParams): BorrowingVault {
+    const { rpcProvider } = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = rpcProvider;
 
     this.contract = BorrowingVault__factory.connect(
       this.address.value,

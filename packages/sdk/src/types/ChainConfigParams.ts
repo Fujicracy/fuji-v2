@@ -1,4 +1,4 @@
-export type ConfigParams = {
+export type ChainConfigParams = {
   infuraId: string;
   alchemyId?: string;
 };

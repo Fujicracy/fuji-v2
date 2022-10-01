@@ -3,9 +3,9 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
-import { ConfigParams } from '../types';
+import { ChainConfigParams } from '../types';
 import { Address } from './Address';
-import { Config } from './Config';
+import { ChainConnection } from './ChainConnection';
 import { Currency } from './Currency';
 import { Token } from './Token';
 
@@ -35,13 +35,14 @@ export abstract class AbstractCurrency {
    */
   readonly symbol: string;
   /**
-   * The RPC provider for the specific chain
-   */
-  rpcProvider?: JsonRpcProvider;
-  /**
    * The name of the currency, i.e. a descriptive textual non-unique identifier
    */
   readonly name?: string;
+
+  /**
+   * The RPC provider for the specific chain
+   */
+  rpcProvider?: JsonRpcProvider;
 
   /**
    * Constructs an instance of the base class `BaseCurrency`.
@@ -100,10 +101,11 @@ export abstract class AbstractCurrency {
   /**
    * Creates a connection by setting an rpc provider.
    *
-   * @param configParams - {@link ConfigParams} object with infura and alchemy ids
+   * @param configParams - {@link ChainConfigParams} object with infura and alchemy ids
    */
-  setConnection(configParams: ConfigParams): AbstractCurrency {
-    this.rpcProvider = Config.rpcProviderFrom(configParams, this.chainId);
+  setConnection(configParams: ChainConfigParams): AbstractCurrency {
+    const { rpcProvider } = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = rpcProvider;
 
     return this;
   }

@@ -1,13 +1,12 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider } from '@ethersproject/providers';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
-import { ConfigParams } from '../types';
+import { ChainConfigParams } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
-import { Config } from './Config';
+import { ChainConnection } from './ChainConnection';
 import { Currency } from './Currency';
 
 /**
@@ -48,11 +47,8 @@ export class Token extends AbstractCurrency {
   /**
    * {@inheritDoc AbstractCurrency.setConnection}
    */
-  setConnection(configParams: ConfigParams): Token {
-    const rpcProvider: JsonRpcProvider = Config.rpcProviderFrom(
-      configParams,
-      this.chainId
-    );
+  setConnection(configParams: ChainConfigParams): Token {
+    const { rpcProvider } = ChainConnection.from(configParams, this.chainId);
 
     this.contract = ERC20__factory.connect(this.address.value, rpcProvider);
 
