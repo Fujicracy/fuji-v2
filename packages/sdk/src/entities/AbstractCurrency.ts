@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonRpcProvider } from '@ethersproject/providers';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
@@ -43,6 +44,12 @@ export abstract class AbstractCurrency {
    * The RPC provider for the specific chain
    */
   rpcProvider?: JsonRpcProvider;
+
+  /**
+   * A stream emitting the number of each block
+   * @experimental
+   */
+  blockStream?: Observable<number>;
 
   /**
    * Constructs an instance of the base class `BaseCurrency`.
@@ -89,6 +96,13 @@ export abstract class AbstractCurrency {
   abstract balanceOf(account: Address): Promise<BigNumber>;
 
   /**
+   * Returns a stream of currency balance for address
+   *
+   * @param account - the address of the user, wrapped in class Address
+   */
+  abstract balanceOfStream(account: Address): Observable<BigNumber>;
+
+  /**
    * Returns allowance that an owner has attributed to a spender
    *
    * @param owner - address of currency owner, wrapped in {@link Address}
@@ -104,8 +118,9 @@ export abstract class AbstractCurrency {
    * @param configParams - {@link ChainConfigParams} object with infura and alchemy ids
    */
   setConnection(configParams: ChainConfigParams): AbstractCurrency {
-    const { rpcProvider } = ChainConnection.from(configParams, this.chainId);
-    this.rpcProvider = rpcProvider;
+    const connection = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = connection.rpcProvider;
+    this.blockStream = connection.blockStream;
 
     return this;
   }

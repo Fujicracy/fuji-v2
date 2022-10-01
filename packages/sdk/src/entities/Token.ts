@@ -1,4 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
+import { from, Observable, of } from 'rxjs';
+import { distinctUntilKeyChanged, switchMap } from 'rxjs/operators';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
@@ -48,9 +50,14 @@ export class Token extends AbstractCurrency {
    * {@inheritDoc AbstractCurrency.setConnection}
    */
   setConnection(configParams: ChainConfigParams): Token {
-    const { rpcProvider } = ChainConnection.from(configParams, this.chainId);
+    const connection = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = connection.rpcProvider;
+    this.blockStream = connection.blockStream;
 
-    this.contract = ERC20__factory.connect(this.address.value, rpcProvider);
+    this.contract = ERC20__factory.connect(
+      this.address.value,
+      this.rpcProvider
+    );
 
     return this;
   }
@@ -62,6 +69,23 @@ export class Token extends AbstractCurrency {
   async balanceOf(account: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.balanceOf(account.value);
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.balanceOfStream}
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  balanceOfStream(account: Address): Observable<BigNumber> {
+    invariant(this.blockStream, 'Connection not set!');
+    const balance = () =>
+      this.contract
+        ? this.contract.balanceOf(account.value)
+        : of(BigNumber.from(0));
+
+    return this.blockStream.pipe(
+      switchMap(() => from(balance())),
+      distinctUntilKeyChanged('_hex')
+    );
   }
 
   /**
