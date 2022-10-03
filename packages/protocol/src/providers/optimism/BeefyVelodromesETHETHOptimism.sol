@@ -16,6 +16,8 @@ import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol"
  * @notice This contract allows interaction with this specific vault.
  */
 contract BeefyVelodromesETHETHOptimism is ILendingProvider {
+  error BeefyVelodromesETHETHOptimism__notImplemented();
+
   using SafeERC20 for IERC20;
   using Math for uint256;
 
@@ -133,7 +135,9 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address asset) external view override returns (uint256 rate) {}
+  function getDepositRateFor(address) external pure override returns (uint256) {
+    revert BeefyVelodromesETHETHOptimism__notImplemented();
+  }
 
   /**
    * @notice See {ILendingProvider}
