@@ -26,10 +26,7 @@ export class ChainConnection {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
       const wss: string = INFURA_WSS_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
-      const wssProvider: WebSocketProvider = new WebSocketProvider(
-        wss,
-        'goerli'
-      );
+      const wssProvider: WebSocketProvider = new WebSocketProvider(wss);
 
       this._config[chainId] = {
         rpcProvider,
