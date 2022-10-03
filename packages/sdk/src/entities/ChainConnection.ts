@@ -1,14 +1,15 @@
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
-import { Observable, Subject } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import {
+  StaticJsonRpcProvider,
+  WebSocketProvider,
+} from '@ethersproject/providers';
 
-import { INFURA_RPC_URL } from '../constants/rpcs';
+import { INFURA_RPC_URL, INFURA_WSS_URL } from '../constants/rpcs';
 import { ChainId } from '../enums';
 import { ChainConfigParams } from '../types';
 
 type ChainConnectionParams = {
   rpcProvider: StaticJsonRpcProvider;
-  blockStream: Observable<number>;
+  wssProvider: WebSocketProvider;
 };
 
 export class ChainConnection {
@@ -23,16 +24,16 @@ export class ChainConnection {
     // TODO: add alchemy providers
     if (!this._config[chainId]) {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
-      const blockStream: Subject<number> = new Subject<number>();
+      const wss: string = INFURA_WSS_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
+      const wssProvider: WebSocketProvider = new WebSocketProvider(
+        wss,
+        'goerli'
+      );
 
-      rpcProvider.on('block', block => {
-        console.log(block);
-        blockStream.next(block);
-      });
       this._config[chainId] = {
         rpcProvider,
-        blockStream: blockStream.pipe(shareReplay(1)),
+        wssProvider,
       };
     }
 

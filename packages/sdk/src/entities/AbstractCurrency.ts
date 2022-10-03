@@ -1,5 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
@@ -46,10 +46,9 @@ export abstract class AbstractCurrency {
   rpcProvider?: JsonRpcProvider;
 
   /**
-   * A stream emitting the number of each block
-   * @experimental
+   * The RPC provider for the specific chain
    */
-  blockStream?: Observable<number>;
+  wssProvider?: WebSocketProvider;
 
   /**
    * Constructs an instance of the base class `BaseCurrency`.
@@ -120,7 +119,7 @@ export abstract class AbstractCurrency {
   setConnection(configParams: ChainConfigParams): AbstractCurrency {
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
-    this.blockStream = connection.blockStream;
+    this.wssProvider = connection.wssProvider;
 
     return this;
   }

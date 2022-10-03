@@ -1,7 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { MaxUint256 } from '@ethersproject/constants';
-import { from, Observable, of } from 'rxjs';
-import { distinctUntilKeyChanged, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { AbstractCurrency } from './AbstractCurrency';
@@ -27,18 +26,10 @@ export abstract class NativeCurrency extends AbstractCurrency {
   /**
    * {@inheritDoc AbstractCurrency.balanceOfStream}
    * @throws if {@link AbstractCurrency.setConnection} was not called
+   * @experimental
    */
-  balanceOfStream(account: Address): Observable<BigNumber> {
-    invariant(this.blockStream, 'Connection not set!');
-    const balance = () =>
-      this.rpcProvider
-        ? this.rpcProvider.getBalance(account.value)
-        : of(BigNumber.from(0));
-
-    return this.blockStream.pipe(
-      switchMap(() => from(balance())),
-      distinctUntilKeyChanged('_hex')
-    );
+  balanceOfStream(_account: Address): Observable<BigNumber> {
+    invariant(false, 'Not implemented!');
   }
 
   /**
