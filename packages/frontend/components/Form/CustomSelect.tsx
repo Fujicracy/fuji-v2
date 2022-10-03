@@ -18,67 +18,29 @@ type Chain = typeof chains[0]
 interface CustomSelectProps {
   labelId: string
   id: string
-  onSelect: (
-    e: SelectChangeEvent<
-      any
-    >
-  ) => void
-  value:
-    | string
-    | number
-  options:
-    | Chain[]
-    | string[]
-  label:
-    | string
-    | null
-  large:
-    | boolean
-    | null
+  onSelect: (e: SelectChangeEvent<any>) => void
+  value: string | number
+  options: Chain[] | string[]
+  label: string | null
+  large: boolean | null
 }
 
-export default function CustomSelect(
-  props: CustomSelectProps
-) {
+export default function CustomSelect(props: CustomSelectProps) {
   return (
     <FormControl>
-      <Grid
-        container
-        alignItems="center"
-      >
-        <label
-          id={
-            props.labelId
-          }
-          className={
-            styles.selectLabel
-          }
-        >
-          {
-            props.label
-          }
+      <Grid container alignItems="center">
+        <label id={props.labelId} className={styles.selectLabel}>
+          {props.label}
         </label>
         <Select
-          labelId={
-            props.labelId
-          }
-          id={
-            props.id
-          }
-          value={
-            props.value
-          }
-          onChange={
-            props.onSelect
-          }
-          IconComponent={
-            KeyboardArrowDownIcon
-          }
+          labelId={props.labelId}
+          id={props.id}
+          value={props.value}
+          onChange={props.onSelect}
+          IconComponent={KeyboardArrowDownIcon}
           sx={{
-            marginBottom:
-              "1rem",
-            boxShadow:
-              "none",
+            marginBottom: "1rem",
+            boxShadow: "none",
             ".MuiOutlinedInput-notchedOutline": {
               border: 0,
             },
@@ -86,85 +48,33 @@ export default function CustomSelect(
           variant="standard"
           disableUnderline
         >
-          {props.options.map(
-            (
-              option:
-                | Chain
-                | string
-            ) => (
-              <MenuItem
-                key={
-                  typeof option ===
-                  "string"
-                    ? option
-                    : option.id
-                }
-                value={
-                  typeof option ===
-                  "string"
-                    ? option
-                    : option.id
-                }
-              >
-                <Grid
-                  container
+          {props.options.map((option: Chain | string) => (
+            <MenuItem
+              key={typeof option === "string" ? option : option.id}
+              value={typeof option === "string" ? option : option.id}
+            >
+              <Grid container>
+                <Image
+                  src={`/assets/images/protocol-icons/${
+                    typeof option === "string" ? "tokens" : "networks"
+                  }/${typeof option === "string" ? option : option.label}.svg`}
+                  height={props.large ? 24 : 18}
+                  width={props.large ? 24 : 18}
+                  alt={typeof option === "string" ? option : option.label}
+                />
+                <span
+                  style={{
+                    marginLeft: "0.5rem",
+                  }}
                 >
-                  <Image
-                    src={`/assets/images/protocol-icons/${
-                      typeof option ===
-                      "string"
-                        ? "tokens"
-                        : "networks"
-                    }/${
-                      typeof option ===
-                      "string"
-                        ? option
-                        : option.label
-                    }.svg`}
-                    height={
-                      props.large
-                        ? 24
-                        : 18
-                    }
-                    width={
-                      props.large
-                        ? 24
-                        : 18
-                    }
-                    alt={
-                      typeof option ===
-                      "string"
-                        ? option
-                        : option.label
-                    }
-                  />
-                  <span
-                    style={{
-                      marginLeft:
-                        "0.5rem",
-                    }}
-                  >
-                    <Typography
-                      variant={
-                        props.large
-                          ? "h6"
-                          : "small"
-                      }
-                    >
-                      {typeof option ===
-                      "string"
-                        ? option
-                        : option.label}
-                      {typeof option ===
-                      "string"
-                        ? ""
-                        : " Network"}
-                    </Typography>
-                  </span>
-                </Grid>
-              </MenuItem>
-            )
-          )}
+                  <Typography variant={props.large ? "h6" : "small"}>
+                    {typeof option === "string" ? option : option.label}
+                    {typeof option === "string" ? "" : " Network"}
+                  </Typography>
+                </span>
+              </Grid>
+            </MenuItem>
+          ))}
         </Select>
       </Grid>
     </FormControl>

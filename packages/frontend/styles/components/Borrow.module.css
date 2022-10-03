@@ -1,15 +1,9 @@
 .maxBtn {
-  background: rgb(
-    236,
-    38,
-    104,
-    0.2
-  );
+  background: rgb(236, 38, 104, 0.2);
   /* #EC2668 with opacity */
   color: #ec2668;
   height: 1.25rem;
-  padding: 0.188rem
-    0.188rem;
+  padding: 0.188rem 0.188rem;
   text-transform: uppercase;
   border-radius: 0.5rem;
   line-height: 0.938rem;
@@ -18,16 +12,8 @@
 }
 
 .maxBtn:hover {
-  background: rgb(
-    236,
-    38,
-    104,
-    0.3
-  );
-  text-shadow: #ec2668
-    0rem
-    0rem
-    0.125rem;
+  background: rgb(236, 38, 104, 0.3);
+  text-shadow: #ec2668 0rem 0rem 0.125rem;
   color: #ec2668;
 }
 

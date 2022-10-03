@@ -44,4 +44,4 @@ jobs:
 
       - run: yarn workspace @x-fuji/frontend install
       - run: yarn workspace @x-fuji/frontend run lint
-      - run: yarn workspace @x-fuji/frontend run prettier --debug-check
+      - run: yarn workspace @x-fuji/frontend run prettier --check

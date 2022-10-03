@@ -98,7 +98,7 @@ const Header = () => {
                   },
                 }}
               >
-                {pages.map(page => (
+                {pages.map((page) => (
                   <MenuItem key={page} onClick={handleCloseNavMenu}>
                     <Link href={`/${page.toLowerCase()}`}>
                       <Typography align="center">{page}</Typography>

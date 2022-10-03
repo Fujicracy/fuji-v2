@@ -79,7 +79,7 @@ export default function Borrow() {
                   labelId="collateral-chain-label"
                   id="collateral-chain"
                   value={collateralChainId}
-                  onChange={e => setCollateralChain(e.target.value)}
+                  onChange={(e) => setCollateralChain(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
                     marginBottom: "1rem",
@@ -118,9 +118,9 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={collateralValue}
-              onChangeValue={e => setCollateralValue(e.target.value)}
+              onChangeValue={(e) => setCollateralValue(e.target.value)}
               token={collateralToken}
-              onChangeToken={e => setCollateralToken(e.target.value)}
+              onChangeToken={(e) => setCollateralToken(e.target.value)}
               tokens={tokens}
               type="collateral"
             />
@@ -134,7 +134,7 @@ export default function Borrow() {
                   labelId="borrow-chain-label"
                   id="borrow-chain"
                   value={borrowChainId}
-                  onChange={e => setBorrowChainId(e.target.value)}
+                  onChange={(e) => setBorrowChainId(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
                     marginBottom: "1rem",
@@ -173,9 +173,9 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={borrowValue}
-              onChangeValue={e => setBorrowValue(e.target.value)}
+              onChangeValue={(e) => setBorrowValue(e.target.value)}
               token={borrowToken}
-              onChangeToken={e => setBorrowToken(e.target.value)}
+              onChangeToken={(e) => setBorrowToken(e.target.value)}
               tokens={tokens}
               type="borrow"
             />
