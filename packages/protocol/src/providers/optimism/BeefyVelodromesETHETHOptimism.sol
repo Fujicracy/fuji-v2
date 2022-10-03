@@ -17,6 +17,7 @@ import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol"
  */
 contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   error BeefyVelodromesETHETHOptimism__notImplemented();
+  error BeefyVelodromesETHETHOptimism__notApplicable();
 
   using SafeERC20 for IERC20;
   using Math for uint256;
@@ -61,7 +62,9 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(address asset, uint256 amount) external override returns (bool success) {}
+  function borrow(address, uint256) external pure override returns (bool) {
+    revert BeefyVelodromesETHETHOptimism__notApplicable();
+  }
 
   /**
    * @notice See {ILendingProvider}
@@ -130,7 +133,9 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address asset, uint256 amount) external override returns (bool success) {}
+  function payback(address, uint256) external pure override returns (bool) {
+    revert BeefyVelodromesETHETHOptimism__notApplicable();
+  }
 
   /**
    * @notice See {ILendingProvider}
@@ -142,7 +147,9 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address asset) external view override returns (uint256 rate) {}
+  function getBorrowRateFor(address) external pure override returns (uint256) {
+    revert BeefyVelodromesETHETHOptimism__notApplicable();
+  }
 
   /**
    * @notice See {ILendingProvider}
@@ -159,12 +166,14 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address asset, address user)
+  function getBorrowBalance(address, address)
     external
-    view
+    pure
     override
-    returns (uint256 balance)
-  {}
+    returns (uint256)
+    {
+      revert BeefyVelodromesETHETHOptimism__notApplicable();
+    }
 
   function _getDepositBalance(address asset, address user) internal view returns (uint256 balance) {
     IVelodromeRouter router = _getVelodromeRouter();
