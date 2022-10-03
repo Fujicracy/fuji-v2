@@ -1,12 +1,12 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-const deployChief = async (hre: HardhatRuntimeEnvironment) => {
+const deployAddrMapperFactory = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
 
   const { deployer } = await getNamedAccounts();
 
-  await deploy('Chief', {
+  await deploy('AddrMapperFactory', {
     from: deployer,
     args: [],
     log: true,
@@ -16,6 +16,6 @@ const deployChief = async (hre: HardhatRuntimeEnvironment) => {
   });
 };
 
-export default deployChief;
-deployChief.tags = ['Chief'];
-deployChief.skip = async (env: HardhatRuntimeEnvironment) => true;
+export default deployAddrMapperFactory;
+deployAddrMapperFactory.tags = ['AddrMapperFactory'];
+deployAddrMapperFactory.skip = async (env: HardhatRuntimeEnvironment) => true;

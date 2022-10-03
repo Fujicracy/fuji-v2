@@ -1,8 +1,5 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Address } from 'hardhat-deploy/types';
-import { ethers } from 'ethers';
-
-export let borrowingVaultFactory: Address;
 
 const deployBorrowingVaultFactory = async (hre: HardhatRuntimeEnvironment, chief: Address) => {
   const { deployments, getNamedAccounts } = hre;
@@ -10,7 +7,7 @@ const deployBorrowingVaultFactory = async (hre: HardhatRuntimeEnvironment, chief
 
   const { deployer } = await getNamedAccounts();
 
-  const dx = await deploy('BorrowingVaultFactory', {
+  await deploy('BorrowingVaultFactory', {
     from: deployer,
     args: [chief],
     log: true,
@@ -18,8 +15,6 @@ const deployBorrowingVaultFactory = async (hre: HardhatRuntimeEnvironment, chief
     skipIfAlreadyDeployed: true,
     waitConfirmations: 1
   });
-
-  borrowingVaultFactory = dx.address;
 };
 
 export default deployBorrowingVaultFactory;

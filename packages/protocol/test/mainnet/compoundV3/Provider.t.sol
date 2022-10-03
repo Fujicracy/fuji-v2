@@ -13,7 +13,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {DSTestPlus} from "../../utils/DSTestPlus.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
-import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
+import {AddrMapperFactory} from "../../../src/helpers/AddrMapperFactory.sol";
 
 bool constant DEBUG = false;
 
@@ -53,7 +53,7 @@ contract ProviderTest is DSTestPlus {
     mockOracle.setPriceOf(address(weth), address(usdc), 62500);
     mockOracle.setPriceOf(address(usdc), address(weth), 160000000000);
 
-    AddrMapperDeployer mapDeployer = new AddrMapperDeployer();
+    AddrMapperFactory mapDeployer = new AddrMapperFactory();
 
     mapper = IAddrMapper(mapDeployer.deployAddrMapper("CompoundV3"));
     mapper.setNestedMapping(

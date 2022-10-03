@@ -12,7 +12,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {DSTestPlus} from "../../utils/DSTestPlus.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
-import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
+import {AddrMapperFactory} from "../../../src/helpers/AddrMapperFactory.sol";
 
 bool constant DEBUG = false;
 

@@ -1,14 +1,18 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { Address } from 'hardhat-deploy/types';
 
-const deployChief = async (hre: HardhatRuntimeEnvironment) => {
+const deploySimpleRouter = async (
+  hre: HardhatRuntimeEnvironment,
+  wrappedNative: Address
+) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
 
   const { deployer } = await getNamedAccounts();
 
-  await deploy('Chief', {
+  await deploy('SimpleRouter', {
     from: deployer,
-    args: [],
+    args: [wrappedNative],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,
@@ -16,6 +20,6 @@ const deployChief = async (hre: HardhatRuntimeEnvironment) => {
   });
 };
 
-export default deployChief;
-deployChief.tags = ['Chief'];
-deployChief.skip = async (env: HardhatRuntimeEnvironment) => true;
+export default deploySimpleRouter;
+deploySimpleRouter.tags = ['SimpleRouter'];
+deploySimpleRouter.skip = async (env: HardhatRuntimeEnvironment) => true;

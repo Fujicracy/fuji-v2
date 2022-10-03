@@ -1,12 +1,13 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { Address } from 'hardhat-deploy/types';
 
-const deployChief = async (hre: HardhatRuntimeEnvironment) => {
+const deployProvider = async (hre: HardhatRuntimeEnvironment, providerName: string) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
 
   const { deployer } = await getNamedAccounts();
 
-  await deploy('Chief', {
+  await deploy(providerName, {
     from: deployer,
     args: [],
     log: true,
@@ -16,6 +17,6 @@ const deployChief = async (hre: HardhatRuntimeEnvironment) => {
   });
 };
 
-export default deployChief;
-deployChief.tags = ['Chief'];
-deployChief.skip = async (env: HardhatRuntimeEnvironment) => true;
+export default deployProvider;
+deployProvider.tags = ['Providers'];
+deployProvider.skip = async (env: HardhatRuntimeEnvironment) => true;

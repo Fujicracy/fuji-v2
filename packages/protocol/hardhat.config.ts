@@ -31,10 +31,30 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    localhost: {
+      live: false,
+      saveDeployments: true,
+      deploy: [`deploy/networks/${getTestDeployNetwork()}`],
+    },
+    hardhat: {
+      live: false,
+      saveDeployments: true,
+      deploy: [`deploy/networks/${getTestDeployNetwork()}`],
+    },
     mainnet: {
+      live: true,
+      saveDeployments: true,
+      deploy: ['deploy/networks/mainnet'],
       url: `${process.env.RPC_MAINNET}`,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: mnemonic(deployerPath) },
     },
+    goerli: {
+      live: true,
+      saveDeployments: true,
+      deploy: ['deploy/networks/goerli'],
+      url: `${process.env.RPC_GOERLI}`,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: mnemonic(deployerPath) },
+    }
 
   },
   preprocess: {
@@ -69,6 +89,14 @@ const config: HardhatUserConfig = {
     rando: { default: 3 },
   },
 };
+
+function getTestDeployNetwork() {
+  if(!process.env.TEST_DEPLOY_NETWORK) {
+    throw "Set TEST_DEPLOY_NETWORK in .env";
+  } else {
+    return process.env.TEST_DEPLOY_NETWORK;
+  }
+}
 
 function getRemappings() {
   return fs

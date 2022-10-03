@@ -8,6 +8,7 @@ contract BorrowingVaultFactory is VaultDeployer {
   constructor(address _chief) VaultDeployer(_chief) {}
 
   function deployVault(bytes memory _deployData) external returns (address vault) {
+    // TODO add access restriction
     (address asset, address debtAsset, address oracle) =
       abi.decode(_deployData, (address, address, address));
 
