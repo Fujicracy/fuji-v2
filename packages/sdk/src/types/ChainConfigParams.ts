@@ -1,4 +1,8 @@
+import { ChainId } from '../enums';
+
 export type ChainConfigParams = {
   infuraId: string;
-  alchemyId?: string;
+  alchemy?: {
+    [chainId in ChainId]?: string;
+  };
 };

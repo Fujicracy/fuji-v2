@@ -15,18 +15,13 @@ export const INFURA_RPC_URL: Record<ChainId, (id: string) => string> = {
     `https://optimism-goerli.infura.io/v3/${id}`,
 };
 
-export const INFURA_WSS_URL: Record<ChainId, (id: string) => string> = {
+export const INFURA_WSS_URL: Record<ChainId, (id: string) => string | null> = {
   [ChainId.ETHEREUM]: (id: string) => `wss://mainnet.infura.io/ws/v3/${id}`,
-  [ChainId.MATIC]: (id: string) =>
-    `wss://polygon-mainnet.infura.io/ws/v3/${id}`,
-  [ChainId.ARBITRUM]: (id: string) =>
-    `wss://arbitrum-mainnet.infura.io/ws/v3/${id}`,
-  [ChainId.OPTIMISM]: (id: string) =>
-    `wss://optimism-mainnet.infura.io/ws/v3/${id}`,
-  [ChainId.FANTOM]: (_: string) => 'https://rpc.ftm.tools/',
+  [ChainId.MATIC]: (_id: string) => null,
+  [ChainId.ARBITRUM]: (_id: string) => null,
+  [ChainId.OPTIMISM]: (_id: string) => null,
+  [ChainId.FANTOM]: (_: string) => null,
   [ChainId.GOERLI]: (id: string) => `wss://goerli.infura.io/ws/v3/${id}`,
-  [ChainId.MATIC_MUMBAI]: (id: string) =>
-    `wss://polygon-mumbai.infura.io/ws/v3/${id}`,
-  [ChainId.OPTIMISM_GOERLI]: (id: string) =>
-    `wss://optimism-goerli.infura.io/ws/v3/${id}`,
+  [ChainId.MATIC_MUMBAI]: (_id: string) => null,
+  [ChainId.OPTIMISM_GOERLI]: (_id: string) => null,
 };

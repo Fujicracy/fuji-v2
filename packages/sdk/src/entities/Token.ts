@@ -99,7 +99,11 @@ export class Token extends AbstractCurrency {
   }
 
   /**
-   * {@inheritDoc AbstractCurrency.allowanceStream}
+   * Returns allowance that an owner has attributed to a spender as stream
+   *
+   * @param owner - address of currency owner, wrapped in {@link Address}
+   * @param spender - address of spender, wrapped in {@link Address}
+   *
    * @throws if {@link setConnection} was not called beforehand
    */
   allowanceStream(owner: Address, spender: Address): Observable<BigNumber> {

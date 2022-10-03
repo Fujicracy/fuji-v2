@@ -16,7 +16,7 @@ import { Address } from './Address';
 
 type ChainConnectionParams = {
   rpcProvider: StaticJsonRpcProvider;
-  wssProvider: WebSocketProvider;
+  wssProvider?: WebSocketProvider;
 };
 
 type Stream = {
@@ -52,9 +52,10 @@ export class ChainConnection {
     // TODO: add alchemy providers
     if (!this._config[chainId]) {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
-      const wss: string = INFURA_WSS_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
-      const wssProvider: WebSocketProvider = new WebSocketProvider(wss);
+
+      const wss: string | null = INFURA_WSS_URL[chainId](params.infuraId);
+      const wssProvider = wss ? new WebSocketProvider(wss) : undefined;
 
       this._config[chainId] = {
         rpcProvider,
@@ -73,7 +74,10 @@ export class ChainConnection {
     call: () => Promise<BigNumber>
   ): Observable<BigNumber> {
     const wssProvider = this._config[contract.chainId]?.wssProvider;
-    invariant(wssProvider, 'Connection not set!');
+    invariant(
+      wssProvider,
+      'Connection not set or WebSocketProvider not available for this chain!'
+    );
 
     // if there is already a stream for another account,
     // remove first its event listeners and reset it
