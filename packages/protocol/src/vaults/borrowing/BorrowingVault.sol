@@ -381,7 +381,7 @@ contract BorrowingVault is BaseVault {
     emit Liquidate(
     owner,
     assetsLiquidatorShares,
-    debt,
+    debtToCover,
     caller
   );
   }

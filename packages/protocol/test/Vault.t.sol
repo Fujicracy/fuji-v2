@@ -217,7 +217,7 @@ contract VaultTest is DSTestPlus {
     assertEq(liquidatorFactor_3, 1e18); 
   }
 
-  function test_liquidate() public {
+  function test_liquidateMax() public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 900e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
@@ -229,6 +229,7 @@ contract VaultTest is DSTestPlus {
     vm.stopPrank();
     
     // price drop from 1889*1e18 to 1000*1e18
+    _utils_setPrice(address(asset), address(debtAsset), 1000000000000000);
     _utils_setPrice(address(debtAsset), address(asset), 1000e18);
     uint256 liquidatorAmount = 2000e18;
     deal(address(debtAsset), bob, liquidatorAmount);
@@ -258,5 +259,41 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOf(bob), amount);
     assertEq(vault.balanceOfDebt(bob), 0);
   }
-}
 
+  function test_liquidateDefault() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 900e18;
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    
+    // price drop from 1889*1e18 to 1164*1e18, putting liquidator factor at 50%
+    _utils_setPrice(address(asset), address(debtAsset), 859106529209622);
+    _utils_setPrice(address(debtAsset), address(asset), 1164e18);
+    uint256 liquidatorAmount = 2000e18;
+    deal(address(debtAsset), bob, liquidatorAmount);
+
+    assertEq(asset.balanceOf(alice), 0);
+    assertEq(debtAsset.balanceOf(alice), borrowAmount);
+    assertEq(vault.balanceOf(alice), amount);
+    assertEq(vault.balanceOfDebt(alice), borrowAmount);
+    
+    assertEq(asset.balanceOf(bob), 0);
+    assertEq(debtAsset.balanceOf(bob), liquidatorAmount);
+    assertEq(vault.balanceOf(bob), 0);
+    assertEq(vault.balanceOfDebt(bob), 0);
+
+    vm.startPrank(bob);
+    SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
+    vault.liquidate(alice);
+    vm.stopPrank();
+
+    assertEq(asset.balanceOf(alice), 0);
+    assertEq(debtAsset.balanceOf(alice), borrowAmount);
+    assertEq(vault.balanceOf(alice), 570446735395189004);
+    assertEq(vault.balanceOfDebt(alice), borrowAmount/2);
+
+    assertEq(asset.balanceOf(bob), 0);
+    assertEq(debtAsset.balanceOf(bob), liquidatorAmount - borrowAmount/2);
+    assertEq(vault.balanceOf(bob), 429553264604810996);
+    assertEq(vault.balanceOfDebt(bob), 0);
+  }
+}
