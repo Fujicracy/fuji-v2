@@ -21,12 +21,25 @@ const initialContext: Context = {
 }
 
 type Events =
-  | { type: "borrow" }
-  | { type: "changeCollateralAmount"; value: string }
-  | { type: "initialize" }
-  | { type: "changeBorrowAmount" }
-  | { type: "changeCollateralChain" }
-  | { type: "changeBorrowChain" }
+  | {
+      type: "borrow"
+    }
+  | {
+      type: "changeCollateralAmount"
+      value: string
+    }
+  | {
+      type: "initialize"
+    }
+  | {
+      type: "changeBorrowAmount"
+    }
+  | {
+      type: "changeCollateralChain"
+    }
+  | {
+      type: "changeBorrowChain"
+    }
 
 const borrowMachine = createMachine(
   {

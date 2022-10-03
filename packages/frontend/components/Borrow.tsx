@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useMachine } from '@xstate/react'
+import { useState } from "react"
+import { useMachine } from "@xstate/react"
 import {
   Divider,
   Button,
@@ -11,31 +11,33 @@ import {
   Grid,
   FormControl,
   Select,
-  MenuItem
-} from '@mui/material'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import Image from 'next/image'
+  MenuItem,
+} from "@mui/material"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import Image from "next/image"
 
-import borrowMachine from '../machines/borrow.machine'
-import { chains } from '../machines/auth.machine'
-import CustomSelect from './Form/CustomSelect'
-import SelectTokenCard from './SelectTokenCard'
-import styles from '../styles/components/Borrow.module.css'
+import borrowMachine from "../machines/borrow.machine"
+import { chains } from "../machines/auth.machine"
+import CustomSelect from "./Form/CustomSelect"
+import SelectTokenCard from "./SelectTokenCard"
+import styles from "../styles/components/Borrow.module.css"
 
 type Chain = typeof chains[0]
 
-export default function Borrow () {
-  const [current, send] = useMachine(borrowMachine, { devTools: true })
+export default function Borrow() {
+  const [current, send] = useMachine(borrowMachine, {
+    devTools: true,
+  })
   const { collateral } = current.context
-  const tokens = ['ETH', 'USDC'] // TODO: Should be selected depending on ??
+  const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
-  const [collateralValue, setCollateralValue] = useState('')
+  const [collateralValue, setCollateralValue] = useState("")
   const [collateralToken, setCollateralToken] = useState(tokens[0])
 
   const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
-  const [borrowValue, setBorrowValue] = useState('')
+  const [borrowValue, setBorrowValue] = useState("")
   const [borrowToken, setBorrowToken] = useState(tokens[1])
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
@@ -45,37 +47,48 @@ export default function Borrow () {
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
-      {current.matches('initial') && (
-        <button onClick={() => send('initialize')}>Initialize</button>
+      {current.matches("initial") && (
+        <button onClick={() => send("initialize")}>Initialize</button>
       )}
 
-      {current.matches('editing') && (
+      {current.matches("editing") && (
         <Card>
-          <CardContent sx={{ p: '1.5rem 2rem' }}>
-            <Typography variant='body2'>Borrow</Typography>
+          <CardContent
+            sx={{
+              p: "1.5rem 2rem",
+            }}
+          >
+            <Typography variant="body2">Borrow</Typography>
 
-            <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
+            <Divider
+              sx={{
+                mt: "1rem",
+                mb: "0.5rem",
+              }}
+            />
 
             <FormControl>
-              <Grid container alignItems='center'>
+              <Grid container alignItems="center">
                 <label
-                  id='collateral-chain-label'
+                  id="collateral-chain-label"
                   className={styles.selectLabel}
                 >
                   Collateral from
                 </label>
                 <Select
-                  labelId='collateral-chain-label'
-                  id='collateral-chain'
+                  labelId="collateral-chain-label"
+                  id="collateral-chain"
                   value={collateralChainId}
                   onChange={e => setCollateralChain(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
-                    marginBottom: '1rem',
-                    boxShadow: 'none',
-                    '.MuiOutlinedInput-notchedOutline': { border: 0 }
+                    marginBottom: "1rem",
+                    boxShadow: "none",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      border: 0,
+                    },
                   }}
-                  variant='standard'
+                  variant="standard"
                   disableUnderline
                 >
                   {chains.map((chain: Chain) => (
@@ -87,8 +100,12 @@ export default function Borrow () {
                           width={18}
                           alt={chain.label}
                         />
-                        <span style={{ marginLeft: '0.5rem' }}>
-                          <Typography variant='small'>
+                        <span
+                          style={{
+                            marginLeft: "0.5rem",
+                          }}
+                        >
+                          <Typography variant="small">
                             {chain.label} Network
                           </Typography>
                         </span>
@@ -105,26 +122,28 @@ export default function Borrow () {
               token={collateralToken}
               onChangeToken={e => setCollateralToken(e.target.value)}
               tokens={tokens}
-              type='collateral'
+              type="collateral"
             />
 
             <FormControl>
-              <Grid container alignItems='center'>
-                <label id='borrow-chain-label' className={styles.selectLabel}>
+              <Grid container alignItems="center">
+                <label id="borrow-chain-label" className={styles.selectLabel}>
                   Borrow to
                 </label>
                 <Select
-                  labelId='borrow-chain-label'
-                  id='borrow-chain'
+                  labelId="borrow-chain-label"
+                  id="borrow-chain"
                   value={borrowChainId}
                   onChange={e => setBorrowChainId(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
-                    marginBottom: '1rem',
-                    boxShadow: 'none',
-                    '.MuiOutlinedInput-notchedOutline': { border: 0 }
+                    marginBottom: "1rem",
+                    boxShadow: "none",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      border: 0,
+                    },
                   }}
-                  variant='standard'
+                  variant="standard"
                   disableUnderline
                 >
                   {chains.map((chain: Chain) => (
@@ -136,8 +155,12 @@ export default function Borrow () {
                           width={18}
                           alt={chain.label}
                         />
-                        <span style={{ marginLeft: '0.5rem' }}>
-                          <Typography variant={'small'}>
+                        <span
+                          style={{
+                            marginLeft: "0.5rem",
+                          }}
+                        >
+                          <Typography variant={"small"}>
                             {chain.label} Network
                           </Typography>
                         </span>
@@ -154,19 +177,31 @@ export default function Borrow () {
               token={borrowToken}
               onChangeToken={e => setBorrowToken(e.target.value)}
               tokens={tokens}
-              type='borrow'
+              type="borrow"
             />
 
             <br />
             <Card
-              variant='outlined'
-              style={{ cursor: 'pointer' }}
+              variant="outlined"
+              style={{
+                cursor: "pointer",
+              }}
               onClick={() => setShowTransactionDetails(!showTransactionDetails)}
             >
-              <div className={styles.cardLine} style={{ height: 0 }}>
-                <Typography variant='small'>Estimated Cost</Typography>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography variant='small'>~$3.90</Typography>
+              <div
+                className={styles.cardLine}
+                style={{
+                  height: 0,
+                }}
+              >
+                <Typography variant="small">Estimated Cost</Typography>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="small">~$3.90</Typography>
                   {showTransactionDetails ? (
                     <KeyboardArrowDownIcon />
                   ) : (
@@ -174,29 +209,52 @@ export default function Borrow () {
                   )}
                 </div>
               </div>
-              <Collapse in={showTransactionDetails} sx={{ width: '100%' }}>
+              <Collapse
+                in={showTransactionDetails}
+                sx={{
+                  width: "100%",
+                }}
+              >
                 <div
                   className={styles.cardLine}
-                  style={{ width: '92%', marginTop: '1rem' }}
+                  style={{
+                    width: "92%",
+                    marginTop: "1rem",
+                  }}
                 >
-                  <Typography variant='small'>Gas fees</Typography>
-                  <Typography variant='small'>~$1.90</Typography>
+                  <Typography variant="small">Gas fees</Typography>
+                  <Typography variant="small">~$1.90</Typography>
                 </div>
                 <br />
-                <div className={styles.cardLine} style={{ width: '92%' }}>
-                  <Typography variant='small'>Bridges fees</Typography>
-                  <Typography variant='small'>~$2.00</Typography>
+                <div
+                  className={styles.cardLine}
+                  style={{
+                    width: "92%",
+                  }}
+                >
+                  <Typography variant="small">Bridges fees</Typography>
+                  <Typography variant="small">~$2.00</Typography>
                 </div>
                 <br />
-                <div className={styles.cardLine} style={{ width: '92%' }}>
-                  <Typography variant='small'>Est. processing time</Typography>
-                  <Typography variant='small'>~2 Minutes</Typography>
+                <div
+                  className={styles.cardLine}
+                  style={{
+                    width: "92%",
+                  }}
+                >
+                  <Typography variant="small">Est. processing time</Typography>
+                  <Typography variant="small">~2 Minutes</Typography>
                 </div>
                 <br />
-                <div className={styles.cardLine} style={{ width: '92%' }}>
-                  <Typography variant='small'>Route</Typography>
-                  <Typography variant='small'>
-                    <u>{'ETH > Polygon'}</u>
+                <div
+                  className={styles.cardLine}
+                  style={{
+                    width: "92%",
+                  }}
+                >
+                  <Typography variant="small">Route</Typography>
+                  <Typography variant="small">
+                    <u>{"ETH > Polygon"}</u>
                   </Typography>
                 </div>
               </Collapse>
@@ -204,9 +262,9 @@ export default function Borrow () {
             <br />
 
             <Button
-              variant='primary'
+              variant="primary"
               disabled
-              onClick={() => alert('not implemented')}
+              onClick={() => alert("not implemented")}
               fullWidth
             >
               Sign
@@ -216,9 +274,9 @@ export default function Borrow () {
             <br />
 
             <Button
-              variant='gradient'
+              variant="gradient"
               disabled
-              onClick={() => alert('not implemented')}
+              onClick={() => alert("not implemented")}
               fullWidth
             >
               Borrow
@@ -227,19 +285,19 @@ export default function Borrow () {
             <br />
             <br />
 
-            <Grid container justifyContent='center'>
-              <Typography variant='small'>
+            <Grid container justifyContent="center">
+              <Typography variant="small">
                 Powered by
                 <a
-                  href='https://www.connext.network/'
-                  target='_blank'
-                  rel='noreferrer'
+                  href="https://www.connext.network/"
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   <Image
-                    src='/assets/images/logo/connext.svg'
+                    src="/assets/images/logo/connext.svg"
                     height={16}
                     width={95}
-                    alt='Connext logo'
+                    alt="Connext logo"
                   />
                 </a>
               </Typography>

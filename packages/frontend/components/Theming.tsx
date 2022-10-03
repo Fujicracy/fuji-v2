@@ -1,32 +1,45 @@
-import React from 'react'
-import { useTheme } from '@mui/material/styles'
-import { Button, CircularProgress, Typography } from '@mui/material'
-import { Box } from '@mui/system'
+import React from "react"
+import { useTheme } from "@mui/material/styles"
+import { Button, CircularProgress, Typography } from "@mui/material"
+import { Box } from "@mui/system"
 
-import { theme } from '../styles/theme'
+import { theme } from "../styles/theme"
 
-export default function Theming () {
+export default function Theming() {
   const theme = useTheme()
   return (
     <>
-      <Typography variant='h2'>Buttons</Typography>
+      <Typography variant="h2">Buttons</Typography>
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-around'
+          display: "flex",
+          justifyContent: "space-around",
         }}
       >
-        <Button variant='primary' sx={{ width: '23em' }}>
+        <Button
+          variant="primary"
+          sx={{
+            width: "23em",
+          }}
+        >
           Primary flat
         </Button>
         <Button
-          variant='primary'
-          sx={{ width: '23em' }}
+          variant="primary"
+          sx={{
+            width: "23em",
+          }}
           startIcon={<CircularProgress size={15} />}
         >
           Primary flat Loading
         </Button>
-        <Button variant='primary' sx={{ width: '23em' }} disabled>
+        <Button
+          variant="primary"
+          sx={{
+            width: "23em",
+          }}
+          disabled
+        >
           Primary flat disabled
         </Button>
       </div>
@@ -34,11 +47,16 @@ export default function Theming () {
       <br />
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-around'
+          display: "flex",
+          justifyContent: "space-around",
         }}
       >
-        <Button variant='secondary' sx={{ width: '23em' }}>
+        <Button
+          variant="secondary"
+          sx={{
+            width: "23em",
+          }}
+        >
           Secondary
         </Button>
       </div>
@@ -46,16 +64,23 @@ export default function Theming () {
       <br />
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-around'
+          display: "flex",
+          justifyContent: "space-around",
         }}
       >
-        <Button variant='secondary2' sx={{ width: '23em' }}>
+        <Button
+          variant="secondary2"
+          sx={{
+            width: "23em",
+          }}
+        >
           Secondary 2
         </Button>
         <Button
-          variant='secondary2'
-          sx={{ width: '23em' }}
+          variant="secondary2"
+          sx={{
+            width: "23em",
+          }}
           startIcon={<CircularProgress size={15} />}
         >
           Secondary 2 Loading
@@ -65,21 +90,34 @@ export default function Theming () {
       <br />
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-around'
+          display: "flex",
+          justifyContent: "space-around",
         }}
       >
-        <Button variant='ghost' sx={{ width: '23em' }}>
+        <Button
+          variant="ghost"
+          sx={{
+            width: "23em",
+          }}
+        >
           Ghost
         </Button>
         <Button
-          variant='ghost'
-          sx={{ width: '23em' }}
+          variant="ghost"
+          sx={{
+            width: "23em",
+          }}
           startIcon={<CircularProgress size={15} />}
         >
           Ghost Loading
         </Button>
-        <Button variant='ghost' sx={{ width: '23em' }} disabled>
+        <Button
+          variant="ghost"
+          sx={{
+            width: "23em",
+          }}
+          disabled
+        >
           Ghost disabled
         </Button>
       </div>
@@ -87,88 +125,101 @@ export default function Theming () {
       <br />
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-around'
+          display: "flex",
+          justifyContent: "space-around",
         }}
       >
-        <Button variant='gradient' sx={{ width: '23em' }}>
+        <Button
+          variant="gradient"
+          sx={{
+            width: "23em",
+          }}
+        >
           Gradient
         </Button>
         <Button
-          variant='gradient'
-          sx={{ width: '23em' }}
+          variant="gradient"
+          sx={{
+            width: "23em",
+          }}
           startIcon={<CircularProgress size={15} />}
         >
           Gradient Loading
         </Button>
-        <Button variant='gradient' sx={{ width: '23em' }} disabled>
+        <Button
+          variant="gradient"
+          sx={{
+            width: "23em",
+          }}
+          disabled
+        >
           Gradient disabled
         </Button>
       </div>
       <br />
       <br />
 
-      <Typography variant='h2'>Typography</Typography>
+      <Typography variant="h2">Typography</Typography>
       <br />
       <br />
 
-      <Typography variant='h4'>Headings</Typography>
+      <Typography variant="h4">Headings</Typography>
       <br />
       <br />
-      <Typography variant='display1'>Welcome to Fuji - Display 1</Typography>
+      <Typography variant="display1">Welcome to Fuji - Display 1</Typography>
       <br />
-      <Typography variant='display2'>Welcome to Fuji - Display 2</Typography>
+      <Typography variant="display2">Welcome to Fuji - Display 2</Typography>
       <br />
-      <Typography variant='h1'>Welcome to Fuji - Title 1</Typography>
+      <Typography variant="h1">Welcome to Fuji - Title 1</Typography>
       <br />
-      <Typography variant='h2'>Welcome to Fuji - Title 2</Typography>
+      <Typography variant="h2">Welcome to Fuji - Title 2</Typography>
       <br />
-      <Typography variant='h3'>Welcome to Fuji - Title 4</Typography>
+      <Typography variant="h3">Welcome to Fuji - Title 4</Typography>
       <br />
-      <Typography variant='h4'>Welcome to Fuji - Title 4</Typography>
+      <Typography variant="h4">Welcome to Fuji - Title 4</Typography>
       <br />
-      <Typography variant='h5'>Welcome to Fuji - Title 5</Typography>
+      <Typography variant="h5">Welcome to Fuji - Title 5</Typography>
       <br />
-      <Typography variant='h6'>Welcome to Fuji - Title 6</Typography>
-      <br />
-      <br />
-      <Typography variant='h4'>Body</Typography>
+      <Typography variant="h6">Welcome to Fuji - Title 6</Typography>
       <br />
       <br />
-      <Typography variant='body'>Welcome to Fuji - Body</Typography>
-      <br />
-      <Typography variant='small'>Welcome to Fuji - Small</Typography>
-      <br />
-      <Typography variant='xsmall'>Welcome to Fuji - xSmall</Typography>
+      <Typography variant="h4">Body</Typography>
       <br />
       <br />
-      <Typography variant='h4'>Labels</Typography>
+      <Typography variant="body">Welcome to Fuji - Body</Typography>
+      <br />
+      <Typography variant="small">Welcome to Fuji - Small</Typography>
+      <br />
+      <Typography variant="xsmall">Welcome to Fuji - xSmall</Typography>
       <br />
       <br />
-      <Typography variant='label'>Welcome to Fuji - Label</Typography>
+      <Typography variant="h4">Labels</Typography>
+      <br />
+      <br />
+      <Typography variant="label">Welcome to Fuji - Label</Typography>
       <br />
       <br />
 
-      <Typography variant='h2'>Colors</Typography>
+      <Typography variant="h2">Colors</Typography>
       <br />
       <br />
-      <Typography variant='h4'>Primary</Typography>
+      <Typography variant="h4">Primary</Typography>
       <br />
       <br />
       <div
         style={{
-          display: 'flex',
-          gap: '1rem'
+          display: "flex",
+          gap: "1rem",
         }}
       >
         <Box
           sx={{
-            backgroundColor: 'primary.main',
+            backgroundColor: "primary.main",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Brand
@@ -178,9 +229,9 @@ export default function Theming () {
             background: `linear-gradient(92.29deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Gradient 1
@@ -191,9 +242,9 @@ export default function Theming () {
             background: `linear-gradient(287.45deg,  ${theme.palette.primary.contrastText} 0%,  ${theme.palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Gradient 2
@@ -203,66 +254,66 @@ export default function Theming () {
       <br />
       <div
         style={{
-          display: 'flex',
-          gap: '1rem'
+          display: "flex",
+          gap: "1rem",
         }}
       >
         <Box
           sx={{
-            backgroundColor: 'text.primary',
+            backgroundColor: "text.primary",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Main text
         </Box>
         <Box
           sx={{
-            backgroundColor: 'text.secondary',
+            backgroundColor: "text.secondary",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Sub text
         </Box>
         <Box
           sx={{
-            backgroundColor: 'info.dark',
+            backgroundColor: "info.dark",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Sub text 2
         </Box>
         <Box
           sx={{
-            backgroundColor: 'info.main',
+            backgroundColor: "info.main",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Description text
         </Box>
         <Box
           sx={{
-            backgroundColor: 'text.disabled',
+            backgroundColor: "text.disabled",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Inactive text
@@ -270,59 +321,59 @@ export default function Theming () {
       </div>
       <br />
       <br />
-      <Typography variant='h4'>Secondary // Backgrounds</Typography>
+      <Typography variant="h4">Secondary // Backgrounds</Typography>
       <br />
       <br />
       <div
         style={{
-          display: 'flex',
-          gap: '1rem'
+          display: "flex",
+          gap: "1rem",
         }}
       >
         <Box
           sx={{
-            backgroundColor: 'background.default',
+            backgroundColor: "background.default",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Grey
         </Box>
         <Box
           sx={{
-            backgroundColor: 'secondary.dark',
+            backgroundColor: "secondary.dark",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Dark Grey
         </Box>
         <Box
           sx={{
-            backgroundColor: 'secondary.contrastText',
+            backgroundColor: "secondary.contrastText",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Black
         </Box>
         <Box
           sx={{
-            backgroundColor: 'secondary.light',
+            backgroundColor: "secondary.light",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'white',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "white",
+            padding: "1rem",
           }}
         >
           Grey Border
@@ -330,47 +381,47 @@ export default function Theming () {
       </div>
       <br />
       <br />
-      <Typography variant='h4'>Status</Typography>
+      <Typography variant="h4">Status</Typography>
       <br />
       <br />
       <div
         style={{
-          display: 'flex',
-          gap: '1rem'
+          display: "flex",
+          gap: "1rem",
         }}
       >
         <Box
           sx={{
-            backgroundColor: 'success.main',
+            backgroundColor: "success.main",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Success
         </Box>
         <Box
           sx={{
-            backgroundColor: 'error.main',
+            backgroundColor: "error.main",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Fail
         </Box>
         <Box
           sx={{
-            backgroundColor: 'warning.main',
+            backgroundColor: "warning.main",
             width: 150,
             height: 100,
-            borderRadius: '1rem',
-            color: 'black',
-            padding: '1rem'
+            borderRadius: "1rem",
+            color: "black",
+            padding: "1rem",
           }}
         >
           Borrow interest

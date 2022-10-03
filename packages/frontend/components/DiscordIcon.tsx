@@ -1,8 +1,8 @@
 import { SvgIcon, useTheme } from "@mui/material"
 
 export const DiscordIcon = () => {
-  const theme = useTheme();
-  
+  const theme = useTheme()
+
   return (
     <SvgIcon
       role="img"

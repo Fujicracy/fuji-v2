@@ -39,7 +39,12 @@ const Header = () => {
   return (
     <>
       <AppBar position="static">
-        <Box sx={{ background: palette.background.paper, padding: "0 2rem" }}>
+        <Box
+          sx={{
+            background: palette.background.paper,
+            padding: "0 2rem",
+          }}
+        >
           <Toolbar disableGutters>
             <Link href="/">
               <a className={styles.logoTitle}>
@@ -53,7 +58,15 @@ const Header = () => {
               </a>
             </Link>
 
-            <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: {
+                  xs: "flex",
+                  md: "none",
+                },
+              }}
+            >
               <IconButton
                 size="large"
                 aria-label="account of current user"
@@ -79,7 +92,10 @@ const Header = () => {
                 open={Boolean(anchorElNav)}
                 onClose={handleCloseNavMenu}
                 sx={{
-                  display: { xs: "block", md: "none" },
+                  display: {
+                    xs: "block",
+                    md: "none",
+                  },
                 }}
               >
                 {pages.map(page => (
@@ -95,7 +111,10 @@ const Header = () => {
             <MenuList
               sx={{
                 flexGrow: 1,
-                display: { xs: "none", md: "flex" },
+                display: {
+                  xs: "none",
+                  md: "flex",
+                },
                 justifyContent: "center",
                 ml: "12rem",
                 mt: 1,
@@ -149,7 +168,13 @@ const BalanceAddress = () => {
   const address = "0x6BV8...8974"
 
   return (
-    <Box display="grid" gridTemplateColumns="1fr" sx={{ ml: "5rem" }}>
+    <Box
+      display="grid"
+      gridTemplateColumns="1fr"
+      sx={{
+        ml: "5rem",
+      }}
+    >
       <Box
         gridColumn={1}
         gridRow={1}
