@@ -33,6 +33,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       }}
     >
       <ThemeProvider theme={theme}>
+        <div className="backdrop"></div>
         <Component {...pageProps} />
       </ThemeProvider>
     </GlobalStateContext.Provider>
