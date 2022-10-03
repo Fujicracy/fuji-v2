@@ -21,6 +21,11 @@ contract MockERC20 is ERC20 {
     _mint(to, value);
   }
 
+    function burnDebt(address from, uint256 value) public {
+    _balancesDebt[from] -= value;
+    _mint(from, value);
+  }
+
   function balanceOfDebt(address who) public view returns (uint256) {
     return _balancesDebt[who];
   }

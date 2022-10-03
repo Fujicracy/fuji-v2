@@ -117,8 +117,10 @@ contract VaultTest is DSTestPlus {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 100e18;
 
+    assertEq(vault.totalDebt(), 0);
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
+    assertEq(vault.totalDebt(), borrowAmount);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
   }
 
@@ -130,7 +132,9 @@ contract VaultTest is DSTestPlus {
 
     vm.startPrank(alice);
     SafeERC20.safeApprove(debtAsset, address(vault), borrowAmount);
+    assertEq(vault.totalDebt(), borrowAmount);
     vault.payback(borrowAmount, alice);
+    assertEq(vault.totalDebt(), 0);
     vault.withdraw(amount, alice, alice);
     vm.stopPrank();
 
