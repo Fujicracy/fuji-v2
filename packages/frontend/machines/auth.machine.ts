@@ -83,7 +83,7 @@ const onboard = Onboard({
   // },
   accountCenter: {
     desktop: {
-      position: "topRight",
+      position: "bottomLeft", // topRight
       enabled: true,
       minimal: false,
     },
@@ -109,7 +109,13 @@ interface MachineContext {
 const initialContext: MachineContext = {
   unsubscribe: undefined,
 }
-type MachineEvent = { type: "INITIALIZE" } | { type: "LOGOUT" }
+type MachineEvent =
+  | {
+      type: "INITIALIZE"
+    }
+  | {
+      type: "LOGOUT"
+    }
 
 /**
  * Events
@@ -133,7 +139,10 @@ const reconnect = async () => {
   const wallets = JSON.parse(previouslyConnectedWallets)
 
   await onboard.connectWallet({
-    autoSelect: { label: wallets[0], disableModals: true },
+    autoSelect: {
+      label: wallets[0],
+      disableModals: true,
+    },
   })
 }
 
@@ -151,7 +160,9 @@ const unubscribeToWalletChange = assign(
     if (ctx.unsubscribe) {
       ctx.unsubscribe()
     }
-    return { unsubscribe: undefined }
+    return {
+      unsubscribe: undefined,
+    }
   }
 )
 
@@ -162,19 +173,25 @@ const subscribeToWalletChange = assign(
       const connectedWallets = wallets.map(({ label }) => label)
       localStorage.setItem("connectedWallets", JSON.stringify(connectedWallets))
     })
-    return { unsubscribe }
+    return {
+      unsubscribe,
+    }
   }
 )
 
 const reset = async (ctx: MachineContext, evt: MachineEvent) => {
   // disconnect the first wallet in the wallets array
   const [primaryWallet] = onboard.state.get().wallets
-  await onboard.disconnectWallet({ label: primaryWallet.label })
+  await onboard.disconnectWallet({
+    label: primaryWallet.label,
+  })
 }
 
 const trackLogin = (ctx: MachineContext, evt: MachineEvent) => {
   const address = onboard.state.get().wallets[0].accounts[0].address
-  mixpanel.track("login", { address })
+  mixpanel.track("login", {
+    address,
+  })
 }
 
 // TODO: Should be renamed usermachine and store user wallets and balance ?
@@ -247,7 +264,10 @@ const authMachine = createMachine(
       reset,
       trackLogin,
     },
-    services: { login, reconnect },
+    services: {
+      login,
+      reconnect,
+    },
   }
 )
 

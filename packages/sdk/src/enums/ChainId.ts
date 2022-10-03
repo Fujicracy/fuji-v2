@@ -1,0 +1,10 @@
+export enum ChainId {
+  ETHEREUM = 1,
+  GOERLI = 5,
+  OPTIMISM = 10,
+  MATIC = 137,
+  FANTOM = 250,
+  OPTIMISM_GOERLI = 420,
+  ARBITRUM = 42161,
+  MATIC_MUMBAI = 80001,
+}

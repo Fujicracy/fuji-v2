@@ -1,62 +1,72 @@
 import { useState } from "react"
+import { useTheme } from "@mui/material/styles"
 import Link from "next/link"
-import AppBar from "@mui/material/AppBar"
-import Box from "@mui/material/Box"
-import Toolbar from "@mui/material/Toolbar"
-import IconButton from "@mui/material/IconButton"
-import Typography from "@mui/material/Typography"
-import Menu from "@mui/material/Menu"
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  MenuItem,
+  MenuList,
+  Grid,
+} from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
-import Container from "@mui/material/Container"
-import Button from "@mui/material/Button"
-import MenuItem from "@mui/material/MenuItem"
-import AdbIcon from "@mui/icons-material/Adb"
+import Image from "next/image"
+import { useRouter } from "next/router"
 
-const pages = ["Borrow", "Markets", "My positions"]
-// const settings = ["Profile", "Account", "Dashboard", "Logout"]
+import styles from "../styles/components/Header.module.css"
+import ChainSelect from "./Form/ChainSelect"
+import ParametersModal from "./ParametersModal"
+
+const pages = ["Markets", "Borrow", "Lend", "My positions"]
+if (process.env.NODE_ENV === "development") {
+  pages.push("Theming") // TODO: "Theming" page is to test design system
+}
 
 const Header = () => {
+  const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
-  // const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
+  const router = useRouter()
+  const currentPage = router.pathname.substring(1) // TODO: Maybe not the best way
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
-  // const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) =>
-  //   setAnchorElUser(event.currentTarget)
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
-  // const handleCloseUserMenu = () => setAnchorElUser(null)
 
   return (
     <>
       <AppBar position="static">
-        <Container maxWidth="xl">
+        <Box
+          sx={{
+            background: palette.background.paper,
+            padding: "0 2rem",
+          }}
+        >
           <Toolbar disableGutters>
             <Link href="/">
-              <>
-                <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-                <Typography
-                  variant="h6"
-                  noWrap
-                  component="a"
-                  href="/"
-                  sx={{
-                    mr: 2,
-                    display: { xs: "none", md: "flex" },
-                    fontFamily: "monospace",
-                    fontWeight: 700,
-                    letterSpacing: ".3rem",
-                    color: "inherit",
-                    textDecoration: "none",
-                  }}
-                >
-                  Fuji v2
-                  {/* TODO: Logo */}
-                </Typography>
-              </>
+              <a className={styles.logoTitle}>
+                <Image
+                  src="/assets/images/logo/logo-title.svg"
+                  alt="Logo Fuji"
+                  width={120}
+                  height={80}
+                  layout="fixed"
+                />
+              </a>
             </Link>
 
-            <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: {
+                  xs: "flex",
+                  md: "none",
+                },
+              }}
+            >
               <IconButton
                 size="large"
                 aria-label="account of current user"
@@ -82,85 +92,120 @@ const Header = () => {
                 open={Boolean(anchorElNav)}
                 onClose={handleCloseNavMenu}
                 sx={{
-                  display: { xs: "block", md: "none" },
+                  display: {
+                    xs: "block",
+                    md: "none",
+                  },
                 }}
               >
-                {pages.map(page => (
+                {pages.map((page) => (
                   <MenuItem key={page} onClick={handleCloseNavMenu}>
                     <Link href={`/${page.toLowerCase()}`}>
-                      <Typography textAlign="center">{page}</Typography>
+                      <Typography align="center">{page}</Typography>
                     </Link>
                   </MenuItem>
                 ))}
               </Menu>
             </Box>
-            <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href=""
+
+            <MenuList
               sx={{
-                mr: 2,
-                display: { xs: "flex", md: "none" },
                 flexGrow: 1,
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
+                display: {
+                  xs: "none",
+                  md: "flex",
+                },
+                justifyContent: "center",
+                ml: "12rem",
+                mt: 1,
               }}
             >
-              Fuji v2
-              {/* TODO: Logo */}
-            </Typography>
-            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-              {pages.map(page => (
-                <Link key={page} href={`/${page.toLowerCase()}`}>
-                  <Button
-                    key={page}
-                    onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: "white", display: "block" }}
-                  >
-                    {page}
-                  </Button>
-                </Link>
+              {pages.map((page: string) => (
+                <MenuItem
+                  key={page}
+                  sx={{
+                    color:
+                      page.toLowerCase() === currentPage
+                        ? "primary.main"
+                        : "text.primary",
+                    textShadow:
+                      page.toLowerCase() === currentPage
+                        ? `${palette.primary.main} 0rem 0rem 0.125rem`
+                        : "",
+                    "&:hover": {
+                      color: "primary.main",
+                      background: "transparent",
+                      textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
+                    },
+                  }}
+                >
+                  <Link href={`/${page.toLowerCase()}`}>{page}</Link>
+                </MenuItem>
               ))}
-            </Box>
+            </MenuList>
 
-            {/* <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: "45px" }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
-              >
-                {settings.map(setting => (
-                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                    <Typography textAlign="center">{setting}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box> */}
+            <Grid container columnGap="0.5rem" justifyContent="flex-end">
+              <Grid item>
+                <ChainSelect />
+              </Grid>
+              <Grid item>
+                <BalanceAddress />
+              </Grid>
+              <Grid item>
+                <ParametersModal />
+              </Grid>
+            </Grid>
           </Toolbar>
-        </Container>
+        </Box>
       </AppBar>
     </>
   )
 }
+
+const BalanceAddress = () => {
+  const theme = useTheme()
+  const balance = 4.23
+  const address = "0x6BV8...8974"
+
+  return (
+    <Box
+      display="grid"
+      gridTemplateColumns="1fr"
+      sx={{
+        ml: "5rem",
+      }}
+    >
+      <Box
+        gridColumn={1}
+        gridRow={1}
+        sx={{
+          background: "rgba(255, 255, 255, 0.1)",
+          borderRadius: "4rem",
+          height: "2.25rem",
+          padding: "0.438rem 0.75rem",
+          marginLeft: "-5rem",
+        }}
+      >
+        <Typography align="center" variant="small">
+          {balance} ETH
+        </Typography>
+      </Box>
+      <Box
+        gridColumn={1}
+        gridRow={1}
+        sx={{
+          background: theme.palette.secondary.light,
+          borderRadius: "4rem",
+          height: "2.25rem",
+          padding: "0.438rem 0.75rem",
+        }}
+      >
+        <Typography align="center" variant="small">
+          {address}
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
 export default Header

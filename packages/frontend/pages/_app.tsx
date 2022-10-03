@@ -1,19 +1,15 @@
 import "../styles/globals.css"
-import type { AppProps } from "next/app"
+import { AppProps } from "next/app"
 import { inspect } from "@xstate/inspect"
 import { createContext, useEffect } from "react"
 import { useInterpret } from "@xstate/react"
 import { authMachine } from "../machines/auth.machine"
 import { InterpreterFrom } from "xstate"
 import mixpanel from "mixpanel-browser"
+import { ThemeProvider } from "@mui/material"
 
-// if (typeof window !== "undefined") {
-//   inspect({
-//     // options
-//     // url: 'https://stately.ai/viz?inspect', // (default)
-//     iframe: false, // open in new window
-//   })
-// }
+import { theme } from "../styles/theme"
+
 interface GlobalStateContext {
   authService: InterpreterFrom<typeof authMachine>
 }
@@ -31,8 +27,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [authService])
 
   return (
-    <GlobalStateContext.Provider value={{ authService }}>
-      <Component {...pageProps} />
+    <GlobalStateContext.Provider
+      value={{
+        authService,
+      }}
+    >
+      <ThemeProvider theme={theme}>
+        <Component {...pageProps} />
+      </ThemeProvider>
     </GlobalStateContext.Provider>
   )
 }
