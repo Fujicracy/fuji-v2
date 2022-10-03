@@ -53,7 +53,6 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                             onChange={props.onChangeToken}
                             IconComponent={KeyboardArrowDownIcon}
                             sx={{
-                                marginBottom: "1rem",
                                 boxShadow: "none",
                                 ".MuiOutlinedInput-notchedOutline": {
                                     border: 0,

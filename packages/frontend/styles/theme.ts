@@ -104,6 +104,7 @@ const theme = createTheme(colorTheme, {
       lineHeight: '150%'
     },
     regularH4: {
+      display: 'block',
       fontWeight: 600,
       fontSize: '1.5rem',
       lineHeight: '120%'
@@ -163,7 +164,7 @@ const theme = createTheme(colorTheme, {
           },
           '&:hover': {
             opacity: 0.9,
-            borderColor: colorTheme.palette.primary,
+            borderColor: colorTheme.palette.primary
           }
         }
       },
@@ -332,7 +333,7 @@ const theme = createTheme(colorTheme, {
           color: colorTheme.palette.text.secondary,
           cursor: 'pointer',
           ':hover': {
-            color: colorTheme.palette.primary.main,
+            color: colorTheme.palette.primary.main
           }
         }
       }

@@ -49,8 +49,15 @@ export default function Borrow() {
             )}
 
             {current.matches("editing") && (
-                <Card>
-                    <CardContent sx={{ p: "1.5rem 2rem" }}>
+                <Card
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        p: "0.5rem 0",
+                    }}
+                >
+                    <CardContent>
                         <Typography variant="body2">Borrow</Typography>
 
                         <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
@@ -284,6 +291,7 @@ export default function Borrow() {
                             disabled
                             onClick={() => alert("not implemented")}
                             fullWidth
+                            className={styles.btn}
                         >
                             Sign
                         </Button>
@@ -296,6 +304,7 @@ export default function Borrow() {
                             disabled
                             onClick={() => alert("not implemented")}
                             fullWidth
+                            className={styles.btn}
                         >
                             Borrow
                         </Button>

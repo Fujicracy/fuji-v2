@@ -2,7 +2,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  src: url('../public/assets/fonts/Inter-Regular.ttf')
+  src: url('../public/assets/fonts/Inter-Regular.ttf');
 }
 
 html,
@@ -36,6 +36,9 @@ input::-webkit-inner-spin-button {
   body {
     color: white;
     background: black;
+    background-image: url('../public/assets/images/backdrops/red.svg');
+    background-repeat: no-repeat;
+    background-position: center 100%;
+    background-size: 39rem;
   }
 }
-

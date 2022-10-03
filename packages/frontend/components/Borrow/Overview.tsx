@@ -39,7 +39,7 @@ export default function Overview() {
                     <Typography variant="body2">Overview</Typography>
                     <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
-                    <Grid container rowSpacing="1rem" columnSpacing="1rem">
+                    <Grid container columnSpacing="1rem">
                         <Grid item xs={6}>
                             <CurrencyCard
                                 informations={{
@@ -79,7 +79,7 @@ export default function Overview() {
                         </Grid>
                     </Grid>
 
-                    <Divider sx={{ mt: 1.5, mb: 1.5 }} />
+                    <Divider sx={{ mb: 1.5 }} />
 
                     <LTVProgressBar borrowLimit={0} value={45} />
 
