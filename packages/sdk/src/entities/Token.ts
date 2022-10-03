@@ -1,7 +1,5 @@
-import { EventFilter } from '@ethersproject/abstract-provider';
 import { BigNumber } from '@ethersproject/bignumber';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 import warning from 'tiny-warning';
 
@@ -29,15 +27,6 @@ export class Token extends AbstractCurrency {
    */
   contract?: ERC20Contract;
 
-  currentBalanceStream?: {
-    account: Address;
-    stream: Observable<BigNumber>;
-    emitter: BehaviorSubject<string>;
-    fromFilter: EventFilter;
-    toFilter: EventFilter;
-    subsriptions: number;
-  };
-
   constructor(
     chainId: ChainId,
     address: Address,
@@ -61,12 +50,11 @@ export class Token extends AbstractCurrency {
    * {@inheritDoc AbstractCurrency.setConnection}
    */
   setConnection(configParams: ChainConfigParams): Token {
-    warning(!this.wssProvider, 'Connection already set!');
-    if (this.wssProvider) return this;
+    warning(!this.rpcProvider, 'Connection already set!');
+    if (this.rpcProvider) return this;
 
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
-    this.wssProvider = connection.wssProvider;
 
     this.contract = ERC20__factory.connect(
       this.address.value,
@@ -90,58 +78,15 @@ export class Token extends AbstractCurrency {
    * @throws if {@link setConnection} was not called beforehand
    */
   balanceOfStream(account: Address): Observable<BigNumber> {
-    invariant(this.contract && this.wssProvider, 'Connection not set!');
+    invariant(this.contract, 'Connection not set!');
 
-    // if there is already a stream for another account,
-    // remove first its event listeners and reset it
-    // to avoid unnecessary calls
-    if (
-      this.currentBalanceStream &&
-      !this.currentBalanceStream.account.equals(account)
-    ) {
-      this.wssProvider.removeAllListeners(
-        this.currentBalanceStream?.fromFilter
-      );
-      this.wssProvider.removeAllListeners(this.currentBalanceStream?.toFilter);
-      this.currentBalanceStream.emitter.complete();
-      this.currentBalanceStream = undefined;
-    }
-
-    // if there is an active stream for the same account, return it and
-    // display warning if there are more than 5 subsriptions
-    if (this.currentBalanceStream?.account.equals(account)) {
-      this.currentBalanceStream.subsriptions += 1;
-      const count = this.currentBalanceStream.subsriptions;
-      warning(
-        count < 5,
-        `FUJI SDK: There are already more than ${count} subsriptions to this stream.
-        You might be doing something wrong! Consider unsubscribing!!!`
-      );
-
-      return this.currentBalanceStream.stream;
-    }
-
-    // Create a new stream
-    const emitter = new BehaviorSubject<string>('init');
-    const stream = emitter.pipe(switchMap(() => this.balanceOf(account)));
-
-    this.currentBalanceStream = {
-      account,
-      stream,
-      emitter,
-      subsriptions: 0,
-      fromFilter: this.contract.filters.Transfer(account.value),
-      toFilter: this.contract.filters.Transfer(null, account.value),
-    };
-
-    this.wssProvider.on(this.currentBalanceStream.fromFilter, () => {
-      emitter.next('from');
-    });
-    this.wssProvider.on(this.currentBalanceStream.toFilter, () => {
-      emitter.next('to');
-    });
-
-    return stream;
+    const filters = [
+      this.contract.filters.Transfer(account.value),
+      this.contract.filters.Transfer(null, account.value),
+    ];
+    return ChainConnection.streamFor(this, 'balanceOf', account, filters, () =>
+      this.balanceOf(account)
+    );
   }
 
   /**
@@ -151,6 +96,19 @@ export class Token extends AbstractCurrency {
   async allowance(owner: Address, spender: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.allowance(owner.value, spender.value);
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.allowanceStream}
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  allowanceStream(owner: Address, spender: Address): Observable<BigNumber> {
+    invariant(this.contract, 'Connection not set!');
+
+    const filters = [this.contract.filters.Approval(owner.value)];
+    return ChainConnection.streamFor(this, 'allowance', owner, filters, () =>
+      this.allowance(owner, spender)
+    );
   }
 
   /**
