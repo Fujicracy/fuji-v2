@@ -1,6 +1,7 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import {
@@ -25,9 +26,15 @@ import {
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
 import { ChainConnection } from './ChainConnection';
+import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
-export class BorrowingVault {
+type AccountBalances = {
+  deposit: BigNumber;
+  borrow: BigNumber;
+};
+
+export class BorrowingVault extends StreamManager {
   /**
    * The chain ID on which this vault resides
    */
@@ -93,6 +100,11 @@ export class BorrowingVault {
   rpcProvider?: JsonRpcProvider;
 
   /**
+   * The RPC provider for the specific chain
+   */
+  wssProvider?: WebSocketProvider;
+
+  /**
    * Map of user address and their nonce for this vault.
    *
    * @remarks
@@ -120,6 +132,8 @@ export class BorrowingVault {
 
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
+
+    super();
 
     this.address = address;
     this.collateral = collateral;
@@ -160,8 +174,9 @@ export class BorrowingVault {
    * @param configParams - {@link ChainConfigParams} object with infura and alchemy ids
    */
   setConnection(configParams: ChainConfigParams): BorrowingVault {
-    const { rpcProvider } = ChainConnection.from(configParams, this.chainId);
-    this.rpcProvider = rpcProvider;
+    const connection = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = connection.rpcProvider;
+    this.wssProvider = connection.wssProvider;
 
     this.contract = BorrowingVault__factory.connect(
       this.address.value,
@@ -259,14 +274,12 @@ export class BorrowingVault {
   }
 
   /**
-   * Returns deposit and borrow balance for an account.
+   * Returns deposit and borrow balances for an account.
    *
    * @param account - user address, wrapped in {@link Address}
    * @throws if {@link setConnection} was not called beforehand
    */
-  async getBalances(
-    account: Address
-  ): Promise<{ deposit: BigNumber; borrow: BigNumber }> {
+  async getBalances(account: Address): Promise<AccountBalances> {
     invariant(this._multicall, 'Connection not set?');
     const [deposit, borrow] = await this._multicall.rpcProvider.all([
       this._multicall.contract.balanceOf(account.value),
@@ -274,6 +287,30 @@ export class BorrowingVault {
     ]);
 
     return { deposit, borrow };
+  }
+
+  /**
+   * Returns a stream of deposit and borrow balances for an account.
+   *
+   * @param account - user address, wrapped in {@link Address}
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  getBalancesStream(account: Address): Observable<AccountBalances> {
+    invariant(this.contract && this.wssProvider, 'Connection not set!');
+    const filters = [
+      this.contract.filters.Deposit(null, account.value),
+      this.contract.filters.Payback(null, account.value),
+      this.contract.filters.Borrow(null, null, account.value),
+      this.contract.filters.Withdraw(null, null, account.value),
+    ];
+
+    return this.streamFrom<Address, AccountBalances>(
+      this.wssProvider,
+      this.getBalances,
+      [account],
+      account,
+      filters
+    );
   }
 
   /**
