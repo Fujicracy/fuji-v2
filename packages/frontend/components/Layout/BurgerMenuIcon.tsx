@@ -1,7 +1,7 @@
 import { SvgIcon, useTheme } from "@mui/material"
 
 export const BurgerMenuIcon = () => {
-  const theme = useTheme()
+  const { palette } = useTheme()
 
   return (
     <SvgIcon
@@ -11,8 +11,8 @@ export const BurgerMenuIcon = () => {
         fontSize: 22,
         marginLeft: "0.25rem",
         "&:hover": {
-          color: theme.palette.primary.main,
-          textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+          color: palette.primary.main,
+          textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
         },
       }}
       xmlns="http://www.w3.org/2000/svg"

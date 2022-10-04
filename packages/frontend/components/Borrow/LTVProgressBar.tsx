@@ -17,7 +17,7 @@ declare interface LTVProgressBarProps {
 }
 
 export default function LTVProgressBar(props: LTVProgressBarProps) {
-  const theme = useTheme()
+  const { palette } = useTheme()
 
   return (
     <Box>
@@ -118,14 +118,12 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       <LinearProgress
         sx={{
           borderRadius: "1.25rem",
-          background: theme.palette.background.default,
+          background: palette.background.default,
           height: "0.5rem",
           marginBottom: "0.5rem",
           ".css-uu0lzf-MuiLinearProgress-bar1": {
             background:
-              props.value <= 45
-                ? theme.palette.success.main
-                : theme.palette.warning.main,
+              props.value <= 45 ? palette.success.main : palette.warning.main,
             borderRadius: "1.25rem",
           },
         }}

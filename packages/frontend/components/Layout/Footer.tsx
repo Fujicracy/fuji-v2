@@ -12,7 +12,7 @@ declare interface Social {
 }
 
 function Footer() {
-  const theme = useTheme()
+  const { palette } = useTheme()
 
   const socials: Social[] = [
     {
@@ -22,8 +22,8 @@ function Footer() {
         <TwitterIcon
           sx={{
             "&:hover": {
-              color: theme.palette.primary.main,
-              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+              color: palette.primary.main,
+              textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
             },
           }}
         />
@@ -36,8 +36,8 @@ function Footer() {
         <TelegramIcon
           sx={{
             "&:hover": {
-              color: theme.palette.primary.main,
-              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+              color: palette.primary.main,
+              textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
             },
           }}
         />
@@ -55,7 +55,7 @@ function Footer() {
       style={{
         width: "100%",
         bottom: 0,
-        color: theme.palette.text.secondary,
+        color: palette.text.secondary,
       }}
     >
       <div

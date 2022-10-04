@@ -22,7 +22,7 @@ import PreviewTransaction from "./PreviewTransaction"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 
 export default function Overview() {
-  const theme = useTheme()
+  const { palette } = useTheme()
   const [showProvider, setShowProvider] = useState(false)
 
   return (
@@ -149,7 +149,7 @@ export default function Overview() {
                     sx={{
                       ml: "0.4rem",
                       fontSize: "0.875rem",
-                      color: theme.palette.info.dark,
+                      color: palette.info.dark,
                       display: { xs: "none", sm: "inline" },
                     }}
                   />
@@ -159,7 +159,7 @@ export default function Overview() {
                     sx={{
                       ml: "0.4rem",
                       fontSize: "0.875rem",
-                      color: theme.palette.info.dark,
+                      color: palette.info.dark,
                     }}
                   />
                 </ClickableTooltip>
@@ -173,7 +173,7 @@ export default function Overview() {
                     Aave:{" "}
                     <span
                       style={{
-                        color: theme.palette.success.main,
+                        color: palette.success.main,
                       }}
                     >
                       1.83%
@@ -182,7 +182,7 @@ export default function Overview() {
                       sx={{
                         marginLeft: "0.531rem",
                         marginRight: "0.25rem",
-                        borderRight: `0.063rem solid ${theme.palette.text.secondary}`,
+                        borderRight: `0.063rem solid ${palette.text.secondary}`,
                         borderBottom: 0,
                         display: "inline",
                       }}
@@ -213,7 +213,7 @@ export default function Overview() {
                       display: "flex",
                       justifyContent: "space-between",
                       ":hover": {
-                        color: theme.palette.text.primary,
+                        color: palette.text.primary,
                       },
                     }}
                   >
@@ -225,17 +225,7 @@ export default function Overview() {
             </Grid>
           </CardContent>
         </Card>
-
-        {/* {showPreviewTransaction ? (
-              <KeyboardArrowDownIcon />
-            ) : (
-              <KeyboardArrowUpIcon />
-            )} */}
       </Grid>
-
-      {/* <Collapse in={showPreviewTransaction}> */}
-
-      {/*  </Collapse> */}
     </Container>
   )
 }

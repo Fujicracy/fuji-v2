@@ -12,7 +12,6 @@ import {
   MenuList,
   Grid,
 } from "@mui/material"
-import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
 import { useRouter } from "next/router"
 
@@ -119,7 +118,7 @@ const Header = () => {
                 flexGrow: 1,
                 display: { xs: "none", md: "flex" },
                 justifyContent: "center",
-                ml: "12rem",
+                ml: "1rem",
                 mt: 1,
               }}
             >
@@ -151,7 +150,7 @@ const Header = () => {
               container
               columnGap="0.5rem"
               justifyContent="flex-end"
-              sx={{ display: { xs: "none", sm: "flex" } }}
+              sx={{ display: { xs: "none", sm: "flex" }, mt: "1rem" }}
             >
               <Grid item>
                 <ChainSelect minified={false} selectedChain={chains[0]} />
@@ -171,7 +170,7 @@ const Header = () => {
 }
 
 const BalanceAddress = () => {
-  const theme = useTheme()
+  const { palette } = useTheme()
   const balance = 4.23
   const address = "0x6BV8...8974"
 
@@ -196,7 +195,7 @@ const BalanceAddress = () => {
         gridColumn={1}
         gridRow={1}
         sx={{
-          background: theme.palette.secondary.light,
+          background: palette.secondary.light,
           borderRadius: "4rem",
           height: "2.25rem",
           padding: "0.438rem 0.75rem",
