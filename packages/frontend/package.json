@@ -28,7 +28,8 @@
     "next": "12.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "xstate": "^4.33.4"
+    "xstate": "^4.33.4",
+    "zustand": "^4.1.1"
   },
   "devDependencies": {
     "@types/mixpanel-browser": "^2.38.0",

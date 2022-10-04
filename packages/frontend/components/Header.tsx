@@ -11,6 +11,7 @@ import {
   MenuItem,
   MenuList,
   Grid,
+  Button,
 } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
@@ -19,6 +20,7 @@ import { useRouter } from "next/router"
 import styles from "../styles/components/Header.module.css"
 import ChainSelect from "./Form/ChainSelect"
 import ParametersModal from "./ParametersModal"
+import { useStore } from "../store"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -26,6 +28,12 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
+  const { address, status, balance, login } = useStore((state) => ({
+    status: state.status,
+    address: state.address,
+    balance: state.balance,
+    login: state.login,
+  }))
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
@@ -145,15 +153,28 @@ const Header = () => {
             </MenuList>
 
             <Grid container columnGap="0.5rem" justifyContent="flex-end">
-              <Grid item>
-                <ChainSelect />
-              </Grid>
-              <Grid item>
-                <BalanceAddress />
-              </Grid>
-              <Grid item>
-                <ParametersModal />
-              </Grid>
+              {status === "disconnected" && (
+                <Button variant="primary" onClick={login}>
+                  Connect wallet
+                </Button>
+              )}
+              {status === "connected" && (
+                <>
+                  <Grid item>
+                    <ChainSelect />
+                  </Grid>
+                  <Grid item>
+                    <BalanceAddress
+                      // TODO: imoprove store typing
+                      balance={balance}
+                      address={address as string}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <ParametersModal />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </Toolbar>
         </Box>
@@ -162,10 +183,14 @@ const Header = () => {
   )
 }
 
-const BalanceAddress = () => {
+type BalanceAddressProps = {
+  balance?: number
+  address: string
+}
+const BalanceAddress = (props: BalanceAddressProps) => {
+  const { balance, address } = props
+  const formattedAddress = `${address.substr(0, 4)}...${address.substr(-6, 6)}`
   const theme = useTheme()
-  const balance = 4.23
-  const address = "0x6BV8...8974"
 
   return (
     <Box
@@ -187,6 +212,7 @@ const BalanceAddress = () => {
         }}
       >
         <Typography align="center" variant="small">
+          {/* TODO: Handle number formatting. */}
           {balance} ETH
         </Typography>
       </Box>
@@ -201,7 +227,7 @@ const BalanceAddress = () => {
         }}
       >
         <Typography align="center" variant="small">
-          {address}
+          {formattedAddress}
         </Typography>
       </Box>
     </Box>
