@@ -8,12 +8,13 @@ import { ChainConfigParams } from '../types';
 import { Address } from './Address';
 import { ChainConnection } from './ChainConnection';
 import { Currency } from './Currency';
+import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
 /**
  * A currency is any fungible financial instrument, including Ether, all ERC20 tokens, and other chain-native currencies
  */
-export abstract class AbstractCurrency {
+export abstract class AbstractCurrency extends StreamManager {
   /**
    * Returns whether the currency is native to the chain and must be wrapped (e.g. Ether)
    */
@@ -68,6 +69,8 @@ export abstract class AbstractCurrency {
       decimals >= 0 && decimals < 255 && Number.isInteger(decimals),
       'DECIMALS'
     );
+
+    super();
 
     this.chainId = chainId;
     this.decimals = decimals;

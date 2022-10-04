@@ -55,6 +55,7 @@ export class Token extends AbstractCurrency {
 
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
+    this.wssProvider = connection.wssProvider;
 
     this.contract = ERC20__factory.connect(
       this.address.value,
@@ -68,7 +69,7 @@ export class Token extends AbstractCurrency {
    * {@inheritDoc AbstractCurrency.balanceOf}
    * @throws if {@link setConnection} was not called beforehand
    */
-  async balanceOf(account: Address): Promise<BigNumber> {
+  balanceOf(account: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.balanceOf(account.value);
   }
@@ -78,14 +79,18 @@ export class Token extends AbstractCurrency {
    * @throws if {@link setConnection} was not called beforehand
    */
   balanceOfStream(account: Address): Observable<BigNumber> {
-    invariant(this.contract, 'Connection not set!');
+    invariant(this.contract && this.wssProvider, 'Connection not set!');
 
     const filters = [
       this.contract.filters.Transfer(account.value),
       this.contract.filters.Transfer(null, account.value),
     ];
-    return ChainConnection.streamFor(this, 'balanceOf', account, filters, () =>
-      this.balanceOf(account)
+    return this.streamFrom<Address, BigNumber>(
+      this.wssProvider,
+      this.balanceOf,
+      [account],
+      account,
+      filters
     );
   }
 
@@ -107,11 +112,15 @@ export class Token extends AbstractCurrency {
    * @throws if {@link setConnection} was not called beforehand
    */
   allowanceStream(owner: Address, spender: Address): Observable<BigNumber> {
-    invariant(this.contract, 'Connection not set!');
+    invariant(this.contract && this.wssProvider, 'Connection not set!');
 
     const filters = [this.contract.filters.Approval(owner.value)];
-    return ChainConnection.streamFor(this, 'allowance', owner, filters, () =>
-      this.allowance(owner, spender)
+    return this.streamFrom<Address, BigNumber>(
+      this.wssProvider,
+      this.allowance,
+      [owner, spender],
+      owner,
+      filters
     );
   }
 
