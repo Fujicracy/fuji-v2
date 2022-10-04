@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react"
+import React from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Button,
@@ -18,9 +18,8 @@ import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
 
-type ParametersProps = {}
-
-export default function Parameters(props: ParametersProps) {
+export default function Parameters() {
+  const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
@@ -34,7 +33,15 @@ export default function Parameters(props: ParametersProps) {
 
   return (
     <>
-      <Button onClick={openMenu} size="small" variant="secondary2">
+      <Button
+        onClick={openMenu}
+        sx={{
+          border: "none",
+          borderRadius: "6.25rem",
+        }}
+        size="small"
+        variant="secondary"
+      >
         {isOpen ? <CloseIcon /> : <MoreHorizIcon />}
       </Button>
       <Menu

@@ -7,14 +7,17 @@ import {
   Typography,
   CardContent,
   Card,
-  Collapse,
   Grid,
   FormControl,
   Select,
   MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material"
+import { useTheme } from "@mui/material/styles"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 
 import borrowMachine from "../../machines/borrow.machine"
@@ -25,6 +28,7 @@ import styles from "../../styles/components/Borrow.module.css"
 type Chain = typeof chains[0]
 
 export default function Borrow() {
+  const { palette } = useTheme()
   const [current, send] = useMachine(borrowMachine, { devTools: true })
   const { collateral } = current.context
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
@@ -36,8 +40,6 @@ export default function Borrow() {
   const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
   const [borrowValue, setBorrowValue] = useState("")
   const [borrowToken, setBorrowToken] = useState(tokens[1])
-
-  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   return (
     <Container
@@ -181,32 +183,24 @@ export default function Borrow() {
             />
 
             <br />
-            <Card
-              variant="outlined"
-              sx={{ cursor: "pointer", border: "none" }}
-              onClick={() => setShowTransactionDetails(!showTransactionDetails)}
+
+            <Accordion
+              sx={{
+                "::before": { content: "none" },
+                padding: "0.3rem 0.5rem",
+                boxShadow: "none",
+                background: palette.secondary.dark,
+                borderRadius: "0.5rem",
+              }}
             >
-              <div className={styles.cardLine} style={{ height: 0 }}>
-                <Typography variant="small">Estimated Cost</Typography>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <div className={styles.cardLine}>
+                  <Typography variant="small">Estimated Cost</Typography>
                   <Typography variant="small">~$3.90</Typography>
-                  {showTransactionDetails ? (
-                    <KeyboardArrowDownIcon />
-                  ) : (
-                    <KeyboardArrowUpIcon />
-                  )}
                 </div>
-              </div>
-              <Collapse in={showTransactionDetails} sx={{ width: "100%" }}>
-                <div
-                  className={styles.cardLine}
-                  style={{ width: "92%", marginTop: "1rem" }}
-                >
+              </AccordionSummary>
+              <AccordionDetails>
+                <div className={styles.cardLine} style={{ width: "92%" }}>
                   <Typography variant="small">Gas fees</Typography>
                   <Typography variant="small">~$1.90</Typography>
                 </div>
@@ -227,8 +221,9 @@ export default function Borrow() {
                     <u>{"ETH > Polygon"}</u>
                   </Typography>
                 </div>
-              </Collapse>
-            </Card>
+              </AccordionDetails>
+            </Accordion>
+
             <br />
 
             <Button

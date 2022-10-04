@@ -280,7 +280,7 @@ const theme = createTheme(colorTheme, {
           fontWeight: 400,
           fontSize: '0.875rem',
           lineHeight: '160%',
-          color: colorTheme.palette.text.secondary,
+          color: colorTheme.palette.text.secondary.light,
         },
       },
       variants: [
@@ -351,15 +351,6 @@ const theme = createTheme(colorTheme, {
           ':hover': {
             color: colorTheme.palette.primary.main,
           },
-        },
-      },
-    },
-    MuiAccordion: {
-      styleOverrides: {
-        root: {
-          background: colorTheme.palette.secondary.contrastText,
-          padding: '0.3rem 0.5rem',
-          boxShadow: 'none',
         },
       },
     },

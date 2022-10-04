@@ -199,6 +199,10 @@ const BalanceAddress = () => {
           borderRadius: "4rem",
           height: "2.25rem",
           padding: "0.438rem 0.75rem",
+          cursor: "pointer",
+          ":hover": {
+            background: palette.secondary.main,
+          },
         }}
       >
         <Typography align="center" variant="small">
