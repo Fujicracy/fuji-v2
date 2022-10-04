@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction, Address, Deployment } from 'hardhat-deploy/types';
+import { DeployFunction, Address } from 'hardhat-deploy/types';
 import { ASSETS } from '../../utils/assets';
 
 import deployFujiOracle,
@@ -10,6 +10,7 @@ import { deployBorrowingVault } from '../../tasks/deployBorrowingVaultFactory';
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const assets: Address[] = getAssetAddresses('mainnet');
   const priceFeeds: Address[] = getPriceFeedAddresses('mainnet');
+
   await deployFujiOracle(hre, assets, priceFeeds);
   await deploySimpleRouter(hre, ASSETS['mainnet'].WETH.address);
 

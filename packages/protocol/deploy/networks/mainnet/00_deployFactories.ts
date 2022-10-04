@@ -6,14 +6,16 @@ import deployBorrowingVaultFactory from "../../tasks/deployBorrowingVaultFactory
 import deployAddrMapperFactory from "../../tasks/deployAddrMapperFactory";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-  await deployChief(hre);
-  const chiefDeployment: Deployment = (await hre.deployments.get('Chief'));
-  await deployBorrowingVaultFactory(hre, chiefDeployment.address);
-  const bVaultFactoryDeployment: Deployment = await hre.deployments.get('BorrowingVaultFactory');
-  await deployAddrMapperFactory(hre);
-
   const { deployments, getNamedAccounts } = hre;
   const { deployer } = await getNamedAccounts();
+
+  await deployChief(hre);
+
+  const chief: Deployment = await deployments.get('Chief');
+  await deployBorrowingVaultFactory(hre, chief.address);
+
+  const vaultFactory: Deployment = await deployments.get('BorrowingVaultFactory');
+  await deployAddrMapperFactory(hre);
 
   await deployments.execute('Chief', {
     from: deployer,
@@ -22,7 +24,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     waitConfirmations: 1
   },
     'addToAllowed',
-    bVaultFactoryDeployment.address
+    vaultFactory.address
   );
 };
 

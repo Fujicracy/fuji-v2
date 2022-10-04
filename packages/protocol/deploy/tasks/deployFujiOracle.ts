@@ -40,4 +40,4 @@ export const getPriceFeedAddresses = (network: string): Address[] => {
 
 export default deployFujiOracle;
 deployFujiOracle.tags = ['Oracle'];
-deployFujiOracle.skip = async (env: HardhatRuntimeEnvironment) => true;
+deployFujiOracle.skip = async (_env: HardhatRuntimeEnvironment) => true;

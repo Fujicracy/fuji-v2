@@ -18,4 +18,4 @@ const deployChief = async (hre: HardhatRuntimeEnvironment) => {
 
 export default deployChief;
 deployChief.tags = ['Chief'];
-deployChief.skip = async (env: HardhatRuntimeEnvironment) => true;
+deployChief.skip = async (_env: HardhatRuntimeEnvironment) => true;

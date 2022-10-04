@@ -18,4 +18,4 @@ const deployAddrMapperFactory = async (hre: HardhatRuntimeEnvironment) => {
 
 export default deployAddrMapperFactory;
 deployAddrMapperFactory.tags = ['AddrMapperFactory'];
-deployAddrMapperFactory.skip = async (env: HardhatRuntimeEnvironment) => true;
+deployAddrMapperFactory.skip = async (_env: HardhatRuntimeEnvironment) => true;

@@ -6,7 +6,9 @@
     "install": "forge install",
     "build": "forge build",
     "test": "forge test --no-match-contract '.Suite'",
-    "format:fix": "forge fmt"
+    "format:fix": "forge fmt",
+    "export-abis": "hardhat export-abi",
+    "generate-types": "yarn export-abis && typechain --target=ethers-v5 --out-dir typechain-types './abis/**/*.json'"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",

@@ -28,7 +28,7 @@ export const deployBorrowingVault = async (
   const { deployer } = await getNamedAccounts();
   const abiCoder = ethers.utils.defaultAbiCoder;
 
-  const bVaultFactoryDeployment: Deployment = await hre.deployments.get('BorrowingVaultFactory');
+  const vaultFactory: Deployment = await deployments.get('BorrowingVaultFactory');
   const vaultData = abiCoder.encode(["address", "address", "address"], [asset, debtAsset, oracle]);
 
   await deployments.execute('Chief', {
@@ -38,7 +38,7 @@ export const deployBorrowingVault = async (
     waitConfirmations: 1
   },
     'deployVault',
-    bVaultFactoryDeployment.address,
+    vaultFactory.address,
     vaultData
   );
 
@@ -46,4 +46,4 @@ export const deployBorrowingVault = async (
 
 export default deployBorrowingVaultFactory;
 deployBorrowingVaultFactory.tags = ['BorrowingVaultFactory'];
-deployBorrowingVaultFactory.skip = async (env: HardhatRuntimeEnvironment) => true;
+deployBorrowingVaultFactory.skip = async (_env: HardhatRuntimeEnvironment) => true;

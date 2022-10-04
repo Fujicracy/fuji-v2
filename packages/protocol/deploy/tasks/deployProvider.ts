@@ -1,5 +1,4 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Address } from 'hardhat-deploy/types';
 
 const deployProvider = async (hre: HardhatRuntimeEnvironment, providerName: string) => {
   const { deployments, getNamedAccounts } = hre;
@@ -19,4 +18,4 @@ const deployProvider = async (hre: HardhatRuntimeEnvironment, providerName: stri
 
 export default deployProvider;
 deployProvider.tags = ['Providers'];
-deployProvider.skip = async (env: HardhatRuntimeEnvironment) => true;
+deployProvider.skip = async (_env: HardhatRuntimeEnvironment) => true;

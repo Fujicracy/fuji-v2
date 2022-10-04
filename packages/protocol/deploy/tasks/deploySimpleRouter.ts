@@ -22,4 +22,4 @@ const deploySimpleRouter = async (
 
 export default deploySimpleRouter;
 deploySimpleRouter.tags = ['SimpleRouter'];
-deploySimpleRouter.skip = async (env: HardhatRuntimeEnvironment) => true;
+deploySimpleRouter.skip = async (_env: HardhatRuntimeEnvironment) => true;

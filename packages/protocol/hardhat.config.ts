@@ -10,8 +10,7 @@ const deployerPath: string = "./deployer.json";
 /** 
  * Tasks
 */
-import "./hardhat-tasks/generate";
-import { getWalletAddress, mnemonic } from "./hardhat-tasks/getWallet";
+import { mnemonic } from "./hardhat-tasks/getWallet";
 
 /** 
  * Configuration
