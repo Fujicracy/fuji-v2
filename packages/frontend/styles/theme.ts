@@ -233,11 +233,9 @@ const theme = createTheme(colorTheme, {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: '0.75rem',
           gap: '2rem',
-          //padding: '1.5rem 2rem 2rem',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'flex-start',
-          //color: colorTheme.palette.primary.light
           ':last-child': {
             paddingBottom: 0,
           },
@@ -354,6 +352,20 @@ const theme = createTheme(colorTheme, {
             color: colorTheme.palette.primary.main,
           },
         },
+      },
+    },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          background: colorTheme.palette.secondary.contrastText,
+          padding: '0.3rem 0.5rem',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {},
       },
     },
   },

@@ -35,10 +35,35 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
               }}
             />
           </Tooltip>
-          <Typography variant="xsmall">45% LTV (Recommended)</Typography>
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "none", sm: "inline" } }}
+          >
+            45% LTV (Recommended)
+          </Typography>
+
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "inline", sm: "none" } }}
+          >
+            SAFE LTV: 45%
+          </Typography>
         </Grid>
         <Grid item alignItems="center" marginRight="3rem">
-          <Typography variant="xsmall">75% LTV (MAX)</Typography>
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "none", sm: "inline" } }}
+          >
+            75% LTV (MAX)
+          </Typography>
+
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "inline", sm: "none" } }}
+          >
+            MAX LTV: 75%
+          </Typography>
+
           <Tooltip title="???" placement="top">
             <InfoOutlinedIcon
               sx={{
@@ -89,7 +114,24 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         variant="determinate"
       />
 
-      <Grid container justifyContent="space-between">
+      <Typography
+        variant="label"
+        color="success.main"
+        sx={{
+          marginLeft: `${(props.value > 75
+            ? props.value
+            : (props.value * 100) / 75) - 5}%`,
+          display: { xs: "block", sm: "none" },
+        }}
+      >
+        {props.value}%
+      </Typography>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        sx={{ display: { xs: "none", sm: "flex" } }}
+      >
         <div
           style={{
             display: "flex",

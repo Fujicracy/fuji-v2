@@ -1,11 +1,13 @@
-import { Container, Grid } from "@mui/material"
 import { NextPage } from "next"
 import Head from "next/head"
+
+import { Box, Card, Container, Grid, Typography } from "@mui/material"
 
 import Borrow from "../components/Borrow/Borrow"
 import Footer from "../components/Layout/Footer"
 import Header from "../components/Layout/Header"
 import Overview from "../components/Borrow/Overview"
+import { useState } from "react"
 
 const BorrowPage: NextPage = () => {
   return (
@@ -21,18 +23,25 @@ const BorrowPage: NextPage = () => {
 
       <Header />
 
-      <Container>
-        <Grid container wrap="wrap">
+      <Container
+        sx={{
+          pl: { xs: "0.25rem", sm: "1rem" },
+          pr: { xs: "0.25rem", sm: "1rem" },
+        }}
+      >
+        <Grid container wrap="wrap" justifyContent="center">
           <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>
-          <Grid sx={{ display: { xs: "none", sm: "block" } }} item md={7}>
+          <Grid item md={7}>
             <Overview />
           </Grid>
         </Grid>
       </Container>
 
-      <Footer />
+      <Box sx={{ display: { xs: "none", sm: "block" } }}>
+        <Footer />
+      </Box>
     </div>
   )
 }

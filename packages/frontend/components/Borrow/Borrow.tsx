@@ -40,7 +40,12 @@ export default function Borrow() {
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   return (
-    <Container>
+    <Container
+      sx={{
+        pl: { xs: "0.25rem", sm: "1rem" },
+        pr: { xs: "0.25rem", sm: "1rem" },
+      }}
+    >
       <p>
         Current state: <code>{current.value as string}</code>
       </p>
@@ -178,7 +183,7 @@ export default function Borrow() {
             <br />
             <Card
               variant="outlined"
-              style={{ cursor: "pointer" }}
+              sx={{ cursor: "pointer", border: "none" }}
               onClick={() => setShowTransactionDetails(!showTransactionDetails)}
             >
               <div className={styles.cardLine} style={{ height: 0 }}>
