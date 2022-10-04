@@ -8,6 +8,7 @@ import Footer from "../components/Layout/Footer"
 import Header from "../components/Layout/Header"
 import Overview from "../components/Borrow/Overview"
 import { useState } from "react"
+import PreviewTransaction from "../components/Borrow/PreviewTransaction"
 
 const BorrowPage: NextPage = () => {
   return (
@@ -33,8 +34,11 @@ const BorrowPage: NextPage = () => {
           <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>
-          <Grid item md={7}>
+          <Grid item md={7} sx={{ display: { xs: "none", sm: "flex" } }}>
             <Overview />
+          </Grid>
+          <Grid item xs={12} sx={{ display: { xs: "flex", sm: "none" } }}>
+            <PreviewTransaction />
           </Grid>
         </Grid>
       </Container>

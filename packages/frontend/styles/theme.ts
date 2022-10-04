@@ -363,9 +363,11 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiChip: {
+    MuiDialogContent: {
       styleOverrides: {
-        root: {},
+        root: {
+          padding: 0,
+        },
       },
     },
   },
