@@ -112,7 +112,7 @@ export class BorrowingVault extends StreamManager {
    * A compound operation is one that needs more then one signiture
    * in the same tx.
    */
-  private _cache: Map<Address, BigNumber>;
+  private _cache: Map<string, BigNumber>;
 
   /**
    * Domain separator needed when signing a tx
@@ -140,7 +140,7 @@ export class BorrowingVault extends StreamManager {
     this.chainId = collateral.chainId;
     this.debt = debt;
 
-    this._cache = new Map<Address, BigNumber>();
+    this._cache = new Map<string, BigNumber>();
     this._domainSeparator = '';
   }
 
@@ -214,7 +214,7 @@ export class BorrowingVault extends StreamManager {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
 
-    this._cache.set(account, nonce);
+    this._cache.set(account.value, nonce);
     this._domainSeparator = domainSeparator;
   }
 
@@ -367,10 +367,10 @@ export class BorrowingVault extends StreamManager {
     const { owner } = params;
 
     // if nonce for this user or domainSeparator aren't loaded yet
-    if (!this._cache.get(owner) || this._domainSeparator === '') {
+    if (!this._cache.get(owner.value) || this._domainSeparator === '') {
       await this.preLoad(owner);
     }
-    const nonce: BigNumber = this._cache.get(owner) as BigNumber;
+    const nonce: BigNumber = this._cache.get(owner.value) as BigNumber;
 
     // if deadline is not given, then set it to approx. 24h
     const deadline: number =
@@ -385,7 +385,7 @@ export class BorrowingVault extends StreamManager {
     // update _cache if user has to sign another operation in the same tx
     // For ex. when shifting a position from one vault to another,
     // user has to sign first WITHDRAW and then BORROW
-    this._cache.set(owner, nonce.add(BigNumber.from(1)));
+    this._cache.set(owner.value, nonce.add(BigNumber.from(1)));
 
     return digest;
   }
