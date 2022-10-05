@@ -13,11 +13,33 @@ contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20;
 
+  /**
+   * @dev Emitted when a user is liquidated
+   * @param account address whose assets are being liquidated.
+   * @param collateralSold `owner's` amount of collateral sold during liquidation.
+   * @param debtPaid `owner's` amount of debt paid back during liquidation.
+   * @param liquidator executor of liquidation.
+   */
+  event Liquidate(
+    address indexed account, uint256 collateralSold, uint256 debtPaid, address liquidator
+  );
+
   error BorrowingVault__borrow_wrongInput();
   error BorrowingVault__borrow_notEnoughAssets();
   error BorrowingVault__payback_wrongInput();
   error BorrowingVault__payback_moreThanMax();
   error BorrowingVault__liquidate_accountHealthy();
+
+  /// Liquidation controls
+
+  /// Returns default liquidation close factor: 50% of debt.
+  uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e18;
+  /// Returns max liquidation close factor: 100% of debt.
+  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
+  /// Returns health factor threshold at which max liquidation can occur.
+  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95;
+  /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
+  uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
   constructor(address asset_, address debtAsset_, address oracle_, address chief_)
     BaseVault(
@@ -285,104 +307,75 @@ contract BorrowingVault is BaseVault {
     debtSharesSupply -= amount;
   }
 
-
   //////////////////////
   ///  Liquidate    ////
   //////////////////////
 
-  /**
-  * @dev Log when a user is liquidated
-  */
-  event Liquidate(
-    address owner,
-    uint256 amountCollateralSold, // naming review
-    uint256 amountDebtPaid,
-    address liquidator
-  );
-
-  /**
-   * @notice healthFactor: a value below 100 means eligable for liquidation
-   * @param account address of the owner of the position
-   */
-  function computeHealthFactor(address account) public view returns (uint256 healthFactor) {
+  /// inheritdoc IVault
+  function getHealthFactor(address account) public view returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[account];
     uint256 debt = convertToDebt(debtShares);
-    
+
     if (debt == 0) {
       healthFactor = type(uint256).max;
-    }
-    else {
+    } else {
       uint256 assetShares = balanceOf(account);
-      uint256 assets = convertToAssets(assetShares); // put in internal function
+      uint256 assets = convertToAssets(assetShares);
       uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
 
-      healthFactor = (assets * maxLtv * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
+      healthFactor =
+        (assets * maxLtv * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
     }
   }
 
-  uint256 internal constant CLOSE_FACTOR_HF_THRESHOLD = 95;
-  uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e18;
-  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
-
-  /**
-   * @notice determine how much of the colletoral can be liquidated, based on health factor
-   * @param account address of the owner of the position
-   */
-  function determineLiquidatorFactor(address account) public view returns (uint256 liquidatorFactor) {
-    uint256 healthFactor = computeHealthFactor(account);
+  /// inheritdoc IVault
+  function getLiquidationFactor(address account) public view returns (uint256 liquidationFactor) {
+    uint256 healthFactor = getHealthFactor(account);
 
     if (healthFactor >= 100) {
-      liquidatorFactor = 0;
-    }
-    else if (CLOSE_FACTOR_HF_THRESHOLD < healthFactor) {
-      liquidatorFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50%
-    } 
-    else {
-      liquidatorFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100%
+      liquidationFactor = 0;
+    } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
+      liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of account's debt
+    } else {
+      liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of account's debt
     }
   }
 
-  /**
-   * @notice Performs liquidation of an unhealthy position, meaning a healthFacotor below 100. 
-   * The caller (= liquidator) pays back the debt of the owner and gets the proportional 
-   * amount of asset shares (collateral) at a discounted price. The owner keeps the debt but loses asset shares.
-   * @param owner address of the owner of the position
-   */
-  function liquidate(address owner) public {
+  /// inheritdoc IVault
+  function liquidate(address account) public returns (uint256 gainedShares) {
+    // TODO only liquidator role, that will be controlled at Chief level.
+
     address caller = _msgSender();
 
-    uint256 liquidatorFactor = determineLiquidatorFactor(owner);
-    if (liquidatorFactor == 0) {
+    uint256 liquidationFactor = getLiquidationFactor(account);
+    if (liquidationFactor == 0) {
       revert BorrowingVault__liquidate_accountHealthy();
     }
 
-    uint256 debtShares = _debtShares[owner];
+    // Compute debt amount that should be paid by liquidator.
+    uint256 debtShares = _debtShares[account];
     uint256 debt = convertToDebt(debtShares);
+    uint256 debtSharesToCover = Math.mulDiv(debtShares, liquidationFactor, 1e18);
+    uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
 
-    uint256 debtSharesToCover = Math.mulDiv(debtShares, liquidatorFactor, MAX_LIQUIDATION_CLOSE_FACTOR);
-    uint256 debtToCover = Math.mulDiv(debt, liquidatorFactor, MAX_LIQUIDATION_CLOSE_FACTOR);
-
+    // Compute 'gainedShares' amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
-    uint256 liquidationPenalty = 90;
-    uint256 discountedPrice = Math.mulDiv(price, liquidationPenalty, 100);
+    uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
+    uint256 gainedAssets = Math.mulDiv(debt, liquidationFactor, discountedPrice);
+    gainedShares = convertToShares(gainedAssets);
 
-    uint256 assetsLiquidator = Math.mulDiv(debt, liquidatorFactor, discountedPrice);
-    uint256 assetsLiquidatorShares = convertToShares(assetsLiquidator);
+    _payback(caller, account, debtToCover, debtSharesToCover);
 
-    _payback(caller, owner, debtToCover, debtSharesToCover);
-    
-    uint256 assetShares = balanceOf(owner);
-    if (assetsLiquidatorShares >= assetShares) {
-      assetsLiquidatorShares = assetShares;
+    // Ensure liquidator receives no more shares than 'account' owns.
+    uint256 existingShares = balanceOf(account);
+    if (gainedShares > existingShares) {
+      gainedShares = existingShares;
     }
-    _burn(owner, assetsLiquidatorShares); 
-    _mint(caller, assetsLiquidatorShares);
 
-    emit Liquidate(
-    owner,
-    assetsLiquidatorShares,
-    debtToCover,
-    caller
-  );
+    // Internal share adjusment between 'account' and 'liquidator'.
+    _burn(account, gainedShares);
+    _mint(caller, gainedShares);
+
+    emit Liquidate(account, gainedShares, debtToCover, caller);
   }
 }

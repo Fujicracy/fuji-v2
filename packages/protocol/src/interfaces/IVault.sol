@@ -160,6 +160,42 @@ interface IVault is IERC4626 {
    */
   function activeProvider() external returns (ILendingProvider);
 
+  //////////////////////
+  ///  Liquidate    ////
+  //////////////////////
+
+  /**
+   * @notice Returns the current health factor of 'account'.
+   * @param account address to get health factor
+   * @dev 'healthFactor' is scaled up by 100.
+   * A value below 100 means 'account' is eligable for liquidation.
+   *
+   * - MUST return type(uint254).max when 'account' has no debt.
+   */
+  function getHealthFactor(address account) external returns (uint256 healthFactor);
+
+  /**
+   * @notice Returns the liquidation close factor based on 'account's' health factor.
+   * @param account address owner of debt position.
+   *
+   * - MUST return zero if `account` is not liquidatable.
+   */
+  function getLiquidationFactor(address account) external returns (uint256 liquidationFactor);
+
+  /**
+   * @notice Performs liquidation of an unhealthy position, meaning a 'healthFactor' below 100.
+   * @param account address to be liquidated.
+   * @dev WARNING! It is liquidator's responsability to check if liquidation is profitable.
+   *
+   * - MUST revert if caller is not an approved liquidator.
+   * - MUST revert if 'account' is not liquidatable.
+   * - MUST emit the Liquidation event.
+   * - MUST liquidate 50% of 'account' debt when: 100 >= 'healthFactor' > 95.
+   * - MUST liquidate 100% of 'account' debt when: 95 > 'healthFactor'.
+   *
+   */
+  function liquidate(address account) external returns (uint256 gainedShares);
+
   ////////////////////////
   /// Setter functions ///
   ///////////////////////
@@ -180,19 +216,4 @@ interface IVault is IERC4626 {
    * - SHOULD be greater than zero.
    */
   function setDepositCap(uint256 newCap) external;
-  
-  /**
-   * @dev Computes the health factor of an account to check if it can be liquidated.
-   */
-  function computeHealthFactor(address account) external returns (uint256 healthFactor);
-
-  /**
-   * @dev Checks health factor to compute liquidation factor
-   */
-  function determineLiquidatorFactor(address account) external returns (uint256 liquidationFactor);
-
-  /**
-   * @dev Performs liquidation of owner's position
-   */  
-  function liquidate(address owner) external;
 }
