@@ -16,7 +16,6 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
-import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 
@@ -35,50 +34,20 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   address public immutable chief;
 
   IERC20Metadata internal immutable _asset;
-  IERC20Metadata internal immutable _debtAsset;
-
-  uint256 public debtSharesSupply;
-
-  mapping(address => uint256) internal _debtShares;
 
   ILendingProvider[] internal _providers;
   ILendingProvider public activeProvider;
 
-  IFujiOracle public oracle;
+  uint256 public minDepositAmount;
+  uint256 public depositCap;
 
-  /*
-  Factors
-  See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
-  */
-
-  /**
-   * @dev A factor that defines
-   * the maximum Loan-To-Value a user can take.
-   */
-  uint256 public maxLtv;
-  /**
-   * @dev A factor that defines the Loan-To-Value
-   * at which a user can be liquidated.
-   */
-  uint256 public liqRatio;
-
-  constructor(
-    address asset_,
-    address debtAsset_,
-    address oracle_,
-    address chief_,
-    string memory name_,
-    string memory symbol_
-  )
+  constructor(address asset_, address chief_, string memory name_, string memory symbol_)
     ERC20(name_, symbol_)
     VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
-    _debtAsset = IERC20Metadata(debtAsset_);
-    oracle = IFujiOracle(oracle_);
     chief = chief_;
-    maxLtv = 75 * 1e16;
-    liqRatio = 80 * 1e16;
+    depositCap = type(uint256).max;
   }
 
   /*////////////////////////////////////////////////////
@@ -167,7 +136,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return _isVaultCollateralized() ? type(uint256).max : 0;
+    return _isVaultCollateralized() ? depositCap : 0;
   }
 
   /// @inheritdoc IERC4626
@@ -207,7 +176,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    if (assets > maxDeposit(receiver)) {
+    if (assets + totalAssets() > maxDeposit(receiver) || assets < minDepositAmount) {
       revert BaseVault__deposit_moreThanMax();
     }
 
@@ -440,17 +409,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   {}
 
   /**
-   * @dev Internal function that computes how much debt
-   * a user can take against its 'asset' deposits.
-   *
-   * Requirements:
-   * - SHOULD be implemented in {BorrowingVault} contract.
-   * - SHOULD NOT be implemented in a {LendingVault} contract.
-   * - SHOULD read price from {FujiOracle}.
-   */
-  function _computeMaxBorrow(address borrower) internal view virtual returns (uint256);
-
-  /**
    * @dev Internal function that computes how much free 'assets'
    * a user can withdraw or transfer given their 'debt' balance.
    *
@@ -460,42 +418,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
    * - SHOULD read price from {FujiOracle}.
    */
   function _computeFreeAssets(address owner) internal view virtual returns (uint256);
-
-  /**
-   * @dev Internal conversion function (from debt to shares) with support for rounding direction.
-   * Will revert if debt > 0, debtSharesSupply > 0 and totalDebt = 0. That corresponds to a case where debt
-   * would represent an infinite amout of shares.
-   */
-  function _convertDebtToShares(uint256 debt, Math.Rounding rounding)
-    internal
-    view
-    virtual
-    returns (uint256);
-
-  /**
-   * @dev Internal conversion function (from shares to debt) with support for rounding direction.
-   */
-  function _convertToDebt(uint256 shares, Math.Rounding rounding)
-    internal
-    view
-    virtual
-    returns (uint256);
-
-  /**
-   * @dev Borrow/mintDebtShares common workflow.
-   */
-  function _borrow(address caller, address receiver, address owner, uint256 assets, uint256 shares)
-    internal
-    virtual;
-
-  /**
-   * @dev Payback/burnDebtShares common workflow.
-   */
-  function _payback(address caller, address owner, uint256 assets, uint256 shares) internal virtual;
-
-  function _mintDebtShares(address account, uint256 amount) internal virtual;
-
-  function _burnDebtShares(address account, uint256 amount) internal virtual;
 
   ////////////////////////////
   /// Fuji Vault functions ///
@@ -542,15 +464,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   /// Admin set functions ///
   ///////////////////////////
 
-  function setOracle(IFujiOracle newOracle) external {
-    // TODO needs admin restriction
-    // TODO needs input validation
-    oracle = newOracle;
-
-    emit OracleChanged(newOracle);
-  }
-
-  /// inheritdoc IVault
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
     uint256 pLenght = providers.length;
@@ -568,7 +481,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_) external {
+  function setActiveProvider(ILendingProvider activeProvider_) external override {
     // TODO needs admin restriction
     if (!_isValidProvider(address(activeProvider_))) {
       revert BaseVault__setter_invalidInput();
@@ -587,36 +500,21 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     emit ActiveProviderChanged(activeProvider_);
   }
 
-  /**
-   * @dev Sets the maximum Loan-To-Value factor of this vault.
-   * See factor:
-   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
-   * Restrictions:
-   * - SHOULD be at least 1%.
-   */
-  function setMaxLtv(uint256 maxLtv_) external {
-    if (maxLtv_ < 1e16) {
-      revert BaseVault__setter_invalidInput();
-    }
+  /// inheritdoc IVault
+  function setMinDepositAmount(uint256 amount) external override {
     // TODO needs admin restriction
-    maxLtv = maxLtv_;
-    emit MaxLtvChanged(maxLtv);
+    minDepositAmount = amount;
+    emit MinDepositAmountChanged(amount);
   }
 
-  /**
-   * @dev Sets the Loan-To-Value liquidation threshold factor of this vault.
-   * See factor:
-   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
-   * Restrictions:
-   * - SHOULD be greater than 'maxLTV'.
-   */
-  function setLiqRatio(uint256 liqRatio_) external {
-    if (liqRatio_ < maxLtv) {
+  /// inheritdoc IVault
+  function setDepositCap(uint256 newCap) external override {
+    // TODO needs admin restriction
+    if (newCap == 0 || newCap <= minDepositAmount) {
       revert BaseVault__setter_invalidInput();
     }
-    // TODO needs admin restriction
-    liqRatio = liqRatio_;
-    emit LiqRatioChanged(liqRatio);
+    depositCap = newCap;
+    emit DepositCapChanged(newCap);
   }
 
   /**
