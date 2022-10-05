@@ -28,6 +28,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         }}
       >
         <Grid item alignItems="center" margin="auto">
+          {/* TODO: complete all Tooltip titles (already asked to Mark and Ivan) */}
           <Tooltip title="???" placement="top">
             <InfoOutlinedIcon
               sx={{
@@ -135,9 +136,9 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         variant="label"
         color="success.main"
         sx={{
-          marginLeft: `${(props.value > 75
-            ? props.value
-            : (props.value * 100) / 75) - 5}%`,
+          marginLeft: `${
+            (props.value > 75 ? props.value : (props.value * 100) / 75) - 5
+          }%`,
           display: { xs: "block", sm: "none" },
         }}
       >

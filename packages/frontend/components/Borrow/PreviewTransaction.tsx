@@ -2,12 +2,10 @@ import React, { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box,
-  ButtonBase,
   Card,
   CardActionArea,
   CardContent,
   Collapse,
-  Container,
   Dialog,
   DialogContent,
   Divider,
@@ -30,20 +28,22 @@ export default function PreviewTransaction() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openPreviewTransaction = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     setAnchorEl(event.currentTarget)
   }
 
-  const closeMenu = () => {
+  const closePreviewTransaction = () => {
     setAnchorEl(null)
   }
-  console.log(isOpen)
 
   return (
-    <Container
+    <Grid
       sx={{
         pl: { xs: "0.25rem", sm: "1rem" },
         pr: { xs: "0.25rem", sm: "1rem" },
+        width: "100%",
       }}
     >
       <Grid container alignItems="center" justifyContent="space-between">
@@ -58,9 +58,9 @@ export default function PreviewTransaction() {
           }}
         >
           <CardContent sx={{ p: 0, paddingBottom: "1rem", width: "100%" }}>
-            <CardActionArea onClick={openMenu}>
+            <CardActionArea onClick={openPreviewTransaction}>
               <Grid container justifyContent="space-between">
-                <Typography onClick={openMenu} variant="body">
+                <Typography onClick={openPreviewTransaction} variant="body">
                   Preview Transaction
                 </Typography>
 
@@ -77,7 +77,7 @@ export default function PreviewTransaction() {
 
         <Dialog
           fullWidth
-          onClose={closeMenu}
+          onClose={closePreviewTransaction}
           open={isOpen}
           sx={{
             backdropFilter: "blur(0.313rem)",
@@ -100,7 +100,7 @@ export default function PreviewTransaction() {
               }}
             >
               <CardContent sx={{ width: "100%", p: 0, gap: "1rem" }}>
-                <CardActionArea onClick={closeMenu}>
+                <CardActionArea onClick={closePreviewTransaction}>
                   <Grid container justifyContent="space-between">
                     <Typography variant="body2">Preview Transaction</Typography>
                     <ExpandMoreIcon
@@ -115,51 +115,52 @@ export default function PreviewTransaction() {
                 <Divider sx={{ mt: "1.375rem", mb: "1rem" }} />
 
                 <Grid container direction="column" rowSpacing="0.75rem">
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Collateral Provided
-                      </Typography>
-                      <Typography variant="small">1ETH (~1800.00)</Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Collateral Provided
+                    </Typography>
+                    <Typography variant="small">1ETH (~1800.00)</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Borrowed Value
-                      </Typography>
-                      <Typography variant="small">
-                        $675.00 (675 USDC)
-                      </Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">Borrowed Value</Typography>
+                    <Typography variant="small">$675.00 (675 USDC)</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Liquidation Price
-                      </Typography>
-                      <Typography variant="small">
-                        $1500.00 (
-                        <span
-                          style={{
-                            color: palette.success.main,
-                          }}
-                        >
-                          ~25%
-                        </span>{" "}
-                        below)
-                      </Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Liquidation Price
+                    </Typography>
+                    <Typography variant="small">
+                      $1500.00 (
+                      <span
+                        style={{
+                          color: palette.success.main,
+                        }}
+                      >
+                        ~25%
+                      </span>{" "}
+                      below)
+                    </Typography>
                   </Grid>
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Current Price (ETH)
-                      </Typography>
-                      <Typography variant="small">$2000.00</Typography>
-                    </Grid>
+
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Current Price (ETH)
+                    </Typography>
+                    <Typography variant="small">$2000.00</Typography>
                   </Grid>
                 </Grid>
 
@@ -174,41 +175,43 @@ export default function PreviewTransaction() {
                 <br />
 
                 <Grid container direction="column" rowSpacing="0.75rem">
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">Current LTV</Typography>
-                      <Typography variant="small">45%</Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">Current LTV</Typography>
+                    <Typography variant="small">45%</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Liquidation threshold
-                      </Typography>
-                      <Typography variant="small">75%</Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Liquidation threshold
+                    </Typography>
+                    <Typography variant="small">75%</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Grid item>
-                        <Typography variant="smallDark">
-                          Collateral will be deposit into
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Collateral will be deposit into
+                    </Typography>
+
+                    <Grid item>
+                      <Grid container alignItems="center">
+                        <Image
+                          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+                          height={18}
+                          width={18}
+                          alt="Ethereum icon"
+                        />
+                        <Typography sx={{ ml: "0.375rem" }} variant="small">
+                          Aave V2
                         </Typography>
-                      </Grid>
-                      <Grid item>
-                        <Grid container alignItems="center">
-                          <Image
-                            src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                            height={18}
-                            width={18}
-                            alt="Ethereum icon"
-                          />
-                          <Typography sx={{ ml: "0.375rem" }} variant="small">
-                            Aave V2
-                          </Typography>
-                        </Grid>
                       </Grid>
                     </Grid>
                   </Grid>
@@ -306,6 +309,6 @@ export default function PreviewTransaction() {
           </DialogContent>
         </Dialog>
       </Grid>
-    </Container>
+    </Grid>
   )
 }

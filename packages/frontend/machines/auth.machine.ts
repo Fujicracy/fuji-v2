@@ -1,8 +1,8 @@
-import { createMachine, assign } from 'xstate'
-import Onboard, { AppState, InitOptions, WalletState } from '@web3-onboard/core'
-import injectedModule from '@web3-onboard/injected-wallets'
-import walletConnectModule from '@web3-onboard/walletconnect'
-import mixpanel from 'mixpanel-browser'
+import { createMachine, assign } from "xstate"
+import Onboard, { AppState, InitOptions, WalletState } from "@web3-onboard/core"
+import injectedModule from "@web3-onboard/injected-wallets"
+import walletConnectModule from "@web3-onboard/walletconnect"
+import mixpanel from "mixpanel-browser"
 
 // TODO: get INFURA_KEY & ALCHEMY and put it in .env
 const ETH_MAINNET_RPC =
@@ -18,40 +18,40 @@ const walletConnect = walletConnectModule({
   // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
   qrcodeModalOptions: {
     mobileLinks: [
-      'rainbow',
-      'metamask',
-      'argent',
-      'trust',
-      'imtoken',
-      'pillar',
+      "rainbow",
+      "metamask",
+      "argent",
+      "trust",
+      "imtoken",
+      "pillar",
     ],
   },
 })
 
-export const chains: InitOptions['chains'] = [
+export const chains: InitOptions["chains"] = [
   {
     id: 1,
-    token: 'ETH',
-    label: 'Ethereum',
+    token: "ETH",
+    label: "Ethereum",
     rpcUrl: ETH_MAINNET_RPC,
   },
   {
     id: 137,
-    token: 'MATIC',
-    label: 'Polygon',
-    rpcUrl: 'https://matic-mainnet.chainstacklabs.com',
+    token: "MATIC",
+    label: "Polygon",
+    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
   },
   {
     id: 250,
-    token: 'FTM',
-    label: 'Fantom',
-    rpcUrl: 'https://rpc.ftm.tools/',
+    token: "FTM",
+    label: "Fantom",
+    rpcUrl: "https://rpc.ftm.tools/",
   },
   {
     id: 10,
-    token: 'ETH',
-    label: 'Optimism',
-    rpcUrl: 'https://optimism-mainnet.public.blastapi.io/',
+    token: "ETH",
+    label: "Optimism",
+    rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
   },
   // TODO: if testnet {
   //   id: "0x3",
@@ -83,12 +83,12 @@ const onboard = Onboard({
   // },
   accountCenter: {
     desktop: {
-      position: 'topLeft',
+      position: "topLeft",
       enabled: true,
       minimal: false,
     },
     mobile: {
-      position: 'topLeft',
+      position: "topLeft",
       enabled: true,
       minimal: true,
     },
@@ -111,29 +111,28 @@ const initialContext: MachineContext = {
 }
 type MachineEvent =
   | {
-      type: 'INITIALIZE'
+      type: "INITIALIZE"
     }
   | {
-      type: 'LOGOUT'
+      type: "LOGOUT"
     }
 
 /**
  * Events
  */
 const login = async () => {
-  console.log('login')
   const wallets = await onboard.connectWallet()
   if (wallets[0]) {
     return wallets[0]
   }
-  throw 'Cannot login'
+  throw "Cannot login"
 }
 
 const reconnect = async () => {
-  const previouslyConnectedWallets = localStorage.getItem('connectedWallets')
+  const previouslyConnectedWallets = localStorage.getItem("connectedWallets")
 
   if (!previouslyConnectedWallets) {
-    return Promise.reject('No previously connected wallets found.')
+    return Promise.reject("No previously connected wallets found.")
   }
 
   const wallets = JSON.parse(previouslyConnectedWallets)
@@ -152,7 +151,7 @@ const reconnect = async () => {
 const saveWalletInLocalStorage = () => {
   const { wallets } = onboard.state.get()
   const json = JSON.stringify(wallets.map(({ label }) => label))
-  localStorage.setItem('connectedWallets', json)
+  localStorage.setItem("connectedWallets", json)
 }
 
 const unubscribeToWalletChange = assign(
@@ -168,10 +167,10 @@ const unubscribeToWalletChange = assign(
 
 const subscribeToWalletChange = assign(
   (ctx: MachineContext, evt: MachineEvent) => {
-    const walletsSub = onboard.state.select('wallets')
+    const walletsSub = onboard.state.select("wallets")
     const { unsubscribe } = walletsSub.subscribe((wallets: WalletState[]) => {
       const connectedWallets = wallets.map(({ label }) => label)
-      localStorage.setItem('connectedWallets', JSON.stringify(connectedWallets))
+      localStorage.setItem("connectedWallets", JSON.stringify(connectedWallets))
     })
     return {
       unsubscribe,
@@ -189,7 +188,7 @@ const reset = async (ctx: MachineContext, evt: MachineEvent) => {
 
 const trackLogin = (ctx: MachineContext, evt: MachineEvent) => {
   const address = onboard.state.get().wallets[0].accounts[0].address
-  mixpanel.track('login', {
+  mixpanel.track("login", {
     address,
   })
 }
@@ -197,8 +196,8 @@ const trackLogin = (ctx: MachineContext, evt: MachineEvent) => {
 // TODO: Should be renamed usermachine and store user wallets and balance ?
 const authMachine = createMachine(
   {
-    id: 'auth',
-    initial: 'initial',
+    id: "auth",
+    initial: "initial",
     schema: {
       context: {} as MachineContext,
       events: {} as MachineEvent,
@@ -207,50 +206,50 @@ const authMachine = createMachine(
     states: {
       initial: {
         on: {
-          INITIALIZE: 'reconnecting',
+          INITIALIZE: "reconnecting",
         },
       },
       reconnecting: {
         invoke: {
-          id: 'reconnect',
-          src: 'reconnect',
+          id: "reconnect",
+          src: "reconnect",
           onDone: {
-            target: 'loggedIn',
+            target: "loggedIn",
           },
           onError: {
-            target: 'connecting',
+            target: "connecting",
           },
         },
       },
       connecting: {
         invoke: {
-          id: 'login',
-          src: 'login',
+          id: "login",
+          src: "login",
           onDone: {
-            target: 'loggedIn',
-            actions: 'saveWalletInLocalStorage',
+            target: "loggedIn",
+            actions: "saveWalletInLocalStorage",
           },
           onError: {
-            target: 'error',
-            actions: 'setError',
+            target: "error",
+            actions: "setError",
           },
         },
       },
       loggedIn: {
-        entry: ['subscribeToWalletChange', 'trackLogin'],
-        exit: 'unubscribeToWalletChange',
+        entry: ["subscribeToWalletChange", "trackLogin"],
+        exit: "unubscribeToWalletChange",
         on: {
           LOGOUT: {
-            target: 'initial',
-            actions: 'reset',
+            target: "initial",
+            actions: "reset",
           },
         },
       },
       error: {
         on: {
           INITIALIZE: {
-            target: 'connecting',
-            actions: 'resetError',
+            target: "connecting",
+            actions: "resetError",
           },
         },
       },

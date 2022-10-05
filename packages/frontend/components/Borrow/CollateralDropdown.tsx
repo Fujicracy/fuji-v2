@@ -1,5 +1,5 @@
 import React from "react"
-import { MenuItem, Typography } from "@mui/material"
+import { ListItemIcon, ListItemText, MenuItem, Typography } from "@mui/material"
 
 import { chains } from "../../machines/auth.machine"
 import Image from "next/image"
@@ -15,28 +15,17 @@ export default function CollateralDropdown(props: CollateralDropdownProps) {
     <>
       {props.chains.map((chain: Chain) => (
         <MenuItem key={chain.id} value={chain.id}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          <ListItemIcon>
             <Image
               src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
               height={20}
               width={20}
               alt={chain.label}
             />
-
-            <Typography
-              variant="body"
-              sx={{
-                ml: "0.5rem",
-              }}
-            >
-              {chain.label}
-            </Typography>
-          </div>
+          </ListItemIcon>
+          <ListItemText>
+            <Typography variant="body">{chain.label}</Typography>
+          </ListItemText>
         </MenuItem>
       ))}
     </>

@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   Collapse,
-  Container,
   Divider,
   Grid,
   Tooltip,
@@ -18,7 +17,6 @@ import CancelIcon from "@mui/icons-material/Cancel"
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
 import Image from "next/image"
-import PreviewTransaction from "./PreviewTransaction"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 
 export default function Overview() {
@@ -26,10 +24,11 @@ export default function Overview() {
   const [showProvider, setShowProvider] = useState(false)
 
   return (
-    <Container
+    <Box
       sx={{
         pl: { xs: "0.25rem", sm: "1rem" },
         pr: { xs: "0.25rem", sm: "1rem" },
+        width: "100%",
       }}
     >
       <p>
@@ -42,9 +41,10 @@ export default function Overview() {
             flexDirection: "column",
             alignItems: "center",
             padding: "1.5rem 2rem",
+            width: "100%",
           }}
         >
-          <CardContent sx={{ width: "100%", padding: 0, gap: "1rem" }}>
+          <CardContent sx={{ padding: 0, gap: "1rem" }}>
             <Typography variant="body2">Overview</Typography>
             <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
@@ -226,6 +226,6 @@ export default function Overview() {
           </CardContent>
         </Card>
       </Grid>
-    </Container>
+    </Box>
   )
 }

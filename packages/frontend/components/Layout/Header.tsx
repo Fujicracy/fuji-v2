@@ -66,7 +66,7 @@ const Header = () => {
                 <Box
                   sx={{
                     flexGrow: 1,
-                    display: { xs: "flex", md: "none" },
+                    display: { xs: "flex", lg: "none" },
                     alignItems: "center",
                   }}
                 >
@@ -98,10 +98,10 @@ const Header = () => {
                     open={Boolean(anchorElNav)}
                     onClose={handleCloseNavMenu}
                     sx={{
-                      display: { xs: "block", md: "none" },
+                      display: { xs: "block", lg: "none" },
                     }}
                   >
-                    {pages.map(page => (
+                    {pages.map((page) => (
                       <MenuItem key={page} onClick={handleCloseNavMenu}>
                         <Link href={`/${page.toLowerCase()}`}>
                           <Typography align="center">{page}</Typography>
@@ -116,9 +116,8 @@ const Header = () => {
             <MenuList
               sx={{
                 flexGrow: 1,
-                display: { xs: "none", md: "flex" },
+                display: { xs: "none", lg: "flex" },
                 justifyContent: "center",
-                ml: "1rem",
                 mt: 1,
               }}
             >
@@ -150,7 +149,7 @@ const Header = () => {
               container
               columnGap="0.5rem"
               justifyContent="flex-end"
-              sx={{ display: { xs: "none", sm: "flex" }, mt: "1rem" }}
+              sx={{ display: { xs: "none", lg: "flex" }, mt: "1rem" }}
             >
               <Grid item>
                 <ChainSelect minified={false} selectedChain={chains[0]} />

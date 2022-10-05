@@ -3,7 +3,6 @@ import { useMachine } from "@xstate/react"
 import {
   Divider,
   Button,
-  Container,
   Typography,
   CardContent,
   Card,
@@ -40,7 +39,7 @@ export default function Borrow() {
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   return (
-    <Container
+    <Grid
       sx={{
         pl: { xs: "0.25rem", sm: "1rem" },
         pr: { xs: "0.25rem", sm: "1rem" },
@@ -62,7 +61,7 @@ export default function Borrow() {
             p: "0.5rem 0",
           }}
         >
-          <CardContent>
+          <CardContent sx={{ width: "100%" }}>
             <Typography variant="body2">Borrow</Typography>
 
             <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
@@ -79,7 +78,7 @@ export default function Borrow() {
                   labelId="collateral-chain-label"
                   id="collateral-chain"
                   value={collateralChainId}
-                  onChange={e => setCollateralChain(e.target.value)}
+                  onChange={(e) => setCollateralChain(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
                     marginBottom: "1rem",
@@ -118,9 +117,9 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={collateralValue}
-              onChangeValue={e => setCollateralValue(e.target.value)}
+              onChangeValue={(e) => setCollateralValue(e.target.value)}
               token={collateralToken}
-              onChangeToken={e => setCollateralToken(e.target.value)}
+              onChangeToken={(e) => setCollateralToken(e.target.value)}
               tokens={tokens}
               type="collateral"
             />
@@ -134,7 +133,7 @@ export default function Borrow() {
                   labelId="borrow-chain-label"
                   id="borrow-chain"
                   value={borrowChainId}
-                  onChange={e => setBorrowChainId(e.target.value)}
+                  onChange={(e) => setBorrowChainId(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
                     marginBottom: "1rem",
@@ -173,9 +172,9 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={borrowValue}
-              onChangeValue={e => setBorrowValue(e.target.value)}
+              onChangeValue={(e) => setBorrowValue(e.target.value)}
               token={borrowToken}
-              onChangeToken={e => setBorrowToken(e.target.value)}
+              onChangeToken={(e) => setBorrowToken(e.target.value)}
               tokens={tokens}
               type="borrow"
             />
@@ -236,7 +235,6 @@ export default function Borrow() {
               disabled
               onClick={() => alert("not implemented")}
               fullWidth
-              className={styles.btn}
             >
               Sign
             </Button>
@@ -249,7 +247,6 @@ export default function Borrow() {
               disabled
               onClick={() => alert("not implemented")}
               fullWidth
-              className={styles.btn}
             >
               Borrow
             </Button>
@@ -277,6 +274,6 @@ export default function Borrow() {
           </CardContent>
         </Card>
       )}
-    </Container>
+    </Grid>
   )
 }
