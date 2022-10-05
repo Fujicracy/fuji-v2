@@ -136,7 +136,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return _isVaultCollateralized() ? depositCap : 0;
+    return depositCap;
   }
 
   /// @inheritdoc IERC4626
@@ -311,10 +311,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
-  }
-
-  function _isVaultCollateralized() private view returns (bool) {
-    return totalAssets() > 0 || totalSupply() == 0;
   }
 
   /// @inheritdoc ERC20
