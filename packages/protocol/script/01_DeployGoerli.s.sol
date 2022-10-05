@@ -11,6 +11,7 @@ import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
+import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 
 contract DeployGoerli is ScriptPlus {
   IVault public vault;
@@ -53,6 +54,9 @@ contract DeployGoerli is ScriptPlus {
     );
     saveAddress("BorrowingVault", address(vault));
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+    vault.setProviders(providers);
     vault.setActiveProvider(mockProvider);
 
     // WETH and DAI prices by Aug 12h 2022

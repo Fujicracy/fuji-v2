@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-interface IPool {
+interface IV3Pool {
   struct ReserveConfigurationMap {
   //bit 0-15: LTV
   //bit 16-31: Liq. threshold

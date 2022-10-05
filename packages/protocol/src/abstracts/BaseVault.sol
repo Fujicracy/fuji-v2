@@ -25,10 +25,10 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   error BaseVault__deposit_moreThanMax();
   error BaseVault__mint_moreThanMax();
-  error BaseVault__withdraw_wrongInput();
+  error BaseVault__withdraw_invalidInput();
   error BaseVault__withdraw_moreThanMax();
   error BaseVault__redeem_moreThanMax();
-  error BaseVault__redeem_wrongInput();
+  error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
 
   address public immutable chief;
@@ -120,8 +120,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// @inheritdoc IERC4626
-  function totalAssets() public view virtual override returns (uint256) {
-    return activeProvider.getDepositBalance(asset(), address(this));
+  function totalAssets() public view virtual override returns (uint256 assets) {
+    return _checkProvidersBalance(asset(), "getDepositBalance");
   }
 
   /// @inheritdoc IERC4626
@@ -136,7 +136,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return _isVaultCollateralized() ? depositCap : 0;
+    return depositCap;
   }
 
   /// @inheritdoc IERC4626
@@ -210,7 +210,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     }
 
     if (assets == 0) {
-      revert BaseVault__withdraw_wrongInput();
+      revert BaseVault__withdraw_invalidInput();
     }
 
     if (assets > maxWithdraw(owner)) {
@@ -235,7 +235,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     }
 
     if (shares == 0) {
-      revert BaseVault__redeem_wrongInput();
+      revert BaseVault__redeem_invalidInput();
     }
 
     if (shares > maxRedeem(owner)) {
@@ -311,10 +311,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
-  }
-
-  function _isVaultCollateralized() private view returns (bool) {
-    return totalAssets() > 0 || totalSupply() == 0;
   }
 
   /// @inheritdoc ERC20
@@ -424,11 +420,34 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   ////////////////////////////
 
   function _executeProviderAction(address assetAddr, uint256 assets, string memory name) internal {
-    bytes memory data =
-      abi.encodeWithSignature(string(abi.encodePacked(name, "(address,uint256)")), assetAddr, assets);
+    bytes memory data = abi.encodeWithSignature(
+      string(abi.encodePacked(name, "(address,uint256,address)")), assetAddr, assets, address(this)
+    );
     address(activeProvider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))
     );
+  }
+
+  function _checkProvidersBalance(address assetAddr, string memory method)
+    internal
+    view
+    returns (uint256 assets)
+  {
+    uint256 len = _providers.length;
+    bytes memory callData = abi.encodeWithSignature(
+      string(abi.encodePacked(method, "(address,address,address)")),
+      assetAddr,
+      address(this),
+      address(this)
+    );
+    bytes memory returnedBytes;
+    for (uint256 i = 0; i < len;) {
+      returnedBytes = address(_providers[i]).functionStaticCall(callData, ": balance call failed");
+      assets += uint256(bytes32(returnedBytes));
+      unchecked {
+        ++i;
+      }
+    }
   }
 
   /// Public getters.
@@ -443,7 +462,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
-    // TODO needs input validation
+    uint256 len = providers.length;
+    for (uint256 i = 0; i < len;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      unchecked {
+        ++i;
+      }
+    }
     _providers = providers;
 
     emit ProvidersChanged(providers);
@@ -452,19 +479,20 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   /// inheritdoc IVault
   function setActiveProvider(ILendingProvider activeProvider_) external override {
     // TODO needs admin restriction
-    if (address(activeProvider_) == address(0)) {
+    if (!_isValidProvider(address(activeProvider_))) {
       revert BaseVault__setter_invalidInput();
     }
     activeProvider = activeProvider_;
     SafeERC20.safeApprove(
-      IERC20(asset()), activeProvider.approvedOperator(asset()), type(uint256).max
+      IERC20(asset()), activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
     );
     if (debtAsset() != address(0)) {
       SafeERC20.safeApprove(
-        IERC20(debtAsset()), activeProvider.approvedOperator(debtAsset()), type(uint256).max
+        IERC20(debtAsset()),
+        activeProvider.approvedOperator(debtAsset(), address(this)),
+        type(uint256).max
       );
     }
-
     emit ActiveProviderChanged(activeProvider_);
   }
 
@@ -483,5 +511,21 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     }
     depositCap = newCap;
     emit DepositCapChanged(newCap);
+  }
+
+  /**
+   * @dev Returns true if provider is in `_providers` array.
+   * Since providers are not many use of array is fine.
+   */
+  function _isValidProvider(address provider) private view returns (bool check) {
+    uint256 len = _providers.length;
+    for (uint256 i = 0; i < len;) {
+      if (provider == address(_providers[i])) {
+        check = true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
   }
 }

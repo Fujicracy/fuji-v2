@@ -41,14 +41,19 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function approvedOperator(address) external pure override returns (address operator) {
+  function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(_getBeefyZap());
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(address asset, uint256 amount) external override returns (bool success) {
+  function deposit(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    vault;
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
 
@@ -62,7 +67,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(address, uint256) external pure override returns (bool) {
+  function borrow(address, uint256, address) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
@@ -71,13 +76,17 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
    * @dev We can use Beefy Zap as in deposit because 'zap.beefOutAndSwap(...)'
    * returns ETH instead of WETH.
    */
-  function withdraw(address asset, uint256 amount) external override returns (bool success) {
+  function withdraw(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
 
-    uint256 totalBalance = beefyVault.balanceOf(address(this));
+    uint256 totalBalance = beefyVault.balanceOf(address(vault));
 
-    uint256 depositBalance = _getDepositBalance(asset, address(this));
+    uint256 depositBalance = _getDepositBalance(asset, address(vault));
     uint256 toWithdraw = amount * totalBalance / depositBalance;
 
     (, uint256 amountOut,) = zap.estimateSwap(address(beefyVault), asset, amount);
@@ -86,6 +95,13 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
     _removeLiquidityAndSwap(toWithdraw, asset, amountOut.mulDiv(99, 100));
 
     return true;
+  }
+
+  /**
+   * @notice See {ILendingProvider}
+   */
+  function payback(address, uint256, address) external pure override returns (bool) {
+    revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
   /**
@@ -133,28 +149,21 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address, uint256) external pure override returns (bool) {
-    revert BeefyVelodromesETHETHOptimism__notApplicable();
-  }
-
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getDepositRateFor(address) external pure override returns (uint256) {
+  function getDepositRateFor(address, address) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notImplemented();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address) external pure override returns (uint256) {
+  function getBorrowRateFor(address, address) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address asset, address user)
+  function getDepositBalance(address asset, address user, address)
     external
     view
     override
@@ -166,14 +175,9 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address, address)
-    external
-    pure
-    override
-    returns (uint256)
-    {
-      revert BeefyVelodromesETHETHOptimism__notApplicable();
-    }
+  function getBorrowBalance(address, address, address) external pure override returns (uint256) {
+    revert BeefyVelodromesETHETHOptimism__notApplicable();
+  }
 
   function _getDepositBalance(address asset, address user) internal view returns (uint256 balance) {
     IVelodromeRouter router = _getVelodromeRouter();
