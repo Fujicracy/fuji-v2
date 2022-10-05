@@ -4,7 +4,6 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IBeefyVaultV6} from "../../interfaces/beefy/IBeefyVaultV6.sol";
 import {IBeefyUniV2ZapVelodrome} from "../../interfaces/beefy/IBeefyUniV2ZapVelodrome.sol";
@@ -49,7 +48,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(address asset, uint256 amount, IVault vault)
+  function deposit(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
@@ -68,7 +67,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(address, uint256, IVault) external pure override returns (bool) {
+  function borrow(address, uint256, address) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
@@ -77,7 +76,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
    * @dev We can use Beefy Zap as in deposit because 'zap.beefOutAndSwap(...)'
    * returns ETH instead of WETH.
    */
-  function withdraw(address asset, uint256 amount, IVault vault)
+  function withdraw(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
@@ -101,7 +100,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address, uint256, IVault) external pure override returns (bool) {
+  function payback(address, uint256, address) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
