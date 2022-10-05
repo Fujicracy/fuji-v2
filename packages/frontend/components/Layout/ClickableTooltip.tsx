@@ -25,9 +25,7 @@ export default function ClickableTooltip(props: ClickableTooltipProps) {
 
   const handleTooltipClose = () => setOpen(false)
 
-  const handleTooltipOpen = () => {
-    setOpen(true)
-  }
+  const handleTooltipOpen = () => setOpen(true)
 
   return (
     <Tooltip
