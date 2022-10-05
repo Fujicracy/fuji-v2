@@ -19,10 +19,33 @@ type StreamWrapper<T> = {
   stream: Stream<T>;
 };
 
+/**
+ * Abstract class that creates and manages streams of observables.
+ *
+ * @remarks
+ * If subscriptions aren't managed properly on client's side, this may incur
+ * significant costs on services providing rpc and wss endpoints (Infura, Alchemy, ...).
+ * That's why it's highly recommended to *unsubscribing * from streams that are
+ * not used anymore
+ */
+
 export abstract class StreamManager {
   /* eslint-disable-next-line */
   private _streamWrappers: StreamWrapper<any>[] = [];
 
+  /**
+   * Creates a stream from a method returning a promise on the parent class.
+   *
+   * @remarks
+   * Keeps only one stream per method. If there is a request for a stream for the
+   * same method but with a different caller, it desactivates the previous stream.
+   *
+   * @param wssProvider - instance of WebSocketProvider
+   * @param method - method that MUST exist on the calling contract
+   * @param args - the arguments with which "method" will be called
+   * @param caller - user address, wrapped in {@link Address}, used to keep track on subsriptions
+   * @param filters - events on which the subsription is created
+   */
   streamFrom<TArgs, TResult>(
     wssProvider: WebSocketProvider,
     method: (...args: TArgs[]) => Promise<TResult>,
@@ -40,7 +63,7 @@ export abstract class StreamManager {
     );
 
     if (streamWrapper) {
-      // if there is an active stream for the same account, return it and
+      // if there is an active stream for the same caller, return it and
       // display warning if there are more than 5 subsriptions
       streamWrapper.stream.subsriptions += 1;
       const count = streamWrapper.stream.subsriptions;

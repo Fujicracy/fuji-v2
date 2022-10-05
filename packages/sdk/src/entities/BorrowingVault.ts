@@ -34,6 +34,15 @@ type AccountBalances = {
   borrow: BigNumber;
 };
 
+/**
+ * The BorrowingVault class encapsulates the end-user logic of interation with the
+ * BorrowingVault cotract without the need to deal directly with ethers.js (ABIs, providers etc).
+ *
+ * It contains read-only functions and leaves to the client only the final step of a blockchain write.
+ * The class aims to expose functions that together with user's inputs go throughout the most common
+ * path of interacting with a BorrowingVault contract.
+ */
+
 export class BorrowingVault extends StreamManager {
   /**
    * The chain ID on which this vault resides
