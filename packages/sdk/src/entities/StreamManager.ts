@@ -46,7 +46,7 @@ export abstract class StreamManager {
    * @param caller - user address, wrapped in {@link Address}, used to keep track on subsriptions
    * @param filters - events on which the subsription is created
    */
-  streamFrom<TArgs, TResult>(
+  protected streamFrom<TArgs, TResult>(
     wssProvider: WebSocketProvider,
     method: (...args: TArgs[]) => Promise<TResult>,
     args: TArgs[],

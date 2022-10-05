@@ -37,7 +37,6 @@ export class ChainConnection {
     params: ChainConfigParams,
     chainId: ChainId
   ): ChainConnectionParams {
-    // TODO: add alchemy providers
     if (!this._config[chainId]) {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
