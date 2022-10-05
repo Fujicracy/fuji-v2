@@ -12,6 +12,16 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
+  /// Events
+
+  /**
+   * @dev Emitted when borrow action occurs.
+   * @param sender address who calls {IVault-borrow}
+   * @param receiver address of the borrowed 'debt' amount
+   * @param owner address who will incur the debt
+   * @param debt amount
+   * @param shares amound of 'debtShares' received
+   */
   event Borrow(
     address indexed sender,
     address indexed receiver,
@@ -20,6 +30,13 @@ interface IVault is IERC4626 {
     uint256 shares
   );
 
+  /**
+   * @dev Emitted when borrow action occurs.
+   * @param sender address who calls {IVault-payback}
+   * @param owner address whose debt will be reduced
+   * @param debt amount
+   * @param shares amound of 'debtShares' burned
+   */
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
@@ -66,6 +83,13 @@ interface IVault is IERC4626 {
    */
   event DepositCapChanged(uint256 newDepositCap);
 
+  /// Debt management functions
+
+  /**
+   * @dev Returns the decimals for 'debtAsset' of this vault.
+   *
+   * - MUST match the 'debtAsset' decimals in ERC-20 token contract.
+   */
   function debtDecimals() external view returns (uint8);
 
   /**
@@ -155,14 +179,14 @@ interface IVault is IERC4626 {
    */
   function payback(uint256 debt, address receiver) external returns (uint256);
 
+  /// General functions
+
   /**
-   * @notice Returns the active provider for the vault
+   * @notice Returns the active provider of this vault.
    */
   function activeProvider() external returns (ILendingProvider);
 
-  //////////////////////
-  ///  Liquidate    ////
-  //////////////////////
+  ///  Liquidation Functions
 
   /**
    * @notice Returns the current health factor of 'account'.
@@ -201,7 +225,7 @@ interface IVault is IERC4626 {
   ///////////////////////
 
   /**
-   * @notice Sets the active provider for the vault
+   * @notice Sets the active provider for this vault.
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 
@@ -212,8 +236,8 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Sets the deposit cap amount of this vault.
-   * Restrictions:
-   * - SHOULD be greater than zero.
+   *
+   * - MUST be greater than zero.
    */
   function setDepositCap(uint256 newCap) external;
 }
