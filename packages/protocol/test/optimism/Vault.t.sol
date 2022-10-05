@@ -33,6 +33,9 @@ contract VaultTest is DSTestPlus {
 
     vault = new YieldVault(address(weth), address(0));
     ILendingProvider beefy = new BeefyVelodromesETHETHOptimism();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = beefy;
+    vault.setProviders(providers);
     vault.setActiveProvider(beefy);
   }
 

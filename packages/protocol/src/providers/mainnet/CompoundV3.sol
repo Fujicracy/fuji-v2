@@ -23,7 +23,7 @@ contract CompoundV3 is ILendingProvider {
    */
   function getMapper() public pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x193333b5B4642D2ABA72Fa4888c54202Ae125DCb);
+    return IAddrMapper(0x2430ab56FB46Bcac05E39aA947d26e8EEF4A881a);
   }
 
   /**

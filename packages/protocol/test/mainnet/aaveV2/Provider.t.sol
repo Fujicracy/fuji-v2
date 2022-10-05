@@ -11,8 +11,6 @@ import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {DSTestPlus} from "../../utils/DSTestPlus.sol";
-import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
-import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
 
 bool constant DEBUG = false;
 
@@ -23,7 +21,6 @@ contract ProviderTest is DSTestPlus {
   uint256 mainnetFork;
 
   IVault public vault;
-  IAddrMapper public mapper;
   ILendingProvider public aaveV2;
 
   IWETH9 public weth;

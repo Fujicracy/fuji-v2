@@ -12,14 +12,8 @@ import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {DSTestPlus} from "../../utils/DSTestPlus.sol";
-import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
-import {AddrMapperDeployer} from "../../../src/helpers/AddrMapperDeployer.sol";
 
 bool constant DEBUG = false;
-
-interface ITestingCompoundV3 {
-  function getMapper() external returns (address);
-}
 
 contract ProviderTest is DSTestPlus {
   address alice = address(0xA);
@@ -28,7 +22,6 @@ contract ProviderTest is DSTestPlus {
   uint256 mainnetFork;
 
   IVault public vault;
-  IAddrMapper public mapper;
   ILendingProvider public compoundV3;
 
   IWETH9 public weth;
@@ -43,6 +36,7 @@ contract ProviderTest is DSTestPlus {
     weth = IWETH9(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
+
     vm.label(address(alice), "alice");
     vm.label(address(bob), "bob");
     vm.label(address(weth), "weth");
@@ -52,14 +46,6 @@ contract ProviderTest is DSTestPlus {
 
     mockOracle.setPriceOf(address(weth), address(usdc), 62500);
     mockOracle.setPriceOf(address(usdc), address(weth), 160000000000);
-
-    AddrMapperDeployer mapDeployer = new AddrMapperDeployer();
-
-    mapper = IAddrMapper(mapDeployer.deployAddrMapper("CompoundV3"));
-    mapper.setNestedMapping(
-      address(weth), address(usdc), 0xc3d688B66703497DAA19211EEdff47f25384cdc3
-    );
-    mapper.setNestedMapping(address(usdc), address(0), 0xc3d688B66703497DAA19211EEdff47f25384cdc3);
 
     vault = new BorrowingVault(
       address(weth),
@@ -167,13 +153,10 @@ contract ProviderTest is DSTestPlus {
   }
 
   function test_getInterestRates() public {
-    IAddrMapper _mapper = IAddrMapper(ITestingCompoundV3(address(compoundV3)).getMapper());
-    address market = _mapper.getAddressNestedMapping(vault.asset(), vault.debtAsset());
-
-    uint256 depositRate = compoundV3.getDepositRateFor(address(weth), market);
+    uint256 depositRate = compoundV3.getDepositRateFor(address(weth), address(vault));
     assertEq(depositRate, 0); // Should be zero.
 
-    uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc), market);
+    uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc), address(vault));
     assertGt(borrowRate, 0); // Should be greater than zero.
 
     if (DEBUG) {
@@ -184,6 +167,6 @@ contract ProviderTest is DSTestPlus {
 
   // This test is applicable only for CompoundV3
   function testFail_getInterestRatesWithNoMapping() public view returns (uint256) {
-    return compoundV3.getDepositRateFor(address(weth), address(vault));
+    return compoundV3.getDepositRateFor(address(weth), address(0));
   }
 }
