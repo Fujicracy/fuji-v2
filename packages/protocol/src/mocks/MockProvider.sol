@@ -8,63 +8,71 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function approvedOperator(address) external pure override returns (address operator) {
+  function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(0xAbc123);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(address asset, uint256 amount) external pure override returns (bool success) {
-    asset;
-    amount;
+  function deposit(address, uint256, address) external pure override returns (bool success) {
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(address asset, uint256 amount) external override returns (bool success) {
-    MockERC20(asset).mintDebt(address(this), amount);
+  function borrow(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    MockERC20(asset).mintDebt(vault, amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function withdraw(address asset, uint256 amount) external override returns (bool success) {
-    MockERC20(asset).mint(address(this), amount);
+  function withdraw(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    MockERC20(asset).mint(vault, amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address asset, uint256 amount) external override returns (bool success) {
-    MockERC20(asset).burnDebt(address(this), amount);
+  function payback(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    MockERC20(asset).burnDebt(vault, amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address asset) external pure override returns (uint256 rate) {
-    asset;
-    rate = 1;
+  function getDepositRateFor(address, address) external pure override returns (uint256 rate) {
+    rate = 1e27;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address asset) external pure override returns (uint256 rate) {
-    asset;
-    rate = 1;
+  function getBorrowRateFor(address, address) external pure override returns (uint256 rate) {
+    rate = 1e27;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address asset, address user)
+  function getDepositBalance(address asset, address user, address)
     external
     view
     override
@@ -76,7 +84,7 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address asset, address user)
+  function getBorrowBalance(address asset, address user, address)
     external
     view
     override

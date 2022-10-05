@@ -166,7 +166,6 @@ interface IVault is IERC4626 {
    * - MUST emit the Borrow event.
    * - MUST revert if owner does not own sufficient collateral to back debt.
    * - MUST revert if caller is not owner or permission to act owner.
-   *
    */
   function borrow(uint256 debt, address receiver, address owner) external returns (uint256);
 
@@ -195,6 +194,7 @@ interface IVault is IERC4626 {
    * A value below 100 means 'account' is eligable for liquidation.
    *
    * - MUST return type(uint254).max when 'account' has no debt.
+   * - MUST revert in {YieldVault}.
    */
   function getHealthFactor(address account) external returns (uint256 healthFactor);
 
@@ -203,6 +203,7 @@ interface IVault is IERC4626 {
    * @param account address owner of debt position.
    *
    * - MUST return zero if `account` is not liquidatable.
+   * - MUST revert in {YieldVault}.
    */
   function getLiquidationFactor(address account) external returns (uint256 liquidationFactor);
 
@@ -216,6 +217,7 @@ interface IVault is IERC4626 {
    * - MUST emit the Liquidation event.
    * - MUST liquidate 50% of 'account' debt when: 100 >= 'healthFactor' > 95.
    * - MUST liquidate 100% of 'account' debt when: 95 > 'healthFactor'.
+   * - MUST revert in {YieldVault}.
    *
    */
   function liquidate(address account) external returns (uint256 gainedShares);
@@ -225,7 +227,16 @@ interface IVault is IERC4626 {
   ///////////////////////
 
   /**
+   * @notice Sets the lists of providers of this vault.
+   *
+   * - MUST NOT contain zero addresses.
+   */
+  function setProviders(ILendingProvider[] memory providers) external;
+
+  /**
    * @notice Sets the active provider for this vault.
+   *
+   * - MUST be a provider previously set by `setProviders()`.
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 
