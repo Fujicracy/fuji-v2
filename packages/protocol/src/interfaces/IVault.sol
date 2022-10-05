@@ -130,7 +130,6 @@ interface IVault is IERC4626 {
    * - MUST emit the Borrow event.
    * - MUST revert if owner does not own sufficient collateral to back debt.
    * - MUST revert if caller is not owner or permission to act owner.
-   *
    */
   function borrow(uint256 debt, address receiver, address owner) external returns (uint256);
 
@@ -144,7 +143,16 @@ interface IVault is IERC4626 {
   function payback(uint256 debt, address receiver) external returns (uint256);
 
   /**
+   * @notice Sets the lists of providers for the vault
+   *
+   * - MUST NOT contain zero addresses.
+   */
+  function setProviders(ILendingProvider[] memory providers) external;
+
+  /**
    * @notice Sets the active provider for the vault
+   *
+   * - MUST be a provider previously set by `setProviders()`.
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 

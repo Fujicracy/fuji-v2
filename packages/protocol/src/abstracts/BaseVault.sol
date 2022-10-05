@@ -151,8 +151,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// @inheritdoc IERC4626
-  function totalAssets() public view virtual override returns (uint256) {
-    return activeProvider.getDepositBalance(asset(), address(this), address(this));
+  function totalAssets() public view virtual override returns (uint256 assets) {
+    return _checkProvidersBalance(asset(), "getDepositBalance");
   }
 
   /// @inheritdoc IERC4626
@@ -510,6 +510,28 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     );
   }
 
+  function _checkProvidersBalance(address lasset, string memory method)
+    internal
+    view
+    returns (uint256 assets)
+  {
+    uint256 pLenght = _providers.length;
+    bytes memory callData = abi.encodeWithSignature(
+      string(abi.encodePacked(method, "(address,address,address)")),
+      lasset,
+      address(this),
+      address(this)
+    );
+    bytes memory returnedBytes;
+    for (uint256 i = 0; i < pLenght;) {
+      returnedBytes = address(_providers[i]).functionStaticCall(callData, ": balance call failed");
+      assets += uint256(bytes32(returnedBytes));
+      unchecked {
+        ++i;
+      }
+    }
+  }
+
   /// Public getters.
 
   function getProviders() external view returns (ILendingProvider[] memory list) {
@@ -528,9 +550,18 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     emit OracleChanged(newOracle);
   }
 
+  /// inheritdoc IVault
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
-    // TODO needs input validation
+    uint256 pLenght = providers.length;
+    for (uint256 i = 0; i < pLenght;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      unchecked {
+        ++i;
+      }
+    }
     _providers = providers;
 
     emit ProvidersChanged(providers);
@@ -539,7 +570,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   /// inheritdoc IVault
   function setActiveProvider(ILendingProvider activeProvider_) external {
     // TODO needs admin restriction
-    // TODO needs input validation
+    if (!_isValidProvider(address(activeProvider_))) {
+      revert BaseVault__setter_invalidInput();
+    }
     activeProvider = activeProvider_;
     SafeERC20.safeApprove(
       IERC20(asset()), activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
@@ -551,7 +584,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
         type(uint256).max
       );
     }
-
     emit ActiveProviderChanged(activeProvider_);
   }
 
@@ -585,5 +617,21 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     // TODO needs admin restriction
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
+  }
+
+  /**
+   * @dev Returns true if provider is in `_providers` array.
+   * Since providers are not many use of array is fine.
+   */
+  function _isValidProvider(address provider) private view returns (bool check) {
+    uint256 pLenght = _providers.length;
+    for (uint256 i = 0; i < pLenght;) {
+      if (provider == address(_providers[i])) {
+        check = true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
   }
 }

@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
 import {MockProvider} from "../../src/mocks/MockProvider.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
@@ -103,6 +104,9 @@ contract Setup is DSTestPlus {
     );
 
     // Configs
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+    vault.setProviders(providers);
     vault.setActiveProvider(mockProvider);
     connextRouter.setRouter(
       domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN, address(0xAbc1)
