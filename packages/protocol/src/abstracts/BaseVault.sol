@@ -25,10 +25,10 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   error BaseVault__deposit_moreThanMax();
   error BaseVault__mint_moreThanMax();
-  error BaseVault__withdraw_wrongInput();
+  error BaseVault__withdraw_invalidInput();
   error BaseVault__withdraw_moreThanMax();
   error BaseVault__redeem_moreThanMax();
-  error BaseVault__redeem_wrongInput();
+  error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
 
   address public immutable chief;
@@ -210,7 +210,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     }
 
     if (assets == 0) {
-      revert BaseVault__withdraw_wrongInput();
+      revert BaseVault__withdraw_invalidInput();
     }
 
     if (assets > maxWithdraw(owner)) {
@@ -235,7 +235,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     }
 
     if (shares == 0) {
-      revert BaseVault__redeem_wrongInput();
+      revert BaseVault__redeem_invalidInput();
     }
 
     if (shares > maxRedeem(owner)) {
@@ -428,20 +428,20 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     );
   }
 
-  function _checkProvidersBalance(address lasset, string memory method)
+  function _checkProvidersBalance(address assetAddr, string memory method)
     internal
     view
     returns (uint256 assets)
   {
-    uint256 pLenght = _providers.length;
+    uint256 len = _providers.length;
     bytes memory callData = abi.encodeWithSignature(
       string(abi.encodePacked(method, "(address,address,address)")),
-      lasset,
+      assetAddr,
       address(this),
       address(this)
     );
     bytes memory returnedBytes;
-    for (uint256 i = 0; i < pLenght;) {
+    for (uint256 i = 0; i < len;) {
       returnedBytes = address(_providers[i]).functionStaticCall(callData, ": balance call failed");
       assets += uint256(bytes32(returnedBytes));
       unchecked {
@@ -462,8 +462,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   function setProviders(ILendingProvider[] memory providers) external {
     // TODO needs admin restriction
-    uint256 pLenght = providers.length;
-    for (uint256 i = 0; i < pLenght;) {
+    uint256 len = providers.length;
+    for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
@@ -518,8 +518,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
    * Since providers are not many use of array is fine.
    */
   function _isValidProvider(address provider) private view returns (bool check) {
-    uint256 pLenght = _providers.length;
-    for (uint256 i = 0; i < pLenght;) {
+    uint256 len = _providers.length;
+    for (uint256 i = 0; i < len;) {
       if (provider == address(_providers[i])) {
         check = true;
       }
