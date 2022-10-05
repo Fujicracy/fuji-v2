@@ -14,6 +14,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Chip,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
@@ -77,11 +78,32 @@ export default function Borrow() {
                 >
                   Collateral from
                 </label>
+
+                {/* <Chip
+                  label={
+                    <Grid container alignItems="center">
+                      <Image
+                        src={`/assets/images/protocol-icons/networks/${collateralChainId}.svg`}
+                        height={20}
+                        width={20}
+                        alt={"tmp"}
+                      />
+
+                      <Typography variant="small" sx={{ marginLeft: "0.5rem" }}>
+                        {collateralChainId}
+                      </Typography>
+                    </Grid>
+                  }
+                  component="button"
+                  deleteIcon={<KeyboardArrowDownIcon />}
+                  onClick={openMenu}
+                  onDelete={openMenu}
+                /> */}
                 <Select
                   labelId="collateral-chain-label"
                   id="collateral-chain"
                   value={collateralChainId}
-                  onChange={e => setCollateralChain(e.target.value)}
+                  onChange={(e) => setCollateralChain(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
                     marginBottom: "1rem",
@@ -92,37 +114,15 @@ export default function Borrow() {
                   }}
                   variant="standard"
                   disableUnderline
-                >
-                  {chains.map((chain: Chain) => (
-                    <MenuItem key={chain.id} value={chain.id}>
-                      <Grid container>
-                        <Image
-                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                          height={18}
-                          width={18}
-                          alt={chain.label}
-                        />
-                        <span
-                          style={{
-                            marginLeft: "0.5rem",
-                          }}
-                        >
-                          <Typography variant="small">
-                            {chain.label} Network
-                          </Typography>
-                        </span>
-                      </Grid>
-                    </MenuItem>
-                  ))}
-                </Select>
+                ></Select>
               </Grid>
             </FormControl>
 
             <SelectTokenCard
               value={collateralValue}
-              onChangeValue={e => setCollateralValue(e.target.value)}
+              onChangeValue={(e) => setCollateralValue(e.target.value)}
               token={collateralToken}
-              onChangeToken={e => setCollateralToken(e.target.value)}
+              onChangeToken={(e) => setCollateralToken(e.target.value)}
               tokens={tokens}
               type="collateral"
             />
@@ -136,7 +136,7 @@ export default function Borrow() {
                   labelId="borrow-chain-label"
                   id="borrow-chain"
                   value={borrowChainId}
-                  onChange={e => setBorrowChainId(e.target.value)}
+                  onChange={(e) => setBorrowChainId(e.target.value)}
                   IconComponent={KeyboardArrowDownIcon}
                   sx={{
                     marginBottom: "1rem",
@@ -175,9 +175,9 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={borrowValue}
-              onChangeValue={e => setBorrowValue(e.target.value)}
+              onChangeValue={(e) => setBorrowValue(e.target.value)}
               token={borrowToken}
-              onChangeToken={e => setBorrowToken(e.target.value)}
+              onChangeToken={(e) => setBorrowToken(e.target.value)}
               tokens={tokens}
               type="borrow"
             />

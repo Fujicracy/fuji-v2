@@ -18,7 +18,8 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import AddCircleIcon from "@mui/icons-material/AddCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
 
 import LTVProgressBar from "./LTVProgressBar"
@@ -49,27 +50,36 @@ export default function PreviewTransaction() {
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{
-            padding: "0.813rem 1rem",
             mb: "2rem",
             mt: "1rem",
             width: "100%",
             display: "flex",
+            padding: "1rem 1rem",
             justifyContent: "space-between",
           }}
         >
-          <CardContent sx={{ p: 0, paddingBottom: "1rem", width: "100%" }}>
+          <CardContent sx={{ width: "100%", p: 0 }}>
             <CardActionArea onClick={openMenu}>
               <Grid container justifyContent="space-between">
                 <Typography onClick={openMenu} variant="body">
                   Preview Transaction
                 </Typography>
 
-                <ExpandMoreIcon
-                  sx={{
-                    border: "1px solid",
-                    borderRadius: "0.5rem",
-                  }}
-                />
+                {isOpen ? (
+                  <KeyboardArrowDownIcon
+                    sx={{
+                      border: "1px solid",
+                      borderRadius: "0.5rem",
+                    }}
+                  />
+                ) : (
+                  <KeyboardArrowUpIcon
+                    sx={{
+                      border: "1px solid",
+                      borderRadius: "0.5rem",
+                    }}
+                  />
+                )}
               </Grid>
             </CardActionArea>
           </CardContent>
@@ -89,6 +99,7 @@ export default function PreviewTransaction() {
               bottom: "2rem",
               left: "50%",
               width: "94%",
+              maxHeight: "90%",
               transform: "translateX(-50%)",
             }}
           >
@@ -103,12 +114,21 @@ export default function PreviewTransaction() {
                 <CardActionArea onClick={closeMenu}>
                   <Grid container justifyContent="space-between">
                     <Typography variant="body2">Preview Transaction</Typography>
-                    <ExpandMoreIcon
-                      sx={{
-                        border: "1px solid",
-                        borderRadius: "0.5rem",
-                      }}
-                    />
+                    {isOpen ? (
+                      <KeyboardArrowDownIcon
+                        sx={{
+                          border: "1px solid",
+                          borderRadius: "0.5rem",
+                        }}
+                      />
+                    ) : (
+                      <KeyboardArrowUpIcon
+                        sx={{
+                          border: "1px solid",
+                          borderRadius: "0.5rem",
+                        }}
+                      />
+                    )}
                   </Grid>
                 </CardActionArea>
 

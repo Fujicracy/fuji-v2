@@ -1,13 +1,12 @@
 import { NextPage } from "next"
 import Head from "next/head"
 
-import { Box, Card, Container, Grid, Typography } from "@mui/material"
+import { Box, Card, Container, Grid } from "@mui/material"
 
 import Borrow from "../components/Borrow/Borrow"
 import Footer from "../components/Layout/Footer"
 import Header from "../components/Layout/Header"
 import Overview from "../components/Borrow/Overview"
-import { useState } from "react"
 import PreviewTransaction from "../components/Borrow/PreviewTransaction"
 
 const BorrowPage: NextPage = () => {
