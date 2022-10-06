@@ -18,5 +18,4 @@ broadcast
 # Keep the latest deployment only
 #!broadcast/*/*/run-latest.json
 
-sdk
 .local

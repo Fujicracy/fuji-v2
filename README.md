@@ -1,5 +1,9 @@
-# CrossFuji
+# Fuji v2
 Cross-chain Lending Aggregator
+
+- [Fuji v2](#fuji-v2)
+  - [Quickstart](#quickstart)
+  - [Code style](#code-style)
 
 ## Quickstart
 
@@ -26,3 +30,17 @@ We want to establish rules over how our git commit messages can be formatted. Th
 ```
 type(scope?): subject  #scope is optional; multiple scopes are supported (current delimiter options: "/", "\" and ",")
 ```
+
+- Frontend / formatting
+
+We use [eslint](https://eslint.org/) alongside with [prettier](https://prettier.io/) to format our code.
+
+Every time you commit files, they are automatically formatted thanks to hysky (pre commit hooks), but you may want to enable it in your editor, this way every time you save it'll format it.
+
+To do it in visual code:
+1. Install ESlint extension
+2. Install Prettier extension
+3. Change default formatter and choose "prettier" as default
+4. (optionnal) Enable "format on save"
+
+If you use another editor feel free to add it in this doc.

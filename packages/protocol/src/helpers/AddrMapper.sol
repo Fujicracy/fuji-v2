@@ -13,17 +13,17 @@ contract AddrMapper is IAddrMapper, Ownable {
   string public mapperName;
   // key address => returned address
   // (e.g. public erc20 => protocol Token)
-  mapping(address => address) private _addressMapping;
+  mapping(address => address) private _addrMapping;
   // key1 address, key2 address => returned address
   // (e.g. collateral erc20 => borrow erc20 => Protocol market)
-  mapping(address => mapping(address => address)) private _addressNestedMapping;
+  mapping(address => mapping(address => address)) private _addrNestedMapping;
 
   constructor(string memory _mapperName) {
     mapperName = _mapperName;
   }
 
   function getAddressMapping(address inputAddr) external view override returns (address) {
-    return _addressMapping[inputAddr];
+    return _addrMapping[inputAddr];
   }
 
   function getAddressNestedMapping(address inputAddr1, address inputAddr2)
@@ -32,14 +32,14 @@ contract AddrMapper is IAddrMapper, Ownable {
     override
     returns (address)
   {
-    return _addressNestedMapping[inputAddr1][inputAddr2];
+    return _addrNestedMapping[inputAddr1][inputAddr2];
   }
 
   /**
    * @dev Adds an address mapping.
    */
   function setMapping(address keyAddr, address returnedAddr) public override onlyOwner {
-    _addressMapping[keyAddr] = returnedAddr;
+    _addrMapping[keyAddr] = returnedAddr;
     address[] memory inputAddrs = new address[](1);
     inputAddrs[0] = keyAddr;
     emit MappingChanged(inputAddrs, returnedAddr);
@@ -53,7 +53,7 @@ contract AddrMapper is IAddrMapper, Ownable {
     override
     onlyOwner
   {
-    _addressNestedMapping[keyAddr1][keyAddr2] = returnedAddr;
+    _addrNestedMapping[keyAddr1][keyAddr2] = returnedAddr;
     address[] memory inputAddrs = new address[](2);
     inputAddrs[0] = keyAddr1;
     inputAddrs[1] = keyAddr2;

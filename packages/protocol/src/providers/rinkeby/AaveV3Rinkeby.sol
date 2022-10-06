@@ -4,7 +4,6 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
-import {IVault} from "../../interfaces/IVault.sol";
 
 /**
  * @title AaveV3 Lending Provider.
@@ -22,47 +21,47 @@ contract AaveV3Rinkeby is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(address asset, uint256 amount, IVault vault)
+  function deposit(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
     IV3Pool aave = _getPool();
-    aave.supply(asset, amount, address(vault), 0);
+    aave.supply(asset, amount, vault, 0);
     aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(address asset, uint256 amount, IVault vault)
+  function borrow(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
     IV3Pool aave = _getPool();
-    aave.borrow(asset, amount, 2, 0, address(vault));
+    aave.borrow(asset, amount, 2, 0, vault);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(address asset, uint256 amount, IVault vault)
+  function withdraw(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
     IV3Pool aave = _getPool();
-    aave.withdraw(asset, amount, address(vault));
+    aave.withdraw(asset, amount, vault);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(address asset, uint256 amount, IVault vault)
+  function payback(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
     IV3Pool aave = _getPool();
-    aave.repay(asset, amount, 2, address(vault));
+    aave.repay(asset, amount, 2, vault);
     success = true;
   }
 

@@ -19,7 +19,7 @@ interface ICompoundV3 {
   }
 
   struct TotalsBasic {
-    // 1st slot
+  // 1st slot
     uint64 baseSupplyIndex;
     uint64 baseBorrowIndex;
     uint64 trackingSupplyIndex;
@@ -107,36 +107,49 @@ interface ICompoundV3 {
 
   /// @dev uint64
   function supplyKink() external view returns (uint256);
+
   /// @dev uint64
   function supplyPerSecondInterestRateSlopeLow() external view returns (uint256);
+
   /// @dev uint64
   function supplyPerSecondInterestRateSlopeHigh() external view returns (uint256);
+
   /// @dev uint64
   function supplyPerSecondInterestRateBase() external view returns (uint256);
+
   /// @dev uint64
   function borrowKink() external view returns (uint256);
+
   /// @dev uint64
   function borrowPerSecondInterestRateSlopeLow() external view returns (uint256);
+
   /// @dev uint64
   function borrowPerSecondInterestRateSlopeHigh() external view returns (uint256);
+
   /// @dev uint64
   function borrowPerSecondInterestRateBase() external view returns (uint256);
+
   /// @dev uint64
   function storeFrontPriceFactor() external view returns (uint256);
 
   /// @dev uint64
   function baseScale() external view returns (uint256);
+
   /// @dev uint64
   function trackingIndexScale() external view returns (uint256);
 
   /// @dev uint64
   function baseTrackingSupplySpeed() external view returns (uint256);
+
   /// @dev uint64
   function baseTrackingBorrowSpeed() external view returns (uint256);
+
   /// @dev uint104
   function baseMinForRewards() external view returns (uint256);
+
   /// @dev uint104
   function baseBorrowMin() external view returns (uint256);
+
   /// @dev uint104
   function targetReserves() external view returns (uint256);
 
