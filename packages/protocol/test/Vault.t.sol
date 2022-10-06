@@ -232,7 +232,7 @@ contract VaultTest is DSTestPlus {
     vm.startPrank(bob);
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(
-      abi.encodeWithSelector(BorrowingVault.BorrowingVault__liquidate_accountHealthy.selector)
+      abi.encodeWithSelector(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector)
     );
     vault.liquidate(alice);
     vm.stopPrank();

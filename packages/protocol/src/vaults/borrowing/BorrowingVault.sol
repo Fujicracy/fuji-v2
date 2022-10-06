@@ -31,9 +31,9 @@ contract BorrowingVault is BaseVault {
     address liquidator
   );
 
-  error BorrowingVault__borrow_wrongInput();
+  error BorrowingVault__borrow_invalidInput();
   error BorrowingVault__borrow_notEnoughAssets();
-  error BorrowingVault__payback_wrongInput();
+  error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
   error BorrowingVault__liquidate_positionHealthy();
 
@@ -135,16 +135,16 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
-    if (caller != owner) {
-      _spendBorrowAllowance(owner, caller, debt);
-    }
 
-    if (debt == 0) {
-      revert BorrowingVault__borrow_wrongInput();
+    if (debt == 0 || receiver == address(0) || owner == address(0)) {
+      revert BorrowingVault__borrow_invalidInput();
     }
-
     if (debt > maxBorrow(owner)) {
       revert BorrowingVault__borrow_notEnoughAssets();
+    }
+
+    if (caller != owner) {
+      _spendBorrowAllowance(owner, caller, debt);
     }
 
     uint256 shares = convertDebtToShares(debt);
@@ -155,8 +155,8 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
-    if (debt == 0) {
-      revert BorrowingVault__payback_wrongInput();
+    if (debt == 0 || owner == address(0)) {
+      revert BorrowingVault__payback_invalidInput();
     }
 
     if (debt > convertToDebt(_debtShares[owner])) {
@@ -333,13 +333,11 @@ contract BorrowingVault is BaseVault {
   }
 
   function _mintDebtShares(address owner, uint256 amount) internal {
-    require(owner != address(0), "Mint to the zero address");
     debtSharesSupply += amount;
     _debtShares[owner] += amount;
   }
 
   function _burnDebtShares(address owner, uint256 amount) internal {
-    require(owner != address(0), "Mint to the zero address");
     uint256 balance = _debtShares[owner];
     require(balance >= amount, "Burn amount exceeds balance");
     unchecked {
