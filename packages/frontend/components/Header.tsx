@@ -155,7 +155,7 @@ const Header = () => {
 
             <Grid container columnGap="0.5rem" justifyContent="flex-end">
               {status === "disconnected" && (
-                <Button variant="primary" onClick={login}>
+                <Button variant="primary" onClick={() => login()}>
                   Connect wallet
                 </Button>
               )}
@@ -166,7 +166,7 @@ const Header = () => {
                   </Grid>
                   <Grid item>
                     <BalanceAddress
-                      // TODO: imoprove store typing
+                      // TODO: balance should be retrived from current chain, and not deduced
                       balance={balance}
                       address={address as string}
                     />

@@ -1,7 +1,6 @@
-import React, { useRef, useState } from "react"
+import React from "react"
 import { useTheme } from "@mui/material/styles"
 import {
-  Box,
   Button,
   Divider,
   Link,
@@ -18,11 +17,10 @@ import LightModeIcon from "@mui/icons-material/LightMode"
 import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
+import { useStore } from "../store"
 
-type ParametersModalProps = {}
-
-export default function ParametersModal(props: ParametersModalProps) {
-  const theme = useTheme()
+export default function ParametersModal() {
+  const logout = useStore((state) => state.logout)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
@@ -100,15 +98,15 @@ export default function ParametersModal(props: ParametersModalProps) {
           <MenuItem>
             <ListItemText>Token Allowances</ListItemText>
           </MenuItem>
-          <Link
-            href="https://docs.fujidao.org/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MenuItem>
+          <MenuItem>
+            <Link
+              href="https://docs.fujidao.org/"
+              target="_blank"
+              rel="noreferrer"
+            >
               <ListItemText>Docs</ListItemText>
-            </MenuItem>
-          </Link>
+            </Link>
+          </MenuItem>
           <MenuItem>
             <ListItemText>Blog</ListItemText>
           </MenuItem>
@@ -119,6 +117,10 @@ export default function ParametersModal(props: ParametersModalProps) {
             <ListItemText>Roadmap</ListItemText>
           </MenuItem>
         </MenuList>
+        <Divider />
+        <MenuItem onClick={() => logout()}>
+          <ListItemText>Log out</ListItemText>
+        </MenuItem>
       </Menu>
     </>
   )

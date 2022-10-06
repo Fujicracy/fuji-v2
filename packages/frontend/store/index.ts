@@ -108,6 +108,7 @@ type State = {
 type Action = {
   login: (options?: ConnectOptions) => void
   reconnect: () => void
+  logout: () => void
 }
 
 const initialState: State = {
@@ -153,7 +154,7 @@ export const useStore = create<State & Action>((set, get) => ({
     set({ status: "connected", address, balance })
   },
 
-  reset: async () => {
+  logout: async () => {
     const wallets = onboard.state.get().wallets
     for (const { label } of wallets) {
       await onboard.disconnectWallet({ label })
