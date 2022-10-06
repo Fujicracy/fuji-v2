@@ -363,7 +363,7 @@ contract BorrowingVault is BaseVault {
       uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
 
       healthFactor =
-        (assets * maxLtv * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
+        (assets * liqRatio * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
     }
   }
 

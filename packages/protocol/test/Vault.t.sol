@@ -62,9 +62,9 @@ contract VaultTest is DSTestPlus {
   }
 
   function _utils_setupOracle(address asset1, address asset2) internal {
-    // WETH and DAI prices by Aug 12h 2022
-    _utils_setPrice(asset1, asset2, 528881643782407);
-    _utils_setPrice(asset2, asset1, 1889069940262927605990);
+    // WETH and DAI prices: 2000 DAI/WETH
+    _utils_setPrice(asset1, asset2, 5e14);
+    _utils_setPrice(asset2, asset1, 2000e18);
   }
 
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
@@ -135,9 +135,7 @@ contract VaultTest is DSTestPlus {
 
   function test_tryBorrowWithoutCollateral() public {
     uint256 borrowAmount = 100e18;
-    vm.expectRevert(
-      BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector
-    );
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
 
     vm.prank(alice);
     vault.borrow(borrowAmount, alice, alice);
@@ -148,9 +146,7 @@ contract VaultTest is DSTestPlus {
     uint256 borrowAmount = 100e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
-    vm.expectRevert(
-      BaseVault.BaseVault__withdraw_moreThanMax.selector
-    );
+    vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
 
     vm.prank(alice);
     vault.withdraw(amount, alice, alice);
@@ -168,9 +164,7 @@ contract VaultTest is DSTestPlus {
     vault.setMinDepositAmount(min);
 
     uint256 amount = 0.05 ether;
-    vm.expectRevert(
-      BaseVault.BaseVault__deposit_lessThanMin.selector
-    );
+    vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
     vault.deposit(amount, alice);
   }
@@ -190,9 +184,7 @@ contract VaultTest is DSTestPlus {
     _utils_doDeposit(depositAlice, vault, alice);
 
     uint256 depositBob = 1 ether;
-    vm.expectRevert(
-      BaseVault.BaseVault__deposit_moreThanMax.selector
-    );
+    vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
     vm.prank(bob);
     vault.deposit(depositBob, bob);
   }
@@ -206,7 +198,7 @@ contract VaultTest is DSTestPlus {
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     uint256 HF2 = vault.getHealthFactor(alice);
-    assertEq(HF2, 2833);
+    assertEq(HF2, 3200);
   }
 
   function test_getLiquidationFactor() public {
@@ -214,18 +206,18 @@ contract VaultTest is DSTestPlus {
     assertEq(liquidatorFactor_0, 0);
 
     uint256 amount = 1 ether;
-    uint256 borrowAmount = 900e18;
+    uint256 borrowAmount = 1000e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     uint256 liquidatorFactor_1 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_1, 0);
 
-    _utils_setPrice(address(debtAsset), address(asset), 1164 * 1e18);
+    _utils_setPrice(address(debtAsset), address(asset), 1225 * 1e18);
 
     uint256 liquidatorFactor_2 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_2, 0.5e18);
 
-    _utils_setPrice(address(debtAsset), address(asset), 900 * 1e18);
+    _utils_setPrice(address(debtAsset), address(asset), 1000 * 1e18);
 
     uint256 liquidatorFactor_3 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_3, 1e18);
@@ -237,9 +229,7 @@ contract VaultTest is DSTestPlus {
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
-    vm.expectRevert(
-      BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector
-    );
+    vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
     vm.prank(bob);
     vault.liquidate(alice);
   }
@@ -283,12 +273,12 @@ contract VaultTest is DSTestPlus {
 
   function test_liquidateDefault() public {
     uint256 amount = 1 ether;
-    uint256 borrowAmount = 900e18;
+    uint256 borrowAmount = 1000e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
-    // price drop from 1889*1e18 to 1164*1e18, putting liquidator factor at 50%
-    _utils_setPrice(address(asset), address(debtAsset), 859106529209622);
-    _utils_setPrice(address(debtAsset), address(asset), 1164e18);
+    // price drop, putting HF < 100, but above 95 and the close factor at 50%
+    _utils_setPrice(address(asset), address(debtAsset), 806451612903226);
+    _utils_setPrice(address(debtAsset), address(asset), 1240e18);
     uint256 liquidatorAmount = 2000e18;
     deal(address(debtAsset), bob, liquidatorAmount);
 
@@ -309,12 +299,12 @@ contract VaultTest is DSTestPlus {
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
-    assertEq(vault.balanceOf(alice), 570446735395189004);
+    assertEq(vault.balanceOf(alice), 551971326164874552);
     assertEq(vault.balanceOfDebt(alice), borrowAmount / 2);
 
     assertEq(asset.balanceOf(bob), 0);
     assertEq(debtAsset.balanceOf(bob), liquidatorAmount - borrowAmount / 2);
-    assertEq(vault.balanceOf(bob), 429553264604810996);
+    assertEq(vault.balanceOf(bob), 448028673835125448);
     assertEq(vault.balanceOfDebt(bob), 0);
   }
 }
