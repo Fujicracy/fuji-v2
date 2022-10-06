@@ -18,6 +18,8 @@ export const GlobalStateContext = createContext({} as GlobalStateContext)
 
 function MyApp({ Component, pageProps }: AppProps) {
   const reconnect = useStore((state) => state.reconnect)
+  const subscribe = useStore((state) => state._subscribe)
+
   const authService = useInterpret(authMachine, {
     devTools: process.env.NODE_ENV === "development",
   })
@@ -26,6 +28,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       debug: process.env.NODE_ENV === "development",
     })
     reconnect()
+    subscribe()
   }, [authService])
 
   return (

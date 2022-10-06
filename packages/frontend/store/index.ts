@@ -1,8 +1,12 @@
 import create from "zustand"
-import Onboard, { ConnectOptions, InitOptions } from "@web3-onboard/core"
+import Onboard, { ConnectOptions, Chain } from "@web3-onboard/core"
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect"
-import { Balances } from "@web3-onboard/core/dist/types"
+import {
+  Balances,
+  ConnectedChain,
+  WalletState,
+} from "@web3-onboard/core/dist/types"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -42,27 +46,27 @@ const walletConnect = walletConnectModule({
   },
 })
 
-export const chains: InitOptions["chains"] = [
+export const chains: Chain[] = [
   {
-    id: 1,
+    id: "0x1",
     token: "ETH",
     label: "Ethereum",
     rpcUrl: ETH_MAINNET_RPC,
   },
   {
-    id: 137,
+    id: "0x89",
     token: "MATIC",
     label: "Polygon",
     rpcUrl: "https://matic-mainnet.chainstacklabs.com",
   },
   {
-    id: 250,
+    id: "0xfa",
     token: "FTM",
     label: "Fantom",
     rpcUrl: "https://rpc.ftm.tools/",
   },
   {
-    id: 10,
+    id: "0xa",
     token: "ETH",
     label: "Optimism",
     rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
@@ -100,21 +104,26 @@ const onboard = Onboard({
 })
 
 type State = {
-  status: "connected" | "disconnected"
+  status: "connected" | "reconnecting" | "disconnected"
   address: string
   balance: Balances
+  chain: ConnectedChain | null
 }
 
 type Action = {
   login: (options?: ConnectOptions) => void
   reconnect: () => void
   logout: () => void
+  changeChain: (chainId: string) => void
+  // Subscribe to onboard changes. Do not use aside of initialization
+  _subscribe: () => void
 }
 
 const initialState: State = {
   status: "disconnected",
   address: "",
-  balance: {},
+  balance: null,
+  chain: null,
 }
 
 export const useStore = create<State & Action>((set, get) => ({
@@ -150,8 +159,9 @@ export const useStore = create<State & Action>((set, get) => ({
 
     const balance = wallets[0].accounts[0].balance
     const address = wallets[0].accounts[0].address
+    const chain = wallets[0].chains[0]
 
-    set({ status: "connected", address, balance })
+    set({ status: "connected", address, balance, chain })
   },
 
   logout: async () => {
@@ -163,5 +173,27 @@ export const useStore = create<State & Action>((set, get) => ({
     localStorage.removeItem("connectedWallets")
 
     set(initialState)
+  },
+
+  changeChain: async (chainId) => {
+    await onboard.setChain({ chainId })
+  },
+
+  _subscribe: () => {
+    // TODO: to avoid multiple subscribe, find a way to extract this outside of the store
+    // console.count("subscribe !")
+    const wallets = onboard.state.select("wallets")
+    wallets.subscribe((w: WalletState[]) => {
+      if (!w[0]) return
+      const chain = w[0].chains[0]
+      const balance = w[0].accounts[0].balance
+
+      if (chain.id !== get().chain?.id) {
+        set({ chain })
+      }
+      if (balance && balance !== get().balance) {
+        set({ balance })
+      }
+    })
   },
 }))

@@ -18,8 +18,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
 import borrowMachine from "../machines/borrow.machine"
-import { chains } from "../machines/auth.machine"
-import CustomSelect from "./Form/CustomSelect"
+import { chains } from "../store/index"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../styles/components/Borrow.module.css"
 
@@ -29,7 +28,6 @@ export default function Borrow() {
   const [current, send] = useMachine(borrowMachine, {
     devTools: true,
   })
-  const { collateral } = current.context
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
@@ -91,7 +89,7 @@ export default function Borrow() {
                   variant="standard"
                   disableUnderline
                 >
-                  {chains.map((chain: Chain) => (
+                  {chains.map((chain) => (
                     <MenuItem key={chain.id} value={chain.id}>
                       <Grid container>
                         <Image
@@ -146,7 +144,7 @@ export default function Borrow() {
                   variant="standard"
                   disableUnderline
                 >
-                  {chains.map((chain: Chain) => (
+                  {chains.map((chain) => (
                     <MenuItem key={chain.id} value={chain.id}>
                       <Grid container>
                         <Image

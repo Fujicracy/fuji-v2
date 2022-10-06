@@ -1,5 +1,5 @@
 import { createMachine, assign } from "xstate"
-import Onboard, { AppState, InitOptions, WalletState } from "@web3-onboard/core"
+import Onboard, { InitOptions, WalletState } from "@web3-onboard/core"
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect"
 import mixpanel from "mixpanel-browser"
@@ -28,7 +28,8 @@ const walletConnect = walletConnectModule({
   },
 })
 
-export const chains: InitOptions["chains"] = [
+// DEPRECATED
+const chains: InitOptions["chains"] = [
   {
     id: 1,
     token: "ETH",
