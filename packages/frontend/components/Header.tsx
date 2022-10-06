@@ -16,12 +16,13 @@ import {
 import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
 import { useRouter } from "next/router"
+import { Balances } from "@web3-onboard/core/dist/types"
+import shallow from "zustand/shallow"
 
 import styles from "../styles/components/Header.module.css"
 import ChainSelect from "./Form/ChainSelect"
 import ParametersModal from "./ParametersModal"
 import { useStore } from "../store"
-import { Balances } from "@web3-onboard/core/dist/types"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -29,12 +30,15 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
-  const { address, status, balance, login } = useStore((state) => ({
-    status: state.status,
-    address: state.address,
-    balance: state.balance,
-    login: state.login,
-  }))
+  const { address, status, balance, login } = useStore(
+    (state) => ({
+      status: state.status,
+      address: state.address,
+      balance: state.balance,
+      login: state.login,
+    }),
+    shallow
+  )
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()

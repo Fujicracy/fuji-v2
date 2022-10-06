@@ -103,25 +103,31 @@ const onboard = Onboard({
   },
 })
 
-type State = {
-  status: "connected" | "reconnecting" | "disconnected"
+type StateConnected = {
+  status: "connected"
   address: string
   balance: Balances
-  chain: ConnectedChain | null
+  chain: ConnectedChain
 }
+type StateInitial = {
+  status: "disconnected"
+  address: null
+  balance: null
+  chain: null
+}
+
+type State = StateInitial | StateConnected
 
 type Action = {
   login: (options?: ConnectOptions) => void
-  reconnect: () => void
+  init: () => void
   logout: () => void
   changeChain: (chainId: string) => void
-  // Subscribe to onboard changes. Do not use aside of initialization
-  _subscribe: () => void
 }
 
 const initialState: State = {
   status: "disconnected",
-  address: "",
+  address: null,
   balance: null,
   chain: null,
 }
@@ -129,21 +135,9 @@ const initialState: State = {
 export const useStore = create<State & Action>((set, get) => ({
   ...initialState,
 
-  reconnect: async () => {
-    const previouslyConnectedWallets = localStorage.getItem("connectedWallets")
-
-    if (!previouslyConnectedWallets) {
-      return Promise.reject("No previously connected wallets found.")
-    }
-
-    const wallets = JSON.parse(previouslyConnectedWallets)
-
-    await get().login({
-      autoSelect: {
-        label: wallets[0],
-        disableModals: true,
-      },
-    })
+  init: async () => {
+    reconnect()
+    onOnboardChange()
   },
 
   login: async (options?) => {
@@ -178,22 +172,34 @@ export const useStore = create<State & Action>((set, get) => ({
   changeChain: async (chainId) => {
     await onboard.setChain({ chainId })
   },
-
-  _subscribe: () => {
-    // TODO: to avoid multiple subscribe, find a way to extract this outside of the store
-    // console.count("subscribe !")
-    const wallets = onboard.state.select("wallets")
-    wallets.subscribe((w: WalletState[]) => {
-      if (!w[0]) return
-      const chain = w[0].chains[0]
-      const balance = w[0].accounts[0].balance
-
-      if (chain.id !== get().chain?.id) {
-        set({ chain })
-      }
-      if (balance && balance !== get().balance) {
-        set({ balance })
-      }
-    })
-  },
 }))
+
+async function reconnect() {
+  const previouslyConnectedWallets = localStorage.getItem("connectedWallets")
+  const { getState: get } = useStore
+
+  if (!previouslyConnectedWallets) {
+    return Promise.reject("No previously connected wallets found.")
+  }
+  const wallets = JSON.parse(previouslyConnectedWallets)
+  await get().login({
+    autoSelect: { label: wallets[0], disableModals: true },
+  })
+}
+
+function onOnboardChange() {
+  onboard.state.select("wallets").subscribe((w: WalletState[]) => {
+    if (!w[0]) return
+
+    const { getState: get, setState: set } = useStore
+    const chain = w[0].chains[0]
+    const balance = w[0].accounts[0].balance
+
+    if (chain.id !== get().chain?.id) {
+      set({ chain })
+    }
+    if (balance && balance !== get().balance) {
+      set({ balance })
+    }
+  })
+}
