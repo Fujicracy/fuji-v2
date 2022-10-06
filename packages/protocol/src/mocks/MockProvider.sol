@@ -2,7 +2,6 @@
 pragma solidity 0.8.15;
 
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
-import {IVault} from "../interfaces/IVault.sol";
 import {MockERC20} from "./MockERC20.sol";
 
 contract MockProvider is ILendingProvider {
@@ -16,43 +15,43 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(address, uint256, IVault) external pure override returns (bool success) {
+  function deposit(address, uint256, address) external pure override returns (bool success) {
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(address asset, uint256 amount, IVault vault)
+  function borrow(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
-    MockERC20(asset).mintDebt(address(vault), amount);
+    MockERC20(asset).mintDebt(vault, amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function withdraw(address asset, uint256 amount, IVault vault)
+  function withdraw(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
-    MockERC20(asset).mint(address(vault), amount);
+    MockERC20(asset).mint(vault, amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address asset, uint256 amount, IVault vault)
+  function payback(address asset, uint256 amount, address vault)
     external
     override
     returns (bool success)
   {
-    MockERC20(asset).burn(address(vault), amount);
+    MockERC20(asset).burn(vault, amount);
     success = true;
   }
 
