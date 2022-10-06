@@ -21,6 +21,7 @@ import styles from "../styles/components/Header.module.css"
 import ChainSelect from "./Form/ChainSelect"
 import ParametersModal from "./ParametersModal"
 import { useStore } from "../store"
+import { Balances } from "@web3-onboard/core/dist/types"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -184,12 +185,16 @@ const Header = () => {
 }
 
 type BalanceAddressProps = {
-  balance?: number
+  balance: Balances
   address: string
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { balance, address } = props
-  const formattedAddress = `${address.substr(0, 4)}...${address.substr(-6, 6)}`
+  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
+  const [bal] = Object.values<string>(balance as any)
+  const [token] = Object.keys(balance as any)
+  const formattedBalance = `${bal.substring(0, 6)} ${token}`
+
   const theme = useTheme()
 
   return (
@@ -212,8 +217,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         }}
       >
         <Typography align="center" variant="small">
-          {/* TODO: Handle number formatting. */}
-          {balance} ETH
+          {formattedBalance}
         </Typography>
       </Box>
       <Box
