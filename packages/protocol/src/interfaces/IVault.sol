@@ -102,9 +102,9 @@ interface IVault is IERC4626 {
   function debtAsset() external view returns (address);
 
   /**
-   * @dev Returns the amount of debt owned by `account`.
+   * @dev Returns the amount of debt owned by `owner`.
    */
-  function balanceOfDebt(address account) external view returns (uint256 debt);
+  function balanceOfDebt(address owner) external view returns (uint256 debt);
 
   /**
    * @dev Based on {IERC4626-totalAssets}.
@@ -188,39 +188,39 @@ interface IVault is IERC4626 {
   ///  Liquidation Functions
 
   /**
-   * @notice Returns the current health factor of 'account'.
-   * @param account address to get health factor
+   * @notice Returns the current health factor of 'owner'.
+   * @param owner address to get health factor
    * @dev 'healthFactor' is scaled up by 100.
-   * A value below 100 means 'account' is eligable for liquidation.
+   * A value below 100 means 'owner' is eligable for liquidation.
    *
-   * - MUST return type(uint254).max when 'account' has no debt.
+   * - MUST return type(uint254).max when 'owner' has no debt.
    * - MUST revert in {YieldVault}.
    */
-  function getHealthFactor(address account) external returns (uint256 healthFactor);
+  function getHealthFactor(address owner) external returns (uint256 healthFactor);
 
   /**
-   * @notice Returns the liquidation close factor based on 'account's' health factor.
-   * @param account address owner of debt position.
+   * @notice Returns the liquidation close factor based on 'owner's' health factor.
+   * @param owner address owner of debt position.
    *
-   * - MUST return zero if `account` is not liquidatable.
+   * - MUST return zero if `owner` is not liquidatable.
    * - MUST revert in {YieldVault}.
    */
-  function getLiquidationFactor(address account) external returns (uint256 liquidationFactor);
+  function getLiquidationFactor(address owner) external returns (uint256 liquidationFactor);
 
   /**
    * @notice Performs liquidation of an unhealthy position, meaning a 'healthFactor' below 100.
-   * @param account address to be liquidated.
+   * @param owner address to be liquidated.
    * @dev WARNING! It is liquidator's responsability to check if liquidation is profitable.
    *
    * - MUST revert if caller is not an approved liquidator.
-   * - MUST revert if 'account' is not liquidatable.
+   * - MUST revert if 'owner' is not liquidatable.
    * - MUST emit the Liquidation event.
-   * - MUST liquidate 50% of 'account' debt when: 100 >= 'healthFactor' > 95.
-   * - MUST liquidate 100% of 'account' debt when: 95 > 'healthFactor'.
+   * - MUST liquidate 50% of 'owner' debt when: 100 >= 'healthFactor' > 95.
+   * - MUST liquidate 100% of 'owner' debt when: 95 > 'healthFactor'.
    * - MUST revert in {YieldVault}.
    *
    */
-  function liquidate(address account) external returns (uint256 gainedShares);
+  function liquidate(address owner) external returns (uint256 gainedShares);
 
   ////////////////////////
   /// Setter functions ///

@@ -12,11 +12,10 @@ import {VaultPermissions} from "../VaultPermissions.sol";
 
 contract BorrowingVault is BaseVault {
   using Math for uint256;
-  using SafeERC20 for IERC20;
 
   /**
    * @dev Emitted when a user is liquidated
-   * @param account address whose assets are being liquidated.
+   * @param owner address whose assets are being liquidated.
    * @param collateralSold `owner`'s amount of collateral sold during liquidation.
    * @param debtPaid `owner`'s amount of debt paid back during liquidation.
    * @param price price of collateral at which liquidation was done.
@@ -24,7 +23,7 @@ contract BorrowingVault is BaseVault {
    * @param liquidator executor of liquidation.
    */
   event Liquidate(
-    address indexed account,
+    address indexed owner,
     uint256 collateralSold,
     uint256 debtPaid,
     uint256 price,
@@ -36,7 +35,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_notEnoughAssets();
   error BorrowingVault__payback_wrongInput();
   error BorrowingVault__payback_moreThanMax();
-  error BorrowingVault__liquidate_accountHealthy();
+  error BorrowingVault__liquidate_positionHealthy();
 
   /// Liquidation controls
 
@@ -109,8 +108,8 @@ contract BorrowingVault is BaseVault {
   }
 
   /// @inheritdoc BaseVault
-  function balanceOfDebt(address account) public view override returns (uint256 debt) {
-    return convertToDebt(_debtShares[account]);
+  function balanceOfDebt(address owner) public view override returns (uint256 debt) {
+    return convertToDebt(_debtShares[owner]);
   }
 
   /// @inheritdoc BaseVault
@@ -333,18 +332,18 @@ contract BorrowingVault is BaseVault {
     emit Payback(caller, owner, assets, shares);
   }
 
-  function _mintDebtShares(address account, uint256 amount) internal {
-    require(account != address(0), "Mint to the zero address");
+  function _mintDebtShares(address owner, uint256 amount) internal {
+    require(owner != address(0), "Mint to the zero address");
     debtSharesSupply += amount;
-    _debtShares[account] += amount;
+    _debtShares[owner] += amount;
   }
 
-  function _burnDebtShares(address account, uint256 amount) internal {
-    require(account != address(0), "Mint to the zero address");
-    uint256 accountBalance = _debtShares[account];
-    require(accountBalance >= amount, "Burn amount exceeds balance");
+  function _burnDebtShares(address owner, uint256 amount) internal {
+    require(owner != address(0), "Mint to the zero address");
+    uint256 balance = _debtShares[owner];
+    require(balance >= amount, "Burn amount exceeds balance");
     unchecked {
-      _debtShares[account] = accountBalance - amount;
+      _debtShares[owner] = balance - amount;
     }
     debtSharesSupply -= amount;
   }
@@ -354,14 +353,14 @@ contract BorrowingVault is BaseVault {
   //////////////////////
 
   /// inheritdoc IVault
-  function getHealthFactor(address account) public view returns (uint256 healthFactor) {
-    uint256 debtShares = _debtShares[account];
+  function getHealthFactor(address owner) public view returns (uint256 healthFactor) {
+    uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
 
     if (debt == 0) {
       healthFactor = type(uint256).max;
     } else {
-      uint256 assetShares = balanceOf(account);
+      uint256 assetShares = balanceOf(owner);
       uint256 assets = convertToAssets(assetShares);
       uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
 
@@ -371,31 +370,31 @@ contract BorrowingVault is BaseVault {
   }
 
   /// inheritdoc IVault
-  function getLiquidationFactor(address account) public view returns (uint256 liquidationFactor) {
-    uint256 healthFactor = getHealthFactor(account);
+  function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
+    uint256 healthFactor = getHealthFactor(owner);
 
     if (healthFactor >= 100) {
       liquidationFactor = 0;
     } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
-      liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of account's debt
+      liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
     } else {
-      liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of account's debt
+      liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of owner's debt
     }
   }
 
   /// inheritdoc IVault
-  function liquidate(address account) public returns (uint256 gainedShares) {
+  function liquidate(address owner) public returns (uint256 gainedShares) {
     // TODO only liquidator role, that will be controlled at Chief level.
 
     address caller = _msgSender();
 
-    uint256 liquidationFactor = getLiquidationFactor(account);
+    uint256 liquidationFactor = getLiquidationFactor(owner);
     if (liquidationFactor == 0) {
-      revert BorrowingVault__liquidate_accountHealthy();
+      revert BorrowingVault__liquidate_positionHealthy();
     }
 
     // Compute debt amount that should be paid by liquidator.
-    uint256 debtShares = _debtShares[account];
+    uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
     uint256 debtSharesToCover = Math.mulDiv(debtShares, liquidationFactor, 1e18);
     uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
@@ -406,19 +405,19 @@ contract BorrowingVault is BaseVault {
     uint256 gainedAssets = Math.mulDiv(debt, liquidationFactor, discountedPrice);
     gainedShares = convertToShares(gainedAssets);
 
-    _payback(caller, account, debtToCover, debtSharesToCover);
+    _payback(caller, owner, debtToCover, debtSharesToCover);
 
-    // Ensure liquidator receives no more shares than 'account' owns.
-    uint256 existingShares = balanceOf(account);
+    // Ensure liquidator receives no more shares than 'owner' owns.
+    uint256 existingShares = balanceOf(owner);
     if (gainedShares > existingShares) {
       gainedShares = existingShares;
     }
 
-    // Internal share adjusment between 'account' and 'liquidator'.
-    _burn(account, gainedShares);
+    // Internal share adjusment between 'owner' and 'liquidator'.
+    _burn(owner, gainedShares);
     _mint(caller, gainedShares);
 
-    emit Liquidate(account, gainedShares, debtToCover, price, liquidationFactor, caller);
+    emit Liquidate(owner, gainedShares, debtToCover, price, liquidationFactor, caller);
   }
 
   ///////////////////////////
