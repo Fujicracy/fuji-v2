@@ -19,7 +19,7 @@ interface ICompoundV3 {
   }
 
   struct TotalsBasic {
-    // 1st slot
+  // 1st slot
     uint64 baseSupplyIndex;
     uint64 baseBorrowIndex;
     uint64 trackingSupplyIndex;

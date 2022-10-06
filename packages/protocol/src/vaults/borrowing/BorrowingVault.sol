@@ -17,12 +17,19 @@ contract BorrowingVault is BaseVault {
   /**
    * @dev Emitted when a user is liquidated
    * @param account address whose assets are being liquidated.
-   * @param collateralSold `owner's` amount of collateral sold during liquidation.
-   * @param debtPaid `owner's` amount of debt paid back during liquidation.
+   * @param collateralSold `owner`'s amount of collateral sold during liquidation.
+   * @param debtPaid `owner`'s amount of debt paid back during liquidation.
+   * @param price price of collateral at which liquidation was done.
+   * @param liquidationFactor what % of debt was liquidated
    * @param liquidator executor of liquidation.
    */
   event Liquidate(
-    address indexed account, uint256 collateralSold, uint256 debtPaid, address liquidator
+    address indexed account,
+    uint256 collateralSold,
+    uint256 debtPaid,
+    uint256 price,
+    uint256 liquidationFactor,
+    address liquidator
   );
 
   error BorrowingVault__borrow_wrongInput();
@@ -35,10 +42,13 @@ contract BorrowingVault is BaseVault {
 
   /// Returns default liquidation close factor: 50% of debt.
   uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e18;
+
   /// Returns max liquidation close factor: 100% of debt.
   uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
+
   /// Returns health factor threshold at which max liquidation can occur.
   uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95;
+
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
@@ -340,7 +350,7 @@ contract BorrowingVault is BaseVault {
   }
 
   //////////////////////
-  ///  Liquidate    ////
+  ///  Liquidation  ////
   //////////////////////
 
   /// inheritdoc IVault
@@ -408,7 +418,7 @@ contract BorrowingVault is BaseVault {
     _burn(account, gainedShares);
     _mint(caller, gainedShares);
 
-    emit Liquidate(account, gainedShares, debtToCover, caller);
+    emit Liquidate(account, gainedShares, debtToCover, price, liquidationFactor, caller);
   }
 
   ///////////////////////////
