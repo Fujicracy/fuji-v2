@@ -32,7 +32,7 @@ contract BorrowingVault is BaseVault {
   );
 
   error BorrowingVault__borrow_invalidInput();
-  error BorrowingVault__borrow_notEnoughAssets();
+  error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
   error BorrowingVault__liquidate_positionHealthy();
@@ -140,7 +140,7 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {
-      revert BorrowingVault__borrow_notEnoughAssets();
+      revert BorrowingVault__borrow_moreThanAllowed();
     }
 
     if (caller != owner) {

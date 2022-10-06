@@ -9,6 +9,7 @@ import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
+import {BaseVault} from "../src/abstracts/BaseVault.sol";
 
 contract VaultTest is DSTestPlus {
   event MinDepositAmountChanged(uint256 newMinDeposit);
@@ -88,18 +89,6 @@ contract VaultTest is DSTestPlus {
     v.borrow(borrowAmount, who, who);
   }
 
-  function _utils_setMinDeposit(uint256 newMinAmount) internal {
-    vm.expectEmit(true, false, false, false);
-    emit MinDepositAmountChanged(newMinAmount);
-    vault.setMinDepositAmount(newMinAmount);
-  }
-
-  function _utils_setDepositCap(uint256 newMaxCap) internal {
-    vm.expectEmit(true, false, false, false);
-    emit DepositCapChanged(newMaxCap);
-    vault.setDepositCap(newMaxCap);
-  }
-
   //fuzz testing example
   function test_deposit(uint256 amount) public {
     _utils_doDeposit(amount, vault, alice);
@@ -144,50 +133,68 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOf(alice), 0);
   }
 
-  function testFail_borrowWithoutCollateral() public {
+  function test_tryBorrowWithoutCollateral() public {
     uint256 borrowAmount = 100e18;
+    vm.expectRevert(
+      BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector
+    );
 
     vm.prank(alice);
     vault.borrow(borrowAmount, alice, alice);
   }
 
-  function testFail_withdrawWithoutRepay() public {
+  function test_tryWithdrawWithoutRepay() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 100e18;
-
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    vm.expectRevert(
+      BaseVault.BaseVault__withdraw_moreThanMax.selector
+    );
 
     vm.prank(alice);
     vault.withdraw(amount, alice, alice);
   }
 
   function test_setMinDeposit() public {
-    uint256 mindeposit = 0.1 ether;
-    _utils_setMinDeposit(mindeposit);
+    uint256 min = 0.1 ether;
+    vm.expectEmit(true, false, false, false);
+    emit MinDepositAmountChanged(min);
+    vault.setMinDepositAmount(min);
   }
 
-  function testFail_tryMinDeposit() public {
-    uint256 mindeposit = 0.1 ether;
-    _utils_setMinDeposit(mindeposit);
+  function test_tryLessThanMinDeposit() public {
+    uint256 min = 0.1 ether;
+    vault.setMinDepositAmount(min);
 
-    uint256 badDeposit = 0.05 ether;
-    _utils_doDeposit(badDeposit, vault, alice);
+    uint256 amount = 0.05 ether;
+    vm.expectRevert(
+      BaseVault.BaseVault__deposit_lessThanMin.selector
+    );
+    vm.prank(alice);
+    vault.deposit(amount, alice);
   }
 
   function test_setMaxCap() public {
     uint256 maxCap = 5 ether;
-    _utils_setDepositCap(maxCap);
+    vm.expectEmit(true, false, false, false);
+    emit DepositCapChanged(maxCap);
+    vault.setDepositCap(maxCap);
   }
 
-  function testFail_tryMaxCap() public {
+  function test_tryMaxCap() public {
     uint256 maxCap = 5 ether;
-    _utils_setDepositCap(maxCap);
+    vault.setDepositCap(maxCap);
 
     uint256 depositAlice = 4.5 ether;
     _utils_doDeposit(depositAlice, vault, alice);
 
     uint256 depositBob = 1 ether;
-    _utils_doDeposit(depositBob, vault, bob);
+    vm.expectRevert(
+      BaseVault.BaseVault__deposit_moreThanMax.selector
+    );
+    vm.prank(bob);
+    vault.deposit(depositBob, bob);
   }
 
   function test_getHealthFactor() public {
@@ -224,18 +231,23 @@ contract VaultTest is DSTestPlus {
     assertEq(liquidatorFactor_3, 1e18);
   }
 
-  function test_liquidateMax() public {
+  function test_tryLiquidateHealthy() public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 900e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
-    vm.startPrank(bob);
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(
-      abi.encodeWithSelector(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector)
+      BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector
     );
+    vm.prank(bob);
     vault.liquidate(alice);
-    vm.stopPrank();
+  }
+
+  function test_liquidateMax() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 900e18;
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     // price drop from 1889*1e18 to 1000*1e18
     _utils_setPrice(address(asset), address(debtAsset), 1000000000000000);

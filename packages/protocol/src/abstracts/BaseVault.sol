@@ -24,7 +24,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   using Address for address;
 
   error BaseVault__deposit_moreThanMax();
+  error BaseVault__deposit_lessThanMin();
   error BaseVault__mint_moreThanMax();
+  error BaseVault__mint_lessThanMin();
   error BaseVault__withdraw_invalidInput();
   error BaseVault__withdraw_moreThanMax();
   error BaseVault__redeem_moreThanMax();
@@ -141,7 +143,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function maxMint(address) public view virtual override returns (uint256) {
-    return type(uint256).max;
+    return _convertToShares(depositCap, Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
@@ -176,11 +178,16 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    if (assets + totalAssets() > maxDeposit(receiver) || assets < minDepositAmount) {
+    uint256 shares = previewDeposit(assets);
+
+    // use shares because it's cheaper to get totalSupply compared to totalAssets
+    if (shares + totalSupply() > maxMint(receiver)) {
       revert BaseVault__deposit_moreThanMax();
     }
+    if (assets < minDepositAmount) {
+      revert BaseVault__deposit_lessThanMin();
+    }
 
-    uint256 shares = previewDeposit(assets);
     _deposit(_msgSender(), receiver, assets, shares);
 
     return shares;
@@ -188,11 +195,15 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   /// @inheritdoc IERC4626
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
-    if (shares > maxMint(receiver)) {
+    uint256 assets = previewMint(shares);
+
+    if (shares + totalSupply() > maxMint(receiver)) {
       revert BaseVault__mint_moreThanMax();
     }
+    if (assets < minDepositAmount) {
+      revert BaseVault__mint_lessThanMin();
+    }
 
-    uint256 assets = previewMint(shares);
     _deposit(_msgSender(), receiver, assets, shares);
 
     return assets;
@@ -204,17 +215,17 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
     returns (uint256)
   {
-    address caller = _msgSender();
-    if (caller != owner) {
-      _spendAllowance(owner, caller, convertToShares(assets));
-    }
-
-    if (assets == 0) {
+    if (assets == 0 || receiver == address(0) || owner == address(0)) {
       revert BaseVault__withdraw_invalidInput();
     }
 
     if (assets > maxWithdraw(owner)) {
       revert BaseVault__withdraw_moreThanMax();
+    }
+
+    address caller = _msgSender();
+    if (caller != owner) {
+      _spendAllowance(owner, caller, convertToShares(assets));
     }
 
     uint256 shares = previewWithdraw(assets);
@@ -229,17 +240,17 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     override
     returns (uint256)
   {
-    address caller = _msgSender();
-    if (caller != owner) {
-      _spendAllowance(owner, caller, shares);
-    }
-
-    if (shares == 0) {
+    if (shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BaseVault__redeem_invalidInput();
     }
 
     if (shares > maxRedeem(owner)) {
       revert BaseVault__redeem_moreThanMax();
+    }
+
+    address caller = _msgSender();
+    if (caller != owner) {
+      _spendAllowance(owner, caller, shares);
     }
 
     uint256 assets = previewRedeem(shares);
