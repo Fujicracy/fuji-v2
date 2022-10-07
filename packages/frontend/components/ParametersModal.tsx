@@ -1,7 +1,6 @@
 import React from "react"
-import { useTheme } from "@mui/material/styles"
 import {
-  Button,
+  Chip,
   Divider,
   Link,
   ListItemText,
@@ -33,9 +32,10 @@ export default function ParametersModal() {
 
   return (
     <>
-      <Button onClick={openMenu} size="small" variant="secondary2">
-        {isOpen ? <CloseIcon /> : <MoreHorizIcon />}
-      </Button>
+      <Chip
+        label={isOpen ? <CloseIcon /> : <MoreHorizIcon />}
+        onClick={openMenu}
+      />
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}

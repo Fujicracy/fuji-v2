@@ -12,6 +12,7 @@ import {
   MenuList,
   Grid,
   Button,
+  Chip,
 } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
@@ -157,9 +158,14 @@ const Header = () => {
               ))}
             </MenuList>
 
-            <Grid container columnGap="0.5rem" justifyContent="flex-end">
+            <Grid
+              container
+              columnGap="0.5rem"
+              justifyContent="flex-end"
+              alignItems="center"
+            >
               {status === "disconnected" && (
-                <Button variant="primary" onClick={() => login()}>
+                <Button variant="gradient" onClick={() => login()}>
                   Connect wallet
                 </Button>
               )}
@@ -199,45 +205,24 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   const [token] = Object.keys(balance as any)
   const formattedBalance = `${bal.substring(0, 6)} ${token}`
 
-  const theme = useTheme()
+  const { palette } = useTheme()
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns="1fr"
-      sx={{
-        ml: "5rem",
-      }}
-    >
-      <Box
-        gridColumn={1}
-        gridRow={1}
+    <Box mr="-2rem">
+      <Chip
+        label={formattedBalance}
+        sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
+      />
+      <Chip
+        label={formattedAddress}
         sx={{
-          background: "rgba(255, 255, 255, 0.1)",
-          borderRadius: "4rem",
-          height: "2.25rem",
-          padding: "0.438rem 0.75rem",
-          marginLeft: "-5rem",
+          fontSize: ".9rem",
+          lineHeight: ".9rem",
+          position: "relative",
+          left: "-2rem",
+          backgroundColor: palette.secondary.light,
         }}
-      >
-        <Typography align="center" variant="small">
-          {formattedBalance}
-        </Typography>
-      </Box>
-      <Box
-        gridColumn={1}
-        gridRow={1}
-        sx={{
-          background: theme.palette.secondary.light,
-          borderRadius: "4rem",
-          height: "2.25rem",
-          padding: "0.438rem 0.75rem",
-        }}
-      >
-        <Typography align="center" variant="small">
-          {formattedAddress}
-        </Typography>
-      </Box>
+      />
     </Box>
   )
 }
