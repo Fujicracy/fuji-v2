@@ -31,6 +31,9 @@ contract VaultTest is DSTestPlus {
   address bob = vm.addr(bobPkey);
 
   function setUp() public {
+    vm.label(alice, "Alice");
+    vm.label(bob, "Bob");
+
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
     debtAsset = new MockERC20("Test DAI", "tDAI");
@@ -150,9 +153,8 @@ contract VaultTest is DSTestPlus {
   }
 
   // TODO FUZZ
-  function test_tryWithdrawWithoutRepay() public {
-    uint96 amount = 2 ether;
-    uint256 borrowAmount = 100e18;
+  function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);

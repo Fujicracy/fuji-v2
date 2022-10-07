@@ -264,6 +264,12 @@ contract BorrowingVault is BaseVault {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
       uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtAsset.decimals());
+
+      if (lockedAssets == 0) {
+        // Handle wei level amounts in where 'lockedAssets' < 1 wei
+        lockedAssets = 1;
+      }
+
       uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
