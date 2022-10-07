@@ -1,5 +1,6 @@
 import create from "zustand"
-import Onboard, { ConnectOptions, Chain } from "@web3-onboard/core"
+import Onboard, { ConnectOptions } from "@web3-onboard/core"
+import { Chain as IChain } from "@web3-onboard/common"
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect"
 import {
@@ -46,6 +47,7 @@ const walletConnect = walletConnectModule({
   },
 })
 
+export type Chain = IChain
 export const chains: Chain[] = [
   {
     id: "0x1",
@@ -115,9 +117,6 @@ type StateInitial = {
   balance: null
   chain: null
 }
-
-// TODO: When wrong chain
-type StateError = {}
 
 type State = StateInitial | StateConnected
 

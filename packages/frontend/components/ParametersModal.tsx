@@ -1,6 +1,5 @@
 import React from "react"
 import {
-  Chip,
   Divider,
   Link,
   ListItemText,
@@ -9,6 +8,7 @@ import {
   MenuList,
   Switch,
 } from "@mui/material"
+import Chip from "@mui/material/Chip"
 import TwitterIcon from "@mui/icons-material/Twitter"
 import TelegramIcon from "@mui/icons-material/Telegram"
 import DarkModeIcon from "@mui/icons-material/DarkMode"
@@ -23,7 +23,7 @@ export default function ParametersModal() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
   }
   const closeMenu = () => {
