@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
@@ -89,14 +90,23 @@ contract VaultTest is DSTestPlus {
     v.borrow(borrowAmount, who, who);
   }
 
-  //fuzz testing example
+  function _utils_checkMaxLTV(uint96 amount, uint96 borrowAmount) internal view returns (bool) {
+    uint8 debtDecimals = 18;
+    uint8 assetDecimals = 18;
+    uint256 maxLtv = 75 * 1e16;
+
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
+    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+    return borrowAmount < maxBorrow;
+  }
+
   function test_deposit(uint256 amount) public {
     _utils_doDeposit(amount, vault, alice);
     assertEq(vault.balanceOf(alice), amount);
   }
 
-  function test_withdraw() public {
-    uint256 amount = 2 ether;
+  function test_withdraw(uint96 amount) public {
+    vm.assume(amount > 0);
     _utils_doDeposit(amount, vault, alice);
 
     vm.prank(alice);
@@ -105,9 +115,8 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOf(alice), 0);
   }
 
-  function test_depositAndBorrow() public {
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 100e18;
+  function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     assertEq(vault.totalDebt(), 0);
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
@@ -116,9 +125,8 @@ contract VaultTest is DSTestPlus {
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
   }
 
-  function test_paybackAndWithdraw() public {
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 100e18;
+  function test_paybackAndWithdraw(uint96 amount, uint96 borrowAmount) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
@@ -133,16 +141,17 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOf(alice), 0);
   }
 
-  function test_tryBorrowWithoutCollateral() public {
-    uint256 borrowAmount = 100e18;
+  function test_tryBorrowWithoutCollateral(uint256 borrowAmount) public {
+    vm.assume(borrowAmount > 0);
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
 
     vm.prank(alice);
     vault.borrow(borrowAmount, alice, alice);
   }
 
+  // TODO FUZZ
   function test_tryWithdrawWithoutRepay() public {
-    uint256 amount = 2 ether;
+    uint96 amount = 2 ether;
     uint256 borrowAmount = 100e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
@@ -152,31 +161,30 @@ contract VaultTest is DSTestPlus {
     vault.withdraw(amount, alice, alice);
   }
 
-  function test_setMinDeposit() public {
-    uint256 min = 0.1 ether;
+  function test_setMinDeposit(uint256 min) public {
     vm.expectEmit(true, false, false, false);
     emit MinDepositAmountChanged(min);
     vault.setMinDepositAmount(min);
   }
 
-  function test_tryLessThanMinDeposit() public {
-    uint256 min = 0.1 ether;
+  function test_tryLessThanMinDeposit(uint256 min, uint256 amount) public {
+    vm.assume(amount < min);
     vault.setMinDepositAmount(min);
 
-    uint256 amount = 0.05 ether;
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
     vault.deposit(amount, alice);
   }
 
-  function test_setMaxCap() public {
-    uint256 maxCap = 5 ether;
+  function test_setMaxCap(uint256 maxCap) public {
+    vm.assume(maxCap > 0);
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
     vault.setDepositCap(maxCap);
   }
 
   function test_tryMaxCap() public {
+    /*vm.assume(maxCap > 0 && depositAlice > 0 && depositBob > 0 && depositBob + depositAlice >= maxCap && depositAlice < maxCap);*/
     uint256 maxCap = 5 ether;
     vault.setDepositCap(maxCap);
 
