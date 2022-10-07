@@ -199,13 +199,16 @@ type BalanceAddressProps = {
   address: string
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
-  const { balance, address } = props
-  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
-  const [bal] = Object.values<string>(balance as any)
-  const [token] = Object.keys(balance as any)
-  const formattedBalance = `${bal.substring(0, 6)} ${token}`
-
   const { palette } = useTheme()
+  const { balance, address } = props
+  if (!balance) {
+    return <></>
+  }
+
+  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
+  const [bal] = Object.values<string>(balance)
+  const [token] = Object.keys(balance)
+  const formattedBalance = `${bal.substring(0, 6)} ${token}`
 
   return (
     <Box mr="-2rem">

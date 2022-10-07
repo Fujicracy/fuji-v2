@@ -44,7 +44,7 @@ export default function ChainSelect() {
           onClick={openMenu}
         />
       ) : (
-        <Chip label="Wrong network" onClick={openMenu} color="error" />
+        <Chip label="Unsupported network" onClick={openMenu} color="error" />
       )}
       <Menu
         id="basic-menu"
