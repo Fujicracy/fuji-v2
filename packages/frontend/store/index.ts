@@ -116,6 +116,9 @@ type StateInitial = {
   chain: null
 }
 
+// TODO: When wrong chain
+type StateError = {}
+
 type State = StateInitial | StateConnected
 
 type Action = {
@@ -132,7 +135,7 @@ const initialState: State = {
   chain: null,
 }
 
-export const useStore = create<State & Action>((set, get) => ({
+export const useStore = create<State & Action>((set) => ({
   ...initialState,
 
   init: async () => {
@@ -194,12 +197,16 @@ function onOnboardChange() {
     const { getState: get, setState: set } = useStore
     const chain = w[0].chains[0]
     const balance = w[0].accounts[0].balance
+    const address = w[0].accounts[0].address
 
     if (chain.id !== get().chain?.id) {
       set({ chain })
     }
     if (balance && balance !== get().balance) {
       set({ balance })
+    }
+    if (address && address !== get().address) {
+      set({ address })
     }
   })
 }
