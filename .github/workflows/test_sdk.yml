@@ -33,11 +33,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v3
         with:
@@ -46,9 +41,12 @@ jobs:
 
       - name: Install deps and build (with cache)
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory: packages/sdk
 
       - name: Lint
-        run: yarn sdk:lint
+        run: yarn lint
+        working-directory: packages/sdk
 
       - name: "Create env file"
         run: |
@@ -56,13 +54,17 @@ jobs:
           echo export INFURA_ID="${{ secrets.INFURA_ID }}" >> .env
           echo export ALCHEMY_ID_CHAIN_420="${{ secrets.ALCHEMY_ID_CHAIN_420 }}" >> .env
           cat .env
+        working-directory: packages/sdk
 
       - name: "Test env file"
         run: |
           cat .env
+        working-directory: packages/sdk
 
       - name: Test
-        run: source .env && yarn sdk:test --ci --maxWorkers=2
+        run: source .env && yarn test --ci --maxWorkers=2
+        working-directory: packages/sdk
 
       - name: Build
-        run: yarn sdk:build
+        run: yarn build
+        working-directory: packages/sdk
