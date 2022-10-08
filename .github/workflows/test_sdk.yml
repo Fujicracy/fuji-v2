@@ -32,11 +32,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-        working-directory: ./packages/sdk
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
-        working-directory: ./packages/sdk
         with:
           node-version: ${{ matrix.node }}
 
