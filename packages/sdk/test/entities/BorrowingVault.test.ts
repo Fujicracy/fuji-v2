@@ -16,6 +16,9 @@ import {
 
 const config: ChainConfigParams = {
   infuraId: process.env.INFURA_ID ?? '',
+  alchemy: {
+    420: process.env.ALCHEMY_ID_CHAIN_420,
+  },
 };
 
 describe('BorrowingVault', () => {

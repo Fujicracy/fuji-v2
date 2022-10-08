@@ -19,7 +19,12 @@ describe('Sdk', () => {
     '0x33A875bD262C5cACAa1245ed8AC9734973da6108'
   );
 
-  const sdk = new Sdk({ infuraId: process.env.INFURA_ID ?? '' });
+  const sdk = new Sdk({
+    infuraId: process.env.INFURA_ID ?? '',
+    alchemy: {
+      420: process.env.ALCHEMY_ID_CHAIN_420,
+    },
+  });
 
   describe('#getBalanceFor', () => {
     it('returns balance', async () => {

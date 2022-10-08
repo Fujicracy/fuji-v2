@@ -50,8 +50,19 @@ jobs:
       - name: Lint
         run: yarn sdk:lint
 
+      - name: "Create env file"
+        run: |
+          touch .env
+          echo export INFURA_ID="${{ secrets.INFURA_ID }}" >> .env
+          echo export ALCHEMY_ID_CHAIN_420="${{ secrets.ALCHEMY_ID_CHAIN_420 }}" >> .env
+          cat .env
+
+      - name: "Test env file"
+        run: |
+          cat .env
+
       - name: Test
-        run: yarn sdk:test --ci --maxWorkers=2
+        run: source .env && yarn sdk:test --ci --maxWorkers=2
 
       - name: Build
         run: yarn sdk:build
