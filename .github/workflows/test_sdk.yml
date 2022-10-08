@@ -42,6 +42,7 @@ jobs:
       - name: Install deps and build (with cache)
         uses: bahmutov/npm-install@v1
         with:
+          useLockFile: false
           working-directory: packages/sdk
 
       - name: Lint
