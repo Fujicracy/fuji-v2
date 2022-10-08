@@ -28,28 +28,30 @@ jobs:
       matrix:
         node: ['14.x']
         os: [ubuntu-latest]
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./packages/sdk
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        working-directory: ./packages/sdk
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
+        working-directory: ./packages/sdk
         with:
           node-version: ${{ matrix.node }}
 
       - name: Install deps and build (with cache)
         uses: bahmutov/npm-install@v1
+        working-directory: ./packages/sdk
 
       - name: Lint
         run: yarn lint
+        working-directory: ./packages/sdk
 
       - name: Test
         run: yarn test --ci --maxWorkers=2
+        working-directory: ./packages/sdk
 
       - name: Build
         run: yarn build
+        working-directory: ./packages/sdk
