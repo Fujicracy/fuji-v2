@@ -82,11 +82,18 @@ jobs:
         workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
         service_account: '${{ secrets.APPENGINE_DEPLOY_SA_EMAIL }}'
 
-    - id: 'deploy'
-      name: 'deploy'
+    - name: Find PR number
+      uses: jwalton/gh-find-current-pr@v1
+      id: findPr
+
+    - name: Add service name with PR
+      run: 'echo service: v2-staging-${{ steps.findPr.outputs.pr }} >> packages/frontend/app.yaml'
+
+    - name: Deploy
+      id: 'deploy'
       uses: 'google-github-actions/deploy-appengine@v0'
       with:
         deliverables: 'packages/frontend/app.yaml'
 
-    - name: 'show output'
+    - name: Show output
       run: 'echo ${{ steps.deploy.outputs.url }}'

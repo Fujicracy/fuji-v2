@@ -2,8 +2,6 @@ env: standard
 runtime: nodejs16
 instance_class: F2
 
-service: v2-staging
-
 handlers:
 # Serve all static files with url ending with a file extension
 - url: /(.*\..+)$
