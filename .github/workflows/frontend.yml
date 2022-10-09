@@ -20,31 +20,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  #lint:
-    #name: Run Linters
-    #runs-on: ubuntu-latest
+  lint:
+    name: Run Linters
+    runs-on: ubuntu-latest
 
-    #strategy:
-      #matrix:
-        #node-version: [16.x]
+    strategy:
+      matrix:
+        node-version: [16.x]
 
-    #steps:
-      #- uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-      #- name: Install Foundry
-        #uses: foundry-rs/foundry-toolchain@v1
-        #with:
-          #version: nightly
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
-      #- name: Use Node.js
-        #uses: actions/setup-node@v3
-        #with:
-          #node-version: ${{ matrix.node-version }}
-          #cache: "yarn"
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
 
-      #- run: yarn workspace @x-fuji/frontend install
-      #- run: yarn workspace @x-fuji/frontend run lint
-      #- run: yarn workspace @x-fuji/frontend run prettier --check
+      - run: yarn workspace @x-fuji/frontend install
+      - run: yarn workspace @x-fuji/frontend run lint
+      - run: yarn workspace @x-fuji/frontend run prettier --check
 
   deploy:
     permissions:
