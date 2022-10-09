@@ -52,6 +52,8 @@ jobs:
       id-token: 'write'
 
     runs-on: 'ubuntu-latest'
+    permissions:
+      pull-requests: write
 
     strategy:
       matrix:
