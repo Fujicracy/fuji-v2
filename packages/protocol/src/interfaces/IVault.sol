@@ -210,6 +210,7 @@ interface IVault is IERC4626 {
   /**
    * @notice Performs liquidation of an unhealthy position, meaning a 'healthFactor' below 100.
    * @param owner address to be liquidated.
+   * @param receiver address of the collateral shares of liquidation.
    * @dev WARNING! It is liquidator's responsability to check if liquidation is profitable.
    *
    * - MUST revert if caller is not an approved liquidator.
@@ -220,7 +221,7 @@ interface IVault is IERC4626 {
    * - MUST revert in {YieldVault}.
    *
    */
-  function liquidate(address owner) external returns (uint256 gainedShares);
+  function liquidate(address owner, address receiver) external returns (uint256 gainedShares);
 
   ////////////////////////
   /// Setter functions ///

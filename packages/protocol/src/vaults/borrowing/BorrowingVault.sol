@@ -35,6 +35,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
+  error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
 
   /// Liquidation controls
@@ -387,8 +388,11 @@ contract BorrowingVault is BaseVault {
   }
 
   /// inheritdoc IVault
-  function liquidate(address owner) public returns (uint256 gainedShares) {
+  function liquidate(address owner, address receiver) public returns (uint256 gainedShares) {
     // TODO only liquidator role, that will be controlled at Chief level.
+    if (receiver == address(0)) {
+      revert BorrowingVault__liquidate_invalidInput();
+    }
 
     address caller = _msgSender();
 
@@ -419,7 +423,7 @@ contract BorrowingVault is BaseVault {
 
     // Internal share adjusment between 'owner' and 'liquidator'.
     _burn(owner, gainedShares);
-    _mint(caller, gainedShares);
+    _mint(receiver, gainedShares);
 
     emit Liquidate(owner, gainedShares, debtToCover, price, liquidationFactor, caller);
   }

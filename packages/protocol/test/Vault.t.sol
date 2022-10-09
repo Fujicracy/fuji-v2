@@ -241,7 +241,7 @@ contract VaultTest is DSTestPlus {
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
     vm.prank(bob);
-    vault.liquidate(alice);
+    vault.liquidate(alice, bob);
   }
 
   function test_liquidateMax() public {
@@ -267,7 +267,7 @@ contract VaultTest is DSTestPlus {
 
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
-    vault.liquidate(alice);
+    vault.liquidate(alice, bob);
     vm.stopPrank();
 
     assertEq(asset.balanceOf(alice), 0);
@@ -304,7 +304,7 @@ contract VaultTest is DSTestPlus {
 
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
-    vault.liquidate(alice);
+    vault.liquidate(alice, bob);
     vm.stopPrank();
 
     assertEq(asset.balanceOf(alice), 0);
