@@ -1,4 +1,4 @@
-name: CI-Contracts
+name: CI-Frontend
 
 on:
   pull_request:
@@ -47,6 +47,7 @@ jobs:
       - run: yarn workspace @x-fuji/frontend run prettier --check
 
   deploy:
+    name: Deploy Staging
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -103,7 +104,7 @@ jobs:
       uses: mshick/add-pr-comment@v1
       with:
         message: |
-          **You can test this PR on:** ${{ steps.deploy.outputs.url }}
+          **Please test this PR on:** ${{ steps.deploy.outputs.url }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         repo-token-user-login: 'github-actions[bot]' # The user.login for temporary GitHub tokens
         allow-repeats: false

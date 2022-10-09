@@ -20,3 +20,6 @@
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Google App Engine
+app.yaml
