@@ -79,7 +79,8 @@ jobs:
 
     - uses: 'google-github-actions/auth@v0'
       with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.APPENGINE_DEPLOY_SA_EMAIL }}'
 
     - id: 'deploy'
       name: 'deploy'
