@@ -97,3 +97,12 @@ jobs:
 
     - name: Show output
       run: 'echo ${{ steps.deploy.outputs.url }}'
+
+    - name: Post comment with staging url
+      uses: mshick/add-pr-comment@v1
+      with:
+        message: |
+          **You can test this PR on:** ${{ steps.deploy.outputs.url }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        repo-token-user-login: 'github-actions[bot]' # The user.login for temporary GitHub tokens
+        allow-repeats: false
