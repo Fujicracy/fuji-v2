@@ -2,11 +2,7 @@ env: standard
 runtime: nodejs16
 
 handlers:
-# Serve all static files with url ending with a file extension
-- url: /(.*\..+)$
-  static_files: packages/frontend/out/\1
-  upload: packages/frontend/out/(.*\..+)$
 # Catch all handler to index.html
 - url: /.*
-  static_files: packages/frontend/out/index.html
-  upload: packages/frontend/out/index.html
+  secure: always
+  script: auto
