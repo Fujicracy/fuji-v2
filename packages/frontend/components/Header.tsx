@@ -211,7 +211,10 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
-  const formattedBalance = `${bal.substring(0, 6)} ${token}`
+  const formattedBalance =
+    token === "ETH"
+      ? `${bal.substring(0, 5)} ${token}`
+      : `${bal.substring(0, 4)} ${token}`
 
   return (
     <Box mr="-2rem">
