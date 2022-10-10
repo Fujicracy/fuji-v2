@@ -85,7 +85,7 @@ jobs:
       id: 'deploy'
       uses: 'google-github-actions/deploy-appengine@v0'
       with:
-        deliverables: 'packages/frontend/app.yaml'
+        deliverables: 'frontend-app.yaml'
 
     - name: Show output
       run: 'echo ${{ steps.deploy.outputs.url }}'
