@@ -15,20 +15,22 @@ contract BorrowingVault is BaseVault {
 
   /**
    * @dev Emitted when a user is liquidated
+   * @param caller executor of liquidation.
+   * @param receiver receiver of liquidation bonus.
    * @param owner address whose assets are being liquidated.
    * @param collateralSold `owner`'s amount of collateral sold during liquidation.
    * @param debtPaid `owner`'s amount of debt paid back during liquidation.
    * @param price price of collateral at which liquidation was done.
    * @param liquidationFactor what % of debt was liquidated
-   * @param liquidator executor of liquidation.
    */
   event Liquidate(
+    address indexed caller,
+    address indexed receiver,
     address indexed owner,
     uint256 collateralSold,
     uint256 debtPaid,
     uint256 price,
-    uint256 liquidationFactor,
-    address liquidator
+    uint256 liquidationFactor
   );
 
   error BorrowingVault__borrow_invalidInput();
@@ -425,7 +427,7 @@ contract BorrowingVault is BaseVault {
     _burn(owner, gainedShares);
     _mint(receiver, gainedShares);
 
-    emit Liquidate(owner, gainedShares, debtToCover, price, liquidationFactor, caller);
+    emit Liquidate(caller, receiver, owner, gainedShares, debtToCover, price, liquidationFactor);
   }
 
   ///////////////////////////
