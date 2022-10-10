@@ -51,7 +51,7 @@ contract MockProvider is ILendingProvider {
     override
     returns (bool success)
   {
-    MockERC20(asset).burn(vault, amount);
+    MockERC20(asset).burnDebt(vault, amount);
     success = true;
   }
 

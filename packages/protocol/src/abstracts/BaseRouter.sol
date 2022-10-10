@@ -129,6 +129,15 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
 
         // Call Flasher
         flasher.initiateFlashloan(flParams, providerId);
+      } else if (actions[i] == Action.Liquidate) {
+        // LIQUIDATE
+
+        // Decode params
+        (IVault vault, address owner, address receiver) =
+          abi.decode(args[i], (IVault, address, address));
+
+        // TODO: pullToken and approve
+        vault.liquidate(owner, receiver);
       }
       unchecked {
         ++i;

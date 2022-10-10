@@ -9,7 +9,6 @@ pragma solidity 0.8.15;
  * except indicated.
  */
 
-
 interface ILendingProvider {
   /**
    * @notice Returns the operator address that requires ERC20-approval for deposits.
