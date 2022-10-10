@@ -24,6 +24,7 @@ export default function ChainSelect(props: ChainSelectProps) {
       IconComponent={() => (
         <KeyboardArrowDownIcon sx={{ display: { xs: "none", sm: "block" } }} />
       )}
+      inputProps={{ sx: { pr: "0.25rem !important" } }}
       onChange={(e) => setChainId(e.target.value)}
     >
       {chains.map((chain: Chain) => (

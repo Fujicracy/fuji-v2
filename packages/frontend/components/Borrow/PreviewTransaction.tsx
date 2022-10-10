@@ -61,7 +61,7 @@ export default function PreviewTransaction() {
           <CardContent sx={{ width: "100%", p: 0 }}>
             <CardActionArea onClick={openMenu}>
               <Grid container justifyContent="space-between">
-                <Typography onClick={openMenu} variant="body">
+                <Typography onClick={openMenu} variant="body2">
                   Preview Transaction
                 </Typography>
 

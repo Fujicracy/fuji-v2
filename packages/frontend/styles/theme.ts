@@ -306,6 +306,7 @@ const theme = createTheme(colorTheme, {
     MuiInputBase: {
       styleOverrides: {
         root: {
+          padding: 0,
           fontSize: "1.125rem",
           height: "1.813rem",
           fontWeight: 400,
