@@ -191,19 +191,26 @@ async function reconnect() {
 
 function onOnboardChange() {
   onboard.state.select("wallets").subscribe((w: WalletState[]) => {
-    if (!w[0]) return
-
     const { getState: get, setState: set } = useStore
-    const chain = w[0].chains[0]
-    const balance = w[0].accounts[0].balance
-    const address = w[0].accounts[0].address
 
+    if (!w[0] && get().status === "disconnected") {
+      return
+    } else if (!w[0]) {
+      // Triggered when user disconnect from its wallet
+      return get().logout()
+    }
+
+    const chain = w[0].chains[0]
     if (chain.id !== get().chain?.id) {
       set({ chain })
     }
+
+    const balance = w[0].accounts[0].balance
     if (balance && balance !== get().balance) {
       set({ balance })
     }
+
+    const address = w[0].accounts[0].address
     if (address && address !== get().address) {
       set({ address })
     }
