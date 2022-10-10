@@ -5,7 +5,7 @@ import TwitterIcon from "@mui/icons-material/Twitter"
 import TelegramIcon from "@mui/icons-material/Telegram"
 import { DiscordIcon } from "./DiscordIcon"
 
-declare interface Social {
+type Social = {
   id: string
   url: string
   image: React.ReactElement

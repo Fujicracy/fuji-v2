@@ -56,6 +56,7 @@ const colorTheme = createTheme({
     },
     success: {
       main: "#42FF00",
+      dark: "#0EC058",
     },
     warning: {
       main: "#F5AC37",
