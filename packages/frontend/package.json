@@ -21,14 +21,11 @@
     "@web3-onboard/injected-wallets": "^2.2.0",
     "@web3-onboard/walletconnect": "^2.1.1",
     "@x-fuji/sdk": "0.1.0",
-    "@xstate/inspect": "^0.7.0",
-    "@xstate/react": "^3.0.1",
     "ethers": "^5.7.0",
     "mixpanel-browser": "^2.45.0",
     "next": "12.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "xstate": "^4.33.4",
     "zustand": "^4.1.1"
   },
   "devDependencies": {

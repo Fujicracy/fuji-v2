@@ -46,6 +46,7 @@ contract SimpleRouterTest is DSTestPlus {
 
   IVault public vault;
   ILendingProvider public mockProvider;
+  ILendingProvider[] public providers;
   IRouter public simpleRouter;
   ISwapper public swapper;
 
@@ -70,6 +71,7 @@ contract SimpleRouterTest is DSTestPlus {
 
     flasher = new MockFlasher();
     mockProvider = new MockProvider();
+    providers.push(mockProvider);
 
     vault = new BorrowingVault(
       address(asset),
@@ -79,6 +81,7 @@ contract SimpleRouterTest is DSTestPlus {
     );
     simpleRouter = new SimpleRouter(IWETH9(address(asset)));
 
+    vault.setProviders(providers);
     vault.setActiveProvider(mockProvider);
   }
 
@@ -320,6 +323,7 @@ contract SimpleRouterTest is DSTestPlus {
     );
     vm.label(address(newVault), "newVault");
 
+    newVault.setProviders(providers);
     newVault.setActiveProvider(mockProvider);
 
     uint256 amount = 2 ether;

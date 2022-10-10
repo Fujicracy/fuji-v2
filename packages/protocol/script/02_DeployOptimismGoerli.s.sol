@@ -5,6 +5,7 @@ import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
 import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
+import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
@@ -53,6 +54,9 @@ contract DeployOptimismGoerli is ScriptPlus {
     );
     saveAddress("BorrowingVault", address(vault));
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = MockProvider(getAddress("MockProvider"));
+    BorrowingVault(getAddress("BorrowingVault")).setProviders(providers);
     BorrowingVault(getAddress("BorrowingVault")).setActiveProvider(
       MockProvider(getAddress("MockProvider"))
     );

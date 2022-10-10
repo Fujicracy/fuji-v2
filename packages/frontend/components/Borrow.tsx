@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useMachine } from "@xstate/react"
 import {
   Divider,
   Button,
@@ -17,7 +16,6 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
-import borrowMachine from "../machines/borrow.machine"
 import { chains } from "../store/index"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../styles/components/Borrow.module.css"
@@ -25,9 +23,8 @@ import styles from "../styles/components/Borrow.module.css"
 type Chain = typeof chains[0]
 
 export default function Borrow() {
-  const [current, send] = useMachine(borrowMachine, {
-    devTools: true,
-  })
+  // TODO: Below is a remain of Xstate. I let it here to avoid conflic, but this should be removed in the future
+  const current = { matches: (arg: string) => true }
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
@@ -42,13 +39,6 @@ export default function Borrow() {
 
   return (
     <Container>
-      <p>
-        Current state: <code>{current.value as string}</code>
-      </p>
-      {current.matches("initial") && (
-        <button onClick={() => send("initialize")}>Initialize</button>
-      )}
-
       {current.matches("editing") && (
         <Card>
           <CardContent

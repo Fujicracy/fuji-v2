@@ -18,7 +18,8 @@ interface IRouter {
     PermitWithdraw,
     PermitBorrow,
     XTransfer,
-    XTransferWithCall
+    XTransferWithCall,
+    Liquidate
   }
 
   function xBundle(Action[] memory actions, bytes[] memory args) external;
