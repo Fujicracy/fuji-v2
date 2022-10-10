@@ -23,16 +23,6 @@ const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xm
 </defs>
 </svg>`
 
-// TODO: get INFURA_KEY & ALCHEMY and put it in .env
-const ETH_MAINNET_RPC =
-  `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}` ||
-  `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`
-// const ETH_RINKEBY_RPC =
-//   `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}` ||
-//   `https://eth-rinkeby.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`
-// const MATIC_MAINNET_RPC = "https://matic-mainnet.chainstacklabs.com"
-
-// initialize the module with options
 const walletConnect = walletConnectModule({
   // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
   qrcodeModalOptions: {
@@ -53,7 +43,7 @@ export const chains: Chain[] = [
     id: "0x1",
     token: "ETH",
     label: "Ethereum",
-    rpcUrl: ETH_MAINNET_RPC,
+    rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
   },
   {
     id: "0x89",
@@ -74,6 +64,7 @@ export const chains: Chain[] = [
     rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
   },
 ]
+
 // TODO: if testnet  chains.push({
 //   id: "0x3",
 //   token: "tROP",
@@ -108,12 +99,14 @@ const onboard = Onboard({
 type StateConnected = {
   status: "connected"
   address: string
+  ens: string | null
   balance: Balances
   chain: ConnectedChain
 }
 type StateInitial = {
   status: "disconnected"
   address: null
+  ens: null
   balance: null
   chain: null
 }
@@ -130,6 +123,7 @@ type Action = {
 const initialState: State = {
   status: "disconnected",
   address: null,
+  ens: null,
   balance: null,
   chain: null,
 }
@@ -213,6 +207,11 @@ function onOnboardChange() {
     const address = w[0].accounts[0].address
     if (address && address !== get().address) {
       set({ address })
+    }
+
+    const ens = w[0].accounts[0].ens?.name
+    if (ens !== get().ens) {
+      set({ ens })
     }
   })
 }

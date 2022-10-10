@@ -31,10 +31,11 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
-  const { address, status, balance, login } = useStore(
+  const { address, ens, status, balance, login } = useStore(
     (state) => ({
       status: state.status,
       address: state.address,
+      ens: state.ens,
       balance: state.balance,
       login: state.login,
     }),
@@ -179,6 +180,7 @@ const Header = () => {
                       // TODO: balance should be retrived from current chain, and not deduced
                       balance={balance}
                       address={address as string}
+                      ens={ens}
                     />
                   </Grid>
                   <Grid item>
@@ -197,10 +199,11 @@ const Header = () => {
 type BalanceAddressProps = {
   balance: Balances
   address: string
+  ens: string | null
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
-  const { balance, address } = props
+  const { balance, address, ens } = props
   if (!balance) {
     return <></>
   }
@@ -217,7 +220,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
       <Chip
-        label={formattedAddress}
+        label={ens || formattedAddress}
         sx={{
           fontSize: ".9rem",
           lineHeight: ".9rem",
