@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "protocol:install": "yarn workspace @x-fuji/protocol install",
+    "protocol:install": "yarn workspace @x-fuji/protocol forge:install",
     "protocol:build": "yarn workspace @x-fuji/protocol build",
     "protocol:test": "yarn workspace @x-fuji/protocol test",
     "protocol:format:fix": "yarn workspace @x-fuji/protocol format:fix",
