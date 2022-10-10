@@ -65,12 +65,12 @@ export const onboard = Onboard({
   // },
   accountCenter: {
     desktop: {
-      position: "topRight",
+      position: "bottomLeft",
       enabled: true,
       minimal: true,
     },
     mobile: {
-      position: "topRight",
+      position: "bottomLeft",
       enabled: true,
       minimal: true,
     },

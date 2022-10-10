@@ -1,7 +1,7 @@
 import { NextPage } from "next"
 import Head from "next/head"
 
-import { Box, Card, Container, Grid } from "@mui/material"
+import { Box, Container, Divider, Grid } from "@mui/material"
 
 import Borrow from "../components/Borrow/Borrow"
 import Footer from "../components/Layout/Footer"
@@ -23,8 +23,12 @@ const BorrowPage: NextPage = () => {
 
       <Header />
 
+      <Divider sx={{ display: { xs: "block", sm: "none" }, mb: "1rem" }} />
+
       <Container
         sx={{
+          mt: { xs: "0", sm: "4rem" },
+          mb: { xs: "7rem", sm: "0" },
           pl: { xs: "0.25rem", sm: "1rem" },
           pr: { xs: "0.25rem", sm: "1rem" },
         }}

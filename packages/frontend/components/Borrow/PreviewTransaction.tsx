@@ -41,21 +41,15 @@ export default function PreviewTransaction() {
   console.log(isOpen)
 
   return (
-    <Container
-      sx={{
-        pl: { xs: "0.25rem", sm: "1rem" },
-        pr: { xs: "0.25rem", sm: "1rem" },
-      }}
-    >
+    <Container>
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{
-            mb: "2rem",
-            mt: "1rem",
-            width: "100%",
-            display: "flex",
+            width: "91%",
             padding: "1rem 1rem",
-            justifyContent: "space-between",
+            position: "fixed",
+            bottom: "2rem",
+            left: "1.25rem",
           }}
         >
           <CardContent sx={{ width: "100%", p: 0 }}>
@@ -86,7 +80,6 @@ export default function PreviewTransaction() {
         </Card>
 
         <Dialog
-          fullWidth
           onClose={closeMenu}
           open={isOpen}
           sx={{
@@ -240,7 +233,7 @@ export default function PreviewTransaction() {
                           Borrow Interest (APR)
                         </Typography>
 
-                        <Tooltip title="???">
+                        <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
                           <InfoOutlinedIcon
                             sx={{
                               ml: "0.4rem",
@@ -250,7 +243,10 @@ export default function PreviewTransaction() {
                             }}
                           />
                         </Tooltip>
-                        <ClickableTooltip title="???" placement="bottom">
+                        <ClickableTooltip
+                          title="APR, or annual percentage rate, represents the price you pay to borrow money."
+                          placement="bottom"
+                        >
                           <InfoOutlinedIcon
                             sx={{
                               ml: "0.4rem",

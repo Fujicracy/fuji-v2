@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { MenuItem, Select, Typography } from "@mui/material"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 
 import { chains } from "../../machines/auth.machine"
@@ -21,10 +21,12 @@ export default function ChainSelect(props: ChainSelectProps) {
       id="chain"
       value={chainId}
       variant="outlined"
-      IconComponent={() => (
-        <KeyboardArrowDownIcon sx={{ display: { xs: "none", sm: "block" } }} />
-      )}
-      inputProps={{ sx: { pr: "0.25rem !important" } }}
+      IconComponent={CustomExpandMore}
+      inputProps={{
+        sx: { pr: { xs: "0.25rem !important", sm: "2rem !important" } },
+      }}
+      sx={{ ".MuiTypography-body": { display: { xs: "none", sm: "inline" } } }}
+      displayEmpty
       onChange={(e) => setChainId(e.target.value)}
     >
       {chains.map((chain: Chain) => (
@@ -41,19 +43,25 @@ export default function ChainSelect(props: ChainSelectProps) {
               width={20}
               alt={chain.label}
             />
-            {!props.minified && (
-              <Typography
-                variant="body"
-                sx={{
-                  ml: "0.5rem",
-                }}
-              >
-                {chain.label}
-              </Typography>
-            )}
+            {/* {!props.minified && ( */}
+            <Typography
+              variant="body"
+              sx={{
+                ml: "0.5rem",
+              }}
+            >
+              {chain.label}
+            </Typography>
+            {/* )} */}
           </div>
         </MenuItem>
       ))}
     </Select>
+  )
+}
+
+const CustomExpandMore = ({ ...rest }) => {
+  return (
+    <ExpandMoreIcon {...rest} sx={{ display: { xs: "none", sm: "block" } }} />
   )
 }

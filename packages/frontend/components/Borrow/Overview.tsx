@@ -18,7 +18,6 @@ import CancelIcon from "@mui/icons-material/Cancel"
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
 import Image from "next/image"
-import PreviewTransaction from "./PreviewTransaction"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 
 export default function Overview() {
@@ -26,16 +25,7 @@ export default function Overview() {
   const [showProvider, setShowProvider] = useState(false)
 
   return (
-    <Container
-      sx={{
-        pl: { xs: "0.25rem", sm: "1rem" },
-        pr: { xs: "0.25rem", sm: "1rem" },
-      }}
-    >
-      <p>
-        Current state: <code>...</code>
-      </p>
-
+    <Container>
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{
@@ -144,7 +134,7 @@ export default function Overview() {
                 <Typography variant="smallDark">
                   Borrow Interest (APR)
                 </Typography>
-                <Tooltip title="???">
+                <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
                   <InfoOutlinedIcon
                     sx={{
                       ml: "0.4rem",
@@ -154,7 +144,10 @@ export default function Overview() {
                     }}
                   />
                 </Tooltip>
-                <ClickableTooltip title="???" placement="bottom">
+                <ClickableTooltip
+                  title="APR, or annual percentage rate, represents the price you pay to borrow money."
+                  placement="bottom"
+                >
                   <InfoOutlinedIcon
                     sx={{
                       ml: "0.4rem",
