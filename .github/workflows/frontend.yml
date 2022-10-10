@@ -79,7 +79,7 @@ jobs:
       id: findPr
 
     - name: Add service name with PR
-      run: 'echo service: v2-staging-${{ steps.findPr.outputs.pr }} >> packages/frontend/app.yaml'
+      run: 'echo service: v2-staging-${{ steps.findPr.outputs.pr }} >> frontend-app.yaml'
 
     - name: Deploy
       id: 'deploy'
