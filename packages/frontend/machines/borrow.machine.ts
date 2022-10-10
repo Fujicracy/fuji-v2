@@ -23,7 +23,6 @@ const initialContext: Context = {
 type Events =
   | {
       type: "borrow"
-      value: string
     }
   | {
       type: "changeCollateralAmount"
@@ -31,19 +30,15 @@ type Events =
     }
   | {
       type: "initialize"
-      value: string
     }
   | {
       type: "changeBorrowAmount"
-      value: string
     }
   | {
       type: "changeCollateralChain"
-      value: string
     }
   | {
       type: "changeBorrowChain"
-      value: string
     }
 
 const borrowMachine = createMachine(
@@ -92,7 +87,7 @@ const borrowMachine = createMachine(
         collateral: (ctx, evt) => ({
           ...ctx.collateral,
           value: evt.value,
-          totalValue: ctx.collateral.USDValue * parseInt(evt.value),
+          totalValue: ctx.collateral.USDValue * evt.value,
         }),
       }),
     },

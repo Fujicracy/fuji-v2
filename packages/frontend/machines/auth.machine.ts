@@ -272,4 +272,4 @@ const authMachine = createMachine(
   }
 )
 
-export { authMachine, chains }
+export { authMachine }
