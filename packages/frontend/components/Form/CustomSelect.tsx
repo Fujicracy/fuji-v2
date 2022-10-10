@@ -20,7 +20,7 @@ interface CustomSelectProps {
   id: string
   onSelect: (e: SelectChangeEvent<any>) => void
   value: string | number
-  options: Chain[] | string[]
+  options: (Chain | string)[]
   label: string | null
   large: boolean | null
 }
@@ -48,8 +48,7 @@ export default function CustomSelect(props: CustomSelectProps) {
           variant="standard"
           disableUnderline
         >
-          {/* TODO: I don't understand why I have error if I try to map without casting this to any. */}
-          {(props.options as any[]).map((option: Chain | string) => (
+          {props.options.map((option) => (
             <MenuItem
               key={typeof option === "string" ? option : option.id}
               value={typeof option === "string" ? option : option.id}
