@@ -10,7 +10,7 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
 
-import { chains } from "../../machines/auth.machine"
+import { chains } from "../../store"
 import styles from "../../styles/components/Borrow.module.css"
 
 type Chain = typeof chains[0]
@@ -48,7 +48,8 @@ export default function CustomSelect(props: CustomSelectProps) {
           variant="standard"
           disableUnderline
         >
-          {props.options.map((option: Chain | string) => (
+          {/* TODO: I don't understand why I have error if I try to map without casting this to any. */}
+          {(props.options as any[]).map((option: Chain | string) => (
             <MenuItem
               key={typeof option === "string" ? option : option.id}
               value={typeof option === "string" ? option : option.id}
