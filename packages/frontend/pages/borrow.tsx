@@ -7,7 +7,7 @@ import Borrow from "../components/Borrow/Borrow"
 import Footer from "../components/Layout/Footer"
 import Header from "../components/Layout/Header"
 import Overview from "../components/Borrow/Overview"
-import PreviewTransaction from "../components/Borrow/PreviewTransaction"
+import TransactionSummary from "../components/Borrow/TransactionSummary"
 
 const BorrowPage: NextPage = () => {
   return (
@@ -41,7 +41,7 @@ const BorrowPage: NextPage = () => {
             <Overview />
           </Grid>
           <Grid item xs={12} sx={{ display: { xs: "flex", sm: "none" } }}>
-            <PreviewTransaction />
+            <TransactionSummary />
           </Grid>
         </Grid>
       </Container>

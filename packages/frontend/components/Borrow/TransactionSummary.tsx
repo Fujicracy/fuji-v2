@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box,
-  ButtonBase,
   Card,
   CardActionArea,
   CardContent,
@@ -25,7 +24,7 @@ import Image from "next/image"
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 
-export default function PreviewTransaction() {
+export default function TransactionSummary() {
   const { palette } = useTheme()
   const [showProvider, setShowProvider] = useState(false)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
@@ -38,7 +37,6 @@ export default function PreviewTransaction() {
   const closeMenu = () => {
     setAnchorEl(null)
   }
-  console.log(isOpen)
 
   return (
     <Container>
@@ -56,7 +54,7 @@ export default function PreviewTransaction() {
             <CardActionArea onClick={openMenu}>
               <Grid container justifyContent="space-between">
                 <Typography onClick={openMenu} variant="body2">
-                  Preview Transaction
+                  Transaction Summary
                 </Typography>
 
                 {isOpen ? (
@@ -106,7 +104,7 @@ export default function PreviewTransaction() {
               <CardContent sx={{ width: "100%", p: 0, gap: "1rem" }}>
                 <CardActionArea onClick={closeMenu}>
                   <Grid container justifyContent="space-between">
-                    <Typography variant="body2">Preview Transaction</Typography>
+                    <Typography variant="body2">Transaction Summary</Typography>
                     {isOpen ? (
                       <KeyboardArrowDownIcon
                         sx={{

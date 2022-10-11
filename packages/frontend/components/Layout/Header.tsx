@@ -11,12 +11,15 @@ import {
   MenuItem,
   MenuList,
   Grid,
+  Dialog,
+  DialogContent,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
 
 import styles from "../../styles/components/Header.module.css"
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
+import CloseIcon from "@mui/icons-material/Close"
 import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
 
@@ -37,6 +40,10 @@ const Header = () => {
     setAnchorElNav(event.currentTarget)
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
+  const [
+    showTransactionProcessingAbstract,
+    setShowTransactionProcessingAbstract,
+  ] = useState(false)
 
   return (
     <>
@@ -156,7 +163,11 @@ const Header = () => {
                 <ChainSelect minified={false} selectedChain={chains[0]} />
               </Grid>
               <Grid item>
-                <BalanceAddress />
+                <BalanceAddress
+                  openTransactionProcessingAbstract={() =>
+                    setShowTransactionProcessingAbstract(true)
+                  }
+                />
               </Grid>
               <Grid item>
                 <Parameters />
@@ -169,8 +180,13 @@ const Header = () => {
   )
 }
 
-const BalanceAddress = () => {
+type BalanceAddressProps = {
+  openTransactionProcessingAbstract: (e: {}) => void
+}
+
+const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
+
   const balance = 4.23
   const address = "0x6BV8...8974"
 
@@ -204,6 +220,7 @@ const BalanceAddress = () => {
             background: palette.secondary.main,
           },
         }}
+        onClick={props.openTransactionProcessingAbstract}
       >
         <Typography align="center" variant="small">
           {address}

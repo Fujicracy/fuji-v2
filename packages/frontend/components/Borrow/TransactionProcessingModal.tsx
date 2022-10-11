@@ -132,6 +132,9 @@ export default function TransactionProcessingModal(
                       <CheckCircleIcon
                         sx={{
                           color: palette.success.dark,
+                          backgroundColor: "white",
+                          borderRadius: "100%",
+                          padding: 0,
                         }}
                         fontSize="large"
                       />
