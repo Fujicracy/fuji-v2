@@ -1,5 +1,4 @@
 import React from "react"
-import { useTheme } from "@mui/material/styles"
 import {
   Button,
   Divider,
@@ -19,7 +18,6 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
 
 export default function Parameters() {
-  const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
@@ -45,7 +43,6 @@ export default function Parameters() {
         {isOpen ? <CloseIcon /> : <MoreHorizIcon />}
       </Button>
       <Menu
-        id="basic-menu"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}

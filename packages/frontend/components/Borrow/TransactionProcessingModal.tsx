@@ -19,14 +19,13 @@ import StepConnector, {
 import { StepIconProps } from "@mui/material/StepIcon"
 import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
-import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 
 type Step = {
   label: string
   description: string
   link: string | undefined
-  status: string
 }
 
 type TransactionProcessingModalProps = {
@@ -39,19 +38,16 @@ const steps: Step[] = [
     label: "Deposit 1 ETH on Aave",
     description: "Ethereum Network",
     link: "https://ethereum.org/fr/",
-    status: "done",
   },
   {
     label: "Validate Transaction",
     description: "Connext bridge",
     link: "https://www.connext.network/",
-    status: "done",
   },
   {
     label: "Borrow 900 USDC from Aave",
     description: "Polygon Network",
     link: undefined,
-    status: "pending",
   },
 ]
 
@@ -59,7 +55,7 @@ export default function TransactionProcessingModal(
   props: TransactionProcessingModalProps
 ) {
   const { palette } = useTheme()
-  const [activeStep, setActiveStep] = useState(0)
+  const [activeStep, setActiveStep] = useState(2)
 
   const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
 
@@ -71,14 +67,17 @@ export default function TransactionProcessingModal(
     <Dialog
       open={props.open}
       onClose={props.handleClose}
-      sx={{ ".MuiPaper-root": { background: "transparent" } }}
+      sx={{
+        ".MuiPaper-root": { background: "transparent" },
+        backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
+      }}
     >
       <Box
         sx={{
           background: palette.secondary.contrastText,
           border: `1px solid ${palette.secondary.light}`,
           borderRadius: "1.125rem",
-          padding: "1.5rem",
+          padding: { xs: "1rem", sm: "1.5rem" },
           color: palette.text.primary,
         }}
       >
@@ -100,11 +99,12 @@ export default function TransactionProcessingModal(
             orientation="vertical"
             connector={<CustomConnector />}
           >
-            {steps.map((step) => (
+            {steps.map((step, index) => (
               <Step key={step.label}>
                 <Grid
                   container
                   justifyContent="space-between"
+                  wrap="nowrap"
                   alignItems="center"
                 >
                   <Grid item>
@@ -128,19 +128,17 @@ export default function TransactionProcessingModal(
                     </StepLabel>
                   </Grid>
                   <Grid item>
-                    {step.status === "done" && (
-                      <CheckCircleIcon
+                    {activeStep === index ? (
+                      <CircularProgress size={32} />
+                    ) : (
+                      <CheckIcon
                         sx={{
-                          color: palette.success.dark,
-                          backgroundColor: "white",
+                          backgroundColor: palette.success.dark,
                           borderRadius: "100%",
-                          padding: 0,
+                          padding: "0.4rem",
                         }}
                         fontSize="large"
                       />
-                    )}
-                    {step.status === "pending" && (
-                      <CircularProgress size={32} />
                     )}
                   </Grid>
                 </Grid>
@@ -149,7 +147,12 @@ export default function TransactionProcessingModal(
           </Stepper>
           <Card
             variant="outlined"
-            sx={{ p: 0, textAlign: "center", mt: "2.5rem", maxWidth: "27rem" }}
+            sx={{
+              p: 0,
+              textAlign: "center",
+              mt: "2.5rem",
+              maxWidth: { xs: "22.75rem", sm: "27rem" },
+            }}
           >
             <CardContent>
               <Typography variant="small">

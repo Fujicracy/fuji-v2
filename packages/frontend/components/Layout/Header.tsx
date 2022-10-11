@@ -11,8 +11,7 @@ import {
   MenuItem,
   MenuList,
   Grid,
-  Dialog,
-  DialogContent,
+  LinearProgress,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
@@ -40,10 +39,6 @@ const Header = () => {
     setAnchorElNav(event.currentTarget)
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
-  const [
-    showTransactionProcessingAbstract,
-    setShowTransactionProcessingAbstract,
-  ] = useState(false)
 
   return (
     <>
@@ -163,11 +158,7 @@ const Header = () => {
                 <ChainSelect minified={false} selectedChain={chains[0]} />
               </Grid>
               <Grid item>
-                <BalanceAddress
-                  openTransactionProcessingAbstract={() =>
-                    setShowTransactionProcessingAbstract(true)
-                  }
-                />
+                <BalanceAddress />
               </Grid>
               <Grid item>
                 <Parameters />
@@ -180,12 +171,16 @@ const Header = () => {
   )
 }
 
-type BalanceAddressProps = {
-  openTransactionProcessingAbstract: (e: {}) => void
-}
-
-const BalanceAddress = (props: BalanceAddressProps) => {
+const BalanceAddress = () => {
   const { palette } = useTheme()
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const isOpen = Boolean(anchorEl)
+
+  const openTransactionProcessing = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => setAnchorEl(event.currentTarget)
+
+  const closeTransactionProcessing = () => setAnchorEl(null)
 
   const balance = 4.23
   const address = "0x6BV8...8974"
@@ -220,12 +215,71 @@ const BalanceAddress = (props: BalanceAddressProps) => {
             background: palette.secondary.main,
           },
         }}
-        onClick={props.openTransactionProcessingAbstract}
       >
-        <Typography align="center" variant="small">
+        <Typography
+          align="center"
+          onClick={openTransactionProcessing}
+          variant="small"
+        >
           {address}
         </Typography>
       </Box>
+      <Menu
+        anchorEl={anchorEl}
+        open={isOpen}
+        onClose={closeTransactionProcessing}
+        MenuListProps={{
+          "aria-labelledby": "basic-button",
+        }}
+        sx={{
+          ".MuiPaper-root": {
+            background: "transparent",
+          },
+          mt: "1.25rem",
+        }}
+      >
+        <Box
+          sx={{
+            background: palette.secondary.contrastText,
+            border: `1px solid ${palette.secondary.light}`,
+            borderRadius: "1.125rem",
+            padding: "1rem",
+            color: palette.text.primary,
+          }}
+        >
+          <CloseIcon
+            sx={{
+              cursor: "pointer",
+              float: "right",
+            }}
+            onClick={closeTransactionProcessing}
+            fontSize="small"
+          />
+          <Box sx={{ maxWidth: "14.25rem", mr: "3rem" }}>
+            <Typography variant="small">
+              Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
+            </Typography>
+            <br />
+
+            <Typography variant="xsmallDark">
+              Estimated time:{" "}
+              <span style={{ color: palette.success.main }}>2m 15s</span>
+            </Typography>
+            <LinearProgress
+              sx={{
+                background: palette.text.primary,
+                height: "0.125rem",
+                mt: "1rem",
+                ".css-uu0lzf-MuiLinearProgress-bar1": {
+                  background: palette.success.main,
+                },
+              }}
+              value={25}
+              variant="determinate"
+            />
+          </Box>
+        </Box>
+      </Menu>
     </Box>
   )
 }

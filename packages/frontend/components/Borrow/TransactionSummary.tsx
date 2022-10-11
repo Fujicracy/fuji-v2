@@ -43,7 +43,7 @@ export default function TransactionSummary() {
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{
-            width: "91%",
+            width: "90%",
             padding: "1rem 1rem",
             position: "fixed",
             bottom: "2rem",
