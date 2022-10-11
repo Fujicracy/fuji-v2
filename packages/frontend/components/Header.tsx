@@ -13,6 +13,7 @@ import {
   Grid,
   Button,
   Chip,
+  Fade,
 } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
@@ -95,23 +96,12 @@ const Header = () => {
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
                 open={Boolean(anchorElNav)}
                 onClose={handleCloseNavMenu}
-                sx={{
-                  display: {
-                    xs: "block",
-                    md: "none",
-                  },
-                }}
+                sx={{ display: { xs: "block", md: "none" } }}
+                TransitionComponent={Fade}
               >
                 {pages.map((page) => (
                   <MenuItem key={page} onClick={handleCloseNavMenu}>

@@ -1,6 +1,7 @@
 import React from "react"
 import {
   Divider,
+  Fade,
   Link,
   ListItemText,
   Menu,
@@ -37,13 +38,14 @@ export default function ParametersModal() {
         onClick={openMenu}
       />
       <Menu
-        id="basic-menu"
+        id="paramters-menu"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ marginTop: 1 }}
+        TransitionComponent={Fade}
       >
         <MenuList>
           <MenuItem>
