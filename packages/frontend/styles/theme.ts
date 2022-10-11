@@ -112,7 +112,7 @@ const theme = createTheme(colorTheme, {
       lineHeight: "120%",
     },
     h5: {
-      fontWeight: 400,
+      fontWeight: 600,
       fontSize: "1.25rem",
       lineHeight: "150%",
     },
@@ -224,6 +224,17 @@ const theme = createTheme(colorTheme, {
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
             border: `0.063rem solid ${colorTheme.palette.primary.light}`,
+          },
+        },
+        {
+          props: {
+            variant: "text",
+          },
+          style: {
+            background:
+              "linear-gradient(92.29deg, rgba(254, 52, 119, 0.1) 0%, rgba(240, 1, 79, 0.1) 100%)",
+            borderRadius: "6.25rem",
+            padding: "0.438rem 1rem",
           },
         },
       ],

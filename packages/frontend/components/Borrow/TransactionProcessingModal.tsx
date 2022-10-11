@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CircularProgress,
@@ -21,6 +22,8 @@ import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
+
+import styles from "../../styles/components/Borrow.module.css"
 
 type Step = {
   label: string
@@ -56,6 +59,14 @@ export default function TransactionProcessingModal(
 ) {
   const { palette } = useTheme()
   const [activeStep, setActiveStep] = useState(2)
+  const [isTransactionSuccessful, setIsTransactionSuccessful] = useState(false)
+
+  useEffect(() => {
+    const sleep = setTimeout(() => setIsTransactionSuccessful(true), 3000) // TODO: change this sleeping process
+    return () => {
+      clearTimeout(sleep)
+    }
+  })
 
   const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
 
@@ -78,6 +89,7 @@ export default function TransactionProcessingModal(
           border: `1px solid ${palette.secondary.light}`,
           borderRadius: "1.125rem",
           padding: { xs: "1rem", sm: "1.5rem" },
+          maxHeight: isTransactionSuccessful ? "24.688rem" : "",
           color: palette.text.primary,
         }}
       >
@@ -89,78 +101,134 @@ export default function TransactionProcessingModal(
           onClick={props.handleClose}
           fontSize="small"
         />
+
         <Box sx={{ textAlign: "center", mt: "1.625rem", mb: "2.688rem" }}>
-          <Typography variant="h6">Transaction processing</Typography>
-          <Typography variant="body">Borrowing on Polygon Network</Typography>
+          {isTransactionSuccessful ? (
+            <>
+              <CheckIcon
+                sx={{
+                  backgroundColor: "rgba(66, 255, 0, 0.1)", // TODO: use theme color (palette.success.dark)
+                  color: palette.success.dark,
+                  borderRadius: "100%",
+                  padding: "0.4rem",
+                  width: "3.75rem",
+                  height: "3.75rem",
+                  mb: "2.5rem",
+                }}
+              />
+              <Typography variant="h5">Transaction successful!</Typography>
+              <Typography variant="body">
+                You have borrowed 900.00 USDC
+              </Typography>
+              <Grid container justifyContent="center">
+                <Button
+                  className={styles.btn}
+                  variant="text"
+                  sx={{ mt: "1.5rem", mb: "2rem" }}
+                >
+                  Add USDC
+                </Button>
+              </Grid>
+              <Grid container columnGap="1rem">
+                <Button
+                  sx={{ minWidth: "13rem" }}
+                  variant="secondary"
+                  className={styles.btn}
+                >
+                  Transaction Details
+                </Button>
+                <Button
+                  sx={{ minWidth: "13rem" }}
+                  variant="gradient"
+                  className={styles.btn}
+                >
+                  View Position
+                </Button>
+              </Grid>
+            </>
+          ) : (
+            <>
+              <Typography variant="h6">Transaction processing</Typography>
+              <Typography variant="body">
+                Borrowing on Polygon Network
+              </Typography>
+            </>
+          )}
         </Box>
         <DialogContent>
-          <Stepper
-            activeStep={activeStep}
-            orientation="vertical"
-            connector={<CustomConnector />}
-          >
-            {steps.map((step, index) => (
-              <Step key={step.label}>
-                <Grid
-                  container
-                  justifyContent="space-between"
-                  wrap="nowrap"
-                  alignItems="center"
-                >
-                  <Grid item>
-                    <StepLabel StepIconComponent={CustomStepIcon}>
-                      <Typography variant="body">{step.label}</Typography>
-                      <br />
-                      <a href={step.link} target="_blank" rel="noreferrer">
-                        <Typography variant="smallDark">
-                          {step.description}
-                        </Typography>
-                        {step.link && (
-                          <LaunchIcon
+          {isTransactionSuccessful ? (
+            <div></div>
+          ) : (
+            <>
+              <Stepper
+                activeStep={activeStep}
+                orientation="vertical"
+                connector={<CustomConnector />}
+              >
+                {steps.map((step, index) => (
+                  <Step key={step.label}>
+                    <Grid
+                      container
+                      justifyContent="space-between"
+                      wrap="nowrap"
+                      alignItems="center"
+                    >
+                      <Grid item>
+                        <StepLabel StepIconComponent={CustomStepIcon}>
+                          <Typography variant="body">{step.label}</Typography>
+                          <br />
+                          <a href={step.link} target="_blank" rel="noreferrer">
+                            <Typography variant="smallDark">
+                              {step.description}
+                            </Typography>
+                            {step.link && (
+                              <LaunchIcon
+                                sx={{
+                                  ml: "0.3rem",
+                                  fontSize: "0.6rem",
+                                  color: palette.info.dark,
+                                }}
+                              />
+                            )}
+                          </a>
+                        </StepLabel>
+                      </Grid>
+                      <Grid item>
+                        {activeStep === index ? (
+                          <CircularProgress size={32} />
+                        ) : (
+                          <CheckIcon
                             sx={{
-                              ml: "0.3rem",
-                              fontSize: "0.6rem",
-                              color: palette.info.dark,
+                              backgroundColor: palette.success.dark,
+                              borderRadius: "100%",
+                              padding: "0.4rem",
                             }}
+                            fontSize="large"
                           />
                         )}
-                      </a>
-                    </StepLabel>
-                  </Grid>
-                  <Grid item>
-                    {activeStep === index ? (
-                      <CircularProgress size={32} />
-                    ) : (
-                      <CheckIcon
-                        sx={{
-                          backgroundColor: palette.success.dark,
-                          borderRadius: "100%",
-                          padding: "0.4rem",
-                        }}
-                        fontSize="large"
-                      />
-                    )}
-                  </Grid>
-                </Grid>
-              </Step>
-            ))}
-          </Stepper>
-          <Card
-            variant="outlined"
-            sx={{
-              p: 0,
-              textAlign: "center",
-              mt: "2.5rem",
-              maxWidth: { xs: "22.75rem", sm: "27rem" },
-            }}
-          >
-            <CardContent>
-              <Typography variant="small">
-                This step takes a few minutes to process. If you close this
-                window, your transaction will still be processed.
-              </Typography>
-            </CardContent>
-          </Card>
+                      </Grid>
+                    </Grid>
+                  </Step>
+                ))}
+              </Stepper>
+              <Card
+                variant="outlined"
+                sx={{
+                  p: 0,
+                  textAlign: "center",
+                  mt: "2.5rem",
+                  maxWidth: { xs: "22.75rem", sm: "27rem" },
+                }}
+              >
+                <CardContent>
+                  <Typography variant="small">
+                    This step takes a few minutes to process. If you close this
+                    window, your transaction will still be processed.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </DialogContent>
       </Box>
     </Dialog>

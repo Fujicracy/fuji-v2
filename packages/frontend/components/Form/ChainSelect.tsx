@@ -8,7 +8,6 @@ import { chains } from "../../machines/auth.machine"
 type Chain = typeof chains[0]
 
 type ChainSelectProps = {
-  minified: boolean
   selectedChain: Chain
 }
 
@@ -43,7 +42,6 @@ export default function ChainSelect(props: ChainSelectProps) {
               width={20}
               alt={chain.label}
             />
-            {/* {!props.minified && ( */}
             <Typography
               variant="body"
               sx={{
@@ -52,7 +50,6 @@ export default function ChainSelect(props: ChainSelectProps) {
             >
               {chain.label}
             </Typography>
-            {/* )} */}
           </div>
         </MenuItem>
       ))}

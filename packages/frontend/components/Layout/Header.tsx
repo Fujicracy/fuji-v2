@@ -12,6 +12,7 @@ import {
   MenuList,
   Grid,
   LinearProgress,
+  Fade,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
@@ -72,7 +73,7 @@ const Header = () => {
                     alignItems: "center",
                   }}
                 >
-                  <ChainSelect minified={true} selectedChain={chains[0]} />
+                  <ChainSelect selectedChain={chains[0]} />
 
                   <IconButton
                     size="large"
@@ -155,7 +156,7 @@ const Header = () => {
               sx={{ display: { xs: "none", sm: "flex" }, mt: "1rem" }}
             >
               <Grid item>
-                <ChainSelect minified={false} selectedChain={chains[0]} />
+                <ChainSelect selectedChain={chains[0]} />
               </Grid>
               <Grid item>
                 <BalanceAddress />
@@ -237,6 +238,7 @@ const BalanceAddress = () => {
           },
           mt: "1.25rem",
         }}
+        TransitionComponent={Fade}
       >
         <Box
           sx={{
