@@ -42,7 +42,7 @@ export default function ChainSelect() {
           label={
             <Stack direction="row" spacing={1}>
               <ListItem chain={currentChain} />
-              <KeyboardArrowDownIcon />
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
             </Stack>
           }
           onClick={openMenu}
@@ -50,10 +50,10 @@ export default function ChainSelect() {
       ) : (
         <Chip
           label={
-            <Stack direction="row" spacing={0.5} alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" />
               <Typography fontSize="inherit">Switch network</Typography>
-              <KeyboardArrowDownIcon />
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
             </Stack>
           }
           onClick={openMenu}
