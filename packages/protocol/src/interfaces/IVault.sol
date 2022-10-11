@@ -12,6 +12,16 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
+  /// Events
+
+  /**
+   * @dev Emitted when borrow action occurs.
+   * @param sender address who calls {IVault-borrow}
+   * @param receiver address of the borrowed 'debt' amount
+   * @param owner address who will incur the debt
+   * @param debt amount
+   * @param shares amound of 'debtShares' received
+   */
   event Borrow(
     address indexed sender,
     address indexed receiver,
@@ -20,6 +30,13 @@ interface IVault is IERC4626 {
     uint256 shares
   );
 
+  /**
+   * @dev Emitted when borrow action occurs.
+   * @param sender address who calls {IVault-payback}
+   * @param owner address whose debt will be reduced
+   * @param debt amount
+   * @param shares amound of 'debtShares' burned
+   */
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
@@ -66,6 +83,13 @@ interface IVault is IERC4626 {
    */
   event DepositCapChanged(uint256 newDepositCap);
 
+  /// Debt management functions
+
+  /**
+   * @dev Returns the decimals for 'debtAsset' of this vault.
+   *
+   * - MUST match the 'debtAsset' decimals in ERC-20 token contract.
+   */
   function debtDecimals() external view returns (uint8);
 
   /**
@@ -78,9 +102,9 @@ interface IVault is IERC4626 {
   function debtAsset() external view returns (address);
 
   /**
-   * @dev Returns the amount of debt owned by `account`.
+   * @dev Returns the amount of debt owned by `owner`.
    */
-  function balanceOfDebt(address account) external view returns (uint256 debt);
+  function balanceOfDebt(address owner) external view returns (uint256 debt);
 
   /**
    * @dev Based on {IERC4626-totalAssets}.
@@ -142,7 +166,6 @@ interface IVault is IERC4626 {
    * - MUST emit the Borrow event.
    * - MUST revert if owner does not own sufficient collateral to back debt.
    * - MUST revert if caller is not owner or permission to act owner.
-   *
    */
   function borrow(uint256 debt, address receiver, address owner) external returns (uint256);
 
@@ -155,17 +178,66 @@ interface IVault is IERC4626 {
    */
   function payback(uint256 debt, address receiver) external returns (uint256);
 
+  /// General functions
+
   /**
-   * @notice Returns the active provider for the vault
+   * @notice Returns the active provider of this vault.
    */
   function activeProvider() external returns (ILendingProvider);
+
+  ///  Liquidation Functions
+
+  /**
+   * @notice Returns the current health factor of 'owner'.
+   * @param owner address to get health factor
+   * @dev 'healthFactor' is scaled up by 100.
+   * A value below 100 means 'owner' is eligable for liquidation.
+   *
+   * - MUST return type(uint254).max when 'owner' has no debt.
+   * - MUST revert in {YieldVault}.
+   */
+  function getHealthFactor(address owner) external returns (uint256 healthFactor);
+
+  /**
+   * @notice Returns the liquidation close factor based on 'owner's' health factor.
+   * @param owner address owner of debt position.
+   *
+   * - MUST return zero if `owner` is not liquidatable.
+   * - MUST revert in {YieldVault}.
+   */
+  function getLiquidationFactor(address owner) external returns (uint256 liquidationFactor);
+
+  /**
+   * @notice Performs liquidation of an unhealthy position, meaning a 'healthFactor' below 100.
+   * @param owner address to be liquidated.
+   * @param receiver address of the collateral shares of liquidation.
+   * @dev WARNING! It is liquidator's responsability to check if liquidation is profitable.
+   *
+   * - MUST revert if caller is not an approved liquidator.
+   * - MUST revert if 'owner' is not liquidatable.
+   * - MUST emit the Liquidation event.
+   * - MUST liquidate 50% of 'owner' debt when: 100 >= 'healthFactor' > 95.
+   * - MUST liquidate 100% of 'owner' debt when: 95 > 'healthFactor'.
+   * - MUST revert in {YieldVault}.
+   *
+   */
+  function liquidate(address owner, address receiver) external returns (uint256 gainedShares);
 
   ////////////////////////
   /// Setter functions ///
   ///////////////////////
 
   /**
-   * @notice Sets the active provider for the vault
+   * @notice Sets the lists of providers of this vault.
+   *
+   * - MUST NOT contain zero addresses.
+   */
+  function setProviders(ILendingProvider[] memory providers) external;
+
+  /**
+   * @notice Sets the active provider for this vault.
+   *
+   * - MUST be a provider previously set by `setProviders()`.
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 
@@ -176,8 +248,8 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Sets the deposit cap amount of this vault.
-   * Restrictions:
-   * - SHOULD be greater than zero.
+   *
+   * - MUST be greater than zero.
    */
   function setDepositCap(uint256 newCap) external;
 }

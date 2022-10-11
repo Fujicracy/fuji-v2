@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IAaveProtocolDataProvider} from "../../interfaces/aaveV3/IAaveProtocolDataProvider.sol";
-import {IPool} from "../../interfaces/aaveV3/IPool.sol";
+import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
 
 /**
  * @title AaveV3 Lending Provider.
@@ -11,99 +11,95 @@ import {IPool} from "../../interfaces/aaveV3/IPool.sol";
  * @notice This contract allows interaction with AaveV3.
  */
 contract AaveV3Rinkeby is ILendingProvider {
-  function _getAaveProtocolDataProvider() internal pure returns (IAaveProtocolDataProvider) {
-    return IAaveProtocolDataProvider(0xBAB2E7afF5acea53a43aEeBa2BA6298D8056DcE5);
+  function _getPool() internal pure returns (IV3Pool) {
+    return IV3Pool(0xE039BdF1d874d27338e09B55CB09879Dedca52D8);
   }
 
-  function _getPool() internal pure returns (IPool) {
-    return IPool(0xE039BdF1d874d27338e09B55CB09879Dedca52D8);
-  }
-
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function approvedOperator(address) external pure override returns (address operator) {
+  /// inheritdoc ILendingProvider
+  function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(_getPool());
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function deposit(address asset, uint256 amount) external override returns (bool success) {
-    IPool aave = _getPool();
-    aave.supply(asset, amount, address(this), 0);
+  /// inheritdoc ILendingProvider
+  function deposit(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    IV3Pool aave = _getPool();
+    aave.supply(asset, amount, vault, 0);
     aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function borrow(address asset, uint256 amount) external override returns (bool success) {
-    IPool aave = _getPool();
-    aave.borrow(asset, amount, 2, 0, address(this));
+  /// inheritdoc ILendingProvider
+  function borrow(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    IV3Pool aave = _getPool();
+    aave.borrow(asset, amount, 2, 0, vault);
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function withdraw(address asset, uint256 amount) external override returns (bool success) {
-    IPool aave = _getPool();
-    aave.withdraw(asset, amount, address(this));
+  /// inheritdoc ILendingProvider
+  function withdraw(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    IV3Pool aave = _getPool();
+    aave.withdraw(asset, amount, vault);
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function payback(address asset, uint256 amount) external override returns (bool success) {
-    IPool aave = _getPool();
-    aave.repay(asset, amount, 2, address(this));
+  /// inheritdoc ILendingProvider
+  function payback(address asset, uint256 amount, address vault)
+    external
+    override
+    returns (bool success)
+  {
+    IV3Pool aave = _getPool();
+    aave.repay(asset, amount, 2, vault);
     success = true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getDepositRateFor(address asset) external view override returns (uint256 rate) {
-    IPool aaveData = _getPool();
-    IPool.ReserveData memory rdata = aaveData.getReserveData(asset);
+  /// inheritdoc ILendingProvider
+  function getDepositRateFor(address asset, address) external view override returns (uint256 rate) {
+    IV3Pool aaveData = _getPool();
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
     rate = rdata.currentLiquidityRate;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getBorrowRateFor(address asset) external view override returns (uint256 rate) {
-    IPool aaveData = _getPool();
-    IPool.ReserveData memory rdata = aaveData.getReserveData(asset);
+  /// inheritdoc ILendingProvider
+  function getBorrowRateFor(address asset, address) external view override returns (uint256 rate) {
+    IV3Pool aaveData = _getPool();
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
     rate = rdata.currentVariableBorrowRate;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getDepositBalance(address asset, address user)
+  /// inheritdoc ILendingProvider
+  function getDepositBalance(address asset, address user, address)
     external
     view
     override
     returns (uint256 balance)
   {
-    IAaveProtocolDataProvider aaveData = _getAaveProtocolDataProvider();
-    (balance,,,,,,,,) = aaveData.getUserReserveData(asset, user);
+    IV3Pool aaveData = _getPool();
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
-  function getBorrowBalance(address asset, address user)
+  /// inheritdoc ILendingProvider
+  function getBorrowBalance(address asset, address user, address)
     external
     view
     override
     returns (uint256 balance)
   {
-    IAaveProtocolDataProvider aaveData = _getAaveProtocolDataProvider();
-    (,, balance,,,,,,) = aaveData.getUserReserveData(asset, user);
+    IV3Pool aaveData = _getPool();
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
 }

@@ -1,8 +1,7 @@
-import React, { useRef, useState } from "react"
-import { useTheme } from "@mui/material/styles"
+import React from "react"
 import {
-  Button,
   Divider,
+  Fade,
   Link,
   ListItemText,
   Menu,
@@ -10,6 +9,7 @@ import {
   MenuList,
   Switch,
 } from "@mui/material"
+import Chip from "@mui/material/Chip"
 import TwitterIcon from "@mui/icons-material/Twitter"
 import TelegramIcon from "@mui/icons-material/Telegram"
 import DarkModeIcon from "@mui/icons-material/DarkMode"
@@ -17,14 +17,14 @@ import LightModeIcon from "@mui/icons-material/LightMode"
 import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
+import { useStore } from "../../store"
 
-type ParametersProps = {}
-
-export default function Parameters(props: ParametersProps) {
+export default function Parameters() {
+  const logout = useStore((state) => state.logout)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
   }
 
@@ -34,17 +34,19 @@ export default function Parameters(props: ParametersProps) {
 
   return (
     <>
-      <Button onClick={openMenu} size="small" variant="secondary2">
-        {isOpen ? <CloseIcon /> : <MoreHorizIcon />}
-      </Button>
+      <Chip
+        label={isOpen ? <CloseIcon /> : <MoreHorizIcon />}
+        onClick={openMenu}
+      />
       <Menu
-        id="basic-menu"
+        id="paramters-menu"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ marginTop: 1 }}
+        TransitionComponent={Fade}
       >
         <MenuList>
           <MenuItem>
@@ -99,15 +101,15 @@ export default function Parameters(props: ParametersProps) {
           <MenuItem>
             <ListItemText>Token Allowances</ListItemText>
           </MenuItem>
-          <Link
-            href="https://docs.fujidao.org/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MenuItem>
+          <MenuItem>
+            <Link
+              href="https://docs.fujidao.org/"
+              target="_blank"
+              rel="noreferrer"
+            >
               <ListItemText>Docs</ListItemText>
-            </MenuItem>
-          </Link>
+            </Link>
+          </MenuItem>
           <MenuItem>
             <ListItemText>Blog</ListItemText>
           </MenuItem>
@@ -118,6 +120,10 @@ export default function Parameters(props: ParametersProps) {
             <ListItemText>Roadmap</ListItemText>
           </MenuItem>
         </MenuList>
+        <Divider />
+        <MenuItem onClick={() => logout()}>
+          <ListItemText>Log out</ListItemText>
+        </MenuItem>
       </Menu>
     </>
   )

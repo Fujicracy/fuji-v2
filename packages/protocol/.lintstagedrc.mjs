@@ -3,5 +3,8 @@ export default {
   // but "forge fmt" can be run on the entire project or a single file.
   // So when there are more than one staged file, it fails.
   // That's why we customize the run.
-  '**/*.sol?(x)': () => 'forge fmt --root packages/protocol',
+  '**/*.sol?(x)': (files) => [
+    'yarn build',
+    ...files.map(file => `yarn format:fix ${file}`)
+  ],
 }

@@ -5,7 +5,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {IFlashLoanSimpleReceiver} from "../../interfaces/aaveV3/IFlashLoanSimpleReceiver.sol";
-import {IPool} from "../../interfaces/aaveV3/IPool.sol";
+import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
 import {IRouter} from "../../interfaces/IRouter.sol";
 import {IFlasher} from "../../interfaces/IFlasher.sol";
 
@@ -63,7 +63,7 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     address receiverAddress = address(this);
 
     //AaveV3 Flashloan initiated.
-    IPool(aaveV3Pool).flashLoanSimple(
+    IV3Pool(aaveV3Pool).flashLoanSimple(
       receiverAddress, params.asset, params.amount, abi.encode(params), 0
     );
   }

@@ -69,6 +69,9 @@ contract VaultTest is DSTestPlus {
       address(0)
     );
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+    vault.setProviders(providers);
     vault.setActiveProvider(mockProvider);
   }
 

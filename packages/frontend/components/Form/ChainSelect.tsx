@@ -1,73 +1,101 @@
-import React, { useState } from "react"
-import { Chip, Grid, Menu, Typography } from "@mui/material"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import { useTheme } from "@mui/material/styles"
+import React from "react"
+import {
+  Chip,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from "@mui/material"
 import Image from "next/image"
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import Fade from "@mui/material/Fade"
 
-import { chains } from "../../machines/auth.machine"
-import CollateralDropdown from "../Borrow/CollateralDropdown"
+import { useStore, chains, Chain } from "../../store"
 
-type Chain = typeof chains[0]
+export default function ChainSelect() {
+  const [chainId, setChainId] = useStore((state) => [
+    state.chain?.id,
+    state.changeChain,
+  ])
+  const currentChain = chains.find((c) => c.id === chainId) as Chain | null
 
-type ChainSelectProps = {
-  minified: boolean
-  selectedChain: Chain
-}
-
-export default function ChainSelect(props: ChainSelectProps) {
-  const { palette } = useTheme()
-  const [chainId, setChainId] = useState(chains[0].id)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
   }
-
-  const closeMenu = () => {
+  const selectChain = (chainId: string) => {
+    setChainId(chainId)
     setAnchorEl(null)
   }
 
+  console.log({ chains, currentChain })
+
   return (
     <>
-      <Chip
-        label={
-          <Grid container alignItems="center">
-            <Image
-              src={`/assets/images/protocol-icons/networks/${props.selectedChain.label}.svg`}
-              height={20}
-              width={20}
-              alt={props.selectedChain.label}
-            />
-            {!props.minified && (
-              <Typography variant="small" sx={{ marginLeft: "0.5rem" }}>
-                {props.selectedChain.label}
-              </Typography>
-            )}
-          </Grid>
-        }
-        component="button"
-        deleteIcon={!props.minified ? <KeyboardArrowDownIcon /> : <></>}
-        onClick={openMenu}
-        onDelete={openMenu}
-        sx={{
-          "& .MuiChip-deleteIcon": {
-            color: palette.text.primary,
-          },
-          background: palette.secondary.dark,
-        }}
-      />
+      {currentChain ? (
+        <Chip
+          label={
+            <Stack direction="row" spacing={1}>
+              <ListItem chain={currentChain} />
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+            </Stack>
+          }
+          onClick={openMenu}
+        />
+      ) : (
+        <Chip
+          label={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <WarningAmberIcon fontSize="inherit" />
+              <Typography fontSize="inherit">Switch network</Typography>
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+            </Stack>
+          }
+          onClick={openMenu}
+          color="error"
+        />
+      )}
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
         open={isOpen}
-        onClose={closeMenu}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
+        onClose={() => setAnchorEl(null)}
+        MenuListProps={{ "aria-labelledby": "basic-button" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        TransitionComponent={Fade}
+        sx={{ marginTop: 1 }}
       >
-        <CollateralDropdown chains={chains} />
+        {chains.map((chain) => (
+          <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
+            <ListItem chain={chain} />
+          </MenuItem>
+        ))}
       </Menu>
+    </>
+  )
+}
+
+type ListItemProps = { chain: Chain }
+
+const ListItem = (props: ListItemProps) => {
+  const { chain } = props
+
+  return (
+    <>
+      <ListItemIcon sx={{ minWidth: "inherit" }}>
+        <Image
+          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+          height={20}
+          width={20}
+          alt={chain.label}
+        />
+      </ListItemIcon>
+      <ListItemText>{chain.label}</ListItemText>
     </>
   )
 }
