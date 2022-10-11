@@ -7,7 +7,6 @@ libs = ['lib']
 
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
-rinkeby = "${RPC_RINKEBY}"
 goerli = "${RPC_GOERLI}"
 optimism_goerli = "${RPC_OPTIMISM_GOERLI}"
 optimism = "${RPC_OPTIMISM}"
