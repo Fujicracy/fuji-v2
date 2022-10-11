@@ -8,6 +8,14 @@ error InvalidTokenOrder();
 
 /// @notice Vault deployer for whitelisted template factories.
 abstract contract VaultDeployer {
+  /**
+   * @dev Emit when a vault is registered
+   * @param vault address
+   * @param asset address
+   * @param salt used for address generation
+   */
+  event VaultRegistered(address vault, address asset, bytes32 salt);
+
   address public immutable chief;
 
   mapping(address => address[]) public vaultsByAsset;
@@ -31,6 +39,7 @@ abstract contract VaultDeployer {
     // Store the address of the deployed contract.
     configAddress[salt] = vault;
     vaultsByAsset[asset].push(vault);
+    emit VaultRegistered(vault, asset, salt);
   }
 
   function vaultsCount(address asset) external view returns (uint256 count) {

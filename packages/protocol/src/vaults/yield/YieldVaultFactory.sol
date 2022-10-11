@@ -17,9 +17,9 @@ contract YieldVaultFactory is VaultDeployer {
     string memory assetSymbol = IERC20Metadata(asset).symbol();
 
     // name_, ex: Fuji-V2 Dai Stablecoin YieldVault Shares
-    string memory name = string(abi.encode("Fuji-V2 ", assetName, " YieldVault Shares"));
+    string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " YieldVault Shares"));
     // symbol_, ex: fyvDAI
-    string memory symbol = string(abi.encode("fyv", assetSymbol));
+    string memory symbol = string(abi.encodePacked("fyv", assetSymbol));
 
     // @dev Salt is not actually needed since `_deployData` is part of creationCode and already contains the salt.
     bytes32 salt = keccak256(_deployData);
