@@ -19,8 +19,6 @@ import { chains, Chain } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 
-type Chain = typeof chains[0]
-
 export default function Borrow() {
   // TODO: Below is a remain of Xstate. I let it here to avoid conflic, but this should be removed in the future
   const current = { matches: (arg: string) => true }

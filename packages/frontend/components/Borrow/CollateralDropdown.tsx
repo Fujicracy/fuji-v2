@@ -1,7 +1,7 @@
 import React from "react"
 import { ListItemIcon, ListItemText, MenuItem, Typography } from "@mui/material"
 
-import { chains } from "../../machines/auth.machine"
+import { chains } from "../../store"
 import Image from "next/image"
 
 type Chain = typeof chains[0]
