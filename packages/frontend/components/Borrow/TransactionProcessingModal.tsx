@@ -3,6 +3,7 @@ import {
   Box,
   Card,
   CardContent,
+  CircularProgress,
   Dialog,
   DialogContent,
   Grid,
@@ -11,7 +12,10 @@ import {
   Stepper,
   Typography,
 } from "@mui/material"
-import { useTheme } from "@mui/material/styles"
+import { useTheme, styled } from "@mui/material/styles"
+import StepConnector, {
+  stepConnectorClasses,
+} from "@mui/material/StepConnector"
 import { StepIconProps } from "@mui/material/StepIcon"
 import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
@@ -91,7 +95,11 @@ export default function TransactionProcessingModal(
           <Typography variant="body">Borrowing on Polygon Network</Typography>
         </Box>
         <DialogContent>
-          <Stepper activeStep={activeStep} orientation="vertical">
+          <Stepper
+            activeStep={activeStep}
+            orientation="vertical"
+            connector={<CustomConnector />}
+          >
             {steps.map((step) => (
               <Step key={step.label}>
                 <Grid
@@ -120,15 +128,17 @@ export default function TransactionProcessingModal(
                     </StepLabel>
                   </Grid>
                   <Grid item>
-                    <CheckCircleIcon
-                      sx={{
-                        color: palette.success.dark,
-                        borderRadius: "100%",
-                        padding: 0,
-                      }}
-                      fontSize="large"
-                      color="disabled"
-                    />
+                    {step.status === "done" && (
+                      <CheckCircleIcon
+                        sx={{
+                          color: palette.success.dark,
+                        }}
+                        fontSize="large"
+                      />
+                    )}
+                    {step.status === "pending" && (
+                      <CircularProgress size={32} />
+                    )}
                   </Grid>
                 </Grid>
               </Step>
@@ -136,7 +146,7 @@ export default function TransactionProcessingModal(
           </Stepper>
           <Card
             variant="outlined"
-            sx={{ p: 0, textAlign: "center", mt: "2.5rem" }}
+            sx={{ p: 0, textAlign: "center", mt: "2.5rem", maxWidth: "27rem" }}
           >
             <CardContent>
               <Typography variant="small">
@@ -184,13 +194,24 @@ function CustomStepIcon(props: StepIconProps) {
   return (
     <Box
       sx={{
+        background: palette.secondary.light,
         mr: "0.5rem",
-        background: palette.secondary.dark,
         p: "0.5rem",
         borderRadius: "100%",
+        paddingBottom: "0.3rem",
       }}
     >
       {icons[String(props.icon)]}
     </Box>
   )
 }
+
+const CustomConnector = styled(StepConnector)(({ theme }) => ({
+  [`& .${stepConnectorClasses.line}`]: {
+    borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
+    marginLeft: "0.7rem",
+    marginTop: "-0.5rem",
+    marginBottom: "-0.5rem",
+    height: "3rem",
+  },
+}))
