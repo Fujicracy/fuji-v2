@@ -15,26 +15,29 @@ contract BorrowingVault is BaseVault {
 
   /**
    * @dev Emitted when a user is liquidated
+   * @param caller executor of liquidation.
+   * @param receiver receiver of liquidation bonus.
    * @param owner address whose assets are being liquidated.
    * @param collateralSold `owner`'s amount of collateral sold during liquidation.
    * @param debtPaid `owner`'s amount of debt paid back during liquidation.
    * @param price price of collateral at which liquidation was done.
    * @param liquidationFactor what % of debt was liquidated
-   * @param liquidator executor of liquidation.
    */
   event Liquidate(
+    address indexed caller,
+    address indexed receiver,
     address indexed owner,
     uint256 collateralSold,
     uint256 debtPaid,
     uint256 price,
-    uint256 liquidationFactor,
-    address liquidator
+    uint256 liquidationFactor
   );
 
   error BorrowingVault__borrow_invalidInput();
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
+  error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
 
   /// Liquidation controls
@@ -264,6 +267,12 @@ contract BorrowingVault is BaseVault {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
       uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtAsset.decimals());
+
+      if (lockedAssets == 0) {
+        // Handle wei level amounts in where 'lockedAssets' < 1 wei
+        lockedAssets = 1;
+      }
+
       uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
@@ -381,8 +390,11 @@ contract BorrowingVault is BaseVault {
   }
 
   /// inheritdoc IVault
-  function liquidate(address owner) public returns (uint256 gainedShares) {
+  function liquidate(address owner, address receiver) public returns (uint256 gainedShares) {
     // TODO only liquidator role, that will be controlled at Chief level.
+    if (receiver == address(0)) {
+      revert BorrowingVault__liquidate_invalidInput();
+    }
 
     address caller = _msgSender();
 
@@ -413,9 +425,9 @@ contract BorrowingVault is BaseVault {
 
     // Internal share adjusment between 'owner' and 'liquidator'.
     _burn(owner, gainedShares);
-    _mint(caller, gainedShares);
+    _mint(receiver, gainedShares);
 
-    emit Liquidate(owner, gainedShares, debtToCover, price, liquidationFactor, caller);
+    emit Liquidate(caller, receiver, owner, gainedShares, debtToCover, price, liquidationFactor);
   }
 
   ///////////////////////////

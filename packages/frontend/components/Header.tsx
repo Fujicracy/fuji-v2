@@ -11,14 +11,19 @@ import {
   MenuItem,
   MenuList,
   Grid,
+  Button,
+  Chip,
 } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
 import { useRouter } from "next/router"
+import { Balances } from "@web3-onboard/core/dist/types"
+import shallow from "zustand/shallow"
 
 import styles from "../styles/components/Header.module.css"
 import ChainSelect from "./Form/ChainSelect"
 import ParametersModal from "./ParametersModal"
+import { useStore } from "../store"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -26,6 +31,16 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
+  const { address, ens, status, balance, login } = useStore(
+    (state) => ({
+      status: state.status,
+      address: state.address,
+      ens: state.ens,
+      balance: state.balance,
+      login: state.login,
+    }),
+    shallow
+  )
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
@@ -144,16 +159,35 @@ const Header = () => {
               ))}
             </MenuList>
 
-            <Grid container columnGap="0.5rem" justifyContent="flex-end">
-              <Grid item>
-                <ChainSelect />
-              </Grid>
-              <Grid item>
-                <BalanceAddress />
-              </Grid>
-              <Grid item>
-                <ParametersModal />
-              </Grid>
+            <Grid
+              container
+              columnGap="0.5rem"
+              justifyContent="flex-end"
+              alignItems="center"
+            >
+              {status === "disconnected" && (
+                <Button variant="gradient" onClick={() => login()}>
+                  Connect wallet
+                </Button>
+              )}
+              {status === "connected" && (
+                <>
+                  <Grid item>
+                    <ChainSelect />
+                  </Grid>
+                  <Grid item>
+                    <BalanceAddress
+                      // TODO: balance should be retrived from current chain, and not deduced
+                      balance={balance}
+                      address={address as string}
+                      ens={ens}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <ParametersModal />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </Toolbar>
         </Box>
@@ -162,48 +196,42 @@ const Header = () => {
   )
 }
 
-const BalanceAddress = () => {
-  const theme = useTheme()
-  const balance = 4.23
-  const address = "0x6BV8...8974"
+type BalanceAddressProps = {
+  balance: Balances
+  address: string
+  ens: string | null
+}
+const BalanceAddress = (props: BalanceAddressProps) => {
+  const { palette } = useTheme()
+  const { balance, address, ens } = props
+  if (!balance) {
+    return <></>
+  }
+
+  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
+  const [bal] = Object.values<string>(balance)
+  const [token] = Object.keys(balance)
+  const formattedBalance =
+    token === "ETH"
+      ? `${bal.substring(0, 5)} ${token}`
+      : `${bal.substring(0, 4)} ${token}`
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns="1fr"
-      sx={{
-        ml: "5rem",
-      }}
-    >
-      <Box
-        gridColumn={1}
-        gridRow={1}
+    <Box mr="-2rem">
+      <Chip
+        label={formattedBalance}
+        sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
+      />
+      <Chip
+        label={ens || formattedAddress}
         sx={{
-          background: "rgba(255, 255, 255, 0.1)",
-          borderRadius: "4rem",
-          height: "2.25rem",
-          padding: "0.438rem 0.75rem",
-          marginLeft: "-5rem",
+          fontSize: ".9rem",
+          lineHeight: ".9rem",
+          position: "relative",
+          left: "-2rem",
+          backgroundColor: palette.secondary.light,
         }}
-      >
-        <Typography align="center" variant="small">
-          {balance} ETH
-        </Typography>
-      </Box>
-      <Box
-        gridColumn={1}
-        gridRow={1}
-        sx={{
-          background: theme.palette.secondary.light,
-          borderRadius: "4rem",
-          height: "2.25rem",
-          padding: "0.438rem 0.75rem",
-        }}
-      >
-        <Typography align="center" variant="small">
-          {address}
-        </Typography>
-      </Box>
+      />
     </Box>
   )
 }

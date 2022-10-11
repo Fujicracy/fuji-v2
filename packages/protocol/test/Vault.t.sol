@@ -31,6 +31,9 @@ contract VaultTest is DSTestPlus {
   address bob = vm.addr(bobPkey);
 
   function setUp() public {
+    vm.label(alice, "Alice");
+    vm.label(bob, "Bob");
+
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
     debtAsset = new MockERC20("Test DAI", "tDAI");
@@ -150,9 +153,8 @@ contract VaultTest is DSTestPlus {
   }
 
   // TODO FUZZ
-  function test_tryWithdrawWithoutRepay() public {
-    uint96 amount = 2 ether;
-    uint256 borrowAmount = 100e18;
+  function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
@@ -239,7 +241,7 @@ contract VaultTest is DSTestPlus {
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
     vm.prank(bob);
-    vault.liquidate(alice);
+    vault.liquidate(alice, bob);
   }
 
   function test_liquidateMax() public {
@@ -265,7 +267,7 @@ contract VaultTest is DSTestPlus {
 
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
-    vault.liquidate(alice);
+    vault.liquidate(alice, bob);
     vm.stopPrank();
 
     assertEq(asset.balanceOf(alice), 0);
@@ -302,7 +304,7 @@ contract VaultTest is DSTestPlus {
 
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
-    vault.liquidate(alice);
+    vault.liquidate(alice, bob);
     vm.stopPrank();
 
     assertEq(asset.balanceOf(alice), 0);

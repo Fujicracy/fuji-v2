@@ -133,10 +133,11 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         // LIQUIDATE
 
         // Decode params
-        (IVault vault, address owner) = abi.decode(args[i], (IVault, address));
+        (IVault vault, address owner, address receiver) =
+          abi.decode(args[i], (IVault, address, address));
 
         // TODO: pullToken and approve
-        vault.liquidate(owner);
+        vault.liquidate(owner, receiver);
       }
       unchecked {
         ++i;

@@ -115,7 +115,7 @@ contract YieldVault is BaseVault {
   }
 
   /// inheritdoc IVault
-  function liquidate(address) public pure returns (uint256) {
+  function liquidate(address, address) public pure returns (uint256) {
     revert YieldVault__notApplicable();
   }
 }
