@@ -13,6 +13,7 @@ import {
   Grid,
   LinearProgress,
   Fade,
+  Snackbar,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
@@ -225,7 +226,16 @@ const BalanceAddress = () => {
           {address}
         </Typography>
       </Box>
-      <Menu
+      <Snackbar
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        open={isOpen}
+        onClose={closeTransactionProcessing}
+        //message={Tmp}
+      />
+      {/* <Menu
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeTransactionProcessing}
@@ -240,50 +250,57 @@ const BalanceAddress = () => {
         }}
         TransitionComponent={Fade}
       >
-        <Box
-          sx={{
-            background: palette.secondary.contrastText,
-            border: `1px solid ${palette.secondary.light}`,
-            borderRadius: "1.125rem",
-            padding: "1rem",
-            color: palette.text.primary,
-          }}
-        >
-          <CloseIcon
-            sx={{
-              cursor: "pointer",
-              float: "right",
-            }}
-            onClick={closeTransactionProcessing}
-            fontSize="small"
-          />
-          <Box sx={{ maxWidth: "14.25rem", mr: "3rem" }}>
-            <Typography variant="small">
-              Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
-            </Typography>
-            <br />
-
-            <Typography variant="xsmallDark">
-              Estimated time:{" "}
-              <span style={{ color: palette.success.main }}>2m 15s</span>
-            </Typography>
-            <LinearProgress
-              sx={{
-                background: palette.text.primary,
-                height: "0.125rem",
-                mt: "1rem",
-                ".css-uu0lzf-MuiLinearProgress-bar1": {
-                  background: palette.success.main,
-                },
-              }}
-              value={25}
-              variant="determinate"
-            />
-          </Box>
-        </Box>
-      </Menu>
+        
+      </Menu> */}
     </Box>
   )
 }
 
+const Tmp = () => {
+  const { palette } = useTheme()
+
+  return (
+    <Box
+      sx={{
+        background: palette.secondary.contrastText,
+        border: `1px solid ${palette.secondary.light}`,
+        borderRadius: "1.125rem",
+        padding: "1rem",
+        color: palette.text.primary,
+      }}
+    >
+      <CloseIcon
+        sx={{
+          cursor: "pointer",
+          float: "right",
+        }}
+        //onClick={closeTransactionProcessing}
+        fontSize="small"
+      />
+      <Box sx={{ maxWidth: "14.25rem", mr: "3rem" }}>
+        <Typography variant="small">
+          Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
+        </Typography>
+        <br />
+
+        <Typography variant="xsmallDark">
+          Estimated time:{" "}
+          <span style={{ color: palette.success.main }}>2m 15s</span>
+        </Typography>
+        <LinearProgress
+          sx={{
+            background: palette.text.primary,
+            height: "0.125rem",
+            mt: "1rem",
+            ".css-uu0lzf-MuiLinearProgress-bar1": {
+              background: palette.success.main,
+            },
+          }}
+          value={25}
+          variant="determinate"
+        />
+      </Box>
+    </Box>
+  )
+}
 export default Header
