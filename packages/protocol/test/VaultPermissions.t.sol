@@ -66,7 +66,9 @@ contract VaultTest is DSTestPlus {
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
 
     ILendingProvider[] memory providers = new ILendingProvider[](1);

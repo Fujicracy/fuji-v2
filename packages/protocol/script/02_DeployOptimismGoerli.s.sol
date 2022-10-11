@@ -50,7 +50,9 @@ contract DeployOptimismGoerli is ScriptPlus {
       address(weth),
       getAddress("MockDAI"),
       getAddress("MockOracle"),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
     saveAddress("BorrowingVault", address(vault));
 

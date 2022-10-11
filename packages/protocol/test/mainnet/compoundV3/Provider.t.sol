@@ -36,7 +36,6 @@ contract ProviderTest is DSTestPlus {
     weth = IWETH9(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
-
     vm.label(address(alice), "alice");
     vm.label(address(bob), "bob");
     vm.label(address(weth), "weth");
@@ -51,7 +50,9 @@ contract ProviderTest is DSTestPlus {
       address(weth),
       address(usdc),
       address(mockOracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
 
     compoundV3 = new CompoundV3();

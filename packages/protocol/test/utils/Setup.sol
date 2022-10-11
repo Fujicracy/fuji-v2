@@ -100,7 +100,9 @@ contract Setup is DSTestPlus {
       collateralAsset,
       debtAsset,
       address(mockOracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
 
     // Configs

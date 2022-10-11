@@ -3,6 +3,8 @@ pragma solidity 0.8.15;
 
 import {BorrowingVault} from "./BorrowingVault.sol";
 import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract BorrowingVaultFactory is VaultDeployer {
   constructor(address _chief) VaultDeployer(_chief) {}
@@ -12,9 +14,17 @@ contract BorrowingVaultFactory is VaultDeployer {
     (address asset, address debtAsset, address oracle) =
       abi.decode(_deployData, (address, address, address));
 
+    string memory assetName = IERC20Metadata(asset).name();
+    string memory assetSymbol = IERC20Metadata(asset).symbol();
+
+    // name_, ex: Fuji-V2 Dai Stablecoin Vault Shares
+    string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " Vault Shares"));
+    // symbol_, ex: fV2DAI
+    string memory symbol = string(abi.encodePacked("fv2", assetSymbol));
+
     // @dev Salt is not actually needed since `_deployData` is part of creationCode and already contains the salt.
     bytes32 salt = keccak256(_deployData);
-    vault = address(new BorrowingVault{salt: salt}(asset, debtAsset, oracle, chief));
+    vault = address(new BorrowingVault{salt: salt}(asset, debtAsset, oracle, chief, name, symbol));
     _registerVault(vault, asset, salt);
   }
 }

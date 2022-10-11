@@ -12,6 +12,8 @@ import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract DeployGoerli is ScriptPlus {
   IVault public vault;
@@ -50,7 +52,9 @@ contract DeployGoerli is ScriptPlus {
       address(weth),
       address(mockDAI),
       address(mockOracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
     saveAddress("BorrowingVault", address(vault));
 

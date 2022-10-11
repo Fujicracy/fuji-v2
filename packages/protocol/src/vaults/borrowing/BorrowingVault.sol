@@ -45,15 +45,15 @@ contract BorrowingVault is BaseVault {
    */
   uint256 public liqRatio;
 
-  constructor(address asset_, address debtAsset_, address oracle_, address chief_)
-    BaseVault(
-      asset_,
-      chief_,
-      // name_, ex: X-Fuji Dai Stablecoin Vault Shares
-      string(abi.encodePacked("X-Fuji ", IERC20Metadata(asset_).name(), " Vault Shares")),
-      // symbol_, ex: xfDAI
-      string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol()))
-    )
+  constructor(
+    address asset_,
+    address debtAsset_,
+    address oracle_,
+    address chief_,
+    string memory name_,
+    string memory symbol_
+  )
+    BaseVault(asset_, chief_, name_, symbol_)
   {
     _debtAsset = IERC20Metadata(debtAsset_);
     oracle = IFujiOracle(oracle_);
