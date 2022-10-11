@@ -6,6 +6,8 @@ import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+import "forge-std/console.sol";
+
 contract BorrowingVaultFactory is VaultDeployer {
   constructor(address _chief) VaultDeployer(_chief) {}
 
@@ -18,9 +20,9 @@ contract BorrowingVaultFactory is VaultDeployer {
     string memory assetSymbol = IERC20Metadata(asset).symbol();
 
     // name_, ex: Fuji-V2 Dai Stablecoin Vault Shares
-    string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " Vault Shares"));
-    // symbol_, ex: fV2DAI
-    string memory symbol = string(abi.encodePacked("fv2", assetSymbol));
+    string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " BorrowingVault Shares"));
+    // symbol_, ex: fvbDAI
+    string memory symbol = string(abi.encodePacked("fbv", assetSymbol));
 
     // @dev Salt is not actually needed since `_deployData` is part of creationCode and already contains the salt.
     bytes32 salt = keccak256(_deployData);
