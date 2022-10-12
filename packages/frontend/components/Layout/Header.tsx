@@ -16,6 +16,7 @@ import {
   Snackbar,
   Button,
   Chip,
+  SnackbarContent,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
@@ -23,6 +24,7 @@ import shallow from "zustand/shallow"
 
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
 import CloseIcon from "@mui/icons-material/Close"
+import SyncIcon from "@mui/icons-material/Sync"
 import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
@@ -205,7 +207,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   const { balance, address, ens } = props
 
   const openTransactionProcessing = (
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => setAnchorEl(event.currentTarget)
 
   const closeTransactionProcessing = () => setAnchorEl(null)
@@ -214,7 +216,10 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     return <></>
   }
 
-  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
+  const formattedAddress = `${address.substring(0, 5)}...${address.substring(
+    -4,
+    4
+  )}`
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
   const formattedBalance =
@@ -230,6 +235,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
         />
         <Chip
+          onClick={openTransactionProcessing}
           label={ens || formattedAddress}
           sx={{
             background: palette.secondary.light,
@@ -245,15 +251,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
               background: palette.secondary.main,
             },
           }}
-        >
-          {/* <Typography
-            align="center"
-            onClick={openTransactionProcessing}
-            variant="small"
-          >
-            {address}
-          </Typography> */}
-        </Chip>
+        />
+
         <Snackbar
           anchorOrigin={{
             vertical: "top",
@@ -261,75 +260,73 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           }}
           open={isOpen}
           onClose={closeTransactionProcessing}
-          //message={Tmp}
-        />
-        {/* <Menu
-        anchorEl={anchorEl}
-        open={isOpen}
-        onClose={closeTransactionProcessing}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
-        sx={{
-          ".MuiPaper-root": {
-            background: "transparent",
-          },
-          mt: "1.25rem",
-        }}
-        TransitionComponent={Fade}
-      >
-        
-      </Menu> */}
+        >
+          <SnackbarContent
+            sx={{ background: "transparent", boxShadow: "none", mt: "1.5rem" }}
+            message={
+              <Box
+                sx={{
+                  background: palette.secondary.contrastText,
+                  border: `1px solid ${palette.secondary.light}`,
+                  borderRadius: "1.125rem",
+                  p: "1rem",
+                  color: palette.text.primary,
+                }}
+              >
+                <CloseIcon
+                  sx={{
+                    cursor: "pointer",
+                    position: "absolute",
+                    right: "2rem",
+                  }}
+                  onClick={closeTransactionProcessing}
+                  fontSize="small"
+                />
+                <Grid container>
+                  <Grid item>
+                    <SyncIcon sx={{ mr: "0.563rem" }} />
+                  </Grid>
+                  <Grid item>
+                    <Box
+                      sx={{
+                        maxWidth: "14.25rem",
+                        mr: "3rem",
+                      }}
+                    >
+                      <Typography variant="small">
+                        Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on
+                        Polygon
+                      </Typography>
+                      <br />
+
+                      <Typography variant="xsmallDark">
+                        Estimated time:{" "}
+                        <span style={{ color: palette.success.main }}>
+                          2m 15s
+                        </span>
+                      </Typography>
+                      <LinearProgress
+                        sx={{
+                          background: palette.text.primary,
+                          height: "0.125rem",
+                          mt: "1rem",
+                          ".css-uu0lzf-MuiLinearProgress-bar1": {
+                            background: palette.success.main,
+                          },
+                        }}
+                        value={25}
+                        variant="determinate"
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+            }
+          />
+        </Snackbar>
       </Box>
     </>
   )
 }
 
-const Tmp = () => {
-  const { palette } = useTheme()
-
-  return (
-    <Box
-      sx={{
-        background: palette.secondary.contrastText,
-        border: `1px solid ${palette.secondary.light}`,
-        borderRadius: "1.125rem",
-        padding: "1rem",
-        color: palette.text.primary,
-      }}
-    >
-      <CloseIcon
-        sx={{
-          cursor: "pointer",
-          float: "right",
-        }}
-        //onClick={closeTransactionProcessing}
-        fontSize="small"
-      />
-      <Box sx={{ maxWidth: "14.25rem", mr: "3rem" }}>
-        <Typography variant="small">
-          Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
-        </Typography>
-        <br />
-
-        <Typography variant="xsmallDark">
-          Estimated time:{" "}
-          <span style={{ color: palette.success.main }}>2m 15s</span>
-        </Typography>
-        <LinearProgress
-          sx={{
-            background: palette.text.primary,
-            height: "0.125rem",
-            mt: "1rem",
-            ".css-uu0lzf-MuiLinearProgress-bar1": {
-              background: palette.success.main,
-            },
-          }}
-          value={25}
-          variant="determinate"
-        />
-      </Box>
-    </Box>
-  )
-}
 export default Header

@@ -30,15 +30,10 @@ export default function TransactionSummary() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openPreviewTransaction = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const openPreviewTransaction = (event: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(event.currentTarget)
-  }
 
-  const closePreviewTransaction = () => {
-    setAnchorEl(null)
-  }
+  const closePreviewTransaction = () => setAnchorEl(null)
 
   return (
     <Container>
@@ -50,9 +45,10 @@ export default function TransactionSummary() {
             position: "fixed",
             bottom: "2rem",
             left: "1.25rem",
+            pb: "1rem",
           }}
         >
-          <CardContent sx={{ p: 0, paddingBottom: "1rem", width: "100%" }}>
+          <CardContent sx={{ p: 0, width: "100%" }}>
             <CardActionArea onClick={openPreviewTransaction}>
               <Grid container justifyContent="space-between">
                 <Typography onClick={openPreviewTransaction} variant="body">
@@ -95,6 +91,7 @@ export default function TransactionSummary() {
               width: "94%",
               maxHeight: "90%",
               transform: "translateX(-50%)",
+              background: "transparent",
             }}
           >
             <Card
