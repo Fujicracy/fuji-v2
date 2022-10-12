@@ -21,6 +21,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 
 import { chains, Chain } from "../../store"
+import { useTransactionStore } from "../../store/useTransactionStore"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
@@ -38,7 +39,13 @@ export default function Borrow() {
   const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
   const [borrowValue, setBorrowValue] = useState("")
   const [borrowToken, setBorrowToken] = useState(tokens[1])
-  const [transactionIsProcessing, setTransactionIsProcessing] = useState(false)
+  const { transactionStatus, setTransactionStatus } = useTransactionStore(
+    (state) => ({
+      transactionStatus: state.transactionStatus,
+      setTransactionStatus: state.setTransactionStatus,
+    })
+  )
+
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
@@ -212,15 +219,13 @@ export default function Borrow() {
               <Button
                 variant="gradient"
                 onClick={() => {
-                  setTransactionIsProcessing(true)
+                  setTransactionStatus(true)
                   setShowTransactionProcessingModal(true)
                 }}
                 fullWidth
                 className={styles.btn}
                 startIcon={
-                  transactionIsProcessing ? (
-                    <CircularProgress size={15} />
-                  ) : undefined
+                  transactionStatus ? <CircularProgress size={15} /> : undefined
                 }
               >
                 Borrow

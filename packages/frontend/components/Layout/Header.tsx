@@ -17,6 +17,7 @@ import {
   Button,
   Chip,
   SnackbarContent,
+  CircularProgress,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
@@ -30,6 +31,7 @@ import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
 import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
+import { useTransactionStore } from "../../store/useTransactionStore"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -38,7 +40,7 @@ if (process.env.NODE_ENV === "development") {
 
 const Header = () => {
   const { address, ens, status, balance, login } = useStore(
-    (state: any) => ({
+    (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
@@ -46,6 +48,12 @@ const Header = () => {
       login: state.login,
     }),
     shallow
+  )
+  const { transactionStatus, setTransactionStatus } = useTransactionStore(
+    (state) => ({
+      transactionStatus: state.transactionStatus,
+      setTransactionStatus: state.setTransactionStatus,
+    })
   )
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
@@ -108,7 +116,7 @@ const Header = () => {
                     anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                     transformOrigin={{ vertical: "top", horizontal: "left" }}
                     keepMounted
-                    open={Boolean(anchorElNav)}
+                    open={transactionStatus /* Boolean(anchorElNav) */}
                     onClose={handleCloseNavMenu}
                     sx={{ display: { xs: "block", lg: "none" } }}
                     TransitionComponent={Fade}
@@ -180,6 +188,7 @@ const Header = () => {
                       balance={balance}
                       address={address as string}
                       ens={ens}
+                      transactionStatus={transactionStatus}
                     />
                   </Grid>
                   <Grid item>
@@ -199,6 +208,7 @@ type BalanceAddressProps = {
   balance?: Balances
   address: string
   ens: string | null
+  transactionStatus: boolean
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
@@ -228,31 +238,39 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       : `${bal.substring(0, 4)} ${token}`
 
   return (
-    <>
-      <Box mr="-2rem">
-        <Chip
-          label={formattedBalance}
-          sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
-        />
-        <Chip
-          onClick={openTransactionProcessing}
-          label={ens || formattedAddress}
-          sx={{
-            background: palette.secondary.light,
-            borderRadius: "4rem",
-            height: "2.25rem",
-            padding: "0.438rem 0.75rem",
-            cursor: "pointer",
-            fontSize: ".9rem",
-            lineHeight: ".9rem",
-            position: "relative",
-            left: "-2rem",
-            ":hover": {
-              background: palette.secondary.main,
-            },
-          }}
-        />
-
+    <Box mr="-2rem">
+      <Chip
+        label={formattedBalance}
+        sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
+      />
+      <Chip
+        onClick={openTransactionProcessing}
+        label={
+          props.transactionStatus ? (
+            <Grid container alignItems="center">
+              <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
+              <Typography variant="small">1 pending</Typography>
+            </Grid>
+          ) : (
+            ens || formattedAddress
+          )
+        }
+        sx={{
+          background: palette.secondary.light,
+          borderRadius: "4rem",
+          height: "2.25rem",
+          padding: "0.438rem 0.75rem",
+          cursor: "pointer",
+          fontSize: ".9rem",
+          lineHeight: ".9rem",
+          position: "relative",
+          left: "-2rem",
+          ":hover": {
+            background: palette.secondary.main,
+          },
+        }}
+      />
+      {props.transactionStatus && (
         <Snackbar
           anchorOrigin={{
             vertical: "top",
@@ -262,7 +280,11 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           onClose={closeTransactionProcessing}
         >
           <SnackbarContent
-            sx={{ background: "transparent", boxShadow: "none", mt: "1.5rem" }}
+            sx={{
+              background: "transparent",
+              boxShadow: "none",
+              mt: "1.5rem",
+            }}
             message={
               <Box
                 sx={{
@@ -324,8 +346,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
             }
           />
         </Snackbar>
-      </Box>
-    </>
+      )}
+    </Box>
   )
 }
 

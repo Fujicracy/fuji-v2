@@ -24,6 +24,7 @@ import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 
 import styles from "../../styles/components/Borrow.module.css"
+import { useTransactionStore } from "../../store/useTransactionStore"
 
 type Step = {
   label: string
@@ -59,10 +60,15 @@ export default function TransactionProcessingModal(
 ) {
   const { palette } = useTheme()
   const [activeStep, setActiveStep] = useState(2)
-  const [isTransactionSuccessful, setIsTransactionSuccessful] = useState(false)
+  const { transactionStatus, setTransactionStatus } = useTransactionStore(
+    (state) => ({
+      transactionStatus: state.transactionStatus,
+      setTransactionStatus: state.setTransactionStatus,
+    })
+  )
 
   useEffect(() => {
-    const sleep = setTimeout(() => setIsTransactionSuccessful(true), 3000) // TODO: change this sleeping process
+    const sleep = setTimeout(() => setTransactionStatus(false), 10000) // TODO: change this sleeping process
     return () => {
       clearTimeout(sleep)
     }
@@ -89,7 +95,7 @@ export default function TransactionProcessingModal(
           border: `1px solid ${palette.secondary.light}`,
           borderRadius: "1.125rem",
           padding: { xs: "1rem", sm: "1.5rem" },
-          maxHeight: isTransactionSuccessful ? "24.688rem" : "",
+          maxHeight: !transactionStatus ? "24.688rem" : "",
           color: palette.text.primary,
         }}
       >
@@ -103,7 +109,7 @@ export default function TransactionProcessingModal(
         />
 
         <Box sx={{ textAlign: "center", mt: "1.625rem", mb: "2.688rem" }}>
-          {isTransactionSuccessful ? (
+          {!transactionStatus ? (
             <>
               <CheckIcon
                 sx={{
@@ -156,7 +162,7 @@ export default function TransactionProcessingModal(
           )}
         </Box>
         <DialogContent>
-          {isTransactionSuccessful ? (
+          {!transactionStatus ? (
             <div></div>
           ) : (
             <>

@@ -20,7 +20,7 @@ import { DiscordIcon } from "./DiscordIcon"
 import { useStore } from "../../store"
 
 export default function Parameters() {
-  const logout = useStore((state: any) => state.logout)
+  const logout = useStore((state) => state.logout)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 

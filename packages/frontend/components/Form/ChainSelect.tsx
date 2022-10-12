@@ -16,7 +16,7 @@ import Fade from "@mui/material/Fade"
 import { useStore, chains, Chain } from "../../store"
 
 export default function ChainSelect() {
-  const [chainId, setChainId] = useStore((state: any) => [
+  const [chainId, setChainId] = useStore((state) => [
     state.chain?.id,
     state.changeChain,
   ])
