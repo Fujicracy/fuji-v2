@@ -1,4 +1,4 @@
-import { Box, ClickAwayListener, Link, Tooltip } from "@mui/material"
+import { Link, Tooltip } from "@mui/material"
 import React from "react"
 
 type ClickableTooltipProps = {

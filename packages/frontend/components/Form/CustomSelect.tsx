@@ -18,7 +18,7 @@ type Chain = typeof chains[0]
 interface CustomSelectProps {
   labelId: string
   id: string
-  onSelect: (e: SelectChangeEvent<any>) => void
+  onSelect: (e: SelectChangeEvent<string | number>) => void
   value: string | number
   options: (Chain | string)[]
   label: string | null

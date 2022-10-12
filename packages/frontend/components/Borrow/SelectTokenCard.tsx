@@ -1,5 +1,4 @@
 import React from "react"
-import { useTheme } from "@mui/material/styles"
 import {
   Card,
   FormControl,
@@ -25,8 +24,6 @@ declare interface SelectTokenCardProps {
 }
 
 export default function SelectTokenCard(props: SelectTokenCardProps) {
-  const { palette } = useTheme()
-
   return (
     <Card variant="outlined">
       <div className={styles.cardLine}>

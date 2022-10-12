@@ -15,13 +15,11 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
-import { chains, Chain } from "../../store"
+import { chains } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 
 export default function Borrow() {
-  // TODO: Below is a remain of Xstate. I let it here to avoid conflic, but this should be removed in the future
-  const current = { matches: (arg: string) => true }
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
