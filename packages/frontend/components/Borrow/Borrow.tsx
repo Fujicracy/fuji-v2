@@ -1,9 +1,7 @@
 import { useState } from "react"
-import { useMachine } from "@xstate/react"
 import {
   Divider,
   Button,
-  Container,
   Typography,
   CardContent,
   Card,
@@ -15,24 +13,22 @@ import {
   AccordionSummary,
   AccordionDetails,
   CircularProgress,
+  Container,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 
-import borrowMachine from "../../machines/borrow.machine"
-import { chains } from "../../machines/auth.machine"
+import { chains, Chain } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 
-type Chain = typeof chains[0]
-
 export default function Borrow() {
   const { palette } = useTheme()
-  const [current, send] = useMachine(borrowMachine, { devTools: true })
-  const { collateral } = current.context
+  // TODO: Below is a remain of Xstate. I let it here to avoid conflic, but this should be removed in the future
+  const current = { matches: (arg: string) => true }
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
@@ -48,10 +44,6 @@ export default function Borrow() {
 
   return (
     <Container>
-      {current.matches("initial") && (
-        <button onClick={() => send("initialize")}>Initialize</button>
-      )}
-
       {current.matches("editing") && (
         <>
           <Card

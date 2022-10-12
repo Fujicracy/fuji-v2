@@ -30,11 +30,13 @@ export default function TransactionSummary() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openPreviewTransaction = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     setAnchorEl(event.currentTarget)
   }
 
-  const closeMenu = () => {
+  const closePreviewTransaction = () => {
     setAnchorEl(null)
   }
 
@@ -50,10 +52,10 @@ export default function TransactionSummary() {
             left: "1.25rem",
           }}
         >
-          <CardContent sx={{ width: "100%", p: 0 }}>
-            <CardActionArea onClick={openMenu}>
+          <CardContent sx={{ p: 0, paddingBottom: "1rem", width: "100%" }}>
+            <CardActionArea onClick={openPreviewTransaction}>
               <Grid container justifyContent="space-between">
-                <Typography onClick={openMenu} variant="body2">
+                <Typography onClick={openPreviewTransaction} variant="body">
                   Transaction Summary
                 </Typography>
 
@@ -78,7 +80,8 @@ export default function TransactionSummary() {
         </Card>
 
         <Dialog
-          onClose={closeMenu}
+          fullWidth
+          onClose={closePreviewTransaction}
           open={isOpen}
           sx={{
             backdropFilter: "blur(0.313rem)",
@@ -102,7 +105,7 @@ export default function TransactionSummary() {
               }}
             >
               <CardContent sx={{ width: "100%", p: 0, gap: "1rem" }}>
-                <CardActionArea onClick={closeMenu}>
+                <CardActionArea onClick={closePreviewTransaction}>
                   <Grid container justifyContent="space-between">
                     <Typography variant="body2">Transaction Summary</Typography>
                     {isOpen ? (
@@ -126,51 +129,52 @@ export default function TransactionSummary() {
                 <Divider sx={{ mt: "1.375rem", mb: "1rem" }} />
 
                 <Grid container direction="column" rowSpacing="0.75rem">
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Collateral Provided
-                      </Typography>
-                      <Typography variant="small">1ETH (~1800.00)</Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Collateral Provided
+                    </Typography>
+                    <Typography variant="small">1ETH (~1800.00)</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Borrowed Value
-                      </Typography>
-                      <Typography variant="small">
-                        $675.00 (675 USDC)
-                      </Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">Borrowed Value</Typography>
+                    <Typography variant="small">$675.00 (675 USDC)</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Liquidation Price
-                      </Typography>
-                      <Typography variant="small">
-                        $1500.00 (
-                        <span
-                          style={{
-                            color: palette.success.main,
-                          }}
-                        >
-                          ~25%
-                        </span>{" "}
-                        below)
-                      </Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Liquidation Price
+                    </Typography>
+                    <Typography variant="small">
+                      $1500.00 (
+                      <span
+                        style={{
+                          color: palette.success.main,
+                        }}
+                      >
+                        ~25%
+                      </span>{" "}
+                      below)
+                    </Typography>
                   </Grid>
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Current Price (ETH)
-                      </Typography>
-                      <Typography variant="small">$2000.00</Typography>
-                    </Grid>
+
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Current Price (ETH)
+                    </Typography>
+                    <Typography variant="small">$2000.00</Typography>
                   </Grid>
                 </Grid>
 
@@ -185,41 +189,43 @@ export default function TransactionSummary() {
                 <br />
 
                 <Grid container direction="column" rowSpacing="0.75rem">
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">Current LTV</Typography>
-                      <Typography variant="small">45%</Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">Current LTV</Typography>
+                    <Typography variant="small">45%</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Typography variant="smallDark">
-                        Liquidation threshold
-                      </Typography>
-                      <Typography variant="small">75%</Typography>
-                    </Grid>
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Liquidation threshold
+                    </Typography>
+                    <Typography variant="small">75%</Typography>
                   </Grid>
 
-                  <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <Grid item>
-                        <Typography variant="smallDark">
-                          Collateral will be deposit into
+                  <Grid
+                    item
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="smallDark">
+                      Collateral will be deposit into
+                    </Typography>
+
+                    <Grid item>
+                      <Grid container alignItems="center">
+                        <Image
+                          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+                          height={18}
+                          width={18}
+                          alt="Ethereum icon"
+                        />
+                        <Typography sx={{ ml: "0.375rem" }} variant="small">
+                          Aave V2
                         </Typography>
-                      </Grid>
-                      <Grid item>
-                        <Grid container alignItems="center">
-                          <Image
-                            src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                            height={18}
-                            width={18}
-                            alt="Ethereum icon"
-                          />
-                          <Typography sx={{ ml: "0.375rem" }} variant="small">
-                            Aave V2
-                          </Typography>
-                        </Grid>
                       </Grid>
                     </Grid>
                   </Grid>

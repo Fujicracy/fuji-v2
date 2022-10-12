@@ -1,7 +1,7 @@
 import React from "react"
 import {
-  Button,
   Divider,
+  Fade,
   Link,
   ListItemText,
   Menu,
@@ -9,6 +9,7 @@ import {
   MenuList,
   Switch,
 } from "@mui/material"
+import Chip from "@mui/material/Chip"
 import TwitterIcon from "@mui/icons-material/Twitter"
 import TelegramIcon from "@mui/icons-material/Telegram"
 import DarkModeIcon from "@mui/icons-material/DarkMode"
@@ -16,12 +17,14 @@ import LightModeIcon from "@mui/icons-material/LightMode"
 import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
+import { useStore } from "../../store"
 
 export default function Parameters() {
+  const logout = useStore((state: any) => state.logout)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
   }
 
@@ -31,24 +34,19 @@ export default function Parameters() {
 
   return (
     <>
-      <Button
+      <Chip
+        label={isOpen ? <CloseIcon /> : <MoreHorizIcon />}
         onClick={openMenu}
-        sx={{
-          border: "none",
-          borderRadius: "6.25rem",
-        }}
-        size="small"
-        variant="secondary"
-      >
-        {isOpen ? <CloseIcon /> : <MoreHorizIcon />}
-      </Button>
+      />
       <Menu
+        id="paramters-menu"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ marginTop: 1 }}
+        TransitionComponent={Fade}
       >
         <MenuList>
           <MenuItem>
@@ -103,15 +101,15 @@ export default function Parameters() {
           <MenuItem>
             <ListItemText>Token Allowances</ListItemText>
           </MenuItem>
-          <Link
-            href="https://docs.fujidao.org/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MenuItem>
+          <MenuItem>
+            <Link
+              href="https://docs.fujidao.org/"
+              target="_blank"
+              rel="noreferrer"
+            >
               <ListItemText>Docs</ListItemText>
-            </MenuItem>
-          </Link>
+            </Link>
+          </MenuItem>
           <MenuItem>
             <ListItemText>Blog</ListItemText>
           </MenuItem>
@@ -122,6 +120,10 @@ export default function Parameters() {
             <ListItemText>Roadmap</ListItemText>
           </MenuItem>
         </MenuList>
+        <Divider />
+        <MenuItem onClick={() => logout()}>
+          <ListItemText>Log out</ListItemText>
+        </MenuItem>
       </Menu>
     </>
   )

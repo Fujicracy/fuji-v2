@@ -1,64 +1,99 @@
-import React, { useState } from "react"
-import { MenuItem, Select, Typography } from "@mui/material"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import React from "react"
+import {
+  Chip,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from "@mui/material"
 import Image from "next/image"
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import Fade from "@mui/material/Fade"
 
-import { chains } from "../../machines/auth.machine"
+import { useStore, chains, Chain } from "../../store"
 
-type Chain = typeof chains[0]
+export default function ChainSelect() {
+  const [chainId, setChainId] = useStore((state: any) => [
+    state.chain?.id,
+    state.changeChain,
+  ])
+  const currentChain = chains.find((c) => c.id === chainId) as Chain | null
 
-type ChainSelectProps = {
-  selectedChain: Chain
-}
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const isOpen = Boolean(anchorEl)
 
-export default function ChainSelect(props: ChainSelectProps) {
-  const [chainId, setChainId] = useState(chains[0].id)
+  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const selectChain = (chainId: string) => {
+    setChainId(chainId)
+    setAnchorEl(null)
+  }
 
   return (
-    <Select
-      labelId="chain-label"
-      id="chain"
-      value={chainId}
-      variant="outlined"
-      IconComponent={CustomExpandMore}
-      inputProps={{
-        sx: { pr: { xs: "0.25rem !important", sm: "2rem !important" } },
-      }}
-      sx={{ ".MuiTypography-body": { display: { xs: "none", sm: "inline" } } }}
-      displayEmpty
-      onChange={(e) => setChainId(e.target.value)}
-    >
-      {chains.map((chain: Chain) => (
-        <MenuItem key={chain.id} value={chain.id}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Image
-              src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-              height={20}
-              width={20}
-              alt={chain.label}
-            />
-            <Typography
-              variant="body"
-              sx={{
-                ml: "0.5rem",
-              }}
-            >
-              {chain.label}
-            </Typography>
-          </div>
-        </MenuItem>
-      ))}
-    </Select>
+    <>
+      {currentChain ? (
+        <Chip
+          label={
+            <Stack direction="row" spacing={1}>
+              <ListItem chain={currentChain} />
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+            </Stack>
+          }
+          onClick={openMenu}
+        />
+      ) : (
+        <Chip
+          label={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <WarningAmberIcon fontSize="inherit" />
+              <Typography fontSize="inherit">Switch network</Typography>
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+            </Stack>
+          }
+          onClick={openMenu}
+          color="error"
+        />
+      )}
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={isOpen}
+        onClose={() => setAnchorEl(null)}
+        MenuListProps={{ "aria-labelledby": "basic-button" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        TransitionComponent={Fade}
+        sx={{ marginTop: 1 }}
+      >
+        {chains.map((chain) => (
+          <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
+            <ListItem chain={chain} />
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   )
 }
 
-const CustomExpandMore = ({ ...rest }) => {
+type ListItemProps = { chain: Chain }
+
+const ListItem = (props: ListItemProps) => {
+  const { chain } = props
+
   return (
-    <ExpandMoreIcon {...rest} sx={{ display: { xs: "none", sm: "block" } }} />
+    <>
+      <ListItemIcon sx={{ minWidth: "inherit" }}>
+        <Image
+          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+          height={20}
+          width={20}
+          alt={chain.label}
+        />
+      </ListItemIcon>
+      <ListItemText>{chain.label}</ListItemText>
+    </>
   )
 }

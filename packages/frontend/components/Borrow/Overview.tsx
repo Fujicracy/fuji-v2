@@ -32,9 +32,10 @@ export default function Overview() {
             flexDirection: "column",
             alignItems: "center",
             padding: "1.5rem 2rem",
+            width: "100%",
           }}
         >
-          <CardContent sx={{ width: "100%", padding: 0, gap: "1rem" }}>
+          <CardContent sx={{ padding: 0, gap: "1rem" }}>
             <Typography variant="body2">Overview</Typography>
             <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 

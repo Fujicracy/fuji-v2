@@ -14,17 +14,20 @@ import {
   LinearProgress,
   Fade,
   Snackbar,
+  Button,
+  Chip,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
+import shallow from "zustand/shallow"
 
-import styles from "../../styles/components/Header.module.css"
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
 import CloseIcon from "@mui/icons-material/Close"
 import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
-
-import { chains } from "../../machines/auth.machine"
+import styles from "../../styles/components/Header.module.css"
+import { useStore } from "../../store"
+import { Balances } from "@web3-onboard/core/dist/types"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -32,6 +35,16 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
+  const { address, ens, status, balance, login } = useStore(
+    (state: any) => ({
+      status: state.status,
+      address: state.address,
+      ens: state.ens,
+      balance: state.balance,
+      login: state.login,
+    }),
+    shallow
+  )
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
@@ -74,7 +87,7 @@ const Header = () => {
                     alignItems: "center",
                   }}
                 >
-                  <ChainSelect selectedChain={chains[0]} />
+                  <ChainSelect />
 
                   <IconButton
                     size="large"
@@ -90,20 +103,13 @@ const Header = () => {
                   <Menu
                     id="menu-appbar"
                     anchorEl={anchorElNav}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                    transformOrigin={{ vertical: "top", horizontal: "left" }}
                     keepMounted
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "left",
-                    }}
                     open={Boolean(anchorElNav)}
                     onClose={handleCloseNavMenu}
-                    sx={{
-                      display: { xs: "block", md: "none" },
-                    }}
+                    sx={{ display: { xs: "block", lg: "none" } }}
+                    TransitionComponent={Fade}
                   >
                     {pages.map((page) => (
                       <MenuItem key={page} onClick={handleCloseNavMenu}>
@@ -120,9 +126,8 @@ const Header = () => {
             <MenuList
               sx={{
                 flexGrow: 1,
-                display: { xs: "none", md: "flex" },
+                display: { xs: "none", lg: "flex" },
                 justifyContent: "center",
-                ml: "1rem",
                 mt: 1,
               }}
             >
@@ -154,17 +159,32 @@ const Header = () => {
               container
               columnGap="0.5rem"
               justifyContent="flex-end"
-              sx={{ display: { xs: "none", sm: "flex" }, mt: "1rem" }}
+              alignItems="center"
+              sx={{ display: { xs: "none", md: "flex" }, mt: "1rem" }}
             >
-              <Grid item>
-                <ChainSelect selectedChain={chains[0]} />
-              </Grid>
-              <Grid item>
-                <BalanceAddress />
-              </Grid>
-              <Grid item>
-                <Parameters />
-              </Grid>
+              {status === "disconnected" && (
+                <Button variant="gradient" onClick={() => login()}>
+                  Connect wallet
+                </Button>
+              )}
+              {status === "connected" && (
+                <>
+                  <Grid item>
+                    <ChainSelect />
+                  </Grid>
+                  <Grid item>
+                    <BalanceAddress
+                      // TODO: balance should be retrived from current chain, and not deduced
+                      balance={balance}
+                      address={address as string}
+                      ens={ens}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Parameters />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </Toolbar>
         </Box>
@@ -173,10 +193,16 @@ const Header = () => {
   )
 }
 
-const BalanceAddress = () => {
+type BalanceAddressProps = {
+  balance?: Balances
+  address: string
+  ens: string | null
+}
+const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
+  const { balance, address, ens } = props
 
   const openTransactionProcessing = (
     event: React.MouseEvent<HTMLButtonElement>
@@ -184,58 +210,60 @@ const BalanceAddress = () => {
 
   const closeTransactionProcessing = () => setAnchorEl(null)
 
-  const balance = 4.23
-  const address = "0x6BV8...8974"
+  if (!balance) {
+    return <></>
+  }
+
+  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
+  const [bal] = Object.values<string>(balance)
+  const [token] = Object.keys(balance)
+  const formattedBalance =
+    token === "ETH"
+      ? `${bal.substring(0, 5)} ${token}`
+      : `${bal.substring(0, 4)} ${token}`
 
   return (
-    <Box display="grid" gridTemplateColumns="1fr" sx={{ ml: "5rem" }}>
-      <Box
-        gridColumn={1}
-        gridRow={1}
-        sx={{
-          background: "rgba(255, 255, 255, 0.1)",
-          borderRadius: "4rem",
-          height: "2.25rem",
-          padding: "0.438rem 0.75rem",
-          marginLeft: "-5rem",
-        }}
-      >
-        <Typography align="center" variant="small">
-          {balance} ETH
-        </Typography>
-      </Box>
-      <Box
-        gridColumn={1}
-        gridRow={1}
-        sx={{
-          background: palette.secondary.light,
-          borderRadius: "4rem",
-          height: "2.25rem",
-          padding: "0.438rem 0.75rem",
-          cursor: "pointer",
-          ":hover": {
-            background: palette.secondary.main,
-          },
-        }}
-      >
-        <Typography
-          align="center"
-          onClick={openTransactionProcessing}
-          variant="small"
+    <>
+      <Box mr="-2rem">
+        <Chip
+          label={formattedBalance}
+          sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
+        />
+        <Chip
+          label={ens || formattedAddress}
+          sx={{
+            background: palette.secondary.light,
+            borderRadius: "4rem",
+            height: "2.25rem",
+            padding: "0.438rem 0.75rem",
+            cursor: "pointer",
+            fontSize: ".9rem",
+            lineHeight: ".9rem",
+            position: "relative",
+            left: "-2rem",
+            ":hover": {
+              background: palette.secondary.main,
+            },
+          }}
         >
-          {address}
-        </Typography>
-      </Box>
-      <Snackbar
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        open={isOpen}
-        onClose={closeTransactionProcessing}
-        //message={Tmp}
-      />
-      {/* <Menu
+          {/* <Typography
+            align="center"
+            onClick={openTransactionProcessing}
+            variant="small"
+          >
+            {address}
+          </Typography> */}
+        </Chip>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+          open={isOpen}
+          onClose={closeTransactionProcessing}
+          //message={Tmp}
+        />
+        {/* <Menu
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeTransactionProcessing}
@@ -252,7 +280,8 @@ const BalanceAddress = () => {
       >
         
       </Menu> */}
-    </Box>
+      </Box>
+    </>
   )
 }
 

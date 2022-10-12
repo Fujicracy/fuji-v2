@@ -37,7 +37,12 @@ const BorrowPage: NextPage = () => {
           <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>
-          <Grid item md={7} sx={{ display: { xs: "none", sm: "flex" } }}>
+          <Grid
+            item
+            sm={12}
+            md={7}
+            sx={{ display: { xs: "none", sm: "flex" } }}
+          >
             <Overview />
           </Grid>
           <Grid item xs={12} sx={{ display: { xs: "flex", sm: "none" } }}>

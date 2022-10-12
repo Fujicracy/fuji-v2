@@ -166,6 +166,7 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: "border-box",
           borderRadius: "0.5rem",
+          color: colorTheme.palette.text.primary,
           "&.Mui-disabled": {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
@@ -185,6 +186,9 @@ const theme = createTheme(colorTheme, {
             background:
               "linear-gradient(92.29deg, rgba(254, 52, 119, 0.8) 0%, rgba(240, 1, 79, 0.8) 100%)",
             boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
+            padding: "0.75rem 1.25rem",
+            textTransform: "none",
+            fontSize: "1rem",
           },
         },
         {
@@ -224,6 +228,9 @@ const theme = createTheme(colorTheme, {
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
             border: `0.063rem solid ${colorTheme.palette.primary.light}`,
+            padding: "0.75rem 1.25rem",
+            textTransform: "none",
+            fontSize: "1rem",
           },
         },
         {
@@ -255,9 +262,6 @@ const theme = createTheme(colorTheme, {
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-start",
-          ":last-child": {
-            paddingBottom: 0,
-          },
         },
       },
       variants: [
@@ -311,7 +315,7 @@ const theme = createTheme(colorTheme, {
             background: colorTheme.palette.secondary.dark,
             borderRadius: "6.25rem",
             height: "2.25rem",
-            padding: "0.438rem 0.25rem",
+            padding: "0.438rem 0.75rem",
             fontWeight: 400,
             fontSize: "0.875rem",
             lineHeight: "160%",
@@ -377,7 +381,9 @@ const theme = createTheme(colorTheme, {
     MuiDialogContent: {
       styleOverrides: {
         root: {
-          padding: 0,
+          background: colorTheme.palette.secondary.contrastText,
+          padding: "0.3rem 0.5rem",
+          boxShadow: "none",
         },
       },
     },
