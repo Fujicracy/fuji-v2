@@ -95,7 +95,7 @@ export default function TransactionProcessingModal(
           border: `1px solid ${palette.secondary.light}`,
           borderRadius: "1.125rem",
           padding: { xs: "1rem", sm: "1.5rem" },
-          maxHeight: !transactionStatus ? "24.688rem" : "",
+          maxHeight: { xs: "none", sm: !transactionStatus ? "24.688rem" : "" },
           color: palette.text.primary,
         }}
       >
@@ -135,7 +135,13 @@ export default function TransactionProcessingModal(
                   Add USDC
                 </Button>
               </Grid>
-              <Grid container columnGap="1rem">
+              <Grid
+                container
+                columnGap="1rem"
+                rowGap="1rem"
+                justifyContent="center"
+                sx={{ flexDirection: { xs: "column-reverse", sm: "row" } }}
+              >
                 <Button
                   sx={{ minWidth: "13rem" }}
                   variant="secondary"

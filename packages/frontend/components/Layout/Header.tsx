@@ -32,6 +32,7 @@ import styles from "../../styles/components/Header.module.css"
 import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
 import { useTransactionStore } from "../../store/useTransactionStore"
+import AccountModal from "./AccountModal"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -213,6 +214,7 @@ type BalanceAddressProps = {
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [showAccountModal, setShowAccountModal] = useState(false)
   const isOpen = Boolean(anchorEl)
   const { balance, address, ens } = props
 
@@ -244,12 +246,17 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
       <Chip
-        onClick={openTransactionProcessing}
+        onClick={() => setShowAccountModal(true)}
         label={
           props.transactionStatus ? (
             <Grid container alignItems="center">
               <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
-              <Typography variant="small">1 pending</Typography>
+              <Typography
+                variant="small"
+                onClick={() => setShowAccountModal(true)}
+              >
+                1 pending
+              </Typography>
             </Grid>
           ) : (
             ens || formattedAddress
@@ -347,6 +354,11 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           />
         </Snackbar>
       )}
+      <AccountModal
+        isOpen={showAccountModal}
+        closeAccountModal={() => setShowAccountModal(false)}
+        address={formattedAddress}
+      />
     </Box>
   )
 }
