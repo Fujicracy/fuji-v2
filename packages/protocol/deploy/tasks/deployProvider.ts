@@ -1,6 +1,9 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-const deployProvider = async (hre: HardhatRuntimeEnvironment, providerName: string) => {
+const deployProvider = async (
+  hre: HardhatRuntimeEnvironment,
+  providerName: string
+) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
 
@@ -12,7 +15,7 @@ const deployProvider = async (hre: HardhatRuntimeEnvironment, providerName: stri
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,
-    waitConfirmations: 1
+    waitConfirmations: 1,
   });
 };
 

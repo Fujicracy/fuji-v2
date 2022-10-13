@@ -17,7 +17,7 @@ const deployConnextRouter = async (
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,
-    waitConfirmations: 1
+    waitConfirmations: 1,
   });
 };
 

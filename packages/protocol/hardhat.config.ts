@@ -1,32 +1,33 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import "hardhat-abi-exporter";
-import "hardhat-preprocessor";
-import "hardhat-deploy";
-import * as fs from "fs";
+import '@nomicfoundation/hardhat-toolbox';
+import 'hardhat-abi-exporter';
+import 'hardhat-preprocessor';
+import 'hardhat-deploy';
 
-const deployerPath: string = "./deployer.json";
+import * as fs from 'fs';
+import { HardhatUserConfig } from 'hardhat/config';
 
-/** 
+const deployerPath = './deployer.json';
+
+/**
  * Tasks
-*/
-import { mnemonic } from "./hardhat-tasks/getWallet";
+ */
+import { mnemonic } from './hardhat-tasks/getWallet';
 
-/** 
+/**
  * Configuration
-*/
+ */
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.15",
+        version: '0.8.15',
         settings: {
           optimizer: {
             enabled: true,
             runs: 10000,
           },
         },
-      }
+      },
     ],
   },
   networks: {
@@ -45,16 +46,19 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       deploy: ['deploy/networks/mainnet'],
       url: `${process.env.RPC_MAINNET}`,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: mnemonic(deployerPath) },
+      accounts: process.env.PRIVATE_KEY
+        ? [process.env.PRIVATE_KEY]
+        : { mnemonic: mnemonic(deployerPath) },
     },
     goerli: {
       live: true,
       saveDeployments: true,
       deploy: ['deploy/networks/goerli'],
       url: `${process.env.RPC_GOERLI}`,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : { mnemonic: mnemonic(deployerPath) },
-    }
-
+      accounts: process.env.PRIVATE_KEY
+        ? [process.env.PRIVATE_KEY]
+        : { mnemonic: mnemonic(deployerPath) },
+    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
@@ -72,9 +76,9 @@ const config: HardhatUserConfig = {
     }),
   },
   paths: {
-    sources: "./src",
-    cache: "./cache_hardhat",
-    imports: './out'
+    sources: './src',
+    cache: './cache_hardhat',
+    imports: './out',
   },
   abiExporter: {
     path: './abis',
@@ -93,8 +97,8 @@ const config: HardhatUserConfig = {
 };
 
 function getTestDeployNetwork() {
-  if(!process.env.TEST_DEPLOY_NETWORK) {
-    throw "Set TEST_DEPLOY_NETWORK in .env";
+  if (!process.env.TEST_DEPLOY_NETWORK) {
+    throw 'Set TEST_DEPLOY_NETWORK in .env';
   } else {
     return process.env.TEST_DEPLOY_NETWORK;
   }
@@ -102,11 +106,10 @@ function getTestDeployNetwork() {
 
 function getRemappings() {
   return fs
-    .readFileSync("remappings_hardhat.txt", "utf8")
-    .split("\n")
+    .readFileSync('remappings_hardhat.txt', 'utf8')
+    .split('\n')
     .filter(Boolean) // remove empty lines
-    .map((line: string) => line.trim().split("="));
+    .map((line: string) => line.trim().split('='));
 }
 
 export default config;
-

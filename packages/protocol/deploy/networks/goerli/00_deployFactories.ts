@@ -1,8 +1,8 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction, Deployment } from 'hardhat-deploy/types';
 
-import deployChief from "../../tasks/deployChief";
-import deployBorrowingVaultFactory  from "../../tasks/deployBorrowingVaultFactory";
+import deployBorrowingVaultFactory from '../../tasks/deployBorrowingVaultFactory';
+import deployChief from '../../tasks/deployChief';
 import deployYieldVaultFactory from '../../tasks/deployYieldVaultFactory';
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {

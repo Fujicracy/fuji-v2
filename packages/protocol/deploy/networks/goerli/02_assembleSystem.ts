@@ -1,12 +1,14 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction, Address } from 'hardhat-deploy/types';
+import { Address, DeployFunction } from 'hardhat-deploy/types';
+
+import deployConnextRouter from '../../tasks/deployConnextRouter';
+import deployFujiOracle, {
+  getAssetAddresses,
+  getPriceFeedAddresses,
+} from '../../tasks/deployFujiOracle';
+import deploySimpleRouter from '../../tasks/deploySimpleRouter';
 import { ASSETS } from '../../utils/assets';
 import { CONNEXT } from '../../utils/connext';
-
-import deployFujiOracle,
-{ getAssetAddresses, getPriceFeedAddresses } from '../../tasks/deployFujiOracle';
-import deploySimpleRouter from '../../tasks/deploySimpleRouter';
-import deployConnextRouter from '../../tasks/deployConnextRouter';
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const assets: Address[] = getAssetAddresses('goerli');
@@ -14,7 +16,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   await deployFujiOracle(hre, assets, priceFeeds);
   await deploySimpleRouter(hre, ASSETS['goerli'].WETH.address);
-  await deployConnextRouter(hre, ASSETS['goerli'].WETH.address, CONNEXT['goerli'].handler);
+  await deployConnextRouter(
+    hre,
+    ASSETS['goerli'].WETH.address,
+    CONNEXT['goerli'].handler
+  );
 };
 
 export default func;

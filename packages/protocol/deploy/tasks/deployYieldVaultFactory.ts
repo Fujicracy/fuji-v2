@@ -1,7 +1,10 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Address } from 'hardhat-deploy/types';
 
-const deployYieldVaultFactory = async (hre: HardhatRuntimeEnvironment, chief: Address) => {
+const deployYieldVaultFactory = async (
+  hre: HardhatRuntimeEnvironment,
+  chief: Address
+) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -12,7 +15,7 @@ const deployYieldVaultFactory = async (hre: HardhatRuntimeEnvironment, chief: Ad
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,
-    waitConfirmations: 1
+    waitConfirmations: 1,
   });
 };
 
