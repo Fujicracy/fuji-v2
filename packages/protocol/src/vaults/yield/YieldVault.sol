@@ -92,4 +92,23 @@ contract YieldVault is BaseVault {
   function _computeFreeAssets(address owner) internal view override returns (uint256) {
     return convertToAssets(balanceOf(owner));
   }
+
+  //////////////////////
+  ///  Liquidate    ////
+  //////////////////////
+
+  /// inheritdoc IVault
+  function getHealthFactor(address) public pure returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
+
+  /// inheritdoc IVault
+  function getLiquidationFactor(address) public pure returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
+
+  /// inheritdoc IVault
+  function liquidate(address, address) public pure returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
 }

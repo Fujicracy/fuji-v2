@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
+import ClickableTooltip from "../Layout/ClickableTooltip"
 
 declare interface LTVProgressBarProps {
   borrowLimit: number
@@ -16,7 +17,7 @@ declare interface LTVProgressBarProps {
 }
 
 export default function LTVProgressBar(props: LTVProgressBarProps) {
-  const theme = useTheme()
+  const { palette } = useTheme()
 
   return (
     <Box>
@@ -27,26 +28,70 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         }}
       >
         <Grid item alignItems="center" margin="auto">
+          {/* TODO: complete all Tooltip titles (already asked to Mark and Ivan) */}
           <Tooltip title="???" placement="top">
+            <InfoOutlinedIcon
+              sx={{
+                marginRight: "0.313rem",
+                fontSize: "0.875rem",
+                display: { xs: "none", sm: "inline" },
+              }}
+            />
+          </Tooltip>
+          <ClickableTooltip title="???" placement="top">
             <InfoOutlinedIcon
               sx={{
                 marginRight: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
-          </Tooltip>
-          <Typography variant="xsmall">45% LTV (Recommended)</Typography>
+          </ClickableTooltip>
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "none", sm: "inline" } }}
+          >
+            45% LTV (Recommended)
+          </Typography>
+
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "inline", sm: "none" } }}
+          >
+            SAFE LTV: 45%
+          </Typography>
         </Grid>
         <Grid item alignItems="center" marginRight="3rem">
-          <Typography variant="xsmall">75% LTV (MAX)</Typography>
           <Tooltip title="???" placement="top">
             <InfoOutlinedIcon
               sx={{
-                marginLeft: "0.313rem",
+                marginRight: "0.313rem",
                 fontSize: "0.875rem",
+                display: { xs: "none", sm: "inline" },
               }}
             />
           </Tooltip>
+          <ClickableTooltip title="???" placement="top">
+            <InfoOutlinedIcon
+              sx={{
+                marginRight: "0.313rem",
+                fontSize: "0.875rem",
+              }}
+            />
+          </ClickableTooltip>
+
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "none", sm: "inline" } }}
+          >
+            75% LTV (MAX)
+          </Typography>
+
+          <Typography
+            variant="xsmall"
+            sx={{ display: { xs: "inline", sm: "none" } }}
+          >
+            MAX LTV: 75%
+          </Typography>
         </Grid>
       </Grid>
 
@@ -74,14 +119,12 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       <LinearProgress
         sx={{
           borderRadius: "1.25rem",
-          background: theme.palette.background.default,
+          background: palette.background.default,
           height: "0.5rem",
           marginBottom: "0.5rem",
           ".css-uu0lzf-MuiLinearProgress-bar1": {
             background:
-              props.value <= 45
-                ? theme.palette.success.main
-                : theme.palette.warning.main,
+              props.value <= 45 ? palette.success.main : palette.warning.main,
             borderRadius: "1.25rem",
           },
         }}
@@ -89,7 +132,24 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         variant="determinate"
       />
 
-      <Grid container justifyContent="space-between">
+      <Typography
+        variant="label"
+        color="success.main"
+        sx={{
+          marginLeft: `${
+            (props.value > 75 ? props.value : (props.value * 100) / 75) - 5
+          }%`,
+          display: { xs: "block", sm: "none" },
+        }}
+      >
+        {props.value}%
+      </Typography>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        sx={{ display: { xs: "none", sm: "flex" } }}
+      >
         <div
           style={{
             display: "flex",
@@ -102,6 +162,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
               sx={{
                 marginLeft: "0.313rem",
                 fontSize: "0.875rem",
+                display: { xs: "none", sm: "inline" },
               }}
             />
           </Tooltip>

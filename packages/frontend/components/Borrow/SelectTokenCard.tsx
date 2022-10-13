@@ -1,5 +1,4 @@
 import React from "react"
-import { useTheme } from "@mui/material/styles"
 import {
   Card,
   FormControl,
@@ -11,10 +10,9 @@ import {
   Typography,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-
-import CustomSelect from "./Form/CustomSelect"
-import styles from "../styles/components/Borrow.module.css"
 import Image from "next/image"
+
+import styles from "../../styles/components/Borrow.module.css"
 
 declare interface SelectTokenCardProps {
   value: string
@@ -26,8 +24,6 @@ declare interface SelectTokenCardProps {
 }
 
 export default function SelectTokenCard(props: SelectTokenCardProps) {
-  const theme = useTheme()
-
   return (
     <Card variant="outlined">
       <div className={styles.cardLine}>
@@ -40,9 +36,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
           sx={{
             fontSize: "1.125rem",
             boxShadow: "none",
-            ".MuiOutlinedInput-notchedOutline": {
-              border: 0,
-            },
+            ".MuiOutlinedInput-notchedOutline": { border: 0 },
             width: "40%",
           }}
         />
@@ -56,7 +50,6 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               onChange={props.onChangeToken}
               IconComponent={KeyboardArrowDownIcon}
               sx={{
-                marginBottom: "1rem",
                 boxShadow: "none",
                 ".MuiOutlinedInput-notchedOutline": {
                   border: 0,
@@ -74,11 +67,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                       width={24}
                       alt={token}
                     />
-                    <span
-                      style={{
-                        marginLeft: "0.5rem",
-                      }}
-                    >
+                    <span style={{ marginLeft: "0.5rem" }}>
                       <Typography variant="h6">{token}</Typography>
                     </span>
                   </Grid>

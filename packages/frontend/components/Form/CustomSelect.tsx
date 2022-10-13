@@ -10,7 +10,7 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
 
-import { chains } from "../../machines/auth.machine"
+import { chains } from "../../store"
 import styles from "../../styles/components/Borrow.module.css"
 
 type Chain = typeof chains[0]
@@ -18,9 +18,9 @@ type Chain = typeof chains[0]
 interface CustomSelectProps {
   labelId: string
   id: string
-  onSelect: (e: SelectChangeEvent<any>) => void
+  onSelect: (e: SelectChangeEvent<string | number>) => void
   value: string | number
-  options: Chain[] | string[]
+  options: (Chain | string)[]
   label: string | null
   large: boolean | null
 }
@@ -48,7 +48,7 @@ export default function CustomSelect(props: CustomSelectProps) {
           variant="standard"
           disableUnderline
         >
-          {props.options.map((option: Chain | string) => (
+          {props.options.map((option) => (
             <MenuItem
               key={typeof option === "string" ? option : option.id}
               value={typeof option === "string" ? option : option.id}

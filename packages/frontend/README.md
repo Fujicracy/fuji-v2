@@ -2,6 +2,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+```
+touch .env.local
+echo "NEXT_PUBLIC_INFURA_KEY=<your key>" >> .env.local
+```
+
 First, run the development server:
 
 ```bash
