@@ -1435,7 +1435,7 @@
     "@ethersproject/logger" "^5.5.0"
     bn.js "^4.11.9"
 
-"@ethersproject/bignumber@5.7.0", "@ethersproject/bignumber@^5.5.0", "@ethersproject/bignumber@^5.7.0":
+"@ethersproject/bignumber@5.7.0", "@ethersproject/bignumber@^5.5.0", "@ethersproject/bignumber@^5.6.2", "@ethersproject/bignumber@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/bignumber/-/bignumber-5.7.0.tgz#e2f03837f268ba655ffba03a57853e18a18dc9c2"
   integrity sha512-n1CAdIHRWjSucQO3MC1zPSVgV/6dy/fjL9pMrPP9peL+QxEg9wOsVqwD4+818B6LUEtaXzVHQiuivzRoxPxUGw==
@@ -2843,6 +2843,11 @@
     "@nomicfoundation/solidity-analyzer-win32-ia32-msvc" "0.0.3"
     "@nomicfoundation/solidity-analyzer-win32-x64-msvc" "0.0.3"
 
+"@nomiclabs/hardhat-ethers@^2.0.6":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.2.0.tgz#f55ace2752d0effcf583e754960e9fa89fbe12cd"
+  integrity sha512-kKCW7xawuD/lw69Yr1yqUUrF0IKmnLNGf+pTVbJ/ctHaRcPrwKI0EPkO1RNXBHlOOZkv6v4DK2PPvq0lL2ykig==
+
 "@nomiclabs/hardhat-ethers@^2.1.1":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.1.1.tgz#3f1d1ab49813d1bae4c035cc1adec224711e528b"
@@ -3111,6 +3116,19 @@
   integrity sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==
   dependencies:
     defer-to-connect "^2.0.0"
+
+"@tenderly/hardhat-tenderly@^1.1.6":
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/@tenderly/hardhat-tenderly/-/hardhat-tenderly-1.1.6.tgz#b706c7c337ebae7ecd314df3e8ee3d244ed1de08"
+  integrity sha512-B6vVdDAxQwjahrvsxjNirJW2ynDENLBD8LLFy8sYVJ+RCb4B8HXT1IGSceqpySNPr2iLYcD5cKC/YCHX+/O48Q==
+  dependencies:
+    "@ethersproject/bignumber" "^5.6.2"
+    "@nomiclabs/hardhat-ethers" "^2.0.6"
+    axios "^0.21.1"
+    ethers "^5.6.8"
+    fs-extra "^9.0.1"
+    hardhat-deploy "^0.11.10"
+    js-yaml "^3.14.0"
 
 "@truffle/error@^0.1.1":
   version "0.1.1"
@@ -7077,7 +7095,7 @@ ethers@^4.0.32, ethers@^4.0.40:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@^5.5.3, ethers@^5.6.9, ethers@^5.7.0, ethers@^5.7.1:
+ethers@^5.5.3, ethers@^5.6.8, ethers@^5.6.9, ethers@^5.7.0, ethers@^5.7.1:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.1.tgz#48c83a44900b5f006eb2f65d3ba6277047fd4f33"
   integrity sha512-5krze4dRLITX7FpU8J4WscXqADiKmyeNlylmmDLbS95DaZpBhDe2YSwRQwKXWNyXcox7a3gBgm/MkGXV1O1S/Q==
@@ -7674,7 +7692,7 @@ fs-extra@^7.0.0, fs-extra@^7.0.1:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
-fs-extra@^9.0.0, fs-extra@^9.1.0:
+fs-extra@^9.0.0, fs-extra@^9.0.1, fs-extra@^9.1.0:
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.1.0.tgz#5954460c764a8da2094ba3554bf839e6b9a7c86d"
   integrity sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==
@@ -8083,6 +8101,25 @@ hardhat-abi-exporter@^2.10.0:
   dependencies:
     "@ethersproject/abi" "^5.5.0"
     delete-empty "^3.0.0"
+
+hardhat-deploy@^0.11.10:
+  version "0.11.18"
+  resolved "https://registry.yarnpkg.com/hardhat-deploy/-/hardhat-deploy-0.11.18.tgz#076b4f5e7dc78bc144c2807112fb4bc764a7a7d1"
+  integrity sha512-Zs5Gr23/HEcYPjQgcSJLlXkR2/WOp24O9Af+7qA540sCDvHjuQ7WhHG/fB2cjPel0Ajf0TzXx1uVViWtbKLqTg==
+  dependencies:
+    "@types/qs" "^6.9.7"
+    axios "^0.21.1"
+    chalk "^4.1.2"
+    chokidar "^3.5.2"
+    debug "^4.3.2"
+    enquirer "^2.3.6"
+    ethers "^5.5.3"
+    form-data "^4.0.0"
+    fs-extra "^10.0.0"
+    match-all "^1.2.6"
+    murmur-128 "^0.2.1"
+    qs "^6.9.4"
+    zksync-web3 "^0.8.1"
 
 hardhat-deploy@^0.11.15:
   version "0.11.15"
@@ -9464,7 +9501,7 @@ js-yaml@3.13.1:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-js-yaml@3.x, js-yaml@^3.13.1:
+js-yaml@3.x, js-yaml@^3.13.1, js-yaml@^3.14.0:
   version "3.14.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
   integrity sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==

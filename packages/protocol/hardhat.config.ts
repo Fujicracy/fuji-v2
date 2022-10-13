@@ -1,4 +1,5 @@
 import '@nomicfoundation/hardhat-toolbox';
+import '@tenderly/hardhat-tenderly';
 import 'hardhat-abi-exporter';
 import 'hardhat-preprocessor';
 import 'hardhat-deploy';
@@ -24,7 +25,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 10000,
+            runs: 200,
           },
         },
       },
@@ -61,7 +62,9 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      goerli: process.env.ETHERSCAN_KEY ?? '',
+    },
   },
   preprocess: {
     eachLine: () => ({
@@ -78,7 +81,6 @@ const config: HardhatUserConfig = {
   paths: {
     sources: './src',
     cache: './cache_hardhat',
-    imports: './out',
   },
   abiExporter: {
     path: './abis',
@@ -94,6 +96,13 @@ const config: HardhatUserConfig = {
     bob: { default: 2 },
     rando: { default: 3 },
   },
+  typechain: {
+    dontOverrideCompile: true,
+  },
+  tenderly: {
+    project: process.env.TENDERLY_PROJECT || '',
+    username: process.env.TENDERLY_USERNAME || '',
+  }
 };
 
 function getTestDeployNetwork() {
