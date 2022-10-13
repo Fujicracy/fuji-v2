@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
-import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
+import {IConnextHandler} from "../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
@@ -100,7 +100,9 @@ contract Setup is DSTestPlus {
       collateralAsset,
       debtAsset,
       address(mockOracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
 
     // Configs

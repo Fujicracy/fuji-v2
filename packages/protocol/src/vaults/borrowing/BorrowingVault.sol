@@ -80,16 +80,14 @@ contract BorrowingVault is BaseVault {
    */
   uint256 public liqRatio;
 
-  constructor(address asset_, address debtAsset_, address oracle_, address chief_)
-    BaseVault(
-      asset_,
-      chief_,
-      // name_, ex: X-Fuji Dai Stablecoin Vault Shares
-      string(abi.encodePacked("X-Fuji ", IERC20Metadata(asset_).name(), " Vault Shares")),
-      // symbol_, ex: xfDAI
-      string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol()))
-    )
-  {
+  constructor(
+    address asset_,
+    address debtAsset_,
+    address oracle_,
+    address chief_,
+    string memory name_,
+    string memory symbol_
+  ) BaseVault(asset_, chief_, name_, symbol_) {
     _debtAsset = IERC20Metadata(debtAsset_);
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;
@@ -228,10 +226,7 @@ contract BorrowingVault is BaseVault {
     uint8 v,
     bytes32 r,
     bytes32 s
-  )
-    public
-    override
-  {
+  ) public override {
     VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
   }
 
@@ -290,8 +285,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (debt == 0 || supply == 0)
+    return (debt == 0 || supply == 0)
       ? debt.mulDiv(10 ** decimals(), 10 ** _debtAsset.decimals(), rounding)
       : debt.mulDiv(supply, totalDebt(), rounding);
   }
@@ -305,8 +299,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (supply == 0)
+    return (supply == 0)
       ? shares.mulDiv(10 ** _debtAsset.decimals(), 10 ** decimals(), rounding)
       : shares.mulDiv(totalDebt(), supply, rounding);
   }

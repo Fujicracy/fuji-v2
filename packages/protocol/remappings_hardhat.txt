@@ -2,5 +2,6 @@ ExcessivelySafeCall/=lib/nxtp/packages/deployments/contracts/lib/ExcessivelySafe
 ds-test/=lib/solmate/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 solmate/=lib/solmate/src/
 nxtp=lib/nxtp/packages/deployments/contracts/contracts/

@@ -77,7 +77,9 @@ contract SimpleRouterTest is DSTestPlus {
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
     simpleRouter = new SimpleRouter(IWETH9(address(asset)));
 
@@ -319,7 +321,9 @@ contract SimpleRouterTest is DSTestPlus {
       address(asset),
       address(debtAsset2),
       address(oracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
     vm.label(address(newVault), "newVault");
 
