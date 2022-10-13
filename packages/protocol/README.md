@@ -1,7 +1,8 @@
 ## Setup
-1. Set env variables
+1. Get required keys and set them as env variables
 ```
 cp sample.env .env
+source .env
 ```
 2. Install Foundry
 Find the instructions [here](https://book.getfoundry.sh/getting-started/installation).
