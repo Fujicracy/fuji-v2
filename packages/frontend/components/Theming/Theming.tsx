@@ -3,10 +3,8 @@ import { useTheme } from "@mui/material/styles"
 import { Button, CircularProgress, Typography } from "@mui/material"
 import { Box } from "@mui/system"
 
-import { theme } from "../styles/theme"
-
 export default function Theming() {
-  const theme = useTheme()
+  const { palette } = useTheme()
   return (
     <>
       <Typography variant="h2">Buttons</Typography>
@@ -16,30 +14,17 @@ export default function Theming() {
           justifyContent: "space-around",
         }}
       >
-        <Button
-          variant="primary"
-          sx={{
-            width: "23em",
-          }}
-        >
+        <Button variant="primary" sx={{ width: "23em" }}>
           Primary flat
         </Button>
         <Button
           variant="primary"
-          sx={{
-            width: "23em",
-          }}
+          sx={{ width: "23em" }}
           startIcon={<CircularProgress size={15} />}
         >
           Primary flat Loading
         </Button>
-        <Button
-          variant="primary"
-          sx={{
-            width: "23em",
-          }}
-          disabled
-        >
+        <Button variant="primary" sx={{ width: "23em" }} disabled>
           Primary flat disabled
         </Button>
       </div>
@@ -51,12 +36,7 @@ export default function Theming() {
           justifyContent: "space-around",
         }}
       >
-        <Button
-          variant="secondary"
-          sx={{
-            width: "23em",
-          }}
-        >
+        <Button variant="secondary" sx={{ width: "23em" }}>
           Secondary
         </Button>
       </div>
@@ -68,19 +48,12 @@ export default function Theming() {
           justifyContent: "space-around",
         }}
       >
-        <Button
-          variant="secondary2"
-          sx={{
-            width: "23em",
-          }}
-        >
+        <Button variant="secondary2" sx={{ width: "23em" }}>
           Secondary 2
         </Button>
         <Button
           variant="secondary2"
-          sx={{
-            width: "23em",
-          }}
+          sx={{ width: "23em" }}
           startIcon={<CircularProgress size={15} />}
         >
           Secondary 2 Loading
@@ -94,30 +67,17 @@ export default function Theming() {
           justifyContent: "space-around",
         }}
       >
-        <Button
-          variant="ghost"
-          sx={{
-            width: "23em",
-          }}
-        >
+        <Button variant="ghost" sx={{ width: "23em" }}>
           Ghost
         </Button>
         <Button
           variant="ghost"
-          sx={{
-            width: "23em",
-          }}
+          sx={{ width: "23em" }}
           startIcon={<CircularProgress size={15} />}
         >
           Ghost Loading
         </Button>
-        <Button
-          variant="ghost"
-          sx={{
-            width: "23em",
-          }}
-          disabled
-        >
+        <Button variant="ghost" sx={{ width: "23em" }} disabled>
           Ghost disabled
         </Button>
       </div>
@@ -129,30 +89,17 @@ export default function Theming() {
           justifyContent: "space-around",
         }}
       >
-        <Button
-          variant="gradient"
-          sx={{
-            width: "23em",
-          }}
-        >
+        <Button variant="gradient" sx={{ width: "23em" }}>
           Gradient
         </Button>
         <Button
           variant="gradient"
-          sx={{
-            width: "23em",
-          }}
+          sx={{ width: "23em" }}
           startIcon={<CircularProgress size={15} />}
         >
           Gradient Loading
         </Button>
-        <Button
-          variant="gradient"
-          sx={{
-            width: "23em",
-          }}
-          disabled
-        >
+        <Button variant="gradient" sx={{ width: "23em" }} disabled>
           Gradient disabled
         </Button>
       </div>
@@ -226,7 +173,7 @@ export default function Theming() {
         </Box>
         <Box
           sx={{
-            background: `linear-gradient(92.29deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.dark} 100%)`,
+            background: `linear-gradient(92.29deg, ${palette.primary.light} 0%, ${palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
             borderRadius: "1rem",
@@ -239,7 +186,7 @@ export default function Theming() {
 
         <Box
           sx={{
-            background: `linear-gradient(287.45deg,  ${theme.palette.primary.contrastText} 0%,  ${theme.palette.primary.dark} 100%)`,
+            background: `linear-gradient(287.45deg,  ${palette.primary.contrastText} 0%,  ${palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
             borderRadius: "1rem",

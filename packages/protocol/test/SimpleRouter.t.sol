@@ -77,7 +77,9 @@ contract SimpleRouterTest is DSTestPlus {
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
     simpleRouter = new SimpleRouter(IWETH9(address(asset)));
 
@@ -140,10 +142,7 @@ contract SimpleRouterTest is DSTestPlus {
     uint256 borrowAmount,
     uint256 plusNonce,
     address vault_
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
@@ -169,10 +168,7 @@ contract SimpleRouterTest is DSTestPlus {
     uint256 amount,
     uint256 plusNonce,
     address vault_
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
@@ -319,7 +315,9 @@ contract SimpleRouterTest is DSTestPlus {
       address(asset),
       address(debtAsset2),
       address(oracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
     vm.label(address(newVault), "newVault");
 

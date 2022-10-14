@@ -1,6 +1,7 @@
 import React from "react"
 import {
   Divider,
+  Fade,
   Link,
   ListItemText,
   Menu,
@@ -16,9 +17,9 @@ import LightModeIcon from "@mui/icons-material/LightMode"
 import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
-import { useStore } from "../store"
+import { useStore } from "../../store"
 
-export default function ParametersModal() {
+export default function Parameters() {
   const logout = useStore((state) => state.logout)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -26,6 +27,7 @@ export default function ParametersModal() {
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
   }
+
   const closeMenu = () => {
     setAnchorEl(null)
   }
@@ -37,13 +39,14 @@ export default function ParametersModal() {
         onClick={openMenu}
       />
       <Menu
-        id="basic-menu"
+        id="paramters-menu"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ marginTop: 1 }}
+        TransitionComponent={Fade}
       >
         <MenuList>
           <MenuItem>

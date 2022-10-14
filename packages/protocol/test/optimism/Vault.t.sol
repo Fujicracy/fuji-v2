@@ -31,7 +31,7 @@ contract VaultTest is DSTestPlus {
 
     weth = IWETH9(0x4200000000000000000000000000000000000006);
 
-    vault = new YieldVault(address(weth), address(0));
+    vault = new YieldVault(address(weth), address(0), "Fuji-V2 WETH YieldVault Shares", "fyvWETH");
     ILendingProvider beefy = new BeefyVelodromesETHETHOptimism();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = beefy;

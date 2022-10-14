@@ -50,7 +50,9 @@ contract ProviderTest is DSTestPlus {
       address(weth),
       address(usdc),
       address(mockOracle),
-      address(0)
+      address(0),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
     );
 
     compoundV3 = new CompoundV3();

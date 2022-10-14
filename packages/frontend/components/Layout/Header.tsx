@@ -13,17 +13,18 @@ import {
   Grid,
   Button,
   Chip,
+  Fade,
 } from "@mui/material"
-import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
 import { useRouter } from "next/router"
-import { Balances } from "@web3-onboard/core/dist/types"
 import shallow from "zustand/shallow"
 
-import styles from "../styles/components/Header.module.css"
-import ChainSelect from "./Form/ChainSelect"
-import ParametersModal from "./ParametersModal"
-import { useStore } from "../store"
+import { BurgerMenuIcon } from "./BurgerMenuIcon"
+import Parameters from "./Parameters"
+import styles from "../../styles/components/Header.module.css"
+import ChainSelect from "../Form/ChainSelect"
+import { useStore } from "../../store"
+import { Balances } from "@web3-onboard/core/dist/types"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -57,81 +58,73 @@ const Header = () => {
         <Box
           sx={{
             background: palette.background.paper,
-            padding: "0 2rem",
+            padding: "0 1.25rem",
           }}
         >
           <Toolbar disableGutters>
-            <Link href="/">
-              <a className={styles.logoTitle}>
-                <Image
-                  src="/assets/images/logo/logo-title.svg"
-                  alt="Logo Fuji"
-                  width={120}
-                  height={80}
-                  layout="fixed"
-                />
-              </a>
-            </Link>
+            <Grid container justifyContent="space-between" alignItems="center">
+              <Grid item>
+                <Link href="/">
+                  <a className={styles.logoTitle}>
+                    <Image
+                      src="/assets/images/logo/logo-title.svg"
+                      alt="Logo Fuji"
+                      width={120}
+                      height={50}
+                      layout="fixed"
+                    />
+                  </a>
+                </Link>
+              </Grid>
+              <Grid item>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    display: { xs: "flex", md: "none" },
+                    alignItems: "center",
+                  }}
+                >
+                  <ChainSelect />
 
-            <Box
-              sx={{
-                flexGrow: 1,
-                display: {
-                  xs: "flex",
-                  md: "none",
-                },
-              }}
-            >
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleOpenNavMenu}
-                color="inherit"
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
-                open={Boolean(anchorElNav)}
-                onClose={handleCloseNavMenu}
-                sx={{
-                  display: {
-                    xs: "block",
-                    md: "none",
-                  },
-                }}
-              >
-                {pages.map((page) => (
-                  <MenuItem key={page} onClick={handleCloseNavMenu}>
-                    <Link href={`/${page.toLowerCase()}`}>
-                      <Typography align="center">{page}</Typography>
-                    </Link>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box>
+                  <IconButton
+                    size="large"
+                    aria-label="account of current user"
+                    aria-controls="menu-appbar"
+                    aria-haspopup="true"
+                    color="inherit"
+                    onClick={handleOpenNavMenu}
+                    sx={{ pr: 0 }}
+                  >
+                    <BurgerMenuIcon />
+                  </IconButton>
+                  <Menu
+                    id="menu-appbar"
+                    anchorEl={anchorElNav}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                    transformOrigin={{ vertical: "top", horizontal: "left" }}
+                    keepMounted
+                    open={Boolean(anchorElNav)}
+                    onClose={handleCloseNavMenu}
+                    sx={{ display: { xs: "block", lg: "none" } }}
+                    TransitionComponent={Fade}
+                  >
+                    {pages.map((page) => (
+                      <MenuItem key={page} onClick={handleCloseNavMenu}>
+                        <Link href={`/${page.toLowerCase()}`}>
+                          <Typography align="center">{page}</Typography>
+                        </Link>
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Box>
+              </Grid>
+            </Grid>
 
             <MenuList
               sx={{
                 flexGrow: 1,
-                display: {
-                  xs: "none",
-                  md: "flex",
-                },
+                display: { xs: "none", lg: "flex" },
                 justifyContent: "center",
-                ml: "12rem",
                 mt: 1,
               }}
             >
@@ -164,6 +157,7 @@ const Header = () => {
               columnGap="0.5rem"
               justifyContent="flex-end"
               alignItems="center"
+              sx={{ display: { xs: "none", md: "flex" }, mt: "1rem" }}
             >
               {status === "disconnected" && (
                 <Button variant="gradient" onClick={() => login()}>
@@ -184,7 +178,7 @@ const Header = () => {
                     />
                   </Grid>
                   <Grid item>
-                    <ParametersModal />
+                    <Parameters />
                   </Grid>
                 </>
               )}
@@ -197,7 +191,7 @@ const Header = () => {
 }
 
 type BalanceAddressProps = {
-  balance: Balances
+  balance?: Balances
   address: string
   ens: string | null
 }

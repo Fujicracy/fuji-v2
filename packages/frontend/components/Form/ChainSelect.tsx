@@ -6,8 +6,11 @@ import {
   Menu,
   MenuItem,
   Stack,
+  Typography,
 } from "@mui/material"
 import Image from "next/image"
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Fade from "@mui/material/Fade"
 
 import { useStore, chains, Chain } from "../../store"
@@ -39,12 +42,23 @@ export default function ChainSelect() {
           label={
             <Stack direction="row" spacing={1}>
               <ListItem chain={currentChain} />
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
             </Stack>
           }
           onClick={openMenu}
         />
       ) : (
-        <Chip label="Unsupported network" onClick={openMenu} color="error" />
+        <Chip
+          label={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <WarningAmberIcon fontSize="inherit" />
+              <Typography fontSize="inherit">Switch network</Typography>
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+            </Stack>
+          }
+          onClick={openMenu}
+          color="error"
+        />
       )}
       <Menu
         id="basic-menu"
@@ -52,8 +66,9 @@ export default function ChainSelect() {
         open={isOpen}
         onClose={() => setAnchorEl(null)}
         MenuListProps={{ "aria-labelledby": "basic-button" }}
-        anchorOrigin={{ vertical: "top", horizontal: "left" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         TransitionComponent={Fade}
+        sx={{ marginTop: 1 }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>

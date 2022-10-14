@@ -1,6 +1,6 @@
 import React from "react"
 import { useTheme } from "@mui/material/styles"
-import { Box, Grid, Link, SvgIcon, Typography } from "@mui/material"
+import { Box, Grid, Link, Typography } from "@mui/material"
 import TwitterIcon from "@mui/icons-material/Twitter"
 import TelegramIcon from "@mui/icons-material/Telegram"
 import { DiscordIcon } from "./DiscordIcon"
@@ -12,7 +12,7 @@ declare interface Social {
 }
 
 function Footer() {
-  const theme = useTheme()
+  const { palette } = useTheme()
 
   const socials: Social[] = [
     {
@@ -22,8 +22,8 @@ function Footer() {
         <TwitterIcon
           sx={{
             "&:hover": {
-              color: theme.palette.primary.main,
-              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+              color: palette.primary.main,
+              textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
             },
           }}
         />
@@ -36,8 +36,8 @@ function Footer() {
         <TelegramIcon
           sx={{
             "&:hover": {
-              color: theme.palette.primary.main,
-              textShadow: `${theme.palette.primary.main} 0rem 0rem 0.125rem`,
+              color: palette.primary.main,
+              textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
             },
           }}
         />
@@ -55,7 +55,7 @@ function Footer() {
       style={{
         width: "100%",
         bottom: 0,
-        color: theme.palette.text.secondary,
+        color: palette.text.secondary,
       }}
     >
       <div
@@ -72,9 +72,7 @@ function Footer() {
               target="_blank"
               key={social.id}
               rel="noreferrer"
-              sx={{
-                ml: "0.813rem",
-              }}
+              sx={{ ml: "0.813rem" }}
             >
               {social.image}
             </Link>

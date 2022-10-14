@@ -8,15 +8,8 @@ import {BaseVault} from "../../abstracts/BaseVault.sol";
 contract YieldVault is BaseVault {
   error YieldVault__notApplicable();
 
-  constructor(address asset_, address chief_)
-    BaseVault(
-      asset_,
-      chief_,
-      // name_, ex: X-Fuji Dai Stablecoin Vault Shares
-      string(abi.encodePacked("X-Fuji ", IERC20Metadata(asset_).name(), " Vault Shares")),
-      // symbol_, ex: xfDAI
-      string(abi.encodePacked("xf", IERC20Metadata(asset_).symbol()))
-    )
+  constructor(address asset_, address chief_, string memory name_, string memory symbol_)
+    BaseVault(asset_, chief_, name_, symbol_)
   {}
 
   receive() external payable {}
