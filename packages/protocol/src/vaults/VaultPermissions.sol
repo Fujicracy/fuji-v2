@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
-import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
+import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 

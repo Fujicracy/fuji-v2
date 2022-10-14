@@ -1,5 +1,4 @@
 @std=lib/forge-std/src/
-@solmate=lib/solmate/src/
 nxtp=lib/nxtp/packages/deployments/contracts/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts

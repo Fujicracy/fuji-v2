@@ -4,19 +4,38 @@
 cp sample.env .env
 source .env
 ```
+
 2. Install Foundry
 Find the instructions [here](https://book.getfoundry.sh/getting-started/installation).
+
 3. Install npm packages
 ```
 yarn
 ```
+
 4. Compile contracts
 ```
 yarn build
 ```
+
 5. Test
 ```
 yarn test
+```
+
+## Slither
+Slither is a Solidity static analyzer. It helps identify potential security issues.
+
+1. [How to install](https://github.com/crytic/slither#how-to-install)
+
+2. Run from "packages/protocol"
+```
+slither .
+```
+
+3. Run and generate outputs in a file
+```
+slither . --json slither_output.json
 ```
 
 ## Factors in contracts

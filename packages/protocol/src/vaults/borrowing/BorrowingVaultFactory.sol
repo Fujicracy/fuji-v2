@@ -6,8 +6,6 @@ import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "forge-std/console.sol";
-
 contract BorrowingVaultFactory is VaultDeployer {
   constructor(address _chief) VaultDeployer(_chief) {}
 

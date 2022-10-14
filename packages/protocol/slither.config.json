@@ -1,0 +1,16 @@
+{
+  "filter_paths": "(src/mocks/|test/|lib/|script/)",
+  "compile_force_framework": "foundry",
+  "exclude_informational": true,
+  "exclude_low": true,
+  "solc_remaps": [
+    "ds-test/=lib/solmate/lib/ds-test/src/",
+    "forge-std/=lib/forge-std/src/",
+    "openzeppelin-contracts/=lib/openzeppelin-contracts/",
+    "openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "nxtp=lib/nxtp/packages/deployments/contracts/contracts/",
+    "@std=lib/forge-std/src/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts"
+  ]
+}
