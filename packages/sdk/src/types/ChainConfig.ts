@@ -9,7 +9,7 @@ import { ChainId } from '../enums';
  *
  * Find all chain IDs here: {@link https://chainlist.org/}
  */
-export type ChainConfigParams = {
+export type ChainConfig = {
   infuraId: string;
   alchemy: {
     [chainId in ChainId]?: string;

@@ -12,7 +12,7 @@ import { ChainId, RouterAction } from '../enums';
 import { getPermitDigest } from '../functions';
 import {
   BorrowParams,
-  ChainConfigParams,
+  ChainConfig,
   DepositParams,
   LendingProviderDetails,
   PermitParams,
@@ -180,9 +180,9 @@ export class BorrowingVault extends StreamManager {
   /**
    * Creates a connection by setting an rpc provider.
    *
-   * @param configParams - {@link ChainConfigParams} object with infura and alchemy ids
+   * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
-  setConnection(configParams: ChainConfigParams): BorrowingVault {
+  setConnection(configParams: ChainConfig): BorrowingVault {
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;

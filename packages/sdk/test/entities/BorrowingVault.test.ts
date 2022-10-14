@@ -8,13 +8,13 @@ import { Address, BorrowingVault } from '../../src/entities';
 import { ChainId, RouterAction } from '../../src/enums';
 import {
   BorrowParams,
-  ChainConfigParams,
+  ChainConfig,
   DepositParams,
   PermitParams,
   RouterActionParams,
 } from '../../src/types';
 
-const config: ChainConfigParams = {
+const config: ChainConfig = {
   infuraId: process.env.INFURA_ID ?? '',
   alchemy: {
     420: process.env.ALCHEMY_ID_CHAIN_420,

@@ -4,7 +4,7 @@ import invariant from 'tiny-invariant';
 import warning from 'tiny-warning';
 
 import { ChainId } from '../enums';
-import { ChainConfigParams } from '../types';
+import { ChainConfig } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
@@ -49,7 +49,7 @@ export class Token extends AbstractCurrency {
   /**
    * {@inheritDoc AbstractCurrency.setConnection}
    */
-  setConnection(configParams: ChainConfigParams): Token {
+  setConnection(configParams: ChainConfig): Token {
     warning(!this.rpcProvider, 'Connection already set!');
     if (this.rpcProvider) return this;
 

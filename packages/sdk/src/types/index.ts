@@ -1,5 +1,5 @@
 export * from './AddressMap';
-export * from './ChainConfigParams';
+export * from './ChainConfig';
 export * from './ChainTokenList';
 export * from './ChainVaultList';
 export * from './LendingProviderDetails';

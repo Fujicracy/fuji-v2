@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
-import { ChainConfigParams } from '../types';
+import { ChainConfig } from '../types';
 import { Address } from './Address';
 import { ChainConnection } from './ChainConnection';
 import { Currency } from './Currency';
@@ -117,9 +117,9 @@ export abstract class AbstractCurrency extends StreamManager {
   /**
    * Creates a connection by setting an rpc provider.
    *
-   * @param configParams - {@link ChainConfigParams} object with infura and alchemy ids
+   * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
-  setConnection(configParams: ChainConfigParams): AbstractCurrency {
+  setConnection(configParams: ChainConfig): AbstractCurrency {
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;
