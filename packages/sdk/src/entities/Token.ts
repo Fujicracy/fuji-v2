@@ -1,8 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber';
+import axios from 'axios';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 import warning from 'tiny-warning';
 
+import { CHAIN } from '../constants';
 import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
@@ -101,6 +103,22 @@ export class Token extends AbstractCurrency {
   async allowance(owner: Address, spender: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.allowance(owner.value, spender.value);
+  }
+
+  // WIP
+  async getPriceUSD(): Promise<number> {
+    try {
+      // TODO goerli and optimism-goerli
+      const chain: string = CHAIN[this.chainId].coingecko;
+      const address: string = this.address.value;
+
+      const { data } = await axios.get(
+        `https://api.coingecko.com/api/v3/simple/token_price/${chain}?contract_addresses=${address}&vs_currencies=usd`
+      );
+      return data[address.toLowerCase()].usd;
+    } catch (e) {
+      invariant(false, axios.isAxiosError(e) ? e.message : 'unexpected error!');
+    }
   }
 
   /**
