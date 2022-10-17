@@ -470,10 +470,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVa
   /// Admin set functions ///
   ///////////////////////////
 
-  function setProviders(ILendingProvider[] memory providers)
-    external
-    hasRole(msg.sender, TIMELOCK_ADMIN_ROLE)
-  {
+  function setProviders(ILendingProvider[] memory providers) external onlyTimeLock {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {
@@ -512,18 +509,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVa
   }
 
   /// inheritdoc IVault
-  function setMinDepositAmount(uint256 amount)
-    external
-    override
-    hasRole(msg.sender, TIMELOCK_ADMIN_ROLE)
-  {
+  function setMinDepositAmount(uint256 amount) external override onlyTimeLock {
     // TODO needs admin restriction
     minDepositAmount = amount;
     emit MinDepositAmountChanged(amount);
   }
 
   /// inheritdoc IVault
-  function setDepositCap(uint256 newCap) external override hasRole(msg.sender, TIMELOCK_ADMIN_ROLE) {
+  function setDepositCap(uint256 newCap) external override onlyTimeLock {
     // TODO needs admin restriction
     if (newCap == 0 || newCap <= minDepositAmount) {
       revert BaseVault__setter_invalidInput();

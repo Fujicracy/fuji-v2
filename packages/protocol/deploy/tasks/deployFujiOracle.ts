@@ -8,7 +8,8 @@ export let oracle: Address;
 const deployFujiOracle = async (
   hre: HardhatRuntimeEnvironment,
   assetAddresses: string[],
-  priceFeedAddresses: string[]
+  priceFeedAddresses: string[],
+  chiefAddress: Address
 ) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
@@ -17,7 +18,7 @@ const deployFujiOracle = async (
 
   const deployResult = await deploy('FujiOracle', {
     from: deployer,
-    args: [assetAddresses, priceFeedAddresses],
+    args: [assetAddresses, priceFeedAddresses, chiefAddress],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,

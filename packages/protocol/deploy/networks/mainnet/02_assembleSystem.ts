@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Address, DeployFunction } from 'hardhat-deploy/types';
+import { Address, DeployFunction, Deployment} from 'hardhat-deploy/types';
 
 import deployConnextRouter from '../../tasks/deployConnextRouter';
 import deployFujiOracle, {
@@ -14,7 +14,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const assets: Address[] = getAssetAddresses('mainnet');
   const priceFeeds: Address[] = getPriceFeedAddresses('mainnet');
 
-  await deployFujiOracle(hre, assets, priceFeeds);
+  const chief: Deployment = await hre.deployments.get('Chief');
+  await deployFujiOracle(hre, assets, priceFeeds, chief.address);
   await deploySimpleRouter(hre, ASSETS['mainnet'].WETH.address);
   await deployConnextRouter(
     hre,

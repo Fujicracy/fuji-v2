@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {SystemAccessControl} from "./helpers/SystemAccessControl.sol";
 import {IAggregatorV3} from "./interfaces/chainlink/IAggregatorV3.sol";
 import {IFujiOracle} from "./interfaces/IFujiOracle.sol";
 
@@ -9,7 +9,7 @@ import {IFujiOracle} from "./interfaces/IFujiOracle.sol";
  * @dev Contract that returns and computes prices for the Fuji protocol
  */
 
-contract FujiOracle is IFujiOracle, Ownable {
+contract FujiOracle is IFujiOracle, SystemAccessControl {
   error FujiOracle__lengthMismatch();
   error FujiOracle__noZeroAddress();
   error FujiOracle__noPriceFeed();
@@ -20,7 +20,9 @@ contract FujiOracle is IFujiOracle, Ownable {
   /**
    * @dev Initializes the contract setting '_priceFeeds' addresses for '_assets'
    */
-  constructor(address[] memory _assets, address[] memory _priceFeeds) {
+  constructor(address[] memory _assets, address[] memory _priceFeeds, address chief_)
+    SystemAccessControl(chief_)
+  {
     if (_assets.length != _priceFeeds.length) {
       revert FujiOracle__lengthMismatch();
     }
@@ -32,10 +34,10 @@ contract FujiOracle is IFujiOracle, Ownable {
 
   /**
    * @dev Sets '_priceFeed' address for a '_asset'.
-   * Can only be called by the contract owner.
+   * Can only be called by the contract TIMELOCK_ADMIN_ROLE in {Chief}.
    * Emits a {AssetPriceFeedChanged} event.
    */
-  function setPriceFeed(address _asset, address _priceFeed) public onlyOwner {
+  function setPriceFeed(address _asset, address _priceFeed) public onlyTimeLock {
     if (_priceFeed == address(0)) {
       revert FujiOracle__noZeroAddress();
     }
