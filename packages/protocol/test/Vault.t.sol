@@ -110,6 +110,11 @@ contract VaultTest is DSTestPlus {
     return c;
   }
 
+  function _utils_multiply(uint256 a, uint256 b) internal pure returns (uint256) {
+    uint256 c = a * b;
+    return c;
+  }
+
   function test_deposit(uint256 amount) public {
     _utils_doDeposit(amount, vault, alice);
     assertEq(vault.balanceOf(alice), amount);
@@ -237,12 +242,10 @@ contract VaultTest is DSTestPlus {
     assertEq(liquidatorFactor_3, 1e18);
   }
 
-  function test_tryLiquidateHealthy() public {
-    uint256 amount = 1 ether;
-    uint256 borrowAmount = 900e18;
+  function test_tryLiquidateHealthy(uint96 amount, uint96 borrowAmount) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_multiply(borrowAmount, 100) <= _utils_multiply(amount, 75));
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
-    // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
     vm.prank(bob);
     vault.liquidate(alice, bob);
