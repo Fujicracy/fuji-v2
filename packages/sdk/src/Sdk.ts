@@ -1,11 +1,8 @@
-import AnkrProvider from '@ankr.com/ankr.js';
-import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Call } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
 import {
-  CHAIN,
   COLLATERAL_LIST,
   CONNEXT_ADDRESS,
   DEBT_LIST,
@@ -99,26 +96,14 @@ export class Sdk {
       this._configParams,
       chainId
     );
-    const bals = tokens
+    const balances = tokens
       .map(token => token.setConnection(this._configParams))
       .map(
         token =>
           token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
       );
 
-    return multicallRpcProvider.all(bals);
-  }
-
-  // WIP
-  getAllBalancesIn(chains: ChainId[], account: Address) {
-    const provider = new AnkrProvider();
-    provider
-      .getAccountBalance({
-        blockchain: chains.map(id => CHAIN[id].ankr as Blockchain),
-        walletAddress: account.value,
-      })
-      // outdated balances
-      .then(console.log);
+    return multicallRpcProvider.all(balances);
   }
 
   /**

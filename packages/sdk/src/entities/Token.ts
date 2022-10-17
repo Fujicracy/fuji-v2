@@ -1,5 +1,6 @@
+import AnkrProvider from '@ankr.com/ankr.js';
+import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
-import axios from 'axios';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 import warning from 'tiny-warning';
@@ -112,20 +113,17 @@ export class Token extends AbstractCurrency {
     return this.contract.allowance(owner.value, spender.value);
   }
 
-  // WIP
+  /**
+   * Fetch token price in USD from Ankr rpc and returns it.
+   */
   async getPriceUSD(): Promise<number> {
-    try {
-      // TODO goerli and optimism-goerli
-      const chain: string = CHAIN[this.chainId].coingecko;
-      const address: string = this.address.value;
-
-      const { data } = await axios.get(
-        `https://api.coingecko.com/api/v3/simple/token_price/${chain}?contract_addresses=${address}&vs_currencies=usd`
-      );
-      return data[address.toLowerCase()].usd;
-    } catch (e) {
-      invariant(false, axios.isAxiosError(e) ? e.message : 'unexpected error!');
-    }
+    const provider = new AnkrProvider();
+    return provider
+      .getTokenPrice({
+        blockchain: CHAIN[this.chainId].ankr as Blockchain,
+        contractAddress: this.address.value,
+      })
+      .then(({ usdPrice }) => parseFloat(usdPrice));
   }
 
   /**
