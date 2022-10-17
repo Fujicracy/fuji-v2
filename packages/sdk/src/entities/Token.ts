@@ -8,9 +8,9 @@ import { CHAIN } from '../constants';
 import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
+import { ERC20Multicall } from '../types/contracts/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
-import { ChainConnection } from './ChainConnection';
 import { Currency } from './Currency';
 
 /**
@@ -27,6 +27,14 @@ export class Token extends AbstractCurrency {
    * It's ready to be used by calling the methods available on the smart contract.
    */
   contract?: ERC20Contract;
+
+  /**
+   * Extended instance of ERC20 contract used when there is a
+   * possibility to perform a multicall read on the smart contract.
+   * @remarks
+   * A multicall read refers to a batch read done in a single call.
+   */
+  multicallContract?: ERC20Multicall;
 
   constructor(
     chainId: ChainId,
@@ -53,14 +61,15 @@ export class Token extends AbstractCurrency {
     warning(!this.rpcProvider, 'Connection already set!');
     if (this.rpcProvider) return this;
 
-    const connection = ChainConnection.from(configParams, this.chainId);
-    this.rpcProvider = connection.rpcProvider;
-    this.wssProvider = connection.wssProvider;
+    super.setConnection(configParams);
+    invariant(this.rpcProvider, 'Something went wrong with setting connection');
 
     this.contract = ERC20__factory.connect(
       this.address.value,
       this.rpcProvider
     );
+
+    this.multicallContract = ERC20__factory.multicall(this.address.value);
 
     return this;
   }

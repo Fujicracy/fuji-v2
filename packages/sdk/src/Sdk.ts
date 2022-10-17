@@ -1,6 +1,8 @@
 import AnkrProvider from '@ankr.com/ankr.js';
 import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
+import { Call } from '@hovoh/ethcall';
+import invariant from 'tiny-invariant';
 
 import {
   CHAIN,
@@ -9,7 +11,7 @@ import {
   DEBT_LIST,
   VAULT_LIST,
 } from './constants';
-import { Address, Currency, Token } from './entities';
+import { Address, ChainConnection, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId } from './enums';
 import { ChainConfig } from './types';
@@ -58,10 +60,7 @@ export class Sdk {
    * @param currency - instance of {@link Currency}
    * @param account - user address, wrapped in {@link Address}
    */
-  async getBalanceFor(
-    currency: Currency,
-    account: Address
-  ): Promise<BigNumber> {
+  getBalanceFor(currency: Currency, account: Address): Promise<BigNumber> {
     return currency.setConnection(this._configParams).balanceOf(account);
   }
 
@@ -72,14 +71,42 @@ export class Sdk {
    * @param currency - instance of {@link Currency}
    * @param account - user address, wrapped in {@link Address}
    */
-  async getAllowanceFor(
-    currency: Currency,
-    account: Address
-  ): Promise<BigNumber> {
+  getAllowanceFor(currency: Currency, account: Address): Promise<BigNumber> {
     const router: Address = CONNEXT_ADDRESS[currency.chainId];
     return currency
       .setConnection(this._configParams)
       .allowance(account, router);
+  }
+
+  /**
+   * Retruns the token balances of an address in a batch.
+   * Throws an error if `chainId` is different from each `token.chainId`.
+   *
+   * @param tokens - array of {@link Token} from the same chain
+   * @param account - user address, wrapped in {@link Address}
+   * @param chainId - ID of the chain
+   */
+  getBatchTokenBalances(
+    tokens: Token[],
+    account: Address,
+    chainId: ChainId
+  ): Promise<BigNumber[]> {
+    invariant(
+      !tokens.find(t => t.chainId !== chainId),
+      'Token from a different chain!'
+    );
+    const { multicallRpcProvider } = ChainConnection.from(
+      this._configParams,
+      chainId
+    );
+    const bals = tokens
+      .map(token => token.setConnection(this._configParams))
+      .map(
+        token =>
+          token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+      );
+
+    return multicallRpcProvider.all(bals);
   }
 
   // WIP

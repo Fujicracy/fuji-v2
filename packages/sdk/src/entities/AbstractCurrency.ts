@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
@@ -50,6 +51,11 @@ export abstract class AbstractCurrency extends StreamManager {
    * The RPC provider for the specific chain
    */
   wssProvider?: WebSocketProvider;
+
+  /**
+   * The multicall RPC provider for the specific chain
+   */
+  multicallRpcProvider?: IMulticallProvider;
 
   /**
    * Constructs an instance of the base class `BaseCurrency`.
@@ -122,6 +128,7 @@ export abstract class AbstractCurrency extends StreamManager {
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;
+    this.multicallRpcProvider = connection.multicallRpcProvider;
 
     return this;
   }
