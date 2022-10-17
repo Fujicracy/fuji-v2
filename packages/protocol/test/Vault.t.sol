@@ -103,6 +103,13 @@ contract VaultTest is DSTestPlus {
     return borrowAmount < maxBorrow;
   }
 
+  function _utils_add(uint256 a, uint256 b) internal pure returns (uint256) {
+    uint256 c = a + b;
+    require(c >= a);
+    require(c >= b);
+    return c;
+  }
+
   function test_deposit(uint256 amount) public {
     _utils_doDeposit(amount, vault, alice);
     assertEq(vault.balanceOf(alice), amount);
@@ -185,15 +192,12 @@ contract VaultTest is DSTestPlus {
     vault.setDepositCap(maxCap);
   }
 
-  function test_tryMaxCap() public {
-    /*vm.assume(maxCap > 0 && depositAlice > 0 && depositBob > 0 && depositBob + depositAlice >= maxCap && depositAlice < maxCap);*/
-    uint256 maxCap = 5 ether;
-    vault.setDepositCap(maxCap);
+  function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
+    vm.assume(maxCap > 0 && depositAlice > 0 && depositBob > 0 && _utils_add(depositBob, depositAlice) > maxCap && depositAlice < maxCap);
 
-    uint256 depositAlice = 4.5 ether;
+    vault.setDepositCap(maxCap);
     _utils_doDeposit(depositAlice, vault, alice);
 
-    uint256 depositBob = 1 ether;
     vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
     vm.prank(bob);
     vault.deposit(depositBob, bob);
