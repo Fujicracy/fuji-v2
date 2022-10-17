@@ -1,6 +1,9 @@
+import AnkrProvider from '@ankr.com/ankr.js';
+import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
 
 import {
+  CHAIN,
   COLLATERAL_LIST,
   CONNEXT_ADDRESS,
   DEBT_LIST,
@@ -77,6 +80,18 @@ export class Sdk {
     return currency
       .setConnection(this._configParams)
       .allowance(account, router);
+  }
+
+  // WIP
+  getAllBalancesIn(chains: ChainId[], account: Address) {
+    const provider = new AnkrProvider();
+    provider
+      .getAccountBalance({
+        blockchain: chains.map(id => CHAIN[id].ankr as Blockchain),
+        walletAddress: account.value,
+      })
+      // outdated balances
+      .then(console.log);
   }
 
   /**
