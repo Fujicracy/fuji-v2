@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -7,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   Grid,
+  Snackbar,
   Typography,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
@@ -17,6 +19,8 @@ import CircleIcon from "@mui/icons-material/Circle"
 import CheckIcon from "@mui/icons-material/Check"
 
 import { useTransactionStore } from "../../store/useTransactionStore"
+import { useState } from "react"
+import { useStore } from "../../store"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -26,9 +30,23 @@ type AccountModalProps = {
 
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
+  const logout = useStore((state) => state.logout)
+
   const { transactionStatus } = useTransactionStore((state) => ({
     transactionStatus: state.transactionStatus,
   }))
+
+  const [copyAddress, setCopyAddress] = useState(false)
+
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return
+    }
+    setCopyAddress(false)
+  }
 
   return (
     <Dialog
@@ -76,6 +94,7 @@ export default function AccountModal(props: AccountModalProps) {
                   p: "0 .6rem",
                   fontSize: "0.75rem",
                 }}
+                onClick={() => logout()}
               >
                 Disconnect
               </Button>
@@ -102,25 +121,63 @@ export default function AccountModal(props: AccountModalProps) {
                 {props.address}
               </Typography>
             </Grid>
+
             <Grid container alignItems="center">
-              <ContentCopyIcon
-                fontSize="small"
-                sx={{ color: palette.primary.main, mr: "0.438rem" }}
-              />
-              <Typography variant="small" color={palette.primary.main}>
-                Copy Address
-              </Typography>
-              <LaunchIcon
-                fontSize="small"
-                sx={{
-                  color: palette.info.dark,
-                  ml: "1.188rem",
-                  mr: "0.438rem",
-                }}
-              />
-              <Typography variant="small" color={palette.info.dark}>
-                View on Explorer
-              </Typography>
+              <Grid item>
+                <Grid
+                  container
+                  alignItems="center"
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(props.address)
+                    setCopyAddress(true)
+                  }}
+                >
+                  <ContentCopyIcon
+                    fontSize="small"
+                    sx={{ color: palette.primary.main, mr: "0.438rem" }}
+                  />
+                  <Typography variant="small" color={palette.primary.main}>
+                    Copy Address
+                  </Typography>
+                  <Snackbar
+                    open={copyAddress}
+                    autoHideDuration={2000}
+                    onClose={handleClose}
+                  >
+                    <Alert
+                      onClose={handleClose}
+                      severity="success"
+                      sx={{ color: palette.success.main }}
+                    >
+                      Address copied!
+                    </Alert>
+                  </Snackbar>
+                </Grid>
+              </Grid>
+              <Grid item>
+                <a
+                  href={"https://etherscan.io/address/" + props.address}
+                  target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                  rel="noreferrer"
+                >
+                  <Grid container alignItems="center">
+                    <>
+                      <LaunchIcon
+                        fontSize="small"
+                        sx={{
+                          color: palette.info.dark,
+                          ml: "1.188rem",
+                          mr: "0.438rem",
+                        }}
+                      />
+                      <Typography variant="small" color={palette.info.dark}>
+                        View on Explorer
+                      </Typography>
+                    </>
+                  </Grid>
+                </a>
+              </Grid>
             </Grid>
           </CardContent>
         </Card>
