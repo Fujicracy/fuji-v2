@@ -51,6 +51,10 @@ const Header = () => {
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
 
+  // Auto select metamask and connect, used as workaround for e2e testing
+  const e2eConnect = () =>
+    login({ autoSelect: { label: "MetaMask", disableModals: true } })
+
   return (
     <>
       <AppBar position="static">
@@ -166,9 +170,18 @@ const Header = () => {
               alignItems="center"
             >
               {status === "disconnected" && (
-                <Button variant="gradient" onClick={() => login()}>
-                  Connect wallet
-                </Button>
+                <>
+                  <Button variant="gradient" onClick={() => login()}>
+                    Connect wallet
+                  </Button>
+                  <Button
+                    data-cy="login"
+                    onClick={e2eConnect}
+                    sx={{ position: "absolute", visibility: "hidden" }}
+                  >
+                    e2e
+                  </Button>
+                </>
               )}
               {status === "connected" && (
                 <>

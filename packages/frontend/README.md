@@ -23,6 +23,19 @@ You can start editing the page by modifying `pages/index.tsx`. The page auto-upd
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## Testing
+
+Please note that testing is a WIP feature. We setup [synpress](https://github.com/synthetixio/synpress) but are having few bugs (i.e can't use watch mode aka `yarn test:watch` in our package).
+
+```bash
+# in your .env
+
+PRIVATE_KEY=<testing-wallet-key>
+NETWORK_NAME=polygon
+```
+
+⚠️ RN it looks like there is a bug if you use "mainnet" as network name (changeMetamaskNetwork never ends or if you put it in .env setupMetamask never finish), so I suggest to use `Polygon` or `Fantom` instead.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

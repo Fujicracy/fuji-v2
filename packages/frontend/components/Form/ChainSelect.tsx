@@ -37,7 +37,7 @@ export default function ChainSelect() {
       {currentChain ? (
         <Chip
           label={
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} data-cy="chain">
               <ListItem chain={currentChain} />
             </Stack>
           }
