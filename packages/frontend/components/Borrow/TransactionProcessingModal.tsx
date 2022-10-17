@@ -59,9 +59,8 @@ const steps: Step[] = [
 export default function TransactionProcessingModal(
   props: TransactionProcessingModalProps
 ) {
-  const { palette } = useTheme()
   const theme = useTheme()
-  const onMobile = useMediaQuery(theme.breakpoints.up("sm"))
+  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep, setActiveStep] = useState(2)
   const { transactionStatus, setTransactionStatus } = useTransactionStore(
     (state) => ({
@@ -69,8 +68,6 @@ export default function TransactionProcessingModal(
       setTransactionStatus: state.setTransactionStatus,
     })
   )
-
-  console.log(onMobile)
 
   useEffect(() => {
     const sleep = setTimeout(() => setTransactionStatus(false), 10000) // TODO: change this sleeping process
@@ -103,15 +100,15 @@ export default function TransactionProcessingModal(
     >
       <Box
         sx={{
-          background: palette.secondary.contrastText,
-          border: `1px solid ${palette.secondary.light}`,
+          background: theme.palette.secondary.contrastText,
+          border: `1px solid ${theme.palette.secondary.light}`,
           borderRadius: "1.125rem",
           p: { xs: "1rem", sm: "1.5rem" },
           maxHeight: {
             xs: !transactionStatus ? "28rem" : "",
             sm: !transactionStatus ? "24.688rem" : "",
           },
-          color: palette.text.primary,
+          color: theme.palette.text.primary,
         }}
       >
         <CloseIcon
@@ -128,8 +125,8 @@ export default function TransactionProcessingModal(
             <>
               <CheckIcon
                 sx={{
-                  backgroundColor: "rgba(66, 255, 0, 0.1)", // TODO: use theme color (palette.success.dark)
-                  color: palette.success.dark,
+                  backgroundColor: "rgba(66, 255, 0, 0.1)", // TODO: use theme color (theme.palette.success.dark)
+                  color: theme.palette.success.dark,
                   borderRadius: "100%",
                   padding: "0.4rem",
                   width: "3.75rem",
@@ -159,7 +156,7 @@ export default function TransactionProcessingModal(
               >
                 <Button
                   sx={{ minWidth: "13rem" }}
-                  variant={!onMobile ? "ghost" : "secondary"}
+                  variant={onMobile ? "ghost" : "secondary"}
                   className={styles.btn}
                 >
                   Transaction Details
@@ -210,7 +207,7 @@ export default function TransactionProcessingModal(
                               sx={{
                                 ml: "0.3rem",
                                 fontSize: "0.6rem",
-                                color: palette.info.dark,
+                                color: theme.palette.info.dark,
                               }}
                             />
                           )}
@@ -223,7 +220,7 @@ export default function TransactionProcessingModal(
                       ) : (
                         <CheckIcon
                           sx={{
-                            backgroundColor: palette.success.dark,
+                            backgroundColor: theme.palette.success.dark,
                             borderRadius: "100%",
                             padding: "0.4rem",
                           }}
@@ -291,7 +288,7 @@ function CustomStepIcon(props: StepIconProps) {
   return (
     <Box
       sx={{
-        background: palette.secondary.light,
+        background: theme.palette.secondary.light,
         mr: "0.5rem",
         p: "0.5rem",
         borderRadius: "100%",
@@ -305,7 +302,7 @@ function CustomStepIcon(props: StepIconProps) {
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {
-    borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
+    borderLeft: `0.125rem solid ${theme.theme.palette.secondary.light}`,
     marginLeft: "0.7rem",
     marginTop: "-0.5rem",
     marginBottom: "-0.5rem",
