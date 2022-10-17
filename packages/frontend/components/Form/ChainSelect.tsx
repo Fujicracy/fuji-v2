@@ -8,12 +8,33 @@ import {
   Stack,
   Typography,
 } from "@mui/material"
+
 import Image from "next/image"
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Fade from "@mui/material/Fade"
 
 import { useStore, chains, Chain } from "../../store"
+
+type ListItemProps = { chain: Chain }
+
+const ListItem = (props: ListItemProps) => {
+  const { chain } = props
+
+  return (
+    <>
+      <ListItemIcon sx={{ minWidth: "inherit" }}>
+        <Image
+          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+          height={20}
+          width={20}
+          alt={chain.label}
+        />
+      </ListItemIcon>
+      <ListItemText>{chain.label}</ListItemText>
+    </>
+  )
+}
 
 export default function ChainSelect() {
   const [chainId, setChainId] = useStore((state) => [
@@ -32,8 +53,6 @@ export default function ChainSelect() {
     setChainId(chainId)
     setAnchorEl(null)
   }
-
-  console.log({ chains, currentChain })
 
   return (
     <>
@@ -76,26 +95,6 @@ export default function ChainSelect() {
           </MenuItem>
         ))}
       </Menu>
-    </>
-  )
-}
-
-type ListItemProps = { chain: Chain }
-
-const ListItem = (props: ListItemProps) => {
-  const { chain } = props
-
-  return (
-    <>
-      <ListItemIcon sx={{ minWidth: "inherit" }}>
-        <Image
-          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-          height={20}
-          width={20}
-          alt={chain.label}
-        />
-      </ListItemIcon>
-      <ListItemText>{chain.label}</ListItemText>
     </>
   )
 }

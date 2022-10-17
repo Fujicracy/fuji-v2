@@ -1,4 +1,5 @@
 import React from "react"
+import { useTheme } from "@mui/material/styles"
 import {
   Divider,
   Fade,
@@ -21,6 +22,7 @@ import { useStore } from "../../store"
 
 export default function Parameters() {
   const logout = useStore((state) => state.logout)
+  const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 

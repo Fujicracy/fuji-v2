@@ -5,22 +5,24 @@ import {
   Typography,
   CardContent,
   Card,
-  Collapse,
   Grid,
   FormControl,
   Select,
   MenuItem,
+  Collapse,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
-import { chains } from "../../store"
+import { Chain, chains } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 
 export default function Borrow() {
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
+
+  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
   const [collateralValue, setCollateralValue] = useState("")
@@ -29,8 +31,6 @@ export default function Borrow() {
   const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
   const [borrowValue, setBorrowValue] = useState("")
   const [borrowToken, setBorrowToken] = useState(tokens[1])
-
-  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   return (
     <Grid
@@ -128,7 +128,7 @@ export default function Borrow() {
                 variant="standard"
                 disableUnderline
               >
-                {chains.map((chain) => (
+                {chains.map((chain: Chain) => (
                   <MenuItem key={chain.id} value={chain.id}>
                     <Grid container>
                       <Image

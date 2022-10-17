@@ -16,7 +16,8 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import AddCircleIcon from "@mui/icons-material/AddCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
 
 import LTVProgressBar from "./LTVProgressBar"
@@ -28,15 +29,10 @@ export default function PreviewTransaction() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
-  const openPreviewTransaction = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const openPreviewTransaction = (event: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(event.currentTarget)
-  }
 
-  const closePreviewTransaction = () => {
-    setAnchorEl(null)
-  }
+  const closePreviewTransaction = () => setAnchorEl(null)
 
   return (
     <Grid
@@ -49,11 +45,11 @@ export default function PreviewTransaction() {
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{
-            padding: "0.813rem 1rem",
             mb: "2rem",
             mt: "1rem",
             width: "100%",
             display: "flex",
+            padding: "1rem 1rem",
             justifyContent: "space-between",
           }}
         >
@@ -64,12 +60,21 @@ export default function PreviewTransaction() {
                   Preview Transaction
                 </Typography>
 
-                <ExpandMoreIcon
-                  sx={{
-                    border: "1px solid",
-                    borderRadius: "0.5rem",
-                  }}
-                />
+                {isOpen ? (
+                  <KeyboardArrowDownIcon
+                    sx={{
+                      border: "1px solid",
+                      borderRadius: "0.5rem",
+                    }}
+                  />
+                ) : (
+                  <KeyboardArrowUpIcon
+                    sx={{
+                      border: "1px solid",
+                      borderRadius: "0.5rem",
+                    }}
+                  />
+                )}
               </Grid>
             </CardActionArea>
           </CardContent>
@@ -89,6 +94,7 @@ export default function PreviewTransaction() {
               bottom: "2rem",
               left: "50%",
               width: "94%",
+              maxHeight: "90%",
               transform: "translateX(-50%)",
             }}
           >
@@ -103,12 +109,21 @@ export default function PreviewTransaction() {
                 <CardActionArea onClick={closePreviewTransaction}>
                   <Grid container justifyContent="space-between">
                     <Typography variant="body2">Preview Transaction</Typography>
-                    <ExpandMoreIcon
-                      sx={{
-                        border: "1px solid",
-                        borderRadius: "0.5rem",
-                      }}
-                    />
+                    {isOpen ? (
+                      <KeyboardArrowDownIcon
+                        sx={{
+                          border: "1px solid",
+                          borderRadius: "0.5rem",
+                        }}
+                      />
+                    ) : (
+                      <KeyboardArrowUpIcon
+                        sx={{
+                          border: "1px solid",
+                          borderRadius: "0.5rem",
+                        }}
+                      />
+                    )}
                   </Grid>
                 </CardActionArea>
 
