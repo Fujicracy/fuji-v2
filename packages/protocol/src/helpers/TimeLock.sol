@@ -48,11 +48,6 @@ contract TimeLock is SystemAccessControl {
    */
   event MinDelayChange(uint256 oldDuration, uint256 newDuration);
 
-  bytes32 public constant TIMELOCK_ADMIN_ROLE = keccak256("TIMELOCK_ADMIN_ROLE");
-  bytes32 public constant TIMELOCK_PROPOSER_ROLE = keccak256("TIMELOCK_PROPOSER_ROLE");
-  bytes32 public constant TIMELOCK_EXECUTOR_ROLE = keccak256("TIMELOCK_EXECUTOR_ROLE");
-  bytes32 public constant TIMELOCK_CANCELLER_ROLE = keccak256("TIMELOCK_CANCELLER_ROLE");
-
   uint256 internal constant _DONE_TIMESTAMP = uint256(1);
 
   mapping(bytes32 => uint256) private _timestamps;

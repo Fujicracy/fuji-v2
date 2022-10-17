@@ -20,7 +20,7 @@ import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../helpers/SystemAccessControl.sol";
 
-abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVault {
+abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
 
@@ -34,10 +34,6 @@ abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVa
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
 
-  bytes32 public constant TIMELOCK_ADMIN_ROLE = keccak256("TIMELOCK_ADMIN_ROLE");
-  bytes32 public constant REBALANCER_ROLE = keccak256("REBALANCER_ROLE");
-  bytes32 public constant HARVESTER_ROLE = keccak256("HARVESTER_ROLE");
-
   IERC20Metadata internal immutable _asset;
 
   ILendingProvider[] internal _providers;
@@ -48,8 +44,8 @@ abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVa
 
   constructor(address asset_, address chief_, string memory name_, string memory symbol_)
     ERC20(name_, symbol_)
-    VaultPermissions(name_)
     SystemAccessControl(chief_)
+    VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
     depositCap = type(uint256).max;
