@@ -34,6 +34,10 @@ abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVa
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
 
+  bytes32 public constant TIMELOCK_ADMIN_ROLE = keccak256("TIMELOCK_ADMIN_ROLE");
+  bytes32 public constant REBALANCER_ROLE = keccak256("REBALANCER_ROLE");
+  bytes32 public constant HARVESTER_ROLE = keccak256("HARVESTER_ROLE");
+
   IERC20Metadata internal immutable _asset;
 
   ILendingProvider[] internal _providers;
@@ -470,8 +474,10 @@ abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVa
   /// Admin set functions ///
   ///////////////////////////
 
-  function setProviders(ILendingProvider[] memory providers) external {
-    // TODO needs admin restriction
+  function setProviders(ILendingProvider[] memory providers)
+    external
+    hasRole(msg.sender, TIMELOCK_ADMIN_ROLE)
+  {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {
@@ -487,8 +493,11 @@ abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVa
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_) external override {
-    // TODO needs admin restriction
+  function setActiveProvider(ILendingProvider activeProvider_)
+    external
+    override
+    hasRole(msg.sender, REBALANCER_ROLE)
+  {
     if (!_isValidProvider(address(activeProvider_))) {
       revert BaseVault__setter_invalidInput();
     }
@@ -507,14 +516,18 @@ abstract contract BaseVault is SystemAccessControl, ERC20, VaultPermissions, IVa
   }
 
   /// inheritdoc IVault
-  function setMinDepositAmount(uint256 amount) external override {
+  function setMinDepositAmount(uint256 amount)
+    external
+    override
+    hasRole(msg.sender, TIMELOCK_ADMIN_ROLE)
+  {
     // TODO needs admin restriction
     minDepositAmount = amount;
     emit MinDepositAmountChanged(amount);
   }
 
   /// inheritdoc IVault
-  function setDepositCap(uint256 newCap) external override {
+  function setDepositCap(uint256 newCap) external override hasRole(msg.sender, TIMELOCK_ADMIN_ROLE) {
     // TODO needs admin restriction
     if (newCap == 0 || newCap <= minDepositAmount) {
       revert BaseVault__setter_invalidInput();

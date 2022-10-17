@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
+import {TimeLock} from "./helpers/TimeLock.sol";
 
 /// @dev Custom Errors
 error ZeroAddress();
@@ -15,6 +16,8 @@ contract Chief is AccessControl {
   event AddToAllowed(address indexed factory);
   event RemoveFromAllowed(address indexed factory);
 
+  address public timelock;
+
   mapping(address => bool) public vaults;
   mapping(address => bool) public allowedFactories;
 
@@ -23,9 +26,9 @@ contract Chief is AccessControl {
   bytes32 public constant TIMELOCK_EXECUTOR_ROLE = keccak256("TIMELOCK_EXECUTOR_ROLE");
   bytes32 public constant TIMELOCK_CANCELLER_ROLE = keccak256("TIMELOCK_CANCELLER_ROLE");
 
-  bytes32 public constant LIQUIDATOR_ROLE = keccak256("LIQUIDATOR_ROLE");
   bytes32 public constant REBALANCER_ROLE = keccak256("REBALANCER_ROLE");
   bytes32 public constant HARVESTER_ROLE = keccak256("HARVESTER_ROLE");
+  bytes32 public constant LIQUIDATOR_ROLE = keccak256("LIQUIDATOR_ROLE");
 
   bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
   bytes32 public constant UNPAUSER_ROLE = keccak256("UNPAUSER_ROLE");
@@ -33,6 +36,7 @@ contract Chief is AccessControl {
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(TIMELOCK_ADMIN_ROLE, msg.sender);
+    _deployTimelock();
     _setRoleAdmin(TIMELOCK_PROPOSER_ROLE, TIMELOCK_ADMIN_ROLE);
     _setRoleAdmin(TIMELOCK_EXECUTOR_ROLE, TIMELOCK_ADMIN_ROLE);
     _setRoleAdmin(TIMELOCK_CANCELLER_ROLE, TIMELOCK_ADMIN_ROLE);
@@ -65,4 +69,8 @@ contract Chief is AccessControl {
   //   roles[roleNeme] = roleHash;
   //   _grantRole(roleHash, msg.sender);
   // }
+  function _deployTimelock() internal {
+    timelock = address(new TimeLock{salt: "0x00"}(address(this), 2 days));
+    _grantRole(TIMELOCK_ADMIN_ROLE, timelock);
+  }
 }
