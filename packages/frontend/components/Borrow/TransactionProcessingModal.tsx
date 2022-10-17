@@ -12,6 +12,7 @@ import {
   StepLabel,
   Stepper,
   Typography,
+  useMediaQuery,
 } from "@mui/material"
 import { useTheme, styled } from "@mui/material/styles"
 import StepConnector, {
@@ -59,6 +60,8 @@ export default function TransactionProcessingModal(
   props: TransactionProcessingModalProps
 ) {
   const { palette } = useTheme()
+  const theme = useTheme()
+  const onMobile = useMediaQuery(theme.breakpoints.up("sm"))
   const [activeStep, setActiveStep] = useState(2)
   const { transactionStatus, setTransactionStatus } = useTransactionStore(
     (state) => ({
@@ -66,6 +69,8 @@ export default function TransactionProcessingModal(
       setTransactionStatus: state.setTransactionStatus,
     })
   )
+
+  console.log(onMobile)
 
   useEffect(() => {
     const sleep = setTimeout(() => setTransactionStatus(false), 10000) // TODO: change this sleeping process
@@ -154,7 +159,7 @@ export default function TransactionProcessingModal(
               >
                 <Button
                   sx={{ minWidth: "13rem" }}
-                  variant="secondary"
+                  variant={!onMobile ? "ghost" : "secondary"}
                   className={styles.btn}
                 >
                   Transaction Details
