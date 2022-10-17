@@ -59,12 +59,11 @@ export abstract class AbstractCurrency extends StreamManager {
    * @param name - name of the currency
    */
   protected constructor(
-    chainId: number,
+    chainId: ChainId,
     decimals: number,
     symbol: string,
     name?: string
   ) {
-    invariant(Number.isSafeInteger(chainId), 'CHAIN_ID');
     invariant(
       decimals >= 0 && decimals < 255 && Number.isInteger(decimals),
       'DECIMALS'

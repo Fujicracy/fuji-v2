@@ -17,7 +17,6 @@ import { Currency } from './Currency';
  * Represents an ERC20 token with a unique address and some metadata.
  */
 export class Token extends AbstractCurrency {
-  readonly chainId: ChainId;
   readonly address: Address;
 
   readonly isNative: false = false as const;
@@ -37,7 +36,6 @@ export class Token extends AbstractCurrency {
     name?: string
   ) {
     super(chainId, decimals, symbol, name);
-    this.chainId = chainId;
     this.address = address;
   }
 
