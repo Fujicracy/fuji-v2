@@ -355,6 +355,19 @@ contract BorrowingVault is BaseVault {
     debtSharesSupply -= amount;
   }
 
+  ///////////////////
+  /// Rebalancing ///
+  ///////////////////
+
+  // inheritdoc IVault
+  function rebalance(RebalanceAction[] memory actions)
+    external
+    hasRole(msg.sender, REBALANCER_ROLE)
+    returns (bool)
+  {
+    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+  }
+
   //////////////////////
   ///  Liquidation  ////
   //////////////////////
@@ -390,8 +403,11 @@ contract BorrowingVault is BaseVault {
   }
 
   /// inheritdoc IVault
-  function liquidate(address owner, address receiver) public returns (uint256 gainedShares) {
-    // TODO only liquidator role, that will be controlled at Chief level.
+  function liquidate(address owner, address receiver)
+    public
+    hasRole(msg.sender, LIQUIDATOR_ROLE)
+    returns (uint256 gainedShares)
+  {
     if (receiver == address(0)) {
       revert BorrowingVault__liquidate_invalidInput();
     }
@@ -404,16 +420,14 @@ contract BorrowingVault is BaseVault {
     }
 
     // Compute debt amount that should be paid by liquidator.
-    uint256 debtShares = _debtShares[owner];
-    uint256 debt = convertToDebt(debtShares);
-    uint256 debtSharesToCover = Math.mulDiv(debtShares, liquidationFactor, 1e18);
+    uint256 debt = convertToDebt(_debtShares[owner]);
+    uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liquidationFactor, 1e18);
     uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
 
     // Compute 'gainedShares' amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
     uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
-    uint256 gainedAssets = Math.mulDiv(debt, liquidationFactor, discountedPrice);
-    gainedShares = convertToShares(gainedAssets);
+    gainedShares = convertToShares(Math.mulDiv(debt, liquidationFactor, discountedPrice));
 
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
@@ -434,11 +448,11 @@ contract BorrowingVault is BaseVault {
   /// Admin set functions ///
   ///////////////////////////
 
-  function setOracle(IFujiOracle newOracle) external {
-    // TODO needs admin restriction
-    // TODO needs input validation
+  function setOracle(IFujiOracle newOracle) external onlyTimeLock {
+    if (address(newOracle) == address(0)) {
+      revert BaseVault__setter_invalidInput();
+    }
     oracle = newOracle;
-
     emit OracleChanged(newOracle);
   }
 
@@ -449,11 +463,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - SHOULD be at least 1%.
    */
-  function setMaxLtv(uint256 maxLtv_) external {
+  function setMaxLtv(uint256 maxLtv_) external onlyTimeLock {
     if (maxLtv_ < 1e16) {
       revert BaseVault__setter_invalidInput();
     }
-    // TODO needs admin restriction
     maxLtv = maxLtv_;
     emit MaxLtvChanged(maxLtv);
   }
@@ -465,11 +478,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - SHOULD be greater than 'maxLTV'.
    */
-  function setLiqRatio(uint256 liqRatio_) external {
+  function setLiqRatio(uint256 liqRatio_) external onlyTimeLock {
     if (liqRatio_ < maxLtv) {
       revert BaseVault__setter_invalidInput();
     }
-    // TODO needs admin restriction
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
   }
