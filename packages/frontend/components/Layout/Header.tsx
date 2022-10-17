@@ -50,12 +50,9 @@ const Header = () => {
     }),
     shallow
   )
-  const { transactionStatus, setTransactionStatus } = useTransactionStore(
-    (state) => ({
-      transactionStatus: state.transactionStatus,
-      setTransactionStatus: state.setTransactionStatus,
-    })
-  )
+  const { transactionStatus } = useTransactionStore((state) => ({
+    transactionStatus: state.transactionStatus,
+  }))
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
@@ -117,7 +114,7 @@ const Header = () => {
                     anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                     transformOrigin={{ vertical: "top", horizontal: "left" }}
                     keepMounted
-                    open={transactionStatus /* Boolean(anchorElNav) */}
+                    open={Boolean(anchorElNav)}
                     onClose={handleCloseNavMenu}
                     sx={{ display: { xs: "block", lg: "none" } }}
                     TransitionComponent={Fade}
@@ -239,8 +236,6 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       ? `${bal.substring(0, 5)} ${token}`
       : `${bal.substring(0, 4)} ${token}`
 
-  console.log(showTransactionAbstract, props.transactionStatus)
-
   return (
     <Box mr="-2rem">
       <Chip
@@ -285,6 +280,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
             vertical: "top",
             horizontal: "right",
           }}
+          sx={{ mr: "2rem" }}
           open={showTransactionAbstract}
           onClose={closeTransactionProcessing}
         >

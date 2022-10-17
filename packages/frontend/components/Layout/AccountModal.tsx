@@ -14,7 +14,6 @@ import CloseIcon from "@mui/icons-material/Close"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CircleIcon from "@mui/icons-material/Circle"
-import CallMadeIcon from "@mui/icons-material/CallMade"
 import CheckIcon from "@mui/icons-material/Check"
 
 import { useTransactionStore } from "../../store/useTransactionStore"
@@ -143,7 +142,6 @@ export default function AccountModal(props: AccountModalProps) {
             <Typography variant="small">
               Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon{" "}
             </Typography>
-            <CallMadeIcon fontSize="small" sx={{ cursor: "pointer" }} />
           </Box>
           {transactionStatus ? (
             <CircularProgress size={16} />

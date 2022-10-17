@@ -85,7 +85,14 @@ export default function TransactionProcessingModal(
       open={props.open}
       onClose={props.handleClose}
       sx={{
-        ".MuiPaper-root": { background: "transparent" },
+        ".MuiPaper-root": {
+          background: "transparent",
+          m: "1rem",
+          width: {
+            xs: !transactionStatus ? "100%" : "auto",
+            sm: "auto",
+          },
+        },
         backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
       }}
     >
@@ -94,8 +101,11 @@ export default function TransactionProcessingModal(
           background: palette.secondary.contrastText,
           border: `1px solid ${palette.secondary.light}`,
           borderRadius: "1.125rem",
-          padding: { xs: "1rem", sm: "1.5rem" },
-          maxHeight: { xs: "none", sm: !transactionStatus ? "24.688rem" : "" },
+          p: { xs: "1rem", sm: "1.5rem" },
+          maxHeight: {
+            xs: !transactionStatus ? "28rem" : "",
+            sm: !transactionStatus ? "24.688rem" : "",
+          },
           color: palette.text.primary,
         }}
       >
@@ -167,81 +177,77 @@ export default function TransactionProcessingModal(
             </>
           )}
         </Box>
-        <DialogContent>
-          {!transactionStatus ? (
-            <div></div>
-          ) : (
-            <>
-              <Stepper
-                activeStep={activeStep}
-                orientation="vertical"
-                connector={<CustomConnector />}
-              >
-                {steps.map((step, index) => (
-                  <Step key={step.label}>
-                    <Grid
-                      container
-                      justifyContent="space-between"
-                      wrap="nowrap"
-                      alignItems="center"
-                    >
-                      <Grid item>
-                        <StepLabel StepIconComponent={CustomStepIcon}>
-                          <Typography variant="body">{step.label}</Typography>
-                          <br />
-                          <a href={step.link} target="_blank" rel="noreferrer">
-                            <Typography variant="smallDark">
-                              {step.description}
-                            </Typography>
-                            {step.link && (
-                              <LaunchIcon
-                                sx={{
-                                  ml: "0.3rem",
-                                  fontSize: "0.6rem",
-                                  color: palette.info.dark,
-                                }}
-                              />
-                            )}
-                          </a>
-                        </StepLabel>
-                      </Grid>
-                      <Grid item>
-                        {activeStep === index ? (
-                          <CircularProgress size={32} />
-                        ) : (
-                          <CheckIcon
-                            sx={{
-                              backgroundColor: palette.success.dark,
-                              borderRadius: "100%",
-                              padding: "0.4rem",
-                            }}
-                            fontSize="large"
-                          />
-                        )}
-                      </Grid>
+        {transactionStatus && (
+          <DialogContent>
+            <Stepper
+              activeStep={activeStep}
+              orientation="vertical"
+              connector={<CustomConnector />}
+            >
+              {steps.map((step, index) => (
+                <Step key={step.label}>
+                  <Grid
+                    container
+                    justifyContent="space-between"
+                    wrap="nowrap"
+                    alignItems="center"
+                  >
+                    <Grid item>
+                      <StepLabel StepIconComponent={CustomStepIcon}>
+                        <Typography variant="body">{step.label}</Typography>
+                        <br />
+                        <a href={step.link} target="_blank" rel="noreferrer">
+                          <Typography variant="smallDark">
+                            {step.description}
+                          </Typography>
+                          {step.link && (
+                            <LaunchIcon
+                              sx={{
+                                ml: "0.3rem",
+                                fontSize: "0.6rem",
+                                color: palette.info.dark,
+                              }}
+                            />
+                          )}
+                        </a>
+                      </StepLabel>
                     </Grid>
-                  </Step>
-                ))}
-              </Stepper>
-              <Card
-                variant="outlined"
-                sx={{
-                  p: 0,
-                  textAlign: "center",
-                  mt: "2.5rem",
-                  maxWidth: { xs: "22.75rem", sm: "27rem" },
-                }}
-              >
-                <CardContent>
-                  <Typography variant="small">
-                    This step takes a few minutes to process. If you close this
-                    window, your transaction will still be processed.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </DialogContent>
+                    <Grid item>
+                      {activeStep === index ? (
+                        <CircularProgress size={32} />
+                      ) : (
+                        <CheckIcon
+                          sx={{
+                            backgroundColor: palette.success.dark,
+                            borderRadius: "100%",
+                            padding: "0.4rem",
+                          }}
+                          fontSize="large"
+                        />
+                      )}
+                    </Grid>
+                  </Grid>
+                </Step>
+              ))}
+            </Stepper>
+            <Card
+              variant="outlined"
+              sx={{
+                p: 0,
+                textAlign: "center",
+                mt: "2.5rem",
+                maxWidth: "27rem",
+              }}
+            >
+              <CardContent>
+                <Typography variant="small">
+                  This step takes a few minutes to process. If you close this
+                  window, your transaction will still be processed.
+                </Typography>
+              </CardContent>
+            </Card>
+          </DialogContent>
+        )}
       </Box>
     </Dialog>
   )

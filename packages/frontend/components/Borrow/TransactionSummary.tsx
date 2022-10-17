@@ -40,18 +40,19 @@ export default function TransactionSummary() {
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{
-            width: "90%",
+            width: "88%",
             padding: "1rem 1rem",
             position: "fixed",
             bottom: "2rem",
-            left: "1.25rem",
-            pb: "1rem",
+            left: "6%",
+            right: "6%",
+            pb: 0,
           }}
         >
           <CardContent sx={{ p: 0, width: "100%" }}>
             <CardActionArea onClick={openPreviewTransaction}>
               <Grid container justifyContent="space-between">
-                <Typography onClick={openPreviewTransaction} variant="body">
+                <Typography onClick={openPreviewTransaction} variant="body2">
                   Transaction Summary
                 </Typography>
 
