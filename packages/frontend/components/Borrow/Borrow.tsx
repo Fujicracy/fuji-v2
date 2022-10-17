@@ -92,7 +92,29 @@ export default function Borrow() {
                     }}
                     variant="standard"
                     disableUnderline
-                  ></Select>
+                  >
+                    {chains.map((chain: Chain) => (
+                      <MenuItem key={chain.id} value={chain.id}>
+                        <Grid container>
+                          <Image
+                            src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                            height={18}
+                            width={18}
+                            alt={chain.label}
+                          />
+                          <span
+                            style={{
+                              marginLeft: "0.5rem",
+                            }}
+                          >
+                            <Typography variant={"small"}>
+                              {chain.label} Network
+                            </Typography>
+                          </span>
+                        </Grid>
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </Grid>
               </FormControl>
 
