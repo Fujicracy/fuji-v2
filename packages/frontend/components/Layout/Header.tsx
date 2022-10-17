@@ -213,16 +213,16 @@ type BalanceAddressProps = {
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [showAccountModal, setShowAccountModal] = useState(false)
-  const isOpen = Boolean(anchorEl)
   const { balance, address, ens } = props
 
-  const openTransactionProcessing = (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => setAnchorEl(event.currentTarget)
+  const { showTransactionAbstract, setShowTransactionAbstract } =
+    useTransactionStore((state) => ({
+      showTransactionAbstract: state.showTransactionAbstract,
+      setShowTransactionAbstract: state.setShowTransactionAbstract,
+    }))
 
-  const closeTransactionProcessing = () => setAnchorEl(null)
+  const closeTransactionProcessing = () => setShowTransactionAbstract(false)
 
   if (!balance) {
     return <></>
@@ -238,6 +238,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     token === "ETH"
       ? `${bal.substring(0, 5)} ${token}`
       : `${bal.substring(0, 4)} ${token}`
+
+  console.log(showTransactionAbstract, props.transactionStatus)
 
   return (
     <Box mr="-2rem">
@@ -277,13 +279,13 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           },
         }}
       />
-      {props.transactionStatus && (
+      {props.transactionStatus && showTransactionAbstract && (
         <Snackbar
           anchorOrigin={{
             vertical: "top",
             horizontal: "right",
           }}
-          open={isOpen}
+          open={showTransactionAbstract}
           onClose={closeTransactionProcessing}
         >
           <SnackbarContent

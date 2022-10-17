@@ -39,12 +39,15 @@ export default function Borrow() {
   const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
   const [borrowValue, setBorrowValue] = useState("")
   const [borrowToken, setBorrowToken] = useState(tokens[1])
-  const { transactionStatus, setTransactionStatus } = useTransactionStore(
-    (state) => ({
-      transactionStatus: state.transactionStatus,
-      setTransactionStatus: state.setTransactionStatus,
-    })
-  )
+  const {
+    transactionStatus,
+    setTransactionStatus,
+    setShowTransactionAbstract,
+  } = useTransactionStore((state) => ({
+    transactionStatus: state.transactionStatus,
+    setTransactionStatus: state.setTransactionStatus,
+    setShowTransactionAbstract: state.setShowTransactionAbstract,
+  }))
 
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
@@ -255,7 +258,10 @@ export default function Borrow() {
           </Card>
           <TransactionProcessingModal
             open={showTransactionProcessingModal}
-            handleClose={() => setShowTransactionProcessingModal(false)}
+            handleClose={() => {
+              setShowTransactionProcessingModal(false)
+              setShowTransactionAbstract(true)
+            }}
           />
         </>
       )}
