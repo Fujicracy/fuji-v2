@@ -8,6 +8,7 @@ import {
   ConnectedChain,
   WalletState,
 } from "@web3-onboard/core/dist/types"
+import { Sdk } from "@x-fuji/sdk"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -38,6 +39,14 @@ const walletConnect = walletConnectModule({
 })
 
 export type Chain = IChain
+export const sdk = new Sdk({
+  infuraId: "4f80981ed6b54f3b94ef23423f1b2353",
+  alchemy: {},
+})
+
+//const collaterals = sdk.getCollateralForChain('0x1')
+console.log(sdk)
+
 export const chains: Chain[] = [
   {
     id: "0x1",

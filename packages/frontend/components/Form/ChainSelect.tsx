@@ -33,8 +33,6 @@ export default function ChainSelect() {
     setAnchorEl(null)
   }
 
-  console.log({ chains, currentChain })
-
   return (
     <>
       {currentChain ? (
