@@ -20,8 +20,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 
-import { chains, Chain } from "../../store"
-import { useTransactionStore } from "../../store/useTransactionStore"
+import { chains, Chain } from "../../store/auth.slice"
+import { useStore } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
@@ -43,7 +43,7 @@ export default function Borrow() {
     transactionStatus,
     setTransactionStatus,
     setShowTransactionAbstract,
-  } = useTransactionStore((state) => ({
+  } = useStore((state) => ({
     transactionStatus: state.transactionStatus,
     setTransactionStatus: state.setTransactionStatus,
     setShowTransactionAbstract: state.setShowTransactionAbstract,

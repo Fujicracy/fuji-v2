@@ -18,7 +18,6 @@ import LaunchIcon from "@mui/icons-material/Launch"
 import CircleIcon from "@mui/icons-material/Circle"
 import CheckIcon from "@mui/icons-material/Check"
 
-import { useTransactionStore } from "../../store/useTransactionStore"
 import { useState } from "react"
 import { useStore } from "../../store"
 
@@ -31,9 +30,7 @@ type AccountModalProps = {
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
   const logout = useStore((state) => state.logout)
-  const transactionStatus = useTransactionStore(
-    (state) => state.transactionStatus
-  )
+  const transactionStatus = useStore((state) => state.transactionStatus)
   const [showSnackbar, setShowSnackbar] = useState(false)
 
   const addr = props.address
@@ -44,7 +41,7 @@ export default function AccountModal(props: AccountModalProps) {
     setShowSnackbar(true)
   }
 
-  const handleClose = (_, reason?: string) => {
+  const handleClose = (_: any, reason?: string) => {
     if (reason === "clickaway") {
       return
     }

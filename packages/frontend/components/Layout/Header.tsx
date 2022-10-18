@@ -31,7 +31,6 @@ import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
 import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
-import { useTransactionStore } from "../../store/useTransactionStore"
 import AccountModal from "./AccountModal"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
@@ -40,19 +39,17 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
-  const { address, ens, status, balance, login } = useStore(
+  const { address, ens, status, balance, login, transactionStatus } = useStore(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
       login: state.login,
+      transactionStatus: state.transactionStatus,
     }),
     shallow
   )
-  const { transactionStatus } = useTransactionStore((state) => ({
-    transactionStatus: state.transactionStatus,
-  }))
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
@@ -182,7 +179,6 @@ const Header = () => {
                   </Grid>
                   <Grid item>
                     <BalanceAddress
-                      // TODO: balance should be retrived from current chain, and not deduced
                       balance={balance}
                       address={address as string}
                       ens={ens}
@@ -213,11 +209,12 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   const [showAccountModal, setShowAccountModal] = useState(false)
   const { balance, address, ens } = props
 
-  const { showTransactionAbstract, setShowTransactionAbstract } =
-    useTransactionStore((state) => ({
+  const { showTransactionAbstract, setShowTransactionAbstract } = useStore(
+    (state) => ({
       showTransactionAbstract: state.showTransactionAbstract,
       setShowTransactionAbstract: state.setShowTransactionAbstract,
-    }))
+    })
+  )
 
   const closeTransactionProcessing = () => setShowTransactionAbstract(false)
 

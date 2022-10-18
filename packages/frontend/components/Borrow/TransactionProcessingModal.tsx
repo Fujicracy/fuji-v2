@@ -27,7 +27,7 @@ import Image from "next/image"
 import shallow from "zustand/shallow"
 
 import styles from "../../styles/components/Borrow.module.css"
-import { useTransactionStore } from "../../store/useTransactionStore"
+import { useStore } from "../../store"
 
 type Step = {
   label: string
@@ -65,7 +65,7 @@ export default function TransactionProcessingModal(
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep, setActiveStep] = useState(2)
 
-  const { transactionStatus, setTransactionStatus } = useTransactionStore(
+  const { transactionStatus, setTransactionStatus } = useStore(
     (state) => ({
       transactionStatus: state.transactionStatus,
       setTransactionStatus: state.setTransactionStatus,

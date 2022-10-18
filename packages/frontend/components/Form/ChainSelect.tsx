@@ -16,7 +16,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
 import Fade from "@mui/material/Fade"
 
-import { useStore, chains, Chain } from "../../store"
+import { useStore } from "../../store"
+import { chains, Chain } from "../../store/auth.slice"
 
 export default function ChainSelect() {
   const theme = useTheme()
