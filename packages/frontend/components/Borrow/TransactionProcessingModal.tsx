@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { MouseEvent, useEffect, useState } from "react"
 import {
   Box,
   Button,
@@ -37,7 +37,7 @@ type Step = {
 
 type TransactionProcessingModalProps = {
   open: boolean
-  handleClose: (e: {}) => void
+  handleClose: (e: MouseEvent) => void
 }
 
 const steps: Step[] = [
@@ -63,7 +63,7 @@ export default function TransactionProcessingModal(
 ) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const [activeStep, setActiveStep] = useState(2)
+  const [activeStep] = useState(2)
 
   const { transactionStatus, setTransactionStatus } = useStore(
     (state) => ({
@@ -80,11 +80,10 @@ export default function TransactionProcessingModal(
     }
   })
 
-  const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
-
-  const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1)
-
-  const handleReset = () => setActiveStep(0)
+  // Commented till we use it cause it make the linter fail
+  // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
+  // const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1)
+  // const handleReset = () => setActiveStep(0)
 
   return (
     <Dialog

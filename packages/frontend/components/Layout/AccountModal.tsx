@@ -1,3 +1,4 @@
+import { SyntheticEvent, useState } from "react"
 import {
   Alert,
   Box,
@@ -18,13 +19,12 @@ import LaunchIcon from "@mui/icons-material/Launch"
 import CircleIcon from "@mui/icons-material/Circle"
 import CheckIcon from "@mui/icons-material/Check"
 
-import { useState } from "react"
 import { useStore } from "../../store"
 
 type AccountModalProps = {
   isOpen: boolean
   address: string
-  closeAccountModal: (e: {}) => void
+  closeAccountModal: () => void
 }
 
 export default function AccountModal(props: AccountModalProps) {
@@ -41,7 +41,10 @@ export default function AccountModal(props: AccountModalProps) {
     setShowSnackbar(true)
   }
 
-  const handleClose = (_: any, reason?: string) => {
+  const handleClose = (
+    _: Event | SyntheticEvent<Element, Event>,
+    reason?: string
+  ) => {
     if (reason === "clickaway") {
       return
     }
@@ -49,7 +52,7 @@ export default function AccountModal(props: AccountModalProps) {
   }
 
   return (
-    <Dialog onClose={props.closeAccountModal} open={props.isOpen}>
+    <Dialog onClose={() => props.closeAccountModal()} open={props.isOpen}>
       <DialogContent
         sx={{
           p: "1.5rem",
