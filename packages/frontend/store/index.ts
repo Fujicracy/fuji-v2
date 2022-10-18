@@ -84,6 +84,8 @@ export const chains: Chain[] = [
 //   rpcUrl: ETH_RINKEBY_RPC,
 // })
 
+// TODO: map on SDK chains to convert id in hexa
+
 const onboard = Onboard({
   chains,
   wallets: [injectedModule(), walletConnect],
