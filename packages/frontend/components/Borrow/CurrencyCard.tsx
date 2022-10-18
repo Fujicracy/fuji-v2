@@ -14,7 +14,7 @@ export default function CurrencyCard(props: CurrencyCardProps) {
         {props.informations.amount}
       </Typography>
 
-      <Typography variant="smallDark" sx={{ mb: "1rem" }}>
+      <Typography variant="smallDark" mb="1rem">
         {props.informations.footer}
       </Typography>
     </Card>

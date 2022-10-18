@@ -7,6 +7,7 @@ import {
   Collapse,
   Divider,
   Grid,
+  Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
@@ -119,7 +120,7 @@ export default function Overview() {
                   width={18}
                   alt="Ethereum icon"
                 />
-                <Typography sx={{ ml: "0.375rem" }} variant="small">
+                <Typography ml="0.375rem" variant="small">
                   Aave V2
                 </Typography>
               </Grid>
@@ -197,7 +198,19 @@ export default function Overview() {
                 )}
               </Box>
               <Collapse in={showProvider} sx={{ mt: "0.25rem" }}>
-                <Typography
+                <Stack justifyContent="space-between">
+                  <Typography
+                    variant="smallDark"
+                    sx={{
+                      ":hover": {
+                        color: palette.text.primary,
+                      },
+                    }}
+                  >
+                    DForce: 3.33%
+                  </Typography>
+                </Stack>
+                {/* <Typography
                   variant="smallDark"
                   sx={{
                     display: "flex",
@@ -209,7 +222,7 @@ export default function Overview() {
                 >
                   <span>DForce:</span>
                   <span>3.33%</span>
-                </Typography>
+                </Typography> */}
               </Collapse>
             </Box>
           </Grid>

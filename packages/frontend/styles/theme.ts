@@ -250,7 +250,6 @@ const theme = createTheme(colorTheme, {
             variant: "small",
           },
           style: {
-            marginLeft: "0.5rem",
             color: colorTheme.palette.primary.main,
             background: "transparent",
             border: `1px solid ${colorTheme.palette.primary.dark}`,

@@ -77,19 +77,20 @@ export default function AccountModal(props: AccountModalProps) {
         >
           <CardContent>
             <Grid container alignItems="center">
-              <Typography variant="xsmall" sx={{ mr: "9rem" }}>
+              <Typography variant="xsmall" mr="9rem">
                 Connected with MetaMask
               </Typography>
-              <Button variant="small" onClick={() => logout()}>
+              <Button
+                sx={{ ml: "0.5rem" }}
+                variant="small"
+                onClick={() => logout()}
+              >
                 Disconnect
               </Button>
             </Grid>
             <Grid container alignItems="center">
               <CircleIcon />
-              <Typography
-                variant="h5"
-                sx={{ ml: "0.5rem", mt: "0.625rem", mb: "0.625rem" }}
-              >
+              <Typography variant="h5" ml="0.5rem" mt="0.625rem" mb="0.625rem">
                 {props.address}
               </Typography>
             </Grid>

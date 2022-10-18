@@ -41,7 +41,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             />
           </Tooltip>
           <ClickableTooltip
-            title="Being in this area keeps you safe from suddent shifts in the market."
+            title="Being in this area keeps you safe from sudden shifts in the market."
             placement="top"
           >
             <InfoOutlinedIcon
@@ -146,10 +146,10 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       <Typography
         variant="label"
         color="success.main"
+        ml={`${
+          (props.value > 75 ? props.value : (props.value * 100) / 75) - 5
+        }%`}
         sx={{
-          marginLeft: `${
-            (props.value > 75 ? props.value : (props.value * 100) / 75) - 5
-          }%`,
           display: { xs: "block", sm: "none" },
         }}
       >

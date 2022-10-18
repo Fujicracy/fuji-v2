@@ -216,7 +216,7 @@ export default function TransactionSummary() {
                         width={18}
                         alt="Ethereum icon"
                       />
-                      <Typography sx={{ ml: "0.375rem" }} variant="small">
+                      <Typography ml="0.375rem" variant="small">
                         Aave V2
                       </Typography>
                     </Grid>
