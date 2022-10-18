@@ -5,6 +5,7 @@ import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessContr
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
+import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 import {TimeLock} from "./access/TimeLock.sol";
 
@@ -23,6 +24,7 @@ contract Chief is CoreRoles, AccessControl {
   event RemoveFromAllowed(address indexed factory);
 
   address public timelock;
+  address public addrMapper;
   bool public openVaultFactory;
 
   address[] internal _vaults;
@@ -35,6 +37,7 @@ contract Chief is CoreRoles, AccessControl {
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
     _deployTimelock();
+    _deployAddrMapper();
     _setRoleAdmin(TIMELOCK_PROPOSER_ROLE, TIMELOCK_ADMIN_ROLE);
     _setRoleAdmin(TIMELOCK_EXECUTOR_ROLE, TIMELOCK_ADMIN_ROLE);
     _setRoleAdmin(TIMELOCK_CANCELLER_ROLE, TIMELOCK_ADMIN_ROLE);
@@ -121,11 +124,18 @@ contract Chief is CoreRoles, AccessControl {
   }
 
   /**
-   * @dev Deploys 1 timelock contract only during Chief deployment.
+   * @dev Deploys 1 {TimeLock} contract during Chief deployment.
    */
   function _deployTimelock() internal {
     timelock = address(new TimeLock{salt: "0x00"}(address(this), 2 days));
     _grantRole(TIMELOCK_ADMIN_ROLE, timelock);
+  }
+
+  /**
+   * @dev Deploys 1 {AddrMapper} contract during Chief deployment.
+   */
+  function _deployAddrMapper() internal {
+    addrMapper = address(new AddrMapper{salt: "0x00"}(address(this)));
   }
 
   /**

@@ -11,4 +11,6 @@ import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessCon
 
 interface IChief is IAccessControl {
   function timelock() external view returns (address);
+
+  function addrMapper() external view returns (address);
 }

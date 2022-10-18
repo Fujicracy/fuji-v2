@@ -1,45 +1,70 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-// TODO ownership role of mappers to be defined at a higher level.
-import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+/**
+ * @title AddrMapper
+ * @author Fujidao Labs
+ * @notice Contract that stores and returns addresses mappings
+ * Required for getting contract addresses for some providers and flashloan providers.
+ */
+
+import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {IAddrMapper} from "../interfaces/IAddrMapper.sol";
 
-/**
- * @dev Contract that stores and returns addresses mappings
- * Required for getting contract addresses for some providers and flashloan providers
- */
-contract AddrMapper is IAddrMapper, Ownable {
-  string public mapperName;
-  // key address => returned address
-  // (e.g. public erc20 => protocol Token)
-  mapping(address => address) private _addrMapping;
-  // key1 address, key2 address => returned address
-  // (e.g. collateral erc20 => borrow erc20 => Protocol market)
-  mapping(address => mapping(address => address)) private _addrNestedMapping;
+contract AddrMapper is IAddrMapper, SystemAccessControl {
+  // provider name => key address => returned address
+  // (e.g. Compound_V2 => public erc20 => protocol Token)
+  mapping(string => mapping(address => address)) private _addrMapping;
+  // provider name => key1 address => key2 address => returned address
+  // (e.g. Compound_V3 => collateral erc20 => borrow erc20 => Protocol market)
+  mapping(string => mapping(address => mapping(address => address))) private _addrNestedMapping;
 
-  constructor(string memory _mapperName) {
-    mapperName = _mapperName;
+  string[] private _providerNames;
+
+  mapping(string => bool) private _isProviderNameAdded;
+
+  constructor(address chief) SystemAccessControl(chief) {}
+
+  function getProviders() public view returns (string[] memory) {
+    return _providerNames;
   }
 
-  function getAddressMapping(address inputAddr) external view override returns (address) {
-    return _addrMapping[inputAddr];
-  }
-
-  function getAddressNestedMapping(address inputAddr1, address inputAddr2)
+  function getAddressMapping(string memory providerName, address inputAddr)
     external
     view
     override
     returns (address)
   {
-    return _addrNestedMapping[inputAddr1][inputAddr2];
+    return _addrMapping[providerName][inputAddr];
+  }
+
+  function getAddressNestedMapping(
+    string memory providerName,
+    address inputAddr1,
+    address inputAddr2
+  )
+    external
+    view
+    override
+    returns (address)
+  {
+    return _addrNestedMapping[providerName][inputAddr1][inputAddr2];
   }
 
   /**
    * @dev Adds an address mapping.
+   * Requirements:
+   * - ProviderName should be formatted: Name_Version or Name_Version_Asset
    */
-  function setMapping(address keyAddr, address returnedAddr) public override onlyOwner {
-    _addrMapping[keyAddr] = returnedAddr;
+  function setMapping(string memory providerName, address keyAddr, address returnedAddr)
+    public
+    override
+    onlyTimeLock
+  {
+    if (!_isProviderNameAdded[providerName]) {
+      _isProviderNameAdded[providerName] = true;
+    }
+    _addrMapping[providerName][keyAddr] = returnedAddr;
     address[] memory inputAddrs = new address[](1);
     inputAddrs[0] = keyAddr;
     emit MappingChanged(inputAddrs, returnedAddr);
@@ -47,13 +72,23 @@ contract AddrMapper is IAddrMapper, Ownable {
 
   /**
    * @dev Adds a nested address mapping.
+   * Requirements:
+   * - ProviderName should be formatted: Name_Version or Name_Version_Asset
    */
-  function setNestedMapping(address keyAddr1, address keyAddr2, address returnedAddr)
+  function setNestedMapping(
+    string memory providerName,
+    address keyAddr1,
+    address keyAddr2,
+    address returnedAddr
+  )
     public
     override
-    onlyOwner
+    onlyTimeLock
   {
-    _addrNestedMapping[keyAddr1][keyAddr2] = returnedAddr;
+    if (!_isProviderNameAdded[providerName]) {
+      _isProviderNameAdded[providerName] = true;
+    }
+    _addrNestedMapping[providerName][keyAddr1][keyAddr2] = returnedAddr;
     address[] memory inputAddrs = new address[](2);
     inputAddrs[0] = keyAddr1;
     inputAddrs[1] = keyAddr2;

@@ -1,7 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction, Deployment } from 'hardhat-deploy/types';
 
-import deployAddrMapperFactory from '../../tasks/deployAddrMapperFactory';
 import deployBorrowingVaultFactory from '../../tasks/deployBorrowingVaultFactory';
 import deployChief from '../../tasks/deployChief';
 
@@ -17,7 +16,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const vaultFactory: Deployment = await deployments.get(
     'BorrowingVaultFactory'
   );
-  await deployAddrMapperFactory(hre);
 
   await deployments.execute(
     'Chief',

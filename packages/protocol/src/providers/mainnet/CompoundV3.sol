@@ -26,13 +26,18 @@ contract CompoundV3 is ILendingProvider {
     return IAddrMapper(0x2430ab56FB46Bcac05E39aA947d26e8EEF4A881a);
   }
 
+  /// inheritdoc ILendingProvider
+  function providerName() public pure override returns (string memory) {
+    return "Compound_V3";
+  }
+
   /**
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
   function approvedOperator(address, address vault) external view returns (address operator) {
     address asset = IVault(vault).asset();
     address debtAsset = IVault(vault).debtAsset();
-    operator = getMapper().getAddressNestedMapping(asset, debtAsset);
+    operator = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);
   }
 
   /// inheritdoc ILendingProvider
@@ -147,7 +152,7 @@ contract CompoundV3 is ILendingProvider {
 
     address asset = IVault(vault).asset();
     address debtAsset = IVault(vault).debtAsset();
-    address market = getMapper().getAddressNestedMapping(asset, debtAsset);
+    address market = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);
 
     cMarketV3 = ICompoundV3(market);
   }
