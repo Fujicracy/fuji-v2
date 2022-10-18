@@ -127,7 +127,7 @@ contract Chief is CoreRoles, AccessControl {
    * @dev Deploys 1 {TimeLock} contract during Chief deployment.
    */
   function _deployTimelock() internal {
-    timelock = address(new TimeLock{salt: "0x00"}(address(this), 2 days));
+    timelock = address(new TimeLock{salt: "0x00"}(address(this), 1 days));
     _grantRole(TIMELOCK_ADMIN_ROLE, timelock);
   }
 
