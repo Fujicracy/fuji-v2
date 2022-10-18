@@ -35,6 +35,9 @@
 
   const collaterals = sdk.getCollateralForChain(chainId);
 
+  // get balances of the user for each of the token
+  const balancesCollateral = await sdk.getBatchTokenBalances(collaterals, account, chainId);
+
   // user selects a "token1" as collateral
 ```
 
@@ -45,6 +48,9 @@
   // fetch debt tokens available on chainB
 
   const debts = sdk.getDebtForChain(chainId);
+
+  // get balances of the user for each of the token
+  const balancesDebt = await sdk.getBatchTokenBalances(debts, account, chainId);
 
   // user selects a "token2" as debt
 ```
@@ -76,9 +82,10 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   // together with the amouts that the user has input
 ```
 
-4. TODO get prices of collateral and debt token in $
+4. Get prices of collateral and debt token in $
 ```
-  const { collateralPrice, debtPrice } = await vault.getPrices();
+  const collateralPrice = await token1.getPriceUSD();
+  const debtPrice = await token2.getPriceUSD();
 ```
 
 5. fetch providers for this vault and their rates
@@ -121,11 +128,6 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ### Misc
 
 ```
-  // TODO
-  getPriceOf(Currency, ChainId) -> Price
-
-  ---
-
   class SDK {
     // TODO
     // if account has a position on srcChain or destChain, return the corresponding vault
