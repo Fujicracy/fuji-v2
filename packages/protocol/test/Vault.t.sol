@@ -7,7 +7,6 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
-import {IChief} from "../src/interfaces/IChief.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {TimeLock} from "../src/access/TimeLock.sol";
