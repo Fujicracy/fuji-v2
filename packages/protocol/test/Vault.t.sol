@@ -274,6 +274,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
 
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
+    chief.grantRole(LIQUIDATOR_ROLE, bob);
     vm.prank(bob);
     vault.liquidate(alice, bob);
   }
@@ -299,6 +300,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
 
+    chief.grantRole(LIQUIDATOR_ROLE, bob);
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice, bob);
@@ -336,6 +338,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
 
+    chief.grantRole(LIQUIDATOR_ROLE, bob);
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice, bob);
