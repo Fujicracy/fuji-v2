@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { MaxUint256 } from '@ethersproject/constants';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { AbstractCurrency } from './AbstractCurrency';
@@ -20,6 +21,15 @@ export abstract class NativeCurrency extends AbstractCurrency {
     invariant(this.rpcProvider, 'Connection not set!');
 
     return this.rpcProvider.getBalance(account.value);
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.balanceOfStream}
+   * @throws if {@link AbstractCurrency.setConnection} was not called
+   * @experimental
+   */
+  balanceOfStream(_account: Address): Observable<BigNumber> {
+    invariant(false, 'Not implemented!');
   }
 
   /**

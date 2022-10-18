@@ -7,16 +7,15 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
-import {CallParams, XCallArgs} from "nxtp/core/connext/libraries/LibConnextStorage.sol";
-import {IConnextHandler} from "nxtp/core/connext/interfaces/IConnextHandler.sol";
-import {IExecutor} from "nxtp/core/connext/interfaces/IExecutor.sol";
+import {CallParams, XCallArgs} from "../interfaces/connext/IConnext.sol";
+import {IConnextHandler} from "../interfaces/connext/IConnext.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {IVault} from "../interfaces/IVault.sol";
 
 contract ConnextRouter is BaseRouter {
   IConnextHandler public connext;
-  IExecutor public executor;
+  address public executor;
 
   // ref: https://docs.nomad.xyz/developers/environments/domain-chain-ids
   mapping(uint256 => address) public routerByDomain;
@@ -31,7 +30,7 @@ contract ConnextRouter is BaseRouter {
       // TODO subject to change in the new version of amarok
       /*IExecutor(msg.sender).originSender() == routerByDomain[originDomain] &&*/
       /*IExecutor(msg.sender).origin() == uint32(originDomain) &&*/
-      msg.sender == address(executor),
+      msg.sender == executor,
       "Expected origin contract on origin domain called by Executor"
     );
     _;

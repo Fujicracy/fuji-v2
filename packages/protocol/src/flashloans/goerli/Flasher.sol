@@ -25,8 +25,7 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
   error Flasher__notAuthorized();
   error Flasher__lastActionMustBeSwap();
 
-  address public immutable NATIVE = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-  address public immutable aaveV3Pool = 0xE039BdF1d874d27338e09B55CB09879Dedca52D8;
+  address public immutable aaveV3Pool = 0x368EedF3f56ad10b9bC57eed4Dac65B26Bb667f6;
 
   bytes32 private _entryPoint;
 

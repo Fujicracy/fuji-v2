@@ -445,6 +445,15 @@ const theme = createTheme(colorTheme, {
         },
       ],
     },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          background: colorTheme.palette.background.paper,
+          border: `1px solid ${colorTheme.palette.grey[800]}`,
+          borderRadius: "12px !important",
+        },
+      },
+    },
   },
 })
 

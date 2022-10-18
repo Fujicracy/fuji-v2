@@ -14,3 +14,30 @@ export const INFURA_RPC_URL: Record<ChainId, (id: string) => string> = {
   [ChainId.OPTIMISM_GOERLI]: (id: string) =>
     `https://optimism-goerli.infura.io/v3/${id}`,
 };
+
+export const INFURA_WSS_URL: Record<ChainId, (id: string) => string | null> = {
+  [ChainId.ETHEREUM]: (id: string) => `wss://mainnet.infura.io/ws/v3/${id}`,
+  [ChainId.MATIC]: (_id: string) => null,
+  [ChainId.ARBITRUM]: (_id: string) => null,
+  [ChainId.OPTIMISM]: (_id: string) => null,
+  [ChainId.FANTOM]: (_: string) => null,
+  [ChainId.GOERLI]: (id: string) => `wss://goerli.infura.io/ws/v3/${id}`,
+  [ChainId.MATIC_MUMBAI]: (_id: string) => null,
+  [ChainId.OPTIMISM_GOERLI]: (_id: string) => null,
+};
+
+export const ALCHEMY_WSS_URL: Record<ChainId, (id: string) => string | null> = {
+  [ChainId.ETHEREUM]: (_id: string) => null,
+  [ChainId.MATIC]: (id: string) =>
+    `wss://polygon-mainnet.g.alchemy.com/v2/${id}`,
+  [ChainId.ARBITRUM]: (id: string) =>
+    `wss://arb-mainnet.g.alchemy.com/v2/${id}`,
+  [ChainId.OPTIMISM]: (id: string) =>
+    `wss://opt-mainnet.g.alchemy.com/v2/${id}`,
+  [ChainId.FANTOM]: (_: string) => null,
+  [ChainId.GOERLI]: (_id: string) => null,
+  [ChainId.MATIC_MUMBAI]: (id: string) =>
+    `wss://polygon-mumbai.g.alchemy.com/v2/${id}`,
+  [ChainId.OPTIMISM_GOERLI]: (id: string) =>
+    `wss://opt-goerli.g.alchemy.com/v2/${id}`,
+};
