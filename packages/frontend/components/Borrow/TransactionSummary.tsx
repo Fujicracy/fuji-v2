@@ -5,8 +5,6 @@ import {
   Card,
   CardActionArea,
   CardContent,
-  Collapse,
-  Container,
   Dialog,
   DialogContent,
   Divider,
@@ -16,7 +14,6 @@ import {
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import AddCircleIcon from "@mui/icons-material/AddCircle"
-import CancelIcon from "@mui/icons-material/Cancel"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
@@ -26,7 +23,6 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
-  const [showProvider, setShowProvider] = useState(false)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
@@ -254,10 +250,7 @@ export default function TransactionSummary() {
                       </ClickableTooltip>
                     </div>
                     <Box>
-                      <Box
-                        sx={{ alignItems: "center", cursor: "pointer" }}
-                        onClick={() => setShowProvider(!showProvider)}
-                      >
+                      <Box sx={{ alignItems: "center", cursor: "pointer" }}>
                         <Typography variant="small">
                           Aave:{" "}
                           <span
@@ -277,39 +270,15 @@ export default function TransactionSummary() {
                             }}
                           />
                         </Typography>
-                        {showProvider ? (
-                          <CancelIcon
-                            sx={{
-                              marginLeft: "0.25rem",
-                              cursor: "pointer",
-                              fontSize: "0.875rem",
-                            }}
-                          />
-                        ) : (
-                          <AddCircleIcon
-                            sx={{
-                              marginLeft: "0.25rem",
-                              cursor: "pointer",
-                              fontSize: "0.875rem",
-                            }}
-                          />
-                        )}
-                      </Box>
-                      <Collapse in={showProvider} sx={{ mt: "0.25rem" }}>
-                        <Typography
-                          variant="smallDark"
+
+                        <AddCircleIcon
                           sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            ":hover": {
-                              color: palette.text.primary,
-                            },
+                            marginLeft: "0.25rem",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
                           }}
-                        >
-                          <span>DForce:</span>
-                          <span>3.33%</span>
-                        </Typography>
-                      </Collapse>
+                        />
+                      </Box>
                     </Box>
                   </Grid>
                 </Grid>

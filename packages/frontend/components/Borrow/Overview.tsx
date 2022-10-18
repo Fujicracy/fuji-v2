@@ -4,16 +4,13 @@ import {
   Box,
   Card,
   CardContent,
-  Collapse,
   Divider,
   Grid,
-  Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import AddCircleIcon from "@mui/icons-material/AddCircle"
-import CancelIcon from "@mui/icons-material/Cancel"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
@@ -22,7 +19,6 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 
 export default function Overview() {
   const { palette } = useTheme()
-  const [showProvider, setShowProvider] = useState(false)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -156,10 +152,7 @@ export default function Overview() {
               </ClickableTooltip>
             </div>
             <Box>
-              <Box
-                sx={{ alignItems: "center", cursor: "pointer" }}
-                onClick={() => setShowProvider(!showProvider)}
-              >
+              <Box sx={{ alignItems: "center", cursor: "pointer" }}>
                 <Typography variant="small">
                   Aave:{" "}
                   <span
@@ -179,51 +172,14 @@ export default function Overview() {
                     }}
                   />
                 </Typography>
-                {showProvider ? (
-                  <CancelIcon
-                    sx={{
-                      marginLeft: "0.25rem",
-                      cursor: "pointer",
-                      fontSize: "0.875rem",
-                    }}
-                  />
-                ) : (
-                  <AddCircleIcon
-                    sx={{
-                      marginLeft: "0.25rem",
-                      cursor: "pointer",
-                      fontSize: "0.875rem",
-                    }}
-                  />
-                )}
-              </Box>
-              <Collapse in={showProvider} sx={{ mt: "0.25rem" }}>
-                <Stack justifyContent="space-between">
-                  <Typography
-                    variant="smallDark"
-                    sx={{
-                      ":hover": {
-                        color: palette.text.primary,
-                      },
-                    }}
-                  >
-                    DForce: 3.33%
-                  </Typography>
-                </Stack>
-                {/* <Typography
-                  variant="smallDark"
+                <AddCircleIcon
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    ":hover": {
-                      color: palette.text.primary,
-                    },
+                    marginLeft: "0.25rem",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
                   }}
-                >
-                  <span>DForce:</span>
-                  <span>3.33%</span>
-                </Typography> */}
-              </Collapse>
+                />
+              </Box>
             </Box>
           </Grid>
         </CardContent>
