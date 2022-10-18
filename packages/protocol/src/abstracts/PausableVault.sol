@@ -7,31 +7,9 @@ pragma solidity 0.8.15;
  * @notice This contract is inspired on OpenZeppelin-Pausable contract.
  */
 
-abstract contract PausableVault {
-  enum VaultActions {
-    Deposit,
-    Withdraw,
-    Borrow,
-    Payback
-  }
+import {IPausableVault} from "../interfaces/IPausableVault.sol";
 
-  /**
-   * @dev Emitted when pause of `action` is triggered by `account`.
-   */
-  event Paused(address account, VaultActions actions);
-  /**
-   * @dev Emitted when the pause of `action` is lifted by `account`.
-   */
-  event Unpaused(address account, VaultActions actions);
-  /**
-   * @dev Emitted when forced pause all `VaultActions` triggered by `account`.
-   */
-  event PausedForceAll(address account);
-  /**
-   * @dev Emitted when forced pause is lifted to all `VaultActions` by `account`.
-   */
-  event UnpausedForceAll(address account);
-
+abstract contract PausableVault is IPausableVault {
   error PausableExt__ActionPaused();
   error PausableExt__ActionNotPaused();
 
@@ -57,34 +35,21 @@ abstract contract PausableVault {
     _;
   }
 
-  /**
-   * @dev Returns true if the `action` in contract is paused, otherwise false.
-   */
-  function paused(VaultActions action) public virtual returns (bool) {
+  /// inherit IPausableVault
+  function paused(VaultActions action) public view virtual returns (bool) {
     return _actionsPaused[action];
   }
 
-  /**
-   * @notice See {PausableExt-_pauseForceAllActions}
-   * @dev Should be implemented in child contract with access restriction.
-   */
+  /// inheritdoc IPausableVault
   function pauseForceAll() external virtual;
-  /**
-   * @notice See {PausableExt-_unpauseForceAllActions}
-   * @dev Should be implemented in child contract with access restriction.
-   */
+
+  /// inheritdoc IPausableVault
   function unpauseForceAll() external virtual;
-  /**
-   * @notice See {PausableExt-_pause}
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
-   * @dev Should be implemented in child contract with access restriction.
-   */
+
+  /// inheritdoc IPausableVault
   function pause(VaultActions action) external virtual;
-  /**
-   * @notice See {PausableExt-_unpause}
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
-   * @dev Should be implemented in child contract with access restriction.
-   */
+
+  /// inheritdoc IPausableVault
   function unpause(VaultActions action) external virtual;
 
   /**
@@ -107,8 +72,6 @@ abstract contract PausableVault {
 
   /**
    * @dev Triggers stopped state for `action`.
-   * Requirements:
-   * - The `VaultAction` in contract must not be paused.
    */
   function _pause(VaultActions action) internal whenNotPaused(action) {
     _actionsPaused[action] = true;
@@ -117,8 +80,6 @@ abstract contract PausableVault {
 
   /**
    * @dev Returns `action` to normal state.
-   * Requirements:
-   * - The `VaultAction` in contract must be paused.
    */
   function _unpause(VaultActions action) internal whenPaused(action) {
     _actionsPaused[action] = false;
@@ -137,7 +98,7 @@ abstract contract PausableVault {
   }
 
   /**
-   * @dev Returns all `VaultActions`  to normal state.
+   * @dev Returns all `VaultActions` to normal state.
    */
   function _unpauseForceAllActions() internal {
     _actionsPaused[VaultActions.Deposit] = false;
