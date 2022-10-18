@@ -77,15 +77,6 @@ export default function ChainSelect() {
         MenuListProps={{ "aria-labelledby": "basic-button" }}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         TransitionComponent={Fade}
-        sx={{
-          marginTop: 1,
-          ".MuiPaper-root": {
-            border: `1px solid ${theme.palette.secondary.light}`,
-            background: theme.palette.secondary.contrastText,
-            boxShadow: "0px 4px 12px rgba(51, 51, 51, 0.5)",
-            borderRadius: "0.75rem",
-          },
-        }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>

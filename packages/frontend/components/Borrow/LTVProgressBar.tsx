@@ -29,7 +29,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       >
         <Grid item alignItems="center" margin="auto">
           <Tooltip
-            title="Being in this area keeps you safe from suddent shifts in the market."
+            title="Being in this area keeps you safe from sudden shifts in the market."
             placement="top"
           >
             <InfoOutlinedIcon

@@ -8,13 +8,14 @@ import {
   Dialog,
   DialogContent,
   Grid,
+  Paper,
   Step,
   StepLabel,
   Stepper,
   Typography,
   useMediaQuery,
 } from "@mui/material"
-import { useTheme, styled } from "@mui/material/styles"
+import { useTheme, styled, alpha } from "@mui/material/styles"
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector"
@@ -23,6 +24,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
+import shallow from "zustand/shallow"
 
 import styles from "../../styles/components/Borrow.module.css"
 import { useTransactionStore } from "../../store/useTransactionStore"
@@ -60,13 +62,15 @@ export default function TransactionProcessingModal(
   props: TransactionProcessingModalProps
 ) {
   const theme = useTheme()
-  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep, setActiveStep] = useState(2)
+
   const { transactionStatus, setTransactionStatus } = useTransactionStore(
     (state) => ({
       transactionStatus: state.transactionStatus,
       setTransactionStatus: state.setTransactionStatus,
-    })
+    }),
+    shallow
   )
 
   useEffect(() => {
@@ -88,27 +92,19 @@ export default function TransactionProcessingModal(
       onClose={props.handleClose}
       sx={{
         ".MuiPaper-root": {
-          background: "transparent",
-          m: "1rem",
-          width: {
-            xs: !transactionStatus ? "100%" : "auto",
-            sm: "auto",
-          },
+          width: isMobile ? "100%" : "auto",
         },
         backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
       }}
     >
-      <Box
+      <Paper
+        variant="outlined"
         sx={{
-          background: theme.palette.secondary.contrastText,
-          border: `1px solid ${theme.palette.secondary.light}`,
-          borderRadius: "1.125rem",
           p: { xs: "1rem", sm: "1.5rem" },
           maxHeight: {
             xs: !transactionStatus ? "28rem" : "",
             sm: !transactionStatus ? "24.688rem" : "",
           },
-          color: theme.palette.text.primary,
         }}
       >
         <CloseIcon
@@ -120,12 +116,12 @@ export default function TransactionProcessingModal(
           fontSize="small"
         />
 
-        <Box sx={{ textAlign: "center", mt: "1.625rem", mb: "2.688rem" }}>
+        <Box textAlign="center" mt="1.625rem" mb="2.688rem">
           {!transactionStatus ? (
             <>
               <CheckIcon
                 sx={{
-                  backgroundColor: "rgba(66, 255, 0, 0.1)", // TODO: use theme color (theme.palette.success.dark)
+                  backgroundColor: alpha(theme.palette.success.dark, 0.1),
                   color: theme.palette.success.dark,
                   borderRadius: "100%",
                   padding: "0.4rem",
@@ -156,7 +152,7 @@ export default function TransactionProcessingModal(
               >
                 <Button
                   sx={{ minWidth: "13rem" }}
-                  variant={onMobile ? "ghost" : "secondary"}
+                  variant={isMobile ? "ghost" : "secondary"}
                   className={styles.btn}
                 >
                   Transaction Details
@@ -250,7 +246,7 @@ export default function TransactionProcessingModal(
             </Card>
           </DialogContent>
         )}
-      </Box>
+      </Paper>
     </Dialog>
   )
 }
@@ -258,7 +254,7 @@ export default function TransactionProcessingModal(
 function CustomStepIcon(props: StepIconProps) {
   const { palette } = useTheme()
 
-  const icons: { [index: string]: React.ReactElement } = {
+  const icons: Record<string, React.ReactElement> = {
     1: (
       <Image
         src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
@@ -288,7 +284,7 @@ function CustomStepIcon(props: StepIconProps) {
   return (
     <Box
       sx={{
-        background: theme.palette.secondary.light,
+        background: palette.secondary.light,
         mr: "0.5rem",
         p: "0.5rem",
         borderRadius: "100%",
@@ -302,7 +298,7 @@ function CustomStepIcon(props: StepIconProps) {
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {
-    borderLeft: `0.125rem solid ${theme.theme.palette.secondary.light}`,
+    borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
     marginLeft: "0.7rem",
     marginTop: "-0.5rem",
     marginBottom: "-0.5rem",

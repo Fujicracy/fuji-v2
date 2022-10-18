@@ -7,6 +7,7 @@ declare module "@mui/material/Button" {
     secondary2: true
     ghost: true
     gradient: true
+    small: true
   }
 }
 
@@ -244,6 +245,21 @@ const theme = createTheme(colorTheme, {
             padding: "0.438rem 1rem",
           },
         },
+        {
+          props: {
+            variant: "small",
+          },
+          style: {
+            marginLeft: "0.5rem",
+            color: colorTheme.palette.primary.main,
+            background: "transparent",
+            border: `1px solid ${colorTheme.palette.primary.dark}`,
+            textTransform: "capitalize",
+            padding: "0 .6rem",
+            fontSize: "0.75rem",
+            borderRadius: "1rem",
+          },
+        },
       ],
     },
     MuiCircularProgress: {
@@ -378,6 +394,15 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
+    MuiDialog: {
+      styleOverrides: {
+        root: {
+          ".MuiPaper-root": {
+            borderRadius: "1.125rem",
+          },
+        },
+      },
+    },
     MuiDialogContent: {
       styleOverrides: {
         root: {
@@ -387,7 +412,6 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-
     MuiChip: {
       styleOverrides: {
         root: {
@@ -407,6 +431,20 @@ const theme = createTheme(colorTheme, {
           },
         },
       },
+    },
+    MuiPaper: {
+      variants: [
+        {
+          props: {
+            variant: "outlined",
+          },
+          style: {
+            background: colorTheme.palette.secondary.contrastText,
+            border: `1px solid ${colorTheme.palette.secondary.light}`,
+            borderRadius: "1.125rem",
+          },
+        },
+      ],
     },
   },
 })

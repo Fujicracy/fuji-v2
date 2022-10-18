@@ -36,294 +36,288 @@ export default function TransactionSummary() {
   const closePreviewTransaction = () => setAnchorEl(null)
 
   return (
-    <Container>
-      <Grid container alignItems="center" justifyContent="space-between">
-        <Card
+    <>
+      <Card
+        sx={{
+          width: "88%",
+          padding: "1rem 1rem",
+          position: "fixed",
+          bottom: "2rem",
+          left: "6%",
+          right: "6%",
+          pb: 0,
+        }}
+      >
+        <CardContent sx={{ p: 0, width: "100%" }}>
+          <CardActionArea onClick={openPreviewTransaction}>
+            <Grid container justifyContent="space-between">
+              <Typography onClick={openPreviewTransaction} variant="body2">
+                Transaction Summary
+              </Typography>
+
+              {isOpen ? (
+                <KeyboardArrowDownIcon
+                  sx={{
+                    border: "1px solid",
+                    borderRadius: "0.5rem",
+                  }}
+                />
+              ) : (
+                <KeyboardArrowUpIcon
+                  sx={{
+                    border: "1px solid",
+                    borderRadius: "0.5rem",
+                  }}
+                />
+              )}
+            </Grid>
+          </CardActionArea>
+        </CardContent>
+      </Card>
+
+      <Dialog
+        fullWidth
+        onClose={closePreviewTransaction}
+        open={isOpen}
+        sx={{ backdropFilter: "blur(0.313rem)" }}
+      >
+        <DialogContent
           sx={{
-            width: "88%",
-            padding: "1rem 1rem",
             position: "fixed",
             bottom: "2rem",
-            left: "6%",
-            right: "6%",
-            pb: 0,
+            left: "50%",
+            width: "94%",
+            maxHeight: "90%",
+            transform: "translateX(-50%)",
+            background: "transparent",
           }}
         >
-          <CardContent sx={{ p: 0, width: "100%" }}>
-            <CardActionArea onClick={openPreviewTransaction}>
-              <Grid container justifyContent="space-between">
-                <Typography onClick={openPreviewTransaction} variant="body2">
-                  Transaction Summary
-                </Typography>
-
-                {isOpen ? (
-                  <KeyboardArrowDownIcon
-                    sx={{
-                      border: "1px solid",
-                      borderRadius: "0.5rem",
-                    }}
-                  />
-                ) : (
-                  <KeyboardArrowUpIcon
-                    sx={{
-                      border: "1px solid",
-                      borderRadius: "0.5rem",
-                    }}
-                  />
-                )}
-              </Grid>
-            </CardActionArea>
-          </CardContent>
-        </Card>
-
-        <Dialog
-          fullWidth
-          onClose={closePreviewTransaction}
-          open={isOpen}
-          sx={{
-            backdropFilter: "blur(0.313rem)",
-          }}
-        >
-          <DialogContent
+          <Card
             sx={{
-              position: "fixed",
-              bottom: "2rem",
-              left: "50%",
-              width: "94%",
-              maxHeight: "90%",
-              transform: "translateX(-50%)",
-              background: "transparent",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "1rem 1rem",
             }}
           >
-            <Card
-              sx={{
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "1rem 1rem",
-              }}
-            >
-              <CardContent sx={{ width: "100%", p: 0, gap: "1rem" }}>
-                <CardActionArea onClick={closePreviewTransaction}>
-                  <Grid container justifyContent="space-between">
-                    <Typography variant="body2">Transaction Summary</Typography>
-                    {isOpen ? (
-                      <KeyboardArrowDownIcon
-                        sx={{
-                          border: "1px solid",
-                          borderRadius: "0.5rem",
-                        }}
-                      />
-                    ) : (
-                      <KeyboardArrowUpIcon
-                        sx={{
-                          border: "1px solid",
-                          borderRadius: "0.5rem",
-                        }}
-                      />
-                    )}
-                  </Grid>
-                </CardActionArea>
+            <CardContent sx={{ width: "100%", p: 0, gap: "1rem" }}>
+              <CardActionArea onClick={closePreviewTransaction}>
+                <Grid container justifyContent="space-between">
+                  <Typography variant="body2">Transaction Summary</Typography>
+                  {isOpen ? (
+                    <KeyboardArrowDownIcon
+                      sx={{
+                        border: "1px solid",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
+                  ) : (
+                    <KeyboardArrowUpIcon
+                      sx={{
+                        border: "1px solid",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
+                  )}
+                </Grid>
+              </CardActionArea>
 
-                <Divider sx={{ mt: "1.375rem", mb: "1rem" }} />
+              <Divider sx={{ mt: "1.375rem", mb: "1rem" }} />
 
-                <Grid container direction="column" rowSpacing="0.75rem">
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">
-                      Collateral Provided
-                    </Typography>
-                    <Typography variant="small">1ETH (~1800.00)</Typography>
-                  </Grid>
-
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">Borrowed Value</Typography>
-                    <Typography variant="small">$675.00 (675 USDC)</Typography>
-                  </Grid>
-
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">
-                      Liquidation Price
-                    </Typography>
-                    <Typography variant="small">
-                      $1500.00 (
-                      <span
-                        style={{
-                          color: palette.success.main,
-                        }}
-                      >
-                        ~25%
-                      </span>{" "}
-                      below)
-                    </Typography>
-                  </Grid>
-
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">
-                      Current Price (ETH)
-                    </Typography>
-                    <Typography variant="small">$2000.00</Typography>
-                  </Grid>
+              <Grid container direction="column" rowSpacing="0.75rem">
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">
+                    Collateral Provided
+                  </Typography>
+                  <Typography variant="small">1ETH (~1800.00)</Typography>
                 </Grid>
 
-                <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">Borrowed Value</Typography>
+                  <Typography variant="small">$675.00 (675 USDC)</Typography>
+                </Grid>
 
-                <LTVProgressBar borrowLimit={0} value={40} />
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">Liquidation Price</Typography>
+                  <Typography variant="small">
+                    $1500.00 (
+                    <span
+                      style={{
+                        color: palette.success.main,
+                      }}
+                    >
+                      ~25%
+                    </span>{" "}
+                    below)
+                  </Typography>
+                </Grid>
 
-                <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">
+                    Current Price (ETH)
+                  </Typography>
+                  <Typography variant="small">$2000.00</Typography>
+                </Grid>
+              </Grid>
 
-                <Typography variant="body2">Details</Typography>
+              <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
-                <br />
+              <LTVProgressBar borrowLimit={0} value={40} />
 
-                <Grid container direction="column" rowSpacing="0.75rem">
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">Current LTV</Typography>
-                    <Typography variant="small">45%</Typography>
-                  </Grid>
+              <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">
-                      Liquidation threshold
-                    </Typography>
-                    <Typography variant="small">75%</Typography>
-                  </Grid>
+              <Typography variant="body2">Details</Typography>
 
-                  <Grid
-                    item
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography variant="smallDark">
-                      Collateral will be deposit into
-                    </Typography>
+              <br />
 
-                    <Grid item>
-                      <Grid container alignItems="center">
-                        <Image
-                          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                          height={18}
-                          width={18}
-                          alt="Ethereum icon"
-                        />
-                        <Typography sx={{ ml: "0.375rem" }} variant="small">
-                          Aave V2
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Grid>
+              <Grid container direction="column" rowSpacing="0.75rem">
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">Current LTV</Typography>
+                  <Typography variant="small">45%</Typography>
+                </Grid>
+
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">
+                    Liquidation threshold
+                  </Typography>
+                  <Typography variant="small">75%</Typography>
+                </Grid>
+
+                <Grid
+                  item
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography variant="smallDark">
+                    Collateral will be deposit into
+                  </Typography>
 
                   <Grid item>
-                    <Grid container justifyContent="space-between">
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <Typography variant="smallDark">
-                          Borrow Interest (APR)
-                        </Typography>
-
-                        <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
-                          <InfoOutlinedIcon
-                            sx={{
-                              ml: "0.4rem",
-                              fontSize: "0.875rem",
-                              color: palette.info.dark,
-                              display: { xs: "none", sm: "inline" },
-                            }}
-                          />
-                        </Tooltip>
-                        <ClickableTooltip
-                          title="APR, or annual percentage rate, represents the price you pay to borrow money."
-                          placement="bottom"
-                        >
-                          <InfoOutlinedIcon
-                            sx={{
-                              ml: "0.4rem",
-                              fontSize: "0.875rem",
-                              color: palette.info.dark,
-                            }}
-                          />
-                        </ClickableTooltip>
-                      </div>
-                      <Box>
-                        <Box
-                          sx={{ alignItems: "center", cursor: "pointer" }}
-                          onClick={() => setShowProvider(!showProvider)}
-                        >
-                          <Typography variant="small">
-                            Aave:{" "}
-                            <span
-                              style={{
-                                color: palette.success.main,
-                              }}
-                            >
-                              1.83%
-                            </span>
-                            <Divider
-                              sx={{
-                                marginLeft: "0.531rem",
-                                marginRight: "0.25rem",
-                                borderRight: `0.063rem solid ${palette.text.secondary}`,
-                                borderBottom: 0,
-                                display: "inline",
-                              }}
-                            />
-                          </Typography>
-                          {showProvider ? (
-                            <CancelIcon
-                              sx={{
-                                marginLeft: "0.25rem",
-                                cursor: "pointer",
-                                fontSize: "0.875rem",
-                              }}
-                            />
-                          ) : (
-                            <AddCircleIcon
-                              sx={{
-                                marginLeft: "0.25rem",
-                                cursor: "pointer",
-                                fontSize: "0.875rem",
-                              }}
-                            />
-                          )}
-                        </Box>
-                        <Collapse in={showProvider} sx={{ mt: "0.25rem" }}>
-                          <Typography
-                            variant="smallDark"
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              ":hover": {
-                                color: palette.text.primary,
-                              },
-                            }}
-                          >
-                            <span>DForce:</span>
-                            <span>3.33%</span>
-                          </Typography>
-                        </Collapse>
-                      </Box>
+                    <Grid container alignItems="center">
+                      <Image
+                        src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+                        height={18}
+                        width={18}
+                        alt="Ethereum icon"
+                      />
+                      <Typography sx={{ ml: "0.375rem" }} variant="small">
+                        Aave V2
+                      </Typography>
                     </Grid>
                   </Grid>
                 </Grid>
-              </CardContent>
-            </Card>
-          </DialogContent>
-        </Dialog>
-      </Grid>
-    </Container>
+
+                <Grid item>
+                  <Grid container justifyContent="space-between">
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <Typography variant="smallDark">
+                        Borrow Interest (APR)
+                      </Typography>
+
+                      <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
+                        <InfoOutlinedIcon
+                          sx={{
+                            ml: "0.4rem",
+                            fontSize: "0.875rem",
+                            color: palette.info.dark,
+                            display: { xs: "none", sm: "inline" },
+                          }}
+                        />
+                      </Tooltip>
+                      <ClickableTooltip
+                        title="APR, or annual percentage rate, represents the price you pay to borrow money."
+                        placement="bottom"
+                      >
+                        <InfoOutlinedIcon
+                          sx={{
+                            ml: "0.4rem",
+                            fontSize: "0.875rem",
+                            color: palette.info.dark,
+                          }}
+                        />
+                      </ClickableTooltip>
+                    </div>
+                    <Box>
+                      <Box
+                        sx={{ alignItems: "center", cursor: "pointer" }}
+                        onClick={() => setShowProvider(!showProvider)}
+                      >
+                        <Typography variant="small">
+                          Aave:{" "}
+                          <span
+                            style={{
+                              color: palette.success.main,
+                            }}
+                          >
+                            1.83%
+                          </span>
+                          <Divider
+                            sx={{
+                              marginLeft: "0.531rem",
+                              marginRight: "0.25rem",
+                              borderRight: `0.063rem solid ${palette.text.secondary}`,
+                              borderBottom: 0,
+                              display: "inline",
+                            }}
+                          />
+                        </Typography>
+                        {showProvider ? (
+                          <CancelIcon
+                            sx={{
+                              marginLeft: "0.25rem",
+                              cursor: "pointer",
+                              fontSize: "0.875rem",
+                            }}
+                          />
+                        ) : (
+                          <AddCircleIcon
+                            sx={{
+                              marginLeft: "0.25rem",
+                              cursor: "pointer",
+                              fontSize: "0.875rem",
+                            }}
+                          />
+                        )}
+                      </Box>
+                      <Collapse in={showProvider} sx={{ mt: "0.25rem" }}>
+                        <Typography
+                          variant="smallDark"
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            ":hover": {
+                              color: palette.text.primary,
+                            },
+                          }}
+                        >
+                          <span>DForce:</span>
+                          <span>3.33%</span>
+                        </Typography>
+                      </Collapse>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

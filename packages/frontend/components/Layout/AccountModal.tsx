@@ -49,11 +49,7 @@ export default function AccountModal(props: AccountModalProps) {
   }
 
   return (
-    <Dialog
-      onClose={props.closeAccountModal}
-      open={props.isOpen}
-      sx={{ ".MuiPaper-root": { background: "transparent" } }}
-    >
+    <Dialog onClose={props.closeAccountModal} open={props.isOpen}>
       <DialogContent
         sx={{
           p: "1.5rem",
@@ -81,35 +77,11 @@ export default function AccountModal(props: AccountModalProps) {
         >
           <CardContent>
             <Grid container alignItems="center">
-              <Typography variant="xsmall" sx={{ mr: "5.625rem" }}>
+              <Typography variant="xsmall" sx={{ mr: "9rem" }}>
                 Connected with MetaMask
               </Typography>
-              <Button
-                sx={{
-                  ml: "0.5rem",
-                  color: palette.primary.main,
-                  background: "transparent",
-                  border: `1px solid ${palette.primary.dark}`,
-                  textTransform: "capitalize",
-                  p: "0 .6rem",
-                  fontSize: "0.75rem",
-                }}
-                onClick={() => logout()}
-              >
+              <Button variant="small" onClick={() => logout()}>
                 Disconnect
-              </Button>
-              <Button
-                sx={{
-                  ml: "0.5rem",
-                  color: palette.primary.main,
-                  background: "transparent",
-                  border: `1px solid ${palette.primary.dark}`,
-                  textTransform: "capitalize",
-                  p: "0 .6rem",
-                  fontSize: "0.75rem",
-                }}
-              >
-                Change
               </Button>
             </Grid>
             <Grid container alignItems="center">
