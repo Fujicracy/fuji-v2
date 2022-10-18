@@ -9,6 +9,6 @@ pragma solidity 0.8.15;
 
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 
-interface IChiefAccessHelper is IAccessControl {
+interface IChief is IAccessControl {
   function timelock() external view returns (address);
 }

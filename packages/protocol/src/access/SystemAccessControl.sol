@@ -8,14 +8,14 @@ pragma solidity 0.8.15;
  * should call {Chief} for access control checks.
  */
 
-import {IChiefAccessHelper} from "../interfaces/IChiefAccessHelper.sol";
+import {IChief} from "../interfaces/IChief.sol";
 import {CoreRoles} from "./CoreRoles.sol";
 
 contract SystemAccessControl is CoreRoles {
   error SystemAccessControl__missingRole(address caller, bytes32 role);
   error SystemAccessControl__callerIsNotTimeLock();
 
-  IChiefAccessHelper public immutable chief;
+  IChief public immutable chief;
 
   modifier hasRole(address caller, bytes32 role) {
     if (!chief.hasRole(role, caller)) {
@@ -32,6 +32,6 @@ contract SystemAccessControl is CoreRoles {
   }
 
   constructor(address chief_) {
-    chief = IChiefAccessHelper(chief_);
+    chief = IChief(chief_);
   }
 }
