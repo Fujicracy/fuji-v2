@@ -515,14 +515,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// inheritdoc IVault
   function setMinDepositAmount(uint256 amount) external override onlyTimeLock {
-    // TODO needs admin restriction
     minDepositAmount = amount;
     emit MinDepositAmountChanged(amount);
   }
 
   /// inheritdoc IVault
   function setDepositCap(uint256 newCap) external override onlyTimeLock {
-    // TODO needs admin restriction
     if (newCap == 0 || newCap <= minDepositAmount) {
       revert BaseVault__setter_invalidInput();
     }
