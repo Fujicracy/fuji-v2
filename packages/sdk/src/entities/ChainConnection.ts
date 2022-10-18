@@ -3,7 +3,6 @@ import {
   WebSocketProvider,
 } from '@ethersproject/providers';
 import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
-import invariant from 'tiny-invariant';
 
 import {
   ALCHEMY_WSS_URL,
@@ -48,8 +47,7 @@ export class ChainConnection {
       let wss: string | null = INFURA_WSS_URL[chainId](params.infuraId);
       if (!wss) {
         const alchemyId = params.alchemy[chainId];
-        invariant(alchemyId, `No "alchemyId" provided for chain ${chainId}!`);
-        wss = ALCHEMY_WSS_URL[chainId](alchemyId);
+        wss = alchemyId ? ALCHEMY_WSS_URL[chainId](alchemyId) : null;
       }
       const wssProvider = wss ? new WebSocketProvider(wss) : undefined;
 
