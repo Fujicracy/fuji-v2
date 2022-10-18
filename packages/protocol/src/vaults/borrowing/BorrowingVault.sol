@@ -316,6 +316,7 @@ contract BorrowingVault is BaseVault {
    */
   function _borrow(address caller, address receiver, address owner, uint256 assets, uint256 shares)
     internal
+    whenNotPaused(VaultActions.Borrow)
   {
     _mintDebtShares(owner, shares);
 
@@ -330,7 +331,10 @@ contract BorrowingVault is BaseVault {
   /**
    * @dev Payback/burnDebtShares common workflow.
    */
-  function _payback(address caller, address owner, uint256 assets, uint256 shares) internal {
+  function _payback(address caller, address owner, uint256 assets, uint256 shares)
+    internal
+    whenNotPaused(VaultActions.Payback)
+  {
     address asset = debtAsset();
     SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
 

@@ -19,8 +19,9 @@ import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../helpers/SystemAccessControl.sol";
+import {PausableVault} from "./PausableVault.sol";
 
-abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVault {
+abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
 
@@ -296,7 +297,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVa
   /**
    * @dev Perform _deposit adding flow at provider {IERC4626-deposit}.
    */
-  function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal {
+  function _deposit(address caller, address receiver, uint256 assets, uint256 shares)
+    internal
+    whenNotPaused(VaultActions.Deposit)
+  {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
     _executeProviderAction(asset(), assets, "deposit");
     _mint(receiver, shares);
@@ -315,6 +319,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVa
     uint256 shares
   )
     internal
+    whenNotPaused(VaultActions.Withdraw)
   {
     _burn(owner, shares);
     _executeProviderAction(asset(), assets, "withdraw");
@@ -523,6 +528,31 @@ abstract contract BaseVault is ERC20, SystemAccessControl, VaultPermissions, IVa
     }
     depositCap = newCap;
     emit DepositCapChanged(newCap);
+  }
+
+  /// inheritdoc PausableVault
+  function pauseForceAll() external override hasRole(msg.sender, PAUSER_ROLE) {
+    _pauseForceAllActions();
+  }
+
+  /// inheritdoc PausableVault
+  function unpauseForceAll() external override hasRole(msg.sender, UNPAUSER_ROLE) {
+    _unpauseForceAllActions();
+  }
+
+  /// inheritdoc PausableVault
+  function pause(VaultActions action) external virtual override hasRole(msg.sender, PAUSER_ROLE) {
+    _pause(action);
+  }
+
+  /// inheritdoc PausableVault
+  function unpause(VaultActions action)
+    external
+    virtual
+    override
+    hasRole(msg.sender, UNPAUSER_ROLE)
+  {
+    _unpause(action);
   }
 
   /**
