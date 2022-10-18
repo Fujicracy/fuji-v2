@@ -12,6 +12,7 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
+  /// TODO rebalancing implementation.
   struct RebalanceAction {
     uint256 amount;
     address asset;
@@ -201,6 +202,7 @@ interface IVault is IERC4626 {
    * - MUST emit the Rebalancing event.
    *
    */
+  /// TODO rebalancing implementation.
   function rebalance(RebalanceAction[] memory actions) external returns (bool);
 
   ///  Liquidation Functions
