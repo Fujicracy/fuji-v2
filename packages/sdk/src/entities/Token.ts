@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 import warning from 'tiny-warning';
 
-import { CHAIN } from '../constants';
+import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
