@@ -1,7 +1,12 @@
 import { Token } from '../entities/Token';
 import { ChainId } from '../enums';
 import { TokenMap } from '../types';
-import { USDC_ADDRESS, WETH9_ADDRESS, WNATIVE_ADDRESS } from './addresses';
+import {
+  DAI_ADDRESS,
+  USDC_ADDRESS,
+  WETH9_ADDRESS,
+  WNATIVE_ADDRESS,
+} from './addresses';
 
 export const USDC: TokenMap = {
   [ChainId.ETHEREUM]: new Token(
@@ -59,6 +64,65 @@ export const USDC: TokenMap = {
     6,
     'USDC',
     'USD Coin'
+  ),
+};
+
+export const DAI: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    DAI_ADDRESS[ChainId.ETHEREUM],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    DAI_ADDRESS[ChainId.GOERLI],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    DAI_ADDRESS[ChainId.MATIC],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    DAI_ADDRESS[ChainId.MATIC_MUMBAI],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    DAI_ADDRESS[ChainId.FANTOM],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    DAI_ADDRESS[ChainId.ARBITRUM],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    DAI_ADDRESS[ChainId.OPTIMISM],
+    18,
+    'DAI',
+    'Dai Stablecoin'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    DAI_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'DAI',
+    'Dai Stablecoin'
   ),
 };
 
