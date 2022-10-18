@@ -80,34 +80,32 @@ contract VaultTest is DSTestPlus, CoreRoles {
   }
 
   function _utils_setupTestRoles() internal {
+    // Grant this test address all roles.
     chief.grantRole(TIMELOCK_PROPOSER_ROLE, address(this));
     chief.grantRole(TIMELOCK_EXECUTOR_ROLE, address(this));
     chief.grantRole(REBALANCER_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    chief.grantRole(LIQUIDATOR_ROLE, bob);
+  }
+
+  function _utils_callWithTimeLock(bytes memory sendData) internal {
+    timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
+    vm.warp(block.timestamp + 2 days);
+    timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
+    rewind(2 days);
   }
 
   function _utils_setupVaultProvider() internal {
     _utils_setupTestRoles();
-
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-
     bytes memory sendData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-
-    timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
-
-    vm.warp(block.timestamp + 2 days);
-
-    timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
-
+    _utils_callWithTimeLock(sendData);
     vault.setActiveProvider(mockProvider);
-
-    rewind(2 days);
   }
 
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
     deal(address(asset), who, amount);
-
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -200,12 +198,14 @@ contract VaultTest is DSTestPlus, CoreRoles {
   function test_setMinDeposit(uint256 min) public {
     vm.expectEmit(true, false, false, false);
     emit MinDepositAmountChanged(min);
-    vault.setMinDepositAmount(min);
+    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimeLock(sendData);
   }
 
   function test_tryLessThanMinDeposit(uint256 min, uint256 amount) public {
     vm.assume(amount < min);
-    vault.setMinDepositAmount(min);
+    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimeLock(sendData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
@@ -216,13 +216,15 @@ contract VaultTest is DSTestPlus, CoreRoles {
     vm.assume(maxCap > 0);
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
-    vault.setDepositCap(maxCap);
+    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimeLock(sendData);
   }
 
   function test_tryMaxCap() public {
     /*vm.assume(maxCap > 0 && depositAlice > 0 && depositBob > 0 && depositBob + depositAlice >= maxCap && depositAlice < maxCap);*/
     uint256 maxCap = 5 ether;
-    vault.setDepositCap(maxCap);
+    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimeLock(sendData);
 
     uint256 depositAlice = 4.5 ether;
     _utils_doDeposit(depositAlice, vault, alice);
@@ -274,7 +276,6 @@ contract VaultTest is DSTestPlus, CoreRoles {
 
     // Alice's position is still healthy (price 1889*1e18) so expect a liquidation call to revert:
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
-    chief.grantRole(LIQUIDATOR_ROLE, bob);
     vm.prank(bob);
     vault.liquidate(alice, bob);
   }
@@ -300,7 +301,6 @@ contract VaultTest is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
 
-    chief.grantRole(LIQUIDATOR_ROLE, bob);
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice, bob);
@@ -338,7 +338,6 @@ contract VaultTest is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
 
-    chief.grantRole(LIQUIDATOR_ROLE, bob);
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice, bob);
