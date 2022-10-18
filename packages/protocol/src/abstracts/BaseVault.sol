@@ -18,7 +18,7 @@ import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
-import {SystemAccessControl} from "../helpers/SystemAccessControl.sol";
+import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PausableVault} from "./PausableVault.sol";
 
 abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {

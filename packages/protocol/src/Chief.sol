@@ -5,8 +5,8 @@ import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessContr
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
-import {CoreRoles} from "./helpers/CoreRoles.sol";
-import {TimeLock} from "./helpers/TimeLock.sol";
+import {CoreRoles} from "./access/CoreRoles.sol";
+import {TimeLock} from "./access/TimeLock.sol";
 
 /// @dev Custom Errors
 error Chief__ZeroAddress();

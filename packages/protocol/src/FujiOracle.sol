@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {SystemAccessControl} from "./helpers/SystemAccessControl.sol";
+import {SystemAccessControl} from "./access/SystemAccessControl.sol";
 import {IAggregatorV3} from "./interfaces/chainlink/IAggregatorV3.sol";
 import {IFujiOracle} from "./interfaces/IFujiOracle.sol";
 
