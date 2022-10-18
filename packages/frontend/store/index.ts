@@ -39,13 +39,10 @@ const walletConnect = walletConnectModule({
 })
 
 export type Chain = IChain
+
 export const sdk = new Sdk({
   infuraId: "4f80981ed6b54f3b94ef23423f1b2353",
-  alchemy: {},
 })
-
-//const collaterals = sdk.getCollateralForChain('0x1')
-console.log(sdk)
 
 export const chains: Chain[] = [
   {

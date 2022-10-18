@@ -15,12 +15,17 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
-import { chains } from "../../store"
+import { chains, sdk } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
+import { ChainId } from "@x-fuji/sdk"
 
 export default function Borrow() {
   const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
+  const chainIds = ChainId
+
+  const collaterals = sdk.getCollateralForChain(chainIds["ETHEREUM"])
+  console.log(collaterals)
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
   const [collateralValue, setCollateralValue] = useState("")
