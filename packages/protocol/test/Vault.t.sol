@@ -103,6 +103,27 @@ contract VaultTest is DSTestPlus {
     return borrowAmount < maxBorrow;
   }
 
+  function _utils_getHealthFactor(uint96 amount, uint96 borrowAmount) internal view returns (uint256) {
+    uint8 debtDecimals = 18;
+    uint8 assetDecimals = 18;
+    uint256 liqRatio = 75 * 1e16;
+
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
+    
+    uint256 hf = ((amount * liqRatio * price) / (borrowAmount * 1e18 * 10 ** assetDecimals));
+    return hf;
+  }
+
+  function _utils_getFutureHealthFactor(uint96 amount, uint96 borrowAmount, uint80 priceDrop) internal view returns (uint256) {
+    uint256 hf_0 = _utils_getHealthFactor(amount, borrowAmount);
+    uint8 debtDecimals = 18;
+
+    uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
+    uint256 hf_1 = hf_0 * priceBefore / (priceBefore - priceDrop);
+    
+    return hf_1;
+  }
+
   function _utils_add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
     require(c >= a);
@@ -243,7 +264,7 @@ contract VaultTest is DSTestPlus {
   }
 
   function test_tryLiquidateHealthy(uint96 amount, uint96 borrowAmount) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_multiply(borrowAmount, 100) <= _utils_multiply(amount, 75));
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
@@ -251,15 +272,16 @@ contract VaultTest is DSTestPlus {
     vault.liquidate(alice, bob);
   }
 
-  function test_liquidateMax() public {
-    uint256 amount = 1 ether;
-    uint256 borrowAmount = 900e18;
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+  function test_liquidateMax(uint32 amount, uint32 borrowAmount, uint32 liquidatorAmount, uint8 priceDrop) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0 && liquidatorAmount > borrowAmount && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) <= 95 && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) > 0 );
 
-    // price drop from 1889*1e18 to 1000*1e18
-    _utils_setPrice(address(asset), address(debtAsset), 1000000000000000);
-    _utils_setPrice(address(debtAsset), address(asset), 1000e18);
-    uint256 liquidatorAmount = 2000e18;
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice); 
+
+    // price drop 
+    uint256 currentPrice = oracle.getPriceOf(address(asset), address(debtAsset), 18);
+    uint256 price = currentPrice - priceDrop;
+    _utils_setPrice(address(asset), address(debtAsset), price);
+    _utils_setPrice(address(debtAsset), address(asset), 1e18 / price);
     deal(address(debtAsset), bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
