@@ -31,21 +31,24 @@ type AccountModalProps = {
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
   const logout = useStore((state) => state.logout)
+  const transactionStatus = useTransactionStore(
+    (state) => state.transactionStatus
+  )
+  const [showSnackbar, setShowSnackbar] = useState(false)
 
-  const { transactionStatus } = useTransactionStore((state) => ({
-    transactionStatus: state.transactionStatus,
-  }))
+  const addr = props.address
+  const formattedAddress = `${addr.substring(0, 5)}...${addr.substring(-4, 4)}`
 
-  const [copyAddress, setCopyAddress] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(props.address)
+    setShowSnackbar(true)
+  }
 
-  const handleClose = (
-    event: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
+  const handleClose = (_, reason?: string) => {
     if (reason === "clickaway") {
       return
     }
-    setCopyAddress(false)
+    setShowSnackbar(false)
   }
 
   return (
@@ -91,7 +94,7 @@ export default function AccountModal(props: AccountModalProps) {
             <Grid container alignItems="center">
               <CircleIcon />
               <Typography variant="h5" ml="0.5rem" mt="0.625rem" mb="0.625rem">
-                {props.address}
+                {formattedAddress}
               </Typography>
             </Grid>
 
@@ -101,10 +104,7 @@ export default function AccountModal(props: AccountModalProps) {
                   container
                   alignItems="center"
                   sx={{ cursor: "pointer" }}
-                  onClick={() => {
-                    navigator.clipboard.writeText(props.address)
-                    setCopyAddress(true)
-                  }}
+                  onClick={copy}
                 >
                   <ContentCopyIcon
                     fontSize="small"
@@ -114,7 +114,7 @@ export default function AccountModal(props: AccountModalProps) {
                     Copy Address
                   </Typography>
                   <Snackbar
-                    open={copyAddress}
+                    open={showSnackbar}
                     autoHideDuration={2000}
                     onClose={handleClose}
                   >
@@ -130,7 +130,7 @@ export default function AccountModal(props: AccountModalProps) {
               </Grid>
               <Grid item>
                 <a
-                  href={"https://etherscan.io/address/" + props.address}
+                  href={"https://etherscan.io/address/" + props.address} // TODO: This link only work on mainnet. Make it work with any scanner
                   target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
                   rel="noreferrer"
                 >

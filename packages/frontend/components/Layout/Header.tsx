@@ -355,7 +355,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       <AccountModal
         isOpen={showAccountModal}
         closeAccountModal={() => setShowAccountModal(false)}
-        address={formattedAddress}
+        address={address}
       />
     </Box>
   )
