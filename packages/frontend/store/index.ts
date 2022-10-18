@@ -211,6 +211,7 @@ function onOnboardChange() {
     if (balance && balance !== get().balance) {
       set({ balance })
     }
+    console.log(balance)
 
     const address = w[0].accounts[0].address
     if (address && address !== get().address) {

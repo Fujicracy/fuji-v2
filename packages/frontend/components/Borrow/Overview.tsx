@@ -31,10 +31,6 @@ export default function Overview() {
         width: "100%",
       }}
     >
-      <p>
-        Current state: <code>...</code>
-      </p>
-
       <Grid container alignItems="center" justifyContent="space-between">
         <Card
           sx={{

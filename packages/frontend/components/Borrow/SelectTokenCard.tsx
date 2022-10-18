@@ -11,6 +11,7 @@ import {
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
+import { Token } from "@x-fuji/sdk"
 
 import styles from "../../styles/components/Borrow.module.css"
 
@@ -19,11 +20,13 @@ declare interface SelectTokenCardProps {
   onChangeValue: (e: React.ChangeEvent<HTMLInputElement>) => void
   token: string
   onChangeToken: (e: SelectChangeEvent<string>) => void
-  tokens: string[]
+  tokens: Token[]
   type: "collateral" | "borrow"
 }
 
 export default function SelectTokenCard(props: SelectTokenCardProps) {
+  console.log(props.tokens)
+
   return (
     <Card variant="outlined">
       <div className={styles.cardLine}>
@@ -58,17 +61,17 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               variant="standard"
               disableUnderline
             >
-              {props.tokens.map((token: string) => (
-                <MenuItem key={token} value={token}>
+              {props.tokens.map((token: Token) => (
+                <MenuItem key={token.name} value={token.symbol}>
                   <Grid container>
                     <Image
-                      src={`/assets/images/protocol-icons/tokens/${token}.svg`}
+                      src={`/assets/images/protocol-icons/tokens/${token.symbol}.svg`}
                       height={24}
                       width={24}
-                      alt={token}
+                      alt={token.name}
                     />
                     <span style={{ marginLeft: "0.5rem" }}>
-                      <Typography variant="h6">{token}</Typography>
+                      <Typography variant="h6">{token.symbol}</Typography>
                     </span>
                   </Grid>
                 </MenuItem>

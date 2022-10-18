@@ -18,22 +18,20 @@ import Image from "next/image"
 import { chains, sdk } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
-import { ChainId } from "@x-fuji/sdk"
 
 export default function Borrow() {
-  const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
-  const chainIds = ChainId
-
-  const collaterals = sdk.getCollateralForChain(chainIds["ETHEREUM"])
-  console.log(collaterals)
+  const collateralTokens = sdk.getCollateralForChain(parseInt(chains[0].id))
+  const borrowTokens = sdk.getCollateralForChain(parseInt(chains[0].id))
 
   const [collateralChainId, setCollateralChain] = useState(chains[0].id)
   const [collateralValue, setCollateralValue] = useState("")
-  const [collateralToken, setCollateralToken] = useState(tokens[0])
+  const [collateralToken, setCollateralToken] = useState(
+    collateralTokens[0].symbol
+  )
 
-  const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
+  const [borrowChainId, setBorrowChainId] = useState(borrowTokens[0].symbol)
   const [borrowValue, setBorrowValue] = useState("")
-  const [borrowToken, setBorrowToken] = useState(tokens[1])
+  const [borrowToken, setBorrowToken] = useState(borrowTokens[0].symbol)
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
@@ -108,7 +106,7 @@ export default function Borrow() {
             onChangeValue={(e) => setCollateralValue(e.target.value)}
             token={collateralToken}
             onChangeToken={(e) => setCollateralToken(e.target.value)}
-            tokens={tokens}
+            tokens={collateralTokens}
             type="collateral"
           />
 
@@ -163,7 +161,7 @@ export default function Borrow() {
             onChangeValue={(e) => setBorrowValue(e.target.value)}
             token={borrowToken}
             onChangeToken={(e) => setBorrowToken(e.target.value)}
-            tokens={tokens}
+            tokens={borrowTokens}
             type="borrow"
           />
 
