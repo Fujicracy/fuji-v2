@@ -9,16 +9,16 @@ import {
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId } from './enums';
-import { ConfigParams } from './types';
+import { ChainConfig } from './types';
 
 export class Sdk {
   /**
-   * ConfigParams object containing Infura and Alchemy ids that
+   * ChainConfig object containing Infura and Alchemy ids that
    * are used to create JsonRpcProviders.
    */
-  private _configParams: ConfigParams;
+  private _configParams: ChainConfig;
 
-  constructor(config: ConfigParams) {
+  constructor(config: ChainConfig) {
     this._configParams = config;
   }
 

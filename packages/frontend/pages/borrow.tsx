@@ -1,11 +1,13 @@
-import { Container, Grid } from "@mui/material"
 import { NextPage } from "next"
 import Head from "next/head"
 
-import Borrow from "../components/Borrow"
-import Footer from "../components/Footer"
-import Header from "../components/Header"
-import Overview from "../components/Overview"
+import { Box, Container, Divider, Grid } from "@mui/material"
+
+import Borrow from "../components/Borrow/Borrow"
+import Footer from "../components/Layout/Footer"
+import Header from "../components/Layout/Header"
+import Overview from "../components/Borrow/Overview"
+import TransactionSummary from "../components/Borrow/TransactionSummary"
 
 const BorrowPage: NextPage = () => {
   return (
@@ -21,34 +23,37 @@ const BorrowPage: NextPage = () => {
 
       <Header />
 
-      <Container>
-        <Grid
-          container
-          wrap="wrap"
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-          }}
-        >
+      <Divider sx={{ display: { xs: "block", sm: "none" }, mb: "1rem" }} />
+
+      <Container
+        sx={{
+          mt: { xs: "0", sm: "4rem" },
+          mb: { xs: "7rem", sm: "0" },
+          pl: { xs: "0.25rem", sm: "1rem" },
+          pr: { xs: "0.25rem", sm: "1rem" },
+        }}
+      >
+        <Grid container wrap="wrap" justifyContent="center">
           <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>
           <Grid
-            sx={{
-              display: {
-                xs: "none",
-                sm: "block",
-              },
-            }}
             item
+            sm={12}
             md={7}
+            sx={{ display: { xs: "none", sm: "flex" } }}
           >
             <Overview />
+          </Grid>
+          <Grid item xs={12} sx={{ display: { xs: "flex", sm: "none" } }}>
+            <TransactionSummary />
           </Grid>
         </Grid>
       </Container>
 
-      <Footer />
+      <Box sx={{ display: { xs: "none", sm: "block" } }}>
+        <Footer />
+      </Box>
     </div>
   )
 }

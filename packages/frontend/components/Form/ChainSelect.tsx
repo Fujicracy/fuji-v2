@@ -6,13 +6,22 @@ import {
   Menu,
   MenuItem,
   Stack,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material"
 import Image from "next/image"
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import CheckIcon from "@mui/icons-material/Check"
 import Fade from "@mui/material/Fade"
 
-import { useStore, chains, Chain } from "../../store"
+import { useStore } from "../../store"
+import { chains, Chain } from "../../store/auth.slice"
 
 export default function ChainSelect() {
+  const theme = useTheme()
+  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [chainId, setChainId] = useStore((state) => [
     state.chain?.id,
     state.changeChain,
@@ -30,21 +39,36 @@ export default function ChainSelect() {
     setAnchorEl(null)
   }
 
-  console.log({ chains, currentChain })
-
   return (
     <>
       {currentChain ? (
         <Chip
           label={
-            <Stack direction="row" spacing={1} data-cy="chain">
-              <ListItem chain={currentChain} />
+            <Stack direction="row" spacing={1}>
+              <ListItem
+                chain={currentChain}
+                selected={false}
+                onMobile={onMobile}
+              />
+              {!onMobile && (
+                <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+              )}
             </Stack>
           }
           onClick={openMenu}
         />
       ) : (
-        <Chip label="Unsupported network" onClick={openMenu} color="error" />
+        <Chip
+          label={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <WarningAmberIcon fontSize="inherit" />
+              <Typography fontSize="inherit">Switch network</Typography>
+              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+            </Stack>
+          }
+          onClick={openMenu}
+          color="error"
+        />
       )}
       <Menu
         id="basic-menu"
@@ -52,12 +76,16 @@ export default function ChainSelect() {
         open={isOpen}
         onClose={() => setAnchorEl(null)}
         MenuListProps={{ "aria-labelledby": "basic-button" }}
-        anchorOrigin={{ vertical: "top", horizontal: "left" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         TransitionComponent={Fade}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
-            <ListItem chain={chain} />
+            <ListItem
+              chain={chain}
+              selected={currentChain?.id === chain.id}
+              onMobile={false}
+            />
           </MenuItem>
         ))}
       </Menu>
@@ -65,10 +93,11 @@ export default function ChainSelect() {
   )
 }
 
-type ListItemProps = { chain: Chain }
+type ListItemProps = { chain: Chain; selected: boolean; onMobile: boolean }
 
 const ListItem = (props: ListItemProps) => {
-  const { chain } = props
+  const { chain, selected, onMobile } = props
+  const { palette } = useTheme()
 
   return (
     <>
@@ -80,7 +109,11 @@ const ListItem = (props: ListItemProps) => {
           alt={chain.label}
         />
       </ListItemIcon>
-      <ListItemText>{chain.label}</ListItemText>
+      {!onMobile && <ListItemText>{chain.label}</ListItemText>}
+
+      {selected && (
+        <CheckIcon sx={{ color: palette.primary.main, ml: "2rem" }} />
+      )}
     </>
   )
 }

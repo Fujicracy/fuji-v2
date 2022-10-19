@@ -1,6 +1,7 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import {
@@ -11,7 +12,7 @@ import { ChainId, RouterAction } from '../enums';
 import { getPermitDigest } from '../functions';
 import {
   BorrowParams,
-  ConfigParams,
+  ChainConfig,
   DepositParams,
   LendingProviderDetails,
   PermitParams,
@@ -24,10 +25,25 @@ import {
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
-import { Config } from './Config';
+import { ChainConnection } from './ChainConnection';
+import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
-export class BorrowingVault {
+type AccountBalances = {
+  deposit: BigNumber;
+  borrow: BigNumber;
+};
+
+/**
+ * The BorrowingVault class encapsulates the end-user logic of interation with the
+ * BorrowingVault cotract without the need to deal directly with ethers.js (ABIs, providers etc).
+ *
+ * It contains read-only functions and leaves to the client only the final step of a blockchain write.
+ * The class aims to expose functions that together with user's inputs go throughout the most common
+ * path of interacting with a BorrowingVault contract.
+ */
+
+export class BorrowingVault extends StreamManager {
   /**
    * The chain ID on which this vault resides
    */
@@ -93,6 +109,11 @@ export class BorrowingVault {
   rpcProvider?: JsonRpcProvider;
 
   /**
+   * The RPC provider for the specific chain
+   */
+  wssProvider?: WebSocketProvider;
+
+  /**
    * Map of user address and their nonce for this vault.
    *
    * @remarks
@@ -100,7 +121,7 @@ export class BorrowingVault {
    * A compound operation is one that needs more then one signiture
    * in the same tx.
    */
-  private _cache: Map<Address, BigNumber>;
+  private _cache: Map<string, BigNumber>;
 
   /**
    * Domain separator needed when signing a tx
@@ -121,12 +142,14 @@ export class BorrowingVault {
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
+    super();
+
     this.address = address;
     this.collateral = collateral;
     this.chainId = collateral.chainId;
     this.debt = debt;
 
-    this._cache = new Map<Address, BigNumber>();
+    this._cache = new Map<string, BigNumber>();
     this._domainSeparator = '';
   }
 
@@ -157,10 +180,12 @@ export class BorrowingVault {
   /**
    * Creates a connection by setting an rpc provider.
    *
-   * @param configParams - {@link ConfigParams} object with infura and alchemy ids
+   * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
-  setConnection(configParams: ConfigParams): BorrowingVault {
-    this.rpcProvider = Config.rpcProviderFrom(configParams, this.chainId);
+  setConnection(configParams: ChainConfig): BorrowingVault {
+    const connection = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = connection.rpcProvider;
+    this.wssProvider = connection.wssProvider;
 
     this.contract = BorrowingVault__factory.connect(
       this.address.value,
@@ -198,7 +223,7 @@ export class BorrowingVault {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
 
-    this._cache.set(account, nonce);
+    this._cache.set(account.value, nonce);
     this._domainSeparator = domainSeparator;
   }
 
@@ -258,14 +283,12 @@ export class BorrowingVault {
   }
 
   /**
-   * Returns deposit and borrow balance for an account.
+   * Returns deposit and borrow balances for an account.
    *
    * @param account - user address, wrapped in {@link Address}
    * @throws if {@link setConnection} was not called beforehand
    */
-  async getBalances(
-    account: Address
-  ): Promise<{ deposit: BigNumber; borrow: BigNumber }> {
+  async getBalances(account: Address): Promise<AccountBalances> {
     invariant(this._multicall, 'Connection not set?');
     const [deposit, borrow] = await this._multicall.rpcProvider.all([
       this._multicall.contract.balanceOf(account.value),
@@ -273,6 +296,30 @@ export class BorrowingVault {
     ]);
 
     return { deposit, borrow };
+  }
+
+  /**
+   * Returns a stream of deposit and borrow balances for an account.
+   *
+   * @param account - user address, wrapped in {@link Address}
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  getBalancesStream(account: Address): Observable<AccountBalances> {
+    invariant(this.contract && this.wssProvider, 'Connection not set!');
+    const filters = [
+      this.contract.filters.Deposit(null, account.value),
+      this.contract.filters.Payback(null, account.value),
+      this.contract.filters.Borrow(null, null, account.value),
+      this.contract.filters.Withdraw(null, null, account.value),
+    ];
+
+    return this.streamFrom<Address, AccountBalances>(
+      this.wssProvider,
+      this.getBalances,
+      [account],
+      account,
+      filters
+    );
   }
 
   /**
@@ -329,10 +376,10 @@ export class BorrowingVault {
     const { owner } = params;
 
     // if nonce for this user or domainSeparator aren't loaded yet
-    if (!this._cache.get(owner) || this._domainSeparator === '') {
+    if (!this._cache.get(owner.value) || this._domainSeparator === '') {
       await this.preLoad(owner);
     }
-    const nonce: BigNumber = this._cache.get(owner) as BigNumber;
+    const nonce: BigNumber = this._cache.get(owner.value) as BigNumber;
 
     // if deadline is not given, then set it to approx. 24h
     const deadline: number =
@@ -347,7 +394,7 @@ export class BorrowingVault {
     // update _cache if user has to sign another operation in the same tx
     // For ex. when shifting a position from one vault to another,
     // user has to sign first WITHDRAW and then BORROW
-    this._cache.set(owner, nonce.add(BigNumber.from(1)));
+    this._cache.set(owner.value, nonce.add(BigNumber.from(1)));
 
     return digest;
   }

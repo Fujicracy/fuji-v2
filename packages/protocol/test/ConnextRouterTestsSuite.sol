@@ -5,7 +5,8 @@ import "forge-std/console2.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IExecutor} from "nxtp/core/connext/interfaces/IExecutor.sol";
+import {IExecutor} from "../src/interfaces/connext/IConnext.sol";
+import {ExecutorArgs} from "../src/interfaces/connext/IConnext.sol";
 import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
@@ -103,7 +104,7 @@ contract ConnextRouterTestsSuite is Setup {
     vm.expectEmit(true, true, true, false);
     emit Borrow(address(connextRouter), alice, alice, borrowAmount, borrowAmount);
 
-    IExecutor.ExecutorArgs memory execArgs = IExecutor.ExecutorArgs({
+    ExecutorArgs memory execArgs = ExecutorArgs({
       assetId: collateralAsset,
       amount: amount,
       to: address(connextRouter),
