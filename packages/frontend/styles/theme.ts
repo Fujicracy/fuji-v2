@@ -65,6 +65,7 @@ const colorTheme = createTheme({
     },
     error: {
       main: "#FD4040",
+      dark: "#FC0A54",
     },
     background: {
       paper: "black",

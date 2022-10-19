@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Divider,
   Button,
@@ -13,23 +13,25 @@ import {
   CircularProgress,
   Container,
   Collapse,
+  useTheme,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 import shallow from "zustand/shallow"
+import { BigNumber } from "ethers"
 
 import { Address } from "@x-fuji/sdk"
-import { BigNumber } from "ethers"
-import { getTokenBySymbol } from "../../services/TokenServices"
-import { formatEther } from "ethers/lib/utils"
-import { chains, Chain, sdk } from "../../store/auth.slice"
+import { getTokenBySymbol, hexToDecimal } from "../../services/TokenServices"
+import { chains, sdk } from "../../store/auth.slice"
 import { useStore } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 
 export default function Borrow() {
+  const { palette } = useTheme()
+
   const { address, status } = useStore(
     (state) => ({
       status: state.status,
@@ -41,20 +43,24 @@ export default function Borrow() {
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   const [collateralChainId, setCollateralChainId] = useState(chains[0].id)
-  const [collateralValue, setCollateralValue] = useState("")
+  const [collateralValue, setCollateralValue] = useState(0)
   const [collateralTokens, setCollateralTokens] = useState(
     sdk.getCollateralForChain(parseInt(collateralChainId))
   )
   const [collateralToken, setCollateralToken] = useState(collateralTokens[0])
 
   const [borrowChainId, setBorrowChainId] = useState(chains[2].id)
-  const [borrowValue, setBorrowValue] = useState("")
+  const [borrowValue, setBorrowValue] = useState(0)
   const [borrowTokens, setBorrowTokens] = useState(
     sdk.getDebtForChain(parseInt(borrowChainId))
   )
   const [borrowToken, setBorrowToken] = useState(borrowTokens[0])
 
   const [collateralTokenBalance, setCollateralTokenBalance] = useState(0)
+  const [collateralTokenBalances, setCollateralTokenBalances] = useState<
+    BigNumber[]
+  >([])
+
   const {
     transactionStatus,
     setTransactionStatus,
@@ -68,22 +74,40 @@ export default function Borrow() {
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
-  if (status === "connected") {
-    sdk
-      .getBalanceFor(collateralToken, new Address(String(address)))
-      .then((res: BigNumber) => {
-        const hexString = res._hex.toString()
-        const balance = parseFloat(formatEther(hexString))
-        setCollateralTokenBalance(balance)
-      })
-    // TODO: use getBatchTokenBalances() SDK method!
-  }
+  useEffect(() => {
+    if (status === "connected") {
+      sdk
+        .getBalanceFor(collateralToken, new Address(String(address)))
+        .then((res: BigNumber) => {
+          setCollateralTokenBalance(hexToDecimal(res._hex))
+        })
+
+      /* sdk
+        .getTokenBalancesFor(
+          collateralTokens,
+          new Address(String(address)),
+          parseInt(collateralChainId)
+        )
+        .then((res: BigNumber[]) => {
+          setCollateralTokenBalances(res)
+        }) */
+    }
+  }, [address, collateralChainId, collateralToken, collateralTokens, status])
 
   const handleCollateralChange = (e: SelectChangeEvent<string>) => {
     setCollateralChainId(e.target.value)
     const tokens = sdk.getCollateralForChain(parseInt(e.target.value))
     setCollateralTokens(tokens)
     setCollateralToken(tokens[0])
+    /*  sdk
+      .getTokenBalancesFor(
+        collateralTokens,
+        new Address(String(address)),
+        parseInt(collateralChainId)
+      )
+      .then((res: BigNumber[]) => {
+        setCollateralTokenBalances(res)
+      }) */
   }
 
   const handleBorrowChange = (e: SelectChangeEvent<string>) => {
@@ -160,7 +184,9 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={collateralValue}
-              onChangeValue={(e) => setCollateralValue(e.target.value)}
+              onChangeValue={(e) =>
+                setCollateralValue(parseFloat(e.target.value))
+              }
               token={collateralToken.symbol}
               onChangeToken={(e) =>
                 setCollateralToken(
@@ -170,7 +196,18 @@ export default function Borrow() {
               tokens={collateralTokens}
               type="collateral"
               balance={collateralTokenBalance}
+              balances={collateralTokenBalances}
+              onMaxClicked={() => setCollateralValue(collateralTokenBalance)}
             />
+            {collateralValue > collateralTokenBalance && (
+              <Typography
+                variant="small"
+                mt=".5rem"
+                sx={{ color: palette.error.dark, display: "block" }}
+              >
+                Insufficient balance
+              </Typography>
+            )}
 
             <FormControl>
               <Grid container alignItems="center">
@@ -220,7 +257,7 @@ export default function Borrow() {
 
             <SelectTokenCard
               value={borrowValue}
-              onChangeValue={(e) => setBorrowValue(e.target.value)}
+              onChangeValue={(e) => setBorrowValue(parseFloat(e.target.value))}
               token={borrowToken.symbol}
               onChangeToken={(e) =>
                 setBorrowToken(getTokenBySymbol(e.target.value, borrowTokens))
@@ -228,6 +265,8 @@ export default function Borrow() {
               tokens={borrowTokens}
               type="borrow"
               balance={0}
+              balances={collateralTokenBalances}
+              onMaxClicked={() => setCollateralValue(collateralTokenBalance)}
             />
 
             <br />
@@ -283,7 +322,7 @@ export default function Borrow() {
 
             <Button
               variant="primary"
-              disabled
+              disabled={collateralValue <= 0 || collateralTokenBalance <= 0}
               onClick={() => alert("not implemented")}
               fullWidth
             >
@@ -304,6 +343,7 @@ export default function Borrow() {
               startIcon={
                 transactionStatus ? <CircularProgress size={15} /> : undefined
               }
+              disabled={collateralValue <= 0 || collateralTokenBalance <= 0}
             >
               Borrow
             </Button>

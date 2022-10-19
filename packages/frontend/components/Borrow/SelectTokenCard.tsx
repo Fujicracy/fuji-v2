@@ -3,33 +3,62 @@ import {
   Card,
   FormControl,
   Grid,
+  ListItemText,
   MenuItem,
   Select,
   SelectChangeEvent,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
-import { Token } from "@x-fuji/sdk"
+import { BigNumber } from "ethers"
 
+import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
+import { hexToDecimal } from "../../services/TokenServices"
 
 type SelectTokenCardProps = {
-  value: string
+  value: number
   onChangeValue: (e: React.ChangeEvent<HTMLInputElement>) => void
   token: string
   onChangeToken: (e: SelectChangeEvent<string>) => void
   tokens: Token[]
   type: "collateral" | "borrow"
   balance: number
+  balances: BigNumber[]
+  onMaxClicked: (e: React.MouseEvent<HTMLElement>) => void
 }
 
 export default function SelectTokenCard(props: SelectTokenCardProps) {
-  const { value, onChangeValue, token, onChangeToken, tokens, type, balance } =
-    props
+  const { palette } = useTheme()
+  const {
+    value,
+    onChangeValue,
+    token,
+    onChangeToken,
+    tokens,
+    type,
+    balance,
+    balances,
+    onMaxClicked,
+  } = props
+
+  if (type === "collateral") {
+    console.log(balances, tokens)
+  }
+
   return (
-    <Card variant="outlined">
+    <Card
+      variant="outlined"
+      sx={{
+        borderColor:
+          type === "collateral" && value > balance
+            ? palette.error.dark
+            : palette.secondary.light,
+      }}
+    >
       <div className={styles.cardLine}>
         <TextField
           id="collateral-amount"
@@ -62,18 +91,29 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               variant="standard"
               disableUnderline
             >
-              {tokens.map((token: Token) => (
+              {tokens.map((token: Token, i: number) => (
                 <MenuItem key={token.name} value={token.symbol}>
-                  <Grid container>
-                    <Image
-                      src={`/assets/images/protocol-icons/tokens/${token.symbol}.svg`}
-                      height={24}
-                      width={24}
-                      alt={token.name}
-                    />
-                    <span style={{ marginLeft: "0.5rem" }}>
-                      <Typography variant="h6">{token.symbol}</Typography>
-                    </span>
+                  <Grid container alignItems="center">
+                    <Grid item>
+                      <Image
+                        src={`/assets/images/protocol-icons/tokens/${token.symbol}.svg`}
+                        height={24}
+                        width={24}
+                        alt={token.name}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <Grid container alignItems="center">
+                        <ListItemText sx={{ ml: "0.5rem" }}>
+                          <Typography variant="h6">{token.symbol}</Typography>
+                        </ListItemText>
+                        {/* {balances.length > 0 && type === "collateral" && (
+                          <Typography variant="smallDark" ml="0.5rem">
+                            {hexToDecimal(balances[i]._hex)} {token.symbol}
+                          </Typography>
+                        )} */}
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </MenuItem>
               ))}
@@ -95,13 +135,25 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                 variant="xsmall"
                 align="center"
                 className={styles.maxBtn}
+                onClick={onMaxClicked}
               >
                 MAX
               </Typography>
 
               <Typography variant="small">
-                <Typography variant="smallDark">Balance</Typography>: {balance}{" "}
-                {token}
+                <Typography variant="smallDark">Balance</Typography>
+                {": "}
+                <Typography
+                  sx={{
+                    display: "inline",
+                    color:
+                      value > balance
+                        ? palette.error.dark
+                        : palette.text.primary,
+                  }}
+                >
+                  {balance} {token}
+                </Typography>
               </Typography>
             </div>
           </>
