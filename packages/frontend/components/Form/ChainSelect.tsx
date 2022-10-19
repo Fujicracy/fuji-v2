@@ -7,15 +7,22 @@ import {
   MenuItem,
   Stack,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material"
+
 import Image from "next/image"
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import CheckIcon from "@mui/icons-material/Check"
 import Fade from "@mui/material/Fade"
 
-import { useStore, chains, Chain } from "../../store"
+import { useStore } from "../../store"
+import { chains, Chain } from "../../store/auth.slice"
 
 export default function ChainSelect() {
+  const theme = useTheme()
+  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [chainId, setChainId] = useStore((state) => [
     state.chain?.id,
     state.changeChain,
@@ -39,8 +46,14 @@ export default function ChainSelect() {
         <Chip
           label={
             <Stack direction="row" spacing={1}>
-              <ListItem chain={currentChain} />
-              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+              <ListItem
+                chain={currentChain}
+                selected={false}
+                onMobile={onMobile}
+              />
+              {!onMobile && (
+                <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+              )}
             </Stack>
           }
           onClick={openMenu}
@@ -66,11 +79,14 @@ export default function ChainSelect() {
         MenuListProps={{ "aria-labelledby": "basic-button" }}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         TransitionComponent={Fade}
-        sx={{ marginTop: 1 }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
-            <ListItem chain={chain} />
+            <ListItem
+              chain={chain}
+              selected={currentChain?.id === chain.id}
+              onMobile={false}
+            />
           </MenuItem>
         ))}
       </Menu>
@@ -78,10 +94,11 @@ export default function ChainSelect() {
   )
 }
 
-type ListItemProps = { chain: Chain }
+type ListItemProps = { chain: Chain; selected: boolean; onMobile: boolean }
 
 const ListItem = (props: ListItemProps) => {
-  const { chain } = props
+  const { chain, selected, onMobile } = props
+  const { palette } = useTheme()
 
   return (
     <>
@@ -93,7 +110,11 @@ const ListItem = (props: ListItemProps) => {
           alt={chain.label}
         />
       </ListItemIcon>
-      <ListItemText>{chain.label}</ListItemText>
+      {!onMobile && <ListItemText>{chain.label}</ListItemText>}
+
+      {selected && (
+        <CheckIcon sx={{ color: palette.primary.main, ml: "2rem" }} />
+      )}
     </>
   )
 }

@@ -1,12 +1,39 @@
-import { ChainId, ChainKey } from '../enums';
+import { ChainAnkrKey, ChainCoingeckoKey, ChainId } from '../enums';
 
-export const CHAIN: Record<ChainId, ChainKey> = {
-  [ChainId.ETHEREUM]: ChainKey.ETHEREUM,
-  [ChainId.GOERLI]: ChainKey.GOERLI,
-  [ChainId.MATIC]: ChainKey.MATIC,
-  [ChainId.MATIC_MUMBAI]: ChainKey.MATIC_MUMBAI,
-  [ChainId.FANTOM]: ChainKey.FANTOM,
-  [ChainId.ARBITRUM]: ChainKey.ARBITRUM,
-  [ChainId.OPTIMISM]: ChainKey.OPTIMISM,
-  [ChainId.OPTIMISM_GOERLI]: ChainKey.OPTIMISM_GOERLI,
+export const CHAIN: Record<
+  ChainId,
+  { coingecko: ChainCoingeckoKey; ankr: ChainAnkrKey }
+> = {
+  [ChainId.ETHEREUM]: {
+    coingecko: ChainCoingeckoKey.ETHEREUM,
+    ankr: ChainAnkrKey.ETHEREUM,
+  },
+  [ChainId.GOERLI]: {
+    coingecko: ChainCoingeckoKey.GOERLI,
+    ankr: ChainAnkrKey.GOERLI,
+  },
+  [ChainId.MATIC]: {
+    coingecko: ChainCoingeckoKey.MATIC,
+    ankr: ChainAnkrKey.MATIC,
+  },
+  [ChainId.MATIC_MUMBAI]: {
+    coingecko: ChainCoingeckoKey.MATIC_MUMBAI,
+    ankr: ChainAnkrKey.MATIC_MUMBAI,
+  },
+  [ChainId.FANTOM]: {
+    coingecko: ChainCoingeckoKey.FANTOM,
+    ankr: ChainAnkrKey.FANTOM,
+  },
+  [ChainId.ARBITRUM]: {
+    coingecko: ChainCoingeckoKey.ARBITRUM,
+    ankr: ChainAnkrKey.ARBITRUM,
+  },
+  [ChainId.OPTIMISM]: {
+    coingecko: ChainCoingeckoKey.OPTIMISM,
+    ankr: ChainAnkrKey.OPTIMISM,
+  },
+  [ChainId.OPTIMISM_GOERLI]: {
+    coingecko: ChainCoingeckoKey.OPTIMISM_GOERLI,
+    ankr: ChainAnkrKey.OPTIMISM_GOERLI,
+  },
 };

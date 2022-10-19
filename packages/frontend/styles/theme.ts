@@ -7,6 +7,7 @@ declare module "@mui/material/Button" {
     secondary2: true
     ghost: true
     gradient: true
+    small: true
   }
 }
 
@@ -25,6 +26,7 @@ declare module "@mui/material/Typography" {
     small: true
     smallDark: true
     xsmall: true
+    xsmallDark: true
     label: true
     regularH4: true
   }
@@ -56,6 +58,7 @@ const colorTheme = createTheme({
     },
     success: {
       main: "#42FF00",
+      dark: "#0EC058",
     },
     warning: {
       main: "#F5AC37",
@@ -110,7 +113,7 @@ const theme = createTheme(colorTheme, {
       lineHeight: "120%",
     },
     h5: {
-      fontWeight: 400,
+      fontWeight: 600,
       fontSize: "1.25rem",
       lineHeight: "150%",
     },
@@ -145,6 +148,12 @@ const theme = createTheme(colorTheme, {
       fontSize: "0.75rem",
       lineHeight: "160%",
     },
+    xsmallDark: {
+      fontWeight: 400,
+      fontSize: "0.75rem",
+      lineHeight: "160%",
+      color: colorTheme.palette.info.dark,
+    },
     label: {
       fontWeight: 700,
       fontSize: "0.875rem",
@@ -158,7 +167,6 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: "border-box",
           borderRadius: "0.5rem",
-          color: colorTheme.palette.text.primary,
           "&.Mui-disabled": {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
@@ -223,6 +231,31 @@ const theme = createTheme(colorTheme, {
             padding: "0.75rem 1.25rem",
             textTransform: "none",
             fontSize: "1rem",
+          },
+        },
+        {
+          props: {
+            variant: "text",
+          },
+          style: {
+            background:
+              "linear-gradient(92.29deg, rgba(254, 52, 119, 0.1) 0%, rgba(240, 1, 79, 0.1) 100%)",
+            borderRadius: "6.25rem",
+            padding: "0.438rem 1rem",
+          },
+        },
+        {
+          props: {
+            variant: "small",
+          },
+          style: {
+            color: colorTheme.palette.primary.main,
+            background: "transparent",
+            border: `1px solid ${colorTheme.palette.primary.dark}`,
+            textTransform: "capitalize",
+            padding: "0 .6rem",
+            fontSize: "0.75rem",
+            borderRadius: "1rem",
           },
         },
       ],
@@ -310,6 +343,7 @@ const theme = createTheme(colorTheme, {
     MuiInputBase: {
       styleOverrides: {
         root: {
+          padding: 0,
           fontSize: "1.125rem",
           height: "1.813rem",
           fontWeight: 400,
@@ -358,7 +392,16 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiAccordion: {
+    MuiDialog: {
+      styleOverrides: {
+        root: {
+          ".MuiPaper-root": {
+            borderRadius: "1.125rem",
+          },
+        },
+      },
+    },
+    MuiDialogContent: {
       styleOverrides: {
         root: {
           background: colorTheme.palette.secondary.contrastText,
@@ -367,12 +410,39 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiDialogContent: {
+    MuiChip: {
       styleOverrides: {
         root: {
-          padding: 0,
+          background: colorTheme.palette.secondary.dark,
+          height: "2.25rem",
+          "& .MuiChip-deleteIcon": {
+            color: colorTheme.palette.text.primary,
+          },
         },
       },
+    },
+    MuiCardContent: {
+      styleOverrides: {
+        root: {
+          ":last-child": {
+            paddingBottom: "1rem",
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      variants: [
+        {
+          props: {
+            variant: "outlined",
+          },
+          style: {
+            background: colorTheme.palette.secondary.contrastText,
+            border: `1px solid ${colorTheme.palette.secondary.light}`,
+            borderRadius: "1.125rem",
+          },
+        },
+      ],
     },
     MuiMenu: {
       styleOverrides: {
