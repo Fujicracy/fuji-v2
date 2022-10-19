@@ -106,11 +106,10 @@ contract VaultTest is DSTestPlus {
   function _utils_getHealthFactor(uint96 amount, uint96 borrowAmount) internal view returns (uint256) {
     uint8 debtDecimals = 18;
     uint8 assetDecimals = 18;
-    uint256 liqRatio = 75 * 1e16;
+    uint256 liqRatio = 80 * 1e16;
 
     uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    
-    uint256 hf = ((amount * liqRatio * price) / (borrowAmount * 1e18 * 10 ** assetDecimals));
+    uint256 hf = ((amount * liqRatio * price) / (borrowAmount * 1e16 * 10 ** assetDecimals));
     return hf;
   }
 
@@ -120,7 +119,7 @@ contract VaultTest is DSTestPlus {
 
     uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
     uint256 hf_1 = hf_0 * priceBefore / (priceBefore - priceDrop);
-    
+  
     return hf_1;
   }
 
@@ -185,7 +184,6 @@ contract VaultTest is DSTestPlus {
     vault.borrow(borrowAmount, alice, alice);
   }
 
-  // TODO FUZZ
   function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
@@ -229,18 +227,21 @@ contract VaultTest is DSTestPlus {
     vault.deposit(depositBob, bob);
   }
 
-  function test_getHealthFactor() public {
-    uint256 HF = vault.getHealthFactor(alice);
+  function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    
+    uint256 HF = vault.getHealthFactor(alice); 
     assertEq(HF, type(uint256).max);
 
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 100e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     uint256 HF2 = vault.getHealthFactor(alice);
-    assertEq(HF2, 3200);
+    uint256 HF2_ = _utils_getHealthFactor(amount, borrowAmount) ;
+    
+    assertEq(HF2, HF2_);
   }
 
+  // TODO FUZZ
   function test_getLiquidationFactor() public {
     uint256 liquidatorFactor_0 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_0, 0);
@@ -273,7 +274,7 @@ contract VaultTest is DSTestPlus {
   }
 
   function test_liquidateMax(uint32 amount, uint32 borrowAmount, uint32 liquidatorAmount, uint8 priceDrop) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0 && liquidatorAmount > borrowAmount && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) <= 95 && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) > 0 );
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0 && liquidatorAmount > borrowAmount && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop)*100 <= 95 && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) > 0 );
 
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice); 
 
@@ -310,6 +311,7 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOfDebt(bob), 0);
   }
 
+  // TODO FUZZ
   function test_liquidateDefault() public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
