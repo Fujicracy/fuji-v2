@@ -22,7 +22,7 @@ import shallow from "zustand/shallow"
 
 import styles from "../styles/components/Header.module.css"
 import ChainSelect from "./Form/ChainSelect"
-import ParametersModal from "./ParametersModal"
+import Parameters from "./Layout/Parameters"
 import { useStore } from "../store"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
@@ -197,7 +197,7 @@ const Header = () => {
                     />
                   </Grid>
                   <Grid item>
-                    <ParametersModal />
+                    <Parameters />
                   </Grid>
                 </>
               )}
