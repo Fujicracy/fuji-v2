@@ -1,13 +1,13 @@
 import { NextPage } from "next"
 import Head from "next/head"
 
-import { Box, Container, Grid } from "@mui/material"
+import { Box, Container, Divider, Grid } from "@mui/material"
 
 import Borrow from "../components/Borrow/Borrow"
 import Footer from "../components/Layout/Footer"
 import Header from "../components/Layout/Header"
 import Overview from "../components/Borrow/Overview"
-import PreviewTransaction from "../components/Borrow/PreviewTransaction"
+import TransactionSummary from "../components/Borrow/TransactionSummary"
 
 const BorrowPage: NextPage = () => {
   return (
@@ -23,8 +23,12 @@ const BorrowPage: NextPage = () => {
 
       <Header />
 
+      <Divider sx={{ display: { xs: "block", sm: "none" }, mb: "1rem" }} />
+
       <Container
         sx={{
+          mt: { xs: "0", sm: "4rem" },
+          mb: { xs: "7rem", sm: "0" },
           pl: { xs: "0.25rem", sm: "1rem" },
           pr: { xs: "0.25rem", sm: "1rem" },
         }}
@@ -42,7 +46,7 @@ const BorrowPage: NextPage = () => {
             <Overview />
           </Grid>
           <Grid item xs={12} sx={{ display: { xs: "flex", sm: "none" } }}>
-            <PreviewTransaction />
+            <TransactionSummary />
           </Grid>
         </Grid>
       </Container>

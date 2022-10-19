@@ -14,7 +14,7 @@ import Image from "next/image"
 
 import styles from "../../styles/components/Borrow.module.css"
 
-declare interface SelectTokenCardProps {
+type SelectTokenCardProps = {
   value: string
   onChangeValue: (e: React.ChangeEvent<HTMLInputElement>) => void
   token: string

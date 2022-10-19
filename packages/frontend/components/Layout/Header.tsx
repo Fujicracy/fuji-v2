@@ -11,20 +11,27 @@ import {
   MenuItem,
   MenuList,
   Grid,
+  LinearProgress,
+  Fade,
+  Snackbar,
   Button,
   Chip,
-  Fade,
+  SnackbarContent,
+  CircularProgress,
 } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/router"
 import shallow from "zustand/shallow"
 
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
+import CloseIcon from "@mui/icons-material/Close"
+import SyncIcon from "@mui/icons-material/Sync"
+import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
-import ChainSelect from "../Form/ChainSelect"
 import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
+import AccountModal from "./AccountModal"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -32,13 +39,14 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const Header = () => {
-  const { address, ens, status, balance, login } = useStore(
+  const { address, ens, status, balance, login, transactionStatus } = useStore(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
       login: state.login,
+      transactionStatus: state.transactionStatus,
     }),
     shallow
   )
@@ -171,10 +179,10 @@ const Header = () => {
                   </Grid>
                   <Grid item>
                     <BalanceAddress
-                      // TODO: balance should be retrived from current chain, and not deduced
                       balance={balance}
                       address={address as string}
                       ens={ens}
+                      transactionStatus={transactionStatus}
                     />
                   </Grid>
                   <Grid item>
@@ -194,15 +202,30 @@ type BalanceAddressProps = {
   balance?: Balances
   address: string
   ens: string | null
+  transactionStatus: boolean
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
+  const [showAccountModal, setShowAccountModal] = useState(false)
   const { balance, address, ens } = props
+
+  const { showTransactionAbstract, setShowTransactionAbstract } = useStore(
+    (state) => ({
+      showTransactionAbstract: state.showTransactionAbstract,
+      setShowTransactionAbstract: state.setShowTransactionAbstract,
+    })
+  )
+
+  const closeTransactionProcessing = () => setShowTransactionAbstract(false)
+
   if (!balance) {
     return <></>
   }
 
-  const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
+  const formattedAddress = `${address.substring(0, 5)}...${address.substring(
+    -4,
+    4
+  )}`
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
   const formattedBalance =
@@ -217,14 +240,117 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
       <Chip
-        label={ens || formattedAddress}
+        onClick={() => setShowAccountModal(true)}
+        label={
+          props.transactionStatus ? (
+            <Grid container alignItems="center">
+              <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
+              <Typography
+                variant="small"
+                onClick={() => setShowAccountModal(true)}
+              >
+                1 pending
+              </Typography>
+            </Grid>
+          ) : (
+            ens || formattedAddress
+          )
+        }
         sx={{
+          background: palette.secondary.light,
+          borderRadius: "4rem",
+          height: "2.25rem",
+          padding: "0.438rem 0.75rem",
+          cursor: "pointer",
           fontSize: ".9rem",
           lineHeight: ".9rem",
           position: "relative",
           left: "-2rem",
           backgroundColor: palette.secondary.light,
         }}
+      />
+      {props.transactionStatus && showTransactionAbstract && (
+        <Snackbar
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+          sx={{ mr: "2rem" }}
+          open={showTransactionAbstract}
+          onClose={closeTransactionProcessing}
+        >
+          <SnackbarContent
+            sx={{
+              background: "transparent",
+              boxShadow: "none",
+              mt: "1.5rem",
+            }}
+            message={
+              <Box
+                sx={{
+                  background: palette.secondary.contrastText,
+                  border: `1px solid ${palette.secondary.light}`,
+                  borderRadius: "1.125rem",
+                  p: "1rem",
+                  color: palette.text.primary,
+                }}
+              >
+                <CloseIcon
+                  sx={{
+                    cursor: "pointer",
+                    position: "absolute",
+                    right: "2rem",
+                  }}
+                  onClick={closeTransactionProcessing}
+                  fontSize="small"
+                />
+                <Grid container>
+                  <Grid item>
+                    <SyncIcon sx={{ mr: "0.563rem" }} />
+                  </Grid>
+                  <Grid item>
+                    <Box
+                      sx={{
+                        maxWidth: "14.25rem",
+                        mr: "3rem",
+                      }}
+                    >
+                      <Typography variant="small">
+                        Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on
+                        Polygon
+                      </Typography>
+                      <br />
+
+                      <Typography variant="xsmallDark">
+                        Estimated time:{" "}
+                        <span style={{ color: palette.success.main }}>
+                          2m 15s
+                        </span>
+                      </Typography>
+                      <LinearProgress
+                        sx={{
+                          background: palette.text.primary,
+                          height: "0.125rem",
+                          mt: "1rem",
+                          ".css-uu0lzf-MuiLinearProgress-bar1": {
+                            background: palette.success.main,
+                          },
+                        }}
+                        value={25}
+                        variant="determinate"
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+            }
+          />
+        </Snackbar>
+      )}
+      <AccountModal
+        isOpen={showAccountModal}
+        closeAccountModal={() => setShowAccountModal(false)}
+        address={address}
       />
     </Box>
   )
