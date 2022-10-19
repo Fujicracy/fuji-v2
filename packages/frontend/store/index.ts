@@ -42,6 +42,7 @@ export type Chain = IChain
 
 export const sdk = new Sdk({
   infuraId: "4f80981ed6b54f3b94ef23423f1b2353",
+  alchemy: {},
 })
 
 export const chains: Chain[] = [
@@ -52,9 +53,21 @@ export const chains: Chain[] = [
     rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
   },
   {
+    id: "0x5",
+    token: "GTH",
+    label: "Goerli",
+    rpcUrl: `https://goerli.infura.io/v3/`,
+  },
+  {
     id: "0x89",
     token: "MATIC",
     label: "Polygon",
+    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+  },
+  {
+    id: "0x13881",
+    token: "MATIC",
+    label: "Mumbai",
     rpcUrl: "https://matic-mainnet.chainstacklabs.com",
   },
   {
@@ -64,10 +77,22 @@ export const chains: Chain[] = [
     rpcUrl: "https://rpc.ftm.tools/",
   },
   {
+    id: "0xa4b1",
+    token: "AETH",
+    label: "Arbitrum",
+    rpcUrl: "https://arb1.arbitrum.io/rpc",
+  },
+  {
     id: "0xa",
     token: "ETH",
     label: "Optimism",
     rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
+  },
+  {
+    id: "0x1a4",
+    token: "ETH",
+    label: "Optimism Goerli",
+    rpcUrl: "https://goerli.optimism.io/",
   },
 ]
 
@@ -211,7 +236,6 @@ function onOnboardChange() {
     if (balance && balance !== get().balance) {
       set({ balance })
     }
-    console.log(balance)
 
     const address = w[0].accounts[0].address
     if (address && address !== get().address) {

@@ -10,30 +10,73 @@ import {
   FormControl,
   Select,
   MenuItem,
+  SelectChangeEvent,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
+import shallow from "zustand/shallow"
 
 import { chains, sdk } from "../../store"
 import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
+import { useStore } from "../../store"
+import { Address } from "@x-fuji/sdk"
+import { BigNumber } from "ethers"
+import { getTokenBySymbol } from "../../services/TokenServices"
+import { formatEther } from "ethers/lib/utils"
 
 export default function Borrow() {
-  const collateralTokens = sdk.getCollateralForChain(parseInt(chains[0].id))
-  const borrowTokens = sdk.getCollateralForChain(parseInt(chains[0].id))
-
-  const [collateralChainId, setCollateralChain] = useState(chains[0].id)
-  const [collateralValue, setCollateralValue] = useState("")
-  const [collateralToken, setCollateralToken] = useState(
-    collateralTokens[0].symbol
+  const { address, status } = useStore(
+    (state) => ({
+      status: state.status,
+      address: state.address,
+    }),
+    shallow
   )
 
-  const [borrowChainId, setBorrowChainId] = useState(borrowTokens[0].symbol)
+  const [collateralChainId, setCollateralChainId] = useState(chains[0].id)
+  const [collateralValue, setCollateralValue] = useState("")
+  const [collateralTokens, setCollateralTokens] = useState(
+    sdk.getCollateralForChain(parseInt(collateralChainId))
+  )
+  const [collateralToken, setCollateralToken] = useState(collateralTokens[0])
+
+  const [borrowChainId, setBorrowChainId] = useState(chains[2].id)
   const [borrowValue, setBorrowValue] = useState("")
-  const [borrowToken, setBorrowToken] = useState(borrowTokens[0].symbol)
+  const [borrowTokens, setBorrowTokens] = useState(
+    sdk.getDebtForChain(parseInt(borrowChainId))
+  )
+  const [borrowToken, setBorrowToken] = useState(borrowTokens[0])
+
+  const [collateralTokenBalance, setCollateralTokenBalance] = useState(0)
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
+
+  if (status === "connected") {
+    sdk
+      .getBalanceFor(collateralToken, new Address(String(address)))
+      .then((res: BigNumber) => {
+        const hexString = res._hex.toString()
+        const balance = parseFloat(formatEther(hexString))
+        setCollateralTokenBalance(balance)
+      })
+    // TODO: use getBatchTokenBalances() SDK method!
+  }
+
+  const handleCollateralChange = (e: SelectChangeEvent<string>) => {
+    setCollateralChainId(e.target.value)
+    const tokens = sdk.getCollateralForChain(parseInt(e.target.value))
+    setCollateralTokens(tokens)
+    setCollateralToken(tokens[0])
+  }
+
+  const handleBorrowChange = (e: SelectChangeEvent<string>) => {
+    setBorrowChainId(e.target.value)
+    const tokens = sdk.getDebtForChain(parseInt(e.target.value))
+    setBorrowTokens(tokens)
+    setBorrowToken(tokens[0])
+  }
 
   return (
     <Grid
@@ -64,7 +107,7 @@ export default function Borrow() {
                 labelId="collateral-chain-label"
                 id="collateral-chain"
                 value={collateralChainId}
-                onChange={(e) => setCollateralChain(e.target.value)}
+                onChange={handleCollateralChange}
                 IconComponent={KeyboardArrowDownIcon}
                 sx={{
                   marginBottom: "1rem",
@@ -104,10 +147,15 @@ export default function Borrow() {
           <SelectTokenCard
             value={collateralValue}
             onChangeValue={(e) => setCollateralValue(e.target.value)}
-            token={collateralToken}
-            onChangeToken={(e) => setCollateralToken(e.target.value)}
+            token={collateralToken.symbol}
+            onChangeToken={(e) =>
+              setCollateralToken(
+                getTokenBySymbol(e.target.value, collateralTokens)
+              )
+            }
             tokens={collateralTokens}
             type="collateral"
+            balance={collateralTokenBalance}
           />
 
           <FormControl>
@@ -119,7 +167,7 @@ export default function Borrow() {
                 labelId="borrow-chain-label"
                 id="borrow-chain"
                 value={borrowChainId}
-                onChange={(e) => setBorrowChainId(e.target.value)}
+                onChange={handleBorrowChange}
                 IconComponent={KeyboardArrowDownIcon}
                 sx={{
                   marginBottom: "1rem",
@@ -159,10 +207,13 @@ export default function Borrow() {
           <SelectTokenCard
             value={borrowValue}
             onChangeValue={(e) => setBorrowValue(e.target.value)}
-            token={borrowToken}
-            onChangeToken={(e) => setBorrowToken(e.target.value)}
+            token={borrowToken.symbol}
+            onChangeToken={(e) =>
+              setBorrowToken(getTokenBySymbol(e.target.value, borrowTokens))
+            }
             tokens={borrowTokens}
             type="borrow"
+            balance={0}
           />
 
           <br />

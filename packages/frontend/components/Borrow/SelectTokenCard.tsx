@@ -22,11 +22,12 @@ declare interface SelectTokenCardProps {
   onChangeToken: (e: SelectChangeEvent<string>) => void
   tokens: Token[]
   type: "collateral" | "borrow"
+  balance: number
 }
 
 export default function SelectTokenCard(props: SelectTokenCardProps) {
-  console.log(props.tokens)
-
+  const { value, onChangeValue, token, onChangeToken, tokens, type, balance } =
+    props
   return (
     <Card variant="outlined">
       <div className={styles.cardLine}>
@@ -34,8 +35,8 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
           id="collateral-amount"
           type="number"
           placeholder="0"
-          value={props.value}
-          onChange={props.onChangeValue}
+          value={value}
+          onChange={onChangeValue}
           sx={{
             fontSize: "1.125rem",
             boxShadow: "none",
@@ -49,8 +50,8 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
             <Select
               labelId="collateral-token-label"
               id="collateral-token"
-              value={props.token}
-              onChange={props.onChangeToken}
+              value={token}
+              onChange={onChangeToken}
               IconComponent={KeyboardArrowDownIcon}
               sx={{
                 boxShadow: "none",
@@ -61,7 +62,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               variant="standard"
               disableUnderline
             >
-              {props.tokens.map((token: Token) => (
+              {tokens.map((token: Token) => (
                 <MenuItem key={token.name} value={token.symbol}>
                   <Grid container>
                     <Image
@@ -81,7 +82,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
         </FormControl>
       </div>
       <div className={styles.cardLine}>
-        {props.type === "collateral" ? (
+        {type === "collateral" ? (
           <>
             <Typography variant="small">$0.00</Typography>
             <div
@@ -99,7 +100,8 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               </Typography>
 
               <Typography variant="small">
-                <Typography variant="smallDark">Balance</Typography>: 2.88 ETH
+                <Typography variant="smallDark">Balance</Typography>: {balance}{" "}
+                {token}
               </Typography>
             </div>
           </>
