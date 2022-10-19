@@ -1,4 +1,4 @@
-import create, { StateCreator, StoreApi } from "zustand"
+import { StateCreator, StoreApi } from "zustand"
 import Onboard, { ConnectOptions } from "@web3-onboard/core"
 import { Chain as IChain } from "@web3-onboard/common"
 import injectedModule from "@web3-onboard/injected-wallets"
@@ -8,6 +8,7 @@ import {
   ConnectedChain,
   WalletState,
 } from "@web3-onboard/core/dist/types"
+import { Sdk } from "@x-fuji/sdk"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -37,6 +38,11 @@ const walletConnect = walletConnectModule({
   },
 })
 
+export const sdk = new Sdk({
+  infuraId: "4f80981ed6b54f3b94ef23423f1b2353",
+  alchemy: {},
+})
+
 export type Chain = IChain
 export const chains: Chain[] = [
   {
@@ -46,9 +52,21 @@ export const chains: Chain[] = [
     rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
   },
   {
+    id: "0x5",
+    token: "GTH",
+    label: "Goerli",
+    rpcUrl: `https://goerli.infura.io/v3/`,
+  },
+  {
     id: "0x89",
     token: "MATIC",
     label: "Polygon",
+    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+  },
+  {
+    id: "0x13881",
+    token: "MATIC",
+    label: "Mumbai",
     rpcUrl: "https://matic-mainnet.chainstacklabs.com",
   },
   {
@@ -58,10 +76,22 @@ export const chains: Chain[] = [
     rpcUrl: "https://rpc.ftm.tools/",
   },
   {
+    id: "0xa4b1",
+    token: "AETH",
+    label: "Arbitrum",
+    rpcUrl: "https://arb1.arbitrum.io/rpc",
+  },
+  {
     id: "0xa",
     token: "ETH",
     label: "Optimism",
     rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
+  },
+  {
+    id: "0x1a4",
+    token: "ETH",
+    label: "Optimism Goerli",
+    rpcUrl: "https://goerli.optimism.io/",
   },
 ]
 
