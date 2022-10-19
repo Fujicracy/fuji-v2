@@ -14,6 +14,14 @@ contract MockChainlinkPriceFeed is IAggregatorV3 {
     fakePrice = fakePrice_;
   }
 
+  function setPriceFeedData(string memory description_, uint8 decimals_, int256 fakePrice_)
+    external
+  {
+    simulatedDescription = description_;
+    simulatedDecimals = decimals_;
+    fakePrice = fakePrice_;
+  }
+
   function decimals() external view override returns (uint8) {
     return simulatedDecimals;
   }
