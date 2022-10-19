@@ -46,7 +46,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
   } = props
 
   if (type === "collateral") {
-    console.log(balances, tokens)
+    //console.log(balances, tokens)
   }
 
   return (
@@ -103,15 +103,21 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                       />
                     </Grid>
                     <Grid item>
-                      <Grid container alignItems="center">
+                      <Grid
+                        container
+                        alignItems="center"
+                        justifyContent="space-between"
+                      >
                         <ListItemText sx={{ ml: "0.5rem" }}>
                           <Typography variant="h6">{token.symbol}</Typography>
                         </ListItemText>
-                        {/* {balances.length > 0 && type === "collateral" && (
+                        {balances.length > 0 && type === "collateral" && (
                           <Typography variant="smallDark" ml="0.5rem">
-                            {hexToDecimal(balances[i]._hex)} {token.symbol}
+                            {hexToDecimal(balances[i]._hex) % 1 !== 0
+                              ? hexToDecimal(balances[i]._hex).toFixed(5)
+                              : hexToDecimal(balances[i]._hex)}
                           </Typography>
-                        )} */}
+                        )}
                       </Grid>
                     </Grid>
                   </Grid>
@@ -152,7 +158,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                         : palette.text.primary,
                   }}
                 >
-                  {balance} {token}
+                  {balance % 1 !== 0 ? balance.toFixed(5) : balance} {token}
                 </Typography>
               </Typography>
             </div>

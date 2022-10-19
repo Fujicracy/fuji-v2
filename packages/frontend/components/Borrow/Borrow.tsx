@@ -82,7 +82,7 @@ export default function Borrow() {
           setCollateralTokenBalance(hexToDecimal(res._hex))
         })
 
-      /* sdk
+      sdk
         .getTokenBalancesFor(
           collateralTokens,
           new Address(String(address)),
@@ -90,24 +90,25 @@ export default function Borrow() {
         )
         .then((res: BigNumber[]) => {
           setCollateralTokenBalances(res)
-        }) */
+        })
     }
   }, [address, collateralChainId, collateralToken, collateralTokens, status])
 
   const handleCollateralChange = (e: SelectChangeEvent<string>) => {
-    setCollateralChainId(e.target.value)
     const tokens = sdk.getCollateralForChain(parseInt(e.target.value))
-    setCollateralTokens(tokens)
-    setCollateralToken(tokens[0])
-    /*  sdk
+    sdk
       .getTokenBalancesFor(
-        collateralTokens,
+        tokens,
         new Address(String(address)),
-        parseInt(collateralChainId)
+        parseInt(e.target.value)
       )
       .then((res: BigNumber[]) => {
         setCollateralTokenBalances(res)
-      }) */
+        setCollateralChainId(e.target.value)
+
+        setCollateralTokens(tokens)
+        setCollateralToken(tokens[0])
+      })
   }
 
   const handleBorrowChange = (e: SelectChangeEvent<string>) => {
@@ -322,7 +323,11 @@ export default function Borrow() {
 
             <Button
               variant="primary"
-              disabled={collateralValue <= 0 || collateralTokenBalance <= 0}
+              disabled={
+                collateralValue <= 0 ||
+                collateralValue > collateralTokenBalance ||
+                collateralTokenBalance <= 0
+              }
               onClick={() => alert("not implemented")}
               fullWidth
             >
@@ -343,7 +348,11 @@ export default function Borrow() {
               startIcon={
                 transactionStatus ? <CircularProgress size={15} /> : undefined
               }
-              disabled={collateralValue <= 0 || collateralTokenBalance <= 0}
+              disabled={
+                collateralValue <= 0 ||
+                collateralValue > collateralTokenBalance ||
+                collateralTokenBalance <= 0
+              }
             >
               Borrow
             </Button>

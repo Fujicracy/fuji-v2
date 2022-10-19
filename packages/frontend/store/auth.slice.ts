@@ -39,7 +39,7 @@ const walletConnect = walletConnectModule({
 })
 
 export const sdk = new Sdk({
-  infuraId: "4f80981ed6b54f3b94ef23423f1b2353",
+  infuraId: `${process.env.NEXT_PUBLIC_INFURA_KEY}`,
   alchemy: {},
 })
 
