@@ -114,13 +114,27 @@ contract VaultTest is DSTestPlus {
   }
 
   function _utils_getFutureHealthFactor(uint96 amount, uint96 borrowAmount, uint80 priceDrop) internal view returns (uint256) {
-    uint256 hf_0 = _utils_getHealthFactor(amount, borrowAmount);
     uint8 debtDecimals = 18;
-
+    uint8 assetDecimals = 18;
+    uint256 liqRatio = 80 * 1e16;
+   
     uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf_1 = hf_0 * priceBefore / (priceBefore - priceDrop);
-  
-    return hf_1;
+    uint256 hf = ((amount * liqRatio * (priceBefore-priceDrop)) / (borrowAmount * 1e16 * 10 ** assetDecimals));
+
+    return hf;
+  }
+
+  function _utils_checkLiquidateMaxFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop) internal view returns (bool) {
+
+    uint8 debtDecimals = 18;
+    uint8 assetDecimals = 18;
+    uint256 liqRatio = 80 * 1e16;
+   
+    uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
+    uint256 hf = ((amount * liqRatio * (priceBefore-priceDrop)) / (borrowAmount * 1e18 * 10 ** assetDecimals));
+
+    return hf <= 95;
+
   }
 
   function _utils_add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -273,9 +287,10 @@ contract VaultTest is DSTestPlus {
     vault.liquidate(alice, bob);
   }
 
-  function test_liquidateMax(uint32 amount, uint32 borrowAmount, uint32 liquidatorAmount, uint8 priceDrop) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0 && liquidatorAmount > borrowAmount && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop)*100 <= 95 && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) > 0 );
 
+  function test_liquidateMax(uint32 amount, uint32 borrowAmount, uint32 liquidatorAmount, uint8 priceDrop) public {
+    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0 && liquidatorAmount > borrowAmount && _utils_checkLiquidateMaxFuture(amount, borrowAmount, priceDrop) && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) > 0);
+    console.log();
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice); 
 
     // price drop 
