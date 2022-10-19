@@ -63,6 +63,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
   {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
+      _providerNames.push(providerName);
     }
     _addrMapping[providerName][keyAddr] = returnedAddr;
     address[] memory inputAddrs = new address[](1);
@@ -87,6 +88,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
   {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
+      _providerNames.push(providerName);
     }
     _addrNestedMapping[providerName][keyAddr1][keyAddr2] = returnedAddr;
     address[] memory inputAddrs = new address[](2);
