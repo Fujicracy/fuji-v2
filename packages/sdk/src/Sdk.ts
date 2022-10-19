@@ -83,7 +83,7 @@ export class Sdk {
    * @param account - user address, wrapped in {@link Address}
    * @param chainId - ID of the chain
    */
-  getBatchTokenBalances(
+  getTokenBalancesFor(
     tokens: Token[],
     account: Address,
     chainId: ChainId
