@@ -13,21 +13,20 @@ import {
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
-import { BigNumber } from "ethers"
 
 import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
-import { hexToDecimal } from "../../services/TokenServices"
 
 type SelectTokenCardProps = {
   value: number
   onChangeValue: (e: React.ChangeEvent<HTMLInputElement>) => void
+  // TODO: handle the case where token is undefined
   token: string
   onChangeToken: (e: SelectChangeEvent<string>) => void
   tokens: Token[]
   type: "collateral" | "borrow"
   balance: number
-  balances: BigNumber[]
+  balances: number[]
   onMaxClicked: (e: React.MouseEvent<HTMLElement>) => void
 }
 
@@ -45,8 +44,8 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
     onMaxClicked,
   } = props
 
-  if (type === "collateral") {
-    //console.log(balances, tokens)
+  if (!balances) {
+    debugger
   }
 
   return (
@@ -91,7 +90,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               variant="standard"
               disableUnderline
             >
-              {tokens.map((token: Token, i: number) => (
+              {tokens.map((token, index) => (
                 <MenuItem key={token.name} value={token.symbol}>
                   <Grid container alignItems="center">
                     <Grid item>
@@ -111,11 +110,9 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                         <ListItemText sx={{ ml: "0.5rem" }}>
                           <Typography variant="h6">{token.symbol}</Typography>
                         </ListItemText>
-                        {balances.length > 0 && type === "collateral" && (
+                        {balances?.length > 0 && type === "collateral" && (
                           <Typography variant="smallDark" ml="0.5rem">
-                            {hexToDecimal(balances[i]._hex) % 1 !== 0
-                              ? hexToDecimal(balances[i]._hex).toFixed(5)
-                              : hexToDecimal(balances[i]._hex)}
+                            {balances[index]}
                           </Typography>
                         )}
                       </Grid>
@@ -147,8 +144,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
               </Typography>
 
               <Typography variant="small">
-                <Typography variant="smallDark">Balance</Typography>
-                {": "}
+                <Typography variant="smallDark">Balance:</Typography>
                 <Typography
                   sx={{
                     display: "inline",
@@ -158,7 +154,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                         : palette.text.primary,
                   }}
                 >
-                  {balance % 1 !== 0 ? balance.toFixed(5) : balance} {token}
+                  {balance} {token}
                 </Typography>
               </Typography>
             </div>
