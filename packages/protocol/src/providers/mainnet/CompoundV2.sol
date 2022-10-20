@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IVault} from "../../interfaces/IVault.sol";
 import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
@@ -57,6 +55,7 @@ contract CompoundV2 is ILendingProvider {
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
   function approvedOperator(address, address) external pure returns (address operator) {
+    // TODO: what should it be here? Put Comptroller for now
     operator = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
   }
 
