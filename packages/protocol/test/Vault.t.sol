@@ -11,8 +11,11 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../src/abstracts/BaseVault.sol";
+import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 
 contract VaultTest is DSTestPlus {
+  using SafeMath for uint256;
+
   event MinDepositAmountChanged(uint256 newMinDeposit);
   event DepositCapChanged(uint256 newDepositCap);
 
@@ -119,24 +122,44 @@ contract VaultTest is DSTestPlus {
     uint256 liqRatio = 80 * 1e16;
    
     uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf = ((amount * liqRatio * (priceBefore-priceDrop)) / (borrowAmount * 1e16 * 10 ** assetDecimals));
+    uint256 hf = (amount * liqRatio * (priceBefore-priceDrop)) / (borrowAmount * 1e16 * 10 ** assetDecimals);
 
     return hf;
   }
 
-  function _utils_checkLiquidateMaxFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop) internal view returns (bool) {
 
+
+
+
+
+
+  function _utils_checkLiquidateMaxFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop) internal view returns (bool) {
     uint8 debtDecimals = 18;
     uint8 assetDecimals = 18;
     uint256 liqRatio = 80 * 1e16;
-   
-    uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf = ((amount * liqRatio * (priceBefore-priceDrop)) / (borrowAmount * 1e18 * 10 ** assetDecimals));
-
+    
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
+    uint256 hf = SafeMath.div(SafeMath.mul(amount * liqRatio , (price - priceDrop)) , SafeMath.mul(borrowAmount * 1e18 , 10 ** assetDecimals));
+    
     return hf <= 95;
-
   }
 
+  function _utils_checkLiquidateDiscountFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop) internal view returns (bool) {
+    uint8 debtDecimals = 18;
+    uint8 assetDecimals = 18;
+    uint256 liqRatio = 80 * 1e16;
+    
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
+    uint256 hf = SafeMath.div(SafeMath.mul(amount * liqRatio , (price - priceDrop)) , SafeMath.mul(borrowAmount * 1e18 , 10 ** assetDecimals));
+
+    return hf > 95 && hf < 100;
+  }
+
+
+
+
+
+  
   function _utils_add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
     require(c >= a);
@@ -256,23 +279,34 @@ contract VaultTest is DSTestPlus {
   }
 
   // TODO FUZZ
-  function test_getLiquidationFactor() public {
+  function test_getLiquidationFactor(uint80 priceDrop_0, uint80 priceDrop_1) public {
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), 18);
+    uint96 amount = 1 ether;
+    uint96 borrowAmount = 100e18;
+    vm.assume(priceDrop_0 > 0 && priceDrop_1 > 0 && 
+              price > SafeMath.add(priceDrop_0 , priceDrop_1)  &&
+              _utils_checkLiquidateMaxFuture(amount, borrowAmount, priceDrop_1) &&  
+              _utils_checkLiquidateDiscountFuture(amount, borrowAmount, priceDrop_0) 
+              /*_utils_getFutureHealthFactor(amount, borrowAmount, priceDrop_0) < 1 &&
+              _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop_0)*100 > 95 &&  
+              _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop_1) < 1 &&
+              _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop_1)*100 <=95*/
+            );
+
     uint256 liquidatorFactor_0 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_0, 0);
 
-    uint256 amount = 1 ether;
-    uint256 borrowAmount = 1000e18;
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     uint256 liquidatorFactor_1 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_1, 0);
 
-    _utils_setPrice(address(debtAsset), address(asset), 1225 * 1e18);
+    _utils_setPrice(address(debtAsset), address(asset), 1e18/price - priceDrop_0);//check
 
     uint256 liquidatorFactor_2 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_2, 0.5e18);
 
-    _utils_setPrice(address(debtAsset), address(asset), 1000 * 1e18);
+    _utils_setPrice(address(debtAsset), address(asset), 1e18/price - priceDrop_1);//check
 
     uint256 liquidatorFactor_3 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_3, 1e18);
@@ -327,15 +361,23 @@ contract VaultTest is DSTestPlus {
   }
 
   // TODO FUZZ
-  function test_liquidateDefault() public {
-    uint256 amount = 1 ether;
-    uint256 borrowAmount = 1000e18;
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+  function test_liquidateDefault(uint96 amount, uint96 borrowAmount, uint80 priceDrop) public {
+    uint256 price = oracle.getPriceOf(address(asset), address(debtAsset), 18);
 
+    vm.assume(borrowAmount > 0 && 
+              price > priceDrop && 
+              priceDrop > 0 && 
+              _utils_checkMaxLTV(amount, borrowAmount) && 
+              _utils_checkLiquidateDiscountFuture(amount, borrowAmount, priceDrop)
+             );
+    //uint256 amount = 1 ether;
+    //uint256 borrowAmount = 1000e18;
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+     
     // price drop, putting HF < 100, but above 95 and the close factor at 50%
-    _utils_setPrice(address(asset), address(debtAsset), 806451612903226);
-    _utils_setPrice(address(debtAsset), address(asset), 1240e18);
-    uint256 liquidatorAmount = 2000e18;
+    _utils_setPrice(address(asset), address(debtAsset), 1e18/(price - priceDrop));
+    _utils_setPrice(address(debtAsset), address(asset), price - priceDrop);
+    uint256 liquidatorAmount = borrowAmount;
     deal(address(debtAsset), bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
