@@ -10,7 +10,7 @@ import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
-import {TimeLock} from "../../src/access/TimeLock.sol";
+import {Timelock} from "../../src/access/Timelock.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {DSTestPlus} from "./DSTestPlus.sol";
@@ -36,7 +36,7 @@ contract Setup is DSTestPlus, CoreRoles {
 
   IVault public vault;
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
   ConnextRouter public connextRouter;
 
   IConnextHandler public connextHandler;
@@ -94,7 +94,7 @@ contract Setup is DSTestPlus, CoreRoles {
     MockOracle mockOracle = new MockOracle();
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    timelock = Timelock(payable(chief.timelock()));
 
     // WETH and DAI prices by Aug 12h 2022
     /*mockOracle.setPriceOf(address(weth), address(debtAsset), 528881643782407);*/
@@ -134,7 +134,7 @@ contract Setup is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData, IVault vault_) internal {
+  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -144,6 +144,6 @@ contract Setup is DSTestPlus, CoreRoles {
   function _utils_setupVaultProvider(IVault vault_, ILendingProvider[] memory providers_) internal {
     _utils_setupTestRoles();
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers_);
-    _utils_callWithTimeLock(sendData, vault_);
+    _utils_callWithTimelock(sendData, vault_);
   }
 }

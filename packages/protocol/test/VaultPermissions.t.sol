@@ -10,13 +10,13 @@ import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {TimeLock} from "../src/access/TimeLock.sol";
+import {Timelock} from "../src/access/Timelock.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 
 contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
   BorrowingVault public vault;
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -49,7 +49,7 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
     mockProvider = new MockProvider();
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    timelock = Timelock(payable(chief.timelock()));
 
     vault = new BorrowingVault(
       address(asset),
@@ -84,7 +84,7 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(BorrowingVault vault_, bytes memory sendData) internal {
+  function _utils_callWithTimelock(BorrowingVault vault_, bytes memory sendData) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -96,7 +96,7 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
     bytes memory sendData = abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimeLock(vault_, sendData);
+    _utils_callWithTimelock(vault_, sendData);
     vault_.setActiveProvider(mockProvider);
   }
 

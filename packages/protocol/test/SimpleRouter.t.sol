@@ -23,7 +23,7 @@ import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {TimeLock} from "../src/access/TimeLock.sol";
+import {Timelock} from "../src/access/Timelock.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
@@ -52,7 +52,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
   IRouter public simpleRouter;
   ISwapper public swapper;
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
 
   MockFlasher public flasher;
   MockOracle public oracle;
@@ -78,8 +78,8 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     mockProvider = new MockProvider();
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
-    vm.label(address(timelock), "TimeLock");
+    timelock = Timelock(payable(chief.timelock()));
+    vm.label(address(timelock), "Timelock");
 
     vault = new BorrowingVault(
       address(asset),
@@ -116,7 +116,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData, IVault vault_) internal {
+  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -128,7 +128,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
-    _utils_callWithTimeLock(sendData, vault_);
+    _utils_callWithTimelock(sendData, vault_);
     vault_.setActiveProvider(mockProvider);
   }
 

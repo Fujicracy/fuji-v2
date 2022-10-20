@@ -9,7 +9,7 @@ import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {TimeLock} from "../src/access/TimeLock.sol";
+import {Timelock} from "../src/access/Timelock.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
@@ -28,7 +28,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
   BorrowingVault public bvault1;
   BorrowingVault public bvault2;
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -68,7 +68,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     mockProvider = new MockProvider();
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    timelock = Timelock(payable(chief.timelock()));
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
 
@@ -117,7 +117,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(UNPAUSER_ROLE, charlie);
   }
 
-  function _utils_callWithTimeLock(BorrowingVault vault_, bytes memory sendData) internal {
+  function _utils_callWithTimelock(BorrowingVault vault_, bytes memory sendData) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -129,7 +129,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
     bytes memory sendData = abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimeLock(vault_, sendData);
+    _utils_callWithTimelock(vault_, sendData);
     vault_.setActiveProvider(mockProvider);
   }
 

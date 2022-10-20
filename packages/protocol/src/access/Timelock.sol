@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /**
- * @title TimeLock.
+ * @title Timelock.
  * @author Fujidao Labs
  * @notice Enforce a time lock in Fuji-V2 risk parameter change operations. This contract is
  * based on OpenZeppelin-TimelockController; however, all access control calls
@@ -13,7 +13,7 @@ pragma solidity 0.8.15;
 
 import {SystemAccessControl} from "./SystemAccessControl.sol";
 
-contract TimeLock is SystemAccessControl {
+contract Timelock is SystemAccessControl {
   /**
    * @dev Refer to OpenZeppelin-TimelockController
    * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/governance/TimelockController.sol

@@ -13,7 +13,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {Chief} from "../../../src/Chief.sol";
 import {CoreRoles} from "../../../src/access/CoreRoles.sol";
-import {TimeLock} from "../../../src/access/TimeLock.sol";
+import {Timelock} from "../../../src/access/Timelock.sol";
 import {DSTestPlus} from "../../utils/DSTestPlus.sol";
 
 bool constant DEBUG = false;
@@ -27,7 +27,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   IVault public vault;
   ILendingProvider public compoundV3;
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
 
   IWETH9 public weth;
   IERC20 public usdc;
@@ -52,7 +52,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     mockOracle.setPriceOf(address(usdc), address(weth), 160000000000);
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    timelock = Timelock(payable(chief.timelock()));
 
     vault = new BorrowingVault(
       address(weth),
@@ -79,7 +79,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData, IVault vault_) internal {
+  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -89,7 +89,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   function _utils_setupVaultProvider(IVault vault_, ILendingProvider[] memory providers_) internal {
     _utils_setupTestRoles();
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers_);
-    _utils_callWithTimeLock(sendData, vault_);
+    _utils_callWithTimelock(sendData, vault_);
   }
 
   function _utils_doDepositRoutine(address who, uint256 amount) internal {

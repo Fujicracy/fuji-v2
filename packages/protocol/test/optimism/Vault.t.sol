@@ -12,7 +12,7 @@ import {IVault} from "../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {Chief} from "../../src/Chief.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
-import {TimeLock} from "../../src/access/TimeLock.sol";
+import {Timelock} from "../../src/access/Timelock.sol";
 import {DSTestPlus} from "../utils/DSTestPlus.sol";
 
 contract VaultTest is DSTestPlus, CoreRoles {
@@ -24,7 +24,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
   IVault public vault;
   IWETH9 public weth;
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
 
   function setUp() public {
     optimismFork = vm.createSelectFork("optimism");
@@ -37,7 +37,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
     weth = IWETH9(0x4200000000000000000000000000000000000006);
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    timelock = Timelock(payable(chief.timelock()));
 
     vault =
       new YieldVault(address(weth), address(chief), "Fuji-V2 WETH YieldVault Shares", "fyvWETH");
@@ -56,7 +56,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData, IVault vault_) internal {
+  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -66,7 +66,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
   function _utils_setupVaultProvider(IVault vault_, ILendingProvider[] memory providers_) internal {
     _utils_setupTestRoles();
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers_);
-    _utils_callWithTimeLock(sendData, vault_);
+    _utils_callWithTimelock(sendData, vault_);
   }
 
   function test_depositAndWithdraw() public {

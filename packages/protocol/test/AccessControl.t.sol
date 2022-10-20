@@ -5,7 +5,7 @@ import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {Chief} from "../src/Chief.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
-import {TimeLock} from "../src/access/TimeLock.sol";
+import {Timelock} from "../src/access/Timelock.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {SystemAccessControl} from "../src/access/SystemAccessControl.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
@@ -13,7 +13,7 @@ import {MockChainlinkPriceFeed} from "../src/mocks/MockChainlinkPriceFeed.sol";
 
 contract AccessControlUnitTests is Test {
   Chief public chief;
-  TimeLock public timelock;
+  Timelock public timelock;
   FujiOracle public oracle;
   AddrMapper public addrMapper;
 
@@ -40,7 +40,7 @@ contract AccessControlUnitTests is Test {
     );
 
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    timelock = Timelock(payable(chief.timelock()));
     addrMapper = AddrMapper(chief.addrMapper());
 
     address[] memory assets = new address[](1);
@@ -58,7 +58,7 @@ contract AccessControlUnitTests is Test {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
     MockChainlinkPriceFeed maliciousPriceFeed = new MockChainlinkPriceFeed("FakeETH / USD", 8, 1);
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     vm.prank(foe);
     oracle.setPriceFeed(address(asset), address(maliciousPriceFeed));
     vm.stopPrank();
@@ -77,12 +77,12 @@ contract AccessControlUnitTests is Test {
     vm.assume(
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     vm.prank(foe);
     addrMapper.setMapping("MockProvider_V1", keyAddr1, returnedAddr);
     vm.stopPrank();
 
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     vm.prank(foe);
     addrMapper.setNestedMapping("MockProvider_V2", keyAddr1, keyAddr2, returnedAddr);
     vm.stopPrank();

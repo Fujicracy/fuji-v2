@@ -475,7 +475,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Admin set functions ///
   ///////////////////////////
 
-  function setProviders(ILendingProvider[] memory providers) external onlyTimeLock {
+  function setProviders(ILendingProvider[] memory providers) external onlyTimelock {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {
@@ -514,13 +514,13 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// inheritdoc IVault
-  function setMinDepositAmount(uint256 amount) external override onlyTimeLock {
+  function setMinDepositAmount(uint256 amount) external override onlyTimelock {
     minDepositAmount = amount;
     emit MinDepositAmountChanged(amount);
   }
 
   /// inheritdoc IVault
-  function setDepositCap(uint256 newCap) external override onlyTimeLock {
+  function setDepositCap(uint256 newCap) external override onlyTimelock {
     if (newCap == 0 || newCap <= minDepositAmount) {
       revert BaseVault__setter_invalidInput();
     }
