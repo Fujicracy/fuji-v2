@@ -8,10 +8,15 @@ import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
+import {Chief} from "../src/Chief.sol";
+import {CoreRoles} from "../src/access/CoreRoles.sol";
+import {TimeLock} from "../src/access/TimeLock.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 
-contract VaultTest is DSTestPlus {
+contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
   BorrowingVault public vault;
+  Chief public chief;
+  TimeLock public timelock;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -28,28 +33,9 @@ contract VaultTest is DSTestPlus {
   uint256 public withdrawDelegated = 3 * 1e18;
   uint256 public borrowDelegated = 200 * 1e6;
 
-  function utils_setupOracle(address asset1, address asset2) internal {
-    // WETH and DAI prices by Aug 12h 2022
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
-      abi.encode(528881643782407)
-    );
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset2, asset1, 18),
-      abi.encode(1889069940262927605990)
-    );
-  }
-
-  function utils_doDeposit(uint256 amount, BorrowingVault v) public {
-    deal(address(asset), owner, amount);
-
-    vm.startPrank(owner);
-    SafeERC20.safeApprove(asset, address(v), amount);
-    v.deposit(amount, owner);
-    vm.stopPrank();
-  }
+  // WETH and DAI prices: 2000 DAI/WETH
+  uint256 public constant TEST_USD_PER_ETH_PRICE = 2000e18;
+  uint256 public constant TEST_ETH_PER_USD_PRICE = 5e14;
 
   function setUp() public {
     asset = new MockERC20("Test WETH", "tWETH");
@@ -58,34 +44,80 @@ contract VaultTest is DSTestPlus {
     vm.label(address(debtAsset), "tDAI");
 
     oracle = new MockOracle();
-    utils_setupOracle(address(asset), address(debtAsset));
+    _utils_setupOracle(address(asset), address(debtAsset));
 
     mockProvider = new MockProvider();
+
+    chief = new Chief();
+    timelock = TimeLock(payable(chief.timelock()));
 
     vault = new BorrowingVault(
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0),
+      address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH"
     );
 
+    _utils_setupVaultProvider(vault);
+  }
+
+  function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
+      abi.encode(price)
+    );
+  }
+
+  function _utils_setupOracle(address asset1, address asset2) internal {
+    _utils_setPrice(asset1, asset2, TEST_ETH_PER_USD_PRICE);
+    _utils_setPrice(asset2, asset1, TEST_USD_PER_ETH_PRICE);
+  }
+
+  function _utils_setupTestRoles() internal {
+    // Grant this test address all roles.
+    chief.grantRole(TIMELOCK_PROPOSER_ROLE, address(this));
+    chief.grantRole(TIMELOCK_EXECUTOR_ROLE, address(this));
+    chief.grantRole(REBALANCER_ROLE, address(this));
+    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+  }
+
+  function _utils_callWithTimeLock(BorrowingVault vault_, bytes memory sendData) internal {
+    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+    vm.warp(block.timestamp + 2 days);
+    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    rewind(2 days);
+  }
+
+  function _utils_setupVaultProvider(BorrowingVault vault_) internal {
+    _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    vault.setProviders(providers);
-    vault.setActiveProvider(mockProvider);
+    bytes memory sendData = abi.encodeWithSelector(vault_.setProviders.selector, providers);
+    _utils_callWithTimeLock(vault_, sendData);
+    vault_.setActiveProvider(mockProvider);
+  }
+
+  function _utils_doDeposit(uint256 amount, BorrowingVault v) internal {
+    deal(address(asset), owner, amount);
+
+    vm.startPrank(owner);
+    SafeERC20.safeApprove(asset, address(v), amount);
+    v.deposit(amount, owner);
+    vm.stopPrank();
   }
 
   function testFail_operatorTriesWithdraw() public {
-    utils_doDeposit(depositAmount, vault);
+    _utils_doDeposit(depositAmount, vault);
 
     vm.prank(operator);
     vault.withdraw(withdrawDelegated, operator, owner);
   }
 
   function testWithdrawWithPermit() public {
-    utils_doDeposit(depositAmount, vault);
+    _utils_doDeposit(depositAmount, vault);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
@@ -113,14 +145,14 @@ contract VaultTest is DSTestPlus {
   }
 
   function testFail_operatorTriesBorrow() public {
-    utils_doDeposit(depositAmount, vault);
+    _utils_doDeposit(depositAmount, vault);
 
     vm.prank(operator);
     vault.borrow(borrowDelegated, operator, owner);
   }
 
   function test_borrowWithPermit() public {
-    utils_doDeposit(depositAmount, vault);
+    _utils_doDeposit(depositAmount, vault);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,

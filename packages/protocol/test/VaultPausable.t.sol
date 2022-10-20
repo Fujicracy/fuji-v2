@@ -18,7 +18,7 @@ import {BaseVault} from "../src/abstracts/BaseVault.sol";
 import {IPausableVault} from "../src/interfaces/IPausableVault.sol";
 import {PausableVault} from "../src/abstracts/PausableVault.sol";
 
-contract VaultPausableTest is DSTestPlus, CoreRoles {
+contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
   event Paused(address account, IPausableVault.VaultActions actions);
   event Unpaused(address account, IPausableVault.VaultActions actions);
   event PausedForceAll(address account);

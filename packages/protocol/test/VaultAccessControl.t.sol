@@ -23,7 +23,7 @@ interface IBorrowingVault_TestingOnly is IVault {
   function setLiqRatio(uint256 liqRatio_) external;
 }
 
-contract VaultTest is DSTestPlus, CoreRoles {
+contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
   event MinDepositAmountChanged(uint256 newMinDeposit);
   event DepositCapChanged(uint256 newDepositCap);
 

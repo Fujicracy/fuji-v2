@@ -15,7 +15,7 @@ import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../src/abstracts/BaseVault.sol";
 
-contract VaultTest is DSTestPlus, CoreRoles {
+contract VaultUnitTests is DSTestPlus, CoreRoles {
   event MinDepositAmountChanged(uint256 newMinDeposit);
   event DepositCapChanged(uint256 newDepositCap);
 

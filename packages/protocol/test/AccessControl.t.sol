@@ -11,7 +11,7 @@ import {SystemAccessControl} from "../src/access/SystemAccessControl.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockChainlinkPriceFeed} from "../src/mocks/MockChainlinkPriceFeed.sol";
 
-contract AccessControlTests is Test {
+contract AccessControlUnitTests is Test {
   Chief public chief;
   TimeLock public timelock;
   FujiOracle public oracle;

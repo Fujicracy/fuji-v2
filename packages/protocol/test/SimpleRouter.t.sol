@@ -26,7 +26,7 @@ import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {TimeLock} from "../src/access/TimeLock.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
-contract SimpleRouterTest is DSTestPlus, CoreRoles {
+contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
