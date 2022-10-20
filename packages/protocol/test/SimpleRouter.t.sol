@@ -173,10 +173,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     uint256 borrowAmount,
     uint256 plusNonce,
     address vault_
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
@@ -202,10 +199,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     uint256 amount,
     uint256 plusNonce,
     address vault_
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,

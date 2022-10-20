@@ -9,6 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "env-cmd synpress run",
+    "test:watch": "env-cmd synpress open -cf synpress.json",
     "lint": "next lint",
     "prettier": "prettier --config .prettierrc  ."
   },
@@ -29,10 +31,12 @@
     "zustand": "^4.1.1"
   },
   "devDependencies": {
+    "@synthetixio/synpress": "^2.4.1-beta.1",
     "@types/mixpanel-browser": "^2.38.0",
     "@types/node": "18.7.13",
     "@types/react": "18.0.17",
     "@types/react-dom": "18.0.6",
+    "env-cmd": "^10.1.0",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.40.0",
     "eslint": "8.22.0",

@@ -2,7 +2,7 @@ import {
   StaticJsonRpcProvider,
   WebSocketProvider,
 } from '@ethersproject/providers';
-import invariant from 'tiny-invariant';
+import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
 
 import {
   ALCHEMY_WSS_URL,
@@ -14,6 +14,7 @@ import { ChainConfig } from '../types';
 
 type ChainConnectionParams = {
   rpcProvider: StaticJsonRpcProvider;
+  multicallRpcProvider: IMulticallProvider;
   wssProvider?: WebSocketProvider;
 };
 
@@ -38,16 +39,21 @@ export class ChainConnection {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
 
+      const multicallRpcProvider: IMulticallProvider = initSyncMulticallProvider(
+        rpcProvider,
+        chainId
+      );
+
       let wss: string | null = INFURA_WSS_URL[chainId](params.infuraId);
       if (!wss) {
         const alchemyId = params.alchemy[chainId];
-        invariant(alchemyId, `No "alchemyId" provided for chain ${chainId}!`);
-        wss = ALCHEMY_WSS_URL[chainId](alchemyId);
+        wss = alchemyId ? ALCHEMY_WSS_URL[chainId](alchemyId) : null;
       }
       const wssProvider = wss ? new WebSocketProvider(wss) : undefined;
 
       this._config[chainId] = {
         rpcProvider,
+        multicallRpcProvider,
         wssProvider,
       };
     }
