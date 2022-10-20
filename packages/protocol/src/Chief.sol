@@ -9,6 +9,8 @@ import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 import {TimeLock} from "./access/TimeLock.sol";
 
+import "forge-std/console.sol";
+
 /// @dev Custom Errors
 error Chief__ZeroAddress();
 error Chief__FactoryNotAllowed();
@@ -19,6 +21,7 @@ error Chief__missingRole(address account, bytes32 role);
 contract Chief is CoreRoles, AccessControl {
   using Address for address;
 
+  event OpenVaultFactory(bool state);
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
   event AddToAllowed(address indexed factory);
   event RemoveFromAllowed(address indexed factory);
@@ -47,6 +50,11 @@ contract Chief is CoreRoles, AccessControl {
     return _vaults;
   }
 
+  function setOpenVaultFactory(bool state) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    openVaultFactory = state;
+    emit OpenVaultFactory(state);
+  }
+
   function deployVault(address _factory, bytes calldata _deployData, string calldata rating)
     external
     returns (address vault)
@@ -54,7 +62,7 @@ contract Chief is CoreRoles, AccessControl {
     if (!allowedFactories[_factory]) {
       revert Chief__FactoryNotAllowed();
     }
-    if (!openVaultFactory && hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
+    if (!openVaultFactory && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
       revert Chief__missingRole(msg.sender, DEFAULT_ADMIN_ROLE);
     }
     vault = IVaultFactory(_factory).deployVault(_deployData);
@@ -79,7 +87,7 @@ contract Chief is CoreRoles, AccessControl {
    * - Should be restricted to pauser role.
    */
   function pauseForceAllVaults() external onlyRole(PAUSER_ROLE) {
-    bytes memory callData = abi.encodeWithSignature("pauseForceAll()");
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
     _changePauseState(callData);
   }
 
@@ -89,7 +97,7 @@ contract Chief is CoreRoles, AccessControl {
    * - Should be restricted to unpauser role.
    */
   function unpauseForceAllVaults() external onlyRole(UNPAUSER_ROLE) {
-    bytes memory callData = abi.encodeWithSignature("unpauseForceAll()");
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpauseForceAll.selector);
     _changePauseState(callData);
   }
 
@@ -104,7 +112,7 @@ contract Chief is CoreRoles, AccessControl {
     external
     onlyRole(PAUSER_ROLE)
   {
-    bytes memory callData = abi.encodeWithSignature("pause(uint8)", uint8(action));
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.pause.selector, action);
     _changePauseState(callData);
   }
 
@@ -119,7 +127,7 @@ contract Chief is CoreRoles, AccessControl {
     external
     onlyRole(UNPAUSER_ROLE)
   {
-    bytes memory callData = abi.encodeWithSignature("unpause(uint8)", uint8(action));
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, uint8(action));
     _changePauseState(callData);
   }
 
@@ -142,6 +150,8 @@ contract Chief is CoreRoles, AccessControl {
    * @dev executes pause state changes.
    */
   function _changePauseState(bytes memory callData) internal {
+    console.log("_changePauseState: callData");
+    console.logBytes(callData);
     uint256 alength = _vaults.length;
     for (uint256 i; i < alength;) {
       address(_vaults[i]).functionCall(callData, ": pause call failed");
