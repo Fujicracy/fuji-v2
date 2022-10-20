@@ -24,6 +24,7 @@ import styles from "../styles/components/Header.module.css"
 import ChainSelect from "./Form/ChainSelect"
 import Parameters from "./Layout/Parameters"
 import { useStore } from "../store"
+import Balance from "./Balance"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NODE_ENV === "development") {
@@ -222,17 +223,14 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   }
 
   const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
-  const [bal] = Object.values<string>(balance)
-  const [token] = Object.keys(balance)
-  const formattedBalance =
-    token === "ETH"
-      ? `${bal.substring(0, 5)} ${token}`
-      : `${bal.substring(0, 4)} ${token}`
+  const [bal] = Object.values(balance)
+  // const [token] = Object.keys(balance)
 
   return (
     <Box mr="-2rem">
       <Chip
-        label={formattedBalance}
+        // TODO: Pass the current token
+        label={<Balance balance={parseInt(bal)} />}
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
       <Chip

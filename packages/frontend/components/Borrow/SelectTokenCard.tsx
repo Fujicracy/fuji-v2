@@ -1,12 +1,12 @@
-import React from "react"
+import React, { MouseEvent, ReactElement, useState } from "react"
 import {
+  Box,
   Card,
-  FormControl,
-  Grid,
+  Fade,
+  ListItemIcon,
   ListItemText,
+  Menu,
   MenuItem,
-  Select,
-  SelectChangeEvent,
   TextField,
   Typography,
   useTheme,
@@ -16,36 +16,33 @@ import Image from "next/image"
 
 import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
+import Balance from "../Balance"
+import { useStore } from "../../store"
 
 type SelectTokenCardProps = {
-  value: number
-  onChangeValue: (e: React.ChangeEvent<HTMLInputElement>) => void
-  // TODO: handle the case where token is undefined
-  token: string
-  onChangeToken: (e: SelectChangeEvent<string>) => void
-  tokens: Token[]
   type: "collateral" | "borrow"
-  balance: number
-  balances: number[]
-  onMaxClicked: (e: React.MouseEvent<HTMLElement>) => void
 }
 
 export default function SelectTokenCard(props: SelectTokenCardProps) {
   const { palette } = useTheme()
-  const {
-    value,
-    onChangeValue,
-    token,
-    onChangeToken,
-    tokens,
-    type,
-    balance,
-    balances,
-    onMaxClicked,
-  } = props
+  const { type } = props
+  const changeCollateralToken = useStore((state) => state.changeCollateralToken)
+  const borrowOrCollateral = useStore((state) => state[type])
+  const { value, balance } = borrowOrCollateral
 
-  if (!balances) {
-    debugger
+  const collateralOrBorrow = useStore((state) => state[type])
+  const { token, balances } = collateralOrBorrow
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const isOpen = Boolean(anchorEl)
+  const open = (event: MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const close = () => setAnchorEl(null)
+
+  if (!token) {
+    // TODO: remove and set default token in store
+    return <> </>
   }
 
   return (
@@ -53,7 +50,8 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
       variant="outlined"
       sx={{
         borderColor:
-          type === "collateral" && value > balance
+          type === "collateral" &&
+          collateralOrBorrow.value > collateralOrBorrow?.balance
             ? palette.error.dark
             : palette.secondary.light,
       }}
@@ -63,8 +61,8 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
           id="collateral-amount"
           type="number"
           placeholder="0"
-          value={value}
-          onChange={onChangeValue}
+          value={collateralOrBorrow.value}
+          onChange={() => alert("not implemented")}
           sx={{
             fontSize: "1.125rem",
             boxShadow: "none",
@@ -73,56 +71,33 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
           }}
         />
 
-        <FormControl>
-          <Grid container alignItems="center">
-            <Select
-              labelId="collateral-token-label"
-              id="collateral-token"
-              value={token}
-              onChange={onChangeToken}
-              IconComponent={KeyboardArrowDownIcon}
-              sx={{
-                boxShadow: "none",
-                ".MuiOutlinedInput-notchedOutline": {
-                  border: 0,
-                },
-              }}
-              variant="standard"
-              disableUnderline
-            >
-              {tokens.map((token, index) => (
-                <MenuItem key={token.name} value={token.symbol}>
-                  <Grid container alignItems="center">
-                    <Grid item>
-                      <Image
-                        src={`/assets/images/protocol-icons/tokens/${token.symbol}.svg`}
-                        height={24}
-                        width={24}
-                        alt={token.name}
-                      />
-                    </Grid>
-                    <Grid item>
-                      <Grid
-                        container
-                        alignItems="center"
-                        justifyContent="space-between"
-                      >
-                        <ListItemText sx={{ ml: "0.5rem" }}>
-                          <Typography variant="h6">{token.symbol}</Typography>
-                        </ListItemText>
-                        {balances?.length > 0 && type === "collateral" && (
-                          <Typography variant="smallDark" ml="0.5rem">
-                            {balances[index]}
-                          </Typography>
-                        )}
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </MenuItem>
-              ))}
-            </Select>
-          </Grid>
-        </FormControl>
+        <Box
+          id={`select-${type}-button`}
+          onClick={open}
+          display="flex"
+          alignItems="center"
+        >
+          {token && (
+            <ChainItem token={token} prepend={<KeyboardArrowDownIcon />} />
+          )}
+        </Box>
+
+        <Menu
+          id="collateral-token"
+          anchorEl={anchorEl}
+          open={isOpen}
+          onClose={close}
+          TransitionComponent={Fade}
+        >
+          {collateralOrBorrow.tokens.map((token, index) => (
+            <ChainItem
+              key={token.name}
+              token={token}
+              balance={type === "collateral" ? balances[index] : undefined}
+              onClick={() => changeCollateralToken(token)}
+            />
+          ))}
+        </Menu>
       </div>
       <div className={styles.cardLine}>
         {type === "collateral" ? (
@@ -138,7 +113,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                 variant="xsmall"
                 align="center"
                 className={styles.maxBtn}
-                onClick={onMaxClicked}
+                onClick={() => alert("not implemented")}
               >
                 MAX
               </Typography>
@@ -154,7 +129,7 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                         : palette.text.primary,
                   }}
                 >
-                  {balance} {token}
+                  <Balance balance={balance} token={token} /> {token?.name}
                 </Typography>
               </Typography>
             </div>
@@ -169,5 +144,41 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
         )}
       </div>
     </Card>
+  )
+}
+
+type ChainItemProps = {
+  token: Token
+  balance?: number
+  prepend?: ReactElement
+  onClick?: (token: Token) => void
+}
+const ChainItem = (props: ChainItemProps) => {
+  const { token, balance, prepend, onClick } = props
+
+  return (
+    <MenuItem
+      key={token.name}
+      value={token.symbol}
+      onClick={() => onClick && onClick(token)}
+    >
+      <ListItemIcon>
+        <Image
+          src={`/assets/images/protocol-icons/tokens/${token.symbol}.svg`}
+          height={24}
+          width={24}
+          alt={token.name}
+        />
+      </ListItemIcon>
+      <ListItemText>
+        <Typography variant="h6">{token.symbol}</Typography>
+      </ListItemText>
+      {balance && (
+        <Typography variant="smallDark" ml="3rem">
+          <Balance balance={balance} token={token} />
+        </Typography>
+      )}
+      {prepend}
+    </MenuItem>
   )
 }

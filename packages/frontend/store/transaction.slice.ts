@@ -1,4 +1,5 @@
 import { Address, Token } from "@x-fuji/sdk"
+import { formatUnits } from "ethers/lib/utils"
 import { StateCreator } from "zustand"
 import { sdk } from "./auth.slice"
 
@@ -20,15 +21,19 @@ type TransactionState = {
   borrow: {
     value: number // Input value
     token: Token | null
+    balance: number
     tokens: Token[]
+    balances: number[] // Balance of all collateral tokens
     chainId: ChainId | null // Hex value
   }
 }
 type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
   setShowTransactionAbstract: (show: boolean) => void
-  changeBorrowChain: (chainId: ChainId) => void
-  changeCollateralChain: (chainId: ChainId, address: string) => void
+  changeBorrowChain: (chainId: ChainId, walletAddress: string) => void
+  changeCollateralChain: (chainId: ChainId, walletAddress: string) => void
+  changeCollateralToken: (token: Token) => void
+  changeBorrowToken: (token: Token) => void
 }
 type ChainId = string // hex value as string
 
@@ -47,8 +52,10 @@ const initialState: TransactionState = {
 
   borrow: {
     value: 0,
+    balance: 0,
     token: null,
     tokens: [],
+    balances: [],
     chainId: null,
   },
 }
@@ -64,19 +71,22 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ showTransactionAbstract })
   },
 
-  async changeCollateralChain(chainId: string, address: string) {
+  async changeCollateralChain(chainId: string, walletAddress: string) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
     const rawBalances = await sdk.getTokenBalancesFor(
       tokens,
-      new Address(address),
+      new Address(walletAddress),
       parseInt(chainId, 16)
     )
-    const balances = rawBalances.map((b) => parseInt(b.toString()))
-    debugger
+    const balances = rawBalances.map((b, i) => {
+      const res = formatUnits(b, tokens[i].decimals)
+      return parseFloat(res)
+    })
 
     set({
       collateral: {
         ...get().collateral,
+        token: tokens[0],
         tokens,
         balances,
         chainId,
@@ -84,14 +94,43 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     })
   },
 
-  async changeBorrowChain(chainId: string) {
+  changeCollateralToken(token: Token) {
+    set({
+      collateral: {
+        ...get().collateral,
+        token,
+      },
+    })
+  },
+
+  async changeBorrowChain(chainId: string, walletAddress: string) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
+    const rawBalances = await sdk.getTokenBalancesFor(
+      tokens,
+      new Address(walletAddress),
+      parseInt(chainId, 16)
+    )
+    const balances = rawBalances.map((b, i) => {
+      const res = formatUnits(b, tokens[i].decimals)
+      return parseFloat(res)
+    })
 
     set({
       borrow: {
         ...get().borrow,
+        token: tokens[0],
         tokens,
+        balances,
         chainId,
+      },
+    })
+  },
+
+  changeBorrowToken(token: Token) {
+    set({
+      borrow: {
+        ...get().borrow,
+        token,
       },
     })
   },

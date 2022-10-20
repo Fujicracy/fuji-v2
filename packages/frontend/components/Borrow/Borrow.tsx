@@ -35,10 +35,12 @@ export default function Borrow() {
 
   useEffect(() => {
     if (chain && address) {
+      // Set default chain as wallet chain and mainnet
+      // TODO: Do it in the store or initial state
       changeCollateralChain(chain.id, address)
-      changeBorrowChain(chains[0].id)
+      changeBorrowChain(chains[0].id, address)
     }
-  }, [chain, address])
+  }, [chain, address, changeBorrowChain, changeCollateralChain])
 
   const collateral = useStore((state) => state.collateral)
   const borrow = useStore((state) => state.borrow)
@@ -119,17 +121,7 @@ export default function Borrow() {
             </Grid>
           </FormControl>
 
-          <SelectTokenCard
-            value={collateral.value}
-            onChangeValue={() => alert("not implemented")}
-            token={collateral.token?.symbol}
-            onChangeToken={() => alert("not implemented")}
-            tokens={collateral.tokens}
-            type="collateral"
-            balance={collateral.balance}
-            balances={collateral.balances}
-            onMaxClicked={() => alert("not implemented")}
-          />
+          <SelectTokenCard type="collateral" />
           {collateral.value > collateral.balance && (
             <Typography
               variant="small"
@@ -182,18 +174,7 @@ export default function Borrow() {
             </Grid>
           </FormControl>
 
-          <SelectTokenCard
-            value={borrow.value}
-            onChangeValue={() => alert("not implemented")}
-            token={borrow.token?.symbol}
-            onChangeToken={() => alert("not implemented")}
-            tokens={borrow.tokens}
-            type="borrow"
-            balance={0}
-            // TODO: use borrow balance or rm
-            balances={collateral.balances}
-            onMaxClicked={() => alert("not implemented")}
-          />
+          <SelectTokenCard type="borrow" />
 
           <br />
           <Card
