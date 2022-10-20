@@ -272,7 +272,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0)
+    return
+      (assets == 0 || supply == 0)
       ? assets.mulDiv(10 ** decimals(), 10 ** _asset.decimals(), rounding)
       : assets.mulDiv(supply, totalAssets(), rounding);
   }
@@ -287,7 +288,8 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return (supply == 0)
+    return
+      (supply == 0)
       ? shares.mulDiv(10 ** _asset.decimals(), 10 ** decimals(), rounding)
       : shares.mulDiv(totalAssets(), supply, rounding);
   }
@@ -312,7 +314,9 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     address owner,
     uint256 assets,
     uint256 shares
-  ) internal {
+  )
+    internal
+  {
     _burn(owner, shares);
     _executeProviderAction(asset(), assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
@@ -405,7 +409,11 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     uint8 v,
     bytes32 r,
     bytes32 s
-  ) public virtual override {}
+  )
+    public
+    virtual
+    override
+  {}
 
   /**
    * @dev Internal function that computes how much free 'assets'
