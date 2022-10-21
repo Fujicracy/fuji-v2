@@ -33,7 +33,7 @@ const BorrowPage: NextPage = () => {
           pr: { xs: "0.25rem", sm: "1rem" },
         }}
       >
-        <Grid container wrap="wrap" justifyContent="center">
+        <Grid container wrap="wrap" justifyContent="center" spacing={3}>
           <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>

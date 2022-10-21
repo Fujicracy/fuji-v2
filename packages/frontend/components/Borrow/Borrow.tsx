@@ -63,7 +63,7 @@ export default function Borrow() {
   }
 
   return (
-    <Container>
+    <>
       <Card
         sx={{
           display: "flex",
@@ -208,6 +208,6 @@ export default function Borrow() {
           setShowTransactionAbstract(true)
         }}
       />
-    </Container>
+    </>
   )
 }
