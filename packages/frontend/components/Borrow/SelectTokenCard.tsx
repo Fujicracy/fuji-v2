@@ -118,19 +118,14 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                 MAX
               </Typography>
 
-              <Typography variant="small">
-                <Typography variant="smallDark">Balance:</Typography>
-                <Typography
-                  sx={{
-                    display: "inline",
-                    color:
-                      value > balance
-                        ? palette.error.dark
-                        : palette.text.primary,
-                  }}
-                >
-                  <Balance balance={balance} token={token} /> {token?.name}
-                </Typography>
+              <Typography variant="smallDark">Balance: </Typography>
+              <Typography
+                ml=".25rem"
+                color={
+                  value > balance ? palette.error.dark : palette.text.primary
+                }
+              >
+                <Balance balance={balance} token={token} />
               </Typography>
             </div>
           </>

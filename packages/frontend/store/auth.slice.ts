@@ -52,21 +52,9 @@ export const chains: Chain[] = [
     rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
   },
   {
-    id: "0x5",
-    token: "GTH",
-    label: "Goerli",
-    rpcUrl: `https://goerli.infura.io/v3/`,
-  },
-  {
     id: "0x89",
     token: "MATIC",
     label: "Polygon",
-    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-  },
-  {
-    id: "0x13881",
-    token: "MATIC",
-    label: "Mumbai",
     rpcUrl: "https://matic-mainnet.chainstacklabs.com",
   },
   {
@@ -87,26 +75,30 @@ export const chains: Chain[] = [
     label: "Optimism",
     rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
   },
-  {
-    id: "0x1a4",
-    token: "ETH",
-    label: "Optimism Goerli",
-    rpcUrl: "https://goerli.optimism.io/",
-  },
 ]
 
-// TODO: if testnet  chains.push({
-//   id: "0x3",
-//   token: "tROP",
-//   label: "Ethereum Ropsten Testnet",
-//   rpcUrl: ETH_ROPSTEN_RPC,
-// },
-// {
-//   id: "0x4",
-//   token: "rETH",
-//   label: "Ethereum Rinkeby Testnet",
-//   rpcUrl: ETH_RINKEBY_RPC,
-// })
+if (process.env.NODE_ENV !== "production") {
+  chains.push(
+    {
+      id: "0x13881",
+      token: "MATIC",
+      label: "Mumbai",
+      rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+    },
+    {
+      id: "0x5",
+      token: "GTH",
+      label: "Goerli",
+      rpcUrl: `https://goerli.infura.io/v3/`,
+    },
+    {
+      id: "0x1a4",
+      token: "ETH",
+      label: "Optimism Goerli",
+      rpcUrl: "https://goerli.optimism.io/",
+    }
+  )
+}
 
 const onboard = Onboard({
   chains,

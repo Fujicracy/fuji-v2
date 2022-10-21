@@ -110,9 +110,7 @@ export default function Borrow() {
                         alt={chain.label}
                       />
                       <span style={{ marginLeft: "0.5rem" }}>
-                        <Typography variant="small">
-                          {chain.label} Network
-                        </Typography>
+                        <Typography variant="small">{chain.label}</Typography>
                       </span>
                     </Grid>
                   </MenuItem>
@@ -122,6 +120,7 @@ export default function Borrow() {
           </FormControl>
 
           <SelectTokenCard type="collateral" />
+
           {collateral.value > collateral.balance && (
             <Typography
               variant="small"
