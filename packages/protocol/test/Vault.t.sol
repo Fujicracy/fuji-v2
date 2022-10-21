@@ -207,11 +207,6 @@ contract VaultTest is DSTestPlus {
     return c;
   }
 
-  function _utils_multiply(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a * b;
-    return c;
-  }
-
   function test_deposit(uint256 amount) public {
     _utils_doDeposit(amount, vault, alice);
     assertEq(vault.balanceOf(alice), amount);
@@ -321,7 +316,6 @@ contract VaultTest is DSTestPlus {
     assertEq(HF2, HF2_);
   }
 
-  // TODO FUZZ
   function test_getLiquidationFactor(uint256 priceDrop) public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
@@ -380,9 +374,8 @@ contract VaultTest is DSTestPlus {
       amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0
         && liquidatorAmount > borrowAmount
         && _utils_checkLiquidateMaxFuture(amount, borrowAmount, priceDrop)
-        && _utils_getFutureHealthFactor(amount, borrowAmount, priceDrop) > 0
     );
-    console.log();
+    
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     // price drop
@@ -418,35 +411,44 @@ contract VaultTest is DSTestPlus {
     assertEq(vault.balanceOfDebt(bob), 0);
   }
 
-  // TODO FUZZ
-  function test_liquidateDefault(uint96 amount, uint96 borrowAmount, uint80 priceDrop) public {
-    uint256 price = oracle.getPriceOf(address(asset), address(debtAsset), 18);
+  function test_liquidateDefault(uint256 priceDrop) public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
 
     vm.assume(
-      borrowAmount > 0 && price > priceDrop && priceDrop > 0
-        && _utils_checkMaxLTV(amount, borrowAmount)
-        && _utils_checkLiquidateDiscountFuture(amount, borrowAmount, priceDrop)
+      priceDrop
+        > _utils_getLiquidationThresholdValue(
+          address(vault), TEST_USD_PER_ETH_PRICE, amount, borrowAmount
+        )
     );
-    //uint256 amount = 1 ether;
-    //uint256 borrowAmount = 1000e18;
+
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), 18);
+    uint256 liqRatio = IBVaultTestingExtOnly(address(vault)).liqRatio();
+    uint256 priceDropThresholdToMaxLiq = price - ((95 * borrowAmount * 1e34) / (amount * liqRatio));
+    uint256 priceDropThresholdToDiscountLiq = price - ((100 * borrowAmount * 1e34) / (amount * liqRatio));
+    
+    //priceDrop between thresholds
+    priceDrop = bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
+ 
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     // price drop, putting HF < 100, but above 95 and the close factor at 50%
-    _utils_setPrice(address(asset), address(debtAsset), 1e18 / (price - priceDrop));
-    _utils_setPrice(address(debtAsset), address(asset), price - priceDrop);
+    uint256 newPrice = price - priceDrop;
+
+    _utils_setPrice(address(asset), address(debtAsset), 1e18/newPrice);
+    _utils_setPrice(address(debtAsset), address(asset), newPrice);
     uint256 liquidatorAmount = borrowAmount;
     deal(address(debtAsset), bob, liquidatorAmount);
-
+    
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
     assertEq(vault.balanceOf(alice), amount);
     assertEq(vault.balanceOfDebt(alice), borrowAmount);
-
     assertEq(asset.balanceOf(bob), 0);
     assertEq(debtAsset.balanceOf(bob), liquidatorAmount);
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
-
+    
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice, bob);
@@ -454,12 +456,20 @@ contract VaultTest is DSTestPlus {
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
-    assertEq(vault.balanceOf(alice), 551971326164874552);
+
+    uint256 discountedPrice = newPrice * 0.9e18 / 1e18;
+    uint256 amountGivenToLiquidator = borrowAmount * 0.5e18 / discountedPrice;
+
+    if(amountGivenToLiquidator >= amount){
+        amountGivenToLiquidator = amount;
+    }
+
+    assertEq(vault.balanceOf(alice), amount - amountGivenToLiquidator);
     assertEq(vault.balanceOfDebt(alice), borrowAmount / 2);
 
     assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), liquidatorAmount - borrowAmount / 2);
-    assertEq(vault.balanceOf(bob), 448028673835125448);
+    assertEq(debtAsset.balanceOf(bob), liquidatorAmount - (borrowAmount / 2));
+    assertEq(vault.balanceOf(bob), amountGivenToLiquidator);
     assertEq(vault.balanceOfDebt(bob), 0);
   }
 }
