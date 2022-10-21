@@ -253,11 +253,16 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     vm.prank(charlie);
     bvault1.pauseForceAll();
 
+    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), true);
+
     deal(address(asset), alice, DEPOSIT_AMOUNT);
 
     vm.startPrank(alice);
     SafeERC20.safeApprove(asset, address(bvault1), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault1.deposit(DEPOSIT_AMOUNT, alice);
     vm.stopPrank();
 
@@ -295,14 +300,14 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
     SafeERC20.safeApprove(asset, address(bvault1), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault1.deposit(DEPOSIT_AMOUNT, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
     SafeERC20.safeApprove(asset, address(bvault2), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault2.deposit(DEPOSIT_AMOUNT, bob);
     vm.stopPrank();
   }
@@ -321,13 +326,13 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault1.withdraw(DEPOSIT_AMOUNT, alice, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault2.withdraw(DEPOSIT_AMOUNT, bob, bob);
     vm.stopPrank();
   }
@@ -346,13 +351,13 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault1.borrow(BORROW_AMOUNT, alice, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault2.borrow(BORROW_AMOUNT, bob, bob);
     vm.stopPrank();
   }
@@ -377,14 +382,14 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
     SafeERC20.safeApprove(debtAsset, address(bvault1), BORROW_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault1.payback(BORROW_AMOUNT, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(bvault2), BORROW_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__ActionPaused.selector);
+    vm.expectRevert(PausableVault.PausableVault__whenNotPaused_ActionPaused.selector);
     bvault2.payback(BORROW_AMOUNT, bob);
     vm.stopPrank();
   }

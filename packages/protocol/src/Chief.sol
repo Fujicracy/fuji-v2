@@ -10,8 +10,6 @@ import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
-import "forge-std/console.sol";
-
 /// @dev Custom Errors
 error Chief__ZeroAddress();
 error Chief__FactoryNotAllowed();
@@ -77,11 +75,17 @@ contract Chief is CoreRoles, AccessControl {
   }
 
   function addToAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (_factory == address(0)) {
+      revert Chief__ZeroAddress();
+    }
     allowedFactories[_factory] = true;
     emit AddToAllowed(_factory);
   }
 
   function removeFromAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (_factory == address(0)) {
+      revert Chief__ZeroAddress();
+    }
     allowedFactories[_factory] = false;
     emit RemoveFromAllowed(_factory);
   }
@@ -147,8 +151,6 @@ contract Chief is CoreRoles, AccessControl {
    * @dev executes pause state changes.
    */
   function _changePauseState(bytes memory callData) internal {
-    console.log("_changePauseState: callData");
-    console.logBytes(callData);
     uint256 alength = _vaults.length;
     for (uint256 i; i < alength;) {
       address(_vaults[i]).functionCall(callData, ": pause call failed");
