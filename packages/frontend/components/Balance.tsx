@@ -15,7 +15,6 @@ const Balance = (props: Props) => {
     ? `${bal.toString().substring(0, 5)}`
     : `${bal.substring(0, 4)} `
 
-  console.log({ formattedBalance })
   return <>{formattedBalance}</>
 }
 
