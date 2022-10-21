@@ -1,4 +1,4 @@
-import { Typography, Grid, Select, MenuItem, Stack } from "@mui/material"
+import { Typography, Grid, Select, MenuItem, Stack, Fade } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
 import { chains } from "../../store/auth.slice"
@@ -25,6 +25,7 @@ export const ChainSelect = (props: ChainSelectProps) => {
         IconComponent={KeyboardArrowDownIcon}
         variant="standard"
         disableUnderline
+        MenuProps={{ TransitionComponent: Fade }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} value={chain.id}>

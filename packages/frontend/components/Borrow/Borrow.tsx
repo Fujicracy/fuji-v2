@@ -138,7 +138,12 @@ export default function Borrow() {
           <br />
 
           {error === "mustLogin" && (
-            <Button variant="gradient" onClick={() => login()} fullWidth>
+            <Button
+              variant="gradient"
+              onClick={() => login()}
+              fullWidth
+              data-cy="borrow-login"
+            >
               Connect wallet
             </Button>
           )}
