@@ -23,7 +23,7 @@ type SelectTokenCardProps = {
   type: "collateral" | "borrow"
 }
 
-export default function SelectTokenCard(props: SelectTokenCardProps) {
+export default function TokenSelect(props: SelectTokenCardProps) {
   const { palette } = useTheme()
   const { type } = props
   const changeCollateralToken = useStore((state) => state.changeCollateralToken)

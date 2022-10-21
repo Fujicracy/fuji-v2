@@ -6,9 +6,6 @@ import {
   CardContent,
   Card,
   Grid,
-  FormControl,
-  Select,
-  MenuItem,
   CircularProgress,
   Container,
   Collapse,
@@ -20,9 +17,10 @@ import Image from "next/image"
 
 import { chains } from "../../store/auth.slice"
 import { useStore } from "../../store"
-import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
+import { ChainSelect } from "./ChainSelect"
+import TokenSelect from "./TokenSelect"
 
 export default function Borrow() {
   const { palette } = useTheme()
@@ -79,103 +77,27 @@ export default function Borrow() {
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
-          <FormControl>
-            <Grid container alignItems="center">
-              <label id="collateral-chain-label" className={styles.selectLabel}>
-                Collateral from
-              </label>
-              <Select
-                labelId="collateral-chain-label"
-                id="collateral-chain"
-                value={collateral.chainId}
-                onChange={() => alert("Not implemented")}
-                IconComponent={KeyboardArrowDownIcon}
-                sx={{
-                  marginBottom: "1rem",
-                  boxShadow: "none",
-                  ".MuiOutlinedInput-notchedOutline": {
-                    border: 0,
-                  },
-                }}
-                variant="standard"
-                disableUnderline
-              >
-                {chains.map((chain) => (
-                  <MenuItem key={chain.id} value={chain.id}>
-                    <Grid container>
-                      <Image
-                        src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                        height={18}
-                        width={18}
-                        alt={chain.label}
-                      />
-                      <span style={{ marginLeft: "0.5rem" }}>
-                        <Typography variant="small">{chain.label}</Typography>
-                      </span>
-                    </Grid>
-                  </MenuItem>
-                ))}
-              </Select>
-            </Grid>
-          </FormControl>
-
-          <SelectTokenCard type="collateral" />
+          <ChainSelect label="Collateral from" value={collateral.chainId} />
+          <TokenSelect type="collateral" />
 
           {collateral.value > collateral.balance && (
             <Typography
+              display="block"
               variant="small"
               mt=".5rem"
-              sx={{ color: palette.error.dark, display: "block" }}
+              color={palette.error.dark}
             >
               Insufficient balance
             </Typography>
           )}
 
-          <FormControl>
-            <Grid container alignItems="center">
-              <label id="borrow-chain-label" className={styles.selectLabel}>
-                Borrow to
-              </label>
-              <Select
-                labelId="borrow-chain-label"
-                id="borrow-chain"
-                value={borrow.chainId}
-                onChange={() => alert("not implemented")}
-                IconComponent={KeyboardArrowDownIcon}
-                sx={{
-                  marginBottom: "1rem",
-                  boxShadow: "none",
-                  ".MuiOutlinedInput-notchedOutline": {
-                    border: 0,
-                  },
-                }}
-                variant="standard"
-                disableUnderline
-              >
-                {chains.map((chain) => (
-                  <MenuItem key={chain.id} value={chain.id}>
-                    <Grid container>
-                      <Image
-                        src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                        height={18}
-                        width={18}
-                        alt={chain.label}
-                      />
-                      <span style={{ marginLeft: "0.5rem" }}>
-                        <Typography variant={"small"}>
-                          {chain.label} Network
-                        </Typography>
-                      </span>
-                    </Grid>
-                  </MenuItem>
-                ))}
-              </Select>
-            </Grid>
-          </FormControl>
+          <br />
 
-          <SelectTokenCard type="borrow" />
+          <ChainSelect label="Borrow to" value={borrow.chainId} />
+          <TokenSelect type="borrow" />
 
           <br />
+
           <Card
             variant="outlined"
             sx={{ cursor: "pointer", border: "none" }}
@@ -186,9 +108,9 @@ export default function Borrow() {
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Typography variant="small">~$3.90</Typography>
                 {showTransactionDetails ? (
-                  <KeyboardArrowDownIcon />
-                ) : (
                   <KeyboardArrowUpIcon />
+                ) : (
+                  <KeyboardArrowDownIcon />
                 )}
               </div>
             </div>
