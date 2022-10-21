@@ -1,7 +1,14 @@
 import { NextPage } from "next"
 import Head from "next/head"
 
-import { Box, Container, Divider, Grid } from "@mui/material"
+import {
+  Box,
+  Container,
+  Divider,
+  Grid,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 
 import Borrow from "../components/Borrow/Borrow"
 import Footer from "../components/Layout/Footer"
@@ -10,8 +17,11 @@ import Overview from "../components/Borrow/Overview"
 import TransactionSummary from "../components/Borrow/TransactionSummary"
 
 const BorrowPage: NextPage = () => {
+  const { breakpoints } = useTheme()
+  const isMobile = useMediaQuery(breakpoints.down("sm"))
+
   return (
-    <div>
+    <>
       <Head>
         <title>Borrow - xFuji</title>
         <meta
@@ -33,28 +43,18 @@ const BorrowPage: NextPage = () => {
           pr: { xs: "0.25rem", sm: "1rem" },
         }}
       >
-        <Grid container wrap="wrap" justifyContent="center" spacing={3}>
+        <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
           <Grid item xs={12} md={5}>
             <Borrow />
           </Grid>
-          <Grid
-            item
-            sm={12}
-            md={7}
-            sx={{ display: { xs: "none", sm: "flex" } }}
-          >
-            <Overview />
-          </Grid>
-          <Grid item xs={12} sx={{ display: { xs: "flex", sm: "none" } }}>
-            <TransactionSummary />
+          <Grid item sm={12} md={7}>
+            {isMobile ? <TransactionSummary /> : <Overview />}
           </Grid>
         </Grid>
       </Container>
 
-      <Box sx={{ display: { xs: "none", sm: "block" } }}>
-        <Footer />
-      </Box>
-    </div>
+      {!isMobile && <Footer />}
+    </>
   )
 }
 
