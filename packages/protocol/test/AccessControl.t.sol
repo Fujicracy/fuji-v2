@@ -2,10 +2,11 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {Test} from "forge-std/Test.sol";
 import {Chief} from "../src/Chief.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
-import {Timelock} from "../src/access/Timelock.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {SystemAccessControl} from "../src/access/SystemAccessControl.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
@@ -13,7 +14,7 @@ import {MockChainlinkPriceFeed} from "../src/mocks/MockChainlinkPriceFeed.sol";
 
 contract AccessControlUnitTests is Test {
   Chief public chief;
-  Timelock public timelock;
+  TimelockController public timelock;
   FujiOracle public oracle;
   AddrMapper public addrMapper;
 
@@ -39,8 +40,13 @@ contract AccessControlUnitTests is Test {
       200000000000
     );
 
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+
     chief = new Chief();
-    timelock = Timelock(payable(chief.timelock()));
+    chief.setTimelock(address(timelock));
+
     addrMapper = AddrMapper(chief.addrMapper());
 
     address[] memory assets = new address[](1);
@@ -71,9 +77,7 @@ contract AccessControlUnitTests is Test {
     address keyAddr1,
     address keyAddr2,
     address returnedAddr
-  )
-    public
-  {
+  ) public {
     vm.assume(
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
