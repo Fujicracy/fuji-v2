@@ -40,11 +40,6 @@ export default function TokenSelect(props: SelectTokenCardProps) {
   }
   const close = () => setAnchorEl(null)
 
-  if (!token) {
-    // TODO: remove and set default token in store
-    return <> </>
-  }
-
   return (
     <Card
       variant="outlined"
@@ -93,7 +88,9 @@ export default function TokenSelect(props: SelectTokenCardProps) {
             <ChainItem
               key={token.name}
               token={token}
-              balance={type === "collateral" ? balances[index] : undefined}
+              balance={
+                type === "collateral" && balances ? balances[index] : undefined
+              }
               onClick={() => changeCollateralToken(token)}
             />
           ))}

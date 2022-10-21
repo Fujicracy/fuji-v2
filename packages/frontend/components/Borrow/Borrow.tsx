@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
   Divider,
   Button,
@@ -7,7 +7,6 @@ import {
   Card,
   Grid,
   CircularProgress,
-  Container,
   Collapse,
   useTheme,
 } from "@mui/material"
@@ -15,7 +14,6 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
-import { chains } from "../../store/auth.slice"
 import { useStore } from "../../store"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
@@ -26,22 +24,12 @@ export default function Borrow() {
   const { palette } = useTheme()
 
   const address = useStore((state) => state.address)
-  const status = useStore((state) => state.status)
-  const chain = useStore((state) => state.chain)
-  const changeBorrowChain = useStore((state) => state.changeBorrowChain)
-  const changeCollateralChain = useStore((state) => state.changeCollateralChain)
-
-  useEffect(() => {
-    if (chain && address) {
-      // Set default chain as wallet chain and mainnet
-      // TODO: Do it in the store or initial state
-      changeCollateralChain(chain.id, address)
-      changeBorrowChain(chains[0].id, address)
-    }
-  }, [chain, address, changeBorrowChain, changeCollateralChain])
+  const login = useStore((state) => state.login)
 
   const collateral = useStore((state) => state.collateral)
   const borrow = useStore((state) => state.borrow)
+  const changeBorrowChain = useStore((state) => state.changeBorrowChain)
+  const changeCollateralChain = useStore((state) => state.changeCollateralChain)
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
@@ -58,9 +46,7 @@ export default function Borrow() {
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
-  if (status !== "connected") {
-    return <>Please connect wallet</>
-  }
+  const error = !address && "mustLogin"
 
   return (
     <>
@@ -77,7 +63,11 @@ export default function Borrow() {
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
-          <ChainSelect label="Collateral from" value={collateral.chainId} />
+          <ChainSelect
+            label="Collateral from"
+            value={collateral.chainId}
+            onChange={(chainId) => changeCollateralChain(chainId, address)}
+          />
           <TokenSelect type="collateral" />
 
           {collateral.value > collateral.balance && (
@@ -93,7 +83,11 @@ export default function Borrow() {
 
           <br />
 
-          <ChainSelect label="Borrow to" value={borrow.chainId} />
+          <ChainSelect
+            label="Borrow to"
+            value={borrow.chainId}
+            onChange={(chainId) => changeBorrowChain(chainId, address)}
+          />
           <TokenSelect type="borrow" />
 
           <br />
@@ -143,41 +137,51 @@ export default function Borrow() {
           </Card>
           <br />
 
-          <Button
-            variant="primary"
-            disabled={
-              collateral.value <= 0 ||
-              collateral.value > collateral.balance ||
-              collateral.balance <= 0
-            }
-            onClick={() => alert("not implemented")}
-            fullWidth
-          >
-            Sign
-          </Button>
+          {error === "mustLogin" && (
+            <Button variant="gradient" onClick={() => login()} fullWidth>
+              Connect wallet
+            </Button>
+          )}
 
-          <br />
-          <br />
+          {!error && (
+            <>
+              <Button
+                variant="primary"
+                disabled={
+                  collateral.value <= 0 ||
+                  collateral.value > collateral.balance ||
+                  collateral.balance <= 0
+                }
+                onClick={() => alert("not implemented")}
+                fullWidth
+              >
+                Sign
+              </Button>
 
-          <Button
-            variant="gradient"
-            onClick={() => {
-              setTransactionStatus(true)
-              setShowTransactionProcessingModal(true)
-            }}
-            fullWidth
-            className={styles.btn}
-            startIcon={
-              transactionStatus ? <CircularProgress size={15} /> : undefined
-            }
-            disabled={
-              collateral.value <= 0 ||
-              collateral.value > collateral.balance ||
-              collateral.balance < 0
-            }
-          >
-            Borrow
-          </Button>
+              <br />
+              <br />
+
+              <Button
+                variant="gradient"
+                onClick={() => {
+                  setTransactionStatus(true)
+                  setShowTransactionProcessingModal(true)
+                }}
+                fullWidth
+                className={styles.btn}
+                startIcon={
+                  transactionStatus ? <CircularProgress size={15} /> : undefined
+                }
+                disabled={
+                  collateral.value <= 0 ||
+                  collateral.value > collateral.balance ||
+                  collateral.balance < 0
+                }
+              >
+                Borrow
+              </Button>
+            </>
+          )}
 
           <br />
           <br />

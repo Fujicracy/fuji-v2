@@ -121,23 +121,23 @@ const onboard = Onboard({
 type StateConnected = {
   status: "connected"
   address: string
-  ens: string | null
+  ens: string | undefined
   balance: Balances
   chain: ConnectedChain
 }
 type StateInitial = {
   status: "initial"
-  address: null
-  ens: null
-  balance: null
-  chain: null
+  address: undefined
+  ens: undefined
+  balance: undefined
+  chain: undefined
 }
 type StateDisconnected = {
   status: "disconnected"
-  address: null
-  ens: null
-  balance: null
-  chain: null
+  address: undefined
+  ens: undefined
+  balance: undefined
+  chain: undefined
 }
 type State = StateInitial | StateConnected | StateDisconnected
 
@@ -152,10 +152,10 @@ export type AuthStore = State & Action
 
 const initialState: StateInitial = {
   status: "initial",
-  address: null,
-  ens: null,
-  balance: null,
-  chain: null,
+  address: undefined,
+  ens: undefined,
+  balance: undefined,
+  chain: undefined,
 }
 
 type AuthSlice = StateCreator<AuthStore, [], [], AuthStore>

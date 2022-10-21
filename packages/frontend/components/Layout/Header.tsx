@@ -199,9 +199,9 @@ const Header = () => {
 }
 
 type BalanceAddressProps = {
-  balance?: Balances
   address: string
-  ens: string | null
+  balance?: Balances
+  ens?: string
   transactionStatus: boolean
 }
 const BalanceAddress = (props: BalanceAddressProps) => {

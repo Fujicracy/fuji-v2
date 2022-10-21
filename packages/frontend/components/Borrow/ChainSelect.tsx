@@ -7,9 +7,11 @@ import styles from "../../styles/components/Borrow.module.css"
 type ChainSelectProps = {
   label: string
   value: string
+  onChange: (chainId: string) => void
 }
 export const ChainSelect = (props: ChainSelectProps) => {
-  const { value, label } = props
+  const { value, label, onChange } = props
+
   return (
     <Stack alignItems="center" direction="row" mb="1rem">
       <label id={`${label}-label`} className={styles.selectLabel}>
@@ -19,7 +21,7 @@ export const ChainSelect = (props: ChainSelectProps) => {
         labelId="collateral-chain-label"
         id="collateral-chain"
         value={value}
-        onChange={() => alert("Not implemented")}
+        onChange={(e) => onChange(e.target.value)}
         IconComponent={KeyboardArrowDownIcon}
         variant="standard"
         disableUnderline

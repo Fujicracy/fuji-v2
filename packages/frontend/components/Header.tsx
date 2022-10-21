@@ -192,9 +192,9 @@ const Header = () => {
                   <Grid item>
                     <BalanceAddress
                       // TODO: balance should be retrived from current chain, and not deduced
-                      balance={balance}
+                      balance={balance as Balances}
                       address={address as string}
-                      ens={ens}
+                      ens={ens as string}
                     />
                   </Grid>
                   <Grid item>
@@ -218,12 +218,9 @@ type BalanceAddressProps = {
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
   const { balance, address, ens } = props
-  if (!balance) {
-    return <></>
-  }
 
   const formattedAddress = `${address.substr(0, 5)}...${address.substr(-4, 4)}`
-  const [bal] = Object.values(balance)
+  const [bal] = Object.values(balance || {})
   // const [token] = Object.keys(balance)
 
   return (
