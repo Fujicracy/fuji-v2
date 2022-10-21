@@ -2,12 +2,13 @@
 pragma solidity 0.8.15;
 
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
-import {Timelock} from "./access/Timelock.sol";
 
 import "forge-std/console.sol";
 
@@ -25,6 +26,7 @@ contract Chief is CoreRoles, AccessControl {
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
   event AddToAllowed(address indexed factory);
   event RemoveFromAllowed(address indexed factory);
+  event TimelockUpdated(address indexed timelock);
 
   address public timelock;
   address public addrMapper;
@@ -36,18 +38,21 @@ contract Chief is CoreRoles, AccessControl {
 
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    _grantRole(TIMELOCK_ADMIN_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
-    _deployTimelock();
     _deployAddrMapper();
-    _setRoleAdmin(TIMELOCK_PROPOSER_ROLE, TIMELOCK_ADMIN_ROLE);
-    _setRoleAdmin(TIMELOCK_EXECUTOR_ROLE, TIMELOCK_ADMIN_ROLE);
-    _setRoleAdmin(TIMELOCK_CANCELLER_ROLE, TIMELOCK_ADMIN_ROLE);
   }
 
   function getVaults() external view returns (address[] memory) {
     return _vaults;
+  }
+
+  function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (newTimelock == address(0)) {
+      revert Chief__ZeroAddress();
+    }
+    timelock = newTimelock;
+    emit TimelockUpdated(timelock);
   }
 
   function setOpenVaultFactory(bool state) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -129,14 +134,6 @@ contract Chief is CoreRoles, AccessControl {
   {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, uint8(action));
     _changePauseState(callData);
-  }
-
-  /**
-   * @dev Deploys 1 {Timelock} contract during Chief deployment.
-   */
-  function _deployTimelock() internal {
-    timelock = address(new Timelock{salt: "0x00"}(address(this), 1 days));
-    _grantRole(TIMELOCK_ADMIN_ROLE, timelock);
   }
 
   /**

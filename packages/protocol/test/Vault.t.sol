@@ -4,12 +4,13 @@ pragma solidity 0.8.15;
 import "forge-std/console.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {Timelock} from "../src/access/Timelock.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
@@ -21,7 +22,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
   IVault public vault;
   Chief public chief;
-  Timelock public timelock;
+  TimelockController public timelock;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -49,8 +50,12 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+
     chief = new Chief();
-    timelock = Timelock(payable(chief.timelock()));
+    chief.setTimelock(address(timelock));
 
     vault = new BorrowingVault(
       address(asset),
@@ -80,8 +85,6 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(TIMELOCK_PROPOSER_ROLE, address(this));
-    chief.grantRole(TIMELOCK_EXECUTOR_ROLE, address(this));
     chief.grantRole(REBALANCER_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, bob);

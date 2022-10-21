@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {IConnextHandler} from "../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
@@ -10,7 +12,6 @@ import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
-import {Timelock} from "../../src/access/Timelock.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {DSTestPlus} from "./DSTestPlus.sol";
@@ -36,7 +37,7 @@ contract Setup is DSTestPlus, CoreRoles {
 
   IVault public vault;
   Chief public chief;
-  Timelock public timelock;
+  TimelockController public timelock;
   ConnextRouter public connextRouter;
 
   IConnextHandler public connextHandler;
@@ -93,8 +94,12 @@ contract Setup is DSTestPlus, CoreRoles {
     MockProvider mockProvider = new MockProvider();
     MockOracle mockOracle = new MockOracle();
 
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+
     chief = new Chief();
-    timelock = Timelock(payable(chief.timelock()));
+    chief.setTimelock(address(timelock));
 
     // WETH and DAI prices by Aug 12h 2022
     /*mockOracle.setPriceOf(address(weth), address(debtAsset), 528881643782407);*/
@@ -128,8 +133,6 @@ contract Setup is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(TIMELOCK_PROPOSER_ROLE, address(this));
-    chief.grantRole(TIMELOCK_EXECUTOR_ROLE, address(this));
     chief.grantRole(REBALANCER_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
