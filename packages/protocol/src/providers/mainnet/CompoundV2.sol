@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
@@ -17,10 +16,10 @@ import {IWETH9} from "../../helpers/PeripheryPayments.sol";
  * @dev The IAddrMapper needs to be properly configured for CompoundV2
  */
 contract CompoundV2 is ILendingProvider {
-  error CompoundV2__deposit_failed();
-  error CompoundV2__borrow_failed();
-  error CompoundV2__withdraw_failed();
-  error CompoundV2__payback_failed();
+  error CompoundV2__deposit_failed(uint256 status);
+  error CompoundV2__borrow_failed(uint256 status);
+  error CompoundV2__withdraw_failed(uint256 status);
+  error CompoundV2__payback_failed(uint256 status);
 
   /**
    * @notice Returns the {AddrMapper} contract applicable to this provider.
@@ -74,9 +73,8 @@ contract CompoundV2 is ILendingProvider {
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      SafeERC20.safeApprove(cToken, asset, amount);
-
-      if (cToken.mint(amount) != 0) revert CompoundV2__deposit_failed();
+      uint256 status = cToken.mint(amount);
+      if (status != 0) revert CompoundV2__deposit_failed(status);
     }
     success = true;
   }
@@ -87,7 +85,8 @@ contract CompoundV2 is ILendingProvider {
 
     ICToken cToken = ICToken(cTokenAddr);
 
-    if (cToken.borrow(amount) != 0) revert CompoundV2__borrow_failed();
+    uint256 status = cToken.borrow(amount);
+    if (status != 0) revert CompoundV2__borrow_failed(status);
     success = true;
   }
 
@@ -97,7 +96,8 @@ contract CompoundV2 is ILendingProvider {
 
     ICToken cToken = ICToken(cTokenAddr);
 
-    if (cToken.redeemUnderlying(amount) != 0) revert CompoundV2__withdraw_failed();
+    uint256 status = cToken.redeemUnderlying(amount);
+    if (status != 0) revert CompoundV2__withdraw_failed(status);
 
     // wrap ETH to WETH
     if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
@@ -117,7 +117,8 @@ contract CompoundV2 is ILendingProvider {
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      if (cToken.repayBorrow(amount) != 0) revert CompoundV2__payback_failed();
+      uint256 status = cToken.repayBorrow(amount);
+      if (status != 0) revert CompoundV2__payback_failed(status);
     }
     success = true;
   }
