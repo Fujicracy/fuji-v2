@@ -99,56 +99,60 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     _utils_callWithTimeLock(sendData, vault_);
   }
 
-  function _utils_doDeposit(address who, uint256 amount) internal {
+  function _utils_doDeposit(address who, uint256 amount, IVault v) internal {
     vm.startPrank(who);
-    SafeERC20.safeApprove(IERC20(address(weth)), address(vault), amount);
-    vault.deposit(amount, who);
-    assertEq(vault.balanceOf(who), amount);
+    SafeERC20.safeApprove(IERC20(v.asset()), address(v), amount);
+    v.deposit(amount, who);
     vm.stopPrank();
+
+    assertEq(v.balanceOf(who), amount);
   }
 
-  function _utils_doBorrow(address who, uint256 amount) internal {
-    vm.startPrank(who);
-    vault.borrow(amount, who, who);
-    assertEq(usdc.balanceOf(who), amount);
-    vm.stopPrank();
+  function _utils_doBorrow(address who, uint256 amount, IVault v) internal {
+    vm.prank(who);
+    v.borrow(amount, who, who);
+
+    assertEq(IERC20(v.debtAsset()).balanceOf(who), amount);
   }
 
-  function _utils_doPayback(address who, uint256 amount) internal {
+  function _utils_doPayback(address who, uint256 amount, IVault v) internal {
+    uint256 prevDebt = v.balanceOfDebt(who);
+
     vm.startPrank(who);
-    uint256 prevDebt = vault.balanceOfDebt(who);
-    SafeERC20.safeApprove(IERC20(address(usdc)), address(vault), amount);
-    vault.payback(amount, who);
+    SafeERC20.safeApprove(IERC20(v.debtAsset()), address(v), amount);
+    v.payback(amount, who);
+    vm.stopPrank();
+
     uint256 debtDiff = prevDebt - amount;
-    assertEq(vault.balanceOfDebt(who), debtDiff);
-    vm.stopPrank();
+    assertEq(v.balanceOfDebt(who), debtDiff);
   }
 
-  function _utils_doWithdraw(address who, uint256 amount) internal {
-    vm.startPrank(who);
-    uint256 prevAssets = vault.convertToAssets(vault.balanceOf(who));
-    vault.withdraw(amount, who, who);
+  function _utils_doWithdraw(address who, uint256 amount, IVault v) internal {
+    uint256 prevAssets = v.convertToAssets(v.balanceOf(who));
+    vm.prank(who);
+    v.withdraw(amount, who, who);
+
     uint256 diff = prevAssets - amount;
-    assertEq(vault.convertToAssets(vault.balanceOf(who)), diff);
-    vm.stopPrank();
-  }
-
-  function _utils_checkMaxLTV(uint256 amount, uint256 borrowAmount) internal view returns (bool) {
-    uint8 debtDecimals = IERC20Metadata(address(usdc)).decimals();
-    uint8 assetDecimals = IERC20Metadata(address(weth)).decimals();
-    uint256 maxLtv = 75 * 1e16;
-
-    uint256 price = mockOracle.getPriceOf(address(usdc), address(weth), debtDecimals);
-    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** assetDecimals);
-    return borrowAmount < maxBorrow;
+    assertEq(v.convertToAssets(v.balanceOf(who)), diff);
   }
 
   function test_depositAndBorrow() public {
-    /*vm.assume(weth.totalSupply() > amount && amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));*/
+    deal(address(vault.asset()), alice, DEPOSIT_AMOUNT);
 
-    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+    _utils_doBorrow(alice, BORROW_AMOUNT, vault);
+  }
 
-    _utils_doDeposit(alice, DEPOSIT_AMOUNT);
-    _utils_doBorrow(alice, BORROW_AMOUNT);
+  function test_paybackAndWithdraw() public {
+    deal(address(vault.asset()), alice, DEPOSIT_AMOUNT);
+
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+    _utils_doBorrow(alice, BORROW_AMOUNT, vault);
+
+    uint256 aliceDebt = vault.balanceOfDebt(alice);
+    _utils_doPayback(alice, aliceDebt, vault);
+
+    uint256 maxAmount = vault.maxWithdraw(alice);
+    _utils_doWithdraw(alice, maxAmount, vault);
   }
 }

@@ -17,10 +17,10 @@ import {IWETH9} from "../../helpers/PeripheryPayments.sol";
  * @dev The IAddrMapper needs to be properly configured for CompoundV2
  */
 contract CompoundV2 is ILendingProvider {
-  error CompoundV2_deposit_failed();
-  error CompoundV2_borrow_failed();
-  error CompoundV2_withdraw_failed();
-  error CompoundV2_payback_failed();
+  error CompoundV2__deposit_failed();
+  error CompoundV2__borrow_failed();
+  error CompoundV2__withdraw_failed();
+  error CompoundV2__payback_failed();
 
   /**
    * @notice Returns the {AddrMapper} contract applicable to this provider.
@@ -54,9 +54,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
-  function approvedOperator(address, address) external pure returns (address operator) {
-    // TODO: what should it be here? Put Comptroller for now
-    operator = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
+  function approvedOperator(address asset, address) external view returns (address operator) {
+    operator = getMapper().getAddressMapping(providerName(), asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -77,7 +76,7 @@ contract CompoundV2 is ILendingProvider {
 
       SafeERC20.safeApprove(cToken, asset, amount);
 
-      if (cToken.mint(amount) != 0) revert CompoundV2_deposit_failed();
+      if (cToken.mint(amount) != 0) revert CompoundV2__deposit_failed();
     }
     success = true;
   }
@@ -88,7 +87,7 @@ contract CompoundV2 is ILendingProvider {
 
     ICToken cToken = ICToken(cTokenAddr);
 
-    if (cToken.borrow(amount) != 0) revert CompoundV2_borrow_failed();
+    if (cToken.borrow(amount) != 0) revert CompoundV2__borrow_failed();
     success = true;
   }
 
@@ -98,7 +97,10 @@ contract CompoundV2 is ILendingProvider {
 
     ICToken cToken = ICToken(cTokenAddr);
 
-    if (cToken.redeemUnderlying(amount) != 0) revert CompoundV2_payback_failed();
+    if (cToken.redeemUnderlying(amount) != 0) revert CompoundV2__withdraw_failed();
+
+    // wrap ETH to WETH
+    if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
     success = true;
   }
 
@@ -115,9 +117,7 @@ contract CompoundV2 is ILendingProvider {
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      SafeERC20.safeApprove(cToken, asset, amount);
-
-      cToken.repayBorrow(amount);
+      if (cToken.repayBorrow(amount) != 0) revert CompoundV2__payback_failed();
     }
     success = true;
   }
