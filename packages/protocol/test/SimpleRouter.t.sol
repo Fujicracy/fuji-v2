@@ -6,6 +6,8 @@ import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../src/routers/SimpleRouter.sol";
 import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
@@ -23,10 +25,9 @@ import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {TimeLock} from "../src/access/TimeLock.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
-contract SimpleRouterTest is DSTestPlus, CoreRoles {
+contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
@@ -52,7 +53,7 @@ contract SimpleRouterTest is DSTestPlus, CoreRoles {
   IRouter public simpleRouter;
   ISwapper public swapper;
   Chief public chief;
-  TimeLock public timelock;
+  TimelockController public timelock;
 
   MockFlasher public flasher;
   MockOracle public oracle;
@@ -77,9 +78,13 @@ contract SimpleRouterTest is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+    vm.label(address(timelock), "Timelock");
+
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
-    vm.label(address(timelock), "TimeLock");
+    chief.setTimelock(address(timelock));
 
     vault = new BorrowingVault(
       address(asset),
@@ -110,13 +115,11 @@ contract SimpleRouterTest is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(TIMELOCK_PROPOSER_ROLE, address(this));
-    chief.grantRole(TIMELOCK_EXECUTOR_ROLE, address(this));
     chief.grantRole(REBALANCER_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData, IVault vault_) internal {
+  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
     timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
@@ -128,7 +131,7 @@ contract SimpleRouterTest is DSTestPlus, CoreRoles {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
-    _utils_callWithTimeLock(sendData, vault_);
+    _utils_callWithTimelock(sendData, vault_);
     vault_.setActiveProvider(mockProvider);
   }
 
@@ -173,10 +176,7 @@ contract SimpleRouterTest is DSTestPlus, CoreRoles {
     uint256 borrowAmount,
     uint256 plusNonce,
     address vault_
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
@@ -202,10 +202,7 @@ contract SimpleRouterTest is DSTestPlus, CoreRoles {
     uint256 amount,
     uint256 plusNonce,
     address vault_
-  )
-    internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,

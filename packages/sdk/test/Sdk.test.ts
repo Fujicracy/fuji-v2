@@ -36,6 +36,42 @@ describe('Sdk', () => {
     });
   });
 
+  describe('#getTokenBalancesFor', () => {
+    it('returns multiple balances', async () => {
+      const bals = await sdk.getTokenBalancesFor(
+        [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
+        // vitalik.eth
+        Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+        ChainId.ETHEREUM
+      );
+      bals.forEach(bal => {
+        expect(parseFloat(formatUnits(bal))).toBeGreaterThan(0);
+      });
+    });
+
+    it('fails with tokens from different chains', async () => {
+      await expect(
+        async () =>
+          await sdk.getTokenBalancesFor(
+            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.GOERLI]],
+            Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+            ChainId.ETHEREUM
+          )
+      ).rejects.toThrowError('Token from a different chain!');
+    });
+
+    it('fails when tokens and chain differ', async () => {
+      await expect(
+        async () =>
+          await sdk.getTokenBalancesFor(
+            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
+            Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+            ChainId.GOERLI
+          )
+      ).rejects.toThrowError('Token from a different chain!');
+    });
+  });
+
   describe('#getBorrowingVaultFor', () => {
     it('returns a vault from the same chain', async () => {
       const collateral = WNATIVE[ChainId.GOERLI];

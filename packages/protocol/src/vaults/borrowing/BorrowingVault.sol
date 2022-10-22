@@ -447,7 +447,7 @@ contract BorrowingVault is BaseVault {
   /// Admin set functions ///
   ///////////////////////////
 
-  function setOracle(IFujiOracle newOracle) external onlyTimeLock {
+  function setOracle(IFujiOracle newOracle) external onlyTimelock {
     if (address(newOracle) == address(0)) {
       revert BaseVault__setter_invalidInput();
     }
@@ -462,7 +462,7 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - SHOULD be at least 1%.
    */
-  function setMaxLtv(uint256 maxLtv_) external onlyTimeLock {
+  function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
     if (maxLtv_ < 1e16) {
       revert BaseVault__setter_invalidInput();
     }
@@ -477,7 +477,7 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - SHOULD be greater than 'maxLTV'.
    */
-  function setLiqRatio(uint256 liqRatio_) external onlyTimeLock {
+  function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
     if (liqRatio_ < maxLtv || liqRatio_ == 0) {
       revert BaseVault__setter_invalidInput();
     }

@@ -37,7 +37,7 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
    * Can only be called by the contract TIMELOCK_ADMIN_ROLE in {Chief}.
    * Emits a {AssetPriceFeedChanged} event.
    */
-  function setPriceFeed(address _asset, address _priceFeed) public onlyTimeLock {
+  function setPriceFeed(address _asset, address _priceFeed) public onlyTimelock {
     if (_priceFeed == address(0)) {
       revert FujiOracle__noZeroAddress();
     }

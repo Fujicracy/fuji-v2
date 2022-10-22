@@ -2,12 +2,13 @@
 pragma solidity 0.8.15;
 
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
-import {TimeLock} from "./access/TimeLock.sol";
 
 /// @dev Custom Errors
 error Chief__ZeroAddress();
@@ -19,9 +20,11 @@ error Chief__missingRole(address account, bytes32 role);
 contract Chief is CoreRoles, AccessControl {
   using Address for address;
 
+  event OpenVaultFactory(bool state);
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
   event AddToAllowed(address indexed factory);
   event RemoveFromAllowed(address indexed factory);
+  event TimelockUpdated(address indexed timelock);
 
   address public timelock;
   address public addrMapper;
@@ -33,18 +36,26 @@ contract Chief is CoreRoles, AccessControl {
 
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    _grantRole(TIMELOCK_ADMIN_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
-    _deployTimelock();
     _deployAddrMapper();
-    _setRoleAdmin(TIMELOCK_PROPOSER_ROLE, TIMELOCK_ADMIN_ROLE);
-    _setRoleAdmin(TIMELOCK_EXECUTOR_ROLE, TIMELOCK_ADMIN_ROLE);
-    _setRoleAdmin(TIMELOCK_CANCELLER_ROLE, TIMELOCK_ADMIN_ROLE);
   }
 
   function getVaults() external view returns (address[] memory) {
     return _vaults;
+  }
+
+  function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (newTimelock == address(0)) {
+      revert Chief__ZeroAddress();
+    }
+    timelock = newTimelock;
+    emit TimelockUpdated(timelock);
+  }
+
+  function setOpenVaultFactory(bool state) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    openVaultFactory = state;
+    emit OpenVaultFactory(state);
   }
 
   function deployVault(address _factory, bytes calldata _deployData, string calldata rating)
@@ -54,7 +65,7 @@ contract Chief is CoreRoles, AccessControl {
     if (!allowedFactories[_factory]) {
       revert Chief__FactoryNotAllowed();
     }
-    if (!openVaultFactory && hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
+    if (!openVaultFactory && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
       revert Chief__missingRole(msg.sender, DEFAULT_ADMIN_ROLE);
     }
     vault = IVaultFactory(_factory).deployVault(_deployData);
@@ -64,11 +75,17 @@ contract Chief is CoreRoles, AccessControl {
   }
 
   function addToAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (_factory == address(0)) {
+      revert Chief__ZeroAddress();
+    }
     allowedFactories[_factory] = true;
     emit AddToAllowed(_factory);
   }
 
   function removeFromAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    if (_factory == address(0)) {
+      revert Chief__ZeroAddress();
+    }
     allowedFactories[_factory] = false;
     emit RemoveFromAllowed(_factory);
   }
@@ -79,7 +96,7 @@ contract Chief is CoreRoles, AccessControl {
    * - Should be restricted to pauser role.
    */
   function pauseForceAllVaults() external onlyRole(PAUSER_ROLE) {
-    bytes memory callData = abi.encodeWithSignature("pauseForceAll()");
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
     _changePauseState(callData);
   }
 
@@ -89,7 +106,7 @@ contract Chief is CoreRoles, AccessControl {
    * - Should be restricted to unpauser role.
    */
   function unpauseForceAllVaults() external onlyRole(UNPAUSER_ROLE) {
-    bytes memory callData = abi.encodeWithSignature("unpauseForceAll()");
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpauseForceAll.selector);
     _changePauseState(callData);
   }
 
@@ -104,7 +121,7 @@ contract Chief is CoreRoles, AccessControl {
     external
     onlyRole(PAUSER_ROLE)
   {
-    bytes memory callData = abi.encodeWithSignature("pause(uint8)", uint8(action));
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.pause.selector, action);
     _changePauseState(callData);
   }
 
@@ -119,16 +136,8 @@ contract Chief is CoreRoles, AccessControl {
     external
     onlyRole(UNPAUSER_ROLE)
   {
-    bytes memory callData = abi.encodeWithSignature("unpause(uint8)", uint8(action));
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, uint8(action));
     _changePauseState(callData);
-  }
-
-  /**
-   * @dev Deploys 1 {TimeLock} contract during Chief deployment.
-   */
-  function _deployTimelock() internal {
-    timelock = address(new TimeLock{salt: "0x00"}(address(this), 1 days));
-    _grantRole(TIMELOCK_ADMIN_ROLE, timelock);
   }
 
   /**

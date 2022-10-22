@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
-import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
+import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
@@ -104,6 +104,14 @@ export class BorrowingVault extends StreamManager {
   contract?: BorrowingVaultContract;
 
   /**
+   * Extended instance of contract used when there is a
+   * possibility to perform a multicall read on the smart contract.
+   * @remarks
+   * A multicall read refers to a batch read done in a single call.
+   */
+  multicallContract?: BorrowingVaultMulticall;
+
+  /**
    * The RPC provider for the specific chain
    */
   rpcProvider?: JsonRpcProvider;
@@ -112,6 +120,11 @@ export class BorrowingVault extends StreamManager {
    * The RPC provider for the specific chain
    */
   wssProvider?: WebSocketProvider;
+
+  /**
+   * The multicall RPC provider for the specific chain
+   */
+  multicallRpcProvider?: IMulticallProvider;
 
   /**
    * Map of user address and their nonce for this vault.
@@ -127,17 +140,6 @@ export class BorrowingVault extends StreamManager {
    * Domain separator needed when signing a tx
    */
   private _domainSeparator: string;
-
-  /**
-   * Extended instances of provider and contract used when there is a
-   * possibility to perform a multicall read on the smart contract.
-   * @remarks
-   * A multicall read refers to a batch read done in a single call.
-   */
-  private _multicall?: {
-    rpcProvider: IMulticallProvider;
-    contract: BorrowingVaultMulticall;
-  };
 
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
@@ -186,15 +188,15 @@ export class BorrowingVault extends StreamManager {
     const connection = ChainConnection.from(configParams, this.chainId);
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;
+    this.multicallRpcProvider = connection.multicallRpcProvider;
 
     this.contract = BorrowingVault__factory.connect(
       this.address.value,
       this.rpcProvider
     );
-    this._multicall = {
-      rpcProvider: initSyncMulticallProvider(this.rpcProvider, this.chainId),
-      contract: BorrowingVault__factory.multicall(this.address.value),
-    };
+    this.multicallContract = BorrowingVault__factory.multicall(
+      this.address.value
+    );
 
     return this;
   }
@@ -207,17 +209,20 @@ export class BorrowingVault extends StreamManager {
    * @throws if {@link setConnection} was not called beforehand
    */
   async preLoad(account: Address) {
-    invariant(this._multicall, 'Connection not set!');
+    invariant(
+      this.multicallContract && this.multicallRpcProvider,
+      'Connection not set!'
+    );
     const [
       maxLtv,
       liqRatio,
       nonce,
       domainSeparator,
-    ] = await this._multicall.rpcProvider.all([
-      this._multicall.contract.maxLtv(),
-      this._multicall.contract.liqRatio(),
-      this._multicall.contract.nonces(account.value),
-      this._multicall.contract.DOMAIN_SEPARATOR(),
+    ] = await this.multicallRpcProvider.all([
+      this.multicallContract.maxLtv(),
+      this.multicallContract.liqRatio(),
+      this.multicallContract.nonces(account.value),
+      this.multicallContract.DOMAIN_SEPARATOR(),
     ]);
 
     this.maxLtv = maxLtv;
@@ -251,7 +256,10 @@ export class BorrowingVault extends StreamManager {
    * @throws if {@link setConnection} was not called beforehand
    */
   async getProviders(): Promise<LendingProviderDetails[]> {
-    invariant(this.contract && this._multicall, 'Connection not set?');
+    invariant(
+      this.contract && this.multicallRpcProvider,
+      'Connection not set?'
+    );
     // TODO: move this to preLoad and load them only if they are not init
     const allProvidersAddrs: string[] = await this.contract.getProviders();
     const activeProviderAddr: string = await this.contract.activeProvider();
@@ -268,7 +276,7 @@ export class BorrowingVault extends StreamManager {
     );
 
     // do a common call for both types and use an index to split them below
-    const rates: BigNumber[] = await this._multicall.rpcProvider.all([
+    const rates: BigNumber[] = await this.multicallRpcProvider.all([
       ...depositCalls,
       ...borrowCalls,
     ]);
@@ -289,10 +297,13 @@ export class BorrowingVault extends StreamManager {
    * @throws if {@link setConnection} was not called beforehand
    */
   async getBalances(account: Address): Promise<AccountBalances> {
-    invariant(this._multicall, 'Connection not set?');
-    const [deposit, borrow] = await this._multicall.rpcProvider.all([
-      this._multicall.contract.balanceOf(account.value),
-      this._multicall.contract.balanceOfDebt(account.value),
+    invariant(
+      this.multicallContract && this.multicallRpcProvider,
+      'Connection not set!'
+    );
+    const [deposit, borrow] = await this.multicallRpcProvider.all([
+      this.multicallContract.balanceOf(account.value),
+      this.multicallContract.balanceOfDebt(account.value),
     ]);
 
     return { deposit, borrow };

@@ -13,7 +13,7 @@ import {CoreRoles} from "./CoreRoles.sol";
 
 contract SystemAccessControl is CoreRoles {
   error SystemAccessControl__missingRole(address caller, bytes32 role);
-  error SystemAccessControl__callerIsNotTimeLock();
+  error SystemAccessControl__callerIsNotTimelock();
 
   IChief public immutable chief;
 
@@ -24,9 +24,9 @@ contract SystemAccessControl is CoreRoles {
     _;
   }
 
-  modifier onlyTimeLock() {
+  modifier onlyTimelock() {
     if (msg.sender != chief.timelock()) {
-      revert SystemAccessControl__callerIsNotTimeLock();
+      revert SystemAccessControl__callerIsNotTimelock();
     }
     _;
   }

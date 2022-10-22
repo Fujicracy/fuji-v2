@@ -4,12 +4,13 @@ pragma solidity 0.8.15;
 import "forge-std/console.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {TimeLock} from "../src/access/TimeLock.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {IFujiOracle} from "../src/interfaces/IFujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
@@ -23,13 +24,13 @@ interface IBorrowingVault_TestingOnly is IVault {
   function setLiqRatio(uint256 liqRatio_) external;
 }
 
-contract VaultTest is DSTestPlus, CoreRoles {
+contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
   event MinDepositAmountChanged(uint256 newMinDeposit);
   event DepositCapChanged(uint256 newDepositCap);
 
   IVault public vault;
   Chief public chief;
-  TimeLock public timelock;
+  TimelockController public timelock;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -57,8 +58,12 @@ contract VaultTest is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+
     chief = new Chief();
-    timelock = TimeLock(payable(chief.timelock()));
+    chief.setTimelock(address(timelock));
 
     vault = new BorrowingVault(
       address(asset),
@@ -93,19 +98,17 @@ contract VaultTest is DSTestPlus, CoreRoles {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
     bytes memory sendData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _utils_callWithTimeLock(sendData);
+    _utils_callWithTimelock(sendData);
     vault.setActiveProvider(mockProvider);
   }
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(TIMELOCK_PROPOSER_ROLE, address(this));
-    chief.grantRole(TIMELOCK_EXECUTOR_ROLE, address(this));
     chief.grantRole(REBALANCER_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData) internal {
+  function _utils_callWithTimelock(bytes memory sendData) internal {
     timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
@@ -119,7 +122,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
         && amount > 0
     );
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     vm.prank(foe);
     vault.setMinDepositAmount(amount);
     vm.stopPrank();
@@ -130,7 +133,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
         && amount > 0
     );
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     vm.prank(foe);
     vault.setDepositCap(amount);
     vm.stopPrank();
@@ -143,7 +146,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
     ILendingProvider maliciousProvider = new MockProvider();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = maliciousProvider;
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     vm.prank(foe);
     vault.setProviders(providers);
     vm.stopPrank();
@@ -171,7 +174,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
     MockOracle maliciousOracle = new MockOracle();
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     IBorrowingVault_TestingOnly bvault = IBorrowingVault_TestingOnly(address(vault));
     vm.prank(foe);
     bvault.setOracle(maliciousOracle);
@@ -183,7 +186,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
     uint256 newMaliciousMaxLtv = 1 * 1e16;
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     IBorrowingVault_TestingOnly bvault = IBorrowingVault_TestingOnly(address(vault));
     vm.prank(foe);
     bvault.setMaxLtv(newMaliciousMaxLtv);
@@ -195,7 +198,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
     uint256 newMaliciousLiqRatio = 10 * 1e16;
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimeLock.selector);
+    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
     IBorrowingVault_TestingOnly bvault = IBorrowingVault_TestingOnly(address(vault));
     vm.prank(foe);
     bvault.setLiqRatio(newMaliciousLiqRatio);

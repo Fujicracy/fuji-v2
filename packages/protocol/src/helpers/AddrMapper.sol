@@ -59,7 +59,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
   function setMapping(string memory providerName, address keyAddr, address returnedAddr)
     public
     override
-    onlyTimeLock
+    onlyTimelock
   {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
@@ -84,7 +84,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
   )
     public
     override
-    onlyTimeLock
+    onlyTimelock
   {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
