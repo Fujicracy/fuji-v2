@@ -62,3 +62,10 @@ npx hardhat --network localhost deploy --no-compile
 NOTE: The configuration in `hardhat.config.ts` uses the artifacts and bytecode created by the previously called `forge build` command.
 
 5. A folder will be created under `deployments/localhost` with all the artifacts containing also the addresses. 
+
+## Error message format
+The contracts in Fuji version 2 shall use solidity `error messages` instead of `require` statements. This saves on contract bytecode. The format should be the following:
+
+> `Contract__function_errorMessage();`
+
+Capitalized contract + two underscores + camelcase function + underscore _ camelcase error message.  
