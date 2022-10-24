@@ -59,7 +59,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(address asset, uint256 amount, address) external returns (bool success) {
+  function deposit(uint256 amount, address vault) external returns (bool success) {
+    address asset = IVault(vault).asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     _enterCollatMarket(cTokenAddr);
@@ -81,7 +82,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(address asset, uint256 amount, address) external returns (bool success) {
+  function borrow(uint256 amount, address vault) external returns (bool success) {
+    address asset = IVault(vault).debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     ICToken cToken = ICToken(cTokenAddr);
@@ -95,7 +97,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(address asset, uint256 amount, address) external returns (bool success) {
+  function withdraw(uint256 amount, address vault) external returns (bool success) {
+    address asset = IVault(vault).asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     ICToken cToken = ICToken(cTokenAddr);
@@ -109,7 +112,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function payback(address asset, uint256 amount, address) external returns (bool success) {
+  function payback(uint256 amount, address vault) external returns (bool success) {
+    address asset = IVault(vault).debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     if (_isWETH(asset)) {

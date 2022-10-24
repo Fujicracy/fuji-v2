@@ -19,41 +19,37 @@ interface ILendingProvider {
 
   /**
    * @notice Performs deposit operation at lending provider on behalf vault.
-   * @param asset address.
    * @param amount amount integer.
    * @param vault address calling this function.
    *
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function deposit(address asset, uint256 amount, address vault) external returns (bool success);
+  function deposit(uint256 amount, address vault) external returns (bool success);
 
   /**
    * @notice Performs borrow operation at lending provider on behalf vault.
-   * @param asset address.
    * @param amount amount integer.
    * @param vault address calling this function.
    *
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function borrow(address asset, uint256 amount, address vault) external returns (bool success);
+  function borrow(uint256 amount, address vault) external returns (bool success);
 
   /**
    * @notice Performs withdraw operation at lending provider on behalf vault.
-   * @param asset address.
    * @param amount amount integer.
    * @param vault address calling this function.
    *
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function withdraw(address asset, uint256 amount, address vault) external returns (bool success);
+  function withdraw(uint256 amount, address vault) external returns (bool success);
 
   /**
    * of a `vault`.
    * @notice Performs payback operation at lending provider on behalf vault.
-   * @param asset address.
    * @param amount amount integer.
    * @param vault address calling this function.
    *
@@ -61,7 +57,7 @@ interface ILendingProvider {
    * - This function should be delegate called in the context of a `vault`.
    * - Check there is erc20-approval to `approvedOperator` by the `vault` prior to call.
    */
-  function payback(address asset, uint256 amount, address vault) external returns (bool success);
+  function payback(uint256 amount, address vault) external returns (bool success);
 
   /**
    * @notice Returns DEPOSIT balance of 'user' at lending provider.

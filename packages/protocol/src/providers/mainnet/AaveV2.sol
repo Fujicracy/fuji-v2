@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
@@ -26,47 +27,31 @@ contract AaveV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function deposit(uint256 amount, address vault) external override returns (bool success) {
     IV2Pool aave = _getPool();
-    aave.deposit(asset, amount, vault, 0);
+    aave.deposit(IVault(vault).asset(), amount, vault, 0);
     // aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function borrow(uint256 amount, address vault) external override returns (bool success) {
     IV2Pool aave = _getPool();
-    aave.borrow(asset, amount, 2, 0, vault);
+    aave.borrow(IVault(vault).debtAsset(), amount, 2, 0, vault);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function withdraw(uint256 amount, address vault) external override returns (bool success) {
     IV2Pool aave = _getPool();
-    aave.withdraw(asset, amount, vault);
+    aave.withdraw(IVault(vault).asset(), amount, vault);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function payback(uint256 amount, address vault) external override returns (bool success) {
     IV2Pool aave = _getPool();
-    aave.repay(asset, amount, 2, vault);
+    aave.repay(IVault(vault).debtAsset(), amount, 2, vault);
     success = true;
   }
 

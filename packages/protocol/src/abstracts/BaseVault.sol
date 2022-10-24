@@ -302,7 +302,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     whenNotPaused(VaultActions.Deposit)
   {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
-    _executeProviderAction(asset(), assets, "deposit");
+    _executeProviderAction(assets, "deposit");
     _mint(receiver, shares);
 
     emit Deposit(caller, receiver, assets, shares);
@@ -319,7 +319,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 shares
   ) internal whenNotPaused(VaultActions.Withdraw) {
     _burn(owner, shares);
-    _executeProviderAction(asset(), assets, "withdraw");
+    _executeProviderAction(assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
@@ -427,9 +427,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Fuji Vault functions ///
   ////////////////////////////
 
-  function _executeProviderAction(address assetAddr, uint256 assets, string memory name) internal {
+  function _executeProviderAction(uint256 assets, string memory name) internal {
     bytes memory data = abi.encodeWithSignature(
-      string(abi.encodePacked(name, "(address,uint256,address)")), assetAddr, assets, address(this)
+      string(abi.encodePacked(name, "(uint256,address)")), assets, address(this)
     );
     address(activeProvider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))

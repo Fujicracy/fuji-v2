@@ -313,7 +313,7 @@ contract BorrowingVault is BaseVault {
     _mintDebtShares(owner, shares);
 
     address asset = debtAsset();
-    _executeProviderAction(asset, assets, "borrow");
+    _executeProviderAction(assets, "borrow");
 
     SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
 
@@ -330,7 +330,7 @@ contract BorrowingVault is BaseVault {
     address asset = debtAsset();
     SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
 
-    _executeProviderAction(asset, assets, "payback");
+    _executeProviderAction(assets, "payback");
 
     _burnDebtShares(owner, shares);
 

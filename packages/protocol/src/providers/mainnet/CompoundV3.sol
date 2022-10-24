@@ -41,32 +41,32 @@ contract CompoundV3 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(address asset, uint256 amount, address vault) external returns (bool success) {
+  function deposit(uint256 amount, address vault) external returns (bool success) {
     ICompoundV3 cMarketV3 = _getCometMarket(vault);
-    cMarketV3.supply(asset, amount);
+    cMarketV3.supply(IVault(vault).asset(), amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(address asset, uint256 amount, address vault) external returns (bool success) {
+  function borrow(uint256 amount, address vault) external returns (bool success) {
     ICompoundV3 cMarketV3 = _getCometMarket(vault);
     // From Comet docs: "The base asset can be borrowed using the withdraw function"
-    cMarketV3.withdraw(asset, amount);
+    cMarketV3.withdraw(IVault(vault).debtAsset(), amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(address asset, uint256 amount, address vault) external returns (bool success) {
+  function withdraw(uint256 amount, address vault) external returns (bool success) {
     ICompoundV3 cMarketV3 = _getCometMarket(vault);
-    cMarketV3.withdraw(asset, amount);
+    cMarketV3.withdraw(IVault(vault).asset(), amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(address asset, uint256 amount, address vault) external returns (bool success) {
+  function payback(uint256 amount, address vault) external returns (bool success) {
     ICompoundV3 cMarketV3 = _getCometMarket(vault);
     // From Coment docs: 'supply' the base asset to repay an open borrow of the base asset.
-    cMarketV3.supply(asset, amount);
+    cMarketV3.supply(IVault(vault).debtAsset(), amount);
     success = true;
   }
 
