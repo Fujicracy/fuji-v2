@@ -87,6 +87,9 @@ contract CompoundV2 is ILendingProvider {
 
     uint256 status = cToken.borrow(amount);
     if (status != 0) revert CompoundV2__borrow_failed(status);
+
+    // wrap ETH to WETH
+    if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
     success = true;
   }
 
