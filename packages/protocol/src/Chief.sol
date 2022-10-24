@@ -11,9 +11,10 @@ import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
 /// @dev Custom Errors
-error Chief__ZeroAddress();
-error Chief__FactoryNotAllowed();
-error Chief__missingRole(address account, bytes32 role);
+error Chief__setTimelock_zeroAddress();
+error Chief__deployVault_zeroAddress();
+error Chief__deployVault_factoryNotAllowed();
+error Chief__deployVault_missingRole(address account, bytes32 role);
 
 /// @notice Vault deployer contract with template factory allow.
 /// ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
@@ -47,7 +48,7 @@ contract Chief is CoreRoles, AccessControl {
 
   function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
     if (newTimelock == address(0)) {
-      revert Chief__ZeroAddress();
+      revert Chief__setTimelock_zeroAddress();
     }
     timelock = newTimelock;
     emit TimelockUpdated(timelock);
@@ -63,10 +64,10 @@ contract Chief is CoreRoles, AccessControl {
     returns (address vault)
   {
     if (!allowedFactories[_factory]) {
-      revert Chief__FactoryNotAllowed();
+      revert Chief__deployVault_factoryNotAllowed();
     }
     if (!openVaultFactory && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
-      revert Chief__missingRole(msg.sender, DEFAULT_ADMIN_ROLE);
+      revert Chief__deployVault_missingRole(msg.sender, DEFAULT_ADMIN_ROLE);
     }
     vault = IVaultFactory(_factory).deployVault(_deployData);
     vaultSafetyRating[vault] = rating;
@@ -76,7 +77,7 @@ contract Chief is CoreRoles, AccessControl {
 
   function addToAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
     if (_factory == address(0)) {
-      revert Chief__ZeroAddress();
+      revert Chief__deployVault_zeroAddress();
     }
     allowedFactories[_factory] = true;
     emit AddToAllowed(_factory);
@@ -84,7 +85,7 @@ contract Chief is CoreRoles, AccessControl {
 
   function removeFromAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
     if (_factory == address(0)) {
-      revert Chief__ZeroAddress();
+      revert Chief__deployVault_zeroAddress();
     }
     allowedFactories[_factory] = false;
     emit RemoveFromAllowed(_factory);

@@ -64,7 +64,9 @@ contract AccessControlUnitTests is Test {
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
     MockChainlinkPriceFeed maliciousPriceFeed = new MockChainlinkPriceFeed("FakeETH / USD", 8, 1);
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
+    );
     vm.prank(foe);
     oracle.setPriceFeed(address(asset), address(maliciousPriceFeed));
     vm.stopPrank();
@@ -81,12 +83,16 @@ contract AccessControlUnitTests is Test {
     vm.assume(
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
+    );
     vm.prank(foe);
     addrMapper.setMapping("MockProvider_V1", keyAddr1, returnedAddr);
     vm.stopPrank();
 
-    vm.expectRevert(SystemAccessControl.SystemAccessControl__callerIsNotTimelock.selector);
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
+    );
     vm.prank(foe);
     addrMapper.setNestedMapping("MockProvider_V2", keyAddr1, keyAddr2, returnedAddr);
     vm.stopPrank();

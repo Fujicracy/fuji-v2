@@ -49,7 +49,7 @@ contract BorrowingVault is BaseVault {
   uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
 
   /// Returns health factor threshold at which max liquidation can occur.
-  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95;
+  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95e16;
 
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
@@ -380,7 +380,7 @@ contract BorrowingVault is BaseVault {
       uint256 assets = convertToAssets(assetShares);
       uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
 
-      healthFactor = (assets * liqRatio * price) / (debt * 1e16 * 10 ** decimals());
+      healthFactor = (assets * liqRatio * price) / (debt * 10 ** decimals());
     }
   }
 
@@ -388,7 +388,7 @@ contract BorrowingVault is BaseVault {
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
-    if (healthFactor >= 100) {
+    if (healthFactor >= 1e18) {
       liquidationFactor = 0;
     } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt

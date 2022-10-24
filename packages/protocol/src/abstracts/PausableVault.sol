@@ -10,8 +10,8 @@ pragma solidity 0.8.15;
 import {IPausableVault} from "../interfaces/IPausableVault.sol";
 
 abstract contract PausableVault is IPausableVault {
-  error PausableVault__whenNotPaused_ActionPaused();
-  error PausableVault__whenPaused_ActionNotPaused();
+  error PausableVault__requiredNotPaused_actionPaused();
+  error PausableVault__requiredPaused_actionNotPaused();
 
   mapping(VaultActions => bool) private _actionsPaused;
 
@@ -57,7 +57,7 @@ abstract contract PausableVault is IPausableVault {
    */
   function _requireNotPaused(VaultActions action) private view {
     if (_actionsPaused[action]) {
-      revert PausableVault__whenNotPaused_ActionPaused();
+      revert PausableVault__requiredNotPaused_actionPaused();
     }
   }
 
@@ -66,7 +66,7 @@ abstract contract PausableVault is IPausableVault {
    */
   function _requirePaused(VaultActions action) private view {
     if (!_actionsPaused[action]) {
-      revert PausableVault__whenPaused_ActionNotPaused();
+      revert PausableVault__requiredPaused_actionNotPaused();
     }
   }
 
