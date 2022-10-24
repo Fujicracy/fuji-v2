@@ -104,10 +104,14 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   changeCollateralToken(token: Token) {
+    const collateral = get().collateral
+    const balance = getBalance(token, collateral)
+
     set({
       collateral: {
-        ...get().collateral,
+        ...collateral,
         token,
+        balance,
       },
     })
   },
@@ -151,3 +155,18 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     })
   },
 })
+
+/**
+ *  Utils
+ */
+
+//  TODO: may be used with collateral or borrow as long as it is the same type
+function getBalance(token: Token, collateral: TransactionState["collateral"]) {
+  if (collateral.balances) {
+    const tokenIndex = collateral.tokens.findIndex(
+      (t) => t.symbol === token.symbol
+    )
+    return collateral.balances[tokenIndex]
+  }
+  return 0
+}

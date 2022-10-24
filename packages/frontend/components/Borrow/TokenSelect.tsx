@@ -1,4 +1,4 @@
-import React, { MouseEvent, ReactElement, useState } from "react"
+import React, { MouseEvent, ReactElement, useCallback, useState } from "react"
 import {
   Box,
   Card,
@@ -27,11 +27,9 @@ export default function TokenSelect(props: SelectTokenCardProps) {
   const { palette } = useTheme()
   const { type } = props
   const changeCollateralToken = useStore((state) => state.changeCollateralToken)
+  const changeBorrowToken = useStore((state) => state.changeBorrowToken)
   const borrowOrCollateral = useStore((state) => state[type])
-  const { value, balance } = borrowOrCollateral
-
-  const collateralOrBorrow = useStore((state) => state[type])
-  const { token, balances } = collateralOrBorrow
+  const { value, balance, token, tokens, balances } = borrowOrCollateral
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -40,13 +38,21 @@ export default function TokenSelect(props: SelectTokenCardProps) {
   }
   const close = () => setAnchorEl(null)
 
+  const handleClick = (token: Token) => {
+    if (type === "borrow") {
+      changeBorrowToken(token)
+    } else if (type === "collateral") {
+      changeCollateralToken(token)
+    }
+    close()
+  }
+
   return (
     <Card
       variant="outlined"
       sx={{
         borderColor:
-          type === "collateral" &&
-          collateralOrBorrow.value > collateralOrBorrow?.balance
+          type === "collateral" && value > balance
             ? palette.error.dark
             : palette.secondary.light,
       }}
@@ -56,7 +62,7 @@ export default function TokenSelect(props: SelectTokenCardProps) {
           id="collateral-amount"
           type="number"
           placeholder="0"
-          value={collateralOrBorrow.value}
+          value={value}
           onChange={() => alert("not implemented")}
           sx={{
             fontSize: "1.125rem",
@@ -73,7 +79,7 @@ export default function TokenSelect(props: SelectTokenCardProps) {
           alignItems="center"
         >
           {token && (
-            <ChainItem token={token} prepend={<KeyboardArrowDownIcon />} />
+            <TokenItem token={token} prepend={<KeyboardArrowDownIcon />} />
           )}
         </Box>
 
@@ -84,14 +90,14 @@ export default function TokenSelect(props: SelectTokenCardProps) {
           onClose={close}
           TransitionComponent={Fade}
         >
-          {collateralOrBorrow.tokens.map((token, index) => (
-            <ChainItem
+          {tokens.map((token, index) => (
+            <TokenItem
               key={token.name}
               token={token}
               balance={
                 type === "collateral" && balances ? balances[index] : undefined
               }
-              onClick={() => changeCollateralToken(token)}
+              onClick={() => handleClick(token)}
             />
           ))}
         </Menu>
@@ -139,13 +145,13 @@ export default function TokenSelect(props: SelectTokenCardProps) {
   )
 }
 
-type ChainItemProps = {
+type TokenItem = {
   token: Token
   balance?: number
   prepend?: ReactElement
   onClick?: (token: Token) => void
 }
-const ChainItem = (props: ChainItemProps) => {
+const TokenItem = (props: TokenItem) => {
   const { token, balance, prepend, onClick } = props
 
   return (
