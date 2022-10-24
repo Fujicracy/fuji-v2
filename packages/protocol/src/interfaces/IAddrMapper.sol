@@ -7,14 +7,23 @@ interface IAddrMapper {
    */
   event MappingChanged(address[] keyAddress, address mappedAddress);
 
-  function getAddressMapping(address keyAddr) external view returns (address returnedAddr);
-
-  function getAddressNestedMapping(address keyAddr1, address keyAddr2)
+  function getAddressMapping(string memory providerName, address keyAddr)
     external
     view
     returns (address returnedAddr);
 
-  function setMapping(address keyAddr, address returnedAddr) external;
+  function getAddressNestedMapping(string memory providerName, address keyAddr1, address keyAddr2)
+    external
+    view
+    returns (address returnedAddr);
 
-  function setNestedMapping(address keyAddr1, address keyAddr2, address returnedAddr) external;
+  function setMapping(string memory providerName, address keyAddr, address returnedAddr) external;
+
+  function setNestedMapping(
+    string memory providerName,
+    address keyAddr1,
+    address keyAddr2,
+    address returnedAddr
+  )
+    external;
 }

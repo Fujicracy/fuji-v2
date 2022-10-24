@@ -8,6 +8,13 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
+  function providerName() public pure override returns (string memory) {
+    return "Mock_V1";
+  }
+  /**
+   * @notice See {ILendingProvider}
+   */
+
   function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(0xAbc123);
   }

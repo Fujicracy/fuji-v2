@@ -5,7 +5,7 @@
   "scripts": {
     "forge:install": "forge install",
     "build": "forge build",
-    "test": "forge test --no-match-contract '.Suite'",
+    "test": "forge test --mc UnitTests",
     "format:fix": "forge fmt",
     "export-abis": "hardhat export-abi",
     "generate-types": "yarn export-abis && typechain --target=ethers-v5 --out-dir typechain-types './abis/**/*.json'"

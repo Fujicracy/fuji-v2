@@ -4,19 +4,25 @@ pragma solidity 0.8.15;
 import "forge-std/console.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
+import {Chief} from "../src/Chief.sol";
+import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../src/abstracts/BaseVault.sol";
 
-contract VaultTest is DSTestPlus {
+contract VaultUnitTests is DSTestPlus, CoreRoles {
   event MinDepositAmountChanged(uint256 newMinDeposit);
   event DepositCapChanged(uint256 newDepositCap);
 
   IVault public vault;
+  Chief public chief;
+  TimelockController public timelock;
 
   ILendingProvider public mockProvider;
   MockOracle public oracle;
@@ -44,19 +50,23 @@ contract VaultTest is DSTestPlus {
 
     mockProvider = new MockProvider();
 
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+
+    chief = new Chief();
+    chief.setTimelock(address(timelock));
+
     vault = new BorrowingVault(
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0),
+      address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH"
     );
 
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    vault.setProviders(providers);
-    vault.setActiveProvider(mockProvider);
+    _utils_setupVaultProvider();
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
@@ -73,9 +83,31 @@ contract VaultTest is DSTestPlus {
     _utils_setPrice(asset2, asset1, 2000e18);
   }
 
+  function _utils_setupTestRoles() internal {
+    // Grant this test address all roles.
+    chief.grantRole(REBALANCER_ROLE, address(this));
+    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    chief.grantRole(LIQUIDATOR_ROLE, bob);
+  }
+
+  function _utils_callWithTimelock(bytes memory sendData) internal {
+    timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
+    vm.warp(block.timestamp + 2 days);
+    timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
+    rewind(2 days);
+  }
+
+  function _utils_setupVaultProvider() internal {
+    _utils_setupTestRoles();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+    bytes memory sendData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    _utils_callWithTimelock(sendData);
+    vault.setActiveProvider(mockProvider);
+  }
+
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
     deal(address(asset), who, amount);
-
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -87,7 +119,9 @@ contract VaultTest is DSTestPlus {
     uint256 borrowAmount,
     IVault v,
     address who
-  ) internal {
+  )
+    internal
+  {
     _utils_doDeposit(depositAmount, v, who);
     vm.prank(who);
     v.borrow(borrowAmount, who, who);
@@ -166,12 +200,14 @@ contract VaultTest is DSTestPlus {
   function test_setMinDeposit(uint256 min) public {
     vm.expectEmit(true, false, false, false);
     emit MinDepositAmountChanged(min);
-    vault.setMinDepositAmount(min);
+    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimelock(sendData);
   }
 
   function test_tryLessThanMinDeposit(uint256 min, uint256 amount) public {
     vm.assume(amount < min);
-    vault.setMinDepositAmount(min);
+    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimelock(sendData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
@@ -182,13 +218,15 @@ contract VaultTest is DSTestPlus {
     vm.assume(maxCap > 0);
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
-    vault.setDepositCap(maxCap);
+    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimelock(sendData);
   }
 
   function test_tryMaxCap() public {
     /*vm.assume(maxCap > 0 && depositAlice > 0 && depositBob > 0 && depositBob + depositAlice >= maxCap && depositAlice < maxCap);*/
     uint256 maxCap = 5 ether;
-    vault.setDepositCap(maxCap);
+    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimelock(sendData);
 
     uint256 depositAlice = 4.5 ether;
     _utils_doDeposit(depositAlice, vault, alice);

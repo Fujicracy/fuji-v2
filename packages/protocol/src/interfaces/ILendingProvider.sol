@@ -10,6 +10,7 @@ pragma solidity 0.8.15;
  */
 
 interface ILendingProvider {
+  function providerName() external view returns (string memory);
   /**
    * @notice Returns the operator address that requires ERC20-approval for deposits.
    * @param asset address.
