@@ -103,6 +103,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       collateral: {
         ...get().collateral,
         token: tokens[0],
+        balance: balances ? balances[0] : 0,
         tokens,
         balances,
         chainId,
