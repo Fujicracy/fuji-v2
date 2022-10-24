@@ -33,12 +33,7 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     string memory providerName,
     address inputAddr1,
     address inputAddr2
-  )
-    external
-    view
-    override
-    returns (address)
-  {
+  ) external view override returns (address) {
     return _addrNestedMapping[providerName][inputAddr1][inputAddr2];
   }
 
@@ -70,10 +65,7 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     address keyAddr1,
     address keyAddr2,
     address returnedAddr
-  )
-    public
-    override
-  {
+  ) public override {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
     }

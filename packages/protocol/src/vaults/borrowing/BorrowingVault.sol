@@ -49,7 +49,7 @@ contract BorrowingVault is BaseVault {
   uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
 
   /// Returns health factor threshold at which max liquidation can occur.
-  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95;
+  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95e16;
 
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
@@ -87,9 +87,7 @@ contract BorrowingVault is BaseVault {
     address chief_,
     string memory name_,
     string memory symbol_
-  )
-    BaseVault(asset_, chief_, name_, symbol_)
-  {
+  ) BaseVault(asset_, chief_, name_, symbol_) {
     _debtAsset = IERC20Metadata(debtAsset_);
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;
@@ -228,10 +226,7 @@ contract BorrowingVault is BaseVault {
     uint8 v,
     bytes32 r,
     bytes32 s
-  )
-    public
-    override
-  {
+  ) public override {
     VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
   }
 
@@ -290,8 +285,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (debt == 0 || supply == 0)
+    return (debt == 0 || supply == 0)
       ? debt.mulDiv(10 ** decimals(), 10 ** _debtAsset.decimals(), rounding)
       : debt.mulDiv(supply, totalDebt(), rounding);
   }
@@ -305,8 +299,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (supply == 0)
+    return (supply == 0)
       ? shares.mulDiv(10 ** _debtAsset.decimals(), 10 ** decimals(), rounding)
       : shares.mulDiv(totalDebt(), supply, rounding);
   }
@@ -388,8 +381,7 @@ contract BorrowingVault is BaseVault {
       uint256 assets = convertToAssets(assetShares);
       uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
 
-      healthFactor =
-        (assets * liqRatio * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
+      healthFactor = (assets * liqRatio * price) / (debt * 10 ** IERC20Metadata(asset()).decimals());
     }
   }
 
@@ -397,7 +389,7 @@ contract BorrowingVault is BaseVault {
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
-    if (healthFactor >= 100) {
+    if (healthFactor >= 1e18) {
       liquidationFactor = 0;
     } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt

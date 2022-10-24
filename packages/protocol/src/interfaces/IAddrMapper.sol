@@ -24,6 +24,5 @@ interface IAddrMapper {
     address keyAddr1,
     address keyAddr2,
     address returnedAddr
-  )
-    external;
+  ) external;
 }
