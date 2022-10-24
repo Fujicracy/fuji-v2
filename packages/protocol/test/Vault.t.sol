@@ -11,15 +11,8 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../src/abstracts/BaseVault.sol";
-import {SafeMath} from "openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-
-interface IBVaultTestingExtOnly is IVault {
-  function liqRatio() external view returns (uint256);
-}
 
 contract VaultTest is DSTestPlus {
-  using SafeMath for uint256;
-
   event MinDepositAmountChanged(uint256 newMinDeposit);
   event DepositCapChanged(uint256 newDepositCap);
 
@@ -38,8 +31,12 @@ contract VaultTest is DSTestPlus {
   address bob = vm.addr(bobPkey);
 
   // These test prices should be inverse of each other.
-  uint256 public constant TEST_USD_PER_ETH_PRICE = 2000e18;
-  uint256 public constant TEST_ETH_PER_USD_PRICE = 5e14;
+  uint256 public constant USD_PER_ETH_PRICE = 2000e18;
+  uint256 public constant ETH_PER_USD_PRICE = 5e14;
+
+  uint8 public constant DEBT_DECIMALS = 18;
+  uint8 public constant ASSET_DECIMALS = 18;
+  uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
     vm.label(alice, "Alice");
@@ -80,8 +77,8 @@ contract VaultTest is DSTestPlus {
 
   function _utils_setupOracle(address asset1, address asset2) internal {
     // WETH and DAI prices: 2000 DAI/WETH
-    _utils_setPrice(asset1, asset2, TEST_ETH_PER_USD_PRICE);
-    _utils_setPrice(asset2, asset1, TEST_USD_PER_ETH_PRICE);
+    _utils_setPrice(asset1, asset2, ETH_PER_USD_PRICE);
+    _utils_setPrice(asset2, asset1, USD_PER_ETH_PRICE);
   }
 
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
@@ -107,12 +104,10 @@ contract VaultTest is DSTestPlus {
   }
 
   function _utils_checkMaxLTV(uint96 amount, uint96 borrowAmount) internal view returns (bool) {
-    uint8 debtDecimals = 18;
-    uint8 assetDecimals = 18;
     uint256 maxLtv = 75 * 1e16;
 
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
     return borrowAmount < maxBorrow;
   }
 
@@ -121,13 +116,8 @@ contract VaultTest is DSTestPlus {
     view
     returns (uint256)
   {
-    uint8 debtDecimals = 18;
-    uint8 assetDecimals = 18;
-    uint256 liqRatio = 80 * 1e16;
-
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf = ((amount * liqRatio * price) / (borrowAmount * 10 ** assetDecimals));
-    return hf;
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    return (amount * LIQUIDATION_RATIO * price) / (borrowAmount * 10 ** ASSET_DECIMALS);
   }
 
   function _utils_getFutureHealthFactor(uint96 amount, uint96 borrowAmount, uint80 priceDrop)
@@ -135,23 +125,12 @@ contract VaultTest is DSTestPlus {
     view
     returns (uint256)
   {
-    uint8 debtDecimals = 18;
-    uint8 assetDecimals = 18;
-    uint256 liqRatio = 80 * 1e16;
-
-    uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf =
-      (amount * liqRatio * (priceBefore - priceDrop)) / (borrowAmount * 1e16 * 10 ** assetDecimals);
-
-    return hf;
+    uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    return (amount * LIQUIDATION_RATIO * (priceBefore - priceDrop))
+      / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
   }
 
-  function _utils_getLiquidationThresholdValue(
-    address vault_,
-    uint256 price,
-    uint256 deposit,
-    uint256 borrowAmount
-  )
+  function _utils_getLiquidationThresholdValue(uint256 price, uint256 deposit, uint256 borrowAmount)
     internal
     view
     returns (uint256)
@@ -160,8 +139,7 @@ contract VaultTest is DSTestPlus {
       price / 1e18 > 0 && deposit / 1e18 > 0 && borrowAmount / 1e18 > 0,
       "Price, deposit, and borrowAmount should be 1e18"
     );
-    uint256 liqRatio = IBVaultTestingExtOnly(vault_).liqRatio();
-    return (price - ((borrowAmount * 1e36) / (deposit * liqRatio)));
+    return (price - ((borrowAmount * 1e36) / (deposit * LIQUIDATION_RATIO)));
   }
 
   function _utils_checkLiquidateMaxFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop)
@@ -169,15 +147,9 @@ contract VaultTest is DSTestPlus {
     view
     returns (bool)
   {
-    uint8 debtDecimals = 18;
-    uint8 assetDecimals = 18;
-    uint256 liqRatio = 80 * 1e16;
-
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf = SafeMath.div(
-      SafeMath.mul(amount * liqRatio, (price - priceDrop)),
-      SafeMath.mul(borrowAmount * 1e18, 10 ** assetDecimals)
-    );
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 hf = (amount * LIQUIDATION_RATIO * (price - priceDrop))
+      / (borrowAmount * 1e18 * 10 ** ASSET_DECIMALS);
 
     return hf <= 95;
   }
@@ -187,23 +159,16 @@ contract VaultTest is DSTestPlus {
     view
     returns (bool)
   {
-    uint8 debtDecimals = 18;
-    uint8 assetDecimals = 18;
-    uint256 liqRatio = 80 * 1e16;
-
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), debtDecimals);
-    uint256 hf = SafeMath.div(
-      SafeMath.mul(amount * liqRatio, (price - priceDrop)),
-      SafeMath.mul(borrowAmount * 1e18, 10 ** assetDecimals)
-    );
+    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 hf = (amount * LIQUIDATION_RATIO * (price - priceDrop))
+      / (borrowAmount * 1e18 * 10 ** ASSET_DECIMALS);
 
     return hf > 95 && hf < 100;
   }
 
   function _utils_add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
-    require(c >= a);
-    require(c >= b);
+    require(c >= a && c >= b);
     return c;
   }
 
@@ -321,16 +286,13 @@ contract VaultTest is DSTestPlus {
     uint256 borrowAmount = 1000e18;
 
     vm.assume(
-      priceDrop
-        > _utils_getLiquidationThresholdValue(
-          address(vault), TEST_USD_PER_ETH_PRICE, amount, borrowAmount
-        )
+      priceDrop > _utils_getLiquidationThresholdValue(USD_PER_ETH_PRICE, amount, borrowAmount)
     );
-    priceDrop = bound(priceDrop, 751e18, TEST_USD_PER_ETH_PRICE);
+    priceDrop = bound(priceDrop, 751e18, USD_PER_ETH_PRICE);
 
     uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), 18);
-    uint256 liqRatio = IBVaultTestingExtOnly(address(vault)).liqRatio();
-    uint256 priceDropThresholdToMaxLiq = price - ((95 * borrowAmount * 1e34) / (amount * liqRatio));
+    uint256 priceDropThresholdToMaxLiq =
+      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
 
     uint256 liquidatorFactor_0 = vault.getLiquidationFactor(alice);
     assertEq(liquidatorFactor_0, 0);
@@ -375,7 +337,7 @@ contract VaultTest is DSTestPlus {
         && liquidatorAmount > borrowAmount
         && _utils_checkLiquidateMaxFuture(amount, borrowAmount, priceDrop)
     );
-    
+
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     // price drop
@@ -416,30 +378,29 @@ contract VaultTest is DSTestPlus {
     uint256 borrowAmount = 1000e18;
 
     vm.assume(
-      priceDrop
-        > _utils_getLiquidationThresholdValue(
-          address(vault), TEST_USD_PER_ETH_PRICE, amount, borrowAmount
-        )
+      priceDrop > _utils_getLiquidationThresholdValue(USD_PER_ETH_PRICE, amount, borrowAmount)
     );
 
     uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), 18);
-    uint256 liqRatio = IBVaultTestingExtOnly(address(vault)).liqRatio();
-    uint256 priceDropThresholdToMaxLiq = price - ((95 * borrowAmount * 1e34) / (amount * liqRatio));
-    uint256 priceDropThresholdToDiscountLiq = price - ((100 * borrowAmount * 1e34) / (amount * liqRatio));
-    
+    uint256 priceDropThresholdToMaxLiq =
+      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+    uint256 priceDropThresholdToDiscountLiq =
+      price - ((100e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+
     //priceDrop between thresholds
-    priceDrop = bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
- 
+    priceDrop =
+      bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
+
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     // price drop, putting HF < 100, but above 95 and the close factor at 50%
     uint256 newPrice = price - priceDrop;
 
-    _utils_setPrice(address(asset), address(debtAsset), 1e18/newPrice);
+    _utils_setPrice(address(asset), address(debtAsset), 1e18 / newPrice);
     _utils_setPrice(address(debtAsset), address(asset), newPrice);
     uint256 liquidatorAmount = borrowAmount;
     deal(address(debtAsset), bob, liquidatorAmount);
-    
+
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
     assertEq(vault.balanceOf(alice), amount);
@@ -448,7 +409,7 @@ contract VaultTest is DSTestPlus {
     assertEq(debtAsset.balanceOf(bob), liquidatorAmount);
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
-    
+
     vm.startPrank(bob);
     SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
     vault.liquidate(alice, bob);
@@ -460,8 +421,8 @@ contract VaultTest is DSTestPlus {
     uint256 discountedPrice = newPrice * 0.9e18 / 1e18;
     uint256 amountGivenToLiquidator = borrowAmount * 0.5e18 / discountedPrice;
 
-    if(amountGivenToLiquidator >= amount){
-        amountGivenToLiquidator = amount;
+    if (amountGivenToLiquidator >= amount) {
+      amountGivenToLiquidator = amount;
     }
 
     assertEq(vault.balanceOf(alice), amount - amountGivenToLiquidator);
