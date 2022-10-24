@@ -344,6 +344,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     vm.label(address(debtAsset2), "tKAI");
 
     utils_setupOracle(address(asset), address(debtAsset2));
+    utils_setupOracle(address(debtAsset), address(debtAsset2));
 
     IVault newVault = new BorrowingVault(
       address(asset),
