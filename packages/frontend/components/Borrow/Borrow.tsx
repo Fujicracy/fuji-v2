@@ -65,6 +65,7 @@ export default function Borrow() {
 
           <ChainSelect
             label="Collateral from"
+            type="collateral"
             value={collateral.chainId}
             onChange={(chainId) => changeCollateralChain(chainId, address)}
           />
@@ -85,6 +86,7 @@ export default function Borrow() {
 
           <ChainSelect
             label="Borrow to"
+            type="borrow"
             value={borrow.chainId}
             onChange={(chainId) => changeBorrowChain(chainId, address)}
           />

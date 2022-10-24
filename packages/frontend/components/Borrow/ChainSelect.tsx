@@ -6,26 +6,34 @@ import styles from "../../styles/components/Borrow.module.css"
 
 type ChainSelectProps = {
   label: string
+  type: "collateral" | "borrow"
   value: string
   onChange: (chainId: string) => void
 }
-export const ChainSelect = (props: ChainSelectProps) => {
-  const { value, label, onChange } = props
+export const ChainSelect = ({
+  value,
+  label,
+  type,
+  onChange,
+}: ChainSelectProps) => {
+  const labelId = `${type}-label`
+  const selectId = `${type}-chain-select`
+  const menuId = `${type}-chain-menu`
 
   return (
     <Stack alignItems="center" direction="row" mb="1rem">
-      <label id={`${label}-label`} className={styles.selectLabel}>
+      <label id={labelId} className={styles.selectLabel}>
         {label}
       </label>
       <Select
-        labelId="collateral-chain-label"
-        id="collateral-chain"
+        labelId={labelId}
+        id={selectId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         IconComponent={KeyboardArrowDownIcon}
         variant="standard"
         disableUnderline
-        MenuProps={{ TransitionComponent: Fade }}
+        MenuProps={{ TransitionComponent: Fade, id: menuId }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} value={chain.id}>

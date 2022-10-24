@@ -17,9 +17,17 @@ describe("Borrow", () => {
   })
 
   it("can select another collateral chain", () => {
-    cy.get("#collateral-chain").should("contain.text", "Ethereum")
-    cy.get("#collateral-chain").click()
+    cy.get("#collateral-chain-select").should("contain.text", "Ethereum")
+    cy.get("#collateral-chain-select").click()
+
+    const chainList = ["Ethereum", "Polygon", "Fantom", "Arbitrum", "Optimism"]
+    for (const chain of chainList) {
+      cy.get("#collateral-chain-menu ul")
+        .children()
+        .should("contain.text", chain)
+    }
+
     cy.get("body").type("{downArrow}{enter}")
-    cy.get("#collateral-chain").should("contain.text", "Polygon")
+    cy.get("#collateral-chain-select").should("contain.text", "Polygon")
   })
 })
