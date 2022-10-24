@@ -68,4 +68,4 @@ The contracts in Fuji version 2 shall use solidity `error messages` instead of `
 
 > `Contract__function_errorMessage();`
 
-Capitalized contract + two underscores + camelcase function + underscore _ camelcase error message.  
+Capitalized contract + two underscores + camelcase function + underscore + camelcase error message.  
