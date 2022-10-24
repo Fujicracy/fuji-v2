@@ -34,7 +34,7 @@ contract CompoundV3 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
-  function approvedOperator(address, address vault) external view returns (address operator) {
+  function approvedOperator(address vault) external view returns (address operator) {
     address asset = IVault(vault).asset();
     address debtAsset = IVault(vault).debtAsset();
     operator = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);

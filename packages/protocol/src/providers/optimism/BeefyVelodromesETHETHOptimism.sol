@@ -45,7 +45,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function approvedOperator(address, address) external pure override returns (address operator) {
+  function approvedOperator(address) external pure override returns (address operator) {
     operator = address(_getBeefyZap());
   }
 

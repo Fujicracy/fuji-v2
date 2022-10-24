@@ -21,7 +21,7 @@ contract AaveV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
+  function approvedOperator(address) external pure override returns (address operator) {
     operator = address(_getPool());
   }
 

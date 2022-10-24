@@ -13,10 +13,9 @@ interface ILendingProvider {
   function providerName() external view returns (string memory);
   /**
    * @notice Returns the operator address that requires ERC20-approval for deposits.
-   * @param asset address.
-   * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
+   * @param vault address.
    */
-  function approvedOperator(address asset, address vault) external view returns (address operator);
+  function approvedOperator(address vault) external view returns (address operator);
 
   /**
    * @notice Performs deposit operation at lending provider on behalf vault.
