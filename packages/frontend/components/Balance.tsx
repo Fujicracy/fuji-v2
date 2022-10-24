@@ -8,12 +8,10 @@ type Props = {
 // Format the balance depending of the token
 // If no token is specified, 5 digits is used
 // else, eth based tokens use 4 digits
-const Balance = (props: Props) => {
-  const { balance, token } = props
-  const bal = balance.toString()
-  const formattedBalance = token?.name?.includes("ETH")
-    ? `${bal.toString().substring(0, 5)}`
-    : `${bal.substring(0, 4)} `
+const Balance = ({ balance, token }: Props) => {
+  const bal = balance.toLocaleString()
+  const balLength = token?.symbol.includes("ETH") ? 5 : 5
+  const formattedBalance = bal.substring(0, balLength)
 
   return <>{formattedBalance}</>
 }
