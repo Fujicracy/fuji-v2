@@ -13,6 +13,7 @@ type TransactionState = {
     value: number // Input value
     token: Token
     balance: number
+    tokenValue: number // Value of token in usd
     tokens: Token[]
     balances: number[] | undefined // Balance of all collateral tokens
     chainId: ChainId // Hex value
@@ -22,6 +23,7 @@ type TransactionState = {
     value: number // Input value
     token: Token
     balance: number
+    tokenValue: number // Value of token in usd
     tokens: Token[]
     balances: number[] | undefined // Balance of all borrow tokens
     chainId: ChainId // Hex value
@@ -31,9 +33,12 @@ type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
   setShowTransactionAbstract: (show: boolean) => void
   changeBorrowChain: (chainId: ChainId, walletAddress?: string) => void
+  changeBorrowToken: (token: Token) => void
+  changeBorrowValue: (val: string) => void
   changeCollateralChain: (chainId: ChainId, walletAddress?: string) => void
   changeCollateralToken: (token: Token) => void
-  changeBorrowToken: (token: Token) => void
+  changeCollateralValue: (val: string) => void
+  updateTokenPrice: () => void
 }
 type ChainId = string // hex value as string
 
@@ -48,6 +53,7 @@ const initialState: TransactionState = {
     value: 0,
     balance: 0,
     token: initialTokens[0],
+    tokenValue: 0,
     tokens: initialTokens,
     balances: undefined,
     chainId: initialChainId,
@@ -57,6 +63,7 @@ const initialState: TransactionState = {
     value: 0,
     balance: 0,
     token: initialTokens[0],
+    tokenValue: 0,
     tokens: initialTokens,
     balances: undefined,
     chainId: initialChainId,
@@ -74,7 +81,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ showTransactionAbstract })
   },
 
-  async changeCollateralChain(chainId: string, walletAddress?: string) {
+  async changeCollateralChain(chainId, walletAddress?) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
     let balances
@@ -101,9 +108,11 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         chainId,
       },
     })
+
+    get().updateTokenPrice()
   },
 
-  changeCollateralToken(token: Token) {
+  changeCollateralToken(token) {
     const collateral = get().collateral
     const balance = getBalance(token, collateral)
 
@@ -114,10 +123,17 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         balance,
       },
     })
+
+    get().updateTokenPrice()
+  },
+
+  async updateTokenPrice() {
+    const tokenValue = await get().collateral.token.getPriceUSD()
+    set({ collateral: { ...get().collateral, tokenValue } })
   },
 
   // TODO: Changeborrowchain and changecollateral chain are almost the same, refactor ?
-  async changeBorrowChain(chainId: string, walletAddress?: string) {
+  async changeBorrowChain(chainId, walletAddress?) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
     let balances
@@ -146,11 +162,24 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     })
   },
 
-  changeBorrowToken(token: Token) {
+  changeBorrowToken(token) {
     set({
       borrow: {
         ...get().borrow,
         token,
+      },
+    })
+  },
+
+  changeBorrowValue(val) {
+    alert("not implemented")
+  },
+
+  changeCollateralValue(value) {
+    set({
+      collateral: {
+        ...get().collateral,
+        value: parseFloat(value),
       },
     })
   },
