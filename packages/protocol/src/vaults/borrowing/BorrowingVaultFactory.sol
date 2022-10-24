@@ -6,13 +6,12 @@ import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "forge-std/console.sol";
-
 contract BorrowingVaultFactory is VaultDeployer {
+  uint256 public nonce;
+
   constructor(address _chief) VaultDeployer(_chief) {}
 
-  function deployVault(bytes memory _deployData) external returns (address vault) {
-    // TODO add access restriction
+  function deployVault(bytes memory _deployData) external onlyChief returns (address vault) {
     (address asset, address debtAsset, address oracle) =
       abi.decode(_deployData, (address, address, address));
 
@@ -24,8 +23,8 @@ contract BorrowingVaultFactory is VaultDeployer {
     // symbol_, ex: fbvDAI
     string memory symbol = string(abi.encodePacked("fbv", assetSymbol));
 
-    // @dev Salt is not actually needed since `_deployData` is part of creationCode and already contains the salt.
-    bytes32 salt = keccak256(_deployData);
+    bytes32 salt = keccak256(abi.encode(_deployData, nonce));
+    nonce++;
     vault = address(new BorrowingVault{salt: salt}(asset, debtAsset, oracle, chief, name, symbol));
     _registerVault(vault, asset, salt);
   }

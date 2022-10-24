@@ -18,8 +18,10 @@ import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
+import {SystemAccessControl} from "../access/SystemAccessControl.sol";
+import {PausableVault} from "./PausableVault.sol";
 
-abstract contract BaseVault is ERC20, VaultPermissions, IVault {
+abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
 
@@ -33,8 +35,6 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
 
-  address public immutable chief;
-
   IERC20Metadata internal immutable _asset;
 
   ILendingProvider[] internal _providers;
@@ -45,10 +45,10 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
 
   constructor(address asset_, address chief_, string memory name_, string memory symbol_)
     ERC20(name_, symbol_)
+    SystemAccessControl(chief_)
     VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
-    chief = chief_;
     depositCap = type(uint256).max;
   }
 
@@ -272,8 +272,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return
-      (assets == 0 || supply == 0)
+    return (assets == 0 || supply == 0)
       ? assets.mulDiv(10 ** decimals(), 10 ** _asset.decimals(), rounding)
       : assets.mulDiv(supply, totalAssets(), rounding);
   }
@@ -288,8 +287,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return
-      (supply == 0)
+    return (supply == 0)
       ? shares.mulDiv(10 ** _asset.decimals(), 10 ** decimals(), rounding)
       : shares.mulDiv(totalAssets(), supply, rounding);
   }
@@ -297,7 +295,10 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   /**
    * @dev Perform _deposit adding flow at provider {IERC4626-deposit}.
    */
-  function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal {
+  function _deposit(address caller, address receiver, uint256 assets, uint256 shares)
+    internal
+    whenNotPaused(VaultActions.Deposit)
+  {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
     _executeProviderAction(asset(), assets, "deposit");
     _mint(receiver, shares);
@@ -314,9 +315,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     address owner,
     uint256 assets,
     uint256 shares
-  )
-    internal
-  {
+  ) internal whenNotPaused(VaultActions.Withdraw) {
     _burn(owner, shares);
     _executeProviderAction(asset(), assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
@@ -409,11 +408,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
     uint8 v,
     bytes32 r,
     bytes32 s
-  )
-    public
-    virtual
-    override
-  {}
+  ) public virtual override {}
 
   /**
    * @dev Internal function that computes how much free 'assets'
@@ -471,8 +466,7 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   /// Admin set functions ///
   ///////////////////////////
 
-  function setProviders(ILendingProvider[] memory providers) external {
-    // TODO needs admin restriction
+  function setProviders(ILendingProvider[] memory providers) external onlyTimelock {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {
@@ -488,8 +482,11 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_) external override {
-    // TODO needs admin restriction
+  function setActiveProvider(ILendingProvider activeProvider_)
+    external
+    override
+    hasRole(msg.sender, REBALANCER_ROLE)
+  {
     if (!_isValidProvider(address(activeProvider_))) {
       revert BaseVault__setter_invalidInput();
     }
@@ -508,20 +505,43 @@ abstract contract BaseVault is ERC20, VaultPermissions, IVault {
   }
 
   /// inheritdoc IVault
-  function setMinDepositAmount(uint256 amount) external override {
-    // TODO needs admin restriction
+  function setMinDepositAmount(uint256 amount) external override onlyTimelock {
     minDepositAmount = amount;
     emit MinDepositAmountChanged(amount);
   }
 
   /// inheritdoc IVault
-  function setDepositCap(uint256 newCap) external override {
-    // TODO needs admin restriction
+  function setDepositCap(uint256 newCap) external override onlyTimelock {
     if (newCap == 0 || newCap <= minDepositAmount) {
       revert BaseVault__setter_invalidInput();
     }
     depositCap = newCap;
     emit DepositCapChanged(newCap);
+  }
+
+  /// inheritdoc PausableVault
+  function pauseForceAll() external override hasRole(msg.sender, PAUSER_ROLE) {
+    _pauseForceAllActions();
+  }
+
+  /// inheritdoc PausableVault
+  function unpauseForceAll() external override hasRole(msg.sender, UNPAUSER_ROLE) {
+    _unpauseForceAllActions();
+  }
+
+  /// inheritdoc PausableVault
+  function pause(VaultActions action) external virtual override hasRole(msg.sender, PAUSER_ROLE) {
+    _pause(action);
+  }
+
+  /// inheritdoc PausableVault
+  function unpause(VaultActions action)
+    external
+    virtual
+    override
+    hasRole(msg.sender, UNPAUSER_ROLE)
+  {
+    _unpause(action);
   }
 
   /**

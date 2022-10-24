@@ -1,0 +1,71 @@
+name: CI-Sdk
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "packages/sdk/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/sdk/**"
+  
+  # Allows you to run this workflow manually from the Actions tab      
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ['14.x']
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+          working-directory: packages/sdk
+
+      - name: Lint
+        run: yarn lint
+        working-directory: packages/sdk
+
+      - name: "Create env file"
+        run: |
+          touch .env
+          echo export INFURA_ID="${{ secrets.INFURA_ID }}" >> .env
+          echo export ALCHEMY_ID_CHAIN_420="${{ secrets.ALCHEMY_ID_CHAIN_420 }}" >> .env
+          cat .env
+        working-directory: packages/sdk
+
+      - name: "Test env file"
+        run: |
+          cat .env
+        working-directory: packages/sdk
+
+      - name: Test
+        run: source .env && yarn test --ci --maxWorkers=2
+        working-directory: packages/sdk
+
+      - name: Build
+        run: yarn build
+        working-directory: packages/sdk

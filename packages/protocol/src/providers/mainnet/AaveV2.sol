@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
@@ -13,6 +13,11 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 contract AaveV2 is ILendingProvider {
   function _getPool() internal pure returns (IV2Pool) {
     return IV2Pool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
+  }
+
+  /// inheritdoc ILendingProvider
+  function providerName() public pure override returns (string memory) {
+    return "Aave_V2";
   }
 
   /// inheritdoc ILendingProvider

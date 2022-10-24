@@ -4,19 +4,38 @@
 cp sample.env .env
 source .env
 ```
+
 2. Install Foundry
 Find the instructions [here](https://book.getfoundry.sh/getting-started/installation).
+
 3. Install npm packages
 ```
 yarn
 ```
+
 4. Compile contracts
 ```
 yarn build
 ```
+
 5. Test
 ```
 yarn test
+```
+
+## Slither
+Slither is a Solidity static analyzer. It helps identify potential security issues.
+
+1. [How to install](https://github.com/crytic/slither#how-to-install)
+
+2. Run from "packages/protocol"
+```
+slither .
+```
+
+3. Run and generate outputs in a file
+```
+slither . --json slither_output.json
 ```
 
 ## Factors in contracts
@@ -43,3 +62,10 @@ npx hardhat --network localhost deploy --no-compile
 NOTE: The configuration in `hardhat.config.ts` uses the artifacts and bytecode created by the previously called `forge build` command.
 
 5. A folder will be created under `deployments/localhost` with all the artifacts containing also the addresses. 
+
+## Error message format
+The contracts in Fuji version 2 shall use solidity `error messages` instead of `require` statements. This saves on contract bytecode. The format should be the following:
+
+> `Contract__function_errorMessage();`
+
+Capitalized contract + two underscores + camelcase function + underscore + camelcase error message.  

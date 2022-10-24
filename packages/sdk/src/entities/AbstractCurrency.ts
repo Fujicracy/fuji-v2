@@ -1,18 +1,21 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import { IMulticallProvider } from '@hovoh/ethcall';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
-import { ConfigParams } from '../types';
+import { ChainConfig } from '../types';
 import { Address } from './Address';
-import { Config } from './Config';
+import { ChainConnection } from './ChainConnection';
 import { Currency } from './Currency';
+import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
 /**
  * A currency is any fungible financial instrument, including Ether, all ERC20 tokens, and other chain-native currencies
  */
-export abstract class AbstractCurrency {
+export abstract class AbstractCurrency extends StreamManager {
   /**
    * Returns whether the currency is native to the chain and must be wrapped (e.g. Ether)
    */
@@ -35,13 +38,24 @@ export abstract class AbstractCurrency {
    */
   readonly symbol: string;
   /**
-   * The RPC provider for the specific chain
-   */
-  rpcProvider?: JsonRpcProvider;
-  /**
    * The name of the currency, i.e. a descriptive textual non-unique identifier
    */
   readonly name?: string;
+
+  /**
+   * The RPC provider for the specific chain
+   */
+  rpcProvider?: JsonRpcProvider;
+
+  /**
+   * The RPC provider for the specific chain
+   */
+  wssProvider?: WebSocketProvider;
+
+  /**
+   * The multicall RPC provider for the specific chain
+   */
+  multicallRpcProvider?: IMulticallProvider;
 
   /**
    * Constructs an instance of the base class `BaseCurrency`.
@@ -51,16 +65,17 @@ export abstract class AbstractCurrency {
    * @param name - name of the currency
    */
   protected constructor(
-    chainId: number,
+    chainId: ChainId,
     decimals: number,
     symbol: string,
     name?: string
   ) {
-    invariant(Number.isSafeInteger(chainId), 'CHAIN_ID');
     invariant(
       decimals >= 0 && decimals < 255 && Number.isInteger(decimals),
       'DECIMALS'
     );
+
+    super();
 
     this.chainId = chainId;
     this.decimals = decimals;
@@ -88,6 +103,13 @@ export abstract class AbstractCurrency {
   abstract balanceOf(account: Address): Promise<BigNumber>;
 
   /**
+   * Returns a stream of currency balance for address
+   *
+   * @param account - the address of the user, wrapped in class Address
+   */
+  abstract balanceOfStream(account: Address): Observable<BigNumber>;
+
+  /**
    * Returns allowance that an owner has attributed to a spender
    *
    * @param owner - address of currency owner, wrapped in {@link Address}
@@ -100,10 +122,13 @@ export abstract class AbstractCurrency {
   /**
    * Creates a connection by setting an rpc provider.
    *
-   * @param configParams - {@link ConfigParams} object with infura and alchemy ids
+   * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
-  setConnection(configParams: ConfigParams): AbstractCurrency {
-    this.rpcProvider = Config.rpcProviderFrom(configParams, this.chainId);
+  setConnection(configParams: ChainConfig): AbstractCurrency {
+    const connection = ChainConnection.from(configParams, this.chainId);
+    this.rpcProvider = connection.rpcProvider;
+    this.wssProvider = connection.wssProvider;
+    this.multicallRpcProvider = connection.multicallRpcProvider;
 
     return this;
   }

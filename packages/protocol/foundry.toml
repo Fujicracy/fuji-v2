@@ -3,13 +3,12 @@ src = 'src'
 out = 'out'
 libs = ['lib']
 optimizer = true
-optimizer_runs = 10000
+optimizer_runs = 1000
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
-rinkeby = "${RPC_RINKEBY}"
 goerli = "${RPC_GOERLI}"
 optimism_goerli = "${RPC_OPTIMISM_GOERLI}"
 optimism = "${RPC_OPTIMISM}"

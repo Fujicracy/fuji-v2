@@ -22,6 +22,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   using SafeERC20 for IERC20;
   using Math for uint256;
 
+  function providerName() public pure override returns (string memory) {
+    return "Beefy_V6_ETH";
+  }
+
   function _getBeefyVault() internal pure returns (IBeefyVaultV6) {
     return IBeefyVaultV6(0xf92129fE0923d766C2540796d4eA31Ff9FF65522);
   }
@@ -111,9 +115,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
     uint256 withdrawAmount,
     address desiredToken,
     uint256 desiredOutMin
-  )
-    internal
-  {
+  ) internal {
     IBeefyVaultV6 vault = IBeefyVaultV6(_getBeefyVault());
     IVelodromePair pair = _getVelodromePair();
 

@@ -7,10 +7,11 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract YieldVaultFactory is VaultDeployer {
+  uint256 public nonce;
+
   constructor(address _chief) VaultDeployer(_chief) {}
 
-  function deployVault(bytes memory _deployData) external returns (address vault) {
-    // TODO add access restriction
+  function deployVault(bytes memory _deployData) external onlyChief returns (address vault) {
     (address asset) = abi.decode(_deployData, (address));
 
     string memory assetName = IERC20Metadata(asset).name();
@@ -21,8 +22,8 @@ contract YieldVaultFactory is VaultDeployer {
     // symbol_, ex: fyvDAI
     string memory symbol = string(abi.encodePacked("fyv", assetSymbol));
 
-    // @dev Salt is not actually needed since `_deployData` is part of creationCode and already contains the salt.
-    bytes32 salt = keccak256(_deployData);
+    bytes32 salt = keccak256(abi.encode(_deployData, nonce));
+    nonce++;
     vault = address(new YieldVault{salt: salt}(asset, chief, name, symbol));
     _registerVault(vault, asset, salt);
   }

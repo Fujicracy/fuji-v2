@@ -1,20 +1,23 @@
+import AnkrProvider from '@ankr.com/ankr.js';
+import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
+import warning from 'tiny-warning';
 
+import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
-import { ConfigParams } from '../types';
+import { ChainConfig } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
+import { ERC20Multicall } from '../types/contracts/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
-import { Config } from './Config';
 import { Currency } from './Currency';
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.
  */
 export class Token extends AbstractCurrency {
-  readonly chainId: ChainId;
   readonly address: Address;
 
   readonly isNative: false = false as const;
@@ -26,6 +29,14 @@ export class Token extends AbstractCurrency {
    */
   contract?: ERC20Contract;
 
+  /**
+   * Extended instance of ERC20 contract used when there is a
+   * possibility to perform a multicall read on the smart contract.
+   * @remarks
+   * A multicall read refers to a batch read done in a single call.
+   */
+  multicallContract?: ERC20Multicall;
+
   constructor(
     chainId: ChainId,
     address: Address,
@@ -34,7 +45,6 @@ export class Token extends AbstractCurrency {
     name?: string
   ) {
     super(chainId, decimals, symbol, name);
-    this.chainId = chainId;
     this.address = address;
   }
 
@@ -48,13 +58,19 @@ export class Token extends AbstractCurrency {
   /**
    * {@inheritDoc AbstractCurrency.setConnection}
    */
-  setConnection(configParams: ConfigParams): Token {
-    const rpcProvider: JsonRpcProvider = Config.rpcProviderFrom(
-      configParams,
-      this.chainId
+  setConnection(configParams: ChainConfig): Token {
+    warning(!this.rpcProvider, 'Connection already set!');
+    if (this.rpcProvider) return this;
+
+    super.setConnection(configParams);
+    invariant(this.rpcProvider, 'Something went wrong with setting connection');
+
+    this.contract = ERC20__factory.connect(
+      this.address.value,
+      this.rpcProvider
     );
 
-    this.contract = ERC20__factory.connect(this.address.value, rpcProvider);
+    this.multicallContract = ERC20__factory.multicall(this.address.value);
 
     return this;
   }
@@ -63,9 +79,29 @@ export class Token extends AbstractCurrency {
    * {@inheritDoc AbstractCurrency.balanceOf}
    * @throws if {@link setConnection} was not called beforehand
    */
-  async balanceOf(account: Address): Promise<BigNumber> {
+  balanceOf(account: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.balanceOf(account.value);
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.balanceOfStream}
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  balanceOfStream(account: Address): Observable<BigNumber> {
+    invariant(this.contract && this.wssProvider, 'Connection not set!');
+
+    const filters = [
+      this.contract.filters.Transfer(account.value),
+      this.contract.filters.Transfer(null, account.value),
+    ];
+    return this.streamFrom<Address, BigNumber>(
+      this.wssProvider,
+      this.balanceOf,
+      [account],
+      account,
+      filters
+    );
   }
 
   /**
@@ -75,6 +111,40 @@ export class Token extends AbstractCurrency {
   async allowance(owner: Address, spender: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.allowance(owner.value, spender.value);
+  }
+
+  /**
+   * Fetch token price in USD from Ankr rpc and returns it.
+   */
+  async getPriceUSD(): Promise<number> {
+    const provider = new AnkrProvider();
+    return provider
+      .getTokenPrice({
+        blockchain: CHAIN[this.chainId].ankr as Blockchain,
+        contractAddress: this.address.value,
+      })
+      .then(({ usdPrice }) => parseFloat(usdPrice));
+  }
+
+  /**
+   * Returns allowance that an owner has attributed to a spender as stream
+   *
+   * @param owner - address of currency owner, wrapped in {@link Address}
+   * @param spender - address of spender, wrapped in {@link Address}
+   *
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  allowanceStream(owner: Address, spender: Address): Observable<BigNumber> {
+    invariant(this.contract && this.wssProvider, 'Connection not set!');
+
+    const filters = [this.contract.filters.Approval(owner.value)];
+    return this.streamFrom<Address, BigNumber>(
+      this.wssProvider,
+      this.allowance,
+      [owner, spender],
+      owner,
+      filters
+    );
   }
 
   /**

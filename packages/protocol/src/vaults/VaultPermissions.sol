@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
-import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
+import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 
@@ -125,10 +125,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     uint8 v,
     bytes32 r,
     bytes32 s
-  )
-    public
-    override
-  {
+  ) public override {
     require(block.timestamp <= deadline, "Expired deadline");
     bytes32 structHash = keccak256(
       abi.encode(PERMIT_WITHDRAW_TYPEHASH, owner, spender, amount, _useNonce(owner), deadline)
@@ -149,11 +146,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     uint8 v,
     bytes32 r,
     bytes32 s
-  )
-    public
-    virtual
-    override
-  {
+  ) public virtual override {
     require(block.timestamp <= deadline, "Expired deadline");
     bytes32 structHash = keccak256(
       abi.encode(_PERMIT_BORROW_TYPEHASH, owner, spender, amount, _useNonce(owner), deadline)
