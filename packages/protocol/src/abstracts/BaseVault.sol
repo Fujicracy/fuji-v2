@@ -36,6 +36,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__setter_invalidInput();
 
   IERC20Metadata internal immutable _asset;
+  uint8 private immutable _decimals;
 
   ILendingProvider[] internal _providers;
   ILendingProvider public activeProvider;
@@ -49,6 +50,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
+    _decimals = _asset.decimals();
     depositCap = type(uint256).max;
   }
 
@@ -115,6 +117,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   ////////////////////////////////////////////
   /// Asset management: overrides IERC4626 ///
   ////////////////////////////////////////////
+
+  function decimals() public view virtual override (IERC20Metadata, ERC20) returns (uint8) {
+    return _decimals;
+  }
 
   /// @inheritdoc IERC4626
   function asset() public view virtual override returns (address) {
@@ -272,9 +278,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0)
-      ? assets.mulDiv(10 ** decimals(), 10 ** _asset.decimals(), rounding)
-      : assets.mulDiv(supply, totalAssets(), rounding);
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets(), rounding);
   }
 
   /**
@@ -287,9 +291,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return (supply == 0)
-      ? shares.mulDiv(10 ** _asset.decimals(), 10 ** decimals(), rounding)
-      : shares.mulDiv(totalAssets(), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalAssets(), supply, rounding);
   }
 
   /**
@@ -315,10 +317,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address owner,
     uint256 assets,
     uint256 shares
-  )
-    internal
-    whenNotPaused(VaultActions.Withdraw)
-  {
+  ) internal whenNotPaused(VaultActions.Withdraw) {
     _burn(owner, shares);
     _executeProviderAction(asset(), assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);

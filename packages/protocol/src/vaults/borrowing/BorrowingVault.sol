@@ -55,6 +55,7 @@ contract BorrowingVault is BaseVault {
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
   IERC20Metadata internal immutable _debtAsset;
+  uint8 private immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
 
@@ -89,6 +90,7 @@ contract BorrowingVault is BaseVault {
     string memory symbol_
   ) BaseVault(asset_, chief_, name_, symbol_) {
     _debtAsset = IERC20Metadata(debtAsset_);
+    _debtDecimals = _debtAsset.decimals();
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;
     liqRatio = 80 * 1e16;
@@ -102,7 +104,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function debtDecimals() public view override returns (uint8) {
-    return _debtAsset.decimals();
+    return _debtDecimals;
   }
 
   /// @inheritdoc BaseVault
@@ -242,14 +244,13 @@ contract BorrowingVault is BaseVault {
    * - SHOULD read price from {FujiOracle}.
    */
   function _computeMaxBorrow(address borrower) internal view returns (uint256 max) {
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 assetShares = balanceOf(borrower);
     uint256 assets = convertToAssets(assetShares);
     uint256 debtShares = _debtShares[borrower];
     uint256 debt = convertToDebt(debtShares);
 
-    uint256 baseUserMaxBorrow =
-      ((assets * maxLtv * price) / (1e18 * 10 ** IERC20Metadata(asset()).decimals()));
+    uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (1e18 * 10 ** decimals()));
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
@@ -262,8 +263,8 @@ contract BorrowingVault is BaseVault {
       freeAssets = convertToAssets(balanceOf(owner));
     } else {
       uint256 debt = convertToDebt(debtShares);
-      uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
-      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtAsset.decimals());
+      uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
+      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtDecimals);
 
       if (lockedAssets == 0) {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei
@@ -287,9 +288,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return (debt == 0 || supply == 0)
-      ? debt.mulDiv(10 ** decimals(), 10 ** _debtAsset.decimals(), rounding)
-      : debt.mulDiv(supply, totalDebt(), rounding);
+    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt(), rounding);
   }
 
   /**
@@ -301,9 +300,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return (supply == 0)
-      ? shares.mulDiv(10 ** _debtAsset.decimals(), 10 ** decimals(), rounding)
-      : shares.mulDiv(totalDebt(), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalDebt(), supply, rounding);
   }
 
   /**
@@ -381,10 +378,9 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 assetShares = balanceOf(owner);
       uint256 assets = convertToAssets(assetShares);
-      uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+      uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
 
-      healthFactor =
-        (assets * liqRatio * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
+      healthFactor = (assets * liqRatio * price) / (debt * 1e16 * 10 ** decimals());
     }
   }
 
@@ -424,7 +420,7 @@ contract BorrowingVault is BaseVault {
     uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
 
     // Compute 'gainedShares' amount that the liquidator will receive.
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
     gainedShares = convertToShares(Math.mulDiv(debt, liquidationFactor, discountedPrice));
 
