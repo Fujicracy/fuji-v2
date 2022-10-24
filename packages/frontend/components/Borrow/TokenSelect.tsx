@@ -50,11 +50,15 @@ export default function TokenSelect(props: SelectTokenCardProps) {
     close()
   }
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMax = () => {
+    handleInput(balance.toString())
+  }
+
+  const handleInput = (val: string) => {
     if (type === "borrow") {
-      changeBorrowValue(e.target.value)
+      changeBorrowValue(val)
     } else if (type === "collateral") {
-      changeCollateralValue(e.target.value)
+      changeCollateralValue(val)
     }
   }
 
@@ -74,7 +78,7 @@ export default function TokenSelect(props: SelectTokenCardProps) {
           type="number"
           placeholder="0"
           value={value}
-          onChange={handleInput}
+          onChange={(e) => handleInput(e.target.value)}
           sx={{
             fontSize: "1.125rem",
             boxShadow: "none",
@@ -129,7 +133,7 @@ export default function TokenSelect(props: SelectTokenCardProps) {
                 variant="xsmall"
                 align="center"
                 className={styles.maxBtn}
-                onClick={() => alert("not implemented")}
+                onClick={handleMax}
               >
                 MAX
               </Typography>
