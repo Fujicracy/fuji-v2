@@ -76,7 +76,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           id="collateral-amount"
           type="number"
           placeholder="0"
-          value={value}
+          value={String(value)}
           onChange={(e) => handleInput(e.target.value)}
           sx={{
             fontSize: "1.125rem",
