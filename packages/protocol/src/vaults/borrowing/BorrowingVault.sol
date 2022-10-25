@@ -361,12 +361,23 @@ contract BorrowingVault is BaseVault {
   ///////////////////
 
   // inheritdoc IVault
-  function rebalance(RebalanceAction[] memory actions)
+  function rebalance(bytes memory params)
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+    (uint256 assets, uint256 debt, uint256 fee, address from, address to) =
+      abi.decode(params, (uint256, uint256, uint256, address, address));
+    SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
+    SafeERC20.safeApprove(IERC20(debtAsset()), from, debt);
+    _executeProviderAction(debt, "payback", from);
+    _executeProviderAction(assets, "withdraw", from);
+    SafeERC20.safeApprove(IERC20(asset()), to, assets);
+    _executeProviderAction(assets, "deposit", to);
+    _executeProviderAction(debt + fee, "borrow", to);
+    SafeERC20.safeTransfer(IERC20(asset()), msg.sender, debt + fee);
+    emit VaultRebalance(assets, debt, from, to);
+    return true;
   }
 
   //////////////////////

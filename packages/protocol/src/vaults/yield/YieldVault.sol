@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 
 contract YieldVault is BaseVault {
@@ -98,12 +100,17 @@ contract YieldVault is BaseVault {
   ///////////////////
 
   // inheritdoc IVault
-  function rebalance(RebalanceAction[] memory actions)
+  function rebalance(bytes memory params)
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+    (uint256 assets, address from, address to) = abi.decode(params, (uint256, address, address));
+    _executeProviderAction(assets, "withdraw", from);
+    SafeERC20.safeApprove(IERC20(asset()), to, assets);
+    _executeProviderAction(assets, "deposit", to);
+    emit VaultRebalance(assets, 0, from, to);
+    return true;
   }
 
   //////////////////////
