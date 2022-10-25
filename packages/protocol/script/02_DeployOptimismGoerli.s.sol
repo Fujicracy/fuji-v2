@@ -58,8 +58,8 @@ contract DeployOptimismGoerli is ScriptPlus {
 
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = MockProvider(getAddress("MockProvider"));
-    BorrowingVault(getAddress("BorrowingVault")).setProviders(providers);
-    BorrowingVault(getAddress("BorrowingVault")).setActiveProvider(
+    BorrowingVault(payable(getAddress("BorrowingVault"))).setProviders(providers);
+    BorrowingVault(payable(getAddress("BorrowingVault"))).setActiveProvider(
       MockProvider(getAddress("MockProvider"))
     );
 

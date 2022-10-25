@@ -36,6 +36,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__setter_invalidInput();
 
   IERC20Metadata internal immutable _asset;
+  uint8 private immutable _decimals;
 
   ILendingProvider[] internal _providers;
   ILendingProvider public activeProvider;
@@ -49,6 +50,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     VaultPermissions(name_)
   {
     _asset = IERC20Metadata(asset_);
+    _decimals = _asset.decimals();
     depositCap = type(uint256).max;
   }
 
@@ -116,6 +118,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Asset management: overrides IERC4626 ///
   ////////////////////////////////////////////
 
+  function decimals() public view virtual override (IERC20Metadata, ERC20) returns (uint8) {
+    return _decimals;
+  }
+
   /// @inheritdoc IERC4626
   function asset() public view virtual override returns (address) {
     return address(_asset);
@@ -123,7 +129,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function totalAssets() public view virtual override returns (uint256 assets) {
-    return _checkProvidersBalance(asset(), "getDepositBalance");
+    return _checkProvidersBalance("getDepositBalance");
   }
 
   /// @inheritdoc IERC4626
@@ -272,9 +278,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0)
-      ? assets.mulDiv(10 ** decimals(), 10 ** _asset.decimals(), rounding)
-      : assets.mulDiv(supply, totalAssets(), rounding);
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets(), rounding);
   }
 
   /**
@@ -287,9 +291,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return (supply == 0)
-      ? shares.mulDiv(10 ** _asset.decimals(), 10 ** decimals(), rounding)
-      : shares.mulDiv(totalAssets(), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalAssets(), supply, rounding);
   }
 
   /**
@@ -300,7 +302,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     whenNotPaused(VaultActions.Deposit)
   {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
-    _executeProviderAction(asset(), assets, "deposit");
+    _executeProviderAction(assets, "deposit");
     _mint(receiver, shares);
 
     emit Deposit(caller, receiver, assets, shares);
@@ -315,9 +317,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address owner,
     uint256 assets,
     uint256 shares
-  ) internal whenNotPaused(VaultActions.Withdraw) {
+  )
+    internal
+    whenNotPaused(VaultActions.Withdraw)
+  {
     _burn(owner, shares);
-    _executeProviderAction(asset(), assets, "withdraw");
+    _executeProviderAction(assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
@@ -408,7 +413,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint8 v,
     bytes32 r,
     bytes32 s
-  ) public virtual override {}
+  )
+    public
+    virtual
+    override
+  {}
 
   /**
    * @dev Internal function that computes how much free 'assets'
@@ -425,26 +434,19 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Fuji Vault functions ///
   ////////////////////////////
 
-  function _executeProviderAction(address assetAddr, uint256 assets, string memory name) internal {
+  function _executeProviderAction(uint256 assets, string memory name) internal {
     bytes memory data = abi.encodeWithSignature(
-      string(abi.encodePacked(name, "(address,uint256,address)")), assetAddr, assets, address(this)
+      string(abi.encodePacked(name, "(uint256,address)")), assets, address(this)
     );
     address(activeProvider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))
     );
   }
 
-  function _checkProvidersBalance(address assetAddr, string memory method)
-    internal
-    view
-    returns (uint256 assets)
-  {
+  function _checkProvidersBalance(string memory method) internal view returns (uint256 assets) {
     uint256 len = _providers.length;
     bytes memory callData = abi.encodeWithSignature(
-      string(abi.encodePacked(method, "(address,address,address)")),
-      assetAddr,
-      address(this),
-      address(this)
+      string(abi.encodePacked(method, "(address,address)")), address(this), address(this)
     );
     bytes memory returnedBytes;
     for (uint256 i = 0; i < len;) {

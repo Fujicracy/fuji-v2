@@ -26,8 +26,8 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
   event UnpausedForceAll(address account);
 
   BorrowingVaultFactory public bVaultFactory;
-  BorrowingVault public bvault1;
-  BorrowingVault public bvault2;
+  BorrowingVault public vault1;
+  BorrowingVault public vault2;
   Chief public chief;
   TimelockController public timelock;
 
@@ -79,25 +79,18 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     chief.addToAllowed(address(bVaultFactory));
 
-    bvault1 = BorrowingVault(
-      chief.deployVault(
-        address(bVaultFactory),
-        abi.encode(address(asset), address(debtAsset), address(oracle)),
-        "A+"
-      )
+    address vault1Addr = chief.deployVault(
+      address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
+    );
+    vault1 = BorrowingVault(payable(vault1Addr));
+    _utils_setupVaultProvider(vault1);
+
+    address vault2Addr = chief.deployVault(
+      address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "B+"
     );
 
-    _utils_setupVaultProvider(bvault1);
-
-    bvault2 = BorrowingVault(
-      chief.deployVault(
-        address(bVaultFactory),
-        abi.encode(address(asset), address(debtAsset), address(oracle)),
-        "B+"
-      )
-    );
-
-    _utils_setupVaultProvider(bvault2);
+    vault2 = BorrowingVault(payable(vault2Addr));
+    _utils_setupVaultProvider(vault2);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
@@ -167,230 +160,230 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     vm.startPrank(charlie);
     vm.expectEmit(true, true, false, false);
     emit Paused(charlie, IPausableVault.VaultActions.Deposit);
-    bvault1.pause(IPausableVault.VaultActions.Deposit);
+    vault1.pause(IPausableVault.VaultActions.Deposit);
     vm.expectEmit(true, true, false, false);
     emit Paused(charlie, IPausableVault.VaultActions.Withdraw);
-    bvault1.pause(IPausableVault.VaultActions.Withdraw);
+    vault1.pause(IPausableVault.VaultActions.Withdraw);
     vm.expectEmit(true, true, false, false);
     emit Paused(charlie, IPausableVault.VaultActions.Borrow);
-    bvault1.pause(IPausableVault.VaultActions.Borrow);
+    vault1.pause(IPausableVault.VaultActions.Borrow);
     vm.expectEmit(true, true, false, false);
     emit Paused(charlie, IPausableVault.VaultActions.Payback);
-    bvault1.pause(IPausableVault.VaultActions.Payback);
+    vault1.pause(IPausableVault.VaultActions.Payback);
     vm.expectEmit(true, false, false, false);
     emit PausedForceAll(charlie);
-    bvault1.pauseForceAll();
+    vault1.pauseForceAll();
     vm.stopPrank();
   }
 
   function test_emitUnpauseActions() public {
     vm.startPrank(charlie);
-    bvault1.pauseForceAll();
+    vault1.pauseForceAll();
 
     vm.expectEmit(true, true, false, false);
     emit Unpaused(charlie, IPausableVault.VaultActions.Deposit);
-    bvault1.unpause(IPausableVault.VaultActions.Deposit);
+    vault1.unpause(IPausableVault.VaultActions.Deposit);
     vm.expectEmit(true, true, false, false);
     emit Unpaused(charlie, IPausableVault.VaultActions.Withdraw);
-    bvault1.unpause(IPausableVault.VaultActions.Withdraw);
+    vault1.unpause(IPausableVault.VaultActions.Withdraw);
     vm.expectEmit(true, true, false, false);
     emit Unpaused(charlie, IPausableVault.VaultActions.Borrow);
-    bvault1.unpause(IPausableVault.VaultActions.Borrow);
+    vault1.unpause(IPausableVault.VaultActions.Borrow);
     vm.expectEmit(true, true, false, false);
     emit Unpaused(charlie, IPausableVault.VaultActions.Payback);
-    bvault1.unpause(IPausableVault.VaultActions.Payback);
+    vault1.unpause(IPausableVault.VaultActions.Payback);
 
-    bvault1.pauseForceAll();
+    vault1.pauseForceAll();
 
     vm.expectEmit(true, false, false, false);
     emit UnpausedForceAll(charlie);
-    bvault1.unpauseForceAll();
+    vault1.unpauseForceAll();
 
     vm.stopPrank();
   }
 
   function testFail_tryDepositWhenPaused() public {
     vm.prank(charlie);
-    bvault1.pause(IPausableVault.VaultActions.Deposit);
+    vault1.pause(IPausableVault.VaultActions.Deposit);
     vm.stopPrank();
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), true);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
   }
 
   function testFail_tryWithdrawWhenPaused() public {
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
     vm.prank(charlie);
-    bvault1.pause(IPausableVault.VaultActions.Withdraw);
+    vault1.pause(IPausableVault.VaultActions.Withdraw);
     vm.stopPrank();
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
-    _utils_doWithdraw(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    _utils_doWithdraw(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Withdraw), true);
   }
 
   function testFail_tryBorrowWhenPaused() public {
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
     vm.prank(charlie);
-    bvault1.pause(IPausableVault.VaultActions.Borrow);
+    vault1.pause(IPausableVault.VaultActions.Borrow);
     vm.stopPrank();
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
-    _utils_doBorrow(BORROW_AMOUNT, bvault1, alice);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    _utils_doBorrow(BORROW_AMOUNT, vault1, alice);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
   }
 
   function testFail_tryPaybackWhenPaused() public {
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
-    _utils_doBorrow(BORROW_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOfDebt(alice), BORROW_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    _utils_doBorrow(BORROW_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOfDebt(alice), BORROW_AMOUNT);
     vm.prank(charlie);
-    bvault1.pause(IPausableVault.VaultActions.Payback);
+    vault1.pause(IPausableVault.VaultActions.Payback);
     vm.stopPrank();
-    _utils_doPayback(BORROW_AMOUNT, bvault1, alice);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), true);
+    _utils_doPayback(BORROW_AMOUNT, vault1, alice);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
   }
 
   function test_pauseFailActionsThenUnpauseDoAllActions() public {
     vm.prank(charlie);
-    bvault1.pauseForceAll();
+    vault1.pauseForceAll();
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), true);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), true);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), true);
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
 
     deal(address(asset), alice, DEPOSIT_AMOUNT);
 
     vm.startPrank(alice);
-    SafeERC20.safeApprove(asset, address(bvault1), DEPOSIT_AMOUNT);
+    SafeERC20.safeApprove(asset, address(vault1), DEPOSIT_AMOUNT);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault1.deposit(DEPOSIT_AMOUNT, alice);
+    vault1.deposit(DEPOSIT_AMOUNT, alice);
     vm.stopPrank();
 
     vm.prank(charlie);
-    bvault1.unpause(IPausableVault.VaultActions.Deposit);
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    vault1.unpause(IPausableVault.VaultActions.Deposit);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
 
     vm.prank(charlie);
-    bvault1.unpause(IPausableVault.VaultActions.Borrow);
-    _utils_doBorrow(BORROW_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOfDebt(alice), BORROW_AMOUNT);
+    vault1.unpause(IPausableVault.VaultActions.Borrow);
+    _utils_doBorrow(BORROW_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOfDebt(alice), BORROW_AMOUNT);
 
     vm.prank(charlie);
-    bvault1.unpause(IPausableVault.VaultActions.Payback);
-    _utils_doPayback(BORROW_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOfDebt(alice), 0);
+    vault1.unpause(IPausableVault.VaultActions.Payback);
+    _utils_doPayback(BORROW_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOfDebt(alice), 0);
 
     vm.prank(charlie);
-    bvault1.unpause(IPausableVault.VaultActions.Withdraw);
-    _utils_doWithdraw(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOf(alice), 0);
+    vault1.unpause(IPausableVault.VaultActions.Withdraw);
+    _utils_doWithdraw(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOf(alice), 0);
   }
 
   function test_pauseDepositAllVaultsFromChief() public {
     vm.prank(charlie);
     chief.pauseActionInAllVaults(IPausableVault.VaultActions.Deposit);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
 
     deal(address(asset), alice, DEPOSIT_AMOUNT);
     deal(address(asset), bob, DEPOSIT_AMOUNT);
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
-    SafeERC20.safeApprove(asset, address(bvault1), DEPOSIT_AMOUNT);
+    SafeERC20.safeApprove(asset, address(vault1), DEPOSIT_AMOUNT);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault1.deposit(DEPOSIT_AMOUNT, alice);
+    vault1.deposit(DEPOSIT_AMOUNT, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
-    SafeERC20.safeApprove(asset, address(bvault2), DEPOSIT_AMOUNT);
+    SafeERC20.safeApprove(asset, address(vault2), DEPOSIT_AMOUNT);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault2.deposit(DEPOSIT_AMOUNT, bob);
+    vault2.deposit(DEPOSIT_AMOUNT, bob);
     vm.stopPrank();
   }
 
   function test_pauseWithdrawAllVaultsFromChief() public {
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault2, bob);
-    assertEq(bvault2.balanceOf(bob), DEPOSIT_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault2, bob);
+    assertEq(vault2.balanceOf(bob), DEPOSIT_AMOUNT);
 
     vm.prank(charlie);
     chief.pauseActionInAllVaults(IPausableVault.VaultActions.Withdraw);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Withdraw), true);
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault1.withdraw(DEPOSIT_AMOUNT, alice, alice);
+    vault1.withdraw(DEPOSIT_AMOUNT, alice, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault2.withdraw(DEPOSIT_AMOUNT, bob, bob);
+    vault2.withdraw(DEPOSIT_AMOUNT, bob, bob);
     vm.stopPrank();
   }
 
   function test_pauseBorrowAllVaultsFromChief() public {
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault2, bob);
-    assertEq(bvault2.balanceOf(bob), DEPOSIT_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault2, bob);
+    assertEq(vault2.balanceOf(bob), DEPOSIT_AMOUNT);
 
     vm.prank(charlie);
     chief.pauseActionInAllVaults(IPausableVault.VaultActions.Borrow);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Borrow), true);
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault1.borrow(BORROW_AMOUNT, alice, alice);
+    vault1.borrow(BORROW_AMOUNT, alice, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault2.borrow(BORROW_AMOUNT, bob, bob);
+    vault2.borrow(BORROW_AMOUNT, bob, bob);
     vm.stopPrank();
   }
 
   function test_pausePaybackAllVaultsFromChief() public {
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault1, alice);
-    _utils_doBorrow(BORROW_AMOUNT, bvault1, alice);
-    assertEq(bvault1.balanceOf(alice), DEPOSIT_AMOUNT);
-    assertEq(bvault1.balanceOfDebt(alice), BORROW_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault1, alice);
+    _utils_doBorrow(BORROW_AMOUNT, vault1, alice);
+    assertEq(vault1.balanceOf(alice), DEPOSIT_AMOUNT);
+    assertEq(vault1.balanceOfDebt(alice), BORROW_AMOUNT);
 
-    _utils_doDeposit(DEPOSIT_AMOUNT, bvault2, bob);
-    _utils_doBorrow(BORROW_AMOUNT, bvault2, bob);
-    assertEq(bvault2.balanceOf(bob), DEPOSIT_AMOUNT);
-    assertEq(bvault2.balanceOfDebt(bob), BORROW_AMOUNT);
+    _utils_doDeposit(DEPOSIT_AMOUNT, vault2, bob);
+    _utils_doBorrow(BORROW_AMOUNT, vault2, bob);
+    assertEq(vault2.balanceOf(bob), DEPOSIT_AMOUNT);
+    assertEq(vault2.balanceOfDebt(bob), BORROW_AMOUNT);
 
     vm.prank(charlie);
     chief.pauseActionInAllVaults(IPausableVault.VaultActions.Payback);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Payback), true);
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);
-    SafeERC20.safeApprove(debtAsset, address(bvault1), BORROW_AMOUNT);
+    SafeERC20.safeApprove(debtAsset, address(vault1), BORROW_AMOUNT);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault1.payback(BORROW_AMOUNT, alice);
+    vault1.payback(BORROW_AMOUNT, alice);
     vm.stopPrank();
 
     // BorrowingVault2 called by Bob
     vm.startPrank(bob);
-    SafeERC20.safeApprove(debtAsset, address(bvault2), BORROW_AMOUNT);
+    SafeERC20.safeApprove(debtAsset, address(vault2), BORROW_AMOUNT);
     vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    bvault2.payback(BORROW_AMOUNT, bob);
+    vault2.payback(BORROW_AMOUNT, bob);
     vm.stopPrank();
   }
 
@@ -398,48 +391,48 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     vm.prank(charlie);
     chief.pauseForceAllVaults();
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Withdraw), true);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Borrow), true);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Payback), true);
   }
 
   function test_unpauseForceAllActionsAllVaultsFromChief() public {
     vm.prank(charlie);
     chief.pauseForceAllVaults();
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Withdraw), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Withdraw), true);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Borrow), true);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), true);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Payback), true);
 
     vm.prank(charlie);
     chief.unpauseForceAllVaults();
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Deposit), false);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Deposit), false);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), false);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), false);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Withdraw), false);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Withdraw), false);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Withdraw), false);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Withdraw), false);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Borrow), false);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Borrow), false);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), false);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Borrow), false);
 
-    assertEq(bvault1.paused(IPausableVault.VaultActions.Payback), false);
-    assertEq(bvault2.paused(IPausableVault.VaultActions.Payback), false);
+    assertEq(vault1.paused(IPausableVault.VaultActions.Payback), false);
+    assertEq(vault2.paused(IPausableVault.VaultActions.Payback), false);
   }
 }

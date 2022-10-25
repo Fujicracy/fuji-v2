@@ -79,7 +79,9 @@ contract AccessControlUnitTests is Test {
     address keyAddr1,
     address keyAddr2,
     address returnedAddr
-  ) public {
+  )
+    public
+  {
     vm.assume(
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
     );

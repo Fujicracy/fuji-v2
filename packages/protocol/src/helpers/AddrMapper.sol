@@ -42,7 +42,12 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     string memory providerName,
     address inputAddr1,
     address inputAddr2
-  ) external view override returns (address) {
+  )
+    external
+    view
+    override
+    returns (address)
+  {
     return _addrNestedMapping[providerName][inputAddr1][inputAddr2];
   }
 
@@ -76,7 +81,11 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     address keyAddr1,
     address keyAddr2,
     address returnedAddr
-  ) public override onlyTimelock {
+  )
+    public
+    override
+    onlyTimelock
+  {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
       _providerNames.push(providerName);

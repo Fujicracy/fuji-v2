@@ -187,10 +187,10 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function test_getInterestRates() public {
-    uint256 depositRate = compoundV3.getDepositRateFor(address(weth), address(vault));
+    uint256 depositRate = compoundV3.getDepositRateFor(vault);
     assertEq(depositRate, 0); // Should be zero.
 
-    uint256 borrowRate = compoundV3.getBorrowRateFor(address(usdc), address(vault));
+    uint256 borrowRate = compoundV3.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
 
     if (DEBUG) {
@@ -200,7 +200,16 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   // This test is applicable only for CompoundV3
-  function testFail_getInterestRatesWithNoMapping() public view returns (uint256) {
-    return compoundV3.getDepositRateFor(address(weth), address(0));
+  function testFail_getInterestRatesWithNoMapping() public returns (uint256) {
+    BorrowingVault v = new BorrowingVault(
+      address(0),
+      address(0),
+      address(0),
+      address(chief),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
+    );
+
+    return compoundV3.getDepositRateFor(v);
   }
 }
