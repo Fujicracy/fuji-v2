@@ -109,7 +109,9 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
     uint256 withdrawAmount,
     address desiredToken,
     uint256 desiredOutMin
-  ) internal {
+  )
+    internal
+  {
     IBeefyVaultV6 vault = IBeefyVaultV6(_getBeefyVault());
     IVelodromePair pair = _getVelodromePair();
 

@@ -317,7 +317,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address owner,
     uint256 assets,
     uint256 shares
-  ) internal whenNotPaused(VaultActions.Withdraw) {
+  )
+    internal
+    whenNotPaused(VaultActions.Withdraw)
+  {
     _burn(owner, shares);
     _executeProviderAction(assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
@@ -410,7 +413,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint8 v,
     bytes32 r,
     bytes32 s
-  ) public virtual override {}
+  )
+    public
+    virtual
+    override
+  {}
 
   /**
    * @dev Internal function that computes how much free 'assets'
