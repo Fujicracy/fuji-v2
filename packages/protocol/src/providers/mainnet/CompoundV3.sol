@@ -41,14 +41,14 @@ contract CompoundV3 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(uint256 amount, address vault) external returns (bool success) {
+  function deposit(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
     cMarketV3.supply(asset, amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(uint256 amount, address vault) external returns (bool success) {
+  function borrow(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
     // From Comet docs: "The base asset can be borrowed using the withdraw function"
     cMarketV3.withdraw(debtAsset, amount);
@@ -56,14 +56,14 @@ contract CompoundV3 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(uint256 amount, address vault) external returns (bool success) {
+  function withdraw(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
     cMarketV3.withdraw(asset, amount);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(uint256 amount, address vault) external returns (bool success) {
+  function payback(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
     // From Coment docs: 'supply' the base asset to repay an open borrow of the base asset.
     cMarketV3.supply(debtAsset, amount);
@@ -73,7 +73,7 @@ contract CompoundV3 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getDepositRateFor}.
    */
-  function getDepositRateFor(address vault) external view returns (uint256 rate) {
+  function getDepositRateFor(IVault vault) external view returns (uint256 rate) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
 
     if (asset == cMarketV3.baseToken()) {
@@ -90,7 +90,7 @@ contract CompoundV3 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getBorrowRateFor}.
    */
-  function getBorrowRateFor(address vault) external view returns (uint256 rate) {
+  function getBorrowRateFor(IVault vault) external view returns (uint256 rate) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
 
     if (debtAsset == cMarketV3.baseToken()) {
@@ -107,7 +107,7 @@ contract CompoundV3 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getDepositBalance}.
    */
-  function getDepositBalance(address user, address vault) external view returns (uint256 balance) {
+  function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
     return cMarketV3.collateralBalanceOf(user, asset);
   }
@@ -115,7 +115,7 @@ contract CompoundV3 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getBorrowBalance}.
    */
-  function getBorrowBalance(address user, address vault) external view returns (uint256 balance) {
+  function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
     if (debtAsset == cMarketV3.baseToken()) {
       balance = cMarketV3.borrowBalanceOf(user);
@@ -135,17 +135,17 @@ contract CompoundV3 is ILendingProvider {
    * in where:
    * - Comet.baseToken() == IVault.asset(), and IVault.debtAsset() == address(0).
    */
-  function _getMarketAndAssets(address vault)
+  function _getMarketAndAssets(IVault vault)
     private
     view
     returns (ICompoundV3 cMarketV3, address asset, address debtAsset)
   {
-    if (vault == address(0)) {
+    if (address(vault) == address(0)) {
       revert CompoundV3__invalidVault();
     }
 
-    asset = IVault(vault).asset();
-    debtAsset = IVault(vault).debtAsset();
+    asset = vault.asset();
+    debtAsset = vault.debtAsset();
     address market = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);
 
     cMarketV3 = ICompoundV3(market);

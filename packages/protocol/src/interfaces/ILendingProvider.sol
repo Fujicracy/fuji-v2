@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import {IVault} from "./IVault.sol";
+
 /**
  * @title Lending provider interface.
  * @author fujidao Labs
@@ -26,7 +28,7 @@ interface ILendingProvider {
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function deposit(uint256 amount, address vault) external returns (bool success);
+  function deposit(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Performs borrow operation at lending provider on behalf vault.
@@ -36,7 +38,7 @@ interface ILendingProvider {
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function borrow(uint256 amount, address vault) external returns (bool success);
+  function borrow(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Performs withdraw operation at lending provider on behalf vault.
@@ -46,7 +48,7 @@ interface ILendingProvider {
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function withdraw(uint256 amount, address vault) external returns (bool success);
+  function withdraw(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * of a `vault`.
@@ -58,7 +60,7 @@ interface ILendingProvider {
    * - This function should be delegate called in the context of a `vault`.
    * - Check there is erc20-approval to `approvedOperator` by the `vault` prior to call.
    */
-  function payback(uint256 amount, address vault) external returns (bool success);
+  function payback(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Returns DEPOSIT balance of 'user' at lending provider.
@@ -67,7 +69,7 @@ interface ILendingProvider {
    *
    * - SHOULD NOT require Vault context.
    */
-  function getDepositBalance(address user, address vault) external view returns (uint256 balance);
+  function getDepositBalance(address user, IVault vault) external view returns (uint256 balance);
 
   /**
    * @notice Returns BORROW balance of 'user' at lending provider.
@@ -76,7 +78,7 @@ interface ILendingProvider {
    *
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowBalance(address user, address vault) external view returns (uint256 balance);
+  function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance);
 
   /**
    * @notice Returns the latest SUPPLY annual percent rate (APR) at lending provider.
@@ -86,7 +88,7 @@ interface ILendingProvider {
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getDepositRateFor(address vault) external view returns (uint256 rate);
+  function getDepositRateFor(IVault vault) external view returns (uint256 rate);
 
   /**
    * @notice Returns the latest BORROW annual percent rate (APR) at lending provider.
@@ -96,5 +98,5 @@ interface ILendingProvider {
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowRateFor(address vault) external view returns (uint256 rate);
+  function getBorrowRateFor(IVault vault) external view returns (uint256 rate);
 }

@@ -27,70 +27,70 @@ contract AaveV3Goerli is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(uint256 amount, address vault) external override returns (bool success) {
+  function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    address asset = IVault(vault).asset();
-    aave.supply(asset, amount, vault, 0);
+    address asset = vault.asset();
+    aave.supply(asset, amount, address(vault), 0);
     aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(uint256 amount, address vault) external override returns (bool success) {
+  function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.borrow(IVault(vault).debtAsset(), amount, 2, 0, vault);
+    aave.borrow(vault.debtAsset(), amount, 2, 0, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(uint256 amount, address vault) external override returns (bool success) {
+  function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.withdraw(IVault(vault).asset(), amount, vault);
+    aave.withdraw(vault.asset(), amount, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(uint256 amount, address vault) external override returns (bool success) {
+  function payback(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.repay(IVault(vault).debtAsset(), amount, 2, vault);
+    aave.repay(vault.debtAsset(), amount, 2, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositRateFor(address vault) external view override returns (uint256 rate) {
+  function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).asset());
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.asset());
     rate = rdata.currentLiquidityRate;
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowRateFor(address vault) external view override returns (uint256 rate) {
+  function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).debtAsset());
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.debtAsset());
     rate = rdata.currentVariableBorrowRate;
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositBalance(address user, address vault)
+  function getDepositBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
   {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).asset());
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.asset());
     balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowBalance(address user, address vault)
+  function getBorrowBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
   {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).debtAsset());
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.debtAsset());
     balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
 }

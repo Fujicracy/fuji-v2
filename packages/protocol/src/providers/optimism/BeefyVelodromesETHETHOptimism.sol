@@ -53,10 +53,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(uint256 amount, address vault) external override returns (bool success) {
+  function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
-    address asset = IVault(vault).asset();
+    address asset = vault.asset();
 
     (, uint256 amountOut,) = zap.estimateSwap(address(beefyVault), asset, amount);
 
@@ -68,7 +68,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(uint256, address) external pure override returns (bool) {
+  function borrow(uint256, IVault) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
@@ -77,10 +77,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
    * @dev We can use Beefy Zap as in deposit because 'zap.beefOutAndSwap(...)'
    * returns ETH instead of WETH.
    */
-  function withdraw(uint256 amount, address vault) external override returns (bool success) {
+  function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
-    address asset = IVault(vault).asset();
+    address asset = vault.asset();
 
     uint256 totalBalance = beefyVault.balanceOf(address(vault));
 
@@ -98,7 +98,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(uint256, address) external pure override returns (bool) {
+  function payback(uint256, IVault) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
@@ -145,33 +145,33 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address) external pure override returns (uint256) {
+  function getDepositRateFor(IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notImplemented();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address) external pure override returns (uint256) {
+  function getBorrowRateFor(IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address user, address vault)
+  function getDepositBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = _getDepositBalance(IVault(vault).asset(), user);
+    balance = _getDepositBalance(vault.asset(), user);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address, address) external pure override returns (uint256) {
+  function getBorrowBalance(address, IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 

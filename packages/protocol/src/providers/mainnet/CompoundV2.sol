@@ -59,8 +59,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).asset();
+  function deposit(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     _enterCollatMarket(cTokenAddr);
@@ -82,8 +82,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).debtAsset();
+  function borrow(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     ICToken cToken = ICToken(cTokenAddr);
@@ -97,8 +97,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).asset();
+  function withdraw(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     ICToken cToken = ICToken(cTokenAddr);
@@ -112,8 +112,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function payback(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).debtAsset();
+  function payback(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     if (_isWETH(asset)) {
@@ -134,8 +134,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getDepositRateFor}.
    */
-  function getDepositRateFor(address vault) external view returns (uint256 rate) {
-    address asset = IVault(vault).asset();
+  function getDepositRateFor(IVault vault) external view returns (uint256 rate) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     // Block rate transformed for common mantissa for Fuji in ray (1e27)
@@ -150,8 +150,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getBorrowRateFor}.
    */
-  function getBorrowRateFor(address vault) external view returns (uint256 rate) {
-    address asset = IVault(vault).debtAsset();
+  function getBorrowRateFor(IVault vault) external view returns (uint256 rate) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     // Block rate transformed for common mantissa for Fuji in ray (1e27)
@@ -166,8 +166,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getDepositBalance}.
    */
-  function getDepositBalance(address user, address vault) external view returns (uint256 balance) {
-    address asset = IVault(vault).asset();
+  function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
     uint256 cTokenBal = ICToken(cTokenAddr).balanceOf(user);
     uint256 exRate = ICToken(cTokenAddr).exchangeRateStored();
@@ -178,8 +178,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getBorrowBalance}.
    */
-  function getBorrowBalance(address user, address vault) external view returns (uint256 balance) {
-    address asset = IVault(vault).debtAsset();
+  function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     balance = ICToken(cTokenAddr).borrowBalanceStored(user);
