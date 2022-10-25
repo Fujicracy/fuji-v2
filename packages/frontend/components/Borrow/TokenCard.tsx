@@ -7,6 +7,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Stack,
   TextField,
   Typography,
   useTheme,
@@ -18,6 +19,7 @@ import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
 import Balance from "../Balance"
 import { useStore } from "../../store"
+import { useTvl } from "../../store/transaction.slice"
 
 type SelectTokenCardProps = {
   type: "collateral" | "borrow"
@@ -32,6 +34,8 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   const borrowOrCollateral = useStore((state) => state[type])
   const { value, balance, token, tokenValue, tokens, balances } =
     borrowOrCollateral
+
+  const tvl = useTvl()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -153,9 +157,17 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
             <Typography variant="small">
               ${value ? (tokenValue * value).toLocaleString() : 0}
             </Typography>
-            <Typography variant="smallDark">
-              LTV 45% (Recommended): n/a
-            </Typography>
+            <Stack direction="row">
+              {/* TODO: handle third case: tvl error */}
+              <Typography
+                variant="smallDark"
+                color={tvl > 55 ? palette.warning.main : palette.success.main}
+                mr=".5rem"
+              >
+                LTV {tvl}%
+              </Typography>
+              <Typography variant="smallDark">(Recommended: 55%)</Typography>
+            </Stack>
           </>
         )}
       </div>

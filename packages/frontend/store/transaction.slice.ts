@@ -1,6 +1,7 @@
 import { Address, Token } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import { StateCreator } from "zustand"
+import { useStore } from "."
 import { sdk } from "./auth.slice"
 // import { computed } from "zustand-middleware-computed-state"
 
@@ -44,7 +45,10 @@ type TransactionActions = {
 type ChainId = string // hex value as string
 
 const initialChainId = "0x1"
-const initialTokens = sdk.getCollateralForChain(parseInt(initialChainId, 16))
+const initialBorrowTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
+const initialCollateralTokens = sdk.getCollateralForChain(
+  parseInt(initialChainId, 16)
+)
 
 const initialState: TransactionState = {
   transactionStatus: false,
@@ -53,9 +57,9 @@ const initialState: TransactionState = {
   collateral: {
     value: 0,
     balance: 0,
-    token: initialTokens[0],
+    token: initialCollateralTokens[0],
     tokenValue: 0,
-    tokens: initialTokens,
+    tokens: initialCollateralTokens,
     balances: undefined,
     chainId: initialChainId,
   },
@@ -63,9 +67,9 @@ const initialState: TransactionState = {
   borrow: {
     value: 0,
     balance: 0,
-    token: initialTokens[0],
+    token: initialBorrowTokens[0],
     tokenValue: 0,
-    tokens: initialTokens,
+    tokens: initialBorrowTokens,
     balances: undefined,
     chainId: initialChainId,
   },
@@ -138,7 +142,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
   // TODO: Changeborrowchain and changecollateral chain are almost the same, refactor ?
   async changeBorrowChain(chainId, walletAddress?) {
-    const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
+    const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
     const [token] = tokens
 
     let balances
@@ -189,4 +193,20 @@ function getBalance(token: Token, collateral: TransactionState["collateral"]) {
     return collateral.balances[tokenIndex]
   }
   return 0
+}
+
+// Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
+// Better refacto using zustand-middleware-computed-state but it creates typing probleme idk how to solve
+export function useTvl(): number {
+  const collateralValue = useStore((state) => state.collateral.value)
+  const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
+  const collateral = collateralValue * collateralUsdValue
+  const borrowValue = useStore((state) => state.borrow.value)
+  const borrowUsdValue = useStore((state) => state.borrow.tokenValue)
+  const borrow = borrowValue * borrowUsdValue
+
+  if (!collateral || !borrow) {
+    return 0
+  }
+  return Math.round((borrow / collateral) * 100)
 }

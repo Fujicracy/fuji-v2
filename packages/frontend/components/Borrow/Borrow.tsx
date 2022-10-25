@@ -42,7 +42,6 @@ export default function Borrow() {
   const value = useStore((state) => state.collateral.value)
   const balance = useStore((state) => state.collateral.balance)
 
-  // TODO: Throw an error in the sdk (too many subscriptions). Need boyan to debug
   const updateTokenPrice = useStore((state) => state.updateTokenPrice)
   useEffect(() => {
     console.count("useEffect")
