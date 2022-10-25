@@ -129,7 +129,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function totalAssets() public view virtual override returns (uint256 assets) {
-    return _checkProvidersBalance(asset(), "getDepositBalance");
+    return _checkProvidersBalance("getDepositBalance");
   }
 
   /// @inheritdoc IERC4626
@@ -436,17 +436,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     );
   }
 
-  function _checkProvidersBalance(address assetAddr, string memory method)
-    internal
-    view
-    returns (uint256 assets)
-  {
+  function _checkProvidersBalance(string memory method) internal view returns (uint256 assets) {
     uint256 len = _providers.length;
     bytes memory callData = abi.encodeWithSignature(
-      string(abi.encodePacked(method, "(address,address,address)")),
-      assetAddr,
-      address(this),
-      address(this)
+      string(abi.encodePacked(method, "(address,address)")), address(this), address(this)
     );
     bytes memory returnedBytes;
     for (uint256 i = 0; i < len;) {

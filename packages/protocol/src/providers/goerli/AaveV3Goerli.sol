@@ -57,40 +57,40 @@ contract AaveV3Goerli is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositRateFor(address asset, address) external view override returns (uint256 rate) {
+  function getDepositRateFor(address vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).asset());
     rate = rdata.currentLiquidityRate;
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowRateFor(address asset, address) external view override returns (uint256 rate) {
+  function getBorrowRateFor(address vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).debtAsset());
     rate = rdata.currentVariableBorrowRate;
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositBalance(address asset, address user, address)
+  function getDepositBalance(address user, address vault)
     external
     view
     override
     returns (uint256 balance)
   {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).asset());
     balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowBalance(address asset, address user, address)
+  function getBorrowBalance(address user, address vault)
     external
     view
     override
     returns (uint256 balance)
   {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(IVault(vault).debtAsset());
     balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
 }

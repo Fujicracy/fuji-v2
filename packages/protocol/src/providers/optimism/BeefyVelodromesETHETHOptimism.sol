@@ -145,33 +145,33 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address, address) external pure override returns (uint256) {
+  function getDepositRateFor(address) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notImplemented();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address, address) external pure override returns (uint256) {
+  function getBorrowRateFor(address) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address asset, address user, address)
+  function getDepositBalance(address user, address vault)
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = _getDepositBalance(asset, user);
+    balance = _getDepositBalance(IVault(vault).asset(), user);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address, address, address) external pure override returns (uint256) {
+  function getBorrowBalance(address, address) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 

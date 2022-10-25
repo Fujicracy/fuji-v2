@@ -62,49 +62,39 @@ interface ILendingProvider {
 
   /**
    * @notice Returns DEPOSIT balance of 'user' at lending provider.
-   * @param asset address.
    * @param user address whom balance is needed.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD NOT require Vault context.
    */
-  function getDepositBalance(address asset, address user, address vault)
-    external
-    view
-    returns (uint256 balance);
+  function getDepositBalance(address user, address vault) external view returns (uint256 balance);
 
   /**
    * @notice Returns BORROW balance of 'user' at lending provider.
-   * @param asset address.
    * @param user address whom balance is needed.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowBalance(address asset, address user, address vault)
-    external
-    view
-    returns (uint256 balance);
+  function getBorrowBalance(address user, address vault) external view returns (uint256 balance);
 
   /**
    * @notice Returns the latest SUPPLY annual percent rate (APR) at lending provider.
-   * @param asset address.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getDepositRateFor(address asset, address vault) external view returns (uint256 rate);
+  function getDepositRateFor(address vault) external view returns (uint256 rate);
 
   /**
    * @notice Returns the latest BORROW annual percent rate (APR) at lending provider.
-   * @param asset address.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowRateFor(address asset, address vault) external view returns (uint256 rate);
+  function getBorrowRateFor(address vault) external view returns (uint256 rate);
 }

@@ -163,10 +163,10 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function test_getInterestRates() public {
-    uint256 depositRate = aaveV2.getDepositRateFor(address(weth), address(0));
+    uint256 depositRate = aaveV2.getDepositRateFor(address(vault));
     assertGt(depositRate, 0); // Should be greater than zero.
 
-    uint256 borrowRate = aaveV2.getBorrowRateFor(address(usdc), address(0));
+    uint256 borrowRate = aaveV2.getBorrowRateFor(address(vault));
     assertGt(borrowRate, 0); // Should be greater than zero.
 
     if (DEBUG) {

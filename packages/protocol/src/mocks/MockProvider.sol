@@ -54,38 +54,38 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address, address) external pure override returns (uint256 rate) {
+  function getDepositRateFor(address) external pure override returns (uint256 rate) {
     rate = 1e27;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address, address) external pure override returns (uint256 rate) {
+  function getBorrowRateFor(address) external pure override returns (uint256 rate) {
     rate = 1e27;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address asset, address user, address)
+  function getDepositBalance(address user, address vault)
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(asset).balanceOf(user);
+    balance = MockERC20(IVault(vault).asset()).balanceOf(user);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address asset, address user, address)
+  function getBorrowBalance(address user, address vault)
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(asset).balanceOfDebt(user);
+    balance = MockERC20(IVault(vault).debtAsset()).balanceOfDebt(user);
   }
 }
