@@ -15,7 +15,6 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  */
 contract CompoundV3 is ILendingProvider {
   // Custom errors
-  error CompoundV3__invalidVault();
   error CompoundV3__wrongMarket();
 
   /**
@@ -140,10 +139,6 @@ contract CompoundV3 is ILendingProvider {
     view
     returns (ICompoundV3 cMarketV3, address asset, address debtAsset)
   {
-    if (address(vault) == address(0)) {
-      revert CompoundV3__invalidVault();
-    }
-
     asset = vault.asset();
     debtAsset = vault.debtAsset();
     address market = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);

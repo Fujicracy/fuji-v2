@@ -200,7 +200,16 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   // This test is applicable only for CompoundV3
-  /*function testFail_getInterestRatesWithNoMapping() public view returns (uint256) {*/
-  /*return compoundV3.getDepositRateFor(address(weth));*/
-  /*}*/
+  function testFail_getInterestRatesWithNoMapping() public returns (uint256) {
+    BorrowingVault v = new BorrowingVault(
+      address(0),
+      address(0),
+      address(0),
+      address(chief),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
+    );
+
+    return compoundV3.getDepositRateFor(v);
+  }
 }
