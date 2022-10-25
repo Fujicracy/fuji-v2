@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Divider,
   Button,
@@ -18,7 +18,6 @@ import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
-import shallow from "zustand/shallow"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -31,28 +30,25 @@ export default function Borrow() {
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
-  const {
-    transactionStatus,
-    setTransactionStatus,
-    setShowTransactionAbstract,
-  } = useStore((state) => ({
-    transactionStatus: state.transactionStatus,
-    setTransactionStatus: state.setTransactionStatus,
-    setShowTransactionAbstract: state.setShowTransactionAbstract,
-  }))
+  const transactionStatus = useStore((state) => state.transactionStatus)
+  const setTransactionStatus = useStore((state) => state.setTransactionStatus)
+  const setShowTransactionAbstract = useStore(
+    (state) => state.setShowTransactionAbstract
+  )
 
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
-  const { value, balance } = useStore(
-    (state) => ({
-      value: state.collateral.value,
-      balance: state.collateral.balance,
-    }),
-    shallow
-  )
+  const value = useStore((state) => state.collateral.value)
+  const balance = useStore((state) => state.collateral.balance)
 
-  console.log({ value, balance })
+  // TODO: Throw an error in the sdk (too many subscriptions). Need boyan to debug
+  const updateTokenPrice = useStore((state) => state.updateTokenPrice)
+  useEffect(() => {
+    console.count("useEffect")
+    updateTokenPrice("collateral")
+    updateTokenPrice("borrow")
+  }, [])
 
   let error
   if (!address) {

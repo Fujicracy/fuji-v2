@@ -150,7 +150,9 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           </>
         ) : (
           <>
-            <Typography variant="small">$0.00</Typography>
+            <Typography variant="small">
+              ${value ? (tokenValue * value).toLocaleString() : 0}
+            </Typography>
             <Typography variant="smallDark">
               LTV 45% (Recommended): n/a
             </Typography>

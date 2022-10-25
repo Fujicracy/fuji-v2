@@ -2,6 +2,7 @@ import { Address, Token } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import { StateCreator } from "zustand"
 import { sdk } from "./auth.slice"
+// import { computed } from "zustand-middleware-computed-state"
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
@@ -38,7 +39,7 @@ type TransactionActions = {
   changeCollateralChain: (chainId: ChainId, walletAddress?: string) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
-  updateTokenPrice: () => void
+  updateTokenPrice: (type: "borrow" | "collateral") => void
 }
 type ChainId = string // hex value as string
 
@@ -110,32 +111,35 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       },
     })
 
-    get().updateTokenPrice()
+    get().updateTokenPrice("collateral")
   },
 
   changeCollateralToken(token) {
     const collateral = get().collateral
     const balance = getBalance(token, collateral)
 
-    set({
-      collateral: {
-        ...collateral,
-        token,
-        balance,
-      },
-    })
-
-    get().updateTokenPrice()
+    set({ collateral: { ...collateral, token, balance } })
+    get().updateTokenPrice("collateral")
   },
 
-  async updateTokenPrice() {
-    const tokenValue = await get().collateral.token.getPriceUSD()
-    set({ collateral: { ...get().collateral, tokenValue } })
+  async updateTokenPrice(type) {
+    if (type === "borrow") {
+      const tokenValue = await get().borrow.token.getPriceUSD()
+
+      set({ borrow: { ...get().borrow, tokenValue } })
+      console.log("borrow tokenValue = ", tokenValue)
+    } else if (type === "collateral") {
+      const tokenValue = await get().collateral.token.getPriceUSD()
+
+      set({ collateral: { ...get().collateral, tokenValue } })
+      console.log("collateral tokenValue = ", tokenValue)
+    }
   },
 
   // TODO: Changeborrowchain and changecollateral chain are almost the same, refactor ?
   async changeBorrowChain(chainId, walletAddress?) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
+    const [token] = tokens
 
     let balances
     if (walletAddress) {
@@ -152,37 +156,23 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       balances = undefined
     }
 
-    set({
-      borrow: {
-        ...get().borrow,
-        token: tokens[0],
-        tokens,
-        balances,
-        chainId,
-      },
-    })
+    set({ borrow: { ...get().borrow, token, tokens, balances, chainId } })
+    get().updateTokenPrice("borrow")
   },
 
   changeBorrowToken(token) {
-    set({
-      borrow: {
-        ...get().borrow,
-        token,
-      },
-    })
+    set({ borrow: { ...get().borrow, token } })
+    get().updateTokenPrice("borrow")
   },
 
   changeBorrowValue(val) {
-    alert("not implemented")
+    const value = parseFloat(val)
+    set({ borrow: { ...get().borrow, value } })
   },
 
-  changeCollateralValue(value) {
-    set({
-      collateral: {
-        ...get().collateral,
-        value: parseFloat(value),
-      },
-    })
+  changeCollateralValue(val) {
+    const value = parseFloat(val)
+    set({ collateral: { ...get().collateral, value } })
   },
 })
 
