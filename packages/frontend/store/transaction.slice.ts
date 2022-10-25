@@ -197,7 +197,7 @@ function getBalance(token: Token, collateral: TransactionState["collateral"]) {
 
 // Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
 // Better refacto using zustand-middleware-computed-state but it creates typing probleme idk how to solve
-export function useTvl(): number {
+export function useLtv(): number {
   const collateralValue = useStore((state) => state.collateral.value)
   const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
   const collateral = collateralValue * collateralUsdValue

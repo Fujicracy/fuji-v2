@@ -19,7 +19,7 @@ import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
 import Balance from "../Balance"
 import { useStore } from "../../store"
-import { useTvl } from "../../store/transaction.slice"
+import { useLtv } from "../../store/transaction.slice"
 
 type SelectTokenCardProps = {
   type: "collateral" | "borrow"
@@ -35,7 +35,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   const { value, balance, token, tokenValue, tokens, balances } =
     borrowOrCollateral
 
-  const tvl = useTvl()
+  const tvl = useLtv()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)

@@ -20,9 +20,16 @@ import Image from "next/image"
 
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
+import { useLtv } from "../../store/transaction.slice"
+import { useStore } from "../../store"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
+
+  const ltv = useLtv()
+  const collateral = useStore((state) => state.collateral)
+  const borrow = useStore((state) => state.borrow)
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
@@ -127,7 +134,14 @@ export default function TransactionSummary() {
                   <Typography variant="smallDark">
                     Collateral Provided
                   </Typography>
-                  <Typography variant="small">1ETH (~1800.00)</Typography>
+                  <Typography variant="small">
+                    {collateral.value.toLocaleString()}{" "}
+                    {collateral.token.symbol} (~
+                    {(
+                      collateral.value * collateral.tokenValue
+                    ).toLocaleString()}
+                    )
+                  </Typography>
                 </Grid>
 
                 <Grid
@@ -135,7 +149,10 @@ export default function TransactionSummary() {
                   sx={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
-                  <Typography variant="small">$675.00 (675 USDC)</Typography>
+                  <Typography variant="small">
+                    ${(borrow.value * borrow.tokenValue).toLocaleString()} (
+                    {borrow.value.toLocaleString()} {borrow.token.symbol})
+                  </Typography>
                 </Grid>
 
                 <Grid
@@ -145,31 +162,24 @@ export default function TransactionSummary() {
                   <Typography variant="smallDark">Liquidation Price</Typography>
                   <Typography variant="small">
                     $1500.00 (
-                    <span
-                      style={{
-                        color: palette.success.main,
-                      }}
-                    >
-                      ~25%
-                    </span>{" "}
+                    <span style={{ color: palette.success.main }}>~25%</span>{" "}
                     below)
                   </Typography>
                 </Grid>
 
-                <Grid
-                  item
-                  sx={{ display: "flex", justifyContent: "space-between" }}
-                >
+                <Grid item display="flex" justifyContent="space-between">
                   <Typography variant="smallDark">
-                    Current Price (ETH)
+                    Current Price ({collateral.token.symbol})
                   </Typography>
-                  <Typography variant="small">$2000.00</Typography>
+                  <Typography variant="small">
+                    ${collateral.tokenValue.toLocaleString()}
+                  </Typography>
                 </Grid>
               </Grid>
 
               <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
-              <LTVProgressBar borrowLimit={0} value={40} />
+              <LTVProgressBar borrowLimit={0} value={ltv} />
 
               <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 

@@ -16,6 +16,7 @@ type LTVProgressBarProps = {
   value: number
 }
 
+// TODO: add recommended LTV and max LTV in props
 export default function LTVProgressBar(props: LTVProgressBarProps) {
   const { palette } = useTheme()
 

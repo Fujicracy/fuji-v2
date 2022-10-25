@@ -16,9 +16,14 @@ import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
 import Image from "next/image"
 import ClickableTooltip from "../Layout/ClickableTooltip"
+import { useStore } from "../../store"
+import { useLtv } from "../../store/transaction.slice"
 
 export default function Overview() {
   const { palette } = useTheme()
+  const ltv = useLtv()
+  const collateral = useStore((state) => state.collateral)
+  const borrow = useStore((state) => state.borrow)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -39,8 +44,12 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: "0 ETH",
-                  footer: "0.00 USD",
+                  amount: `${collateral.value.toLocaleString()} ${
+                    collateral.token.symbol
+                  }`,
+                  footer: `${(
+                    collateral.value * collateral.tokenValue
+                  ).toLocaleString()} USD`,
                 }}
               />
             </Grid>
@@ -48,14 +57,19 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Borrowed Value",
-                  amount: "$0.00",
-                  footer: "0.00 USDC",
+                  amount: `${(
+                    borrow.value * borrow.tokenValue
+                  ).toLocaleString()} USD`,
+                  footer: `${borrow.value.toLocaleString()} ${
+                    borrow.token.symbol
+                  }`,
                 }}
               />
             </Grid>
 
             <Grid item xs={6}>
               <CurrencyCard
+                // TODO
                 informations={{
                   title: "Liquidation Price",
                   amount: "$0.00",
@@ -67,8 +81,8 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Current Price",
-                  amount: "$2000.00",
-                  footer: "ETH",
+                  amount: `$${collateral.tokenValue.toLocaleString()}`,
+                  footer: `${collateral.token.symbol}`,
                 }}
               />
             </Grid>
@@ -76,7 +90,7 @@ export default function Overview() {
 
           <Divider sx={{ mb: 1.5 }} />
 
-          <LTVProgressBar borrowLimit={0} value={45} />
+          <LTVProgressBar borrowLimit={0} value={ltv > 100 ? 100 : ltv} />
 
           <Divider sx={{ mt: 2, mb: 2 }} />
 
@@ -87,7 +101,7 @@ export default function Overview() {
           <Grid container justifyContent="space-between">
             <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
-            <Typography variant="small">45%</Typography>
+            <Typography variant="small">{ltv}%</Typography>
           </Grid>
 
           <Divider sx={{ mt: 2, mb: 2 }} />
