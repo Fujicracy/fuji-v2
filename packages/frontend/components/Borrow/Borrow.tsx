@@ -19,6 +19,7 @@ import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenSelect from "./TokenSelect"
+import shallow from "zustand/shallow"
 
 export default function Borrow() {
   const { palette } = useTheme()
@@ -46,7 +47,22 @@ export default function Borrow() {
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
-  const error = !address && "mustLogin"
+  const { value, balance } = useStore(
+    (state) => ({
+      value: state.collateral.value,
+      balance: state.collateral.balance,
+    }),
+    shallow
+  )
+
+  console.log({ value, balance })
+
+  let error
+  if (!address) {
+    error = "mustLogin"
+  } else if (value > 0 && value > balance) {
+    error = "insufficientBalance"
+  }
 
   return (
     <>
@@ -70,17 +86,6 @@ export default function Borrow() {
             onChange={(chainId) => changeCollateralChain(chainId, address)}
           />
           <TokenSelect type="collateral" />
-
-          {collateral.value > collateral.balance && (
-            <Typography
-              display="block"
-              variant="small"
-              mt=".5rem"
-              color={palette.error.dark}
-            >
-              Insufficient balance
-            </Typography>
-          )}
 
           <br />
 
@@ -147,6 +152,11 @@ export default function Borrow() {
               data-cy="borrow-login"
             >
               Connect wallet
+            </Button>
+          )}
+          {error === "insufficientBalance" && (
+            <Button variant="gradient" disabled fullWidth>
+              Insufficient {collateral.token.symbol} balance
             </Button>
           )}
 
