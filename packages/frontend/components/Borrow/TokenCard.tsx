@@ -1,4 +1,4 @@
-import React, { MouseEvent, ReactElement, useCallback, useState } from "react"
+import React, { MouseEvent, ReactElement, useState } from "react"
 import {
   Box,
   Card,
@@ -23,9 +23,8 @@ type SelectTokenCardProps = {
   type: "collateral" | "borrow"
 }
 
-export default function TokenSelect(props: SelectTokenCardProps) {
+export default function TokenCard({ type }: SelectTokenCardProps) {
   const { palette } = useTheme()
-  const { type } = props
   const changeCollateralToken = useStore((state) => state.changeCollateralToken)
   const changeBorrowToken = useStore((state) => state.changeBorrowToken)
   const changeBorrowValue = useStore((state) => state.changeBorrowValue)

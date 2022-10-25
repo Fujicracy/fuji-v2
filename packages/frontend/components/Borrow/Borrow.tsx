@@ -8,7 +8,6 @@ import {
   Grid,
   CircularProgress,
   Collapse,
-  useTheme,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
@@ -18,12 +17,10 @@ import { useStore } from "../../store"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
-import TokenSelect from "./TokenSelect"
+import TokenCard from "./TokenCard"
 import shallow from "zustand/shallow"
 
 export default function Borrow() {
-  const { palette } = useTheme()
-
   const address = useStore((state) => state.address)
   const login = useStore((state) => state.login)
 
@@ -85,7 +82,7 @@ export default function Borrow() {
             value={collateral.chainId}
             onChange={(chainId) => changeCollateralChain(chainId, address)}
           />
-          <TokenSelect type="collateral" />
+          <TokenCard type="collateral" />
 
           <br />
 
@@ -95,7 +92,7 @@ export default function Borrow() {
             value={borrow.chainId}
             onChange={(chainId) => changeBorrowChain(chainId, address)}
           />
-          <TokenSelect type="borrow" />
+          <TokenCard type="borrow" />
 
           <br />
 
