@@ -161,7 +161,13 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
               {/* TODO: handle third case: tvl error */}
               <Typography
                 variant="smallDark"
-                color={tvl > 55 ? palette.warning.main : palette.success.main}
+                color={
+                  tvl
+                    ? tvl > 55
+                      ? palette.warning.main
+                      : palette.success.main
+                    : ""
+                }
                 mr=".5rem"
               >
                 LTV {tvl}%
