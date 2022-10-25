@@ -7,15 +7,14 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
-import {CallParams, XCallArgs} from "../interfaces/connext/IConnext.sol";
-import {IConnextHandler} from "../interfaces/connext/IConnext.sol";
+import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {IVault} from "../interfaces/IVault.sol";
 
-contract ConnextRouter is BaseRouter {
-  IConnextHandler public connext;
-  address public executor;
+contract ConnextRouter is BaseRouter, IXReceiver {
+  // The connext contract on the origin domain.
+  IConnext public immutable connext;
 
   // ref: https://docs.nomad.xyz/developers/environments/domain-chain-ids
   mapping(uint256 => address) public routerByDomain;
@@ -24,29 +23,34 @@ contract ConnextRouter is BaseRouter {
   // Note: This is an important security consideration. If your target
   //       contract function is meant to be permissioned, it must check
   //       that the originating call is from the correct domain and contract.
-  //       Also, check that the msg.sender is the Connext Executor address.
-  modifier onlyConnextExecutor() {
+  //       Also, check that the msg.sender is the Connext address.
+  modifier onlyConnext(address originSender, uint32 originDomain) {
     require(
       // TODO subject to change in the new version of amarok
-      /*IExecutor(msg.sender).originSender() == routerByDomain[originDomain] &&*/
-      /*IExecutor(msg.sender).origin() == uint32(originDomain) &&*/
-      msg.sender == executor,
-      "Expected origin contract on origin domain called by Executor"
+      originSender == routerByDomain[originDomain] && msg.sender == address(connext),
+      "Expected origin contract on origin domain called by Connext"
     );
     _;
   }
 
-  constructor(IWETH9 weth, IConnextHandler connext_) BaseRouter(weth) {
+  constructor(IWETH9 weth, IConnext connext_) BaseRouter(weth) {
     connext = connext_;
-    executor = connext.executor();
   }
 
   // Connext specific functions
 
-  function inboundXCall(bytes memory params) external onlyConnextExecutor {
+  function xReceive(
+    bytes32, /* transferId */
+    uint256, /* amount */
+    address, /* asset */
+    address originSender,
+    uint32 origin,
+    bytes memory params
+  ) external onlyConnext(originSender, origin) returns (bytes memory) {
     (Action[] memory actions, bytes[] memory args) = abi.decode(params, (Action[], bytes[]));
 
     _bundleInternal(actions, args);
+    return "";
   }
 
   function _crossTransfer(bytes memory params) internal override {
@@ -56,38 +60,23 @@ contract ConnextRouter is BaseRouter {
     pullToken(ERC20(asset), amount, address(this));
     approve(ERC20(asset), address(connext), amount);
 
-    CallParams memory callParams = CallParams({
-      to: receiver,
-      // empty here because we're only sending funds
-      callData: "",
-      originDomain: uint32(connext.domain()),
-      destinationDomain: uint32(destDomain),
-      // address allowed to transaction on destination side in addition to relayers
-      agent: msg.sender,
-      // fallback address to send funds to if execution fails on destination side
-      recovery: msg.sender,
-      // option to force Nomad slow path (~30 mins) instead of paying 0.05% fee
-      forceSlow: false,
-      // option to receive the local Nomad-flavored asset instead of the adopted asset
-      receiveLocal: false,
-      // zero address because we don't expect a callback
-      callback: address(0),
-      // fee paid to relayers; relayers don't take any fees on testnet
-      callbackFee: 0,
-      // fee paid to relayers; relayers don't take any fees on testnet
-      relayerFee: 0,
-      // the minimum amount that the user will accept due to slippage from the StableSwap pool
-      destinationMinOut: (amount / 100) * 99
-    });
-
-    XCallArgs memory xcallArgs = XCallArgs({
-      params: callParams,
-      transactingAsset: asset,
-      transactingAmount: amount,
-      originMinOut: (amount / 100) * 99
-    });
-
-    connext.xcall(xcallArgs);
+    connext.xcall(
+      // _destination: Domain ID of the destination chain
+      uint32(destDomain),
+      // _to: address of the target contract
+      receiver,
+      // _asset: address of the token contract
+      asset,
+      // _delegate: address that can revert or forceLocal on destination
+      msg.sender,
+      // _amount: amount of tokens to transfer
+      amount,
+      // _slippage: can be anything between 0-10000 becaus
+      // the maximum amount of slippage the user will accept in BPS, in this case 0.3%
+      30,
+      // _callData: empty because we're only sending funds
+      ""
+    );
   }
 
   function _crossTransferWithCalldata(bytes memory params) internal override {
@@ -97,37 +86,23 @@ contract ConnextRouter is BaseRouter {
     pullToken(ERC20(asset), amount, address(this));
     approve(ERC20(asset), address(connext), amount);
 
-    CallParams memory callParams = CallParams({
-      to: routerByDomain[destDomain],
-      callData: callData,
-      originDomain: uint32(connext.domain()),
-      destinationDomain: uint32(destDomain),
-      // address allowed to transaction on destination side in addition to relayers
-      agent: msg.sender,
-      // fallback address to send funds to if execution fails on destination side
-      recovery: msg.sender,
-      // option to force Nomad slow path (~30 mins) instead of paying 0.05% fee
-      forceSlow: true,
-      // option to receive the local Nomad-flavored asset instead of the adopted asset
-      receiveLocal: false,
-      // zero address because we don't expect a callback
-      callback: address(0),
-      // fee paid to relayers; relayers don't take any fees on testnet
-      callbackFee: 0,
-      // fee paid to relayers; relayers don't take any fees on testnet
-      relayerFee: 0,
-      // the minimum amount that the user will accept due to slippage from the StableSwap pool
-      destinationMinOut: (amount / 100) * 99
-    });
-
-    XCallArgs memory xcallArgs = XCallArgs({
-      params: callParams,
-      transactingAsset: asset,
-      transactingAmount: amount,
-      originMinOut: (amount / 100) * 99
-    });
-
-    connext.xcall(xcallArgs);
+    connext.xcall(
+      // _destination: Domain ID of the destination chain
+      uint32(destDomain),
+      // _to: address of the target contract
+      routerByDomain[destDomain],
+      // _asset: address of the token contract
+      asset,
+      // _delegate: address that can revert or forceLocal on destination
+      msg.sender,
+      // _amount: amount of tokens to transfer
+      amount,
+      // _slippage: can be anything between 0-10000 becaus
+      // the maximum amount of slippage the user will accept in BPS, in this case 0.3%
+      30,
+      // _callData: the encoded calldata to send
+      callData
+    );
   }
 
   ///////////////////////

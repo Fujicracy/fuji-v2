@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
-import {IConnextHandler} from "../src/interfaces/connext/IConnext.sol";
+import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
@@ -18,7 +18,7 @@ import {IERC20Metadata} from
 contract DeployGoerli is ScriptPlus {
   IVault public vault;
   IWETH9 public weth;
-  IConnextHandler public connextHandler;
+  IConnext public connextHandler;
 
   ConnextRouter public connextRouter;
 
@@ -30,7 +30,7 @@ contract DeployGoerli is ScriptPlus {
     chainName = "goerli";
 
     weth = IWETH9(0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6);
-    connextHandler = IConnextHandler(0xB4C1340434920d70aD774309C75f9a4B679d801e);
+    connextHandler = IConnext(0xB4C1340434920d70aD774309C75f9a4B679d801e);
   }
 
   function run() public {

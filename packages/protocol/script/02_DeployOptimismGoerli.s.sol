@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
-import {IConnextHandler} from "../src/interfaces/connext/IConnext.sol";
+import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
@@ -16,7 +16,7 @@ import {MockOracle} from "../src/mocks/MockOracle.sol";
 contract DeployOptimismGoerli is ScriptPlus {
   IVault public vault;
   IWETH9 public weth;
-  IConnextHandler public connextHandler;
+  IConnext public connextHandler;
 
   ConnextRouter public connextRouter;
 
@@ -28,7 +28,7 @@ contract DeployOptimismGoerli is ScriptPlus {
     chainName = "optimism-goerli";
 
     weth = IWETH9(0x4E283927E35b7118eA546Ef58Ea60bfF59E857DB);
-    connextHandler = IConnextHandler(0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7);
+    connextHandler = IConnext(0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7);
   }
 
   function run() public {

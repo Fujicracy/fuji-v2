@@ -17,11 +17,6 @@ contract SimpleRouter is BaseRouter {
 
   constructor(IWETH9 weth) BaseRouter(weth) {}
 
-  function inboundXCall(bytes memory params) external pure {
-    params;
-    revert SimpleRouter__noCrossTransfersImplemented();
-  }
-
   function _crossTransfer(bytes memory params) internal pure override {
     params;
     revert SimpleRouter__noCrossTransfersImplemented();

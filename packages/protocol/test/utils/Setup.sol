@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {IConnextHandler} from "../../src/interfaces/connext/IConnext.sol";
+import {IConnext} from "../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
@@ -19,7 +19,7 @@ import {DSTestPlus} from "./DSTestPlus.sol";
 contract Setup is DSTestPlus, CoreRoles {
   struct Registry {
     address weth;
-    address connextHandler;
+    address connext;
   }
 
   uint256 alicePkey = 0xA;
@@ -40,7 +40,7 @@ contract Setup is DSTestPlus, CoreRoles {
   TimelockController public timelock;
   ConnextRouter public connextRouter;
 
-  IConnextHandler public connextHandler;
+  IConnext public connext;
   address public connextWETH;
 
   address public collateralAsset;
@@ -56,27 +56,27 @@ contract Setup is DSTestPlus, CoreRoles {
 
     Registry memory goerli = Registry({
       weth: 0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1,
-      connextHandler: 0xB4C1340434920d70aD774309C75f9a4B679d801e
+      connext: 0xB4C1340434920d70aD774309C75f9a4B679d801e
     });
     registry[GOERLI_DOMAIN] = goerli;
 
     Registry memory optimismGoerli = Registry({
       weth: 0x68Db1c8d85C09d546097C65ec7DCBFF4D6497CbF,
-      connextHandler: 0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7
+      connext: 0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
   }
 
   function deploy(uint32 domain) public {
     Registry memory reg = registry[domain];
-    if (reg.connextHandler == address(0)) {
+    if (reg.connext == address(0)) {
       revert("No registry for this chain");
     }
 
     originDomain = domain;
     destDomain = domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
 
-    vm.label(reg.connextHandler, "ConnextHandler");
+    vm.label(reg.connext, "ConnextHandler");
 
     connextWETH = reg.weth;
     vm.label(reg.weth, "ConnextWETH");
@@ -89,7 +89,7 @@ contract Setup is DSTestPlus, CoreRoles {
     debtAsset = address(tDAI);
     vm.label(debtAsset, "tDAI");
 
-    connextHandler = IConnextHandler(reg.connextHandler);
+    connext = IConnext(reg.connext);
 
     MockProvider mockProvider = new MockProvider();
     MockOracle mockOracle = new MockOracle();
@@ -107,7 +107,7 @@ contract Setup is DSTestPlus, CoreRoles {
 
     connextRouter = new ConnextRouter(
       IWETH9(connextWETH),
-      IConnextHandler(reg.connextHandler)
+      IConnext(reg.connext)
     );
     vault = new BorrowingVault(
       collateralAsset,
