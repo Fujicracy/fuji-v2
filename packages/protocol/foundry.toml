@@ -17,3 +17,4 @@ optimism = "${RPC_OPTIMISM}"
 line_length = 100
 tab_width = 2
 bracket_spacing = false
+multiline_func_header = "all"

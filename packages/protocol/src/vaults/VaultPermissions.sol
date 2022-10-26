@@ -41,7 +41,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /// @inheritdoc IVaultPermissions
-  function borrowAllowance(address owner, address spender)
+  function borrowAllowance(
+    address owner,
+    address spender
+  )
     public
     view
     virtual
@@ -52,7 +55,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /// @inheritdoc IVaultPermissions
-  function increaseWithdrawAllowance(address spender, uint256 byAmount)
+  function increaseWithdrawAllowance(
+    address spender,
+    uint256 byAmount
+  )
     public
     override
     returns (bool)
@@ -63,7 +69,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /// @inheritdoc IVaultPermissions
-  function decreaseWithdrawAllowance(address spender, uint256 byAmount)
+  function decreaseWithdrawAllowance(
+    address spender,
+    uint256 byAmount
+  )
     public
     override
     returns (bool)
@@ -78,7 +87,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /// @inheritdoc IVaultPermissions
-  function increaseBorrowAllowance(address spender, uint256 byAmount)
+  function increaseBorrowAllowance(
+    address spender,
+    uint256 byAmount
+  )
     public
     virtual
     override
@@ -90,7 +102,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   }
 
   /// @inheritdoc IVaultPermissions
-  function decreaseBorrowAllowance(address spender, uint256 byAmount)
+  function decreaseBorrowAllowance(
+    address spender,
+    uint256 byAmount
+  )
     public
     virtual
     override

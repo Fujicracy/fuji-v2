@@ -9,7 +9,11 @@ interface IFujiOracle {
    */
   event AssetPriceFeedChanged(address asset, address newPriceFeedAddress);
 
-  function getPriceOf(address _collateralAsset, address _borrowAsset, uint8 _decimals)
+  function getPriceOf(
+    address _collateralAsset,
+    address _borrowAsset,
+    uint8 _decimals
+  )
     external
     view
     returns (uint256);

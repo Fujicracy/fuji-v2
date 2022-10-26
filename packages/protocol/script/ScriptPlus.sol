@@ -41,7 +41,10 @@ contract ScriptPlus is Script {
       _getAddress(string(abi.encodePacked(".local/", chainName, "/", contractName, ".e.address")));
   }
 
-  function getAddressAt(string memory contractName, string memory _chainName)
+  function getAddressAt(
+    string memory contractName,
+    string memory _chainName
+  )
     internal
     returns (address addr)
   {
@@ -85,7 +88,10 @@ contract ScriptPlus is Script {
     vm.writeLine(s_path, vm.toString(uint256(s)));
   }
 
-  function getSigAt(string memory sigName, string memory _chainName)
+  function getSigAt(
+    string memory sigName,
+    string memory _chainName
+  )
     internal
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {

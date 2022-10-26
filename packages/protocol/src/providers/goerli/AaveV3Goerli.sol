@@ -71,7 +71,10 @@ contract AaveV3Goerli is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositBalance(address user, IVault vault)
+  function getDepositBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override
@@ -83,7 +86,10 @@ contract AaveV3Goerli is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowBalance(address user, IVault vault)
+  function getBorrowBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override

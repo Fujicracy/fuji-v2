@@ -20,7 +20,10 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     return _providerNames;
   }
 
-  function getAddressMapping(string memory providerName, address inputAddr)
+  function getAddressMapping(
+    string memory providerName,
+    address inputAddr
+  )
     external
     view
     override
@@ -47,7 +50,11 @@ contract MockAddrMapper is IAddrMapper, Ownable {
    * Requirements:
    * - ProviderName should be formatted: Name_Version or Name_Version_Asset
    */
-  function setMapping(string memory providerName, address keyAddr, address returnedAddr)
+  function setMapping(
+    string memory providerName,
+    address keyAddr,
+    address returnedAddr
+  )
     public
     override
   {

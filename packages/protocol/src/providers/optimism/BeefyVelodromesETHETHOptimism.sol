@@ -161,7 +161,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address user, IVault vault)
+  function getDepositBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override

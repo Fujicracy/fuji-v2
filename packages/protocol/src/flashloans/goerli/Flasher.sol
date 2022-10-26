@@ -36,7 +36,10 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
    * @param params: struct information for flashLoan
    * @param providerId: integer identifier of flashloan provider
    */
-  function initiateFlashloan(FlashloanParams calldata params, uint8 providerId)
+  function initiateFlashloan(
+    FlashloanParams calldata params,
+    uint8 providerId
+  )
     external
     override /*isAuthorized*/
   {
