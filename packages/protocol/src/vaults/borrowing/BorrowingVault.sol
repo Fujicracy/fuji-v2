@@ -88,9 +88,7 @@ contract BorrowingVault is BaseVault {
     address chief_,
     string memory name_,
     string memory symbol_
-  )
-    BaseVault(asset_, chief_, name_, symbol_)
-  {
+  ) BaseVault(asset_, chief_, name_, symbol_) {
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = _debtAsset.decimals();
     oracle = IFujiOracle(oracle_);
@@ -232,10 +230,7 @@ contract BorrowingVault is BaseVault {
     uint8 v,
     bytes32 r,
     bytes32 s
-  )
-    public
-    override
-  {
+  ) public override {
     VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
   }
 
@@ -375,7 +370,7 @@ contract BorrowingVault is BaseVault {
     SafeERC20.safeApprove(IERC20(asset()), to, assets);
     _executeProviderAction(assets, "deposit", to);
     _executeProviderAction(debt + fee, "borrow", to);
-    SafeERC20.safeTransfer(IERC20(asset()), msg.sender, debt + fee);
+    SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
     emit VaultRebalance(assets, debt, from, to);
     return true;
   }

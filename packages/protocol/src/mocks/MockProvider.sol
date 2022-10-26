@@ -9,7 +9,7 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function providerName() public pure override returns (string memory) {
+  function providerName() public pure virtual override returns (string memory) {
     return "Mock_V1";
   }
   /**
@@ -23,7 +23,8 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(uint256, IVault) external pure override returns (bool success) {
+  function deposit(uint256 amount, IVault vault) external override returns (bool success) {
+    MockERC20(vault.asset()).makeDeposit(address(vault), amount, providerName());
     success = true;
   }
 
@@ -31,7 +32,7 @@ contract MockProvider is ILendingProvider {
    * @notice See {ILendingProvider}
    */
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
-    MockERC20(vault.debtAsset()).mintDebt(address(vault), amount);
+    MockERC20(vault.debtAsset()).mintDebt(address(vault), amount, providerName());
     success = true;
   }
 
@@ -39,7 +40,7 @@ contract MockProvider is ILendingProvider {
    * @notice See {ILendingProvider}
    */
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
-    MockERC20(vault.asset()).mint(address(vault), amount);
+    MockERC20(vault.asset()).withdrawDeposit(address(vault), amount, providerName());
     success = true;
   }
 
@@ -47,7 +48,7 @@ contract MockProvider is ILendingProvider {
    * @notice See {ILendingProvider}
    */
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
-    MockERC20(vault.debtAsset()).burnDebt(address(vault), amount);
+    MockERC20(vault.debtAsset()).burnDebt(address(vault), amount, providerName());
     success = true;
   }
 
@@ -74,7 +75,7 @@ contract MockProvider is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(vault.asset()).balanceOf(user);
+    balance = MockERC20(vault.asset()).balanceOfDeposit(user, providerName());
   }
 
   /**
@@ -86,6 +87,6 @@ contract MockProvider is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(vault.debtAsset()).balanceOfDebt(user);
+    balance = MockERC20(vault.debtAsset()).balanceOfDebt(user, providerName());
   }
 }
