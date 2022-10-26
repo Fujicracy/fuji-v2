@@ -166,7 +166,9 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     uint256 borrowAmount,
     IVault v,
     address who
-  ) internal {
+  )
+    internal
+  {
     _utils_doDeposit(depositAmount, v, who);
     vm.prank(who);
     v.borrow(borrowAmount, who, who);
