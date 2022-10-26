@@ -20,13 +20,14 @@ import Image from "next/image"
 
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
-import { useLtv } from "../../store/transaction.slice"
+import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { useStore } from "../../store"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
 
   const ltv = useLtv()
+  const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
   const collateral = useStore((state) => state.collateral)
   const borrow = useStore((state) => state.borrow)
 
@@ -161,9 +162,18 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Liquidation Price</Typography>
                   <Typography variant="small">
-                    $1500.00 (
-                    <span style={{ color: palette.success.main }}>~25%</span>{" "}
-                    below)
+                    ${liquidationPrice} (
+                    <span
+                      style={{
+                        color:
+                          liquidationDiff >= 0
+                            ? palette.success.main
+                            : palette.error.main,
+                      }}
+                    >
+                      ~{Math.abs(liquidationDiff)}%
+                    </span>{" "}
+                    {liquidationDiff >= 0 ? "below" : "above"})
                   </Typography>
                 </Grid>
 

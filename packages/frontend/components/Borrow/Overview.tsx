@@ -17,11 +17,12 @@ import LTVProgressBar from "./LTVProgressBar"
 import Image from "next/image"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
-import { useLtv } from "../../store/transaction.slice"
+import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 
 export default function Overview() {
   const { palette } = useTheme()
   const ltv = useLtv()
+  const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
   const collateral = useStore((state) => state.collateral)
   const borrow = useStore((state) => state.borrow)
 
@@ -69,11 +70,13 @@ export default function Overview() {
 
             <Grid item xs={6}>
               <CurrencyCard
-                // TODO
                 informations={{
                   title: "Liquidation Price",
-                  amount: "$0.00",
-                  footer: "n/a",
+                  amount: `$${liquidationPrice.toLocaleString()}`,
+                  footer:
+                    liquidationDiff >= 0
+                      ? `~${liquidationDiff}% below current price`
+                      : `~${Math.abs(liquidationDiff)}% above current price`,
                 }}
               />
             </Grid>

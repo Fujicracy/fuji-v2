@@ -210,3 +210,26 @@ export function useLtv(): number {
   }
   return Math.round((borrow / collateral) * 100)
 }
+
+export function useLiquidationPrice(liquidationTreshold: number): {
+  liquidationPrice: number
+  liquidationDiff: number
+} {
+  const collateralValue = useStore((state) => state.collateral.value)
+  const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
+  const borrowValue = useStore((state) => state.borrow.value)
+  const borrowUsdValue = useStore((state) => state.borrow.tokenValue)
+  const borrow = borrowValue * borrowUsdValue
+
+  if (!borrow || !collateralValue) {
+    return { liquidationPrice: 0, liquidationDiff: 0 }
+  }
+
+  const liquidationPrice =
+    borrow / (collateralValue * (liquidationTreshold / 100))
+  const liquidationDiff = Math.round(
+    (1 - liquidationPrice / collateralUsdValue) * 100
+  )
+
+  return { liquidationPrice, liquidationDiff }
+}
