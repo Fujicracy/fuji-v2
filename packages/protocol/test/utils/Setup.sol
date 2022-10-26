@@ -55,16 +55,22 @@ contract Setup is DSTestPlus, CoreRoles {
     vm.label(address(bob), "bob");
 
     Registry memory goerli = Registry({
-      weth: 0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1,
-      connext: 0xB4C1340434920d70aD774309C75f9a4B679d801e
+      weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
+      connext: 0x99A784d082476E551E5fc918ce3d849f2b8e89B6
     });
     registry[GOERLI_DOMAIN] = goerli;
 
     Registry memory optimismGoerli = Registry({
-      weth: 0x68Db1c8d85C09d546097C65ec7DCBFF4D6497CbF,
-      connext: 0xe37f1f55eab648dA87047A03CB03DeE3d3fe7eC7
+      weth: 0x74c6FD7D2Bc6a8F0Ebd7D78321A95471b8C2B806,
+      connext: 0x705791AD27229dd4CCf41b6720528AfE1bcC2910
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
+
+    Registry memory mumbai = Registry({
+      weth: 0xFD2AB41e083c75085807c4A65C0A14FDD93d55A9,
+      connext: 0xfeBBcfe9a88aadefA6e305945F2d2011493B15b4
+    });
+    registry[MUMBAI_DOMAIN] = mumbai;
   }
 
   function deploy(uint32 domain) public {
@@ -76,7 +82,7 @@ contract Setup is DSTestPlus, CoreRoles {
     originDomain = domain;
     destDomain = domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
 
-    vm.label(reg.connext, "ConnextHandler");
+    vm.label(reg.connext, "Connext");
 
     connextWETH = reg.weth;
     vm.label(reg.weth, "ConnextWETH");

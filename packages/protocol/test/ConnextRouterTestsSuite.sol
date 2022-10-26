@@ -6,7 +6,6 @@ import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
-/*import {ExecutorArgs} from "../src/interfaces/connext/IConnext.sol";*/
 import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
@@ -76,25 +75,23 @@ contract ConnextRouterTestsSuite is Setup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    address executor = address(connext);
-
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
     actions[1] = IRouter.Action.PermitBorrow;
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(address(vault), amount, alice, executor);
+    args[0] = abi.encode(address(vault), amount, alice, address(connextRouter));
+
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       utils_getPermitBorrowArgs(alice, address(connextRouter), borrowAmount, 0, address(vault));
+
     args[1] =
       abi.encode(address(vault), alice, address(connextRouter), borrowAmount, deadline, v, r, s);
+
     args[2] = abi.encode(address(vault), borrowAmount, alice, alice);
 
-    bytes memory params = abi.encode(actions, args);
-    bytes4 selector = bytes4(keccak256("inboundXCall(bytes)"));
-    bytes memory callData = abi.encodeWithSelector(selector, params);
-    callData;
+    bytes memory callData = abi.encode(actions, args);
 
     vm.expectEmit(true, true, true, false);
     emit Deposit(address(connextRouter), alice, amount, amount);
@@ -102,24 +99,14 @@ contract ConnextRouterTestsSuite is Setup {
     vm.expectEmit(true, true, true, false);
     emit Borrow(address(connextRouter), alice, alice, borrowAmount, borrowAmount);
 
-    /*ExecutorArgs memory execArgs = ExecutorArgs({*/
-    /*assetId: collateralAsset,*/
-    /*amount: amount,*/
-    /*to: address(connextRouter),*/
-    /*callData: callData,*/
-    /*transferId: "",*/
-    /*recovery: address(0),*/
-    /*originSender: address(connextRouter),*/
-    /*originDomain: originDomain*/
-    /*});*/
-    /*vm.expectCall(address(connextRouter), callData);*/
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+    address originSender = connextRouter.routerByDomain(originDomain);
 
-    // connext has to send to the executor "amount"
-    // before calling it
-    /*deal(collateralAsset, executor, amount);*/
-    /*vm.startPrank(address(connextHandler));*/
-    /*IConnext(executor).execute(execArgs);*/
+    vm.startPrank(address(connext));
+    connextRouter.xReceive("", 0, address(0), originSender, originDomain, callData);
 
-    /*assertEq(vault.balanceOf(alice), amount);*/
+    assertEq(vault.balanceOf(alice), amount);
   }
 }
