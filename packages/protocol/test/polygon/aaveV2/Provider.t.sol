@@ -18,7 +18,7 @@ import {DSTestPlus} from "../../utils/DSTestPlus.sol";
 
 bool constant DEBUG = false;
 
-contract ProviderTest123 is DSTestPlus, CoreRoles {
+contract ProviderTest is DSTestPlus, CoreRoles {
   address alice = address(0xA);
   address bob = address(0xB);
 
