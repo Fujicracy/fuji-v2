@@ -93,6 +93,19 @@ contract YieldVault is BaseVault {
     return convertToAssets(balanceOf(owner));
   }
 
+  ///////////////////
+  /// Rebalancing ///
+  ///////////////////
+
+  // inheritdoc IVault
+  function rebalance(RebalanceAction[] memory actions)
+    external
+    hasRole(msg.sender, REBALANCER_ROLE)
+    returns (bool)
+  {
+    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+  }
+
   //////////////////////
   ///  Liquidate    ////
   //////////////////////

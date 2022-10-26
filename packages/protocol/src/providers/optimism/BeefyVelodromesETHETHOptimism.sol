@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IBeefyVaultV6} from "../../interfaces/beefy/IBeefyVaultV6.sol";
 import {IBeefyUniV2ZapVelodrome} from "../../interfaces/beefy/IBeefyUniV2ZapVelodrome.sol";
@@ -21,6 +22,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
 
   using SafeERC20 for IERC20;
   using Math for uint256;
+
+  function providerName() public pure override returns (string memory) {
+    return "Beefy_V6_ETH";
+  }
 
   function _getBeefyVault() internal pure returns (IBeefyVaultV6) {
     return IBeefyVaultV6(0xf92129fE0923d766C2540796d4eA31Ff9FF65522);
@@ -48,14 +53,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
-    vault;
+  function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
+    address asset = vault.asset();
 
     (, uint256 amountOut,) = zap.estimateSwap(address(beefyVault), asset, amount);
 
@@ -67,7 +68,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(address, uint256, address) external pure override returns (bool) {
+  function borrow(uint256, IVault) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
@@ -76,13 +77,10 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
    * @dev We can use Beefy Zap as in deposit because 'zap.beefOutAndSwap(...)'
    * returns ETH instead of WETH.
    */
-  function withdraw(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
+    address asset = vault.asset();
 
     uint256 totalBalance = beefyVault.balanceOf(address(vault));
 
@@ -100,7 +98,7 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(address, uint256, address) external pure override returns (bool) {
+  function payback(uint256, IVault) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
@@ -149,33 +147,33 @@ contract BeefyVelodromesETHETHOptimism is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address, address) external pure override returns (uint256) {
+  function getDepositRateFor(IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notImplemented();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address, address) external pure override returns (uint256) {
+  function getBorrowRateFor(IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address asset, address user, address)
+  function getDepositBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = _getDepositBalance(asset, user);
+    balance = _getDepositBalance(vault.asset(), user);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address, address, address) external pure override returns (uint256) {
+  function getBorrowBalance(address, IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 

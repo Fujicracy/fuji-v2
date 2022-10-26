@@ -12,8 +12,15 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
-  /// Events
+  /// TODO rebalancing implementation.
+  struct RebalanceAction {
+    uint256 amount;
+    address asset;
+    address from;
+    address to;
+  }
 
+  /// Events
   /**
    * @dev Emitted when borrow action occurs.
    * @param sender address who calls {IVault-borrow}
@@ -184,6 +191,19 @@ interface IVault is IERC4626 {
    * @notice Returns the active provider of this vault.
    */
   function activeProvider() external returns (ILendingProvider);
+
+  /// Rebalancing Functions
+
+  /**
+   * @notice Performs rebalancing of vault by performing `RebalanceAction` actions.
+   * @param actions array of encoded instructions for rebalancing.
+   *
+   * - MUST revert if caller is not an approved rebalancer.
+   * - MUST emit the Rebalancing event.
+   *
+   */
+  /// TODO rebalancing implementation.
+  function rebalance(RebalanceAction[] memory actions) external returns (bool);
 
   ///  Liquidation Functions
 

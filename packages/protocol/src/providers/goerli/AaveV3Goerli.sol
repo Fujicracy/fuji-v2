@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
 
@@ -16,90 +17,80 @@ contract AaveV3Goerli is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
+  function providerName() public pure override returns (string memory) {
+    return "Aave_V3";
+  }
+
+  /// inheritdoc ILendingProvider
   function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(_getPool());
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.supply(asset, amount, vault, 0);
+    address asset = vault.asset();
+    aave.supply(asset, amount, address(vault), 0);
     aave.setUserUseReserveAsCollateral(asset, true);
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.borrow(asset, amount, 2, 0, vault);
+    aave.borrow(vault.debtAsset(), amount, 2, 0, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.withdraw(asset, amount, vault);
+    aave.withdraw(vault.asset(), amount, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(address asset, uint256 amount, address vault)
-    external
-    override
-    returns (bool success)
-  {
+  function payback(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
-    aave.repay(asset, amount, 2, vault);
+    aave.repay(vault.debtAsset(), amount, 2, address(vault));
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositRateFor(address asset, address) external view override returns (uint256 rate) {
+  function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.asset());
     rate = rdata.currentLiquidityRate;
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowRateFor(address asset, address) external view override returns (uint256 rate) {
+  function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.debtAsset());
     rate = rdata.currentVariableBorrowRate;
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositBalance(address asset, address user, address)
+  function getDepositBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
   {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.asset());
     balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowBalance(address asset, address user, address)
+  function getBorrowBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
   {
     IV3Pool aaveData = _getPool();
-    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(asset);
+    IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.debtAsset());
     balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
 }

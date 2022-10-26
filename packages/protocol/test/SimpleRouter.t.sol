@@ -6,6 +6,8 @@ import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../src/routers/SimpleRouter.sol";
 import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
@@ -21,9 +23,11 @@ import {MockSwapper} from "../src/mocks/MockSwapper.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
+import {Chief} from "../src/Chief.sol";
+import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
-contract SimpleRouterTest is DSTestPlus {
+contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
@@ -46,9 +50,10 @@ contract SimpleRouterTest is DSTestPlus {
 
   IVault public vault;
   ILendingProvider public mockProvider;
-  ILendingProvider[] public providers;
   IRouter public simpleRouter;
   ISwapper public swapper;
+  Chief public chief;
+  TimelockController public timelock;
 
   MockFlasher public flasher;
   MockOracle public oracle;
@@ -70,21 +75,28 @@ contract SimpleRouterTest is DSTestPlus {
     swapper = new MockSwapper(oracle);
 
     flasher = new MockFlasher();
+
     mockProvider = new MockProvider();
-    providers.push(mockProvider);
+
+    address[] memory admins = new address[](1);
+    admins[0] = address(this);
+    timelock = new TimelockController(1 days, admins, admins);
+    vm.label(address(timelock), "Timelock");
+
+    chief = new Chief();
+    chief.setTimelock(address(timelock));
 
     vault = new BorrowingVault(
       address(asset),
       address(debtAsset),
       address(oracle),
-      address(0),
+      address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH"
     );
     simpleRouter = new SimpleRouter(IWETH9(address(asset)));
 
-    vault.setProviders(providers);
-    vault.setActiveProvider(mockProvider);
+    _utils_setupVaultProvider(vault);
   }
 
   function utils_setupOracle(address asset1, address asset2) internal {
@@ -99,6 +111,28 @@ contract SimpleRouterTest is DSTestPlus {
       abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset2, asset1, 18),
       abi.encode(1889069940262927605990)
     );
+  }
+
+  function _utils_setupTestRoles() internal {
+    // Grant this test address all roles.
+    chief.grantRole(REBALANCER_ROLE, address(this));
+    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+  }
+
+  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
+    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+    vm.warp(block.timestamp + 2 days);
+    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    rewind(2 days);
+  }
+
+  function _utils_setupVaultProvider(IVault vault_) internal {
+    _utils_setupTestRoles();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+    bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
+    _utils_callWithTimelock(sendData, vault_);
+    vault_.setActiveProvider(mockProvider);
   }
 
   function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_)
@@ -316,19 +350,19 @@ contract SimpleRouterTest is DSTestPlus {
     vm.label(address(debtAsset2), "tKAI");
 
     utils_setupOracle(address(asset), address(debtAsset2));
+    utils_setupOracle(address(debtAsset), address(debtAsset2));
 
     IVault newVault = new BorrowingVault(
       address(asset),
       address(debtAsset2),
       address(oracle),
-      address(0),
+      address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH"
     );
     vm.label(address(newVault), "newVault");
 
-    newVault.setProviders(providers);
-    newVault.setActiveProvider(mockProvider);
+    _utils_setupVaultProvider(newVault);
 
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e18;

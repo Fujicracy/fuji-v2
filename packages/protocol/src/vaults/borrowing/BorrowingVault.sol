@@ -49,12 +49,13 @@ contract BorrowingVault is BaseVault {
   uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
 
   /// Returns health factor threshold at which max liquidation can occur.
-  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95;
+  uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95e16;
 
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
   IERC20Metadata internal immutable _debtAsset;
+  uint8 private immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
 
@@ -91,10 +92,13 @@ contract BorrowingVault is BaseVault {
     BaseVault(asset_, chief_, name_, symbol_)
   {
     _debtAsset = IERC20Metadata(debtAsset_);
+    _debtDecimals = _debtAsset.decimals();
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;
     liqRatio = 80 * 1e16;
   }
+
+  receive() external payable {}
 
   /////////////////////////////////
   /// Debt management overrides ///
@@ -102,7 +106,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function debtDecimals() public view override returns (uint8) {
-    return _debtAsset.decimals();
+    return _debtDecimals;
   }
 
   /// @inheritdoc BaseVault
@@ -117,7 +121,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function totalDebt() public view override returns (uint256) {
-    return _checkProvidersBalance(debtAsset(), "getBorrowBalance");
+    return _checkProvidersBalance("getBorrowBalance");
   }
 
   /// @inheritdoc BaseVault
@@ -245,14 +249,13 @@ contract BorrowingVault is BaseVault {
    * - SHOULD read price from {FujiOracle}.
    */
   function _computeMaxBorrow(address borrower) internal view returns (uint256 max) {
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 assetShares = balanceOf(borrower);
     uint256 assets = convertToAssets(assetShares);
     uint256 debtShares = _debtShares[borrower];
     uint256 debt = convertToDebt(debtShares);
 
-    uint256 baseUserMaxBorrow =
-      ((assets * maxLtv * price) / (1e18 * 10 ** IERC20Metadata(asset()).decimals()));
+    uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (1e18 * 10 ** decimals()));
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
@@ -265,8 +268,8 @@ contract BorrowingVault is BaseVault {
       freeAssets = convertToAssets(balanceOf(owner));
     } else {
       uint256 debt = convertToDebt(debtShares);
-      uint256 price = oracle.getPriceOf(asset(), debtAsset(), IERC20Metadata(asset()).decimals());
-      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtAsset.decimals());
+      uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
+      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtDecimals);
 
       if (lockedAssets == 0) {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei
@@ -290,10 +293,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (debt == 0 || supply == 0)
-      ? debt.mulDiv(10 ** decimals(), 10 ** _debtAsset.decimals(), rounding)
-      : debt.mulDiv(supply, totalDebt(), rounding);
+    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt(), rounding);
   }
 
   /**
@@ -305,10 +305,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (supply == 0)
-      ? shares.mulDiv(10 ** _debtAsset.decimals(), 10 ** decimals(), rounding)
-      : shares.mulDiv(totalDebt(), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalDebt(), supply, rounding);
   }
 
   /**
@@ -316,11 +313,12 @@ contract BorrowingVault is BaseVault {
    */
   function _borrow(address caller, address receiver, address owner, uint256 assets, uint256 shares)
     internal
+    whenNotPaused(VaultActions.Borrow)
   {
     _mintDebtShares(owner, shares);
 
     address asset = debtAsset();
-    _executeProviderAction(asset, assets, "borrow");
+    _executeProviderAction(assets, "borrow");
 
     SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
 
@@ -330,11 +328,14 @@ contract BorrowingVault is BaseVault {
   /**
    * @dev Payback/burnDebtShares common workflow.
    */
-  function _payback(address caller, address owner, uint256 assets, uint256 shares) internal {
+  function _payback(address caller, address owner, uint256 assets, uint256 shares)
+    internal
+    whenNotPaused(VaultActions.Payback)
+  {
     address asset = debtAsset();
     SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
 
-    _executeProviderAction(asset, assets, "payback");
+    _executeProviderAction(assets, "payback");
 
     _burnDebtShares(owner, shares);
 
@@ -355,6 +356,19 @@ contract BorrowingVault is BaseVault {
     debtSharesSupply -= amount;
   }
 
+  ///////////////////
+  /// Rebalancing ///
+  ///////////////////
+
+  // inheritdoc IVault
+  function rebalance(RebalanceAction[] memory actions)
+    external
+    hasRole(msg.sender, REBALANCER_ROLE)
+    returns (bool)
+  {
+    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+  }
+
   //////////////////////
   ///  Liquidation  ////
   //////////////////////
@@ -369,10 +383,9 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 assetShares = balanceOf(owner);
       uint256 assets = convertToAssets(assetShares);
-      uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+      uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
 
-      healthFactor =
-        (assets * liqRatio * price) / (debt * 1e16 * 10 ** IERC20Metadata(asset()).decimals());
+      healthFactor = (assets * liqRatio * price) / (debt * 10 ** decimals());
     }
   }
 
@@ -380,7 +393,7 @@ contract BorrowingVault is BaseVault {
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
-    if (healthFactor >= 100) {
+    if (healthFactor >= 1e18) {
       liquidationFactor = 0;
     } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
@@ -390,8 +403,11 @@ contract BorrowingVault is BaseVault {
   }
 
   /// inheritdoc IVault
-  function liquidate(address owner, address receiver) public returns (uint256 gainedShares) {
-    // TODO only liquidator role, that will be controlled at Chief level.
+  function liquidate(address owner, address receiver)
+    public
+    hasRole(msg.sender, LIQUIDATOR_ROLE)
+    returns (uint256 gainedShares)
+  {
     if (receiver == address(0)) {
       revert BorrowingVault__liquidate_invalidInput();
     }
@@ -404,16 +420,14 @@ contract BorrowingVault is BaseVault {
     }
 
     // Compute debt amount that should be paid by liquidator.
-    uint256 debtShares = _debtShares[owner];
-    uint256 debt = convertToDebt(debtShares);
-    uint256 debtSharesToCover = Math.mulDiv(debtShares, liquidationFactor, 1e18);
+    uint256 debt = convertToDebt(_debtShares[owner]);
+    uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liquidationFactor, 1e18);
     uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
 
     // Compute 'gainedShares' amount that the liquidator will receive.
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtAsset.decimals());
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
-    uint256 gainedAssets = Math.mulDiv(debt, liquidationFactor, discountedPrice);
-    gainedShares = convertToShares(gainedAssets);
+    gainedShares = convertToShares(Math.mulDiv(debt, liquidationFactor, discountedPrice));
 
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
@@ -434,11 +448,11 @@ contract BorrowingVault is BaseVault {
   /// Admin set functions ///
   ///////////////////////////
 
-  function setOracle(IFujiOracle newOracle) external {
-    // TODO needs admin restriction
-    // TODO needs input validation
+  function setOracle(IFujiOracle newOracle) external onlyTimelock {
+    if (address(newOracle) == address(0)) {
+      revert BaseVault__setter_invalidInput();
+    }
     oracle = newOracle;
-
     emit OracleChanged(newOracle);
   }
 
@@ -449,11 +463,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - SHOULD be at least 1%.
    */
-  function setMaxLtv(uint256 maxLtv_) external {
+  function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
     if (maxLtv_ < 1e16) {
       revert BaseVault__setter_invalidInput();
     }
-    // TODO needs admin restriction
     maxLtv = maxLtv_;
     emit MaxLtvChanged(maxLtv);
   }
@@ -465,11 +478,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - SHOULD be greater than 'maxLTV'.
    */
-  function setLiqRatio(uint256 liqRatio_) external {
-    if (liqRatio_ < maxLtv) {
+  function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
+    if (liqRatio_ < maxLtv || liqRatio_ == 0) {
       revert BaseVault__setter_invalidInput();
     }
-    // TODO needs admin restriction
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
   }
