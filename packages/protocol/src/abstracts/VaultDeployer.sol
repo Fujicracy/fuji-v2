@@ -46,7 +46,11 @@ abstract contract VaultDeployer {
     count = vaultsByAsset[asset].length;
   }
 
-  function getVaults(address asset, uint256 startIndex, uint256 count)
+  function getVaults(
+    address asset,
+    uint256 startIndex,
+    uint256 count
+  )
     external
     view
     returns (address[] memory vaults)

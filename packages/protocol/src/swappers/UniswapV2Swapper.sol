@@ -16,7 +16,11 @@ contract UniswapV2Swapper is PeripheryPayments, ISwapper {
   IUniswapV2Router01 public uniswapRouter;
   IFujiOracle public oracle;
 
-  constructor(IWETH9 weth, IUniswapV2Router01 _uniswapRouter, IFujiOracle _oracle)
+  constructor(
+    IWETH9 weth,
+    IUniswapV2Router01 _uniswapRouter,
+    IFujiOracle _oracle
+  )
     PeripheryPayments(weth)
   {
     uniswapRouter = _uniswapRouter;

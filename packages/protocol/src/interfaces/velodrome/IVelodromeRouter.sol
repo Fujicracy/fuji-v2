@@ -13,7 +13,12 @@ interface IVelodromeRouter {
   )
     external;
 
-  function quoteRemoveLiquidity(address tokenA, address tokenB, bool stable, uint256 liquidity)
+  function quoteRemoveLiquidity(
+    address tokenA,
+    address tokenB,
+    bool stable,
+    uint256 liquidity
+  )
     external
     view
     returns (uint256, uint256);

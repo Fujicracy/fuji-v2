@@ -69,7 +69,10 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address user, IVault vault)
+  function getDepositBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override
@@ -81,7 +84,10 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address user, IVault vault)
+  function getBorrowBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override

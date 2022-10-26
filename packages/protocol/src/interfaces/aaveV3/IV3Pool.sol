@@ -71,7 +71,12 @@ interface IV3Pool {
   )
     external;
 
-  function repay(address asset, uint256 amount, uint256 interestRateMode, address onBehalfOf)
+  function repay(
+    address asset,
+    uint256 amount,
+    uint256 interestRateMode,
+    address onBehalfOf
+  )
     external
     returns (uint256);
 

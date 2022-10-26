@@ -66,7 +66,12 @@ abstract contract PeripheryPayments {
     token.safeTransferFrom(msg.sender, recipient, amount);
   }
 
-  function pullTokenFrom(ERC20 token, uint256 amount, address recipient, address sender)
+  function pullTokenFrom(
+    ERC20 token,
+    uint256 amount,
+    address recipient,
+    address sender
+  )
     public
     payable
   {
