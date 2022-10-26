@@ -18,6 +18,7 @@ import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
+// import { useCost } from "../../store/transaction.slice"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -44,12 +45,15 @@ export default function Borrow() {
 
   const updateTokenPrice = useStore((state) => state.updateTokenPrice)
   useEffect(() => {
-    console.count("useEffect")
+    console.debug("useEffect updateTokenPrice")
     updateTokenPrice("collateral")
     updateTokenPrice("borrow")
-  }, [])
+  }, [updateTokenPrice])
+
+  // const cost = useCost()
 
   let error
+  // TODO: 'wrongNetwork' (current network is !== from collateral network)
   if (!address) {
     error = "mustLogin"
   } else if (value > 0 && value > balance) {

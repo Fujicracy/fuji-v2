@@ -233,3 +233,35 @@ export function useLiquidationPrice(liquidationTreshold: number): {
 
   return { liquidationPrice, liquidationDiff }
 }
+
+// TODO: this hook is quite expensive in terms of resources (2 api call), so better debounce before calling it.
+export async function useCost() {
+  const collateralToken = useStore((state) => state.collateral.token)
+  // const collateralChain = useStore((state) => state.collateral.chainId)
+  // const collateralValue = useStore((state) => state.collateral.value)
+  const borrowToken = useStore((state) => state.borrow.token)
+  const borrowChain = useStore((state) => state.borrow.chainId)
+  const borrowValue = useStore((state) => state.borrow.value)
+  const address = useStore((state) => state.address)
+
+  // const cost = useMemo(async () => {
+  if (!borrowValue || !borrowChain || !address) {
+    return 0
+  }
+  // TODO: It seems like getBorrowing vault always return undefined
+  // but it should never happen cause we use `getDebtForChain` and `getCollateralForChain`
+  // and select only available tokens from there.
+  const vault = await sdk.getBorrowingVaultFor(collateralToken, borrowToken)
+  console.log({ vault })
+
+  // TODO: Can't rn because the function is not properly implemented (wrong typing)
+  // const { cost } = await vault.previewDepositAndBorrow(
+  //   BigNumber.from(collateralValue),
+  //   BigNumber.from(borrowValue),
+  //   parseInt(collateralChain),
+  //   new Address(address)
+  // )
+  // return cost
+  // }, [collateralChain, collateralValue, borrowChain, borrowValue])
+  return 0
+}
