@@ -18,6 +18,7 @@ import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
+import { useLtv } from "../../store/transaction.slice"
 // import { useCost } from "../../store/transaction.slice"
 
 export default function Borrow() {
@@ -50,7 +51,7 @@ export default function Borrow() {
     updateTokenPrice("borrow")
   }, [updateTokenPrice])
 
-  // const cost = useCost()
+  const ltv = useLtv()
 
   let error
   // TODO: 'wrongNetwork' (current network is !== from collateral network)
@@ -58,6 +59,8 @@ export default function Borrow() {
     error = "mustLogin"
   } else if (value > 0 && value > balance) {
     error = "insufficientBalance"
+  } else if (ltv > 75) {
+    error = "wrongLtv"
   }
 
   return (
@@ -153,6 +156,12 @@ export default function Borrow() {
           {error === "insufficientBalance" && (
             <Button variant="gradient" disabled fullWidth>
               Insufficient {collateral.token.symbol} balance
+            </Button>
+          )}
+          {error === "wrongLtv" && (
+            <Button variant="gradient" disabled fullWidth>
+              {/* TOOD ltv */}
+              LTV must be lower than 75%
             </Button>
           )}
 
