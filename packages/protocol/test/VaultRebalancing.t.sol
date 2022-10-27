@@ -153,8 +153,12 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     vault_.setActiveProvider(mockProviderA);
   }
 
+  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
+    mockerc20.mint(to, amount);
+  }
+
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
-    deal(address(asset), who, amount);
+    dealMockERC20(MockERC20(address(asset)), who, amount);
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -194,7 +198,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
     uint256 debt = 4 * BORROW_AMOUNT; // alice, bob, charlie, david
 
-    deal(address(debtAsset), address(this), debt);
+    dealMockERC20(MockERC20(address(debtAsset)), address(this), debt);
     bytes memory params =
       abi.encode(assets, debt, 0, address(mockProviderA), address(mockProviderB));
 
@@ -217,5 +221,25 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
     assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
+  }
+
+  function test_partialRebalancingBorrowingVault() public {
+    uint256 assets75 = 3 * DEPOSIT_AMOUNT; // alice, bob, charlie
+    uint256 debt75 = 3 * BORROW_AMOUNT; // alice, bob, charlie
+    uint256 assets25 = DEPOSIT_AMOUNT; // david
+    uint256 debt25 = BORROW_AMOUNT; // david
+
+    dealMockERC20(MockERC20(address(debtAsset)), address(this), debt75);
+    bytes memory params =
+      abi.encode(assets75, debt75, 0, address(mockProviderA), address(mockProviderB));
+
+    SafeERC20.safeApprove(debtAsset, address(bvault), debt75);
+    bvault.rebalance(params);
+
+    assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), assets25);
+    assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), debt25);
+
+    assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), assets75);
+    assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt75);
   }
 }
