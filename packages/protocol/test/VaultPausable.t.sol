@@ -129,8 +129,12 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
+  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
+    mockerc20.mint(to, amount);
+  }
+
   function _utils_doDeposit(uint256 amount, BorrowingVault v, address who) internal {
-    deal(address(asset), who, amount);
+    dealMockERC20(asset, who, amount);
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -251,7 +255,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
     assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
 
-    deal(address(asset), alice, DEPOSIT_AMOUNT);
+    dealMockERC20(asset, alice, DEPOSIT_AMOUNT);
 
     vm.startPrank(alice);
     SafeERC20.safeApprove(asset, address(vault1), DEPOSIT_AMOUNT);
@@ -287,8 +291,8 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
 
-    deal(address(asset), alice, DEPOSIT_AMOUNT);
-    deal(address(asset), bob, DEPOSIT_AMOUNT);
+    dealMockERC20(asset, alice, DEPOSIT_AMOUNT);
+    dealMockERC20(asset, bob, DEPOSIT_AMOUNT);
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);

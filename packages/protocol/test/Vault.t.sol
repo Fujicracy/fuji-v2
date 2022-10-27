@@ -114,8 +114,12 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vault.setActiveProvider(mockProvider);
   }
 
+  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
+    mockerc20.mint(to, amount);
+  }
+
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
-    deal(address(asset), who, amount);
+    dealMockERC20(asset, who, amount);
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -403,7 +407,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint256 price = currentPrice - priceDrop;
     _utils_setPrice(address(asset), address(debtAsset), price);
     _utils_setPrice(address(debtAsset), address(asset), 1e18 / price);
-    deal(address(debtAsset), bob, liquidatorAmount);
+    dealMockERC20(debtAsset, bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
@@ -457,7 +461,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _utils_setPrice(address(asset), address(debtAsset), 1e18 / newPrice);
     _utils_setPrice(address(debtAsset), address(asset), newPrice);
     uint256 liquidatorAmount = borrowAmount;
-    deal(address(debtAsset), bob, liquidatorAmount);
+    dealMockERC20(debtAsset, bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);

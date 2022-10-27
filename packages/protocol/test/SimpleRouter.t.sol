@@ -64,6 +64,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
   address alice = vm.addr(alicePkey);
 
   function setUp() public {
+    vm.label(alice, "Alice");
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
     debtAsset = new MockERC20("Test DAI", "tDAI");
@@ -135,6 +136,10 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
+  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
+    mockerc20.mint(to, amount);
+  }
+
   function utils_doDepositAndBorrow(
     uint256 depositAmount,
     uint256 borrowAmount,
@@ -163,7 +168,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     vm.expectEmit(true, true, true, true);
     emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
-    deal(vault_.asset(), alice, depositAmount);
+    dealMockERC20(asset, alice, depositAmount);
 
     vm.startPrank(alice);
     SafeERC20.safeApprove(IERC20(vault_.asset()), address(simpleRouter), depositAmount);
@@ -253,7 +258,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     vm.expectEmit(true, true, true, true);
     emit Borrow(address(simpleRouter), alice, alice, borrowAmount, borrowAmount);
 
-    deal(address(asset), alice, amount);
+    dealMockERC20(asset, alice, amount);
 
     vm.startPrank(alice);
     SafeERC20.safeApprove(asset, address(simpleRouter), amount);
