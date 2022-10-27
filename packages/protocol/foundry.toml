@@ -12,6 +12,7 @@ mainnet = "${RPC_MAINNET}"
 goerli = "${RPC_GOERLI}"
 optimism_goerli = "${RPC_OPTIMISM_GOERLI}"
 optimism = "${RPC_OPTIMISM}"
+mumbai = "${RPC_MUMBAI}"
 
 [fmt]
 line_length = 100

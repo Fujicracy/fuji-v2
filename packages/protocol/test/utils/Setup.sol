@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
+import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {IConnext} from "../../src/interfaces/connext/IConnext.sol";
+import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
@@ -29,9 +31,9 @@ contract Setup is DSTestPlus, CoreRoles {
 
   uint256 goerliFork;
   uint256 optimismGoerliFork;
+  uint256 mumbaiFork;
 
   uint32 originDomain;
-  uint32 destDomain;
 
   mapping(uint256 => Registry) private registry;
 
@@ -41,15 +43,14 @@ contract Setup is DSTestPlus, CoreRoles {
   ConnextRouter public connextRouter;
 
   IConnext public connext;
-  address public connextWETH;
 
   address public collateralAsset;
   address public debtAsset;
-  address public oracle;
 
   constructor() {
     goerliFork = vm.createFork("goerli");
     optimismGoerliFork = vm.createFork("optimism_goerli");
+    mumbaiFork = vm.createFork("mumbai");
 
     vm.label(address(alice), "alice");
     vm.label(address(bob), "bob");
@@ -80,16 +81,11 @@ contract Setup is DSTestPlus, CoreRoles {
     }
 
     originDomain = domain;
-    destDomain = domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
 
     vm.label(reg.connext, "Connext");
 
-    connextWETH = reg.weth;
+    collateralAsset = reg.weth;
     vm.label(reg.weth, "ConnextWETH");
-
-    MockERC20 tCollateral = new MockERC20("Test COLL", "tCOLL");
-    collateralAsset = address(tCollateral);
-    vm.label(address(tCollateral), "tCOLL");
 
     MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
     debtAsset = address(tDAI);
@@ -98,6 +94,7 @@ contract Setup is DSTestPlus, CoreRoles {
     connext = IConnext(reg.connext);
 
     MockProvider mockProvider = new MockProvider();
+    // TODO: replace with real oracle
     MockOracle mockOracle = new MockOracle();
 
     address[] memory admins = new address[](1);
@@ -108,11 +105,11 @@ contract Setup is DSTestPlus, CoreRoles {
     chief.setTimelock(address(timelock));
 
     // WETH and DAI prices by Aug 12h 2022
-    /*mockOracle.setPriceOf(address(weth), address(debtAsset), 528881643782407);*/
-    /*mockOracle.setPriceOf(address(debtAsset), address(weth), 1889069940262927605990);*/
+    mockOracle.setPriceOf(collateralAsset, address(debtAsset), 528881643782407);
+    mockOracle.setPriceOf(address(debtAsset), address(collateralAsset), 1889069940262927605990);
 
     connextRouter = new ConnextRouter(
-      IWETH9(connextWETH),
+      IWETH9(collateralAsset),
       IConnext(reg.connext)
     );
     vault = new BorrowingVault(
@@ -127,20 +124,12 @@ contract Setup is DSTestPlus, CoreRoles {
     // Configs
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-
     _utils_setupVaultProvider(vault, providers);
 
-    vault.setActiveProvider(mockProvider);
-
-    connextRouter.setRouter(
-      domain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN, address(0xAbc1)
-    );
-  }
-
-  function _utils_setupTestRoles() internal {
-    // Grant this test address all roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    // addresses are supposed to be the same across different chains
+    connextRouter.setRouter(GOERLI_DOMAIN, address(connextRouter));
+    connextRouter.setRouter(OPTIMISM_GOERLI_DOMAIN, address(connextRouter));
+    connextRouter.setRouter(MUMBAI_DOMAIN, address(connextRouter));
   }
 
   function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
@@ -151,8 +140,36 @@ contract Setup is DSTestPlus, CoreRoles {
   }
 
   function _utils_setupVaultProvider(IVault vault_, ILendingProvider[] memory providers_) internal {
-    _utils_setupTestRoles();
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers_);
     _utils_callWithTimelock(sendData, vault_);
+
+    chief.grantRole(REBALANCER_ROLE, address(this));
+    vault.setActiveProvider(providers_[0]);
+  }
+
+  // plusNonce is necessary for compound operations,
+  // those that needs more than one signiture in the same tx
+  function _utils_getPermitBorrowArgs(
+    address owner,
+    address operator,
+    uint256 borrowAmount,
+    uint256 plusNonce,
+    address vault_
+  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
+    deadline = block.timestamp + 1 days;
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      owner: owner,
+      spender: operator,
+      amount: borrowAmount,
+      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
+      deadline: deadline
+    });
+    bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      // This domain should be obtained from the chain on which state will change.
+      IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
+      structHash
+    );
+    (v, r, s) = vm.sign(alicePkey, digest);
   }
 }

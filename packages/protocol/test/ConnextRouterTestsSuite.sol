@@ -2,14 +2,12 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console2.sol";
-import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
+import {Setup} from "./utils/Setup.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
-import {Setup} from "./utils/Setup.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";
-import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 
 contract ConnextRouterTestsSuite is Setup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
@@ -24,46 +22,37 @@ contract ConnextRouterTestsSuite is Setup {
 
   event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
-  // plusNonce is necessary for compound operations,
-  // those that needs more than one signiture in the same tx
-  function utils_getPermitBorrowArgs(
-    address owner,
-    address operator,
-    uint256 borrowAmount,
-    uint256 plusNonce,
-    address vault_
-  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
-    deadline = block.timestamp + 1 days;
-    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-      owner: owner,
-      spender: operator,
-      amount: borrowAmount,
-      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
-      deadline: deadline
-    });
-    bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
-    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
-      // This domain should be obtained from the chain on which state will change.
-      IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
-      structHash
-    );
-    (v, r, s) = vm.sign(alicePkey, digest);
-  }
-
   function test_bridgeOutbound() public {
-    uint256 amount = 2 ether;
-    deal(connextWETH, alice, amount);
-    assertEq(IERC20(connextWETH).balanceOf(alice), amount);
+    uint256 amount = 0.002 ether;
+    deal(collateralAsset, alice, amount);
+
+    uint32 destDomain = originDomain == GOERLI_DOMAIN ? OPTIMISM_GOERLI_DOMAIN : GOERLI_DOMAIN;
 
     vm.startPrank(alice);
 
-    SafeERC20.safeApprove(IERC20(connextWETH), address(connextRouter), type(uint256).max);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
 
     actions[0] = IRouter.Action.XTransferWithCall;
-    args[0] = abi.encode(destDomain, connextWETH, amount, "");
+    bytes memory randomData = abi.encode(keccak256("data_data"));
+    args[0] = abi.encode(destDomain, collateralAsset, amount, randomData);
+
+    /*bytes4 selector =*/
+    /*bytes4(keccak256("xCall(uint32,address,address,address,uint256,uint256,bytes)"));*/
+    /*bytes memory callData = abi.encodeWithSelector(*/
+    /*selector,*/
+    /*destDomain,*/
+    /*connextRouter.routerByDomain(destDomain),*/
+    /*collateralAsset,*/
+    /*alice,*/
+    /*amount,*/
+    /*30,*/
+    /*randomData*/
+    /*);*/
+
+    /*vm.expectCall(address(connext), "");*/
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -84,7 +73,7 @@ contract ConnextRouterTestsSuite is Setup {
     args[0] = abi.encode(address(vault), amount, alice, address(connextRouter));
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      utils_getPermitBorrowArgs(alice, address(connextRouter), borrowAmount, 0, address(vault));
+      _utils_getPermitBorrowArgs(alice, address(connextRouter), borrowAmount, 0, address(vault));
 
     args[1] =
       abi.encode(address(vault), alice, address(connextRouter), borrowAmount, deadline, v, r, s);
