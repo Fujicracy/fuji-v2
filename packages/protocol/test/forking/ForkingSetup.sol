@@ -14,6 +14,11 @@ import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
 
+// How to add a new chain with its domain?
+// 1. Add a domain ID. Domains originate from Connext (check their docs)
+// 2. Create a fork and save it in "forks" mapping
+// 3. Create a registry entry with addresses for reuiqred resources
+
 contract ForkingSetup is CoreRoles, Test {
   uint32 public constant GOERLI_DOMAIN = 1735353714;
   uint32 public constant OPTIMISM_GOERLI_DOMAIN = 1735356532;
