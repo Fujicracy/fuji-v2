@@ -4,10 +4,7 @@ import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
-import {
-  CONNEXT_ADDRESS,
-  CONNEXT_EXECUTOR_ADDRESS,
-} from '../constants/addresses';
+import { CONNEXT_ROUTER_ADDRESS } from '../constants/addresses';
 import { ChainId, RouterAction } from '../enums';
 import { getPermitDigest } from '../functions';
 import {
@@ -352,7 +349,7 @@ export class BorrowingVault extends StreamManager {
     account: Address
   ): RouterActionParams[] {
     // TODO estimate bridge cost
-    const connextRouter: Address = CONNEXT_ADDRESS[this.chainId];
+    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[this.chainId];
     if (srcChainId === this.chainId) {
       return [
         this._previewDeposit(amountIn, account, account),
@@ -361,9 +358,8 @@ export class BorrowingVault extends StreamManager {
       ];
     }
 
-    const connextExecutor: Address = CONNEXT_EXECUTOR_ADDRESS[this.chainId];
     return [
-      this._previewDeposit(amountIn, connextExecutor, account),
+      this._previewDeposit(amountIn, connextRouter, account),
       this._previewPermitBorrow(amountOut, connextRouter, account),
       this._previewBorrow(amountOut, account),
     ];
