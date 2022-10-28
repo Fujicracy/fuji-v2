@@ -2,50 +2,29 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {TimelockController} from
-  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {Test} from "forge-std/Test.sol";
-import {Chief} from "../src/Chief.sol";
-import {FujiOracle} from "../src/FujiOracle.sol";
-import {AddrMapper} from "../src/helpers/AddrMapper.sol";
-import {SystemAccessControl} from "../src/access/SystemAccessControl.sol";
-import {MockERC20} from "../src/mocks/MockERC20.sol";
-import {MockChainlinkPriceFeed} from "../src/mocks/MockChainlinkPriceFeed.sol";
+import {MockingSetup} from "../MockingSetup.sol";
+import {Chief} from "../../../src/Chief.sol";
+import {FujiOracle} from "../../../src/FujiOracle.sol";
+import {AddrMapper} from "../../../src/helpers/AddrMapper.sol";
+import {SystemAccessControl} from "../../../src/access/SystemAccessControl.sol";
+import {MockERC20} from "../../../src/mocks/MockERC20.sol";
+import {MockChainlinkPriceFeed} from "../../../src/mocks/MockChainlinkPriceFeed.sol";
 
-contract AccessControlUnitTests is Test {
-  Chief public chief;
-  TimelockController public timelock;
-  FujiOracle public oracle;
+contract AccessControlUnitTests is MockingSetup {
+  FujiOracle public fujiOracle;
   AddrMapper public addrMapper;
 
   MockERC20 public asset;
   MockChainlinkPriceFeed public mockPriceFeed;
 
-  uint256 alicePkey = 0xA;
-  address alice = vm.addr(alicePkey);
-
-  uint256 bobPkey = 0xB;
-  address bob = vm.addr(bobPkey);
-
   function setUp() public {
-    vm.label(alice, "Alice");
-    vm.label(bob, "Bob");
-
-    asset = new MockERC20("Test WETH", "tWETH");
-    vm.label(address(asset), "tWETH");
+    asset = MockERC20(collateralAsset);
 
     mockPriceFeed = new MockChainlinkPriceFeed(
       "ETH / USD",
       8,
       200000000000
     );
-
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
-    chief = new Chief();
-    chief.setTimelock(address(timelock));
 
     addrMapper = AddrMapper(chief.addrMapper());
 
@@ -54,7 +33,7 @@ contract AccessControlUnitTests is Test {
     address[] memory priceFeeds = new address[](1);
     priceFeeds[0] = address(mockPriceFeed);
 
-    oracle = new FujiOracle(assets, priceFeeds, address(chief));
+    fujiOracle = new FujiOracle(assets, priceFeeds, address(chief));
   }
 
   /// FujiOracle access control tests
@@ -68,7 +47,7 @@ contract AccessControlUnitTests is Test {
       SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
     );
     vm.prank(foe);
-    oracle.setPriceFeed(address(asset), address(maliciousPriceFeed));
+    fujiOracle.setPriceFeed(address(asset), address(maliciousPriceFeed));
     vm.stopPrank();
   }
 
