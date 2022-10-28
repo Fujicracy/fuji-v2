@@ -4,7 +4,7 @@ import invariant from 'tiny-invariant';
 
 import {
   COLLATERAL_LIST,
-  CONNEXT_ADDRESS,
+  CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
   VAULT_LIST,
 } from './constants';
@@ -69,7 +69,7 @@ export class Sdk {
    * @param account - user address, wrapped in {@link Address}
    */
   getAllowanceFor(currency: Currency, account: Address): Promise<BigNumber> {
-    const router: Address = CONNEXT_ADDRESS[currency.chainId];
+    const router: Address = CONNEXT_ROUTER_ADDRESS[currency.chainId];
     return currency
       .setConnection(this._configParams)
       .allowance(account, router);
