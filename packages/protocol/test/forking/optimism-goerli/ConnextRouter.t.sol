@@ -31,7 +31,7 @@ contract ConnextRouterTest is Routines, ForkingSetup {
   ConnextRouter public connextRouter;
 
   function setUp() public {
-    uint32 domain = GOERLI_DOMAIN;
+    uint32 domain = OPTIMISM_GOERLI_DOMAIN;
     deploy(domain);
 
     connextRouter = new ConnextRouter(
@@ -53,10 +53,10 @@ contract ConnextRouterTest is Routines, ForkingSetup {
   }
 
   function test_bridgeOutbound() public {
-    uint256 amount = 2 ether;
+    uint256 amount = 0.2 ether;
     deal(collateralAsset, ALICE, amount);
 
-    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+    uint32 destDomain = GOERLI_DOMAIN;
 
     vm.startPrank(ALICE);
 
@@ -91,8 +91,8 @@ contract ConnextRouterTest is Routines, ForkingSetup {
   }
 
   function test_bridgeInbound() public {
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e6;
+    uint256 amount = 0.2 ether;
+    uint256 borrowAmount = 100e6;
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
