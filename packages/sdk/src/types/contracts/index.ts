@@ -158,7 +158,3 @@ export type { BorrowingVaultFactory } from "./src/vaults/borrowing/BorrowingVaul
 export { BorrowingVaultFactory__factory } from "./factories/src/vaults/borrowing/BorrowingVaultFactory__factory";
 export type { VaultPermissions } from "./src/vaults/VaultPermissions";
 export { VaultPermissions__factory } from "./factories/src/vaults/VaultPermissions__factory";
-export type { YieldVault } from "./src/vaults/yield/YieldVault";
-export { YieldVault__factory } from "./factories/src/vaults/yield/YieldVault__factory";
-export type { YieldVaultFactory } from "./src/vaults/yield/YieldVaultFactory";
-export { YieldVaultFactory__factory } from "./factories/src/vaults/yield/YieldVaultFactory__factory";
