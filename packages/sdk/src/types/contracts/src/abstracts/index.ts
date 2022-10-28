@@ -3,4 +3,5 @@
 /* eslint-disable */
 export type { BaseRouter } from "./BaseRouter";
 export type { BaseVault } from "./BaseVault";
+export type { PausableVault } from "./PausableVault";
 export type { VaultDeployer } from "./VaultDeployer";
