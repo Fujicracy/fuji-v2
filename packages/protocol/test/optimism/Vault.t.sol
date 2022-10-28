@@ -7,8 +7,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
-import {BeefyVelodromesETHETHOptimism} from
-  "../../src/providers/optimism/BeefyVelodromesETHETHOptimism.sol";
+import {BeefyVelodromesETHETH} from "../../src/providers/optimism/BeefyVelodromesETHETH.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
@@ -46,7 +45,7 @@ contract VaultTest is DSTestPlus, CoreRoles {
 
     vault =
       new YieldVault(address(weth), address(chief), "Fuji-V2 WETH YieldVault Shares", "fyvWETH");
-    ILendingProvider beefy = new BeefyVelodromesETHETHOptimism();
+    ILendingProvider beefy = new BeefyVelodromesETHETH();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = beefy;
     _utils_setupVaultProvider(vault, providers);

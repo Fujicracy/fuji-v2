@@ -19,6 +19,7 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant OPTIMISM_GOERLI_DOMAIN = 1735356532;
   uint32 public constant MUMBAI_DOMAIN = 9991;
   uint32 public constant MAINNET_DOMAIN = 6648936;
+  uint32 public constant OPTIMISM_DOMAIN = 22222222; // TODO: replace with the real one
 
   uint256 public constant ALICE_PK = 0xA;
   address public ALICE = vm.addr(ALICE_PK);
@@ -57,6 +58,7 @@ contract ForkingSetup is CoreRoles, Test {
     forks[OPTIMISM_GOERLI_DOMAIN] = vm.createFork("optimism_goerli");
     forks[MUMBAI_DOMAIN] = vm.createFork("mumbai");
     forks[MAINNET_DOMAIN] = vm.createFork("mainnet");
+    forks[OPTIMISM_DOMAIN] = vm.createFork("optimism");
 
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
@@ -85,6 +87,13 @@ contract ForkingSetup is CoreRoles, Test {
       connext: address(0)
     });
     registry[MAINNET_DOMAIN] = mainnet;
+
+    Registry memory optimism = Registry({
+      weth: 0x4200000000000000000000000000000000000006,
+      usdc: 0x7F5c764cBc14f9669B88837ca1490cCa17c31607,
+      connext: address(0)
+    });
+    registry[OPTIMISM_DOMAIN] = optimism;
   }
 
   function deploy(uint32 domain) public {
