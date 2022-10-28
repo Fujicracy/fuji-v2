@@ -237,7 +237,7 @@ export class BorrowingVault extends StreamManager {
     const borrowRate: BigNumber = await ILendingProvider__factory.connect(
       activeProvider,
       this.rpcProvider
-    ).getBorrowRateFor(this.debt.address.value);
+    ).getBorrowRateFor(this.address.value);
 
     return borrowRate;
   }
@@ -259,12 +259,12 @@ export class BorrowingVault extends StreamManager {
 
     const depositCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).getDepositRateFor(
-        this.debt.address.value
+        this.address.value
       )
     );
     const borrowCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).getBorrowRateFor(
-        this.debt.address.value
+        this.address.value
       )
     );
 
