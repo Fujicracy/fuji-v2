@@ -168,7 +168,7 @@ export class BorrowingVault extends StreamManager {
   ): boolean {
     // TODO: do we need to check presence of r,v,s in PERMITs?
 
-    return !!params.find(p => {
+    return !!params.find((p) => {
       if (p instanceof Array) {
         return BorrowingVault.needSignature(p);
       }
@@ -213,17 +213,13 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    const [
-      maxLtv,
-      liqRatio,
-      nonce,
-      domainSeparator,
-    ] = await this.multicallRpcProvider.all([
-      this.multicallContract.maxLtv(),
-      this.multicallContract.liqRatio(),
-      this.multicallContract.nonces(account.value),
-      this.multicallContract.DOMAIN_SEPARATOR(),
-    ]);
+    const [maxLtv, liqRatio, nonce, domainSeparator] =
+      await this.multicallRpcProvider.all([
+        this.multicallContract.maxLtv(),
+        this.multicallContract.liqRatio(),
+        this.multicallContract.nonces(account.value),
+        this.multicallContract.DOMAIN_SEPARATOR(),
+      ]);
 
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
@@ -264,12 +260,12 @@ export class BorrowingVault extends StreamManager {
     const allProvidersAddrs: string[] = await this.contract.getProviders();
     const activeProviderAddr: string = await this.contract.activeProvider();
 
-    const depositCalls = allProvidersAddrs.map(addr =>
+    const depositCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).getDepositRateFor(
         this.debt.address.value
       )
     );
-    const borrowCalls = allProvidersAddrs.map(addr =>
+    const borrowCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).getBorrowRateFor(
         this.debt.address.value
       )
