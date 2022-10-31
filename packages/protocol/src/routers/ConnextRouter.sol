@@ -11,8 +11,13 @@ import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IChief} from "../interfaces/IChief.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
+  event NewRouterAdded(address router, uint256 domain);
+
+  error ConnextRouter__setRouter_invalidInput();
+
   // The connext contract on the origin domain.
   IConnext public immutable connext;
 
@@ -33,7 +38,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     _;
   }
 
-  constructor(IWETH9 weth, IConnext connext_) BaseRouter(weth) {
+  constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
   }
 
@@ -113,9 +118,12 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /// Admin functions ///
   ///////////////////////
 
-  function setRouter(uint256 domain, address router) external {
-    // TODO only owner
-    // TODO verify params
+  function setRouter(uint256 domain, address router) external onlyTimelock {
+    if (router == address(0)) {
+      revert ConnextRouter__setRouter_invalidInput();
+    }
     routerByDomain[domain] = router;
+
+    emit NewRouterAdded(router, domain);
   }
 }

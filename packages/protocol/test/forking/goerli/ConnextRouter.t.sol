@@ -36,7 +36,8 @@ contract ConnextRouterTest is Routines, ForkingSetup {
 
     connextRouter = new ConnextRouter(
       IWETH9(collateralAsset),
-      IConnext(registry[domain].connext)
+      IConnext(registry[domain].connext),
+      chief
     );
     // addresses are supposed to be the same across different chains
     connextRouter.setRouter(GOERLI_DOMAIN, address(connextRouter));

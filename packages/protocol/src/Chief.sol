@@ -7,18 +7,13 @@ import {TimelockController} from
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
+import {IChief} from "./interfaces/IChief.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
-/// @dev Custom Errors
-error Chief__setTimelock_zeroAddress();
-error Chief__deployVault_zeroAddress();
-error Chief__deployVault_factoryNotAllowed();
-error Chief__deployVault_missingRole(address account, bytes32 role);
-
 /// @notice Vault deployer contract with template factory allow.
 /// ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
-contract Chief is CoreRoles, AccessControl {
+contract Chief is CoreRoles, AccessControl, IChief {
   using Address for address;
 
   event OpenVaultFactory(bool state);
@@ -26,6 +21,11 @@ contract Chief is CoreRoles, AccessControl {
   event AddToAllowed(address indexed factory);
   event RemoveFromAllowed(address indexed factory);
   event TimelockUpdated(address indexed timelock);
+
+  error Chief__setTimelock_zeroAddress();
+  error Chief__deployVault_zeroAddress();
+  error Chief__deployVault_factoryNotAllowed();
+  error Chief__deployVault_missingRole(address account, bytes32 role);
 
   address public timelock;
   address public addrMapper;

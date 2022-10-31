@@ -11,11 +11,12 @@ pragma solidity 0.8.15;
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IChief} from "../interfaces/IChief.sol";
 
 contract SimpleRouter is BaseRouter {
   error SimpleRouter__noCrossTransfersImplemented();
 
-  constructor(IWETH9 weth) BaseRouter(weth) {}
+  constructor(IWETH9 weth, IChief chief) BaseRouter(weth, chief) {}
 
   function _crossTransfer(bytes memory params) internal pure override {
     params;

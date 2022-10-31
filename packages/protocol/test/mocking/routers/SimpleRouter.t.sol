@@ -71,7 +71,7 @@ contract SimpleRouterUnitTests is MockingSetup {
     _setVaultProviders(vault, providers);
     vault.setActiveProvider(mockProvider);
 
-    simpleRouter = new SimpleRouter(IWETH9(collateralAsset));
+    simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
   }
 
   function _depositAndBorrow(uint256 deposit, uint256 debt, IVault vault_) internal {

@@ -7,6 +7,8 @@ import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
+import {Chief} from "../src/Chief.sol";
+import {IChief} from "../src/interfaces/IChief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
@@ -16,6 +18,7 @@ import {MockOracle} from "../src/mocks/MockOracle.sol";
 contract DeployOptimismGoerli is ScriptPlus {
   IVault public vault;
   IWETH9 public weth;
+  IChief public chief;
   IConnext public connextHandler;
 
   ConnextRouter public connextRouter;
@@ -43,7 +46,9 @@ contract DeployOptimismGoerli is ScriptPlus {
     mockProvider = new MockProvider();
     saveAddress("MockProvider", address(mockProvider));
 
-    connextRouter = new ConnextRouter(weth, connextHandler);
+    chief = new Chief();
+
+    connextRouter = new ConnextRouter(weth, connextHandler, chief);
     saveAddress("ConnextRouter", address(connextRouter));
 
     vault = new BorrowingVault(
