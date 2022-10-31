@@ -191,14 +191,19 @@ interface IVault is IERC4626 {
   /**
    * @notice Returns the active provider of this vault.
    */
-  function activeProvider() external returns (ILendingProvider);
+  function getProviders() external view returns (ILendingProvider[] memory);
+  /**
+   * @notice Returns the active provider of this vault.
+   */
+  function activeProvider() external view returns (ILendingProvider);
 
   /// Rebalancing Functions
 
   /**
-   * @notice Performs rebalancing of vault by performing `RebalanceAction` actions.
+   * @notice Performs rebalancing of vault.
    * @param params encoded parameters for rebalancing.
    *
+   * - MUST be called from a {RebalancerManager} contract that makes all proper checks.
    * - MUST revert if caller is not an approved rebalancer.
    * - MUST emit the VaultRebalance event.
    *

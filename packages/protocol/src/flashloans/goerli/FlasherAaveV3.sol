@@ -16,7 +16,7 @@ import {IFlasher} from "../../interfaces/IFlasher.sol";
  * logic for all active flash loan providers
  */
 
-contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
+contract FlasherAaveV3 is IFlashLoanSimpleReceiver, IFlasher {
   using SafeERC20 for IERC20;
 
   error Flasher__invalidFlashloanProvider();
@@ -34,25 +34,17 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
   /**
    * @dev Routing Function for Flashloan Provider
    * @param params: struct information for flashLoan
-   * @param providerId: integer identifier of flashloan provider
    */
-  function initiateFlashloan(
-    FlashloanParams calldata params,
-    uint8 providerId
-  )
-    external
-    override /*isAuthorized*/
-  {
+  function initiateFlashloan(FlashloanParams calldata params) external override /*isAuthorized*/ {
     if (_entryPoint != "") {
       revert Flasher__notEmptyEntryPoint();
     }
-
     _entryPoint = keccak256(abi.encode(params));
-    if (providerId == 0) {
-      _initiateAaveV3FlashLoan(params);
-    } else {
-      revert Flasher__invalidFlashloanProvider();
-    }
+    _initiateAaveV3FlashLoan(params);
+  }
+
+  function computeFlashloanFee(uint256) external view returns (uint256 fee) {
+    // TODO proper implementation of this method
   }
 
   // ===================== AaveV3 Flashloan ===================================

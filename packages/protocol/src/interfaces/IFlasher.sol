@@ -12,5 +12,7 @@ interface IFlasher {
     bytes[] args;
   }
 
-  function initiateFlashloan(FlashloanParams calldata params, uint8 providerId) external;
+  function initiateFlashloan(FlashloanParams calldata params) external;
+
+  function computeFlashloanFee(uint256 amount) external view returns (uint256 fee);
 }

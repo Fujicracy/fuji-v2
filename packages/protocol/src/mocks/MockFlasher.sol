@@ -10,13 +10,15 @@ import {MockERC20} from "./MockERC20.sol";
 contract MockFlasher is IFlasher {
   using SafeERC20 for IERC20;
 
-  function initiateFlashloan(FlashloanParams calldata params, uint8 providerId) external {
-    providerId;
-
+  function initiateFlashloan(FlashloanParams calldata params) external {
     MockERC20(params.asset).mint(address(this), params.amount);
 
     IERC20(params.asset).safeApprove(params.router, params.amount);
     // call back Router
     IRouter(params.router).xBundle(params.actions, params.args);
+  }
+
+  function computeFlashloanFee(uint256) external pure returns (uint256 fee) {
+    fee = 0;
   }
 }
