@@ -39,10 +39,19 @@ contract ConnextRouterTest is Routines, ForkingSetup {
       IConnext(registry[domain].connext),
       chief
     );
+
     // addresses are supposed to be the same across different chains
-    connextRouter.setRouter(GOERLI_DOMAIN, address(connextRouter));
-    connextRouter.setRouter(OPTIMISM_GOERLI_DOMAIN, address(connextRouter));
-    connextRouter.setRouter(MUMBAI_DOMAIN, address(connextRouter));
+    /*connextRouter.setRouter(OPTIMISM_GOERLI_DOMAIN, address(connextRouter));*/
+    bytes memory callData = abi.encodeWithSelector(
+      ConnextRouter.setRouter.selector, OPTIMISM_GOERLI_DOMAIN, address(connextRouter)
+    );
+    _callWithTimelock(callData, address(connextRouter));
+
+    /*connextRouter.setRouter(MUMBAI_DOMAIN, address(connextRouter));*/
+    callData = abi.encodeWithSelector(
+      ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
+    );
+    _callWithTimelock(callData, address(connextRouter));
 
     // test with a mock provider because Connext's and Aave's WETH mismatch
     MockProvider mockProvider = new MockProvider();
