@@ -111,31 +111,13 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function _utils_doPaybackRoutine(address who, uint256 amount) internal {
-    console.log("1");
     vm.startPrank(who);
-
-    console.log("2");
     uint256 prevDebt = vault.balanceOfDebt(who);
-
-    console.log("prevdebt",prevDebt);
-
-    console.log("3");
     SafeERC20.safeApprove(IERC20(address(usdc)), address(vault), amount);
-
-    console.log("amount  ",prevDebt);
-    console.log("4");
     vault.payback(amount, who);
-
-    console.log("5");
     uint256 debtDiff = prevDebt - amount;
-
-    console.log("6");
     assertEq(vault.balanceOfDebt(who), debtDiff);
-
-    console.log("7");
     vm.stopPrank();
-
-    console.log("8");
   }
 
   function _utils_doWithdrawRoutine(address who, uint256 amount) internal {
