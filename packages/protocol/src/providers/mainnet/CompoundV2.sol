@@ -54,13 +54,13 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
-  function approvedOperator(address vault) external view returns (address operator) {
-    operator = getMapper().getAddressMapping(providerName(), IVault(vault).asset());
+  function approvedOperator(address asset, address) external view returns (address operator) {
+    operator = getMapper().getAddressMapping(providerName(), asset);
   }
 
   /// inheritdoc ILendingProvider
-  function deposit(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).asset();
+  function deposit(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     _enterCollatMarket(cTokenAddr);
@@ -76,44 +76,54 @@ contract CompoundV2 is ILendingProvider {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
       uint256 status = cToken.mint(amount);
-      if (status != 0) revert CompoundV2__deposit_failed(status);
+      if (status != 0) {
+        revert CompoundV2__deposit_failed(status);
+      }
     }
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function borrow(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).debtAsset();
+  function borrow(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.borrow(amount);
-    if (status != 0) revert CompoundV2__borrow_failed(status);
+    if (status != 0) {
+      revert CompoundV2__borrow_failed(status);
+    }
 
     // wrap ETH to WETH
-    if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
+    if (_isWETH(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function withdraw(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).asset();
+  function withdraw(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.redeemUnderlying(amount);
-    if (status != 0) revert CompoundV2__withdraw_failed(status);
+    if (status != 0) {
+      revert CompoundV2__withdraw_failed(status);
+    }
 
     // wrap ETH to WETH
-    if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
+    if (_isWETH(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
   /// inheritdoc ILendingProvider
-  function payback(uint256 amount, address vault) external returns (bool success) {
-    address asset = IVault(vault).debtAsset();
+  function payback(uint256 amount, IVault vault) external returns (bool success) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     if (_isWETH(asset)) {
@@ -126,7 +136,9 @@ contract CompoundV2 is ILendingProvider {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
       uint256 status = cToken.repayBorrow(amount);
-      if (status != 0) revert CompoundV2__payback_failed(status);
+      if (status != 0) {
+        revert CompoundV2__payback_failed(status);
+      }
     }
     success = true;
   }
@@ -134,7 +146,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getDepositRateFor}.
    */
-  function getDepositRateFor(address asset, address) external view returns (uint256 rate) {
+  function getDepositRateFor(IVault vault) external view returns (uint256 rate) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     // Block rate transformed for common mantissa for Fuji in ray (1e27)
@@ -149,7 +162,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getBorrowRateFor}.
    */
-  function getBorrowRateFor(address asset, address) external view returns (uint256 rate) {
+  function getBorrowRateFor(IVault vault) external view returns (uint256 rate) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     // Block rate transformed for common mantissa for Fuji in ray (1e27)
@@ -164,11 +178,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getDepositBalance}.
    */
-  function getDepositBalance(address asset, address user, address)
-    external
-    view
-    returns (uint256 balance)
-  {
+  function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
+    address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
     uint256 cTokenBal = ICToken(cTokenAddr).balanceOf(user);
     uint256 exRate = ICToken(cTokenAddr).exchangeRateStored();
@@ -179,11 +190,8 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-getBorrowBalance}.
    */
-  function getBorrowBalance(address asset, address user, address)
-    external
-    view
-    returns (uint256 balance)
-  {
+  function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
+    address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
     balance = ICToken(cTokenAddr).borrowBalanceStored(user);

@@ -36,7 +36,10 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
    * @param params: struct information for flashLoan
    * @param providerId: integer identifier of flashloan provider
    */
-  function initiateFlashloan(FlashloanParams calldata params, uint8 providerId)
+  function initiateFlashloan(
+    FlashloanParams calldata params,
+    uint8 providerId
+  )
     external
     override /*isAuthorized*/
   {
@@ -77,7 +80,11 @@ contract Flasher is IFlashLoanSimpleReceiver, IFlasher {
     uint256 premium,
     address initiator,
     bytes calldata data
-  ) external override returns (bool) {
+  )
+    external
+    override
+    returns (bool)
+  {
     if (msg.sender != aaveV3Pool || initiator != address(this)) {
       revert Flasher__notAuthorized();
     }

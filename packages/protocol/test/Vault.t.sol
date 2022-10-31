@@ -127,7 +127,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint256 borrowAmount,
     IVault v,
     address who
-  ) internal {
+  )
+    internal
+  {
     _utils_doDeposit(depositAmount, v, who);
     vm.prank(who);
     v.borrow(borrowAmount, who, who);
@@ -141,7 +143,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     return borrowAmount < maxBorrow;
   }
 
-  function _utils_getHealthFactor(uint96 amount, uint96 borrowAmount)
+  function _utils_getHealthFactor(
+    uint96 amount,
+    uint96 borrowAmount
+  )
     internal
     view
     returns (uint256)
@@ -150,7 +155,11 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     return (amount * LIQUIDATION_RATIO * price) / (borrowAmount * 10 ** ASSET_DECIMALS);
   }
 
-  function _utils_getFutureHealthFactor(uint96 amount, uint96 borrowAmount, uint80 priceDrop)
+  function _utils_getFutureHealthFactor(
+    uint96 amount,
+    uint96 borrowAmount,
+    uint80 priceDrop
+  )
     internal
     view
     returns (uint256)
@@ -160,9 +169,13 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
       / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
   }
 
-  function _utils_getLiquidationThresholdValue(uint256 price, uint256 deposit, uint256 borrowAmount)
+  function _utils_getLiquidationThresholdValue(
+    uint256 price,
+    uint256 deposit,
+    uint256 borrowAmount
+  )
     internal
-    view
+    pure
     returns (uint256)
   {
     require(
@@ -172,7 +185,11 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     return (price - ((borrowAmount * 1e36) / (deposit * LIQUIDATION_RATIO)));
   }
 
-  function _utils_checkLiquidateMaxFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop)
+  function _utils_checkLiquidateMaxFuture(
+    uint96 amount,
+    uint96 borrowAmount,
+    uint80 priceDrop
+  )
     internal
     view
     returns (bool)
@@ -184,7 +201,11 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     return hf <= 95;
   }
 
-  function _utils_checkLiquidateDiscountFuture(uint96 amount, uint96 borrowAmount, uint80 priceDrop)
+  function _utils_checkLiquidateDiscountFuture(
+    uint96 amount,
+    uint96 borrowAmount,
+    uint80 priceDrop
+  )
     internal
     view
     returns (bool)
@@ -366,7 +387,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint32 borrowAmount,
     uint32 liquidatorAmount,
     uint8 priceDrop
-  ) public {
+  )
+    public
+  {
     vm.assume(
       amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0
         && liquidatorAmount > borrowAmount

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import {IVault} from "./IVault.sol";
+
 /**
  * @title Lending provider interface.
  * @author fujidao Labs
@@ -13,9 +15,10 @@ interface ILendingProvider {
   function providerName() external view returns (string memory);
   /**
    * @notice Returns the operator address that requires ERC20-approval for deposits.
-   * @param vault address.
+   * @param asset address.
+   * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    */
-  function approvedOperator(address vault) external view returns (address operator);
+  function approvedOperator(address asset, address vault) external view returns (address operator);
 
   /**
    * @notice Performs deposit operation at lending provider on behalf vault.
@@ -25,7 +28,7 @@ interface ILendingProvider {
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function deposit(uint256 amount, address vault) external returns (bool success);
+  function deposit(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Performs borrow operation at lending provider on behalf vault.
@@ -35,7 +38,7 @@ interface ILendingProvider {
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function borrow(uint256 amount, address vault) external returns (bool success);
+  function borrow(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Performs withdraw operation at lending provider on behalf vault.
@@ -45,7 +48,7 @@ interface ILendingProvider {
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
    */
-  function withdraw(uint256 amount, address vault) external returns (bool success);
+  function withdraw(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * of a `vault`.
@@ -57,53 +60,43 @@ interface ILendingProvider {
    * - This function should be delegate called in the context of a `vault`.
    * - Check there is erc20-approval to `approvedOperator` by the `vault` prior to call.
    */
-  function payback(uint256 amount, address vault) external returns (bool success);
+  function payback(uint256 amount, IVault vault) external returns (bool success);
 
   /**
    * @notice Returns DEPOSIT balance of 'user' at lending provider.
-   * @param asset address.
    * @param user address whom balance is needed.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD NOT require Vault context.
    */
-  function getDepositBalance(address asset, address user, address vault)
-    external
-    view
-    returns (uint256 balance);
+  function getDepositBalance(address user, IVault vault) external view returns (uint256 balance);
 
   /**
    * @notice Returns BORROW balance of 'user' at lending provider.
-   * @param asset address.
    * @param user address whom balance is needed.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowBalance(address asset, address user, address vault)
-    external
-    view
-    returns (uint256 balance);
+  function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance);
 
   /**
    * @notice Returns the latest SUPPLY annual percent rate (APR) at lending provider.
-   * @param asset address.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getDepositRateFor(address asset, address vault) external view returns (uint256 rate);
+  function getDepositRateFor(IVault vault) external view returns (uint256 rate);
 
   /**
    * @notice Returns the latest BORROW annual percent rate (APR) at lending provider.
-   * @param asset address.
    * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
    * - SHOULD NOT require Vault context.
    */
-  function getBorrowRateFor(address asset, address vault) external view returns (uint256 rate);
+  function getBorrowRateFor(IVault vault) external view returns (uint256 rate);
 }

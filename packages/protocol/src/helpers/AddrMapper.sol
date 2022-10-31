@@ -29,7 +29,10 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     return _providerNames;
   }
 
-  function getAddressMapping(string memory providerName, address inputAddr)
+  function getAddressMapping(
+    string memory providerName,
+    address inputAddr
+  )
     external
     view
     override
@@ -42,7 +45,12 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     string memory providerName,
     address inputAddr1,
     address inputAddr2
-  ) external view override returns (address) {
+  )
+    external
+    view
+    override
+    returns (address)
+  {
     return _addrNestedMapping[providerName][inputAddr1][inputAddr2];
   }
 
@@ -51,7 +59,11 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
    * Requirements:
    * - ProviderName should be formatted: Name_Version or Name_Version_Asset
    */
-  function setMapping(string memory providerName, address keyAddr, address returnedAddr)
+  function setMapping(
+    string memory providerName,
+    address keyAddr,
+    address returnedAddr
+  )
     public
     override
     onlyTimelock
@@ -76,7 +88,11 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     address keyAddr1,
     address keyAddr2,
     address returnedAddr
-  ) public override onlyTimelock {
+  )
+    public
+    override
+    onlyTimelock
+  {
     if (!_isProviderNameAdded[providerName]) {
       _isProviderNameAdded[providerName] = true;
       _providerNames.push(providerName);

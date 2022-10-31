@@ -16,76 +16,82 @@ contract MockProvider is ILendingProvider {
    * @notice See {ILendingProvider}
    */
 
-  function approvedOperator(address) external pure override returns (address operator) {
+  function approvedOperator(address, address) external pure override returns (address operator) {
     operator = address(0xAbc123);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(uint256, address) external pure override returns (bool success) {
+  function deposit(uint256, IVault) external pure override returns (bool success) {
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function borrow(uint256 amount, address vault) external override returns (bool success) {
-    MockERC20(IVault(vault).debtAsset()).mintDebt(vault, amount);
+  function borrow(uint256 amount, IVault vault) external override returns (bool success) {
+    MockERC20(vault.debtAsset()).mintDebt(address(vault), amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function withdraw(uint256 amount, address vault) external override returns (bool success) {
-    MockERC20(IVault(vault).asset()).mint(vault, amount);
+  function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
+    MockERC20(vault.asset()).mint(address(vault), amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function payback(uint256 amount, address vault) external override returns (bool success) {
-    MockERC20(IVault(vault).debtAsset()).burnDebt(vault, amount);
+  function payback(uint256 amount, IVault vault) external override returns (bool success) {
+    MockERC20(vault.debtAsset()).burnDebt(address(vault), amount);
     success = true;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositRateFor(address, address) external pure override returns (uint256 rate) {
+  function getDepositRateFor(IVault) external pure override returns (uint256 rate) {
     rate = 1e27;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowRateFor(address, address) external pure override returns (uint256 rate) {
+  function getBorrowRateFor(IVault) external pure override returns (uint256 rate) {
     rate = 1e27;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getDepositBalance(address asset, address user, address)
+  function getDepositBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(asset).balanceOf(user);
+    balance = MockERC20(vault.asset()).balanceOf(user);
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function getBorrowBalance(address asset, address user, address)
+  function getBorrowBalance(
+    address user,
+    IVault vault
+  )
     external
     view
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(asset).balanceOfDebt(user);
+    balance = MockERC20(vault.debtAsset()).balanceOfDebt(user);
   }
 }

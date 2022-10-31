@@ -51,7 +51,12 @@ interface IV2Pool {
   )
     external;
 
-  function deposit(address _asset, uint256 _amount, address _onBehalfOf, uint16 _referralCode)
+  function deposit(
+    address _asset,
+    uint256 _amount,
+    address _onBehalfOf,
+    uint16 _referralCode
+  )
     external;
 
   function withdraw(address _asset, uint256 _amount, address _to) external;

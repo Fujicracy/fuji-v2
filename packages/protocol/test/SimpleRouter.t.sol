@@ -135,7 +135,11 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
-  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_)
+  function utils_doDepositAndBorrow(
+    uint256 depositAmount,
+    uint256 borrowAmount,
+    IVault vault_
+  )
     public
   {
     IRouter.Action[] memory actions = new IRouter.Action[](3);
@@ -176,7 +180,10 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     uint256 borrowAmount,
     uint256 plusNonce,
     address vault_
-  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
@@ -202,7 +209,10 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     uint256 amount,
     uint256 plusNonce,
     address vault_
-  ) internal returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s) {
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
     deadline = block.timestamp + 1 days;
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
