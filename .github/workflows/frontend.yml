@@ -78,7 +78,8 @@ jobs:
     - name: Add service name with PR and env variables
       run: |
         echo service: v2-staging-${{ steps.findPr.outputs.pr }} >> frontend-app.yaml
-        echo -e 'env_variables:\n  NEXT_PUBLIC_INFURA_KEY: ${{ secrets.INFURA_ID }}' >> frontend-app.yaml
+        echo NEXT_PUBLIC_INFURA_KEY=${{ secrets.INFURA_ID }} >> packages/frontend/.env
+
     - name: Build
       run: yarn workspace @x-fuji/frontend build
 
