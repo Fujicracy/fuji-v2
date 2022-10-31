@@ -59,7 +59,11 @@ contract Chief is CoreRoles, AccessControl {
     emit OpenVaultFactory(state);
   }
 
-  function deployVault(address _factory, bytes calldata _deployData, string calldata rating)
+  function deployVault(
+    address _factory,
+    bytes calldata _deployData,
+    string calldata rating
+  )
     external
     returns (address vault)
   {

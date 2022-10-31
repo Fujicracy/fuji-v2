@@ -44,7 +44,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   uint256 public minDepositAmount;
   uint256 public depositCap;
 
-  constructor(address asset_, address chief_, string memory name_, string memory symbol_)
+  constructor(
+    address asset_,
+    address chief_,
+    string memory name_,
+    string memory symbol_
+  )
     ERC20(name_, symbol_)
     SystemAccessControl(chief_)
     VaultPermissions(name_)
@@ -63,7 +68,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Override to call {VaultPermissions-withdrawAllowance}.
    * Returns the share amount of VaultPermissions-withdrawAllowance.
    */
-  function allowance(address owner, address spender)
+  function allowance(
+    address owner,
+    address spender
+  )
     public
     view
     override (ERC20, IERC20)
@@ -96,7 +104,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Override to call {VaultPermissions-decreaseWithdrawAllowance}.
    * Converts subtractedShares argument to assets in VaultPermissions-decreaseWithdrawAllowance.
    */
-  function decreaseAllowance(address spender, uint256 subtractedShares)
+  function decreaseAllowance(
+    address spender,
+    uint256 subtractedShares
+  )
     public
     override
     returns (bool)
@@ -216,7 +227,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// @inheritdoc IERC4626
-  function withdraw(uint256 assets, address receiver, address owner)
+  function withdraw(
+    uint256 assets,
+    address receiver,
+    address owner
+  )
     public
     override
     returns (uint256)
@@ -241,7 +256,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// @inheritdoc IERC4626
-  function redeem(uint256 shares, address receiver, address owner)
+  function redeem(
+    uint256 shares,
+    address receiver,
+    address owner
+  )
     public
     override
     returns (uint256)
@@ -271,7 +290,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Will revert if assets > 0, totalSupply > 0 and totalAssets = 0. That corresponds to a case where any asset
    * would represent an infinite amout of shares.
    */
-  function _convertToShares(uint256 assets, Math.Rounding rounding)
+  function _convertToShares(
+    uint256 assets,
+    Math.Rounding rounding
+  )
     internal
     view
     virtual
@@ -284,7 +306,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /**
    * @dev Internal conversion function (from shares to assets) with support for rounding direction.
    */
-  function _convertToAssets(uint256 shares, Math.Rounding rounding)
+  function _convertToAssets(
+    uint256 shares,
+    Math.Rounding rounding
+  )
     internal
     view
     virtual
@@ -297,7 +322,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /**
    * @dev Perform _deposit adding flow at provider {IERC4626-deposit}.
    */
-  function _deposit(address caller, address receiver, uint256 assets, uint256 shares)
+  function _deposit(
+    address caller,
+    address receiver,
+    uint256 assets,
+    uint256 shares
+  )
     internal
     whenNotPaused(VaultActions.Deposit)
   {
@@ -317,7 +347,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address owner,
     uint256 assets,
     uint256 shares
-  ) internal whenNotPaused(VaultActions.Withdraw) {
+  )
+    internal
+    whenNotPaused(VaultActions.Withdraw)
+  {
     _burn(owner, shares);
     _executeProviderAction(assets, "withdraw");
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
@@ -368,7 +401,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev See {IVaultPermissions-borrowAllowance}.
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
-  function borrowAllowance(address owner, address spender)
+  function borrowAllowance(
+    address owner,
+    address spender
+  )
     public
     view
     virtual
@@ -380,7 +416,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
-  function increaseBorrowAllowance(address spender, uint256 byAmount)
+  function increaseBorrowAllowance(
+    address spender,
+    uint256 byAmount
+  )
     public
     virtual
     override
@@ -391,7 +430,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
-  function decreaseBorrowAllowance(address spender, uint256 byAmount)
+  function decreaseBorrowAllowance(
+    address spender,
+    uint256 byAmount
+  )
     public
     virtual
     override
@@ -410,7 +452,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint8 v,
     bytes32 r,
     bytes32 s
-  ) public virtual override {}
+  )
+    public
+    virtual
+    override
+  {}
 
   /**
    * @dev Internal function that computes how much free 'assets'

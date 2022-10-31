@@ -7,7 +7,12 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 
 contract Routines is Test {
-  function do_depositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault v, address from)
+  function do_depositAndBorrow(
+    uint256 depositAmount,
+    uint256 borrowAmount,
+    IVault v,
+    address from
+  )
     internal
   {
     do_deposit(depositAmount, v, from);

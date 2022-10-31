@@ -46,7 +46,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     address originSender,
     uint32 origin,
     bytes memory params
-  ) external onlyConnext(originSender, origin) returns (bytes memory) {
+  )
+    external
+    onlyConnext(originSender, origin)
+    returns (bytes memory)
+  {
     (Action[] memory actions, bytes[] memory args) = abi.decode(params, (Action[], bytes[]));
 
     _bundleInternal(actions, args);

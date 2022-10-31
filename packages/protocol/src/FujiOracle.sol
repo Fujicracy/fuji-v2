@@ -20,7 +20,11 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
   /**
    * @dev Initializes the contract setting '_priceFeeds' addresses for '_assets'
    */
-  constructor(address[] memory _assets, address[] memory _priceFeeds, address chief_)
+  constructor(
+    address[] memory _assets,
+    address[] memory _priceFeeds,
+    address chief_
+  )
     SystemAccessControl(chief_)
   {
     if (_assets.length != _priceFeeds.length) {
@@ -54,7 +58,11 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
    * @param _decimals: the decimals of the price output.
    * Returns the exchange rate of the given pair.
    */
-  function getPriceOf(address _currencyAsset, address _commodityAsset, uint8 _decimals)
+  function getPriceOf(
+    address _currencyAsset,
+    address _commodityAsset,
+    uint8 _decimals
+  )
     external
     view
     override

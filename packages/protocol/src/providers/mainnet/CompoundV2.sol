@@ -76,7 +76,9 @@ contract CompoundV2 is ILendingProvider {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
       uint256 status = cToken.mint(amount);
-      if (status != 0) revert CompoundV2__deposit_failed(status);
+      if (status != 0) {
+        revert CompoundV2__deposit_failed(status);
+      }
     }
     success = true;
   }
@@ -89,10 +91,14 @@ contract CompoundV2 is ILendingProvider {
     ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.borrow(amount);
-    if (status != 0) revert CompoundV2__borrow_failed(status);
+    if (status != 0) {
+      revert CompoundV2__borrow_failed(status);
+    }
 
     // wrap ETH to WETH
-    if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
+    if (_isWETH(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
@@ -104,10 +110,14 @@ contract CompoundV2 is ILendingProvider {
     ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.redeemUnderlying(amount);
-    if (status != 0) revert CompoundV2__withdraw_failed(status);
+    if (status != 0) {
+      revert CompoundV2__withdraw_failed(status);
+    }
 
     // wrap ETH to WETH
-    if (_isWETH(asset)) IWETH9(asset).deposit{value: amount}();
+    if (_isWETH(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
@@ -126,7 +136,9 @@ contract CompoundV2 is ILendingProvider {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
       uint256 status = cToken.repayBorrow(amount);
-      if (status != 0) revert CompoundV2__payback_failed(status);
+      if (status != 0) {
+        revert CompoundV2__payback_failed(status);
+      }
     }
     success = true;
   }

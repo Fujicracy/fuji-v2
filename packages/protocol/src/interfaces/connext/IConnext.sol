@@ -65,7 +65,10 @@ interface IConnext {
     uint256 _amount,
     uint256 _slippage,
     bytes calldata _callData
-  ) external payable returns (bytes32);
+  )
+    external
+    payable
+    returns (bytes32);
 
   function execute(ExecuteArgs calldata _args)
     external
@@ -80,5 +83,7 @@ interface IXReceiver {
     address _originSender,
     uint32 _origin,
     bytes memory _callData
-  ) external returns (bytes memory);
+  )
+    external
+    returns (bytes memory);
 }
