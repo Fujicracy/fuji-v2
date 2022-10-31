@@ -1,4 +1,5 @@
 import { Address, Token } from "@x-fuji/sdk"
+import { ethers } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import { StateCreator } from "zustand"
 import { useStore } from "."
@@ -15,6 +16,7 @@ type TransactionState = {
     value: number // Input value
     token: Token
     balance: number
+    allowance: number
     tokenValue: number // Value of token in usd
     tokens: Token[]
     balances: number[] | undefined // Balance of all collateral tokens
@@ -41,6 +43,7 @@ type TransactionActions = {
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   updateTokenPrice: (type: "borrow" | "collateral") => void
+  updateAllowance: () => void
 }
 type ChainId = string // hex value as string
 
@@ -49,6 +52,8 @@ const initialBorrowTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
 const initialCollateralTokens = sdk.getCollateralForChain(
   parseInt(initialChainId, 16)
 )
+// TODO: initial balance
+// TODO: initial allowance
 
 const initialState: TransactionState = {
   transactionStatus: false,
@@ -57,6 +62,7 @@ const initialState: TransactionState = {
   collateral: {
     value: 0,
     balance: 0,
+    allowance: 0,
     token: initialCollateralTokens[0],
     tokenValue: 0,
     tokens: initialCollateralTokens,
@@ -124,6 +130,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     set({ collateral: { ...collateral, token, balance } })
     get().updateTokenPrice("collateral")
+    get().updateAllowance()
   },
 
   async updateTokenPrice(type) {
@@ -138,6 +145,22 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       set({ collateral: { ...get().collateral, tokenValue } })
       console.log("collateral tokenValue = ", tokenValue)
     }
+  },
+
+  async updateAllowance() {
+    const token = get().collateral.token
+    const address = ethers.utils.getAddress(
+      useStore.getState().address as string
+    )
+
+    if (!address) {
+      return
+    }
+
+    console.log(address, typeof address)
+    const res = await sdk.getAllowanceFor(token, new Address(address))
+    const allowance = res.toNumber()
+    set({ collateral: { ...get().collateral, allowance } })
   },
 
   // TODO: Changeborrowchain and changecollateral chain are almost the same, refactor ?
