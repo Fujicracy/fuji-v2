@@ -93,7 +93,12 @@ export default function Overview() {
 
           <Divider sx={{ mb: 1.5 }} />
 
-          <LTVProgressBar borrowLimit={0} value={ltv > 100 ? 100 : ltv} />
+          <LTVProgressBar
+            borrowLimit={0}
+            value={ltv > 100 ? 100 : ltv}
+            maxLTV={100} // TODO: Should be dynamic thanks to SDK method
+            recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
+          />
 
           <Divider sx={{ mt: 2, mb: 2 }} />
 

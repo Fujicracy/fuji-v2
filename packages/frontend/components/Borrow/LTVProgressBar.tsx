@@ -14,9 +14,10 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 type LTVProgressBarProps = {
   borrowLimit: number
   value: number
+  maxLTV: number
+  recommendedLTV: number
 }
 
-// TODO: add recommended LTV and max LTV in props
 export default function LTVProgressBar(props: LTVProgressBarProps) {
   const { palette } = useTheme()
 
@@ -56,14 +57,14 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             variant="xsmall"
             sx={{ display: { xs: "none", sm: "inline" } }}
           >
-            45% LTV (Recommended)
+            {props.recommendedLTV}% LTV (Recommended)
           </Typography>
 
           <Typography
             variant="xsmall"
             sx={{ display: { xs: "inline", sm: "none" } }}
           >
-            SAFE LTV: 45%
+            SAFE LTV: {props.recommendedLTV}%
           </Typography>
         </Grid>
         <Grid item alignItems="center" marginRight="3rem">
@@ -95,14 +96,14 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             variant="xsmall"
             sx={{ display: { xs: "none", sm: "inline" } }}
           >
-            75% LTV (MAX)
+            {props.maxLTV}% LTV (MAX)
           </Typography>
 
           <Typography
             variant="xsmall"
             sx={{ display: { xs: "inline", sm: "none" } }}
           >
-            MAX LTV: 75%
+            MAX LTV: {props.maxLTV}%
           </Typography>
         </Grid>
       </Grid>
@@ -136,11 +137,17 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           marginBottom: "0.5rem",
           ".css-uu0lzf-MuiLinearProgress-bar1": {
             background:
-              props.value <= 45 ? palette.success.main : palette.warning.main,
+              props.value <= props.recommendedLTV
+                ? palette.success.main
+                : palette.warning.main,
             borderRadius: "1.25rem",
           },
         }}
-        value={props.value > 75 ? props.value : (props.value * 100) / 75}
+        value={
+          props.value > props.maxLTV
+            ? props.value
+            : (props.value * 100) / props.maxLTV
+        }
         variant="determinate"
       />
 
@@ -148,7 +155,9 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         variant="label"
         color="success.main"
         ml={`${
-          (props.value > 75 ? props.value : (props.value * 100) / 75) - 5
+          (props.value > props.maxLTV
+            ? props.value
+            : (props.value * 100) / props.maxLTV) - 5
         }%`}
         sx={{
           display: { xs: "block", sm: "none" },

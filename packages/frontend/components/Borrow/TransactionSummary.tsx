@@ -189,7 +189,12 @@ export default function TransactionSummary() {
 
               <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
-              <LTVProgressBar borrowLimit={0} value={ltv} />
+              <LTVProgressBar
+                borrowLimit={0}
+                value={ltv}
+                ltvMax={100} // TODO: Should be dynamic thanks to SDK method
+                recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
+              />
 
               <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
