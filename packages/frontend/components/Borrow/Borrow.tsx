@@ -23,6 +23,11 @@ import { useLtv } from "../../store/transaction.slice"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
+  const updateBalance = useStore((state) => state.updateBalances)
+  useEffect(() => {
+    updateBalance("collateral")
+  }, [address, updateBalance])
+
   const login = useStore((state) => state.login)
 
   const collateral = useStore((state) => state.collateral)
@@ -82,7 +87,7 @@ export default function Borrow() {
             label="Collateral from"
             type="collateral"
             value={collateral.chainId}
-            onChange={(chainId) => changeCollateralChain(chainId, address)}
+            onChange={(chainId) => changeCollateralChain(chainId)}
           />
           <TokenCard type="collateral" />
 
@@ -92,7 +97,7 @@ export default function Borrow() {
             label="Borrow to"
             type="borrow"
             value={borrow.chainId}
-            onChange={(chainId) => changeBorrowChain(chainId, address)}
+            onChange={(chainId) => changeBorrowChain(chainId)}
           />
           <TokenCard type="borrow" />
 

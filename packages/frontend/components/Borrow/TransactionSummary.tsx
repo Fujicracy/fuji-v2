@@ -192,7 +192,7 @@ export default function TransactionSummary() {
               <LTVProgressBar
                 borrowLimit={0}
                 value={ltv}
-                ltvMax={100} // TODO: Should be dynamic thanks to SDK method
+                maxLTV={100} // TODO: Should be dynamic thanks to SDK method
                 recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
               />
 

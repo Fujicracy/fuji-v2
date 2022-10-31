@@ -36,13 +36,14 @@ type TransactionState = {
 type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
   setShowTransactionAbstract: (show: boolean) => void
-  changeBorrowChain: (chainId: ChainId, walletAddress?: string) => void
+  changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
-  changeCollateralChain: (chainId: ChainId, walletAddress?: string) => void
+  changeCollateralChain: (chainId: ChainId) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   updateTokenPrice: (type: "borrow" | "collateral") => void
+  updateBalances: (type: "borrow" | "collateral") => void
   updateAllowance: () => void
 }
 type ChainId = string // hex value as string
@@ -66,7 +67,7 @@ const initialState: TransactionState = {
     token: initialCollateralTokens[0],
     tokenValue: 0,
     tokens: initialCollateralTokens,
-    balances: undefined,
+    balances: initialCollateralTokens.map((_) => 0),
     chainId: initialChainId,
   },
 
@@ -76,7 +77,7 @@ const initialState: TransactionState = {
     token: initialBorrowTokens[0],
     tokenValue: 0,
     tokens: initialBorrowTokens,
-    balances: undefined,
+    balances: initialBorrowTokens.map((_) => 0),
     chainId: initialChainId,
   },
 }
@@ -92,36 +93,20 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ showTransactionAbstract })
   },
 
-  async changeCollateralChain(chainId, walletAddress?) {
+  async changeCollateralChain(chainId) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
-
-    let balances
-    if (walletAddress) {
-      const rawBalances = await sdk.getTokenBalancesFor(
-        tokens,
-        new Address(walletAddress),
-        parseInt(chainId, 16)
-      )
-      balances = rawBalances.map((b, i) => {
-        const res = formatUnits(b, tokens[i].decimals)
-        return parseFloat(res)
-      })
-    } else {
-      balances = undefined
-    }
 
     set({
       collateral: {
         ...get().collateral,
         token: tokens[0],
-        balance: balances ? balances[0] : 0,
         tokens,
-        balances,
         chainId,
       },
     })
 
     get().updateTokenPrice("collateral")
+    get().updateBalances("collateral")
   },
 
   changeCollateralToken(token) {
@@ -131,6 +116,55 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ collateral: { ...collateral, token, balance } })
     get().updateTokenPrice("collateral")
     get().updateAllowance()
+  },
+
+  async changeBorrowChain(chainId) {
+    const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
+    const [token] = tokens
+
+    set({ borrow: { ...get().borrow, token, tokens, chainId } })
+
+    get().updateTokenPrice("borrow")
+    get().updateBalances("borrow")
+  },
+
+  changeBorrowToken(token) {
+    set({ borrow: { ...get().borrow, token } })
+    get().updateTokenPrice("borrow")
+  },
+
+  changeBorrowValue(val) {
+    const value = parseFloat(val)
+    set({ borrow: { ...get().borrow, value } })
+  },
+
+  changeCollateralValue(val) {
+    const value = parseFloat(val)
+    set({ collateral: { ...get().collateral, value } })
+  },
+
+  async updateBalances(type) {
+    const address = useStore.getState().address
+    const { tokens, token, chainId } = useStore.getState()[type]
+
+    if (!address) {
+      return
+    }
+
+    const rawBalances = await sdk.getTokenBalancesFor(
+      tokens,
+      new Address(address),
+      parseInt(chainId, 16)
+    )
+    const balances = rawBalances.map((b, i) => {
+      const res = formatUnits(b, tokens[i].decimals)
+      return parseFloat(res)
+    })
+
+    const tIdx = tokens.findIndex((t) => t.symbol === token.symbol)
+    const balance = balances[tIdx]
+
+    set({ [type]: { ...get()[type], balances, balance } })
   },
 
   async updateTokenPrice(type) {
@@ -161,45 +195,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const res = await sdk.getAllowanceFor(token, new Address(address))
     const allowance = res.toNumber()
     set({ collateral: { ...get().collateral, allowance } })
-  },
-
-  // TODO: Changeborrowchain and changecollateral chain are almost the same, refactor ?
-  async changeBorrowChain(chainId, walletAddress?) {
-    const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
-    const [token] = tokens
-
-    let balances
-    if (walletAddress) {
-      const rawBalances = await sdk.getTokenBalancesFor(
-        tokens,
-        new Address(walletAddress),
-        parseInt(chainId, 16)
-      )
-      balances = rawBalances.map((b, i) => {
-        const res = formatUnits(b, tokens[i].decimals)
-        return parseFloat(res)
-      })
-    } else {
-      balances = undefined
-    }
-
-    set({ borrow: { ...get().borrow, token, tokens, balances, chainId } })
-    get().updateTokenPrice("borrow")
-  },
-
-  changeBorrowToken(token) {
-    set({ borrow: { ...get().borrow, token } })
-    get().updateTokenPrice("borrow")
-  },
-
-  changeBorrowValue(val) {
-    const value = parseFloat(val)
-    set({ borrow: { ...get().borrow, value } })
-  },
-
-  changeCollateralValue(val) {
-    const value = parseFloat(val)
-    set({ collateral: { ...get().collateral, value } })
   },
 })
 
