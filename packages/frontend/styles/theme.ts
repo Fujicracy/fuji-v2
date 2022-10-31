@@ -11,6 +11,12 @@ declare module "@mui/material/Button" {
   }
 }
 
+declare module "@mui/material/Chip" {
+  interface ChipPropsVariantOverrides {
+    gradient: true
+  }
+}
+
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
     currency: true
@@ -65,6 +71,7 @@ const colorTheme = createTheme({
     },
     error: {
       main: "#FD4040",
+      dark: "#FC0A54",
     },
     background: {
       paper: "black",
@@ -167,7 +174,6 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: "border-box",
           borderRadius: "0.5rem",
-          color: colorTheme.palette.text.primary,
           "&.Mui-disabled": {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
@@ -421,6 +427,21 @@ const theme = createTheme(colorTheme, {
           },
         },
       },
+      variants: [
+        {
+          props: {
+            variant: "gradient",
+          },
+          style: {
+            background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
+            padding: "0.125rem 0",
+            height: "100%",
+            fontSize: "0.75rem",
+            borderRadius: "6.25rem",
+            lineHeight: "160%",
+          },
+        },
+      ],
     },
     MuiCardContent: {
       styleOverrides: {
@@ -453,6 +474,41 @@ const theme = createTheme(colorTheme, {
           borderRadius: "12px !important",
         },
       },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          color: colorTheme.palette.info.dark,
+          textTransform: "capitalize",
+          fontWeigt: 500,
+          fontSize: "0.875rem",
+        },
+        ".Mui-selected": {
+          color: "blue !important",
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          border: "none",
+        },
+      },
+      variants: [
+        {
+          props: {
+            variant: "outlined",
+          },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            borderRadius: "0.5rem",
+            border: `1px solid ${colorTheme.palette.secondary.light}`,
+            color: colorTheme.palette.info.dark,
+            padding: "0.5rem",
+            fontSize: "0.875rem",
+          },
+        },
+      ],
     },
   },
 })
