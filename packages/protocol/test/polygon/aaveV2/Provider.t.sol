@@ -41,6 +41,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     weth = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
     usdc = IERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
 
+
     vm.label(address(alice), "alice");
     vm.label(address(bob), "bob");
     vm.label(address(weth), "weth");
@@ -163,10 +164,10 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function test_getInterestRates() public {
-    uint256 depositRate = aaveV2.getDepositRateFor(address(weth), address(0));
+    uint256 depositRate = aaveV2.getDepositRateFor(vault);
     assertGt(depositRate, 0); // Should be greater than zero.
 
-    uint256 borrowRate = aaveV2.getBorrowRateFor(address(usdc), address(0));
+    uint256 borrowRate = aaveV2.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
 
     if (DEBUG) {
