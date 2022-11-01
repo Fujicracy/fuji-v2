@@ -89,7 +89,7 @@ export class Sdk {
     chainId: ChainId
   ): Promise<BigNumber[]> {
     invariant(
-      !tokens.find(t => t.chainId !== chainId),
+      !tokens.find((t) => t.chainId !== chainId),
       'Token from a different chain!'
     );
     const { multicallRpcProvider } = ChainConnection.from(
@@ -97,9 +97,9 @@ export class Sdk {
       chainId
     );
     const balances = tokens
-      .map(token => token.setConnection(this._configParams))
+      .map((token) => token.setConnection(this._configParams))
       .map(
-        token =>
+        (token) =>
           token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
       );
 

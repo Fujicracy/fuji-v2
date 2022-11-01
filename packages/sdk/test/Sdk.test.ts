@@ -44,7 +44,7 @@ describe('Sdk', () => {
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
         ChainId.ETHEREUM
       );
-      bals.forEach(bal => {
+      bals.forEach((bal) => {
         expect(parseFloat(formatUnits(bal))).toBeGreaterThan(0);
       });
     });
@@ -118,7 +118,7 @@ describe('Sdk', () => {
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
-        .mockImplementation(chainId =>
+        .mockImplementation((chainId) =>
           chainId === ChainId.GOERLI ? vaultA : undefined
         );
 
@@ -138,7 +138,7 @@ describe('Sdk', () => {
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
-        .mockImplementation(chainId =>
+        .mockImplementation((chainId) =>
           chainId === ChainId.OPTIMISM_GOERLI ? vaultB : undefined
         );
 
