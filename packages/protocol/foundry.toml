@@ -13,6 +13,7 @@ goerli = "${RPC_GOERLI}"
 optimism_goerli = "${RPC_OPTIMISM_GOERLI}"
 optimism = "${RPC_OPTIMISM}"
 polygon = "${RPC_POLYGON}"
+arbitrum = "${RPC_ARBITRUM}"
 
 [fmt]
 line_length = 100

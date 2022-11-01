@@ -13,4 +13,5 @@ contract DSTestPlus is Test {
   uint32 public goerliChainId = 5;
   uint32 public optimismGoerliChainId = 420;
   uint32 public polygonChainId = 137;
+  uint32 public arbitrumChainId = 42161;
 }
