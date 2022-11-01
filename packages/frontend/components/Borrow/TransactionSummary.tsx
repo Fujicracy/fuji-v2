@@ -139,7 +139,7 @@ export default function TransactionSummary() {
                     {collateral.value.toLocaleString()}{" "}
                     {collateral.token.symbol} (~
                     {(
-                      collateral.value * collateral.tokenValue
+                      parseFloat(collateral.value) * collateral.tokenValue
                     ).toLocaleString()}
                     )
                   </Typography>
@@ -151,8 +151,11 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
                   <Typography variant="small">
-                    ${(borrow.value * borrow.tokenValue).toLocaleString()} (
-                    {borrow.value.toLocaleString()} {borrow.token.symbol})
+                    $
+                    {(
+                      parseFloat(borrow.value) * borrow.tokenValue
+                    ).toLocaleString()}{" "}
+                    ({borrow.value.toLocaleString()} {borrow.token.symbol})
                   </Typography>
                 </Grid>
 

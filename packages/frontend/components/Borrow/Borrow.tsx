@@ -46,7 +46,7 @@ export default function Borrow() {
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
-  const value = useStore((state) => state.collateral.value)
+  const value = useStore((state) => parseFloat(state.collateral.value))
   const balance = useStore((state) => state.collateral.balance)
 
   const updateTokenPrice = useStore((state) => state.updateTokenPrice)

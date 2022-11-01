@@ -32,9 +32,8 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   const changeBorrowValue = useStore((state) => state.changeBorrowValue)
   const changeCollateralValue = useStore((state) => state.changeCollateralValue)
   const borrowOrCollateral = useStore((state) => state[type])
-  const { value, balance, token, tokenValue, tokens, balances } =
-    borrowOrCollateral
-
+  const { balance, token, tokenValue, tokens, balances } = borrowOrCollateral
+  const value = parseFloat(borrowOrCollateral.value)
   const tvl = useLtv()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)

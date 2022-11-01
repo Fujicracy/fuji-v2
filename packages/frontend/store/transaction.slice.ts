@@ -13,7 +13,7 @@ type TransactionState = {
   showTransactionAbstract: boolean
 
   collateral: {
-    value: number // Input value
+    value: string // Input value using string to handle X.000X numbers (otherwise rounded to X during conversion)
     token: Token
     balance: number
     allowance: number
@@ -24,13 +24,13 @@ type TransactionState = {
   }
 
   borrow: {
-    value: number // Input value
+    value: string
     token: Token
     balance: number
-    tokenValue: number // Value of token in usd
+    tokenValue: number
     tokens: Token[]
-    balances: number[] | undefined // Balance of all borrow tokens
-    chainId: ChainId // Hex value
+    balances: number[] | undefined
+    chainId: ChainId
   }
 }
 type TransactionActions = {
@@ -61,7 +61,7 @@ const initialState: TransactionState = {
   showTransactionAbstract: false,
 
   collateral: {
-    value: 0,
+    value: "0",
     balance: 0,
     allowance: 0,
     token: initialCollateralTokens[0],
@@ -72,7 +72,7 @@ const initialState: TransactionState = {
   },
 
   borrow: {
-    value: 0,
+    value: "0",
     balance: 0,
     token: initialBorrowTokens[0],
     tokenValue: 0,
@@ -133,13 +133,11 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTokenPrice("borrow")
   },
 
-  changeBorrowValue(val) {
-    const value = parseFloat(val)
+  changeBorrowValue(value) {
     set({ borrow: { ...get().borrow, value } })
   },
 
-  changeCollateralValue(val) {
-    const value = parseFloat(val)
+  changeCollateralValue(value) {
     set({ collateral: { ...get().collateral, value } })
   },
 
@@ -216,10 +214,12 @@ function getBalance(token: Token, collateral: TransactionState["collateral"]) {
 // Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
 // Better refacto using zustand-middleware-computed-state but it creates typing probleme idk how to solve
 export function useLtv(): number {
-  const collateralValue = useStore((state) => state.collateral.value)
+  const collateralValue = useStore((state) =>
+    parseFloat(state.collateral.value)
+  )
   const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
   const collateral = collateralValue * collateralUsdValue
-  const borrowValue = useStore((state) => state.borrow.value)
+  const borrowValue = useStore((state) => parseFloat(state.borrow.value))
   const borrowUsdValue = useStore((state) => state.borrow.tokenValue)
   const borrow = borrowValue * borrowUsdValue
 
@@ -233,9 +233,11 @@ export function useLiquidationPrice(liquidationTreshold: number): {
   liquidationPrice: number
   liquidationDiff: number
 } {
-  const collateralValue = useStore((state) => state.collateral.value)
+  const collateralValue = useStore((state) =>
+    parseFloat(state.collateral.value)
+  )
   const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
-  const borrowValue = useStore((state) => state.borrow.value)
+  const borrowValue = useStore((state) => parseFloat(state.borrow.value))
   const borrowUsdValue = useStore((state) => state.borrow.tokenValue)
   const borrow = borrowValue * borrowUsdValue
 
