@@ -208,7 +208,7 @@ const TokenItem = (props: TokenItem) => {
       <ListItemText>
         <Typography variant="h6">{token.symbol}</Typography>
       </ListItemText>
-      {balance && (
+      {typeof balance === "number" && (
         <Typography variant="smallDark" ml="3rem">
           <Balance balance={balance} token={token} />
         </Typography>
