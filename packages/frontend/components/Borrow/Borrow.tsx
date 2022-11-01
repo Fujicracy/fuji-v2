@@ -23,6 +23,8 @@ import { useLtv } from "../../store/transaction.slice"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
+  const walletChain = useStore((state) => state.chain)
+  const changeChain = useStore((state) => state.changeChain)
   const updateBalance = useStore((state) => state.updateBalances)
   useEffect(() => {
     updateBalance("collateral")
@@ -62,9 +64,10 @@ export default function Borrow() {
   const ltv = useLtv()
 
   let error
-  // TODO: 'wrongNetwork' (current network is !== from collateral network)
   if (!address) {
     error = "mustLogin"
+  } else if (collateral.chainId !== walletChain?.id) {
+    error = "wrongNetwork"
   } else if (value > 0 && value > balance) {
     error = "insufficientBalance"
   } else if (ltv > 75) {
@@ -159,6 +162,15 @@ export default function Borrow() {
               data-cy="borrow-login"
             >
               Connect wallet
+            </Button>
+          )}
+          {error === "wrongNetwork" && (
+            <Button
+              variant="gradient"
+              fullWidth
+              onClick={() => changeChain(collateral.chainId)}
+            >
+              Switch network
             </Button>
           )}
           {error === "insufficientBalance" && (
