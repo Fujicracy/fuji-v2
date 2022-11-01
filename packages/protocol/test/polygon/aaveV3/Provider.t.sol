@@ -73,6 +73,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     providers[0] = aaveV3;
 
     _utils_setupVaultProvider(vault, providers);
+    vault.setActiveProvider(aaveV3);
   }
 
   function _utils_setupTestRoles() internal {
@@ -114,7 +115,9 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     vm.startPrank(who);
     uint256 prevDebt = vault.balanceOfDebt(who);
     SafeERC20.safeApprove(IERC20(address(usdc)), address(vault), amount);
+    console.log("123");
     vault.payback(amount, who);
+    console.log("1234");
     uint256 debtDiff = prevDebt - amount;
     assertEq(vault.balanceOfDebt(who), debtDiff);
     vm.stopPrank();
