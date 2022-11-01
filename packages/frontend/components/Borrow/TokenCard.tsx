@@ -137,7 +137,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                 align="center"
                 className={styles.maxBtn}
                 onClick={handleMax}
-                id="max-btn"
+                data-cy="max-btn"
               >
                 MAX
               </Typography>
@@ -149,7 +149,11 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                   value > balance ? palette.error.dark : palette.text.primary
                 }
               >
-                <Balance balance={balance} token={token} />
+                <Balance
+                  balance={balance}
+                  token={token}
+                  dataCy="balance-amount"
+                />
               </Typography>
             </div>
           </>
