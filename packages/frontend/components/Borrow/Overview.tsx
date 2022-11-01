@@ -23,8 +23,14 @@ export default function Overview() {
   const { palette } = useTheme()
   const ltv = useLtv()
   const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
-  const collateral = useStore((state) => state.collateral)
-  const borrow = useStore((state) => state.borrow)
+  const collateral = useStore((state) => ({
+    ...state.collateral,
+    value: parseFloat(state.collateral.value),
+  }))
+  const borrow = useStore((state) => ({
+    ...state.borrow,
+    value: parseFloat(state.borrow.value),
+  }))
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">

@@ -18,10 +18,10 @@ describe("Borrow", () => {
 
   it("can click on MAX button to set input as value", () => {
     cy.get("#collateral-amount").should("have.value", "0")
-    cy.get("#balance-amount")
+    cy.get('[data-cy="balance-amount"]')
       .invoke("text")
       .then((balance) => {
-        cy.get("#max-btn").click()
+        cy.get('[data-cy="max-btn"]').click()
         cy.get("#collateral-amount").should(
           "have.value",
           parseFloat(balance.replace(/,/g, "."))

@@ -30,7 +30,10 @@ export default function Borrow() {
 
   const login = useStore((state) => state.login)
 
-  const collateral = useStore((state) => state.collateral)
+  const collateral = useStore((state) => ({
+    ...state.collateral,
+    value: parseFloat(state.collateral.value),
+  }))
   const borrow = useStore((state) => state.borrow)
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)

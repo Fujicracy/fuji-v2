@@ -13,6 +13,7 @@ type TransactionState = {
   showTransactionAbstract: boolean
 
   collateral: {
+    // TODO: use input as string for handling inputs and value as computed prop in number to avoid too many conversion in templates
     value: string // Input value using string to handle X.000X numbers (otherwise rounded to X during conversion)
     token: Token
     balance: number
