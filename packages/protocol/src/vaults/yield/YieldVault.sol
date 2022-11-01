@@ -8,7 +8,12 @@ import {BaseVault} from "../../abstracts/BaseVault.sol";
 contract YieldVault is BaseVault {
   error YieldVault__notApplicable();
 
-  constructor(address asset_, address chief_, string memory name_, string memory symbol_)
+  constructor(
+    address asset_,
+    address chief_,
+    string memory name_,
+    string memory symbol_
+  )
     BaseVault(asset_, chief_, name_, symbol_)
   {}
 
@@ -81,7 +86,15 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-permitBorrow}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function permitBorrow(address, address, uint256, uint256, uint8, bytes32, bytes32)
+  function permitBorrow(
+    address,
+    address,
+    uint256,
+    uint256,
+    uint8,
+    bytes32,
+    bytes32
+  )
     public
     pure
     override

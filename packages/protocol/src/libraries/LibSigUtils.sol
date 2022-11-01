@@ -55,7 +55,10 @@ library LibSigUtils {
   }
 
   // computes the digest
-  function getHashTypedDataV4Digest(bytes32 domainSeperator, bytes32 structHash)
+  function getHashTypedDataV4Digest(
+    bytes32 domainSeperator,
+    bytes32 structHash
+  )
     external
     pure
     returns (bytes32)

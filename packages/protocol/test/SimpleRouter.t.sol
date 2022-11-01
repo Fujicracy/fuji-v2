@@ -135,7 +135,11 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
-  function utils_doDepositAndBorrow(uint256 depositAmount, uint256 borrowAmount, IVault vault_)
+  function utils_doDepositAndBorrow(
+    uint256 depositAmount,
+    uint256 borrowAmount,
+    IVault vault_
+  )
     public
   {
     IRouter.Action[] memory actions = new IRouter.Action[](3);

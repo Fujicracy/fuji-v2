@@ -49,7 +49,12 @@ interface ICompoundV3 {
   function withdrawReserves(address to, uint256 amount) external;
 
   function absorb(address absorber, address[] calldata accounts) external;
-  function buyCollateral(address asset, uint256 minAmount, uint256 baseAmount, address recipient)
+  function buyCollateral(
+    address asset,
+    uint256 minAmount,
+    uint256 baseAmount,
+    address recipient
+  )
     external;
   function allow(address manager, bool isAllowed) external;
   function allowBySig(

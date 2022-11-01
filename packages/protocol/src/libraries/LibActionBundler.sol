@@ -13,7 +13,11 @@ import {IVault} from "../interfaces/IVault.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 
 library LibActionBundler {
-  function depositAndBorrow(address vault, uint256 amount, uint256 borrowAmount)
+  function depositAndBorrow(
+    address vault,
+    uint256 amount,
+    uint256 borrowAmount
+  )
     public
     view
     returns (IRouter.Action[] memory, bytes[] memory)

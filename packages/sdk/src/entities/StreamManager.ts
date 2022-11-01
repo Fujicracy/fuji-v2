@@ -59,7 +59,7 @@ export abstract class StreamManager {
     this._cleanup(wssProvider, method.name, caller);
 
     const streamWrapper = this._streamWrappers.find(
-      s => s.method === method.name && caller.equals(s.caller)
+      (s) => s.method === method.name && caller.equals(s.caller)
     );
 
     if (streamWrapper) {
@@ -98,7 +98,7 @@ export abstract class StreamManager {
     const emitter = new BehaviorSubject<string>('init');
     const stream = emitter.pipe(switchMap(() => method.apply(this, args)));
 
-    filters.forEach(f => {
+    filters.forEach((f) => {
       wssProvider.on(f, () => emitter.next('next'));
     });
 
@@ -115,13 +115,13 @@ export abstract class StreamManager {
     method: string,
     caller: Address
   ) {
-    const wrapper = this._streamWrappers.find(s => s.method === method);
+    const wrapper = this._streamWrappers.find((s) => s.method === method);
 
     if (wrapper && !wrapper.caller.equals(caller)) {
       wrapper.stream.emitter.complete();
-      wrapper.stream.filters.forEach(f => wssProvider.removeAllListeners(f));
+      wrapper.stream.filters.forEach((f) => wssProvider.removeAllListeners(f));
 
-      this._streamWrappers = this._streamWrappers.filter(s => s !== wrapper);
+      this._streamWrappers = this._streamWrappers.filter((s) => s !== wrapper);
     }
   }
 }

@@ -18,7 +18,11 @@ interface IBeefyUniV2ZapVelodrome {
   )
     external;
 
-  function estimateSwap(address beefyVault, address tokenIn, uint256 fullInvestmentIn)
+  function estimateSwap(
+    address beefyVault,
+    address tokenIn,
+    uint256 fullInvestmentIn
+  )
     external
     view
     returns (uint256 swapAmountIn, uint256 swapAmountOut, address swapTokenOut);
