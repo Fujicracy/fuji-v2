@@ -93,18 +93,16 @@ export const USDT_ADDRESS: AddressMap = {
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
 };
 
-export const MULTICALL2_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(
-    '0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696'
-  ),
-  [ChainId.ARBITRUM]: Address.from(
-    '0x80C7DD17B01855a6D2347444a0FCC36136a314de'
-  ),
+export const FUJI_ORACLE_ADDRESS: AddressMap = {
+  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(AddressZero),
   [ChainId.OPTIMISM]: Address.from(AddressZero),
-  [ChainId.FANTOM]: Address.from('0x22D4cF72C45F8198CfbF4B568dBdB5A85e8DC0B5'),
-  [ChainId.MATIC]: Address.from('0x02817C1e3543c2d908a590F5dB6bc97f933dB4BD'),
-  [ChainId.GOERLI]: Address.from('0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696'),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+  [ChainId.FANTOM]: Address.from(AddressZero),
+  [ChainId.MATIC]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from('0x278A0bbB342068E139b5DbC0807985B653827E1e'),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0x4e44326d4DaC6973D6E89c1F32aBB50cfc46dCF4'
+  ),
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
 };
 
