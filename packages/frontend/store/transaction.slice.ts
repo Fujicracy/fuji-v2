@@ -1,5 +1,4 @@
 import { Address, Token } from "@x-fuji/sdk"
-import { ethers } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import { StateCreator } from "zustand"
 import { useStore } from "."
@@ -105,7 +104,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         chainId,
       },
     })
-
     get().updateTokenPrice("collateral")
     get().updateBalances("collateral")
   },
@@ -167,30 +165,18 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async updateTokenPrice(type) {
-    if (type === "borrow") {
-      const tokenValue = await get().borrow.token.getPriceUSD()
-
-      set({ borrow: { ...get().borrow, tokenValue } })
-      console.log("borrow tokenValue = ", tokenValue)
-    } else if (type === "collateral") {
-      const tokenValue = await get().collateral.token.getPriceUSD()
-
-      set({ collateral: { ...get().collateral, tokenValue } })
-      console.log("collateral tokenValue = ", tokenValue)
-    }
+    const tokenValue = await get()[type].token.getPriceUSD()
+    set({ [type]: { ...get()[type], tokenValue } })
   },
 
   async updateAllowance() {
     const token = get().collateral.token
-    const address = ethers.utils.getAddress(
-      useStore.getState().address as string
-    )
+    const address = useStore.getState().address as string
 
     if (!address) {
       return
     }
 
-    console.log(address, typeof address)
     const res = await sdk.getAllowanceFor(token, new Address(address))
     const allowance = res.toNumber()
     set({ collateral: { ...get().collateral, allowance } })

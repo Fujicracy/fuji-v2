@@ -56,7 +56,6 @@ export default function Borrow() {
 
   const updateTokenPrice = useStore((state) => state.updateTokenPrice)
   useEffect(() => {
-    console.debug("useEffect updateTokenPrice")
     updateTokenPrice("collateral")
     updateTokenPrice("borrow")
   }, [updateTokenPrice])
