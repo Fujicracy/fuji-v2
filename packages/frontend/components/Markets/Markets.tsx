@@ -20,10 +20,10 @@ import SearchIcon from "@mui/icons-material/Search"
 export default function Markets() {
   const { palette } = useTheme()
   const [currentTab, setCurrentTab] = useState(0)
+  const [filterValue, setFilterValue] = useState("")
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
-  }
 
   return (
     <div>
@@ -100,10 +100,13 @@ export default function Markets() {
             id="filter"
             type="text"
             placeholder="Filter by token, protocol"
-            //value={filterValue}
-            //onChange={onFilterChange}
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
             variant="outlined"
-            sx={{ ml: "1.063rem" }}
+            sx={{
+              ml: "1.063rem",
+              border: `1px solid ${palette.secondary.light}`,
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

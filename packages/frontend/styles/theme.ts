@@ -502,10 +502,12 @@ const theme = createTheme(colorTheme, {
           style: {
             background: colorTheme.palette.secondary.dark,
             borderRadius: "0.5rem",
-            border: `1px solid ${colorTheme.palette.secondary.light}`,
             color: colorTheme.palette.info.dark,
             padding: "0.5rem",
             fontSize: "0.875rem",
+            ".MuiOutlinedInput-notchedOutline": {
+              border: "none",
+            },
           },
         },
       ],
