@@ -27,10 +27,21 @@ export default function Markets() {
 
   return (
     <div>
-      <Typography variant="h4">X-Fuji Markets</Typography>
+      <Typography variant="h4">
+        {currentTab === 0 ? "X-Fuji Markets" : "Lend"}
+      </Typography>
       <Typography variant="body">
-        Fuji aggregates the best borrowing interest rates available across the
-        markets
+        {currentTab === 0 ? (
+          "Fuji aggregates the best borrowing interest rates available across the markets"
+        ) : (
+          <span>
+            Optimize your lending vaults for better yield
+            <a href="#">
+              {" "}
+              {/* TODO: Ask Ivan the link */} <u>learn more</u>
+            </a>
+          </span>
+        )}
       </Typography>
       <Stack
         sx={{

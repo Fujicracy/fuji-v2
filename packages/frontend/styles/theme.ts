@@ -20,6 +20,7 @@ declare module "@mui/material/Chip" {
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
     currency: true
+    lending: true
   }
 }
 
@@ -316,6 +317,21 @@ const theme = createTheme(colorTheme, {
             marginBottom: "1rem",
           },
         },
+        {
+          props: {
+            variant: "lending",
+          },
+          style: {
+            borderRadius: "0.75rem",
+            backgroundColor: colorTheme.palette.secondary.contrastText,
+            border: `1px solid ${colorTheme.palette.secondary.light}`,
+            alignItems: "center",
+            flexDirection: "column",
+            textAlign: "center",
+            padding: "3.75rem 27.5rem",
+            paddingBottom: "12.5rem",
+          },
+        },
       ],
     },
     MuiSelect: {
@@ -511,6 +527,36 @@ const theme = createTheme(colorTheme, {
           },
         },
       ],
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          textAlign: "center",
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
+          borderRadius: "0.75rem",
+          background: colorTheme.palette.secondary.contrastText,
+          fontSize: "0.75rem",
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          ".MuiTableCell-head": {
+            color: colorTheme.palette.info.main,
+            fontSize: "0.75rem",
+          },
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          lineHeight: "1.25rem",
+        },
+      },
     },
   },
 })

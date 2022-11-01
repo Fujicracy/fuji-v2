@@ -1,3 +1,48 @@
+import { Button, Card, TextField, Typography, useTheme } from "@mui/material"
+import Image from "next/image"
+import { useState } from "react"
+
 export default function Lending() {
-  return <div>Lending </div>
+  const { palette } = useTheme()
+  const [email, setEmail] = useState("")
+
+  return (
+    <Card variant="lending">
+      <Image
+        src="/assets/images/logo/himalaya.svg"
+        alt="Logo Himalaya"
+        width={64}
+        height={64}
+        style={{
+          background: palette.secondary.dark,
+          borderRadius: "100%",
+        }}
+      />
+      <Typography variant="h4">Himalaya Lend</Typography>
+      <Typography color={palette.info.main} variant="small">
+        Retail and insituition lending interest rate optimization. Be the first
+        to use our beta platform
+      </Typography>
+
+      <TextField
+        id="email"
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        sx={{
+          border: `1px solid ${palette.secondary.light}`,
+          padding: "0.938rem 0.75rem",
+          "& input::placeholder": {
+            fontSize: "0.875rem",
+          },
+        }}
+        fullWidth
+      />
+
+      <Button variant="gradient" fullWidth>
+        Join waitlist
+      </Button>
+    </Card>
+  )
 }
