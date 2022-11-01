@@ -137,21 +137,12 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function test_paybackAndWithdraw() public {
-    console.log("1");
     deal(address(weth), alice, DEPOSIT_AMOUNT);
-
-    console.log("2");
     _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
-    console.log("3");
     _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
-    console.log("4");
     uint256 aliceDebt = vault.balanceOfDebt(alice);
-    console.log("5");
     _utils_doPaybackRoutine(alice, aliceDebt);
-    console.log("6");
-
     uint256 maxAmount = vault.maxWithdraw(alice);
-    console.log("7");
     _utils_doWithdrawRoutine(alice, maxAmount);
   }
 
