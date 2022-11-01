@@ -102,7 +102,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         </Box>
 
         <Menu
-          id="collateral-token"
+          id={`${type}-token`}
           anchorEl={anchorEl}
           open={isOpen}
           onClose={close}
@@ -137,6 +137,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                 align="center"
                 className={styles.maxBtn}
                 onClick={handleMax}
+                id="max-btn"
               >
                 MAX
               </Typography>
