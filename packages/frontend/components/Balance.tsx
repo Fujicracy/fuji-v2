@@ -12,7 +12,6 @@ const Balance = ({ balance, token }: Props) => {
   const bal = balance.toLocaleString()
   const balLength = token?.symbol.includes("ETH") ? 5 : 5
   const formattedBalance = bal.substring(0, balLength)
-  console.log(formattedBalance)
 
   return <span id="balance-amount">{formattedBalance}</span>
 }
