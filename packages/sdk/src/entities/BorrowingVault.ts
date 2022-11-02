@@ -1,4 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
+import { splitSignature } from '@ethersproject/bytes';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
@@ -6,7 +7,7 @@ import invariant from 'tiny-invariant';
 
 import { CONNEXT_ROUTER_ADDRESS } from '../constants/addresses';
 import { ChainId, RouterAction } from '../enums';
-import { getPermitDigest } from '../functions';
+import { encodeActionArgs, getPermitDigest } from '../functions';
 import {
   BorrowParams,
   ChainConfig,
@@ -18,6 +19,7 @@ import {
 import {
   BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
+  ConnextRouter__factory,
   ILendingProvider__factory,
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
@@ -128,7 +130,7 @@ export class BorrowingVault extends StreamManager {
    *
    * @remarks
    * Caching "nonce" is needed when composing compound operations.
-   * A compound operation is one that needs more then one signiture
+   * A compound operation is one that needs more then one signature
    * in the same tx.
    */
   private _cache: Map<string, BigNumber>;
@@ -334,7 +336,7 @@ export class BorrowingVault extends StreamManager {
    * The array that is returned should be first passed to `BorrowingVault.needSignature`.
    * If one of the actions must be signed by the user, we have to obtain the digest
    * from `this.signPermitFor` and make the user sign it with their wallet. The last step is
-   * to obtain the txData and the address of the router from `this.getTxData` which is to be
+   * to obtain the txData and the address of the router from `this.getTxDetails` which is to be
    * used in ethers.sendTransaction.
    *
    * @param amountIn - amount of provided collateral
@@ -346,11 +348,14 @@ export class BorrowingVault extends StreamManager {
     amountIn: BigNumber,
     amountOut: BigNumber,
     srcChainId: ChainId,
+    destChainId: ChainId,
     account: Address
   ): RouterActionParams[] {
     // TODO estimate bridge cost
-    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[this.chainId];
-    if (srcChainId === this.chainId) {
+    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
+
+    // everything happens on the same chain
+    if (srcChainId === destChainId && srcChainId == this.chainId) {
       return [
         this._previewDeposit(amountIn, account, account),
         this._previewPermitBorrow(amountOut, connextRouter, account),
@@ -358,7 +363,19 @@ export class BorrowingVault extends StreamManager {
       ];
     }
 
+    // deposit and borrow on chain A and transfer to chain B
+    if (srcChainId === this.chainId) {
+      return [
+        this._previewDeposit(amountIn, account, account),
+        this._previewPermitBorrow(amountOut, connextRouter, account),
+        this._previewBorrow(amountOut, account),
+        //this._previewXTransfer()
+      ];
+    }
+
+    // transfer from chain A and deposit and borrow on chain B
     return [
+      //this._previewXTransferWithCall()
       this._previewDeposit(amountIn, connextRouter, account),
       this._previewPermitBorrow(amountOut, connextRouter, account),
       this._previewBorrow(amountOut, account),
@@ -370,7 +387,7 @@ export class BorrowingVault extends StreamManager {
    *
    * @remarks
    * After the user signs, the next step is to obtain the txData and
-   * the address of the router from "this.getTxData" which is on its turn is
+   * the address of the router from "this.getTxDetails" which on its turn is
    * to be used in ethers.sendTransaction.
    *
    * @param params - the permit action that needs to be signed
@@ -384,13 +401,9 @@ export class BorrowingVault extends StreamManager {
     }
     const nonce: BigNumber = this._cache.get(owner.value) as BigNumber;
 
-    // if deadline is not given, then set it to approx. 24h
-    const deadline: number =
-      params.deadline ?? Math.floor(Date.now() / 1000) + 24 * 60 * 60;
     const digest: string = getPermitDigest(
       params,
       nonce,
-      deadline,
       this._domainSeparator
     );
 
@@ -400,6 +413,40 @@ export class BorrowingVault extends StreamManager {
     this._cache.set(owner.value, nonce.add(BigNumber.from(1)));
 
     return digest;
+  }
+
+  getTxDetails(
+    actionParams: RouterActionParams[],
+    signature?: string
+  ): { data: string; address: string } {
+    const permitAction: PermitParams = actionParams.find((param) =>
+      [RouterAction.PERMIT_BORROW, RouterAction.PERMIT_WITHDRAW].includes(
+        param.action
+      )
+    ) as PermitParams;
+
+    // TODO verify better signature && permitAction
+    if (signature && permitAction) {
+      const { v, r, s } = splitSignature(signature);
+      permitAction.v = v;
+      permitAction.r = r;
+      permitAction.s = s;
+    } else if (permitAction && !signature) {
+      invariant(false, 'You need to sign the permit action first!');
+    }
+
+    const actions = actionParams.map(({ action }) => BigNumber.from(action));
+    const args = actionParams.map(encodeActionArgs);
+    const callData =
+      ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
+        actions,
+        args,
+      ]);
+
+    return {
+      data: callData,
+      address: CONNEXT_ROUTER_ADDRESS[this.chainId].value,
+    };
   }
 
   private _previewDeposit(
@@ -431,12 +478,15 @@ export class BorrowingVault extends StreamManager {
     spender: Address,
     account: Address
   ): PermitParams {
+    // set deadline to approx. 24h
+    const deadline: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
     return {
       action: RouterAction.PERMIT_BORROW,
       vault: this.address,
       amount,
       spender,
       owner: account,
+      deadline,
     };
   }
 }

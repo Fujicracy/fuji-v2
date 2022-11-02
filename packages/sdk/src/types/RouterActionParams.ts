@@ -39,8 +39,8 @@ export type PermitParams = BaseRouterActionParams & {
   spender: Address;
   deadline?: number;
   v?: number;
-  r?: Address;
-  s?: Address;
+  r?: string;
+  s?: string;
 };
 
 export type RouterActionParams =

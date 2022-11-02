@@ -1,7 +1,8 @@
 import 'dotenv/config';
 
 import { AddressZero } from '@ethersproject/constants';
-import { BigNumber } from 'ethers';
+import { parseUnits } from '@ethersproject/units';
+import { BigNumber, utils, Wallet } from 'ethers';
 
 import { USDC, WNATIVE } from '../../src/constants';
 import { Address, BorrowingVault } from '../../src/entities';
@@ -20,6 +21,8 @@ const config: ChainConfig = {
     420: process.env.ALCHEMY_ID_CHAIN_420,
   },
 };
+
+const PRIVATE_KEY = process.env.PRIVATE_KEY ?? '';
 
 describe('BorrowingVault', () => {
   const ADDRESS_ONE = Address.from(
@@ -152,6 +155,56 @@ describe('BorrowingVault', () => {
       expect(digestWithdraw).toEqual(
         '0xebe476294730b15271b46248a4c6e41448357e0293b7a37ed46bb6d64f2b0103'
       );
+    });
+  });
+
+  //const deposit: DepositParams = {
+  //action: RouterAction.DEPOSIT,
+  //vault: vault.address,
+  //amount: BigNumber.from(1),
+  //sender: Address.from(owner.address),
+  //receiver: Address.from(owner.address),
+  //};
+  //const permitBorrow: PermitParams = {
+  //action: RouterAction.PERMIT_BORROW,
+  //vault: vault.address,
+  //amount: BigNumber.from(1),
+  //owner: Address.from(owner.address),
+  //spender: ADDRESS_TWO,
+  //deadline: 24 * 60 * 60,
+  //};
+  //const borrow: BorrowParams = {
+  //action: RouterAction.BORROW,
+  //vault: vault.address,
+  //amount: BigNumber.from(1),
+  //receiver: Address.from(owner.address),
+  //owner: Address.from(owner.address),
+  //};
+  describe('#getBorrowTXData', () => {
+    it.only('signs a separate borrow permit', async () => {
+      const vault = new BorrowingVault(
+        Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
+        WNATIVE[ChainId.GOERLI],
+        USDC[ChainId.GOERLI]
+      ).setConnection(config);
+      const owner = new Wallet(PRIVATE_KEY);
+
+      const actions = vault.previewDepositAndBorrow(
+        parseUnits('1'),
+        parseUnits('1'),
+        ChainId.GOERLI,
+        ChainId.GOERLI,
+        Address.from(owner.address)
+      );
+
+      const permitBorrow = actions.find(
+        (a) => a.action === RouterAction.PERMIT_BORROW
+      ) as PermitParams;
+      const digest = await vault.signPermitFor(permitBorrow);
+
+      const skey = new utils.SigningKey('0x' + PRIVATE_KEY);
+      const signature = skey.signDigest(digest);
+      vault.getTxDetails(actions, signature.compact);
     });
   });
 
