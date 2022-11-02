@@ -14,6 +14,9 @@ declare module "@mui/material/Button" {
 declare module "@mui/material/Chip" {
   interface ChipPropsVariantOverrides {
     gradient: true
+    success: true
+    warning: true
+    number: true
   }
 }
 
@@ -393,6 +396,7 @@ const theme = createTheme(colorTheme, {
           padding: "0.875rem 0.5rem",
           fontSize: "0.75rem",
           backgroundColor: "rgba(18, 18, 21, 0.5)",
+          textAlign: "center",
         },
       },
     },
@@ -438,6 +442,8 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.dark,
           height: "2.25rem",
+          fontSize: "0.75rem",
+          borderRadius: "6.25rem",
           "& .MuiChip-deleteIcon": {
             color: colorTheme.palette.text.primary,
           },
@@ -452,9 +458,39 @@ const theme = createTheme(colorTheme, {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
             padding: "0.125rem 0",
             height: "100%",
-            fontSize: "0.75rem",
-            borderRadius: "6.25rem",
             lineHeight: "160%",
+          },
+        },
+        {
+          props: {
+            variant: "success",
+          },
+          style: {
+            background: `${colorTheme.palette.success.main}33`,
+            padding: 0,
+            color: colorTheme.palette.success.main,
+          },
+        },
+        {
+          props: {
+            variant: "warning",
+          },
+          style: {
+            background: `${colorTheme.palette.warning.main}33`,
+            padding: 0,
+            color: colorTheme.palette.warning.main,
+          },
+        },
+        {
+          props: {
+            variant: "number",
+          },
+          style: {
+            width: "1.5rem",
+            height: "1.5rem",
+            background: colorTheme.palette.secondary.light,
+            position: "relative",
+            right: `${3 * 0.25}rem`,
           },
         },
       ],
@@ -546,6 +582,13 @@ const theme = createTheme(colorTheme, {
             color: colorTheme.palette.info.main,
             fontSize: "0.75rem",
           },
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          cursor: "pointer",
         },
       },
     },

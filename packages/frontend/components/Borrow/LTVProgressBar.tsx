@@ -24,7 +24,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       <Grid
         container
         sx={{
-          marginLeft: "3rem",
+          ml: "3rem",
         }}
       >
         <Grid item alignItems="center" margin="auto">
@@ -34,7 +34,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -46,7 +46,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
@@ -65,14 +65,14 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             SAFE LTV: 45%
           </Typography>
         </Grid>
-        <Grid item alignItems="center" marginRight="3rem">
+        <Grid item alignItems="center" mr="3rem">
           <Tooltip
             title="This area is dangerous, if you exceed this threshold you can get liquidated."
             placement="top"
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -84,7 +84,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
@@ -171,7 +171,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           <Tooltip title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral.">
             <InfoOutlinedIcon
               sx={{
-                marginLeft: "0.313rem",
+                ml: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -188,7 +188,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           <Tooltip title="The maximum amount of borrowing power based on you collateral's market price.">
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />

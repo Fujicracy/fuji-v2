@@ -38,7 +38,8 @@ export default function Markets() {
             Optimize your lending vaults for better yield
             <a href="#">
               {" "}
-              {/* TODO: Ask Ivan the link */} <u>learn more</u>
+              {/* TODO: Asked to Ivan the link but waiting answer */}
+              <u>learn more</u>
             </a>
           </span>
         )}
@@ -90,43 +91,46 @@ export default function Markets() {
             />
           </Tabs>
         </Box>
-        <Stack direction="row" gap="0.5rem" alignItems="center">
-          <Typography
-            variant="smallDark"
-            color={palette.info.main}
-            mr="0.25rem"
-          >
-            Filter Chains:
-          </Typography>
-          {chains.map((chain: Chain) => (
-            <Image
-              src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-              height={18}
-              width={18}
-              alt={chain.label}
-              key={chain.id}
+
+        {currentTab === 0 && (
+          <Stack direction="row" gap="0.5rem" alignItems="center">
+            <Typography
+              variant="smallDark"
+              color={palette.info.main}
+              mr="0.25rem"
+            >
+              Filter Chains:
+            </Typography>
+            {chains.map((chain: Chain) => (
+              <Image
+                src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                height={18}
+                width={18}
+                alt={chain.label}
+                key={chain.id}
+              />
+            ))}
+            <TextField
+              id="filter"
+              type="text"
+              placeholder="Filter by token, protocol"
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              variant="outlined"
+              sx={{
+                ml: "1.063rem",
+                border: `1px solid ${palette.secondary.light}`,
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: palette.info.dark }} />
+                  </InputAdornment>
+                ),
+              }}
             />
-          ))}
-          <TextField
-            id="filter"
-            type="text"
-            placeholder="Filter by token, protocol"
-            value={filterValue}
-            onChange={(e) => setFilterValue(e.target.value)}
-            variant="outlined"
-            sx={{
-              ml: "1.063rem",
-              border: `1px solid ${palette.secondary.light}`,
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: palette.info.dark }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Stack>
+          </Stack>
+        )}
       </Stack>
 
       {currentTab === 0 && <MarketsTable />}

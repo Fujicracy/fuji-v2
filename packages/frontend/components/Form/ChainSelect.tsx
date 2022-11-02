@@ -51,7 +51,7 @@ export default function ChainSelect() {
                 onMobile={onMobile}
               />
               {!onMobile && (
-                <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+                <KeyboardArrowDownIcon sx={{ ml: "0px !important" }} />
               )}
             </Stack>
           }
@@ -63,7 +63,7 @@ export default function ChainSelect() {
             <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" />
               <Typography fontSize="inherit">Switch network</Typography>
-              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+              <KeyboardArrowDownIcon sx={{ ml: "0px !important" }} />
             </Stack>
           }
           onClick={openMenu}

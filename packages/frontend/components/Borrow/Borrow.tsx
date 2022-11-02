@@ -99,15 +99,9 @@ export default function Borrow() {
                           width={18}
                           alt={chain.label}
                         />
-                        <span
-                          style={{
-                            marginLeft: "0.5rem",
-                          }}
-                        >
-                          <Typography variant={"small"}>
-                            {chain.label} Network
-                          </Typography>
-                        </span>
+                        <Typography ml="0.5rem" variant={"small"}>
+                          {chain.label} Network
+                        </Typography>
                       </Grid>
                     </MenuItem>
                   ))}
@@ -154,15 +148,9 @@ export default function Borrow() {
                           width={18}
                           alt={chain.label}
                         />
-                        <span
-                          style={{
-                            marginLeft: "0.5rem",
-                          }}
-                        >
-                          <Typography variant={"small"}>
-                            {chain.label} Network
-                          </Typography>
-                        </span>
+                        <Typography ml="0.5rem" variant={"small"}>
+                          {chain.label} Network
+                        </Typography>
                       </Grid>
                     </MenuItem>
                   ))}

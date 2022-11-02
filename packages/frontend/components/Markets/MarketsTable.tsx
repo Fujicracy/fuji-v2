@@ -1,4 +1,6 @@
+import { useState } from "react"
 import {
+  Grid,
   Stack,
   Table,
   TableBody,
@@ -7,21 +9,27 @@ import {
   TableHead,
   TableRow,
   Tooltip,
+  Typography,
   useTheme,
 } from "@mui/material"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
+import Image from "next/image"
+import MarketsTableRow from "./MarketsTableRow"
 
 export default function MarketsTable() {
   const { palette } = useTheme()
+  const [expandRow, setExpandRow] = useState(false)
 
   function createData(
-    borrow: string,
-    collateral: string,
-    bestRateChain: string,
+    borrow: React.ReactNode,
+    collateral: React.ReactNode,
+    bestRateChain: React.ReactNode,
     supplyAPI: number,
     borrowABR: number,
-    availableVault: string[],
+    integratedProtocols: string[],
     safetyRating: string,
     availableLiquidity: number
   ) {
@@ -31,7 +39,7 @@ export default function MarketsTable() {
       bestRateChain,
       supplyAPI,
       borrowABR,
-      availableVault,
+      integratedProtocols,
       safetyRating,
       availableLiquidity,
     }
@@ -39,12 +47,47 @@ export default function MarketsTable() {
 
   const rows = [
     createData(
-      "DAI",
-      "ETH",
-      "Ethereum",
+      <Grid container alignItems="center">
+        {expandRow ? (
+          <KeyboardArrowDownIcon sx={{ mr: "0.5rem" }} />
+        ) : (
+          <KeyboardArrowRightIcon sx={{ mr: "0.5rem" }} />
+        )}
+        <Image
+          src={`/assets/images/protocol-icons/tokens/DAI.svg`}
+          height={32}
+          width={32}
+          alt="DAI"
+        />
+        <Typography ml="0.5rem" variant="small">
+          DAI
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
+          height={32}
+          width={32}
+          alt="ETH"
+        />
+        <Typography ml="0.5rem" variant="small">
+          ETH
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+          height={24}
+          width={24}
+          alt="Ethereum"
+        />
+        <Typography ml="0.5rem" variant="small">
+          Ethereum
+        </Typography>
+      </Grid>,
       1.8,
       2.25,
-      ["AAVE", "TMP"],
+      ["AAVE", "COMP", "AAVE", "COMP"],
       "A+",
       164.8
     ),
@@ -80,7 +123,7 @@ export default function MarketsTable() {
                 justifyContent="center"
               >
                 <Tooltip
-                  title="???" // TODO: Ask value to Ivan
+                  title="FujiV2 refinances between these protocols to find the best yield"
                   placement="top"
                 >
                   <InfoOutlinedIcon
@@ -90,7 +133,7 @@ export default function MarketsTable() {
                     }}
                   />
                 </Tooltip>
-                <span>Available Vault</span>
+                <span>Integrated Protocols</span>
               </Stack>
             </TableCell>
             <TableCell align="center">
@@ -101,7 +144,20 @@ export default function MarketsTable() {
                 justifyContent="center"
               >
                 <Tooltip
-                  title="???" // TODO: Ask value to Ivan
+                  title={
+                    <span>
+                      We take into account variables such as liquidity, audits
+                      and team behind each protocol, you can read more on our
+                      risk framework{" "}
+                      <a
+                        href="https://docs.fujidao.org/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <u> here</u>
+                      </a>
+                    </span>
+                  }
                   placement="top"
                 >
                   <InfoOutlinedIcon
@@ -118,17 +174,15 @@ export default function MarketsTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.borrow + row.availableLiquidity}>
-              <TableCell align="center">{row.borrow}</TableCell>
-              <TableCell align="center">{row.collateral}</TableCell>
-              <TableCell align="center">{row.bestRateChain}</TableCell>
-              <TableCell align="center">{row.supplyAPI}</TableCell>
-              <TableCell align="center">{row.borrowABR}</TableCell>
-              <TableCell align="center">{row.availableVault}</TableCell>
-              <TableCell align="center">{row.safetyRating}</TableCell>
-              <TableCell align="center">{row.availableLiquidity}</TableCell>
-            </TableRow>
+          {/* Not sure for the key value */}
+          {rows.map((row, i) => (
+            <MarketsTableRow
+              key={i + row.availableLiquidity}
+              row={row}
+              setExpandRow={() => setExpandRow(!expandRow)}
+              expandRow={expandRow}
+              extra={i === 0}
+            />
           ))}
         </TableBody>
       </Table>

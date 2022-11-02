@@ -67,9 +67,9 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                       width={24}
                       alt={token}
                     />
-                    <span style={{ marginLeft: "0.5rem" }}>
-                      <Typography variant="h6">{token}</Typography>
-                    </span>
+                    <Typography ml="0.5rem" variant="h6">
+                      {token}
+                    </Typography>
                   </Grid>
                 </MenuItem>
               ))}
