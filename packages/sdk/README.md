@@ -122,8 +122,8 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
     const signature = await ethers.signMessage(digest)
   }
 
-  const { data, address } = await vault.getTxDetails(actions, srcChainId, signature?)
-  await ethers.sendTransaction(data, address);
+  const txRequest = await vault.getTxDetails(actions, srcChainId, user, signature?)
+  await ethers.sendTransaction(txRequest);
 ```
 
 ### Misc

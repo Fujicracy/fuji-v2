@@ -334,7 +334,7 @@ describe('Sdk', () => {
 
       const skey = new utils.SigningKey('0x' + PRIVATE_KEY);
       const signature = skey.signDigest(digest);
-      sdk.getTxDetails(actions, ChainId.GOERLI, signature.compact);
+      sdk.getTxDetails(actions, ChainId.GOERLI, owner, signature.compact);
     });
   });
 });

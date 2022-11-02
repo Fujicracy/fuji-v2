@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { splitSignature } from '@ethersproject/bytes';
+import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
@@ -244,8 +245,9 @@ export class Sdk {
   getTxDetails(
     actionParams: RouterActionParams[],
     srcChainId: ChainId,
+    account: Address,
     signature?: string
-  ): { data: string; address: string } {
+  ): TransactionRequest {
     const permitAction: PermitParams = actionParams.find((param) =>
       [RouterAction.PERMIT_BORROW, RouterAction.PERMIT_WITHDRAW].includes(
         param.action
@@ -271,8 +273,10 @@ export class Sdk {
       ]);
 
     return {
+      from: account.value,
+      to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
       data: callData,
-      address: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
+      chainId: srcChainId,
     };
   }
 
