@@ -1,7 +1,7 @@
 import { Token } from "@x-fuji/sdk"
 
 type Props = {
-  balance: number
+  balance?: number
   token?: Token
   dataCy?: string
 }
@@ -10,7 +10,7 @@ type Props = {
 // If no token is specified, 5 digits is used
 // else, eth based tokens use 4 digits
 const Balance = ({ balance, token, dataCy }: Props) => {
-  const bal = balance.toLocaleString()
+  const bal = balance?.toLocaleString() ?? "0"
   const balLength = token?.symbol.includes("ETH") ? 5 : 5
   const formattedBalance = bal.substring(0, balLength)
 

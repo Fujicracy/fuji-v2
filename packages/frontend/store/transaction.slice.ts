@@ -1,9 +1,10 @@
 import { Address, Token } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
+import produce from "immer"
 import { StateCreator } from "zustand"
 import { useStore } from "."
 import { sdk } from "./auth.slice"
-// import { computed } from "zustand-middleware-computed-state"
+import { Position } from "./Position"
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
@@ -11,28 +12,21 @@ type TransactionState = {
   transactionStatus: boolean
   showTransactionAbstract: boolean
 
-  collateral: {
-    // TODO: use input as string for handling inputs and value as computed prop in number to avoid too many conversion in templates
-    value: string // Input value using string to handle X.000X numbers (otherwise rounded to X during conversion)
-    token: Token
-    balance: number
-    allowance: number
-    tokenValue: number // Value of token in usd
-    tokens: Token[]
-    balances: number[] | undefined // Balance of all collateral tokens
-    chainId: ChainId // Hex value
-  }
+  position: Position
 
-  borrow: {
-    value: string
-    token: Token
-    balance: number
-    tokenValue: number
-    tokens: Token[]
-    balances: number[] | undefined
-    chainId: ChainId
-  }
+  collateralTokens: Token[]
+  collateralBalances: Record<string, number>
+  collateralAllowance?: number
+  collateralInput: string
+  collateralChainId: ChainId
+
+  debtTokens: Token[]
+  debtBalances: Record<string, number>
+  debtAllowance: number
+  debtInput: string
+  debtChainId: ChainId
 }
+
 type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
   setShowTransactionAbstract: (show: boolean) => void
@@ -42,44 +36,45 @@ type TransactionActions = {
   changeCollateralChain: (chainId: ChainId) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
-  updateTokenPrice: (type: "borrow" | "collateral") => void
-  updateBalances: (type: "borrow" | "collateral") => void
+  updateTokenPrice: (type: "debt" | "collateral") => void
+  updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
 }
 type ChainId = string // hex value as string
 
 const initialChainId = "0x1"
-const initialBorrowTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
+const initialDebtTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
 const initialCollateralTokens = sdk.getCollateralForChain(
   parseInt(initialChainId, 16)
 )
-// TODO: initial balance
-// TODO: initial allowance
 
 const initialState: TransactionState = {
   transactionStatus: false,
   showTransactionAbstract: false,
 
-  collateral: {
-    value: "0",
-    balance: 0,
-    allowance: 0,
-    token: initialCollateralTokens[0],
-    tokenValue: 0,
-    tokens: initialCollateralTokens,
-    balances: initialCollateralTokens.map((_) => 0),
-    chainId: initialChainId,
+  position: {
+    collateral: {
+      amount: 0,
+      token: initialCollateralTokens[0],
+      usdValue: 0,
+    },
+    debt: {
+      amount: 0,
+      token: initialDebtTokens[0],
+      usdValue: 0,
+    },
   },
 
-  borrow: {
-    value: "0",
-    balance: 0,
-    token: initialBorrowTokens[0],
-    tokenValue: 0,
-    tokens: initialBorrowTokens,
-    balances: initialBorrowTokens.map((_) => 0),
-    chainId: initialChainId,
-  },
+  collateralTokens: initialCollateralTokens,
+  collateralBalances: {},
+  collateralInput: "",
+  collateralChainId: initialChainId,
+
+  debtTokens: initialDebtTokens,
+  debtBalances: {},
+  debtAllowance: 0,
+  debtInput: "",
+  debtChainId: initialChainId,
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -96,53 +91,77 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   async changeCollateralChain(chainId) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
-    set({
-      collateral: {
-        ...get().collateral,
-        token: tokens[0],
-        tokens,
-        chainId,
-      },
-    })
+    set(
+      produce((state: TransactionState) => {
+        state.collateralChainId = chainId
+        state.collateralTokens = tokens
+        state.position.collateral.token = tokens[0]
+      })
+    )
     get().updateTokenPrice("collateral")
     get().updateBalances("collateral")
   },
 
   changeCollateralToken(token) {
-    const collateral = get().collateral
-    const balance = getBalance(token, collateral)
-
-    set({ collateral: { ...collateral, token, balance } })
+    set(
+      produce((state: TransactionState) => {
+        state.position.collateral.token = token
+      })
+    )
     get().updateTokenPrice("collateral")
     get().updateAllowance()
   },
 
   async changeBorrowChain(chainId) {
     const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
-    const [token] = tokens
 
-    set({ borrow: { ...get().borrow, token, tokens, chainId } })
+    set(
+      produce((state: TransactionState) => {
+        state.debtChainId = chainId
+        state.debtTokens = tokens
+        state.position.debt.token = tokens[0]
+      })
+    )
 
-    get().updateTokenPrice("borrow")
-    get().updateBalances("borrow")
+    get().updateTokenPrice("debt")
+    get().updateBalances("debt")
   },
 
   changeBorrowToken(token) {
-    set({ borrow: { ...get().borrow, token } })
-    get().updateTokenPrice("borrow")
+    set(
+      produce((state: TransactionState) => {
+        state.position.debt.token = token
+      })
+    )
+    get().updateTokenPrice("debt")
   },
 
   changeBorrowValue(value) {
-    set({ borrow: { ...get().borrow, value } })
+    set(
+      produce((state: TransactionState) => {
+        state.debtInput = value
+        state.position.debt.amount = parseFloat(value)
+      })
+    )
   },
 
   changeCollateralValue(value) {
-    set({ collateral: { ...get().collateral, value } })
+    set(
+      produce((state: TransactionState) => {
+        state.collateralInput = value
+        state.position.collateral.amount = parseFloat(value)
+      })
+    )
   },
 
   async updateBalances(type) {
     const address = useStore.getState().address
-    const { tokens, token, chainId } = useStore.getState()[type]
+    const tokens = type === "debt" ? get().debtTokens : get().collateralTokens
+    const token =
+      type === "debt"
+        ? get().position.debt.token
+        : get().position.collateral.token
+    const chainId = token.chainId
 
     if (!address) {
       return
@@ -151,26 +170,37 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const rawBalances = await sdk.getTokenBalancesFor(
       tokens,
       new Address(address),
-      parseInt(chainId, 16)
+      chainId
     )
-    const balances = rawBalances.map((b, i) => {
-      const res = formatUnits(b, tokens[i].decimals)
-      return parseFloat(res)
+    const balances: Record<string, number> = {}
+    rawBalances.forEach((b, i) => {
+      const value = parseFloat(formatUnits(b, tokens[i].decimals))
+      balances[tokens[i].symbol] = value
     })
 
-    const tIdx = tokens.findIndex((t) => t.symbol === token.symbol)
-    const balance = balances[tIdx]
-
-    set({ [type]: { ...get()[type], balances, balance } })
+    set(
+      produce((state: TransactionState) => {
+        if (type === "debt") {
+          state.debtBalances = balances
+        } else if (type === "collateral") {
+          state.collateralBalances = balances
+        }
+      })
+    )
   },
 
   async updateTokenPrice(type) {
-    const tokenValue = await get()[type].token.getPriceUSD()
-    set({ [type]: { ...get()[type], tokenValue } })
+    const tokenValue = await get().position[type].token.getPriceUSD()
+
+    set(
+      produce((state: TransactionState) => {
+        state.position[type].usdValue = tokenValue
+      })
+    )
   },
 
   async updateAllowance() {
-    const token = get().collateral.token
+    const token = get().position.collateral.token
     const address = useStore.getState().address as string
 
     if (!address) {
@@ -179,61 +209,49 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     const res = await sdk.getAllowanceFor(token, new Address(address))
     const allowance = res.toNumber()
-    set({ collateral: { ...get().collateral, allowance } })
+
+    set({ collateralAllowance: allowance })
   },
 })
-
-/**
- *  Utils
- */
-
-//  TODO: may be used with collateral or borrow as long as it is the same type
-function getBalance(token: Token, collateral: TransactionState["collateral"]) {
-  if (collateral.balances) {
-    const tokenIndex = collateral.tokens.findIndex(
-      (t) => t.symbol === token.symbol
-    )
-    return collateral.balances[tokenIndex]
-  }
-  return 0
-}
 
 // Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
 // Better refacto using zustand-middleware-computed-state but it creates typing probleme idk how to solve
 export function useLtv(): number {
-  const collateralValue = useStore((state) =>
-    parseFloat(state.collateral.value)
+  const collateralValue = useStore((state) => parseFloat(state.collateralInput))
+  const collateralUsdValue = useStore(
+    (state) => state.position.collateral.usdValue
   )
-  const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
   const collateral = collateralValue * collateralUsdValue
-  const borrowValue = useStore((state) => parseFloat(state.borrow.value))
-  const borrowUsdValue = useStore((state) => state.borrow.tokenValue)
-  const borrow = borrowValue * borrowUsdValue
 
-  if (!collateral || !borrow) {
+  const debtValue = useStore((state) => parseFloat(state.debtInput))
+  const debtUsdValue = useStore((state) => state.position.debt.usdValue)
+  const debt = debtValue * debtUsdValue
+
+  if (!collateral || !debt) {
     return 0
   }
-  return Math.round((borrow / collateral) * 100)
+  return Math.round((debt / collateral) * 100)
 }
 
 export function useLiquidationPrice(liquidationTreshold: number): {
   liquidationPrice: number
   liquidationDiff: number
 } {
-  const collateralValue = useStore((state) =>
-    parseFloat(state.collateral.value)
+  const collateralValue = useStore((state) => parseFloat(state.collateralInput))
+  const collateralUsdValue = useStore(
+    (state) => state.position.collateral.usdValue
   )
-  const collateralUsdValue = useStore((state) => state.collateral.tokenValue)
-  const borrowValue = useStore((state) => parseFloat(state.borrow.value))
-  const borrowUsdValue = useStore((state) => state.borrow.tokenValue)
-  const borrow = borrowValue * borrowUsdValue
 
-  if (!borrow || !collateralValue) {
+  const debtValue = useStore((state) => parseFloat(state.debtInput))
+  const debtUsdValue = useStore((state) => state.position.debt.usdValue)
+  const debt = debtValue * debtUsdValue
+
+  if (!debt || !collateralValue) {
     return { liquidationPrice: 0, liquidationDiff: 0 }
   }
 
   const liquidationPrice =
-    borrow / (collateralValue * (liquidationTreshold / 100))
+    debt / (collateralValue * (liquidationTreshold / 100))
   const liquidationDiff = Math.round(
     (1 - liquidationPrice / collateralUsdValue) * 100
   )
@@ -243,16 +261,16 @@ export function useLiquidationPrice(liquidationTreshold: number): {
 
 // TODO: this hook is quite expensive in terms of resources (2 api call), so better debounce before calling it.
 export async function useCost() {
-  const collateralToken = useStore((state) => state.collateral.token)
+  const collateralToken = useStore((state) => state.position.collateral.token)
   // const collateralChain = useStore((state) => state.collateral.chainId)
   // const collateralValue = useStore((state) => state.collateral.value)
-  const borrowToken = useStore((state) => state.borrow.token)
-  const borrowChain = useStore((state) => state.borrow.chainId)
-  const borrowValue = useStore((state) => state.borrow.value)
+  const borrowToken = useStore((state) => state.position.debt.token)
+  const debtChain = useStore((state) => state.position.debt.token.chainId)
+  const debtValue = useStore((state) => state.debtInput)
   const address = useStore((state) => state.address)
 
   // const cost = useMemo(async () => {
-  if (!borrowValue || !borrowChain || !address) {
+  if (!debtValue || !debtChain || !address) {
     return 0
   }
   // TODO: It seems like getBorrowing vault always return undefined

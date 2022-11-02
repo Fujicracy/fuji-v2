@@ -145,7 +145,7 @@ type Action = {
   login: (options?: ConnectOptions) => void
   init: () => void
   logout: () => void
-  changeChain: (chainId: string) => void
+  changeChain: (chainId: string | number) => void
 }
 
 export type AuthStore = State & Action

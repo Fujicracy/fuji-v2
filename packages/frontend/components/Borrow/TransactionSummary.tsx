@@ -28,8 +28,8 @@ export default function TransactionSummary() {
 
   const ltv = useLtv()
   const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
-  const collateral = useStore((state) => state.collateral)
-  const borrow = useStore((state) => state.borrow)
+  const collateral = useStore((state) => state.position.collateral)
+  const debt = useStore((state) => state.position.debt)
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -136,11 +136,9 @@ export default function TransactionSummary() {
                     Collateral Provided
                   </Typography>
                   <Typography variant="small">
-                    {collateral.value.toLocaleString()}{" "}
+                    {collateral.amount.toLocaleString()}{" "}
                     {collateral.token.symbol} (~
-                    {(
-                      parseFloat(collateral.value) * collateral.tokenValue
-                    ).toLocaleString()}
+                    {(collateral.amount * collateral.usdValue).toLocaleString()}
                     )
                   </Typography>
                 </Grid>
@@ -151,11 +149,8 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
                   <Typography variant="small">
-                    $
-                    {(
-                      parseFloat(borrow.value) * borrow.tokenValue
-                    ).toLocaleString()}{" "}
-                    ({borrow.value.toLocaleString()} {borrow.token.symbol})
+                    ${(debt.amount * debt.usdValue).toLocaleString()} (
+                    {debt.amount.toLocaleString()} {debt.token.symbol})
                   </Typography>
                 </Grid>
 
@@ -185,7 +180,7 @@ export default function TransactionSummary() {
                     Current Price ({collateral.token.symbol})
                   </Typography>
                   <Typography variant="small">
-                    ${collateral.tokenValue.toLocaleString()}
+                    ${collateral.usdValue.toLocaleString()}
                   </Typography>
                 </Grid>
               </Grid>

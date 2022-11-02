@@ -32,13 +32,12 @@ export default function Borrow() {
 
   const login = useStore((state) => state.login)
 
-  const collateral = useStore((state) => ({
-    ...state.collateral,
-    value: parseFloat(state.collateral.value),
-  }))
-  const borrow = useStore((state) => state.borrow)
+  const collateral = useStore((state) => state.position.collateral)
+  const collateralChainId = useStore((state) => state.collateralChainId)
+  const debtChainId = useStore((state) => state.debtChainId)
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
+  // const debt = useStore((state) => state.position.debt)
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
@@ -51,13 +50,15 @@ export default function Borrow() {
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
 
-  const value = useStore((state) => parseFloat(state.collateral.value))
-  const balance = useStore((state) => state.collateral.balance)
+  const value = useStore((state) => parseFloat(state.collateralInput))
+  const balance = useStore(
+    (state) => state.collateralBalances[state.position.collateral.token.symbol]
+  )
 
   const updateTokenPrice = useStore((state) => state.updateTokenPrice)
   useEffect(() => {
     updateTokenPrice("collateral")
-    updateTokenPrice("borrow")
+    updateTokenPrice("debt")
   }, [updateTokenPrice])
 
   const ltv = useLtv()
@@ -65,7 +66,7 @@ export default function Borrow() {
   let error
   if (!address) {
     error = "mustLogin"
-  } else if (collateral.chainId !== walletChain?.id) {
+  } else if (collateralChainId !== walletChain?.id) {
     error = "wrongNetwork"
   } else if (value > 0 && value > balance) {
     error = "insufficientBalance"
@@ -91,7 +92,7 @@ export default function Borrow() {
           <ChainSelect
             label="Collateral from"
             type="collateral"
-            value={collateral.chainId}
+            value={collateralChainId}
             onChange={(chainId) => changeCollateralChain(chainId)}
           />
           <TokenCard type="collateral" />
@@ -101,10 +102,10 @@ export default function Borrow() {
           <ChainSelect
             label="Borrow to"
             type="borrow"
-            value={borrow.chainId}
+            value={debtChainId}
             onChange={(chainId) => changeBorrowChain(chainId)}
           />
-          <TokenCard type="borrow" />
+          <TokenCard type="debt" />
 
           <br />
 
@@ -167,7 +168,7 @@ export default function Borrow() {
             <Button
               variant="gradient"
               fullWidth
-              onClick={() => changeChain(collateral.chainId)}
+              onClick={() => changeChain(collateral.token.chainId)}
             >
               Switch network
             </Button>
@@ -189,9 +190,9 @@ export default function Borrow() {
               <Button
                 variant="primary"
                 disabled={
-                  collateral.value <= 0 ||
-                  collateral.value > collateral.balance ||
-                  collateral.balance <= 0
+                  collateral.amount <= 0 ||
+                  collateral.amount > balance ||
+                  collateral.amount <= 0
                 }
                 onClick={() => alert("not implemented")}
                 fullWidth
@@ -214,9 +215,9 @@ export default function Borrow() {
                   transactionStatus ? <CircularProgress size={15} /> : undefined
                 }
                 disabled={
-                  collateral.value <= 0 ||
-                  collateral.value > collateral.balance ||
-                  collateral.balance < 0
+                  collateral.amount <= 0 ||
+                  collateral.amount > balance ||
+                  balance < 0
                 }
               >
                 Borrow

@@ -22,19 +22,31 @@ import { useStore } from "../../store"
 import { useLtv } from "../../store/transaction.slice"
 
 type SelectTokenCardProps = {
-  type: "collateral" | "borrow"
+  type: "collateral" | "debt"
 }
 
 export default function TokenCard({ type }: SelectTokenCardProps) {
   const { palette } = useTheme()
+
   const changeCollateralToken = useStore((state) => state.changeCollateralToken)
   const changeBorrowToken = useStore((state) => state.changeBorrowToken)
   const changeBorrowValue = useStore((state) => state.changeBorrowValue)
   const changeCollateralValue = useStore((state) => state.changeCollateralValue)
-  const borrowOrCollateral = useStore((state) => state[type])
-  const { balance, token, tokenValue, tokens, balances } = borrowOrCollateral
-  const value = parseFloat(borrowOrCollateral.value)
-  const tvl = useLtv()
+
+  const tokens = useStore((state) =>
+    type === "debt" ? state.debtTokens : state.collateralTokens
+  )
+  const debtOrCollateral = useStore((state) => state.position[type])
+  const { token } = debtOrCollateral
+  const tokenValue = debtOrCollateral.usdValue
+  const balances = useStore((state) =>
+    type === "debt" ? state.debtBalances : state.collateralBalances
+  )
+  const balance = balances[token.symbol]
+  const value = useStore((state) =>
+    type === "debt" ? state.debtInput : state.collateralInput
+  )
+  const ltv = useLtv()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -44,7 +56,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   const close = () => setAnchorEl(null)
 
   const handleClick = (token: Token) => {
-    if (type === "borrow") {
+    if (type === "debt") {
       changeBorrowToken(token)
     } else if (type === "collateral") {
       changeCollateralToken(token)
@@ -53,11 +65,11 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   }
 
   const handleMax = () => {
-    handleInput(balance.toString())
+    handleInput(balance ? balance.toString() : "0")
   }
 
   const handleInput = (val: string) => {
-    if (type === "borrow") {
+    if (type === "debt") {
       changeBorrowValue(val)
     } else if (type === "collateral") {
       changeCollateralValue(val)
@@ -69,7 +81,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
       variant="outlined"
       sx={{
         borderColor:
-          type === "collateral" && value > balance
+          type === "collateral" && debtOrCollateral.amount > balance
             ? palette.error.dark
             : palette.secondary.light,
       }}
@@ -79,7 +91,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           id="collateral-amount"
           type="number"
           placeholder="0"
-          value={String(value)}
+          value={value}
           onChange={(e) => handleInput(e.target.value)}
           sx={{
             fontSize: "1.125rem",
@@ -107,13 +119,11 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           onClose={close}
           TransitionComponent={Fade}
         >
-          {tokens.map((token, index) => (
+          {tokens.map((token) => (
             <TokenItem
               key={token.name}
               token={token}
-              balance={
-                type === "collateral" && balances ? balances[index] : undefined
-              }
+              balance={balances[token.symbol]}
               onClick={() => handleClick(token)}
             />
           ))}
@@ -123,7 +133,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         {type === "collateral" ? (
           <>
             <Typography variant="small">
-              ${value ? (tokenValue * value).toLocaleString() : 0}
+              ${value ? (tokenValue * +value).toLocaleString() : 0}
             </Typography>
             <div
               style={{
@@ -145,7 +155,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
               <Typography
                 ml=".25rem"
                 color={
-                  value > balance ? palette.error.dark : palette.text.primary
+                  +value > balance ? palette.error.dark : palette.text.primary
                 }
               >
                 <Balance
@@ -159,22 +169,22 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         ) : (
           <>
             <Typography variant="small">
-              ${value ? (tokenValue * value).toLocaleString() : 0}
+              ${value ? (tokenValue * +value).toLocaleString() : 0}
             </Typography>
             <Stack direction="row">
               {/* TODO: handle third case: tvl error */}
               <Typography
                 variant="smallDark"
                 color={
-                  tvl
-                    ? tvl > 55
+                  ltv
+                    ? ltv > 55
                       ? palette.warning.main
                       : palette.success.main
                     : ""
                 }
                 mr=".5rem"
               >
-                LTV {tvl}%
+                LTV {ltv}%
               </Typography>
               <Typography variant="smallDark">(Recommended: 55%)</Typography>
             </Stack>

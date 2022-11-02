@@ -23,14 +23,8 @@ export default function Overview() {
   const { palette } = useTheme()
   const ltv = useLtv()
   const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
-  const collateral = useStore((state) => ({
-    ...state.collateral,
-    value: parseFloat(state.collateral.value),
-  }))
-  const borrow = useStore((state) => ({
-    ...state.borrow,
-    value: parseFloat(state.borrow.value),
-  }))
+  const collateral = useStore((state) => state.position.collateral)
+  const debt = useStore((state) => state.position.debt)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -51,11 +45,11 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: `${collateral.value.toLocaleString()} ${
+                  amount: `${collateral.amount.toLocaleString()} ${
                     collateral.token.symbol
                   }`,
                   footer: `${(
-                    collateral.value * collateral.tokenValue
+                    collateral.amount * collateral.usdValue
                   ).toLocaleString()} USD`,
                 }}
               />
@@ -65,10 +59,10 @@ export default function Overview() {
                 informations={{
                   title: "Borrowed Value",
                   amount: `${(
-                    borrow.value * borrow.tokenValue
+                    debt.amount * debt.usdValue
                   ).toLocaleString()} USD`,
-                  footer: `${borrow.value.toLocaleString()} ${
-                    borrow.token.symbol
+                  footer: `${debt.amount.toLocaleString()} ${
+                    debt.token.symbol
                   }`,
                 }}
               />
@@ -90,7 +84,7 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Current Price",
-                  amount: `$${collateral.tokenValue.toLocaleString()}`,
+                  amount: `$${collateral.usdValue.toLocaleString()}`,
                   footer: `${collateral.token.symbol}`,
                 }}
               />
