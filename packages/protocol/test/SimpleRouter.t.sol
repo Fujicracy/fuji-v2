@@ -342,7 +342,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     );
     // ------------
 
-    IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
+    IFlasher.RouterParams memory params = IFlasher.RouterParams(
       address(debtAsset), flashAmount, address(simpleRouter), innerActions, innerArgs
     );
     uint8 providerId = 0;
@@ -418,7 +418,7 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     );
     // ------------
 
-    IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
+    IFlasher.RouterParams memory params = IFlasher.RouterParams(
       vault.debtAsset(), borrowAmount, address(simpleRouter), innerActions, innerArgs
     );
     uint8 providerId = 0;
