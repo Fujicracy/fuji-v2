@@ -31,7 +31,6 @@ type MarketsTableRowProps = {
 export default function MarketsTableRow({
   row,
   expandRow,
-  setExpandRow,
   extra,
 }: MarketsTableRowProps) {
   const { palette } = useTheme()
@@ -39,38 +38,19 @@ export default function MarketsTableRow({
   return (
     <>
       <TableRow>
-        <TableCell align="center" onClick={setExpandRow}>
-          {row.borrow}
-        </TableCell>
-        <TableCell align="center" onClick={setExpandRow}>
-          {row.collateral}
-        </TableCell>
-        <TableCell align="center" onClick={setExpandRow}>
-          {row.bestRateChain}
-        </TableCell>
-        <TableCell
-          align="center"
-          onClick={setExpandRow}
-          sx={{ color: palette.success.main }}
-        >
+        <TableCell align="center">{row.borrow}</TableCell>
+        <TableCell align="center">{row.collateral}</TableCell>
+        <TableCell align="center">{row.bestRateChain}</TableCell>
+        <TableCell align="center" sx={{ color: palette.success.main }}>
           {row.supplyAPI.toFixed(2)} %
         </TableCell>
-        <TableCell
-          align="center"
-          onClick={setExpandRow}
-          sx={{ color: palette.warning.main }}
-        >
-          <Grid
-            container
-            alignItems="center"
-            onClick={setExpandRow}
-            justifyContent="center"
-          >
+        <TableCell align="center" sx={{ color: palette.warning.main }}>
+          <Grid container alignItems="center" justifyContent="center">
             {extra && <DropletIcon />}
             {row.borrowABR.toFixed(2)} %
           </Grid>
         </TableCell>
-        <TableCell onClick={setExpandRow} align="center">
+        <TableCell align="center">
           <Grid container justifyContent="center">
             {row.integratedProtocols.map((vault, i) => (
               <Box
@@ -103,22 +83,28 @@ export default function MarketsTableRow({
             )}
           </Grid>
         </TableCell>
-        <TableCell onClick={setExpandRow} align="center">
+        <TableCell align="center">
           {row.safetyRating === "A+" ? (
             <Chip variant="success" label={row.safetyRating} />
           ) : (
             <Chip variant="warning" label={row.safetyRating} />
           )}
         </TableCell>
-        <TableCell onClick={setExpandRow} align="center">
-          ${row.availableLiquidity.toFixed(3).replace(".", ",")}
+        <TableCell align="center">
+          $
+          {row.availableLiquidity
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         </TableCell>
       </TableRow>
       <Collapse in={expandRow} timeout="auto" unmountOnExit>
         <TableRow>
           <TableCell />
           <TableCell />
-          <TableCell align="center">{row.supplyAPI}</TableCell>
+          <TableCell align="center">{row.bestRateChain}</TableCell>
+          <TableCell align="center" sx={{ color: palette.success.main }}>
+            {row.supplyAPI.toFixed(2)} %
+          </TableCell>
           <TableCell align="center">{row.borrowABR}</TableCell>
           <TableCell align="center">{row.integratedProtocols}</TableCell>
           <TableCell align="center">{row.safetyRating}</TableCell>

@@ -585,13 +585,6 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiTableRow: {
-      styleOverrides: {
-        root: {
-          cursor: "pointer",
-        },
-      },
-    },
     MuiTableCell: {
       styleOverrides: {
         root: {

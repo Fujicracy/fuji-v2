@@ -49,9 +49,15 @@ export default function MarketsTable() {
     createData(
       <Grid container alignItems="center">
         {expandRow ? (
-          <KeyboardArrowDownIcon sx={{ mr: "0.5rem" }} />
+          <KeyboardArrowDownIcon
+            onClick={() => setExpandRow(false)}
+            sx={{ mr: "0.5rem", cursor: "pointer" }}
+          />
         ) : (
-          <KeyboardArrowRightIcon sx={{ mr: "0.5rem" }} />
+          <KeyboardArrowRightIcon
+            onClick={() => setExpandRow(true)}
+            sx={{ mr: "0.5rem", cursor: "pointer" }}
+          />
         )}
         <Image
           src={`/assets/images/protocol-icons/tokens/DAI.svg`}
@@ -89,7 +95,7 @@ export default function MarketsTable() {
       2.25,
       ["AAVE", "COMP", "AAVE", "COMP"],
       "A+",
-      164.8
+      164800
     ),
   ]
 
