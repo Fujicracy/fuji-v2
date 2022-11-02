@@ -6,6 +6,7 @@ import invariant from 'tiny-invariant';
 
 import {
   COLLATERAL_LIST,
+  CONNEXT_DOMAIN,
   CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
   VAULT_LIST,
@@ -14,7 +15,12 @@ import { Address, ChainConnection, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, RouterAction } from './enums';
 import { encodeActionArgs } from './functions';
-import { ChainConfig, PermitParams, RouterActionParams } from './types';
+import {
+  ChainConfig,
+  PermitParams,
+  RouterActionParams,
+  XTransferParams,
+} from './types';
 import { ConnextRouter__factory } from './types/contracts';
 
 export class Sdk {
@@ -227,7 +233,7 @@ export class Sdk {
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account),
         vault.previewBorrow(amountOut, account),
-        //this._previewXTransfer()
+        this.previewXTransfer(destChainId, vault.debt, amountOut, account),
       ];
     } else if (destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
@@ -277,6 +283,24 @@ export class Sdk {
       to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
       data: callData,
       chainId: srcChainId,
+    };
+  }
+
+  previewXTransfer(
+    destChainId: ChainId,
+    asset: Token,
+    amount: BigNumber,
+    receiver: Address
+  ): XTransferParams {
+    const destDomain = CONNEXT_DOMAIN[destChainId];
+    invariant(destDomain, 'Chain is not available on Connext!');
+
+    return {
+      action: RouterAction.X_TRANSFER,
+      destDomain,
+      amount,
+      asset: asset.address,
+      receiver: receiver,
     };
   }
 
