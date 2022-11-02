@@ -17,7 +17,7 @@ import {
 } from '../src/types';
 
 describe('Sdk', () => {
-  const PRIVATE_KEY = process.env.PRIVATE_KEY ?? '';
+  const PRIVATE_KEY = process.env.PRIVATE_KEY ?? 'test test junk';
 
   const ADDRESS_ONE = Address.from(
     '0x0000000000000000000000000000000000000001'
@@ -334,7 +334,12 @@ describe('Sdk', () => {
 
       const skey = new utils.SigningKey('0x' + PRIVATE_KEY);
       const signature = skey.signDigest(digest);
-      sdk.getTxDetails(actions, ChainId.GOERLI, owner, signature.compact);
+      sdk.getTxDetails(
+        actions,
+        ChainId.GOERLI,
+        Address.from(owner.address),
+        signature.compact
+      );
     });
   });
 });
