@@ -207,36 +207,38 @@ export class Sdk {
     srcChainId: ChainId,
     destChainId: ChainId,
     account: Address
-  ): RouterActionParams[] {
-    // TODO estimate bridge cost
+  ): { actions: RouterActionParams[]; cost: BigNumber } {
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
+    // TODO estimate bridge cost
+    const cost = BigNumber.from(1);
 
+    let actions: RouterActionParams[] = [];
     // everything happens on the same chain
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
-      return [
+      actions = [
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account),
         vault.previewBorrow(amountOut, account),
       ];
-    }
-
-    // deposit and borrow on chain A and transfer to chain B
-    if (srcChainId === vault.chainId) {
-      return [
+    } else if (srcChainId === vault.chainId) {
+      // deposit and borrow on chain A and transfer to chain B
+      actions = [
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account),
         vault.previewBorrow(amountOut, account),
         //this._previewXTransfer()
       ];
+    } else if (destChainId === vault.chainId) {
+      // transfer from chain A and deposit and borrow on chain B
+      actions = [
+        //this._previewXTransferWithCall()
+        vault.previewDeposit(amountIn, connextRouter, account),
+        vault.previewPermitBorrow(amountOut, connextRouter, account),
+        vault.previewBorrow(amountOut, account),
+      ];
     }
 
-    // transfer from chain A and deposit and borrow on chain B
-    return [
-      //this._previewXTransferWithCall()
-      vault.previewDeposit(amountIn, connextRouter, account),
-      vault.previewPermitBorrow(amountOut, connextRouter, account),
-      vault.previewBorrow(amountOut, account),
-    ];
+    return { actions, cost };
   }
 
   getTxDetails(
