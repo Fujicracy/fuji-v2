@@ -1,14 +1,24 @@
 import 'dotenv/config';
 
-import { formatUnits } from '@ethersproject/units';
-import { BigNumber } from 'ethers';
+import { AddressZero } from '@ethersproject/constants';
+import { formatUnits, parseUnits } from '@ethersproject/units';
+import { BigNumber, utils, Wallet } from 'ethers';
 
 import { NATIVE, USDC, WNATIVE } from '../src/constants';
 import { Address, BorrowingVault, Token } from '../src/entities';
-import { ChainId } from '../src/enums';
+import { ChainId, RouterAction } from '../src/enums';
 import { Sdk } from '../src/Sdk';
+import {
+  BorrowParams,
+  ChainConfig,
+  DepositParams,
+  PermitParams,
+  RouterActionParams,
+} from '../src/types';
 
 describe('Sdk', () => {
+  const PRIVATE_KEY = process.env.PRIVATE_KEY ?? '';
+
   const ADDRESS_ONE = Address.from(
     '0x0000000000000000000000000000000000000001'
   );
@@ -19,12 +29,14 @@ describe('Sdk', () => {
     '0x33A875bD262C5cACAa1245ed8AC9734973da6108'
   );
 
-  const sdk = new Sdk({
+  const config: ChainConfig = {
     infuraId: process.env.INFURA_ID ?? '',
     alchemy: {
       420: process.env.ALCHEMY_ID_CHAIN_420,
     },
-  });
+  };
+
+  const sdk = new Sdk(config);
 
   describe('#getBalanceFor', () => {
     it('returns balance', async () => {
@@ -151,6 +163,178 @@ describe('Sdk', () => {
       const debt = new Token(ChainId.GOERLI, ADDRESS_BOB, 6, 'Bob');
       const vault = await sdk.getBorrowingVaultFor(collateral, debt);
       expect(vault).toBeUndefined();
+    });
+  });
+
+  const depositActionParams: DepositParams = {
+    action: RouterAction.DEPOSIT,
+    vault: Address.from(AddressZero),
+    amount: BigNumber.from(1),
+    sender: Address.from(AddressZero),
+    receiver: Address.from(AddressZero),
+  };
+
+  const borrowActionParams: BorrowParams = {
+    action: RouterAction.BORROW,
+    vault: Address.from(AddressZero),
+    amount: BigNumber.from(1),
+    receiver: Address.from(AddressZero),
+    owner: Address.from(AddressZero),
+  };
+
+  const borrowPermitActionParams: PermitParams = {
+    action: RouterAction.PERMIT_BORROW,
+    vault: Address.from(AddressZero),
+    amount: BigNumber.from(1),
+    spender: Address.from(AddressZero),
+    owner: Address.from(AddressZero),
+  };
+
+  const withdrawPermitActionParams: PermitParams = {
+    action: RouterAction.PERMIT_BORROW,
+    vault: Address.from(AddressZero),
+    amount: BigNumber.from(1),
+    spender: Address.from(AddressZero),
+    owner: Address.from(AddressZero),
+  };
+
+  describe('#needSignature', () => {
+    it('returns false with empty array', () => {
+      expect(Sdk.needSignature([])).toBeFalsy();
+    });
+
+    it('returns false with simple array', () => {
+      const actions: RouterActionParams[] = [
+        depositActionParams,
+        borrowActionParams,
+      ];
+      expect(Sdk.needSignature(actions)).toBeFalsy();
+    });
+
+    it('returns false with compound array', () => {
+      const actions: (RouterActionParams | RouterActionParams[])[] = [
+        depositActionParams,
+        borrowActionParams,
+        [depositActionParams, borrowActionParams],
+      ];
+      expect(Sdk.needSignature(actions)).toBeFalsy();
+    });
+
+    it('returns true with simple array for borrows', () => {
+      const actions: RouterActionParams[] = [
+        depositActionParams,
+        borrowPermitActionParams,
+        borrowActionParams,
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+
+    it('returns true with simple array for withdrawals', () => {
+      const actions: RouterActionParams[] = [
+        depositActionParams,
+        withdrawPermitActionParams,
+        borrowActionParams,
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+
+    it('returns true with compound array (permit in first level) for borrows', () => {
+      const actions: (RouterActionParams | RouterActionParams[])[] = [
+        depositActionParams,
+        borrowPermitActionParams,
+        borrowActionParams,
+        [depositActionParams, borrowActionParams],
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+
+    it('returns true with compound array (permit in first level) for withdrawals', () => {
+      const actions: (RouterActionParams | RouterActionParams[])[] = [
+        depositActionParams,
+        withdrawPermitActionParams,
+        borrowActionParams,
+        [depositActionParams, borrowActionParams],
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+
+    it('returns true with compound array (permit in second level) for borrows', () => {
+      const actions: (RouterActionParams | RouterActionParams[])[] = [
+        depositActionParams,
+        borrowActionParams,
+        [depositActionParams, borrowPermitActionParams, borrowActionParams],
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+
+    it('returns true with compound array (permit in second level) for withdrawals', () => {
+      const actions: (RouterActionParams | RouterActionParams[])[] = [
+        depositActionParams,
+        borrowActionParams,
+        [depositActionParams, withdrawPermitActionParams, borrowActionParams],
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+
+    it('returns true with compound array (permit in both levels)', () => {
+      const actions: (RouterActionParams | RouterActionParams[])[] = [
+        depositActionParams,
+        borrowPermitActionParams,
+        borrowActionParams,
+        [depositActionParams, withdrawPermitActionParams, borrowActionParams],
+      ];
+      expect(Sdk.needSignature(actions)).toBeTruthy();
+    });
+  });
+
+  //const deposit: DepositParams = {
+  //action: RouterAction.DEPOSIT,
+  //vault: vault.address,
+  //amount: BigNumber.from(1),
+  //sender: Address.from(owner.address),
+  //receiver: Address.from(owner.address),
+  //};
+  //const permitBorrow: PermitParams = {
+  //action: RouterAction.PERMIT_BORROW,
+  //vault: vault.address,
+  //amount: BigNumber.from(1),
+  //owner: Address.from(owner.address),
+  //spender: ADDRESS_TWO,
+  //deadline: 24 * 60 * 60,
+  //};
+  //const borrow: BorrowParams = {
+  //action: RouterAction.BORROW,
+  //vault: vault.address,
+  //amount: BigNumber.from(1),
+  //receiver: Address.from(owner.address),
+  //owner: Address.from(owner.address),
+  //};
+  describe('#getTxDetails', () => {
+    it('signs a separate borrow permit', async () => {
+      const vault = new BorrowingVault(
+        Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
+        WNATIVE[ChainId.GOERLI],
+        USDC[ChainId.GOERLI]
+      ).setConnection(config);
+      const owner = new Wallet(PRIVATE_KEY);
+
+      const actions = sdk.previewDepositAndBorrow(
+        vault,
+        parseUnits('1'),
+        parseUnits('1'),
+        ChainId.GOERLI,
+        ChainId.GOERLI,
+        Address.from(owner.address)
+      );
+
+      const permitBorrow = actions.find(
+        (a) => a.action === RouterAction.PERMIT_BORROW
+      ) as PermitParams;
+      const digest = await vault.signPermitFor(permitBorrow);
+
+      const skey = new utils.SigningKey('0x' + PRIVATE_KEY);
+      const signature = skey.signDigest(digest);
+      sdk.getTxDetails(actions, ChainId.GOERLI, signature.compact);
     });
   });
 });

@@ -1,4 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
+import { splitSignature } from '@ethersproject/bytes';
 import { Call } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
@@ -10,8 +11,10 @@ import {
 } from './constants';
 import { Address, ChainConnection, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ChainId } from './enums';
-import { ChainConfig } from './types';
+import { ChainId, RouterAction } from './enums';
+import { encodeActionArgs } from './functions';
+import { ChainConfig, PermitParams, RouterActionParams } from './types';
+import { ConnextRouter__factory } from './types/contracts';
 
 export class Sdk {
   /**
@@ -22,6 +25,30 @@ export class Sdk {
 
   constructor(config: ChainConfig) {
     this._configParams = config;
+  }
+
+  /**
+   * Static method to check for PERMIT_BORROW or PERMIT_WITHDRAW
+   * in array of actions like [DEPOSIT, PERMIT_BORROW, BORROW]
+   * or nested array of actions like
+   * [X-CALL, FLASHLOAN, [PAYBACK, PERMIT_WITHDRAW, WITHDRAW, SWAP]]
+   *
+   * @param params - array or nested array of actions
+   */
+  static needSignature(
+    params: (RouterActionParams | RouterActionParams[])[]
+  ): boolean {
+    // TODO: do we need to check presence of r,v,s in PERMITs?
+
+    return !!params.find((p) => {
+      if (p instanceof Array) {
+        return Sdk.needSignature(p);
+      }
+      return (
+        p.action === RouterAction.PERMIT_BORROW ||
+        p.action === RouterAction.PERMIT_WITHDRAW
+      );
+    });
   }
 
   /**
@@ -153,6 +180,98 @@ export class Sdk {
     ]);
 
     return rateA.lt(rateB) ? vaultA : vaultB;
+  }
+
+  /**
+   * Prepares and returns the bundle of actions that will be send to the router
+   * for a compound operation of deposit+borrow.
+   *
+   * @remarks
+   * The array that is returned should be first passed to `BorrowingVault.needSignature`.
+   * If one of the actions must be signed by the user, we have to obtain the digest
+   * from `this.signPermitFor` and make the user sign it with their wallet. The last step is
+   * to obtain the txData and the address of the router from `this.getTxDetails` which is to be
+   * used in ethers.sendTransaction.
+   *
+   * @param vault - vault instance on which we want to open a position
+   * @param amountIn - amount of provided collateral
+   * @param amountOut - amount of loan
+   * @param srcChainId - chain ID from which the tx is initated
+   * @param destChainId - chain ID where user wants their borrowed amount disbursed
+   * @param account - user address, wrapped in {@link Address}
+   */
+  previewDepositAndBorrow(
+    vault: BorrowingVault,
+    amountIn: BigNumber,
+    amountOut: BigNumber,
+    srcChainId: ChainId,
+    destChainId: ChainId,
+    account: Address
+  ): RouterActionParams[] {
+    // TODO estimate bridge cost
+    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
+
+    // everything happens on the same chain
+    if (srcChainId === destChainId && srcChainId == vault.chainId) {
+      return [
+        vault.previewDeposit(amountIn, account, account),
+        vault.previewPermitBorrow(amountOut, connextRouter, account),
+        vault.previewBorrow(amountOut, account),
+      ];
+    }
+
+    // deposit and borrow on chain A and transfer to chain B
+    if (srcChainId === vault.chainId) {
+      return [
+        vault.previewDeposit(amountIn, account, account),
+        vault.previewPermitBorrow(amountOut, connextRouter, account),
+        vault.previewBorrow(amountOut, account),
+        //this._previewXTransfer()
+      ];
+    }
+
+    // transfer from chain A and deposit and borrow on chain B
+    return [
+      //this._previewXTransferWithCall()
+      vault.previewDeposit(amountIn, connextRouter, account),
+      vault.previewPermitBorrow(amountOut, connextRouter, account),
+      vault.previewBorrow(amountOut, account),
+    ];
+  }
+
+  getTxDetails(
+    actionParams: RouterActionParams[],
+    srcChainId: ChainId,
+    signature?: string
+  ): { data: string; address: string } {
+    const permitAction: PermitParams = actionParams.find((param) =>
+      [RouterAction.PERMIT_BORROW, RouterAction.PERMIT_WITHDRAW].includes(
+        param.action
+      )
+    ) as PermitParams;
+
+    // TODO verify better signature && permitAction
+    if (signature && permitAction) {
+      const { v, r, s } = splitSignature(signature);
+      permitAction.v = v;
+      permitAction.r = r;
+      permitAction.s = s;
+    } else if (permitAction && !signature) {
+      invariant(false, 'You need to sign the permit action first!');
+    }
+
+    const actions = actionParams.map(({ action }) => BigNumber.from(action));
+    const args = actionParams.map(encodeActionArgs);
+    const callData =
+      ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
+        actions,
+        args,
+      ]);
+
+    return {
+      data: callData,
+      address: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
+    };
   }
 
   private _findVaultByTokenSymbol(
