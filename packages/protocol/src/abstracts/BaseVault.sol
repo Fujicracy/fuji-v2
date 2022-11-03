@@ -6,7 +6,6 @@ pragma solidity 0.8.15;
  * @author Fujidao Labs
  * @notice Defines the interface and common functions for all vaults.
  */
-import "forge-std/console.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
@@ -361,8 +360,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @inheritdoc ERC20
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
     to;
-    console.log("@_beforeTransfer");
-    console.log("amount", amount, "maxRedeem", maxRedeem(from));
     if (from != address(0)) {
       require(amount <= maxRedeem(from), "Transfer more than max");
     }

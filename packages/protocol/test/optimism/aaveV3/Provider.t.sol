@@ -70,12 +70,8 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     aaveV3 = new AaveV3Optimism();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV3;
-
+   
     _utils_setupVaultProvider(vault, providers);
-
-    // deal(address(weth), alice, DEPOSIT_AMOUNT);
-    // _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
-    // _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
   }
 
   function _utils_setupTestRoles() internal {
