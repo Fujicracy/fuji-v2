@@ -149,7 +149,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxMint(address) public view virtual override returns (uint256) {
-    return _convertToShares(depositCap, Math.Rounding.Down);
+    return depositCap; // return _convertToShares(depositCap, Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
