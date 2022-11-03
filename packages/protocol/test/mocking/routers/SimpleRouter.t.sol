@@ -187,7 +187,7 @@ contract SimpleRouterUnitTests is MockingSetup {
     _depositAndBorrow(withdrawAmount, flashAmount, vault);
 
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), ALICE, withdrawAmount, 0, address(vault)
+      ALICE, address(simpleRouter), address(simpleRouter), withdrawAmount, 0, address(vault)
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
@@ -208,7 +208,8 @@ contract SimpleRouterUnitTests is MockingSetup {
     innerActions[3] = IRouter.Action.Swap;
 
     innerArgs[0] = abi.encode(address(vault), flashAmount, ALICE, address(flasher));
-    innerArgs[1] = abi.encode(address(vault), ALICE, ALICE, withdrawAmount, deadline, v, r, s);
+    innerArgs[1] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), withdrawAmount, deadline, v, r, s);
     innerArgs[2] = abi.encode(address(vault), withdrawAmount, address(simpleRouter), ALICE);
     innerArgs[3] = abi.encode(
       address(swapper), collateralAsset, debtAsset, withdrawAmount, flashAmount, address(flasher), 0
@@ -228,6 +229,7 @@ contract SimpleRouterUnitTests is MockingSetup {
   }
 
   function test_refinancePosition() public {
+    _setupNewVault();
     _depositAndBorrow(amount, borrowAmount, vault);
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
@@ -249,22 +251,25 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     innerArgs[0] = abi.encode(address(vault), borrowAmount, ALICE, address(flasher));
 
-    LibSigUtils.Permit memory permitW =
-      LibSigUtils.buildPermitStruct(ALICE, address(simpleRouter), ALICE, amount, 0, address(vault));
+    LibSigUtils.Permit memory permitW = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+    );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
 
-    innerArgs[1] = abi.encode(address(vault), ALICE, ALICE, amount, deadline, v, r, s);
+    innerArgs[1] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
     innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), ALICE);
     innerArgs[3] = abi.encode(address(newVault), amount, ALICE, address(simpleRouter));
 
     LibSigUtils.Permit memory permitB = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(newVault)
+      ALICE, address(simpleRouter), address(simpleRouter), borrowAmount, 0, address(newVault)
     );
 
     (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(newVault));
-    innerArgs[4] = abi.encode(address(newVault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
+    innerArgs[4] =
+      abi.encode(address(newVault), ALICE, address(simpleRouter), borrowAmount, deadline, v, r, s);
     innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), ALICE);
     innerArgs[6] = abi.encode(
       address(swapper),
@@ -291,7 +296,7 @@ contract SimpleRouterUnitTests is MockingSetup {
   }
 
   // Split this from `test_refinancePosition` to avoid Stack overflow.
-  function setupNewVault() internal {
+  function _setupNewVault() internal {
     debtAsset2 = new MockERC20("Test KAI", "tKAI");
     vm.label(address(debtAsset2), "tKAI");
 
