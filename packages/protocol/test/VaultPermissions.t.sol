@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {Routines} from "./utils/Routines.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TimelockController} from
@@ -154,7 +155,7 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vm.prank(operator);
     vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.withdrawAllowance(owner, operator, operator), withdrawDelegated);
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated);
 
     vm.prank(operator);
     vault.withdraw(withdrawDelegated, receiver, owner);
@@ -195,6 +196,8 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
 
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+
+    vm.prank(operator);
     vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
     assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated);
