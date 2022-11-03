@@ -10,6 +10,8 @@ import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
+import "forge-std/console.sol";
+
 contract BorrowingVault is BaseVault {
   using Math for uint256;
 
@@ -126,7 +128,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Down);
+    return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
   /// @inheritdoc BaseVault
@@ -165,6 +167,11 @@ contract BorrowingVault is BaseVault {
     if (debt == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
+
+    console.log("@payback");
+    console.log(
+      "debt", debt, "convertToDebt(_debtShares[owner])", convertToDebt(_debtShares[owner])
+    );
 
     if (debt > convertToDebt(_debtShares[owner])) {
       revert BorrowingVault__payback_moreThanMax();

@@ -32,15 +32,14 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   IWETH9 public weth;
   IERC20 public usdc;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+  uint256 public constant DEPOSIT_AMOUNT = 1 ether;
+  uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
     optimismFork = vm.createSelectFork("optimism");
 
     weth = IWETH9(0x4200000000000000000000000000000000000006);
     usdc = IERC20(0x7F5c764cBc14f9669B88837ca1490cCa17c31607);
-
 
     vm.label(address(alice), "alice");
     vm.label(address(bob), "bob");
@@ -73,6 +72,10 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     providers[0] = aaveV3;
 
     _utils_setupVaultProvider(vault, providers);
+
+    // deal(address(weth), alice, DEPOSIT_AMOUNT);
+    // _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
+    // _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
   }
 
   function _utils_setupTestRoles() internal {
@@ -138,11 +141,14 @@ contract ProviderTest is DSTestPlus, CoreRoles {
 
   function test_paybackAndWithdraw() public {
     deal(address(weth), alice, DEPOSIT_AMOUNT);
-
     _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
     _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
 
+    vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 1 minutes);
+
     uint256 aliceDebt = vault.balanceOfDebt(alice);
+    deal(address(usdc), alice, aliceDebt); // ensure user has accrued interest to payback.
     _utils_doPaybackRoutine(alice, aliceDebt);
 
     uint256 maxAmount = vault.maxWithdraw(alice);

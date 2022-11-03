@@ -170,7 +170,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxRedeem(address owner) public view override returns (uint256) {
-    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Down);
+    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Up);
   }
 
   /// @inheritdoc IERC4626
@@ -361,6 +361,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @inheritdoc ERC20
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
     to;
+    console.log("@_beforeTransfer");
+    console.log("amount", amount, "maxRedeem", maxRedeem(from));
     if (from != address(0)) {
       require(amount <= maxRedeem(from), "Transfer more than max");
     }
@@ -477,17 +479,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     bytes memory data = abi.encodeWithSignature(
       string(abi.encodePacked(name, "(uint256,address)")), assets, address(this)
     );
-    address testAddress = address(activeProvider);
-    
-    console.log("before delegate on _executeProviderAction");
-    testAddress.functionDelegateCall(data, string(abi.encodePacked(name, ": delegate call failed")));
-    console.log("after delegate on _executeProviderAction");
-
-    // address(activeProvider).functionDelegateCall(
-    //   data, string(abi.encodePacked(name, ": delegate call failed"))
-    // );
-    console.log("2");
-    console.log("after _executeProviderAction");
+    address(activeProvider).functionDelegateCall(
+      data, string(abi.encodePacked(name, ": delegate call failed"))
+    );
   }
 
   function _checkProvidersBalance(string memory method) internal view returns (uint256 assets) {
