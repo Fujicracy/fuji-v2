@@ -115,7 +115,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override
     returns (bool)
   {
-    address operator = receiver; 
+    address operator = receiver;
     decreaseWithdrawAllowance(operator, receiver, convertToAssets(subtractedShares));
     return true;
   }
@@ -125,7 +125,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts shares argument to assets in VaultPermissions-_spendWithdrawAllowance.
    * This internal function is called during ERC4626-transferFrom.
    */
-  function _spendAllowance(address owner, address operator, address receiver, uint256 shares) internal {
+  function _spendAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 shares
+  )
+    internal
+  {
     _spendWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
   }
 

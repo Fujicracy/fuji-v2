@@ -97,6 +97,7 @@ contract MockingSetup is CoreRoles, Test {
       structHash
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    deadline = permit.deadline;
   }
 
   // plusNonce is necessary for compound operations,
@@ -115,5 +116,6 @@ contract MockingSetup is CoreRoles, Test {
       LibSigUtils.getStructHashAsset(permit)
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    deadline = permit.deadline;
   }
 }

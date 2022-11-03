@@ -46,7 +46,16 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   constructor(string memory name_) EIP712(name_, "1") {}
 
   /// @inheritdoc IVaultPermissions
-  function withdrawAllowance(address owner, address operator, address receiver) public view override returns (uint256) {
+  function withdrawAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    public
+    view
+    override
+    returns (uint256)
+  {
     return _withdrawAllowance[owner][operator][receiver];
   }
 
@@ -76,7 +85,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    _setWithdrawAllowance(owner, operator, receiver, _withdrawAllowance[owner][operator][receiver] + byAmount);
+    _setWithdrawAllowance(
+      owner, operator, receiver, _withdrawAllowance[owner][operator][receiver] + byAmount
+    );
     return true;
   }
 
@@ -91,12 +102,12 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    uint256 currentAllowance = withdrawAllowance(owner, operator, receiver);
+    uint256 currentAllowance = _withdrawAllowance[owner][operator][receiver];
     if (byAmount > currentAllowance) {
       revert VaultPermissions__allowanceBelowZero();
     }
     unchecked {
-      _setWithdrawAllowance(owner, operator, receiver, _withdrawAllowance[owner][operator][receiver] - byAmount);
+      _setWithdrawAllowance(owner, operator, receiver, currentAllowance - byAmount);
     }
     return true;
   }
@@ -113,7 +124,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    _setBorrowAllowance(owner, operator, receiver, _borrowAllowance[owner][operator][receiver] + byAmount);
+    _setBorrowAllowance(
+      owner, operator, receiver, _borrowAllowance[owner][operator][receiver] + byAmount
+    );
     return true;
   }
 
@@ -129,12 +142,12 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    uint256 currentAllowance = borrowAllowance(owner, operator, receiver);
+    uint256 currentAllowance = _borrowAllowance[owner][operator][receiver];
     if (byAmount > currentAllowance) {
       revert VaultPermissions__allowanceBelowZero();
     }
     unchecked {
-      _setBorrowAllowance(owner, operator, receiver, _borrowAllowance[owner][operator][receiver] - byAmount);
+      _setBorrowAllowance(owner, operator, receiver, currentAllowance - byAmount);
     }
     return true;
   }
@@ -166,7 +179,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     _checkDeadline(deadline);
     address operator = msg.sender;
     bytes32 structHash = keccak256(
-      abi.encode(PERMIT_WITHDRAW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline)
+      abi.encode(
+        PERMIT_WITHDRAW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+      )
     );
     _checkSigner(structHash, owner, v, r, s);
 
@@ -190,7 +205,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     _checkDeadline(deadline);
     address operator = msg.sender;
     bytes32 structHash = keccak256(
-      abi.encode(_PERMIT_BORROW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline)
+      abi.encode(
+        _PERMIT_BORROW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+      )
     );
     _checkSigner(structHash, owner, v, r, s);
 
@@ -208,7 +225,14 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * - `owner` cannot be the zero address.
    * - `operator` cannot be the zero address.
    */
-  function _setWithdrawAllowance(address owner, address operator, address receiver, uint256 amount) internal {
+  function _setWithdrawAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+  {
     if (owner == address(0) || operator == address(0) || receiver == address(0)) {
       revert VaultPermissions__zeroAddress();
     }
@@ -225,7 +249,14 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * - `owner` cannot be the zero address.
    * - `operator` cannot be the zero address.
    */
-  function _setBorrowAllowance(address owner, address operator, address receiver, uint256 amount) internal {
+  function _setBorrowAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+  {
     if (owner == address(0) || operator == address(0) || receiver == address(0)) {
       revert VaultPermissions__zeroAddress();
     }
@@ -236,11 +267,18 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /**
    * @dev Based on OZ {ERC20-spendAllowance} for assets.
    */
-  function _spendWithdrawAllowance(address owner, address operator, address receiver, uint256 amount) internal {
+  function _spendWithdrawAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+  {
     uint256 currentAllowance = withdrawAllowance(owner, operator, receiver);
     if (currentAllowance != type(uint256).max) {
       if (amount > currentAllowance) {
-        revert VaultPermissions__insufficientWithdrawAllowance(); 
+        revert VaultPermissions__insufficientWithdrawAllowance();
       }
       unchecked {
         _setWithdrawAllowance(owner, operator, receiver, currentAllowance - amount);
@@ -251,11 +289,19 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /**
    * @dev Based on OZ {ERC20-spendAllowance} for assets.
    */
-  function _spendBorrowAllowance(address owner, address operator, address receiver, uint256 amount) internal virtual {
+  function _spendBorrowAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+    virtual
+  {
     uint256 currentAllowance = _borrowAllowance[owner][operator][receiver];
     if (currentAllowance != type(uint256).max) {
       if (amount > currentAllowance) {
-        revert VaultPermissions__insufficientBorrowAllowance(); 
+        revert VaultPermissions__insufficientBorrowAllowance();
       }
       unchecked {
         _setBorrowAllowance(owner, operator, receiver, currentAllowance - amount);
@@ -286,7 +332,16 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /**
    * @dev Reverts if `presumedOwner` is not signer of `structHash`.
    */
-  function _checkSigner(bytes32 structHash, address presumedOwner, uint8 v, bytes32 r, bytes32 s) internal view {
+  function _checkSigner(
+    bytes32 structHash,
+    address presumedOwner,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  )
+    internal
+    view
+  {
     bytes32 digest = _hashTypedDataV4(structHash);
     address signer = ECDSA.recover(digest, v, r, s);
     if (signer != presumedOwner) {

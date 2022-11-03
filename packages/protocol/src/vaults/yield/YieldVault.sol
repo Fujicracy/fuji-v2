@@ -62,7 +62,17 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-borrowAllowance}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function borrowAllowance(address, address, address) public view virtual override returns (uint256) {
+  function borrowAllowance(
+    address,
+    address,
+    address
+  )
+    public
+    view
+    virtual
+    override
+    returns (uint256)
+  {
     revert YieldVault__notApplicable();
   }
 
@@ -70,7 +80,16 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function increaseBorrowAllowance(address, address, uint256) public virtual override returns (bool) {
+  function increaseBorrowAllowance(
+    address,
+    address,
+    uint256
+  )
+    public
+    virtual
+    override
+    returns (bool)
+  {
     revert YieldVault__notApplicable();
   }
 
@@ -78,7 +97,16 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function decreaseBorrowAllowance(address, address, uint256) public virtual override returns (bool) {
+  function decreaseBorrowAllowance(
+    address,
+    address,
+    uint256
+  )
+    public
+    virtual
+    override
+    returns (bool)
+  {
     revert YieldVault__notApplicable();
   }
 

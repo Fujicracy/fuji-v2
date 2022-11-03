@@ -8,7 +8,7 @@ pragma solidity 0.8.15;
  * 'permitBorrow'.
  */
 
- import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
+import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 
 library LibSigUtils {
   // solhint-disable-next-line var-name-mixedcase
@@ -31,19 +31,22 @@ library LibSigUtils {
 
   function buildPermitStruct(
     address owner,
-    uint256 ownerPrivateKey,
     address operator,
     address receiver,
     uint256 amount,
     uint256 plusNonce,
     address vault_
-  ) public view returns(Permit memory permit) {
-      permit.owner = owner;
-      permit.operator =operator;
-      permit.receiver = receiver;
-      permit.amount = amount;
-      permit.nonce = IVaultPermissions(vault_).nonces(owner) + plusNonce;
-      permit.deadline = block.timestamp + 1 days;
+  )
+    public
+    view
+    returns (Permit memory permit)
+  {
+    permit.owner = owner;
+    permit.operator = operator;
+    permit.receiver = receiver;
+    permit.amount = amount;
+    permit.nonce = IVaultPermissions(vault_).nonces(owner) + plusNonce;
+    permit.deadline = block.timestamp + 1 days;
   }
 
   // computes the hash of a permit-asset

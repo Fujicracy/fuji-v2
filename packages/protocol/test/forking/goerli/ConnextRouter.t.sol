@@ -114,14 +114,13 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     args[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, ALICE_PK, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
+      ALICE, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
 
-    args[1] =
-      abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
 
     args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
 

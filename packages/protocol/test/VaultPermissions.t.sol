@@ -45,7 +45,6 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vm.label(operator, "operator");
     vm.label(receiver, "receiver");
 
-
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
     debtAsset = new MockERC20("Test DAI", "tDAI");

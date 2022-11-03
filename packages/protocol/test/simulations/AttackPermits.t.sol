@@ -49,12 +49,11 @@ contract AttackPermits is MockingSetup, Routines {
     uint256 newBorrowAmount = 800e18;
 
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, ALICE_PK, address(simpleRouter), ALICE, newBorrowAmount, 0, address(vault)
+      ALICE, address(simpleRouter), ALICE, newBorrowAmount, 0, address(vault)
     );
 
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) = _getPermitBorrowArgs(
-      permit, ALICE_PK, address(vault)
-    );
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
 
     // Attacker "somehow" gets hold of this signed message and calls simpleRouter.
 
@@ -65,8 +64,7 @@ contract AttackPermits is MockingSetup, Routines {
 
     bytes[] memory args = new bytes[](2);
 
-    args[0] =
-      abi.encode(address(vault), ALICE, attacker, newBorrowAmount, deadline, v, r, s);
+    args[0] = abi.encode(address(vault), ALICE, attacker, newBorrowAmount, deadline, v, r, s);
     args[1] = abi.encode(address(vault), newBorrowAmount, attacker, ALICE);
 
     vm.prank(attacker);

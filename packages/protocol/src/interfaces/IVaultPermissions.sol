@@ -34,12 +34,26 @@ interface IVaultPermissions {
    * Requirements:
    * - By convention this SHOULD be used over {IERC4626-allowance}.
    */
-  function withdrawAllowance(address owner, address operator, address receiver) external view returns (uint256);
+  function withdrawAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    external
+    view
+    returns (uint256);
 
   /**
    * @dev Based on {IERC20-allowance} for debt.
    */
-  function borrowAllowance(address owner, address operator, address receiver) external view returns (uint256);
+  function borrowAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    external
+    view
+    returns (uint256);
 
   /**
    * @dev Atomically increases the `withdrawAllowance` granted to `operator` by the caller.
@@ -49,7 +63,13 @@ interface IVaultPermissions {
    * Requirements:
    * - `operator` cannot be the zero address.
    */
-  function increaseWithdrawAllowance(address operator, address receiver, uint256 byAmount) external returns (bool);
+  function increaseWithdrawAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
    * @dev Atomically decrease the `withdrawAllowance` granted to `operator` by the caller.
@@ -60,7 +80,13 @@ interface IVaultPermissions {
    * - `operator` cannot be the zero address.
    * - `operator` must have `withdrawAllowance` for the caller of at least `byAmount`
    */
-  function decreaseWithdrawAllowance(address operator, address receiver, uint256 byAmount) external returns (bool);
+  function decreaseWithdrawAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
    * @dev Atomically increases the `borrowAllowance` granted to `operator` by the caller.
@@ -70,7 +96,13 @@ interface IVaultPermissions {
    * Requirements:
    * - `operator` cannot be the zero address.
    */
-  function increaseBorrowAllowance(address operator, address receiver, uint256 byAmount) external returns (bool);
+  function increaseBorrowAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
    * @dev Atomically decrease the `borrowAllowance` granted to `operator` by the caller.
@@ -82,7 +114,13 @@ interface IVaultPermissions {
    * - `operator` cannot be the zero address.
    * - `operator` must have `borrowAllowance` for the caller of at least `byAmount`
    */
-  function decreaseBorrowAllowance(address operator, address receiver, uint256 byAmount) external returns (bool);
+  function decreaseBorrowAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
    * @dev Based on OZ {IERC20Permit-nonces}.
