@@ -11,7 +11,7 @@ contract SignOptimismGoerliBorrow is ScriptPlus {
     chainName = "optimism-goerli";
   }
 
-  function run() public {
+  function run(address receiver) public {
     address vault = getAddress("BorrowingVault");
     uint256 borrowAmount = 10e18; // 10 DAI
 
@@ -19,7 +19,8 @@ contract SignOptimismGoerliBorrow is ScriptPlus {
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: msg.sender,
-      spender: getAddress("ConnextRouter"),
+      operator: getAddress("ConnextRouter"),
+      receiver: receiver,
       amount: borrowAmount,
       nonce: IVaultPermissions(vault).nonces(msg.sender),
       deadline: deadline

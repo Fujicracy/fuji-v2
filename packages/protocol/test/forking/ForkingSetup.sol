@@ -166,24 +166,13 @@ contract ForkingSetup is CoreRoles, Test {
   // plusNonce is necessary for compound operations,
   // those that needs more than one signiture in the same tx
   function _getPermitBorrowArgs(
-    address owner,
+    LibSigUtils.Permit memory permit,
     uint256 ownerPrivateKey,
-    address operator,
-    uint256 borrowAmount,
-    uint256 plusNonce,
     address vault_
   )
     internal
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
-    deadline = block.timestamp + 1 days;
-    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-      owner: owner,
-      spender: operator,
-      amount: borrowAmount,
-      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
-      deadline: deadline
-    });
     bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.

@@ -10,6 +10,7 @@ import {IRouter} from "../../src/interfaces/IRouter.sol";
 import {Routines} from "../utils/Routines.sol";
 import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 
 contract AttackPermits is MockingSetup, Routines {
   address attacker;
@@ -43,12 +44,16 @@ contract AttackPermits is MockingSetup, Routines {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
   }
 
-  function test_PermitAttack() public {
+  function testFail_PermitAttack() public {
     // Alice signs a message for `simpleRouter` to borrow 800 tDAI.
     uint256 newBorrowAmount = 800e18;
 
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, ALICE_PK, address(simpleRouter), ALICE, newBorrowAmount, 0, address(vault)
+    );
+
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) = _getPermitBorrowArgs(
-      ALICE, ALICE_PK, address(simpleRouter), newBorrowAmount, 0, address(vault)
+      permit, ALICE_PK, address(vault)
     );
 
     // Attacker "somehow" gets hold of this signed message and calls simpleRouter.
@@ -61,12 +66,12 @@ contract AttackPermits is MockingSetup, Routines {
     bytes[] memory args = new bytes[](2);
 
     args[0] =
-      abi.encode(address(vault), ALICE, address(simpleRouter), newBorrowAmount, deadline, v, r, s);
+      abi.encode(address(vault), ALICE, attacker, newBorrowAmount, deadline, v, r, s);
     args[1] = abi.encode(address(vault), newBorrowAmount, attacker, ALICE);
 
     vm.prank(attacker);
     simpleRouter.xBundle(actions, args);
 
-    assertEq(IERC20(debtAsset).balanceOf(attacker), newBorrowAmount);
+    assertEq(IERC20(debtAsset).balanceOf(attacker), 0);
   }
 }

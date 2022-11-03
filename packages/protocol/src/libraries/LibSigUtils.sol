@@ -8,22 +8,42 @@ pragma solidity 0.8.15;
  * 'permitBorrow'.
  */
 
+ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
+
 library LibSigUtils {
   // solhint-disable-next-line var-name-mixedcase
   bytes32 internal constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
   bytes32 internal constant _PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitBorrow(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
   struct Permit {
     address owner;
-    address spender;
+    address operator;
+    address receiver;
     uint256 amount;
     uint256 nonce;
     uint256 deadline;
+  }
+
+  function buildPermitStruct(
+    address owner,
+    uint256 ownerPrivateKey,
+    address operator,
+    address receiver,
+    uint256 amount,
+    uint256 plusNonce,
+    address vault_
+  ) public view returns(Permit memory permit) {
+      permit.owner = owner;
+      permit.operator =operator;
+      permit.receiver = receiver;
+      permit.amount = amount;
+      permit.nonce = IVaultPermissions(vault_).nonces(owner) + plusNonce;
+      permit.deadline = block.timestamp + 1 days;
   }
 
   // computes the hash of a permit-asset
@@ -32,7 +52,8 @@ library LibSigUtils {
       abi.encode(
         PERMIT_WITHDRAW_TYPEHASH,
         permit.owner,
-        permit.spender,
+        permit.operator,
+        permit.receiver,
         permit.amount,
         permit.nonce,
         permit.deadline
@@ -46,7 +67,8 @@ library LibSigUtils {
       abi.encode(
         _PERMIT_BORROW_TYPEHASH,
         permit.owner,
-        permit.spender,
+        permit.operator,
+        permit.receiver,
         permit.amount,
         permit.nonce,
         permit.deadline

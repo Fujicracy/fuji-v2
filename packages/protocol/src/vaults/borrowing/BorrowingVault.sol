@@ -151,7 +151,7 @@ contract BorrowingVault is BaseVault {
     }
 
     if (caller != owner) {
-      _spendBorrowAllowance(owner, caller, debt);
+      _spendBorrowAllowance(owner, caller, receiver, debt);
     }
 
     uint256 shares = convertDebtToShares(debt);
@@ -186,7 +186,8 @@ contract BorrowingVault is BaseVault {
    */
   function borrowAllowance(
     address owner,
-    address spender
+    address operator,
+    address receiver
   )
     public
     view
@@ -194,7 +195,7 @@ contract BorrowingVault is BaseVault {
     override
     returns (uint256)
   {
-    return VaultPermissions.borrowAllowance(owner, spender);
+    return VaultPermissions.borrowAllowance(owner, operator, receiver);
   }
 
   /**
@@ -202,7 +203,8 @@ contract BorrowingVault is BaseVault {
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
   function increaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -210,7 +212,7 @@ contract BorrowingVault is BaseVault {
     override
     returns (bool)
   {
-    return VaultPermissions.increaseBorrowAllowance(spender, byAmount);
+    return VaultPermissions.increaseBorrowAllowance(operator, receiver, byAmount);
   }
 
   /**
@@ -218,7 +220,8 @@ contract BorrowingVault is BaseVault {
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
   function decreaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -226,7 +229,7 @@ contract BorrowingVault is BaseVault {
     override
     returns (bool)
   {
-    return VaultPermissions.decreaseBorrowAllowance(spender, byAmount);
+    return VaultPermissions.decreaseBorrowAllowance(operator, receiver, byAmount);
   }
 
   /**
@@ -235,7 +238,7 @@ contract BorrowingVault is BaseVault {
    */
   function permitBorrow(
     address owner,
-    address spender,
+    address receiver,
     uint256 value,
     uint256 deadline,
     uint8 v,
@@ -245,7 +248,7 @@ contract BorrowingVault is BaseVault {
     public
     override
   {
-    VaultPermissions.permitBorrow(owner, spender, value, deadline, v, r, s);
+    VaultPermissions.permitBorrow(owner, receiver, value, deadline, v, r, s);
   }
 
   /**

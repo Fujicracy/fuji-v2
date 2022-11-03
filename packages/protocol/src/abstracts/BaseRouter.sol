@@ -80,7 +80,7 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (
           IVaultPermissions vault,
           address owner,
-          address spender,
+          address receiver,
           uint256 amount,
           uint256 deadline,
           uint8 v,
@@ -89,13 +89,13 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         ) = abi.decode(
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
-        vault.permitWithdraw(owner, spender, amount, deadline, v, r, s);
+        vault.permitWithdraw(owner, receiver, amount, deadline, v, r, s);
       } else if (actions[i] == Action.PermitBorrow) {
         // PERMIT BORROW
         (
           IVaultPermissions vault,
           address owner,
-          address spender,
+          address receiver,
           uint256 amount,
           uint256 deadline,
           uint8 v,
@@ -105,7 +105,7 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
 
-        vault.permitBorrow(owner, spender, amount, deadline, v, r, s);
+        vault.permitBorrow(owner, receiver, amount, deadline, v, r, s);
       } else if (actions[i] == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 
