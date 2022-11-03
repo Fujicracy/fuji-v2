@@ -6,7 +6,7 @@ pragma solidity 0.8.15;
  * @author Fujidao Labs
  * @notice Defines the interface and common functions for all vaults.
  */
-
+import "forge-std/console.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
@@ -477,9 +477,17 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     bytes memory data = abi.encodeWithSignature(
       string(abi.encodePacked(name, "(uint256,address)")), assets, address(this)
     );
-    address(activeProvider).functionDelegateCall(
-      data, string(abi.encodePacked(name, ": delegate call failed"))
-    );
+    address testAddress = address(activeProvider);
+    
+    console.log("before delegate on _executeProviderAction");
+    testAddress.functionDelegateCall(data, string(abi.encodePacked(name, ": delegate call failed")));
+    console.log("after delegate on _executeProviderAction");
+
+    // address(activeProvider).functionDelegateCall(
+    //   data, string(abi.encodePacked(name, ": delegate call failed"))
+    // );
+    console.log("2");
+    console.log("after _executeProviderAction");
   }
 
   function _checkProvidersBalance(string memory method) internal view returns (uint256 assets) {

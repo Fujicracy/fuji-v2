@@ -9,7 +9,7 @@ import {TimelockController} from
 import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {AaveV2} from "../../../src/providers/polygon/AaveV2.sol";
+import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {Chief} from "../../../src/Chief.sol";
@@ -68,7 +68,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
       "fv2WETH"
     );
 
-    aaveV2 = new AaveV2();
+    aaveV2 = new AaveV2Polygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV2;
 

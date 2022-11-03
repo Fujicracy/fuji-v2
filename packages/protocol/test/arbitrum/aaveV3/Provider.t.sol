@@ -9,7 +9,7 @@ import {TimelockController} from
 import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {AaveV3} from "../../../src/providers/arbitrum/AaveV3.sol";
+import {AaveV3Arbitrum} from "../../../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
 import {Chief} from "../../../src/Chief.sol";
@@ -68,7 +68,7 @@ contract ProviderTest is DSTestPlus, CoreRoles {
       "fv2WETH"
     );
 
-    aaveV3 = new AaveV3();
+    aaveV3 = new AaveV3Arbitrum();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV3;
 
@@ -111,31 +111,13 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function _utils_doPaybackRoutine(address who, uint256 amount) internal {
-    console.log("1");
     vm.startPrank(who);
-
-    console.log("2");
     uint256 prevDebt = vault.balanceOfDebt(who);
-
-    console.log("prevdebt",prevDebt);
-
-    console.log("3");
     SafeERC20.safeApprove(IERC20(address(usdc)), address(vault), amount);
-
-    console.log("amount  ",prevDebt);
-    console.log("4");
     vault.payback(amount, who);
-
-    console.log("5");
     uint256 debtDiff = prevDebt - amount;
-
-    console.log("6");
     assertEq(vault.balanceOfDebt(who), debtDiff);
-
-    console.log("7");
     vm.stopPrank();
-
-    console.log("8");
   }
 
   function _utils_doWithdrawRoutine(address who, uint256 amount) internal {
@@ -155,21 +137,14 @@ contract ProviderTest is DSTestPlus, CoreRoles {
   }
 
   function test_paybackAndWithdraw() public {
-    console.log("1");
     deal(address(weth), alice, DEPOSIT_AMOUNT);
 
-    console.log("2");
     _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
-    console.log("3");
     _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
-    console.log("4");
     uint256 aliceDebt = vault.balanceOfDebt(alice);
-    console.log("5");
     _utils_doPaybackRoutine(alice, aliceDebt);
-    console.log("6");
 
     uint256 maxAmount = vault.maxWithdraw(alice);
-    console.log("7");
     _utils_doWithdrawRoutine(alice, maxAmount);
   }
 

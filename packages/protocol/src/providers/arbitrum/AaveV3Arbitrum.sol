@@ -11,7 +11,7 @@ import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
  * @author fujidao Labs
  * @notice This contract allows interaction with AaveV3.
  */
-contract AaveV3 is ILendingProvider {
+contract AaveV3Arbitrum is ILendingProvider {
   function _getPool() internal pure returns (IV3Pool) {
     return IV3Pool(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
   }
