@@ -141,52 +141,41 @@ export class Sdk {
   }
 
   /**
-   * Retruns a default vault for a given combination of tokens and chains
-   * and sets a connection.
+   * Retruns all vaults for a given combination of tokens and sets a connection for each of them.
    *
    * @remarks
-   * The Vault gets selected after checks of the lowest borrow rate for the debt token.
-   * If such a vault is found only on one of the chains, it returns without
-   * checks of the rate. If there is no such vault found on any of the chains,
-   * it returns `undefined`.
+   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
+   * If collateral and debt tokens are on the same chain, we privilage the vault
+   * on the same chain even though it has a lowest borrow rate.
    *
    * @param collateral - collateral instance of {@link Token}
    * @param debt - debt instance of {@link Token}
    */
-  async getBorrowingVaultFor(
+  async getBorrowingVaultsFor(
     collateral: Token,
     debt: Token
-  ): Promise<BorrowingVault | undefined> {
-    // both tokens are from the same chain
+  ): Promise<BorrowingVault[]> {
+    // find all vaults with this pair
+    const vaults = this._findVaultsByTokens(collateral, debt).map(
+      (v: BorrowingVault) => v.setConnection(this._configParams)
+    );
+
+    const rates = await Promise.all(vaults.map((v) => v.getBorrowRate()));
+
+    // and sort them by borrow rate
+    const sorted = vaults
+      .map((vault, i) => ({ vault, rate: rates[i] }))
+      .sort((a, b) => (a.rate.lt(b.rate) ? -1 : 0))
+      .map(({ vault }) => vault);
+
     if (collateral.chainId === debt.chainId) {
-      return this._findVaultByTokenAddr(
-        collateral.chainId,
-        collateral,
-        debt
-      )?.setConnection(this._configParams);
+      // sort again to privilege vaults on the same chain
+      sorted.sort((a) =>
+        a.collateral.chainId === collateral.chainId ? -1 : 0
+      );
     }
 
-    // tokens are on different chains
-    const vaultA = this._findVaultByTokenSymbol(
-      collateral.chainId,
-      collateral,
-      debt
-    )?.setConnection(this._configParams);
-    const vaultB = this._findVaultByTokenSymbol(
-      debt.chainId,
-      collateral,
-      debt
-    )?.setConnection(this._configParams);
-
-    // if one of the vaults doens't exist, return the other one
-    if (!vaultA || !vaultB) return vaultA ?? vaultB;
-
-    const [rateA, rateB] = await Promise.all([
-      vaultA.getBorrowRate(),
-      vaultB.getBorrowRate(),
-    ]);
-
-    return rateA.lt(rateB) ? vaultA : vaultB;
+    return sorted;
   }
 
   /**
@@ -304,32 +293,21 @@ export class Sdk {
     };
   }
 
-  private _findVaultByTokenSymbol(
-    chainId: ChainId,
+  private _findVaultsByTokens(
     collateral: Token,
     debt: Token
-  ): BorrowingVault | undefined {
+  ): BorrowingVault[] {
     const collateralSym: string = collateral.symbol;
     const debtSym: string = debt.symbol;
 
-    return VAULT_LIST[chainId].find(
-      (v: BorrowingVault) =>
-        v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
-    );
-  }
-
-  private _findVaultByTokenAddr(
-    chainId: ChainId,
-    collateral: Token,
-    debt: Token
-  ): BorrowingVault | undefined {
-    const collateralAddr: Address = collateral.address;
-    const debtAddr: Address = debt.address;
-
-    return VAULT_LIST[chainId].find(
-      (v: BorrowingVault) =>
-        v.collateral.address.equals(collateralAddr) &&
-        v.debt.address.equals(debtAddr)
-    );
+    return Object.entries(VAULT_LIST)
+      .map(([, list]) => list)
+      .reduce((acc, list) => {
+        const vaults = list.filter(
+          (v: BorrowingVault) =>
+            v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
+        );
+        return [...acc, ...vaults];
+      }, []);
   }
 }

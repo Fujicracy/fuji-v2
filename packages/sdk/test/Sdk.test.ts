@@ -85,84 +85,118 @@ describe('Sdk', () => {
   });
 
   describe('#getBorrowingVaultFor', () => {
-    it('returns a vault from the same chain', async () => {
-      const collateral = WNATIVE[ChainId.GOERLI];
-      const debt = USDC[ChainId.GOERLI];
-      const vault = await sdk.getBorrowingVaultFor(collateral, debt);
-      expect(vault?.chainId).toEqual(ChainId.GOERLI);
-    });
+    it('returns a first vault from chainA based on an APR check', async () => {
+      jest
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
+        .mockImplementation(() => [
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.GOERLI],
+            USDC[ChainId.GOERLI]
+          ),
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.GOERLI],
+            USDC[ChainId.GOERLI]
+          ),
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.OPTIMISM_GOERLI],
+            USDC[ChainId.OPTIMISM_GOERLI]
+          ),
+        ]);
 
-    it('returns a vault from chainA based on an APR check', async () => {
       jest
         .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
         .mockResolvedValueOnce(BigNumber.from(1))
-        .mockResolvedValueOnce(BigNumber.from(2));
+        .mockResolvedValueOnce(BigNumber.from(2))
+        .mockResolvedValueOnce(BigNumber.from(3));
 
       const collateralA = WNATIVE[ChainId.GOERLI];
       const debtB = USDC[ChainId.OPTIMISM_GOERLI];
 
-      const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
-      expect(vault?.chainId).toEqual(ChainId.GOERLI);
+      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(vaults[0].chainId).toEqual(ChainId.GOERLI);
     });
 
-    it('returns a vault from chainB based on an APR check', async () => {
+    it('returns a first vault from chainB based on an APR check', async () => {
+      jest
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
+        .mockImplementation(() => [
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.GOERLI],
+            USDC[ChainId.GOERLI]
+          ),
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.GOERLI],
+            USDC[ChainId.GOERLI]
+          ),
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.OPTIMISM_GOERLI],
+            USDC[ChainId.OPTIMISM_GOERLI]
+          ),
+        ]);
       jest
         .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
+        .mockResolvedValueOnce(BigNumber.from(3))
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(1));
 
       const collateralA = WNATIVE[ChainId.GOERLI];
       const debtB = USDC[ChainId.OPTIMISM_GOERLI];
 
-      const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
-      expect(vault?.chainId).toEqual(ChainId.OPTIMISM_GOERLI);
+      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM_GOERLI);
     });
 
-    it('returns a vault from chainA because it does not exist on chainB', async () => {
-      const collateralA = WNATIVE[ChainId.GOERLI];
-      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
-      const vaultA = new BorrowingVault(
-        ADDRESS_ONE,
-        collateralA,
-        USDC[ChainId.GOERLI]
-      );
-
+    it('returns a first vault from same chain although it is with the highest borrow rate', async () => {
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
-        .mockImplementation((chainId) =>
-          chainId === ChainId.GOERLI ? vaultA : undefined
-        );
-
-      const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
-      expect(vault?.chainId).toEqual(ChainId.GOERLI);
-    });
-
-    it('returns a vault from chainB because it does not exist on chainA', async () => {
-      const collateralA = WNATIVE[ChainId.GOERLI];
-      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
-      const vaultB = new BorrowingVault(
-        ADDRESS_ONE,
-        WNATIVE[ChainId.OPTIMISM_GOERLI],
-        debtB
-      );
-
+        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
+        .mockImplementation(() => [
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.OPTIMISM_GOERLI],
+            USDC[ChainId.OPTIMISM_GOERLI]
+          ),
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.GOERLI],
+            USDC[ChainId.GOERLI]
+          ),
+          new BorrowingVault(
+            ADDRESS_ONE,
+            WNATIVE[ChainId.GOERLI],
+            USDC[ChainId.GOERLI]
+          ),
+        ]);
       jest
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        .spyOn(Sdk.prototype as any, '_findVaultByTokenSymbol')
-        .mockImplementation((chainId) =>
-          chainId === ChainId.OPTIMISM_GOERLI ? vaultB : undefined
-        );
+        .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
+        .mockResolvedValueOnce(BigNumber.from(3))
+        .mockResolvedValueOnce(BigNumber.from(2))
+        .mockResolvedValueOnce(BigNumber.from(1));
 
-      const vault = await sdk.getBorrowingVaultFor(collateralA, debtB);
-      expect(vault?.chainId).toEqual(ChainId.OPTIMISM_GOERLI);
+      const collateralA = WNATIVE[ChainId.OPTIMISM_GOERLI];
+      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+
+      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM_GOERLI);
     });
 
     it('cannot find a vault', async () => {
+      jest
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
+        .mockImplementation(() => []);
       const collateral = WNATIVE[ChainId.GOERLI];
       const debt = new Token(ChainId.GOERLI, ADDRESS_BOB, 6, 'Bob');
-      const vault = await sdk.getBorrowingVaultFor(collateral, debt);
-      expect(vault).toBeUndefined();
+      const vaults = await sdk.getBorrowingVaultsFor(collateral, debt);
+      expect(vaults.length).toEqual(0);
     });
   });
 
