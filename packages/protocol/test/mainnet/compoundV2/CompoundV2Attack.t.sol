@@ -236,7 +236,7 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     // This fails because alice cannot withdraw her's maxWithdrawal, but she can withdraw maxWithdrawal-1
     // It happens only when more than one person deposits. You can check by commenting out above bob's deposit
 
-    // _utils_doWithdraw(alice, vault.maxWithdraw(alice), vault);
+    _utils_doWithdraw(alice, vault.maxWithdraw(alice), vault);
     
     // The below redeem does not work as well
     // vm.startPrank(alice);
@@ -260,6 +260,7 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
       compoundV2.providerName(), 
       address(weth));
     ICToken cToken = ICToken(cTokenAddr);
+
 
     console.log("---- START (ALICE)");
     console.log("USDC", usdc.balanceOf(alice));
