@@ -352,7 +352,7 @@ describe('Sdk', () => {
       ).setConnection(config);
       const owner = new Wallet(PRIVATE_KEY);
 
-      const { actions } = sdk.previewDepositAndBorrow(
+      const { actions } = await sdk.previewDepositAndBorrow(
         vault,
         parseUnits('1'),
         parseUnits('1'),

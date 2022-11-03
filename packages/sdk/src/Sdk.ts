@@ -13,12 +13,13 @@ import {
 } from './constants';
 import { Address, ChainConnection, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ChainId, RouterAction } from './enums';
+import { ChainId, RouterAction, RoutingStep } from './enums';
 import { encodeActionArgs } from './functions';
 import {
   ChainConfig,
   PermitParams,
   RouterActionParams,
+  RoutingStepDetails,
   XTransferParams,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
@@ -155,6 +156,7 @@ export class Sdk {
     collateral: Token,
     debt: Token
   ): Promise<BorrowingVault[]> {
+    // TODO: sort by safety rating too
     // find all vaults with this pair
     const vaults = this._findVaultsByTokens(collateral, debt).map(
       (v: BorrowingVault) => v.setConnection(this._configParams)
@@ -196,21 +198,25 @@ export class Sdk {
    * @param destChainId - chain ID where user wants their borrowed amount disbursed
    * @param account - user address, wrapped in {@link Address}
    */
-  previewDepositAndBorrow(
+  async previewDepositAndBorrow(
     vault: BorrowingVault,
     amountIn: BigNumber,
     amountOut: BigNumber,
     srcChainId: ChainId,
     destChainId: ChainId,
     account: Address
-  ): { actions: RouterActionParams[]; cost: BigNumber } {
+  ): Promise<{
+    actions: RouterActionParams[];
+    steps: RoutingStepDetails[];
+    cost: BigNumber;
+  }> {
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
     // TODO estimate bridge cost
     const cost = BigNumber.from(1);
 
     let actions: RouterActionParams[] = [];
-    // everything happens on the same chain
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
+      // everything happens on the same chain
       actions = [
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account),
@@ -227,14 +233,120 @@ export class Sdk {
     } else if (destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
       actions = [
+        // TODO
         //this._previewXTransferWithCall()
         vault.previewDeposit(amountIn, connextRouter, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account),
         vault.previewBorrow(amountOut, account),
       ];
     }
+    const steps = await this.getRoutingStepsFor(
+      vault,
+      amountIn,
+      amountOut,
+      srcChainId,
+      destChainId
+    );
 
-    return { actions, cost };
+    return { actions, cost, steps };
+  }
+
+  /**
+   * Prepares and returns the bundle of steps that will be taken
+   * in order to accomplish an operation.
+   *
+   * @param vault - vault instance on which we want to open a position
+   * @param amountIn - amount of provided collateral
+   * @param amountOut - amount of loan
+   * @param srcChainId - chain ID from which the tx is initated
+   * @param destChainId - chain ID where user wants their borrowed amount disbursed
+   */
+  async getRoutingStepsFor(
+    vault: BorrowingVault,
+    amountIn: BigNumber,
+    amountOut: BigNumber,
+    srcChainId: ChainId,
+    destChainId: ChainId
+  ): Promise<RoutingStepDetails[]> {
+    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+
+    const steps: RoutingStepDetails[] = [
+      {
+        step: RoutingStep.START,
+        amount: amountIn,
+        chainId: srcChainId,
+        tokenSym: vault.collateral.symbol,
+      },
+    ];
+    if (srcChainId === destChainId && srcChainId == vault.chainId) {
+      // everything happens on the same chain
+      steps.push({
+        step: RoutingStep.DEPOSIT,
+        amount: amountIn,
+        chainId: vault.chainId,
+        tokenSym: vault.collateral.symbol,
+        lendingProvider: activeProvider,
+      });
+      steps.push({
+        step: RoutingStep.BORROW,
+        amount: amountOut,
+        chainId: vault.chainId,
+        tokenSym: vault.debt.symbol,
+        lendingProvider: activeProvider,
+      });
+    } else if (srcChainId === vault.chainId) {
+      // deposit and borrow on chain A and transfer to chain B
+      steps.push({
+        step: RoutingStep.DEPOSIT,
+        amount: amountIn,
+        chainId: vault.chainId,
+        tokenSym: vault.collateral.symbol,
+        lendingProvider: activeProvider,
+      });
+      steps.push({
+        step: RoutingStep.BORROW,
+        amount: amountOut,
+        chainId: vault.chainId,
+        tokenSym: vault.debt.symbol,
+        lendingProvider: activeProvider,
+      });
+      steps.push({
+        step: RoutingStep.X_TRANSFER,
+        amount: amountOut,
+        chainId: destChainId,
+        tokenSym: vault.debt.symbol,
+      });
+    } else if (destChainId === vault.chainId) {
+      // transfer from chain A and deposit and borrow on chain B
+      steps.push({
+        step: RoutingStep.X_TRANSFER,
+        amount: amountIn,
+        chainId: destChainId,
+        tokenSym: vault.collateral.symbol,
+      });
+      steps.push({
+        step: RoutingStep.DEPOSIT,
+        amount: amountIn,
+        chainId: vault.chainId,
+        tokenSym: vault.collateral.symbol,
+        lendingProvider: activeProvider,
+      });
+      steps.push({
+        step: RoutingStep.BORROW,
+        amount: amountOut,
+        chainId: vault.chainId,
+        tokenSym: vault.debt.symbol,
+        lendingProvider: activeProvider,
+      });
+    }
+    steps.push({
+      step: RoutingStep.END,
+      amount: amountOut,
+      chainId: destChainId,
+      tokenSym: vault.debt.symbol,
+    });
+
+    return steps;
   }
 
   getTxDetails(
