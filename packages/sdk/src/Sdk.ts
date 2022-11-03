@@ -181,8 +181,10 @@ export class Sdk {
   }
 
   /**
-   * Prepares and returns the bundle of actions that will be send to the router
-   * for a compound operation of deposit+borrow.
+   * Prepares and returns 1) the bundle of actions that will be send to the router
+   * for a compound operation of deposit+borrow; 2) the steps to be taken in order to
+   * accomplish the operation; 3) the bridge fee; 4) the estimate time to process the tx
+   * in seconds
    *
    * @remarks
    * The array that is returned should be first passed to `BorrowingVault.needSignature`.
@@ -208,11 +210,13 @@ export class Sdk {
   ): Promise<{
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
-    cost: BigNumber;
+    bridgeFee: BigNumber;
+    estimateTime: number;
   }> {
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
     // TODO estimate bridge cost
-    const cost = BigNumber.from(1);
+    const bridgeFee = BigNumber.from(1);
+    const estimateTime = 5 * 60;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -240,7 +244,7 @@ export class Sdk {
         vault.previewBorrow(amountOut, account),
       ];
     }
-    const steps = await this.getRoutingStepsFor(
+    const steps = await this._getRoutingStepsFor(
       vault,
       amountIn,
       amountOut,
@@ -248,12 +252,69 @@ export class Sdk {
       destChainId
     );
 
-    return { actions, cost, steps };
+    return { actions, bridgeFee, steps, estimateTime };
+  }
+
+  getTxDetails(
+    actionParams: RouterActionParams[],
+    srcChainId: ChainId,
+    account: Address,
+    signature?: string
+  ): TransactionRequest {
+    const permitAction: PermitParams = actionParams.find((param) =>
+      [RouterAction.PERMIT_BORROW, RouterAction.PERMIT_WITHDRAW].includes(
+        param.action
+      )
+    ) as PermitParams;
+
+    // TODO verify better signature && permitAction
+    if (signature && permitAction) {
+      const { v, r, s } = splitSignature(signature);
+      permitAction.v = v;
+      permitAction.r = r;
+      permitAction.s = s;
+    } else if (permitAction && !signature) {
+      invariant(false, 'You need to sign the permit action first!');
+    }
+
+    const actions = actionParams.map(({ action }) => BigNumber.from(action));
+    const args = actionParams.map(encodeActionArgs);
+    const callData =
+      ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
+        actions,
+        args,
+      ]);
+
+    return {
+      from: account.value,
+      to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
+      data: callData,
+      chainId: srcChainId,
+    };
+  }
+
+  previewXTransfer(
+    destChainId: ChainId,
+    asset: Token,
+    amount: BigNumber,
+    receiver: Address
+  ): XTransferParams {
+    const destDomain = CONNEXT_DOMAIN[destChainId];
+    invariant(destDomain, 'Chain is not available on Connext!');
+
+    return {
+      action: RouterAction.X_TRANSFER,
+      destDomain,
+      amount,
+      asset: asset.address,
+      receiver: receiver,
+    };
   }
 
   /**
-   * Prepares and returns the bundle of steps that will be taken
+   * Prepares and returns the steps that will be taken
    * in order to accomplish an operation.
+   * IMPORTANT: only works for depositAndBorrow
    *
    * @param vault - vault instance on which we want to open a position
    * @param amountIn - amount of provided collateral
@@ -261,7 +322,7 @@ export class Sdk {
    * @param srcChainId - chain ID from which the tx is initated
    * @param destChainId - chain ID where user wants their borrowed amount disbursed
    */
-  async getRoutingStepsFor(
+  private async _getRoutingStepsFor(
     vault: BorrowingVault,
     amountIn: BigNumber,
     amountOut: BigNumber,
@@ -347,62 +408,6 @@ export class Sdk {
     });
 
     return steps;
-  }
-
-  getTxDetails(
-    actionParams: RouterActionParams[],
-    srcChainId: ChainId,
-    account: Address,
-    signature?: string
-  ): TransactionRequest {
-    const permitAction: PermitParams = actionParams.find((param) =>
-      [RouterAction.PERMIT_BORROW, RouterAction.PERMIT_WITHDRAW].includes(
-        param.action
-      )
-    ) as PermitParams;
-
-    // TODO verify better signature && permitAction
-    if (signature && permitAction) {
-      const { v, r, s } = splitSignature(signature);
-      permitAction.v = v;
-      permitAction.r = r;
-      permitAction.s = s;
-    } else if (permitAction && !signature) {
-      invariant(false, 'You need to sign the permit action first!');
-    }
-
-    const actions = actionParams.map(({ action }) => BigNumber.from(action));
-    const args = actionParams.map(encodeActionArgs);
-    const callData =
-      ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
-        actions,
-        args,
-      ]);
-
-    return {
-      from: account.value,
-      to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
-      data: callData,
-      chainId: srcChainId,
-    };
-  }
-
-  previewXTransfer(
-    destChainId: ChainId,
-    asset: Token,
-    amount: BigNumber,
-    receiver: Address
-  ): XTransferParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
-    invariant(destDomain, 'Chain is not available on Connext!');
-
-    return {
-      action: RouterAction.X_TRANSFER,
-      destDomain,
-      amount,
-      asset: asset.address,
-      receiver: receiver,
-    };
   }
 
   private _findVaultsByTokens(
