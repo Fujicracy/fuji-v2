@@ -180,8 +180,7 @@ export default function Borrow() {
           )}
           {error === "wrongLtv" && (
             <Button variant="gradient" disabled fullWidth>
-              {/* TOOD ltv */}
-              LTV must be lower than 75%
+              Not enough collateral
             </Button>
           )}
 
