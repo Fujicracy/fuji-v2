@@ -21,6 +21,7 @@ import {
   RouterActionParams,
   RoutingStepDetails,
   XTransferParams,
+  XTransferWithCallParams,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
 
@@ -37,20 +38,14 @@ export class Sdk {
 
   /**
    * Static method to check for PERMIT_BORROW or PERMIT_WITHDRAW
-   * in array of actions like [DEPOSIT, PERMIT_BORROW, BORROW]
-   * or nested array of actions like
-   * [X-CALL, FLASHLOAN, [PAYBACK, PERMIT_WITHDRAW, WITHDRAW, SWAP]]
+   * in array of actions like [DEPOSIT, PERMIT_BORROW, BORROW, X_TRANSFER_WITH_CALL]
    *
-   * @param params - array or nested array of actions
+   * @param params - array of actions
    */
-  static needSignature(
-    params: (RouterActionParams | RouterActionParams[])[]
-  ): boolean {
-    // TODO: do we need to check presence of r,v,s in PERMITs?
-
+  static needSignature(params: RouterActionParams[]): boolean {
     return !!params.find((p) => {
-      if (p instanceof Array) {
-        return Sdk.needSignature(p);
+      if (p.action === RouterAction.X_TRANSFER_WITH_CALL) {
+        return Sdk.needSignature(p.innerActions);
       }
       return (
         p.action === RouterAction.PERMIT_BORROW ||
@@ -235,15 +230,23 @@ export class Sdk {
         this.previewXTransfer(destChainId, vault.debt, amountOut, account),
       ];
     } else if (destChainId === vault.chainId) {
-      // transfer from chain A and deposit and borrow on chain B
-      actions = [
-        // TODO
-        //this._previewXTransferWithCall()
+      const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
+      const innerActions = [
         vault.previewDeposit(amountIn, connextRouter, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account),
         vault.previewBorrow(amountOut, account),
       ];
+      // transfer from chain A and deposit and borrow on chain B
+      actions = [
+        this.previewXTransferWithCall(
+          destChainId,
+          vault.collateral,
+          amountIn,
+          innerActions
+        ),
+      ];
     }
+
     const steps = await this._getRoutingStepsFor(
       vault,
       amountIn,
@@ -308,6 +311,24 @@ export class Sdk {
       amount,
       asset: asset.address,
       receiver: receiver,
+    };
+  }
+
+  previewXTransferWithCall(
+    destChainId: ChainId,
+    asset: Token,
+    amount: BigNumber,
+    innerActions: RouterActionParams[]
+  ): XTransferWithCallParams {
+    const destDomain = CONNEXT_DOMAIN[destChainId];
+    invariant(destDomain, 'Chain is not available on Connext!');
+
+    return {
+      action: RouterAction.X_TRANSFER_WITH_CALL,
+      destDomain,
+      amount,
+      asset: asset.address,
+      innerActions,
     };
   }
 

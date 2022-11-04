@@ -52,6 +52,32 @@ export function encodeActionArgs(params: RouterActionParams): string {
         params.owner.value,
       ]
     );
+  } else if (params.action === RouterAction.X_TRANSFER) {
+    return defaultAbiCoder.encode(
+      ['uint256', 'address', 'uint256', 'address'],
+      [
+        params.destDomain,
+        params.asset.value,
+        params.amount.toString(),
+        params.receiver.value,
+      ]
+    );
+  } else if (params.action === RouterAction.X_TRANSFER_WITH_CALL) {
+    const innerActions = params.innerActions.map(({ action }) => action);
+    const innerArgs = params.innerActions.map(encodeActionArgs);
+    const callData = defaultAbiCoder.encode(
+      ['uint256[]', 'bytes[]'],
+      [innerActions, innerArgs]
+    );
+    return defaultAbiCoder.encode(
+      ['uint256', 'address', 'uint256', 'bytes'],
+      [
+        params.destDomain,
+        params.asset.value,
+        params.amount.toString(),
+        callData,
+      ]
+    );
   }
   // TODO other actions
   return '';

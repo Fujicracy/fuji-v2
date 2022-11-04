@@ -200,7 +200,7 @@ describe('Sdk', () => {
     });
   });
 
-  const depositActionParams: DepositParams = {
+  const deposit: DepositParams = {
     action: RouterAction.DEPOSIT,
     vault: Address.from(AddressZero),
     amount: BigNumber.from(1),
@@ -208,7 +208,7 @@ describe('Sdk', () => {
     receiver: Address.from(AddressZero),
   };
 
-  const borrowActionParams: BorrowParams = {
+  const borrow: BorrowParams = {
     action: RouterAction.BORROW,
     vault: Address.from(AddressZero),
     amount: BigNumber.from(1),
@@ -216,7 +216,7 @@ describe('Sdk', () => {
     owner: Address.from(AddressZero),
   };
 
-  const borrowPermitActionParams: PermitParams = {
+  const borrowPermit: PermitParams = {
     action: RouterAction.PERMIT_BORROW,
     vault: Address.from(AddressZero),
     amount: BigNumber.from(1),
@@ -224,8 +224,8 @@ describe('Sdk', () => {
     owner: Address.from(AddressZero),
   };
 
-  const withdrawPermitActionParams: PermitParams = {
-    action: RouterAction.PERMIT_BORROW,
+  const withdrawPermit: PermitParams = {
+    action: RouterAction.PERMIT_WITHDRAW,
     vault: Address.from(AddressZero),
     amount: BigNumber.from(1),
     spender: Address.from(AddressZero),
@@ -238,84 +238,107 @@ describe('Sdk', () => {
     });
 
     it('returns false with simple array', () => {
-      const actions: RouterActionParams[] = [
-        depositActionParams,
-        borrowActionParams,
-      ];
+      const actions: RouterActionParams[] = [deposit, borrow];
       expect(Sdk.needSignature(actions)).toBeFalsy();
     });
 
     it('returns false with compound array', () => {
-      const actions: (RouterActionParams | RouterActionParams[])[] = [
-        depositActionParams,
-        borrowActionParams,
-        [depositActionParams, borrowActionParams],
+      const actions: RouterActionParams[] = [
+        {
+          action: RouterAction.X_TRANSFER_WITH_CALL,
+          asset: Address.from(AddressZero),
+          destDomain: 1,
+          amount: BigNumber.from(1),
+          innerActions: [deposit, borrow],
+        },
       ];
       expect(Sdk.needSignature(actions)).toBeFalsy();
     });
 
     it('returns true with simple array for borrows', () => {
-      const actions: RouterActionParams[] = [
-        depositActionParams,
-        borrowPermitActionParams,
-        borrowActionParams,
-      ];
+      const actions: RouterActionParams[] = [deposit, borrowPermit, borrow];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });
 
     it('returns true with simple array for withdrawals', () => {
-      const actions: RouterActionParams[] = [
-        depositActionParams,
-        withdrawPermitActionParams,
-        borrowActionParams,
-      ];
+      const actions: RouterActionParams[] = [deposit, withdrawPermit, borrow];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });
 
     it('returns true with compound array (permit in first level) for borrows', () => {
-      const actions: (RouterActionParams | RouterActionParams[])[] = [
-        depositActionParams,
-        borrowPermitActionParams,
-        borrowActionParams,
-        [depositActionParams, borrowActionParams],
+      const actions: RouterActionParams[] = [
+        deposit,
+        borrowPermit,
+        borrow,
+        {
+          action: RouterAction.X_TRANSFER_WITH_CALL,
+          asset: Address.from(AddressZero),
+          destDomain: 1,
+          amount: BigNumber.from(1),
+          innerActions: [deposit, borrow],
+        },
       ];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });
 
     it('returns true with compound array (permit in first level) for withdrawals', () => {
-      const actions: (RouterActionParams | RouterActionParams[])[] = [
-        depositActionParams,
-        withdrawPermitActionParams,
-        borrowActionParams,
-        [depositActionParams, borrowActionParams],
+      const actions: RouterActionParams[] = [
+        deposit,
+        withdrawPermit,
+        borrow,
+        {
+          action: RouterAction.X_TRANSFER_WITH_CALL,
+          asset: Address.from(AddressZero),
+          destDomain: 1,
+          amount: BigNumber.from(1),
+          innerActions: [deposit, borrow],
+        },
       ];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });
 
     it('returns true with compound array (permit in second level) for borrows', () => {
-      const actions: (RouterActionParams | RouterActionParams[])[] = [
-        depositActionParams,
-        borrowActionParams,
-        [depositActionParams, borrowPermitActionParams, borrowActionParams],
+      const actions: RouterActionParams[] = [
+        deposit,
+        borrow,
+        {
+          action: RouterAction.X_TRANSFER_WITH_CALL,
+          asset: Address.from(AddressZero),
+          destDomain: 1,
+          amount: BigNumber.from(1),
+          innerActions: [deposit, borrowPermit, borrow],
+        },
       ];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });
 
     it('returns true with compound array (permit in second level) for withdrawals', () => {
-      const actions: (RouterActionParams | RouterActionParams[])[] = [
-        depositActionParams,
-        borrowActionParams,
-        [depositActionParams, withdrawPermitActionParams, borrowActionParams],
+      const actions: RouterActionParams[] = [
+        deposit,
+        borrow,
+        {
+          action: RouterAction.X_TRANSFER_WITH_CALL,
+          asset: Address.from(AddressZero),
+          destDomain: 1,
+          amount: BigNumber.from(1),
+          innerActions: [deposit, withdrawPermit, borrow],
+        },
       ];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });
 
     it('returns true with compound array (permit in both levels)', () => {
-      const actions: (RouterActionParams | RouterActionParams[])[] = [
-        depositActionParams,
-        borrowPermitActionParams,
-        borrowActionParams,
-        [depositActionParams, withdrawPermitActionParams, borrowActionParams],
+      const actions: RouterActionParams[] = [
+        deposit,
+        borrowPermit,
+        borrow,
+        {
+          action: RouterAction.X_TRANSFER_WITH_CALL,
+          asset: Address.from(AddressZero),
+          destDomain: 1,
+          amount: BigNumber.from(1),
+          innerActions: [deposit, withdrawPermit, borrow],
+        },
       ];
       expect(Sdk.needSignature(actions)).toBeTruthy();
     });

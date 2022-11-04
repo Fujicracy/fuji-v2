@@ -47,11 +47,20 @@ export type PermitParams = BaseRouterActionParams & {
   s?: string;
 };
 
-//(uint256 destDomain, address asset, uint256 amount, address receiver) =
+//(uint256 destDomain, address asset, uint256 amount, address receiver)
 export type XTransferParams = BaseRouterActionParams & {
+  action: RouterAction.X_TRANSFER;
   destDomain: number;
   asset: Address;
   receiver: Address;
+};
+
+//(uint256 destDomain, address asset, uint256 amount, bytes memory callData)
+export type XTransferWithCallParams = BaseRouterActionParams & {
+  action: RouterAction.X_TRANSFER_WITH_CALL;
+  destDomain: number;
+  asset: Address;
+  innerActions: RouterActionParams[];
 };
 
 export type RouterActionParams =
@@ -60,4 +69,5 @@ export type RouterActionParams =
   | PaybackParams
   | WithdrawParams
   | PermitParams
-  | XTransferParams;
+  | XTransferParams
+  | XTransferWithCallParams;
