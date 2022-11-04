@@ -1,4 +1,5 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
+import { BigNumber } from 'ethers';
 import invariant from 'tiny-invariant';
 
 import { RouterAction } from '../enums';
@@ -63,10 +64,12 @@ export function encodeActionArgs(params: RouterActionParams): string {
       ]
     );
   } else if (params.action === RouterAction.X_TRANSFER_WITH_CALL) {
-    const innerActions = params.innerActions.map(({ action }) => action);
+    const innerActions = params.innerActions.map(({ action }) =>
+      BigNumber.from(action)
+    );
     const innerArgs = params.innerActions.map(encodeActionArgs);
     const callData = defaultAbiCoder.encode(
-      ['uint256[]', 'bytes[]'],
+      ['uint8[]', 'bytes[]'],
       [innerActions, innerArgs]
     );
     return defaultAbiCoder.encode(

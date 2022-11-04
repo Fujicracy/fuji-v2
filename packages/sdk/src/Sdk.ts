@@ -1,5 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { splitSignature } from '@ethersproject/bytes';
+import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
@@ -52,6 +52,28 @@ export class Sdk {
         p.action === RouterAction.PERMIT_WITHDRAW
       );
     });
+  }
+
+  /**
+   * Static method to find PERMIT_BORROW or PERMIT_WITHDRAW action.
+   *
+   * @param params - array of actions
+   */
+  static findPermitAction(
+    params: RouterActionParams[]
+  ): PermitParams | undefined {
+    for (const p of params) {
+      if (
+        p.action === RouterAction.PERMIT_BORROW ||
+        p.action === RouterAction.PERMIT_WITHDRAW
+      )
+        return p;
+      if (p.action === RouterAction.X_TRANSFER_WITH_CALL) {
+        return Sdk.findPermitAction(p.innerActions);
+      }
+    }
+
+    return undefined;
   }
 
   /**
@@ -191,23 +213,28 @@ export class Sdk {
    * @param vault - vault instance on which we want to open a position
    * @param amountIn - amount of provided collateral
    * @param amountOut - amount of loan
-   * @param srcChainId - chain ID from which the tx is initated
-   * @param destChainId - chain ID where user wants their borrowed amount disbursed
+   * @param tokenIn - token with which user starts the operation
+   * @param tokenOut - token that user want to borrow
    * @param account - user address, wrapped in {@link Address}
+   * @param deadline - timestamp for validity of permit (defaults to 24h starting from now)
    */
   async previewDepositAndBorrow(
     vault: BorrowingVault,
     amountIn: BigNumber,
     amountOut: BigNumber,
-    srcChainId: ChainId,
-    destChainId: ChainId,
-    account: Address
+    tokenIn: Token,
+    tokenOut: Token,
+    account: Address,
+    deadline?: number
   ): Promise<{
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
     estimateTime: number;
   }> {
+    const srcChainId = tokenIn.chainId;
+    const destChainId = tokenOut.chainId;
+
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
     // TODO estimate bridge cost
     const bridgeFee = BigNumber.from(1);
@@ -218,29 +245,29 @@ export class Sdk {
       // everything happens on the same chain
       actions = [
         vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account),
+        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
         vault.previewBorrow(amountOut, account),
       ];
     } else if (srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       actions = [
         vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account),
+        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
         vault.previewBorrow(amountOut, account),
         this.previewXTransfer(destChainId, vault.debt, amountOut, account),
       ];
     } else if (destChainId === vault.chainId) {
+      // transfer from chain A and deposit and borrow on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
         vault.previewDeposit(amountIn, connextRouter, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account),
+        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
         vault.previewBorrow(amountOut, account),
       ];
-      // transfer from chain A and deposit and borrow on chain B
       actions = [
         this.previewXTransferWithCall(
           destChainId,
-          vault.collateral,
+          tokenIn,
           amountIn,
           innerActions
         ),
@@ -258,26 +285,34 @@ export class Sdk {
     return { actions, bridgeFee, steps, estimateTime };
   }
 
+  /**
+   * Prepares and returns the request to be passed to ethers.sendTransaction
+   *
+   * @remarks
+   * It's recommended to obtain `actionParams` from this.previewDepositAndBorrow.
+   * If there are any permit action, they have to be signed.
+   *
+   * @param actionParams - vault instance on which we want to open a position
+   * @param srcChainId - ID of the chain from which the tx gets init
+   * @param account - user address, wrapped in {@link Address}
+   * @param signature - a signiture for the permit action (optional)
+   */
   getTxDetails(
     actionParams: RouterActionParams[],
     srcChainId: ChainId,
     account: Address,
-    signature?: string
+    signature?: Signature
   ): TransactionRequest {
-    const permitAction: PermitParams = actionParams.find((param) =>
-      [RouterAction.PERMIT_BORROW, RouterAction.PERMIT_WITHDRAW].includes(
-        param.action
-      )
-    ) as PermitParams;
+    const permitAction = Sdk.findPermitAction(actionParams);
 
-    // TODO verify better signature && permitAction
-    if (signature && permitAction) {
-      const { v, r, s } = splitSignature(signature);
-      permitAction.v = v;
-      permitAction.r = r;
-      permitAction.s = s;
+    if (permitAction && signature) {
+      permitAction.v = signature.v;
+      permitAction.r = signature.r;
+      permitAction.s = signature.s;
     } else if (permitAction && !signature) {
-      invariant(false, 'You need to sign the permit action first!');
+      invariant(true, 'You need to sign the permit action first!');
+    } else if (!permitAction && signature) {
+      invariant(true, 'No permit action although there is a signature!');
     }
 
     const actions = actionParams.map(({ action }) => BigNumber.from(action));
