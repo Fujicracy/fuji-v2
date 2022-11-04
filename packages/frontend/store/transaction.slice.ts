@@ -237,7 +237,7 @@ export function useLiquidationPrice(liquidationTreshold: number): {
   liquidationPrice: number
   liquidationDiff: number
 } {
-  const collateralValue = useStore((state) => parseFloat(state.collateralInput))
+  const collateralAmount = useStore((state) => state.position.collateral.amount)
   const collateralUsdValue = useStore(
     (state) => state.position.collateral.usdValue
   )
@@ -246,12 +246,12 @@ export function useLiquidationPrice(liquidationTreshold: number): {
   const debtUsdValue = useStore((state) => state.position.debt.usdValue)
   const debt = debtValue * debtUsdValue
 
-  if (!debt || !collateralValue) {
+  if (!debt || !collateralAmount) {
     return { liquidationPrice: 0, liquidationDiff: 0 }
   }
 
   const liquidationPrice =
-    debt / (collateralValue * (liquidationTreshold / 100))
+    debt / (collateralAmount * (liquidationTreshold / 100))
   const liquidationDiff = Math.round(
     (1 - liquidationPrice / collateralUsdValue) * 100
   )

@@ -76,14 +76,17 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Liquidation Price",
-                  amount: liquidationPrice.toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "usd",
-                  }),
+                  amount:
+                    liquidationDiff >= 0
+                      ? liquidationPrice.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "usd",
+                        })
+                      : "$0",
                   footer:
                     liquidationDiff >= 0
                       ? `~${liquidationDiff}% below current price`
-                      : `~${Math.abs(liquidationDiff)}% above current price`,
+                      : `n/a`,
                 }}
               />
             </Grid>
