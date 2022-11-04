@@ -140,7 +140,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set(
       produce((state: TransactionState) => {
         state.debtInput = value
-        state.position.debt.amount = parseFloat(value)
+        state.position.debt.amount = value ? parseFloat(value) : 0
       })
     )
   },
@@ -149,7 +149,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set(
       produce((state: TransactionState) => {
         state.collateralInput = value
-        state.position.collateral.amount = parseFloat(value)
+        state.position.collateral.amount = value ? parseFloat(value) : 0
       })
     )
   },
