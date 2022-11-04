@@ -45,12 +45,15 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: `${collateral.amount.toLocaleString()} ${
-                    collateral.token.symbol
-                  }`,
-                  footer: `${(
+                  amount: `${collateral.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })} ${collateral.token.symbol}`,
+                  footer: (
                     collateral.amount * collateral.usdValue
-                  ).toLocaleString()} USD`,
+                  ).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
                 }}
               />
             </Grid>
@@ -58,12 +61,13 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Borrowed Value",
-                  amount: `${(
-                    debt.amount * debt.usdValue
-                  ).toLocaleString()} USD`,
-                  footer: `${debt.amount.toLocaleString()} ${
-                    debt.token.symbol
-                  }`,
+                  amount: (debt.amount * debt.usdValue).toLocaleString(
+                    "en-US",
+                    { style: "currency", currency: "usd" }
+                  ),
+                  footer: `${debt.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })} ${debt.token.symbol}`,
                 }}
               />
             </Grid>
@@ -72,7 +76,10 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Liquidation Price",
-                  amount: `$${liquidationPrice.toLocaleString()}`,
+                  amount: liquidationPrice.toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
                   footer:
                     liquidationDiff >= 0
                       ? `~${liquidationDiff}% below current price`
@@ -84,8 +91,11 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Current Price",
-                  amount: `$${collateral.usdValue.toLocaleString()}`,
-                  footer: `${collateral.token.symbol}`,
+                  amount: collateral.usdValue.toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
+                  footer: collateral.token.symbol,
                 }}
               />
             </Grid>

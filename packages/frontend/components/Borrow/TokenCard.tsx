@@ -133,7 +133,10 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         {type === "collateral" ? (
           <>
             <Typography variant="small">
-              ${value ? (tokenValue * +value).toLocaleString() : 0}
+              {(tokenValue * +value).toLocaleString("en-US", {
+                style: "currency",
+                currency: "usd",
+              })}
             </Typography>
             <div
               style={{
@@ -169,7 +172,10 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         ) : (
           <>
             <Typography variant="small">
-              ${value ? (tokenValue * +value).toLocaleString() : 0}
+              {(tokenValue * +value).toLocaleString("en-US", {
+                style: "currency",
+                currency: "usd",
+              })}
             </Typography>
             <Stack direction="row">
               {/* TODO: handle third case: tvl error */}
