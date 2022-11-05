@@ -49,6 +49,8 @@ contract Routines is Test {
 
   function do_payback(uint256 amount, IVault v, address from) internal {
     uint256 prevDebt = v.balanceOfDebt(from);
+    address asset = v.debtAsset();
+    deal(asset, from, prevDebt); // ensure user has accrued interest to payback.
 
     vm.startPrank(from);
     SafeERC20.safeApprove(IERC20(v.debtAsset()), address(v), amount);
