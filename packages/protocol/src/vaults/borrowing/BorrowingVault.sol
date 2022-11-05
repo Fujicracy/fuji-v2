@@ -126,7 +126,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Down);
+    return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
   /// @inheritdoc BaseVault
