@@ -356,7 +356,7 @@ export class Sdk {
     innerActions: RouterActionParams[]
   ): XTransferWithCallParams {
     const destDomain = CONNEXT_DOMAIN[destChainId];
-    invariant(destDomain, 'Chain is not available on Connext!');
+    invariant(destDomain, `Chain ${destChainId} is not available on Connext!`);
 
     return {
       action: RouterAction.X_TRANSFER_WITH_CALL,
@@ -397,64 +397,70 @@ export class Sdk {
     ];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
       // everything happens on the same chain
-      steps.push({
-        step: RoutingStep.DEPOSIT,
-        amount: amountIn,
-        chainId: vault.chainId,
-        tokenSym: vault.collateral.symbol,
-        lendingProvider: activeProvider,
-      });
-      steps.push({
-        step: RoutingStep.BORROW,
-        amount: amountOut,
-        chainId: vault.chainId,
-        tokenSym: vault.debt.symbol,
-        lendingProvider: activeProvider,
-      });
+      steps.push(
+        {
+          step: RoutingStep.DEPOSIT,
+          amount: amountIn,
+          chainId: vault.chainId,
+          tokenSym: vault.collateral.symbol,
+          lendingProvider: activeProvider,
+        },
+        {
+          step: RoutingStep.BORROW,
+          amount: amountOut,
+          chainId: vault.chainId,
+          tokenSym: vault.debt.symbol,
+          lendingProvider: activeProvider,
+        }
+      );
     } else if (srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
-      steps.push({
-        step: RoutingStep.DEPOSIT,
-        amount: amountIn,
-        chainId: vault.chainId,
-        tokenSym: vault.collateral.symbol,
-        lendingProvider: activeProvider,
-      });
-      steps.push({
-        step: RoutingStep.BORROW,
-        amount: amountOut,
-        chainId: vault.chainId,
-        tokenSym: vault.debt.symbol,
-        lendingProvider: activeProvider,
-      });
-      steps.push({
-        step: RoutingStep.X_TRANSFER,
-        amount: amountOut,
-        chainId: destChainId,
-        tokenSym: vault.debt.symbol,
-      });
+      steps.push(
+        {
+          step: RoutingStep.DEPOSIT,
+          amount: amountIn,
+          chainId: vault.chainId,
+          tokenSym: vault.collateral.symbol,
+          lendingProvider: activeProvider,
+        },
+        {
+          step: RoutingStep.BORROW,
+          amount: amountOut,
+          chainId: vault.chainId,
+          tokenSym: vault.debt.symbol,
+          lendingProvider: activeProvider,
+        },
+        {
+          step: RoutingStep.X_TRANSFER,
+          amount: amountOut,
+          chainId: destChainId,
+          tokenSym: vault.debt.symbol,
+        }
+      );
     } else if (destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
-      steps.push({
-        step: RoutingStep.X_TRANSFER,
-        amount: amountIn,
-        chainId: destChainId,
-        tokenSym: vault.collateral.symbol,
-      });
-      steps.push({
-        step: RoutingStep.DEPOSIT,
-        amount: amountIn,
-        chainId: vault.chainId,
-        tokenSym: vault.collateral.symbol,
-        lendingProvider: activeProvider,
-      });
-      steps.push({
-        step: RoutingStep.BORROW,
-        amount: amountOut,
-        chainId: vault.chainId,
-        tokenSym: vault.debt.symbol,
-        lendingProvider: activeProvider,
-      });
+      steps.push(
+        {
+          step: RoutingStep.X_TRANSFER,
+          amount: amountIn,
+          chainId: destChainId,
+          tokenSym: vault.collateral.symbol,
+        },
+        {
+          step: RoutingStep.DEPOSIT,
+          amount: amountIn,
+          chainId: vault.chainId,
+          tokenSym: vault.collateral.symbol,
+          lendingProvider: activeProvider,
+        },
+        {
+          step: RoutingStep.BORROW,
+          amount: amountOut,
+          chainId: vault.chainId,
+          tokenSym: vault.debt.symbol,
+          lendingProvider: activeProvider,
+        }
+      );
     }
     steps.push({
       step: RoutingStep.END,
@@ -470,8 +476,8 @@ export class Sdk {
     collateral: Token,
     debt: Token
   ): BorrowingVault[] {
-    const collateralSym: string = collateral.symbol;
-    const debtSym: string = debt.symbol;
+    const collateralSym = collateral.symbol;
+    const debtSym = debt.symbol;
 
     return Object.entries(VAULT_LIST)
       .map(([, list]) => list)
