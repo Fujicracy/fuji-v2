@@ -3,4 +3,4 @@
 /* eslint-disable */
 import type * as peripheryPaymentsSol from "./PeripheryPayments.sol";
 export type { peripheryPaymentsSol };
-export type { Unwrapper } from "./Unwrapper";
+export type { AddrMapper } from "./AddrMapper";

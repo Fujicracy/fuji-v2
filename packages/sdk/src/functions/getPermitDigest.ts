@@ -17,10 +17,9 @@ const PERMIT_WITHDRAW_TYPEHASH =
 export function getPermitDigest(
   params: PermitParams,
   nonce: BigNumber,
-  deadline: number,
   domainSeparator: string
 ): string {
-  const { action, owner, spender, amount } = params;
+  const { action, owner, spender, amount, deadline } = params;
 
   const typehash =
     action === RouterAction.PERMIT_BORROW
@@ -38,7 +37,7 @@ export function getPermitDigest(
           spender.value,
           amount.toString(),
           nonce.toString(),
-          deadline.toString(),
+          deadline?.toString(),
         ]
       ),
     ]

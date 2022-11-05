@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as goerli from "./goerli";
-export * as rinkeby from "./rinkeby";
+export * as mainnet from "./mainnet";
+export * as optimism from "./optimism";
