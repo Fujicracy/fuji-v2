@@ -112,12 +112,12 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ### Transation
 
 ```
-  // TODO for cost
-  const { actions, cost } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, srcChainId, destChain, user);
+  // TODO: cost and estimateTime are hardcoded
+  const { steps, actions, bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, token1, token2, user);
 
   // verify if user needs to sign a permit
   if (sdk.needPermit(actions)) {
-    const permitAction = actions.find(PERMIT_BORROW || PERMIT_WITHDRAW)
+    const permitAction = sdk.findPermitAction(actions)
 
     // signing the permit action has to be done through the vault
     const digest = await vault.signPermitFor(permitAction)
