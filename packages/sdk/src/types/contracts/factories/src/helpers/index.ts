@@ -2,4 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as peripheryPaymentsSol from "./PeripheryPayments.sol";
-export { Unwrapper__factory } from "./Unwrapper__factory";
+export { AddrMapper__factory } from "./AddrMapper__factory";

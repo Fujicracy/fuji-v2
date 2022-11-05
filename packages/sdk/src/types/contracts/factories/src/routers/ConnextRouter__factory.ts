@@ -86,7 +86,7 @@ const _abi = [
     name: "executor",
     outputs: [
       {
-        internalType: "contract IExecutor",
+        internalType: "address",
         name: "",
         type: "address",
       },

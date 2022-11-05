@@ -17,6 +17,31 @@ const _abi = [
     type: "error",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "salt",
+        type: "bytes32",
+      },
+    ],
+    name: "VaultRegistered",
+    type: "event",
+  },
+  {
     inputs: [],
     name: "chief",
     outputs: [

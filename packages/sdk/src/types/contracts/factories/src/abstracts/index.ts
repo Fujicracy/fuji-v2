@@ -3,4 +3,5 @@
 /* eslint-disable */
 export { BaseRouter__factory } from "./BaseRouter__factory";
 export { BaseVault__factory } from "./BaseVault__factory";
+export { PausableVault__factory } from "./PausableVault__factory";
 export { VaultDeployer__factory } from "./VaultDeployer__factory";
