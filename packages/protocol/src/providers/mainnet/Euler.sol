@@ -98,7 +98,6 @@ contract Euler is ILendingProvider {
     rate = 0;
   }
 
-  //TODO check how to filter by user
   /// inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
@@ -118,7 +117,6 @@ contract Euler is ILendingProvider {
     balance = eToken.balanceOf(address(user));
   }
 
-  //TODO check how to filter by user
   /// inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
@@ -132,6 +130,6 @@ contract Euler is ILendingProvider {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerDToken dToken = IEulerDToken(markets.underlyingToDToken(vault.debtAsset()));
 
-    balance = dToken.balanceOf(address(this));
+    balance = dToken.balanceOf(address(user));
   }
 }
