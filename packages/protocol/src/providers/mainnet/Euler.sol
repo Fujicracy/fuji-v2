@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -35,6 +36,7 @@ contract Euler is ILendingProvider {
   //TODO remove this comment (address asset, address vault)
   /// inheritdoc ILendingProvider
   function approvedOperator(address, address) external pure override returns (address operator) {
+    // operator = address(_getEuler());
     operator = address(_getEuler());
   }
 
@@ -107,10 +109,13 @@ contract Euler is ILendingProvider {
     override
     returns (uint256 balance)
   {
+    console.log("@getDepositBalance");
     IEulerMarkets markets = _getEulerMarkets();
     IEulerEToken eToken = IEulerEToken(markets.underlyingToEToken(vault.asset()));
 
-    balance = eToken.balanceOf(address(this));
+    console.log("eToken.balanceOf(address(user)) - ", eToken.balanceOf(user));
+
+    balance = eToken.balanceOf(address(user));
   }
 
   //TODO check how to filter by user
