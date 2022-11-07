@@ -133,8 +133,8 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           background: palette.background.default,
           height: "0.5rem",
           marginBottom: "0.5rem",
-          ".css-uu0lzf-MuiLinearProgress-bar1": {
-            background:
+          "& .MuiLinearProgress-barColorPrimary": {
+            backgroundColor:
               props.value <= 45 ? palette.success.main : palette.warning.main,
             borderRadius: "1.25rem",
           },
