@@ -53,9 +53,7 @@ contract RebalancerManager is SystemAccessControl {
     _checkAssetsAmount(vault, assets, from);
     _checkDebtAmount(vault, debt, from);
 
-    IERC20 debtAsset = IERC20(vault.debtAsset());
-
-    _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider, debtAsset);
+    _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
   }
 
   function rebalanceYieldVault(
@@ -125,6 +123,34 @@ contract RebalancerManager is SystemAccessControl {
     _entryPoint = keccak256(abi.encode(requestorCall));
   }
 
+  function _checkReentry(
+    IVault vault,
+    uint256 assets,
+    uint256 debt,
+    address from,
+    address to,
+    IFlasher flasher,
+    bool setToAsActiveProvider
+  )
+    internal
+    view
+  {
+    bytes memory requestorCalldata = abi.encodeWithSelector(
+      RebalancerManager.completeRebalance.selector,
+      vault,
+      assets,
+      debt,
+      from,
+      to,
+      flasher,
+      setToAsActiveProvider
+    );
+    bytes32 hashCheck = keccak256(abi.encode(requestorCalldata));
+    if (_entryPoint != hashCheck) {
+      revert RebalanceManager__completeRebalance_invalidEntryPoint();
+    }
+  }
+
   function _getFlashloan(
     IVault vault,
     uint256 assets,
@@ -132,8 +158,7 @@ contract RebalancerManager is SystemAccessControl {
     address from,
     address to,
     IFlasher flasher,
-    bool setToAsActiveProvider,
-    IERC20 debtAsset
+    bool setToAsActiveProvider
   )
     internal
   {
@@ -145,16 +170,14 @@ contract RebalancerManager is SystemAccessControl {
       from,
       to,
       flasher,
-      setToAsActiveProvider,
-      debtAsset
+      setToAsActiveProvider
     );
 
     _checkAndSetEntryPoint(requestorCall);
 
-    bytes memory normalParams =
-      abi.encode(IFlasher.NormalParams(address(debtAsset), debt, address(this), requestorCall));
+    address debtAsset = vault.debtAsset();
 
-    flasher.initiateFlashloan(IFlasher.FlashloanType.Normal, normalParams);
+    flasher.initiateFlashloan(debtAsset, debt, address(this), requestorCall);
   }
 
   function completeRebalance(
@@ -164,15 +187,14 @@ contract RebalancerManager is SystemAccessControl {
     address from,
     address to,
     IFlasher flasher,
-    bool setToAsActiveProvider,
-    IERC20 debtAsset
+    bool setToAsActiveProvider
   )
     external
     returns (bool success)
   {
-    if (_entryPoint == "") {
-      revert RebalanceManager__completeRebalance_invalidEntryPoint();
-    }
+    _checkReentry(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
+
+    IERC20 debtAsset = IERC20(vault.debtAsset());
 
     if (debtAsset.balanceOf(address(this)) != debt) {
       revert RebalancerManager__getFlashloan_flashloanFailed();

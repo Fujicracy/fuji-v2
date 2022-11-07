@@ -10,7 +10,6 @@ pragma solidity 0.8.15;
 
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
-import {IFlasher} from "../interfaces/IFlasher.sol";
 
 library LibActionBundler {
   function depositAndBorrow(
@@ -64,12 +63,13 @@ library LibActionBundler {
     innerActions[2] = IRouter.Action.Swap;
     innerArgs[2] =
       abi.encode(swapper, vault.asset(), vault.debtAsset(), withdrawAmount, flashAmount, flasher, 0);
+
     // ------------
 
-    IFlasher.RouterParams memory params =
-      IFlasher.RouterParams(vault.debtAsset(), flashAmount, router, innerActions, innerArgs);
-    uint8 providerId = 0;
-    args[0] = abi.encode(address(flasher), params, providerId);
+    bytes memory requestorCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, innerActions, innerArgs);
+    args[0] =
+      abi.encode(address(flasher), vault.debtAsset(), flashAmount, router, requestorCalldata);
 
     return (actions, args);
   }

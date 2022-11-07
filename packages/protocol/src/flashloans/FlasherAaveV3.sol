@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /**
- * @title FlasherAaveV3s
+ * @title FlasherAaveV3
  * @author Fujidao Labs
  * @notice Handles logic of AaveV3 as a flashloan provider.
  */
@@ -16,25 +16,21 @@ contract FlasherAaveV3 is BaseFlasher, IFlashLoanSimpleReceiver {
   constructor(address aaveV3Pool) BaseFlasher("FlasherAaveV3", aaveV3Pool) {}
 
   /// @inheritdoc BaseFlasher
-  function initiateFlashloan(FlashloanType flashloanType, bytes calldata params) external override {
-    bytes memory data = _checkAndSetEntryPoint(flashloanType, params);
+  function initiateFlashloan(
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+    override
+  {
+    bytes memory data = abi.encode(asset, amount, requestor, requestorCalldata);
+    _checkAndSetEntryPoint(data);
+
     address receiverAddress = address(this);
 
-    if (flashloanType == FlashloanType.Normal) {
-      (NormalParams memory normalParams) = abi.decode(params, (NormalParams));
-      // AaveV3 Flashloan call.
-      IV3Pool(getFlashloanSourceAddr(normalParams.asset)).flashLoanSimple(
-        receiverAddress, normalParams.asset, normalParams.amount, data, 0
-      );
-    } else if (flashloanType == FlashloanType.Router) {
-      (RouterParams memory routerParams) = abi.decode(params, (RouterParams));
-      // AaveV3 Flashloan call.
-      IV3Pool(getFlashloanSourceAddr(routerParams.asset)).flashLoanSimple(
-        receiverAddress, routerParams.asset, routerParams.amount, data, 0
-      );
-    } else {
-      revert BaseFlasher__invalidFlashloanType();
-    }
+    IV3Pool(getFlashloanSourceAddr(asset)).flashLoanSimple(receiverAddress, asset, amount, data, 0);
   }
 
   function computeFlashloanFee(address, uint256) external view override returns (uint256 fee) {
@@ -55,22 +51,18 @@ contract FlasherAaveV3 is BaseFlasher, IFlashLoanSimpleReceiver {
     override
     returns (bool success)
   {
-    _checkReentryPoint(data);
+    (address asset_, uint256 amount_, address requestor_, bytes memory requestorCalldata_) =
+      _checkReentryPoint(data);
 
-    if (msg.sender != getFlashloanSourceAddr(asset) || initiator != address(this)) {
+    if (
+      asset != asset_ || amount != amount_ || msg.sender != getFlashloanSourceAddr(asset)
+        || initiator != address(this)
+    ) {
       revert BaseFlasher__notAuthorized();
     }
 
-    (FlashloanType flashloanType, bytes memory moreParams) =
-      abi.decode(data, (FlashloanType, bytes));
+    _requestorExecution(asset, amount, premium, requestor_, requestorCalldata_);
 
-    if (flashloanType == FlashloanType.Normal) {
-      _normalOperation(asset, amount, premium, moreParams);
-    } else if (flashloanType == FlashloanType.Router) {
-      _routerOperation(asset, amount, premium, moreParams);
-    } else {
-      revert BaseFlasher__invalidFlashloanType();
-    }
     success = true;
   }
 }

@@ -42,8 +42,10 @@ abstract contract BaseFlasher is IFlasher {
 
   /// @inheritdoc IFlasher
   function initiateFlashloan(
-    FlashloanType flashloanType,
-    bytes memory params
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCall
   )
     external
     virtual
@@ -53,87 +55,44 @@ abstract contract BaseFlasher is IFlasher {
     return _flashloanCallAddr;
   }
 
-  function _checkAndSetEntryPoint(
-    FlashloanType flashloanType,
-    bytes calldata params
-  )
-    internal
-    returns (bytes memory data)
-  {
-    data = abi.encode(flashloanType, params);
+  function _checkAndSetEntryPoint(bytes memory data) internal {
     if (_entryPoint != "") {
       revert BaseFlasher__notEmptyEntryPoint();
     }
     _entryPoint = keccak256(abi.encode(data));
   }
 
-  function _checkReentryPoint(bytes calldata data) internal view {
+  function _checkReentryPoint(bytes calldata data)
+    internal
+    view
+    returns (address asset, uint256 amount, address requestor, bytes memory requestorCalldata)
+  {
     if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) {
       revert BaseFlasher__invalidEntryPoint();
     }
+    (asset, amount, requestor, requestorCalldata) =
+      abi.decode(data, (address, uint256, address, bytes));
   }
 
   /**
    */
-  function _normalOperation(
+  function _requestorExecution(
     address asset,
     uint256 amount,
     uint256 fee,
-    bytes memory data
+    address requestor,
+    bytes memory requestorCalldata
   )
     internal
     returns (bool)
   {
-    NormalParams memory params = abi.decode(data, (NormalParams));
-    IERC20(params.asset).safeTransfer(params.requestor, amount);
+    IERC20(asset).safeTransfer(requestor, amount);
 
-    address(params.requestor).functionCall(params.requestorCall);
+    requestor.functionCall(requestorCalldata);
 
-    IERC20(asset).safeTransferFrom(params.requestor, address(this), amount + fee);
+    IERC20(asset).safeTransferFrom(requestor, address(this), amount + fee);
     // approve flashloan source address to spend to repay flashloan
-    IERC20(asset).safeApprove(getFlashloanSourceAddr(params.asset), amount + fee);
-
-    // re-init
-    _entryPoint = "";
-    return true;
-  }
-
-  /**
-   */
-  function _routerOperation(
-    address asset,
-    uint256 amount,
-    uint256 fee,
-    bytes memory data
-  )
-    internal
-    returns (bool)
-  {
-    RouterParams memory params = abi.decode(data, (RouterParams));
-
-    // approve Router to pull flashloaned amount
-    IERC20(asset).safeApprove(params.router, amount);
-
-    // decode args of the last acton
-    if (params.actions[params.actions.length - 1] != IRouter.Action.Swap) {
-      revert BaseFlasher__lastActionMustBeSwap();
-    }
-
-    (address assetIn, address assetOut, uint256 amountOut, address receiver, uint256 slippage) =
-      abi.decode(params.args[params.args.length - 1], (address, address, uint256, address, uint256));
-
-    // add up the fee to args of PaybackFlashloan action
-    // which should be the last one
-    params.args[params.args.length - 1] =
-      abi.encode(assetIn, assetOut, amountOut + fee, receiver, slippage);
-
-    // call back Router
-    IRouter(params.router).xBundle(params.actions, params.args);
-    // after this call Router should have transferred to Flasher
-    // amount + fee
-
-    // approve flashloan source address to spend to repay flashloan
-    IERC20(asset).safeApprove(getFlashloanSourceAddr(params.asset), amount + fee);
+    IERC20(asset).safeApprove(getFlashloanSourceAddr(asset), amount + fee);
 
     // re-init
     _entryPoint = "";

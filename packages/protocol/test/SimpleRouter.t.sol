@@ -342,11 +342,12 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     );
     // ------------
 
-    IFlasher.RouterParams memory params = IFlasher.RouterParams(
-      address(debtAsset), flashAmount, address(simpleRouter), innerActions, innerArgs
+    bytes memory requestorCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, innerActions, innerArgs);
+
+    args[0] = abi.encode(
+      address(flasher), address(debtAsset), flashAmount, address(simpleRouter), requestorCalldata
     );
-    uint8 providerId = 0;
-    args[0] = abi.encode(address(flasher), params, providerId);
 
     vm.prank(alice);
     simpleRouter.xBundle(actions, args);
@@ -418,11 +419,11 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     );
     // ------------
 
-    IFlasher.RouterParams memory params = IFlasher.RouterParams(
-      vault.debtAsset(), borrowAmount, address(simpleRouter), innerActions, innerArgs
+    bytes memory requestorCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, innerActions, innerArgs);
+    args[0] = abi.encode(
+      address(flasher), vault.debtAsset(), borrowAmount, address(simpleRouter), requestorCalldata
     );
-    uint8 providerId = 0;
-    args[0] = abi.encode(address(flasher), params, providerId);
 
     vm.prank(alice);
     simpleRouter.xBundle(actions, args);
