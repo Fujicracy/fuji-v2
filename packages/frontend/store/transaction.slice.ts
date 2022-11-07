@@ -255,17 +255,15 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const debt = get().position.debt.token
 
     const [vault] = await sdk.getBorrowingVaultsFor(collateral, debt)
-    const error = `No vault found for ${collateral.symbol}(chain ${collateral.chainId})/${debt.symbol}(chain ${debt.chainId})`
-    invariant(vault, error)
+    if (!vault) {
+      // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
+      return
+    }
 
     const providers = await vault.getProviders()
-    invariant(providers, "No providers found for vault")
-
     const ltvMax = vault.maxLtv ? vault.maxLtv.toNumber() : DEFAULT_LTV_MAX
 
-    if (address) {
-      await vault.preLoad(new Address(address))
-    }
+    await vault.preLoad(address ? new Address(address) : undefined)
 
     set(
       produce((state: TransactionState) => {
@@ -281,7 +279,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   updateTransactionMeta: debounce(async () => {
     const address = useStore.getState().address
     if (!address) {
-      return 0
+      return
     }
 
     const position = get().position
@@ -293,7 +291,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         })
       )
       return
-      // invariant(vault, "Vault must be defined")
     }
 
     set(
@@ -316,7 +313,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           state.transactionMeta.status = "ready"
           state.transactionMeta.bridgeFees = bridgeFee.toNumber()
           state.transactionMeta.estimateTime = estimateTime
-          // debugger
         })
       )
     } catch (e) {
