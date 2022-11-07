@@ -1,4 +1,3 @@
-import { useState } from "react"
 import {
   Grid,
   Stack,
@@ -13,15 +12,24 @@ import {
   useTheme,
 } from "@mui/material"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import Image from "next/image"
 import MarketsTableRow from "./MarketsTableRow"
 
+type Row = {
+  borrow: React.ReactNode
+  collateral: React.ReactNode
+  bestRateChain: React.ReactNode
+  supplyAPI: number
+  borrowABR: number
+  integratedProtocols: string[]
+  safetyRating: string
+  availableLiquidity: number
+  collaspsedRows?: Row[]
+}
+
 export default function MarketsTable() {
   const { palette } = useTheme()
-  const [expandRow, setExpandRow] = useState(false)
 
   function createData(
     borrow: React.ReactNode,
@@ -31,7 +39,8 @@ export default function MarketsTable() {
     borrowABR: number,
     integratedProtocols: string[],
     safetyRating: string,
-    availableLiquidity: number
+    availableLiquidity: number,
+    collaspsedRows?: Row[]
   ) {
     return {
       borrow,
@@ -42,23 +51,13 @@ export default function MarketsTable() {
       integratedProtocols,
       safetyRating,
       availableLiquidity,
+      collaspsedRows,
     }
   }
 
   const rows = [
     createData(
       <Grid container alignItems="center">
-        {expandRow ? (
-          <KeyboardArrowDownIcon
-            onClick={() => setExpandRow(false)}
-            sx={{ mr: "0.5rem", cursor: "pointer" }}
-          />
-        ) : (
-          <KeyboardArrowRightIcon
-            onClick={() => setExpandRow(true)}
-            sx={{ mr: "0.5rem", cursor: "pointer" }}
-          />
-        )}
         <Image
           src={`/assets/images/protocol-icons/tokens/DAI.svg`}
           height={32}
@@ -93,9 +92,31 @@ export default function MarketsTable() {
       </Grid>,
       1.8,
       2.25,
-      ["AAVE", "COMP", "AAVE", "COMP"],
+      ["AAVE", "COMP"],
       "A+",
-      164800
+      164800,
+      [
+        createData(
+          <></>,
+          <></>,
+          <Grid container alignItems="center">
+            <Image
+              src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+              height={24}
+              width={24}
+              alt="Ethereum"
+            />
+            <Typography ml="0.5rem" variant="small">
+              Ethereum
+            </Typography>
+          </Grid>,
+          1.8,
+          2.25,
+          ["AAVE", "COMP"],
+          "A+",
+          164800
+        ),
+      ]
     ),
   ]
 
@@ -180,13 +201,11 @@ export default function MarketsTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* Not sure for the key value */}
+          {/* TODO: Not sure for the key value */}
           {rows.map((row, i) => (
             <MarketsTableRow
               key={i + row.availableLiquidity}
               row={row}
-              setExpandRow={() => setExpandRow(!expandRow)}
-              expandRow={expandRow}
               extra={i === 0}
             />
           ))}
