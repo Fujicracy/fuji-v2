@@ -16,7 +16,7 @@
   "scripts": {
     "start": "tsup src/index.ts --format cjs --dts --watch --onSuccess 'node dist/index.js'",
     "build": "tsup src/index.ts --format esm,cjs --dts --minify --treeshake",
-    "test": "tsdx test",
+    "test": "tsdx test --silent",
     "lint": "eslint . --fix",
     "prepare": "yarn build",
     "export-abis": "yarn workspace @x-fuji/protocol hardhat export-abi",

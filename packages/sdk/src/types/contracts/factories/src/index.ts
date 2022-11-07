@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as abstracts from "./abstracts";
+export * as access from "./access";
 export * as flashloans from "./flashloans";
 export * as helpers from "./helpers";
 export * as interfaces from "./interfaces";
