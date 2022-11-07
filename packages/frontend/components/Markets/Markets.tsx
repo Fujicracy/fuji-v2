@@ -117,10 +117,6 @@ export default function Markets() {
               value={filterValue}
               onChange={(e) => setFilterValue(e.target.value)}
               variant="outlined"
-              sx={{
-                ml: "1.063rem",
-                border: `1px solid ${palette.secondary.light}`,
-              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

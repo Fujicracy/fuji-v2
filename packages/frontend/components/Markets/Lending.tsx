@@ -30,13 +30,6 @@ export default function Lending() {
         placeholder="Enter your email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        sx={{
-          border: `1px solid ${palette.secondary.light}`,
-          padding: "0.938rem 0.75rem",
-          "& input::placeholder": {
-            fontSize: "0.875rem",
-          },
-        }}
         fullWidth
       />
 

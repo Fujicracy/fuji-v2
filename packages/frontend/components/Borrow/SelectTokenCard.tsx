@@ -33,11 +33,9 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
           placeholder="0"
           value={props.value}
           onChange={props.onChangeValue}
-          sx={{
-            fontSize: "1.125rem",
-            boxShadow: "none",
-            ".MuiOutlinedInput-notchedOutline": { border: 0 },
-            width: "40%",
+          variant="standard"
+          InputProps={{
+            disableUnderline: true,
           }}
         />
 
