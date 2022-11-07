@@ -23,6 +23,10 @@ contract RebalancerManager is SystemAccessControl {
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
+  error RebalanceManager__getFlashloan_notEmptyEntryPoint();
+  error RebalanceManager__completeRebalance_invalidEntryPoint();
+
+  bytes32 private _entryPoint;
 
   constructor(address chief_) SystemAccessControl(chief_) {}
 
@@ -44,7 +48,6 @@ contract RebalancerManager is SystemAccessControl {
   )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
-    returns (bool success)
   {
     _checkValidProviders(vault, from, to);
     _checkAssetsAmount(vault, assets, from);
@@ -52,22 +55,7 @@ contract RebalancerManager is SystemAccessControl {
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
 
-    _getFlashloan(flasher, address(debtAsset), debt);
-
-    debtAsset.safeApprove(address(vault), debt);
-
-    bytes memory rebalanceParams =
-      abi.encode(assets, debt, flasher.computeFlashloanFee(debt), from, to);
-
-    vault.rebalance(rebalanceParams);
-
-    debtAsset.safeTransfer(address(flasher), debt + flasher.computeFlashloanFee(debt));
-
-    if (setToAsActiveProvider) {
-      vault.setActiveProvider(ILendingProvider(to));
-    }
-
-    success = true;
+    _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider, debtAsset);
   }
 
   function rebalanceYieldVault(
@@ -130,24 +118,83 @@ contract RebalancerManager is SystemAccessControl {
     }
   }
 
-  function _getFlashloan(IFlasher flasher, address asset, uint256 amount) internal {
-    // TODO define proper operating methods in Flasher contracts.
-    IRouter.Action[] memory actions = new IRouter.Action[](1);
-    // TODO define proper operating methods in Flasher contracts.
-    bytes[] memory args = new bytes[](1);
+  function _checkAndSetEntryPoint(bytes memory requestorCall) internal {
+    if (_entryPoint != "") {
+      revert RebalanceManager__getFlashloan_notEmptyEntryPoint();
+    }
+    _entryPoint = keccak256(abi.encode(requestorCall));
+  }
 
-    IFlasher.FlashloanParams memory flParams = IFlasher.FlashloanParams(
-      asset,
-      amount,
-      address(0), // TODO define proper operating methods in Flasher contracts.
-      actions, // TODO define proper operating methods in Flasher contracts.
-      args // TODO define proper operating methods in Flasher contracts.
+  function _getFlashloan(
+    IVault vault,
+    uint256 assets,
+    uint256 debt,
+    address from,
+    address to,
+    IFlasher flasher,
+    bool setToAsActiveProvider,
+    IERC20 debtAsset
+  )
+    internal
+  {
+    bytes memory requestorCall = abi.encodeWithSelector(
+      RebalancerManager.completeRebalance.selector,
+      vault,
+      assets,
+      debt,
+      from,
+      to,
+      flasher,
+      setToAsActiveProvider,
+      debtAsset
     );
 
-    flasher.initiateFlashloan(flParams);
+    _checkAndSetEntryPoint(requestorCall);
 
-    if (IERC20(asset).balanceOf(address(this)) != amount) {
+    bytes memory normalParams =
+      abi.encode(IFlasher.NormalParams(address(debtAsset), debt, address(this), requestorCall));
+
+    flasher.initiateFlashloan(IFlasher.FlashloanType.Normal, normalParams);
+  }
+
+  function completeRebalance(
+    IVault vault,
+    uint256 assets,
+    uint256 debt,
+    address from,
+    address to,
+    IFlasher flasher,
+    bool setToAsActiveProvider,
+    IERC20 debtAsset
+  )
+    external
+    returns (bool success)
+  {
+    if (_entryPoint == "") {
+      revert RebalanceManager__completeRebalance_invalidEntryPoint();
+    }
+
+    if (debtAsset.balanceOf(address(this)) != debt) {
       revert RebalancerManager__getFlashloan_flashloanFailed();
     }
+
+    debtAsset.safeApprove(address(vault), debt);
+
+    bytes memory rebalanceParams =
+      abi.encode(assets, debt, flasher.computeFlashloanFee(address(debtAsset), debt), from, to);
+
+    vault.rebalance(rebalanceParams);
+
+    debtAsset.safeTransfer(
+      address(flasher), debt + flasher.computeFlashloanFee(address(debtAsset), debt)
+    );
+
+    if (setToAsActiveProvider) {
+      vault.setActiveProvider(ILendingProvider(to));
+    }
+
+    // re-init
+    _entryPoint = "";
+    success = true;
   }
 }
