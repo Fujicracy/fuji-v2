@@ -71,8 +71,10 @@ export const DAI_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM]: Address.from(
     '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
   ),
-  [ChainId.GOERLI]: Address.from(AddressZero),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from('0xb08B4FC6b8B6cAcd69d21F1C94d07FcD4753B5F1'),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
+  ),
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
 };
 
