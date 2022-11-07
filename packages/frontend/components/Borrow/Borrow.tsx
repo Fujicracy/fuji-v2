@@ -7,10 +7,7 @@ import {
   Card,
   Grid,
   CircularProgress,
-  Collapse,
 } from "@mui/material"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import Image from "next/image"
 
 import { useStore } from "../../store"
@@ -19,7 +16,7 @@ import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
 import { useLtv } from "../../store/transaction.slice"
-// import { useCost } from "../../store/transaction.slice"
+import { Fees } from "./Fees"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -38,8 +35,6 @@ export default function Borrow() {
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
   // const debt = useStore((state) => state.position.debt)
-
-  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
 
   const transactionStatus = useStore((state) => state.transactionStatus)
   const setTransactionStatus = useStore((state) => state.setTransactionStatus)
@@ -110,49 +105,7 @@ export default function Borrow() {
 
           <br />
 
-          <Card
-            variant="outlined"
-            sx={{ cursor: "pointer", border: "none" }}
-            onClick={() => setShowTransactionDetails(!showTransactionDetails)}
-          >
-            <div className={styles.cardLine} style={{ height: 0 }}>
-              <Typography variant="small">Estimated Cost</Typography>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <Typography variant="small">~$3.90</Typography>
-                {showTransactionDetails ? (
-                  <KeyboardArrowUpIcon />
-                ) : (
-                  <KeyboardArrowDownIcon />
-                )}
-              </div>
-            </div>
-            <Collapse in={showTransactionDetails} sx={{ width: "100%" }}>
-              <div
-                className={styles.cardLine}
-                style={{ width: "92%", marginTop: "1rem" }}
-              >
-                <Typography variant="small">Gas fees</Typography>
-                <Typography variant="small">~$1.90</Typography>
-              </div>
-              <br />
-              <div className={styles.cardLine} style={{ width: "92%" }}>
-                <Typography variant="small">Bridges fees</Typography>
-                <Typography variant="small">~$2.00</Typography>
-              </div>
-              <br />
-              <div className={styles.cardLine} style={{ width: "92%" }}>
-                <Typography variant="small">Est. processing time</Typography>
-                <Typography variant="small">~2 Minutes</Typography>
-              </div>
-              <br />
-              <div className={styles.cardLine} style={{ width: "92%" }}>
-                <Typography variant="small">Route</Typography>
-                <Typography variant="small">
-                  <u>{"ETH > Polygon"}</u>
-                </Typography>
-              </div>
-            </Collapse>
-          </Card>
+          <Fees />
           <br />
 
           {error === "mustLogin" && (

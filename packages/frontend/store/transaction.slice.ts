@@ -3,6 +3,8 @@ import { formatUnits } from "ethers/lib/utils"
 import produce from "immer"
 import { StateCreator } from "zustand"
 import invariant from "tiny-invariant"
+import { debounce } from "debounce"
+import { BigNumber } from "ethers"
 import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
@@ -28,11 +30,12 @@ type TransactionState = {
   debtInput: string
   debtChainId: ChainId
 
-  // transactionMeta: {
-  //   gasFees?: number
-  //   bridgeFees?: number
-  //   estimateTime?: number
-  // }
+  transactionMeta: {
+    status: "initial" | "fetching" | "ready" | "error" // TODO: What if error ?
+    gasFees: number
+    bridgeFees: number
+    estimateTime: number
+  }
 }
 
 type TransactionActions = {
@@ -48,6 +51,7 @@ type TransactionActions = {
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
   updateVault: () => void
+  updateTransactionMeta: () => void
 }
 type ChainId = string // hex value as string
 
@@ -88,7 +92,12 @@ const initialState: TransactionState = {
   debtInput: "",
   debtChainId: initialChainId,
 
-  // transactionMeta: {},
+  transactionMeta: {
+    status: "initial",
+    bridgeFees: 0,
+    gasFees: 0,
+    estimateTime: 0,
+  },
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -115,6 +124,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTokenPrice("collateral")
     get().updateBalances("collateral")
     get().updateVault()
+    get().updateTransactionMeta()
   },
 
   changeCollateralToken(token) {
@@ -126,6 +136,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTokenPrice("collateral")
     get().updateAllowance()
     get().updateVault()
+    get().updateTransactionMeta()
   },
 
   async changeBorrowChain(chainId) {
@@ -142,6 +153,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTokenPrice("debt")
     get().updateBalances("debt")
     get().updateVault()
+    get().updateTransactionMeta()
   },
 
   changeBorrowToken(token) {
@@ -152,6 +164,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().updateTokenPrice("debt")
     get().updateVault()
+    get().updateTransactionMeta()
   },
 
   changeBorrowValue(value) {
@@ -161,6 +174,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         state.position.debt.amount = value ? parseFloat(value) : 0
       })
     )
+    get().updateTransactionMeta()
   },
 
   changeCollateralValue(value) {
@@ -170,6 +184,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         state.position.collateral.amount = value ? parseFloat(value) : 0
       })
     )
+    get().updateTransactionMeta()
   },
 
   async updateBalances(type) {
@@ -239,29 +254,79 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const collateral = get().position.collateral.token
     const debt = get().position.debt.token
 
-    const vaults = await sdk.getBorrowingVaultFor(collateral, debt)
+    const [vault] = await sdk.getBorrowingVaultsFor(collateral, debt)
     const error = `No vault found for ${collateral.symbol}(chain ${collateral.chainId})/${debt.symbol}(chain ${debt.chainId})`
-    invariant(vaults, error)
+    invariant(vault, error)
 
-    const providers = await vaults.getProviders()
+    const providers = await vault.getProviders()
     invariant(providers, "No providers found for vault")
 
-    const ltvMax = vaults.maxLtv ? vaults.maxLtv.toNumber() : DEFAULT_LTV_MAX
+    const ltvMax = vault.maxLtv ? vault.maxLtv.toNumber() : DEFAULT_LTV_MAX
 
     if (address) {
-      await vaults.preLoad(new Address(address))
+      await vault.preLoad(new Address(address))
     }
 
     set(
       produce((state: TransactionState) => {
-        state.position.vault = vaults
+        state.position.vault = vault
         state.position.ltvMax = ltvMax
-        state.position.ltvThreshold = vaults.liqRatio?.toNumber() || 0
+        state.position.ltvThreshold = vault.liqRatio?.toNumber() || 0
         state.position.providers = providers
         state.position.activeProvider = providers[0]
       })
     )
   },
+
+  updateTransactionMeta: debounce(async () => {
+    const address = useStore.getState().address
+    if (!address) {
+      return 0
+    }
+
+    const position = get().position
+    const { collateral, debt, vault } = position
+    if (!vault || !collateral.amount || !debt.amount) {
+      set(
+        produce((state: TransactionState) => {
+          state.transactionMeta.status = "error"
+        })
+      )
+      return
+      // invariant(vault, "Vault must be defined")
+    }
+
+    set(
+      produce((state: TransactionState) => {
+        state.transactionMeta.status = "fetching"
+      })
+    )
+
+    try {
+      const { bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(
+        vault,
+        BigNumber.from(collateral.amount),
+        BigNumber.from(debt.amount),
+        collateral.token,
+        debt.token,
+        new Address(address)
+      )
+      set(
+        produce((state: TransactionState) => {
+          state.transactionMeta.status = "ready"
+          state.transactionMeta.bridgeFees = bridgeFee.toNumber()
+          state.transactionMeta.estimateTime = estimateTime
+          // debugger
+        })
+      )
+    } catch (e) {
+      set(
+        produce((state: TransactionState) => {
+          state.transactionMeta.status = "error"
+        })
+      )
+    }
+  }, 500),
 })
 
 // Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
@@ -307,36 +372,4 @@ export function useLiquidationPrice(liquidationTreshold: number): {
   )
 
   return { liquidationPrice, liquidationDiff }
-}
-
-// TODO: this hook is quite expensive in terms of resources (2 api call), so better debounce before calling it.
-export async function useCost() {
-  const collateralToken = useStore((state) => state.position.collateral.token)
-  // const collateralChain = useStore((state) => state.collateral.chainId)
-  // const collateralValue = useStore((state) => state.collateral.value)
-  const borrowToken = useStore((state) => state.position.debt.token)
-  const debtChain = useStore((state) => state.position.debt.token.chainId)
-  const debtValue = useStore((state) => state.debtInput)
-  const address = useStore((state) => state.address)
-
-  // const cost = useMemo(async () => {
-  if (!debtValue || !debtChain || !address) {
-    return 0
-  }
-  // TODO: It seems like getBorrowing vault always return undefined
-  // but it should never happen cause we use `getDebtForChain` and `getCollateralForChain`
-  // and select only available tokens from there.
-  const vault = await sdk.getBorrowingVaultFor(collateralToken, borrowToken)
-  console.log({ vault })
-
-  // TODO: Can't rn because the function is not properly implemented (wrong typing)
-  // const { cost } = await vault.previewDepositAndBorrow(
-  //   BigNumber.from(collateralValue),
-  //   BigNumber.from(borrowValue),
-  //   parseInt(collateralChain),
-  //   new Address(address)
-  // )
-  // return cost
-  // }, [collateralChain, collateralValue, borrowChain, borrowValue])
-  return 0
 }
