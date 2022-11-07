@@ -20,6 +20,7 @@ import styles from "../../styles/components/Borrow.module.css"
 import Balance from "../Balance"
 import { useStore } from "../../store"
 import { useLtv } from "../../store/transaction.slice"
+import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
@@ -47,6 +48,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
     type === "debt" ? state.debtInput : state.collateralInput
   )
   const ltv = useLtv()
+  const ltvMax = useStore((state) => state.position.ltvMax)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -180,21 +182,24 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
               })}
             </Typography>
             <Stack direction="row">
-              {/* TODO: handle third case: tvl error */}
               <Typography
                 variant="smallDark"
                 color={
-                  ltv
-                    ? ltv > 55
-                      ? palette.warning.main
-                      : palette.success.main
-                    : ""
+                  !ltv
+                    ? ""
+                    : ltv > ltvMax
+                    ? palette.error.main
+                    : ltv > DEFAULT_LTV_RECOMMENDED // TODO: should this be dynamic ?
+                    ? palette.warning.main
+                    : palette.success.main
                 }
                 mr=".5rem"
               >
                 LTV {ltv}%
               </Typography>
-              <Typography variant="smallDark">(Recommended: 55%)</Typography>
+              <Typography variant="smallDark">
+                (Recommended: {DEFAULT_LTV_RECOMMENDED}%)
+              </Typography>
             </Stack>
           </>
         )}

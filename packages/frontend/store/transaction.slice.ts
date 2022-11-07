@@ -2,9 +2,11 @@ import { Address, Token } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import produce from "immer"
 import { StateCreator } from "zustand"
+import invariant from "tiny-invariant"
 import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
+import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
@@ -25,6 +27,12 @@ type TransactionState = {
   debtAllowance: number
   debtInput: string
   debtChainId: ChainId
+
+  // transactionMeta: {
+  //   gasFees?: number
+  //   bridgeFees?: number
+  //   estimateTime?: number
+  // }
 }
 
 type TransactionActions = {
@@ -39,6 +47,7 @@ type TransactionActions = {
   updateTokenPrice: (type: "debt" | "collateral") => void
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
+  updateVault: () => void
 }
 type ChainId = string // hex value as string
 
@@ -63,6 +72,9 @@ const initialState: TransactionState = {
       token: initialDebtTokens[0],
       usdValue: 0,
     },
+    ltv: 0,
+    ltvMax: DEFAULT_LTV_MAX,
+    ltvThreshold: DEFAULT_LTV_TRESHOLD,
   },
 
   collateralTokens: initialCollateralTokens,
@@ -75,6 +87,8 @@ const initialState: TransactionState = {
   debtAllowance: 0,
   debtInput: "",
   debtChainId: initialChainId,
+
+  // transactionMeta: {},
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -100,6 +114,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().updateTokenPrice("collateral")
     get().updateBalances("collateral")
+    get().updateVault()
   },
 
   changeCollateralToken(token) {
@@ -110,6 +125,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().updateTokenPrice("collateral")
     get().updateAllowance()
+    get().updateVault()
   },
 
   async changeBorrowChain(chainId) {
@@ -125,6 +141,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     get().updateTokenPrice("debt")
     get().updateBalances("debt")
+    get().updateVault()
   },
 
   changeBorrowToken(token) {
@@ -134,6 +151,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateTokenPrice("debt")
+    get().updateVault()
   },
 
   changeBorrowValue(value) {
@@ -211,6 +229,38 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const allowance = res.toNumber()
 
     set({ collateralAllowance: allowance })
+  },
+
+  async updateVault() {
+    const address = useStore.getState().address
+    if (!address) {
+      return
+    }
+    const collateral = get().position.collateral.token
+    const debt = get().position.debt.token
+
+    const vaults = await sdk.getBorrowingVaultFor(collateral, debt)
+    const error = `No vault found for ${collateral.symbol}(chain ${collateral.chainId})/${debt.symbol}(chain ${debt.chainId})`
+    invariant(vaults, error)
+
+    const providers = await vaults.getProviders()
+    invariant(providers, "No providers found for vault")
+
+    const ltvMax = vaults.maxLtv ? vaults.maxLtv.toNumber() : DEFAULT_LTV_MAX
+
+    if (address) {
+      await vaults.preLoad(new Address(address))
+    }
+
+    set(
+      produce((state: TransactionState) => {
+        state.position.vault = vaults
+        state.position.ltvMax = ltvMax
+        state.position.ltvThreshold = vaults.liqRatio?.toNumber() || 0
+        state.position.providers = providers
+        state.position.activeProvider = providers[0]
+      })
+    )
   },
 })
 

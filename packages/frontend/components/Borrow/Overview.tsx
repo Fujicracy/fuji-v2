@@ -17,11 +17,14 @@ import Image from "next/image"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
+import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 
 export default function Overview() {
   const { palette } = useTheme()
   const ltv = useLtv()
-  const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
+  const { ltvMax, ltvThreshold } = useStore((state) => state.position)
+  const { liquidationPrice, liquidationDiff } =
+    useLiquidationPrice(ltvThreshold)
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
 
@@ -106,10 +109,10 @@ export default function Overview() {
           <Divider sx={{ mb: 1.5 }} />
 
           <LTVProgressBar
-            borrowLimit={0}
-            value={ltv > 100 ? 100 : ltv}
-            maxLTV={100} // TODO: Should be dynamic thanks to SDK method
-            recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
+            borrowLimit={0} // TODO: should be dynamic
+            value={ltv > ltvMax ? ltvMax : ltv}
+            maxLTV={ltvMax}
+            recommendedLTV={DEFAULT_LTV_RECOMMENDED} // TODO: Should be dynamic thanks to SDK method
           />
 
           <Divider sx={{ mt: 2, mb: 2 }} />
@@ -131,7 +134,7 @@ export default function Overview() {
               LTV liquidation threshold
             </Typography>
 
-            <Typography variant="small">75%</Typography>
+            <Typography variant="small">{ltvThreshold}%</Typography>
           </Grid>
 
           <Divider sx={{ mt: 2, mb: 2 }} />

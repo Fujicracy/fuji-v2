@@ -62,6 +62,7 @@ export default function Borrow() {
   }, [updateTokenPrice])
 
   const ltv = useLtv()
+  const ltvMax = useStore((state) => state.position.ltvMax)
 
   let error
   if (!address) {
@@ -70,7 +71,7 @@ export default function Borrow() {
     error = "wrongNetwork"
   } else if (value > 0 && value > balance) {
     error = "insufficientBalance"
-  } else if (ltv > 75) {
+  } else if (ltv > ltvMax) {
     error = "wrongLtv"
   }
 

@@ -26,6 +26,7 @@ export default function TransactionSummary() {
   const { palette } = useTheme()
 
   const ltv = useLtv()
+  const ltvMax = useStore((state) => state.position.ltvMax)
   const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
@@ -188,8 +189,8 @@ export default function TransactionSummary() {
 
               <LTVProgressBar
                 borrowLimit={0}
-                value={ltv}
-                maxLTV={100} // TODO: Should be dynamic thanks to SDK method
+                value={ltv > ltvMax ? ltvMax : ltv}
+                maxLTV={ltvMax}
                 recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
               />
 
