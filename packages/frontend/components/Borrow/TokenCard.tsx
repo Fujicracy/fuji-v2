@@ -97,6 +97,9 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
             fontSize: "1.125rem",
             boxShadow: "none",
             ".MuiOutlinedInput-notchedOutline": { border: "none" },
+            "input[type='number']": {
+              appearance: "textfield",
+            },
           }}
         />
 
