@@ -370,7 +370,7 @@ const theme = createTheme(colorTheme, {
           border: `1px solid ${colorTheme.palette.primary.main}`,
           padding: "0.875rem 0.5rem",
           fontSize: "0.75rem",
-          backgroundColor: "rgba(18, 18, 21, 0.5)",
+          backgroundColor: "rgb(18, 18, 21)",
         },
       },
     },

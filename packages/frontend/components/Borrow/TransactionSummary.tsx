@@ -13,7 +13,6 @@ import {
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import AddCircleIcon from "@mui/icons-material/AddCircle"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
@@ -283,24 +282,7 @@ export default function TransactionSummary() {
                           >
                             1.83%
                           </span>
-                          <Divider
-                            sx={{
-                              marginLeft: "0.531rem",
-                              marginRight: "0.25rem",
-                              borderRight: `0.063rem solid ${palette.text.secondary}`,
-                              borderBottom: 0,
-                              display: "inline",
-                            }}
-                          />
                         </Typography>
-
-                        <AddCircleIcon
-                          sx={{
-                            marginLeft: "0.25rem",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                          }}
-                        />
                       </Box>
                     </Box>
                   </Grid>

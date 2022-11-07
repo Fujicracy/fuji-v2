@@ -26,7 +26,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       <Grid
         container
         sx={{
-          marginLeft: "3rem",
+          ml: "3rem",
         }}
       >
         <Grid item alignItems="center" margin="auto">
@@ -36,7 +36,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -48,7 +48,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
@@ -74,7 +74,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -86,7 +86,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
@@ -135,8 +135,8 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           background: palette.background.default,
           height: "0.5rem",
           marginBottom: "0.5rem",
-          ".css-uu0lzf-MuiLinearProgress-bar1": {
-            background:
+          "& .MuiLinearProgress-barColorPrimary": {
+            backgroundColor:
               props.value <= props.recommendedLTV
                 ? palette.success.main
                 : palette.warning.main,

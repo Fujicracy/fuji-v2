@@ -227,23 +227,21 @@ export default function Borrow() {
           <br />
           <br />
 
-          <Grid container justifyContent="center">
-            <Typography variant="small">
-              Powered by
-              <a
-                href="https://www.connext.network/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Image
-                  src="/assets/images/logo/connext-title.svg"
-                  height={16}
-                  width={95}
-                  alt="Connext logo"
-                />
-              </a>
-            </Typography>
-          </Grid>
+          <a
+            href="https://www.connext.network/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Grid container justifyContent="center" alignItems="center">
+              <Typography variant="small">Powered by</Typography>
+              <Image
+                src="/assets/images/logo/connext-title.svg"
+                height={16}
+                width={95}
+                alt="Connext logo"
+              />
+            </Grid>
+          </a>
         </CardContent>
       </Card>
       <TransactionProcessingModal

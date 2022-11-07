@@ -96,8 +96,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           sx={{
             fontSize: "1.125rem",
             boxShadow: "none",
-            ".MuiOutlinedInput-notchedOutline": { border: 0 },
-            width: "40%",
+            ".MuiOutlinedInput-notchedOutline": { border: "none" },
           }}
         />
 
