@@ -18,10 +18,10 @@ export const USDC_ADDRESS: AddressMap = {
   ),
   [ChainId.GOERLI]: Address.from('0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'
+    '0x345889dEb3F296B69719322537F53C4E0b1fd9BE'
   ),
   [ChainId.MATIC_MUMBAI]: Address.from(
-    '0x742DfA5Aa70a8212857966D491D67B09Ce7D6ec7'
+    '0xfC6c77DCddBDDdca077b5Ed2680cbe44E94081C4'
   ),
 };
 
@@ -71,9 +71,13 @@ export const DAI_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM]: Address.from(
     '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
   ),
-  [ChainId.GOERLI]: Address.from(AddressZero),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from('0xb08B4FC6b8B6cAcd69d21F1C94d07FcD4753B5F1'),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0x267C950378eeDacE9D4285F1b4EF59fD78aB0169'
+  ),
+  [ChainId.MATIC_MUMBAI]: Address.from(
+    '0x0A5AE664dE0E74b8b433Fb276d1DCe3C6B09B709'
+  ),
 };
 
 export const USDT_ADDRESS: AddressMap = {
@@ -90,7 +94,9 @@ export const USDT_ADDRESS: AddressMap = {
   ),
   [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.MATIC_MUMBAI]: Address.from(
+    '0xd0F5f1904e332ab204966e810DdbCeA923d71A15'
+  ),
 };
 
 export const FUJI_ORACLE_ADDRESS: AddressMap = {
@@ -101,7 +107,7 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.MATIC]: Address.from(AddressZero),
   [ChainId.GOERLI]: Address.from('0xf969CD6c5B4780a96a064DdA50cCbE239a60E2Db'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0x49743f36c92e33B4330455b1E7Db1236a8e24d3f'
+    '0xD26C613D853a1774151293CD8d1E0A901C95c2A6'
   ),
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x20d1b5489Dd80E3Aa75A41eA14dFDC00099756d1'
@@ -116,9 +122,9 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.MATIC]: Address.from(AddressZero),
   [ChainId.GOERLI]: Address.from('0x99A784d082476E551E5fc918ce3d849f2b8e89B6'),
   [ChainId.MATIC_MUMBAI]: Address.from(
-    '0xfeBBcfe9a88aadefA6e305945F2d2011493B15b4'
+    '0xb359F343512eAF2d026911726173a149D330bA8F'
   ),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0x705791AD27229dd4CCf41b6720528AfE1bcC2910'
+    '0xdA1a42056BcBDd35b8E1C4f55773f0f11c171634'
   ),
 };

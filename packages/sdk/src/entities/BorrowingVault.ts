@@ -1,4 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
+import { AddressZero } from '@ethersproject/constants';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
@@ -176,10 +177,10 @@ export class BorrowingVault extends StreamManager {
    * Loads and sets domainSeparator and account's nonce
    * that will be used when signing operations.
    *
-   * @param account - user address, wrapped in {@link Address}
+   * @param account - (optional) user address, wrapped in {@link Address}
    * @throws if {@link setConnection} was not called beforehand
    */
-  async preLoad(account: Address) {
+  async preLoad(account?: Address) {
     invariant(
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
@@ -188,14 +189,14 @@ export class BorrowingVault extends StreamManager {
       await this.multicallRpcProvider.all([
         this.multicallContract.maxLtv(),
         this.multicallContract.liqRatio(),
-        this.multicallContract.nonces(account.value),
+        this.multicallContract.nonces(account ? account.value : AddressZero),
         this.multicallContract.DOMAIN_SEPARATOR(),
       ]);
 
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
 
-    this._cache.set(account.value, nonce);
+    if (account) this._cache.set(account.value, nonce);
     this._domainSeparator = domainSeparator;
   }
 
