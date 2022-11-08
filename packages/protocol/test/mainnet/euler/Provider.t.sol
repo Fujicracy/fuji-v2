@@ -152,6 +152,11 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
     _utils_doBorrowRoutine(alice, BORROW_AMOUNT);
+    
+    //wait for block to be mined
+    vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 1 minutes);
+
     uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();
     assertGe(depositBalance, DEPOSIT_AMOUNT);
