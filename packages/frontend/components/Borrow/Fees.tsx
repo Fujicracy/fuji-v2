@@ -1,19 +1,26 @@
+import { useState } from "react"
 import { Card, Collapse, Typography, CircularProgress } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import { useStore } from "../../store"
 import styles from "../../styles/components/Borrow.module.css"
-import { useState } from "react"
 
 export const Fees = () => {
   const transactionMeta = useStore((state) => state.transactionMeta)
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
+  const show = showTransactionDetails && transactionMeta.status === "ready"
+
+  const handleClick = () => {
+    if (transactionMeta.status === "ready") {
+      setShowTransactionDetails(!showTransactionDetails)
+    }
+  }
 
   return (
     <Card
       variant="outlined"
       sx={{ cursor: "pointer", border: "none" }}
-      onClick={() => setShowTransactionDetails(!showTransactionDetails)}
+      onClick={handleClick}
     >
       <div className={styles.cardLine} style={{ height: 0 }}>
         <Typography variant="small">Estimated Cost</Typography>
@@ -21,11 +28,7 @@ export const Fees = () => {
           {transactionMeta.status === "ready" && (
             <>
               <Typography variant="small">~$3.90</Typography>
-              {showTransactionDetails ? (
-                <KeyboardArrowUpIcon />
-              ) : (
-                <KeyboardArrowDownIcon />
-              )}
+              {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </>
           )}
           {transactionMeta.status === "fetching" && (
@@ -37,7 +40,7 @@ export const Fees = () => {
           )}
         </div>
       </div>
-      <Collapse in={showTransactionDetails} sx={{ width: "100%" }}>
+      <Collapse in={show} sx={{ width: "100%" }}>
         <div
           className={styles.cardLine}
           style={{ width: "92%", marginTop: "1rem" }}
