@@ -33,8 +33,18 @@ contract FlasherAaveV3 is BaseFlasher, IFlashLoanSimpleReceiver {
     IV3Pool(getFlashloanSourceAddr(asset)).flashLoanSimple(receiverAddress, asset, amount, data, 0);
   }
 
-  function computeFlashloanFee(address, uint256) external view override returns (uint256 fee) {
-    // TODO proper implementation of this method
+  function computeFlashloanFee(
+    address asset,
+    uint256 amount
+  )
+    external
+    view
+    override
+    returns (uint256 fee)
+  {
+    // 1 basis point = %0.01, or 0.0001 in decimal.
+    uint256 basisPointsFee = IV3Pool(getFlashloanSourceAddr(asset)).FLASHLOAN_PREMIUM_TOTAL();
+    fee = (amount * basisPointsFee) / 10000;
   }
 
   /**
