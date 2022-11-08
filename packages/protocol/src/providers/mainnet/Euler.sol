@@ -92,7 +92,8 @@ contract Euler is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
-    rate = 0;
+    IEuler.AssetConfig memory assetConfig = markets.underlyingToAssetConfig(vault.asset());
+    rate = assetConfig.collateralFactor;
   }
 
   //TODO
@@ -101,8 +102,6 @@ contract Euler is ILendingProvider {
     IEulerMarkets markets = _getEulerMarkets();
     IEuler.AssetConfig memory assetConfig = markets.underlyingToAssetConfig(vault.debtAsset());
     rate = assetConfig.collateralFactor;
- 
-    rate = 0;
   }
 
   /// inheritdoc ILendingProvider
