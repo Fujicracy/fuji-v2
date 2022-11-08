@@ -79,7 +79,7 @@ export default function MarketsTable() {
           ETH
         </Typography>
       </Grid>,
-      <Grid container alignItems="center">
+      <Grid container alignItems="center" wrap="nowrap">
         <Image
           src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
           height={24}
@@ -94,12 +94,52 @@ export default function MarketsTable() {
       2.25,
       ["AAVE", "COMP"],
       "A+",
+      164800
+    ),
+    createData(
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/USDC.svg`}
+          height={32}
+          width={32}
+          alt="USDC"
+        />
+        <Typography ml="0.5rem" variant="small">
+          USDC
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
+          height={32}
+          width={32}
+          alt="ETH"
+        />
+        <Typography ml="0.5rem" variant="small">
+          ETH
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center" wrap="nowrap">
+        <Image
+          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+          height={24}
+          width={24}
+          alt="Ethereum"
+        />
+        <Typography ml="0.5rem" variant="small">
+          Ethereum
+        </Typography>
+      </Grid>,
+      1.8,
+      2.55,
+      ["AAVE", "COMP"],
+      "A+",
       164800,
       [
         createData(
           <></>,
           <></>,
-          <Grid container alignItems="center">
+          <Grid container alignItems="center" wrap="nowrap">
             <Image
               src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
               height={24}
@@ -111,12 +151,214 @@ export default function MarketsTable() {
             </Typography>
           </Grid>,
           1.8,
-          2.25,
+          2.55,
           ["AAVE", "COMP"],
           "A+",
-          164800
+          24800
+        ),
+        createData(
+          <></>,
+          <></>,
+          <Grid container alignItems="center" wrap="nowrap">
+            <Image
+              src={`/assets/images/protocol-icons/networks/Polygon.svg`}
+              height={24}
+              width={24}
+              alt="Polygon"
+            />
+            <Typography ml="0.5rem" variant="small">
+              Polygon
+            </Typography>
+          </Grid>,
+          1.5,
+          2.75,
+          ["AAVE", "COMP"],
+          "A+",
+          124800
+        ),
+        createData(
+          <></>,
+          <></>,
+          <Grid container alignItems="center" wrap="nowrap">
+            <Image
+              src={`/assets/images/protocol-icons/networks/Fantom.svg`}
+              height={24}
+              width={24}
+              alt="Fantom"
+            />
+            <Typography ml="0.5rem" variant="small">
+              Fantom
+            </Typography>
+          </Grid>,
+          1.5,
+          2.95,
+          ["AAVE", "COMP"],
+          "A+",
+          24800
+        ),
+        createData(
+          <></>,
+          <></>,
+          <Grid container alignItems="center" wrap="nowrap">
+            <Image
+              src={`/assets/images/protocol-icons/networks/Optimism.svg`}
+              height={24}
+              width={24}
+              alt="Optimism"
+            />
+            <Typography ml="0.5rem" variant="small">
+              Optimism
+            </Typography>
+          </Grid>,
+          1.3,
+          2.98,
+          ["AAVE", "COMP"],
+          "A+",
+          88000
+        ),
+        createData(
+          <></>,
+          <></>,
+          <Grid container alignItems="center" wrap="nowrap">
+            <Image
+              src={`/assets/images/protocol-icons/networks/Arbitrum.svg`}
+              height={24}
+              width={24}
+              alt="Arbitrum"
+            />
+            <Typography ml="0.5rem" variant="small">
+              Arbitrum
+            </Typography>
+          </Grid>,
+          1.3,
+          2.99,
+          ["AAVE", "COMP"],
+          "A+",
+          100000,
+          [
+            createData(
+              <></>,
+              <></>,
+              <Grid container alignItems="center" wrap="nowrap">
+                <Image
+                  src={`/assets/images/protocol-icons/networks/Arbitrum.svg`}
+                  height={24}
+                  width={24}
+                  alt="Arbitrum"
+                />
+                <Typography ml="0.5rem" variant="small">
+                  Arbitrum
+                </Typography>
+              </Grid>,
+              1.3,
+              3.01,
+              ["AAVE", "COMP"],
+              "A+",
+              100000
+            ),
+            createData(
+              <></>,
+              <></>,
+              <Grid container alignItems="center" wrap="nowrap">
+                <Image
+                  src={`/assets/images/protocol-icons/networks/Arbitrum.svg`}
+                  height={24}
+                  width={24}
+                  alt="Arbitrum"
+                />
+                <Typography ml="0.5rem" variant="small">
+                  Arbitrum
+                </Typography>
+              </Grid>,
+              1.3,
+              3.02,
+              ["WPC", "IB", "SONNE", "COMP", "COMP", "AAVE"],
+              "B+",
+              100000
+            ),
+          ]
         ),
       ]
+    ),
+    createData(
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/USDC.svg`}
+          height={32}
+          width={32}
+          alt="USDC"
+        />
+        <Typography ml="0.5rem" variant="small">
+          USDC
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
+          height={32}
+          width={32}
+          alt="ETH"
+        />
+        <Typography ml="0.5rem" variant="small">
+          ETH
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center" wrap="nowrap">
+        <Image
+          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+          height={24}
+          width={24}
+          alt="Ethereum"
+        />
+        <Typography ml="0.5rem" variant="small">
+          Ethereum
+        </Typography>
+      </Grid>,
+      1.8,
+      2.55,
+      ["AAVE", "COMP"],
+      "A+",
+      24800
+    ),
+    createData(
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/USDT.svg`}
+          height={32}
+          width={32}
+          alt="USDT"
+        />
+        <Typography ml="0.5rem" variant="small">
+          USDT
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center">
+        <Image
+          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
+          height={32}
+          width={32}
+          alt="ETH"
+        />
+        <Typography ml="0.5rem" variant="small">
+          ETH
+        </Typography>
+      </Grid>,
+      <Grid container alignItems="center" wrap="nowrap">
+        <Image
+          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
+          height={24}
+          width={24}
+          alt="Ethereum"
+        />
+        <Typography ml="0.5rem" variant="small">
+          Ethereum
+        </Typography>
+      </Grid>,
+      1.8,
+      2.65,
+      ["WPC", "IB", "SONNE", "COMP", "COMP", "AAVE"],
+      "B+",
+      164800
     ),
   ]
 
@@ -124,7 +366,7 @@ export default function MarketsTable() {
     <TableContainer>
       <Table aria-label="Markets table">
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ height: "2.625rem" }}>
             <TableCell align="center">Borrow</TableCell>
             <TableCell align="center">Collateral</TableCell>
             <TableCell align="center">Chain with the best rate</TableCell>
