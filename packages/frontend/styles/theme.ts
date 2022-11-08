@@ -467,8 +467,9 @@ const theme = createTheme(colorTheme, {
           },
           style: {
             background: `${colorTheme.palette.success.main}33`,
-            padding: 0,
             color: colorTheme.palette.success.main,
+            width: "2.47rem",
+            height: "1.438rem",
           },
         },
         {
@@ -477,8 +478,9 @@ const theme = createTheme(colorTheme, {
           },
           style: {
             background: `${colorTheme.palette.warning.main}33`,
-            padding: 0,
             color: colorTheme.palette.warning.main,
+            width: "2.47rem",
+            height: "1.438rem",
           },
         },
         {
@@ -590,7 +592,7 @@ const theme = createTheme(colorTheme, {
           fontSize: "0.875rem",
           fontWeight: 500,
           lineHeight: "1.25rem",
-          width: "12.5%",
+          width: "10.5%",
           paddingTop: 0,
           paddingBottom: 0,
         },

@@ -1,5 +1,4 @@
 import {
-  Grid,
   Stack,
   Table,
   TableBody,
@@ -8,18 +7,16 @@ import {
   TableHead,
   TableRow,
   Tooltip,
-  Typography,
   useTheme,
 } from "@mui/material"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import Image from "next/image"
 import MarketsTableRow from "./MarketsTableRow"
 
-type Row = {
-  borrow: React.ReactNode
-  collateral: React.ReactNode
-  bestRateChain: React.ReactNode
+export type Row = {
+  borrow?: string | null
+  collateral?: string | null
+  bestRateChain: string
   supplyAPI: number
   borrowABR: number
   integratedProtocols: string[]
@@ -31,335 +28,128 @@ type Row = {
 export default function MarketsTable() {
   const { palette } = useTheme()
 
-  function createData(
-    borrow: React.ReactNode,
-    collateral: React.ReactNode,
-    bestRateChain: React.ReactNode,
-    supplyAPI: number,
-    borrowABR: number,
-    integratedProtocols: string[],
-    safetyRating: string,
-    availableLiquidity: number,
-    collaspsedRows?: Row[]
-  ) {
-    return {
-      borrow,
-      collateral,
-      bestRateChain,
-      supplyAPI,
-      borrowABR,
-      integratedProtocols,
-      safetyRating,
-      availableLiquidity,
-      collaspsedRows,
-    }
-  }
-
-  const rows = [
-    createData(
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/DAI.svg`}
-          height={32}
-          width={32}
-          alt="DAI"
-        />
-        <Typography ml="0.5rem" variant="small">
-          DAI
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
-          height={32}
-          width={32}
-          alt="ETH"
-        />
-        <Typography ml="0.5rem" variant="small">
-          ETH
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center" wrap="nowrap">
-        <Image
-          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-          height={24}
-          width={24}
-          alt="Ethereum"
-        />
-        <Typography ml="0.5rem" variant="small">
-          Ethereum
-        </Typography>
-      </Grid>,
-      1.8,
-      2.25,
-      ["AAVE", "COMP"],
-      "A+",
-      164800
-    ),
-    createData(
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/USDC.svg`}
-          height={32}
-          width={32}
-          alt="USDC"
-        />
-        <Typography ml="0.5rem" variant="small">
-          USDC
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
-          height={32}
-          width={32}
-          alt="ETH"
-        />
-        <Typography ml="0.5rem" variant="small">
-          ETH
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center" wrap="nowrap">
-        <Image
-          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-          height={24}
-          width={24}
-          alt="Ethereum"
-        />
-        <Typography ml="0.5rem" variant="small">
-          Ethereum
-        </Typography>
-      </Grid>,
-      1.8,
-      2.55,
-      ["AAVE", "COMP"],
-      "A+",
-      164800,
-      [
-        createData(
-          <></>,
-          <></>,
-          <Grid container alignItems="center" wrap="nowrap">
-            <Image
-              src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-              height={24}
-              width={24}
-              alt="Ethereum"
-            />
-            <Typography ml="0.5rem" variant="small">
-              Ethereum
-            </Typography>
-          </Grid>,
-          1.8,
-          2.55,
-          ["AAVE", "COMP"],
-          "A+",
-          24800
-        ),
-        createData(
-          <></>,
-          <></>,
-          <Grid container alignItems="center" wrap="nowrap">
-            <Image
-              src={`/assets/images/protocol-icons/networks/Polygon.svg`}
-              height={24}
-              width={24}
-              alt="Polygon"
-            />
-            <Typography ml="0.5rem" variant="small">
-              Polygon
-            </Typography>
-          </Grid>,
-          1.5,
-          2.75,
-          ["AAVE", "COMP"],
-          "A+",
-          124800
-        ),
-        createData(
-          <></>,
-          <></>,
-          <Grid container alignItems="center" wrap="nowrap">
-            <Image
-              src={`/assets/images/protocol-icons/networks/Fantom.svg`}
-              height={24}
-              width={24}
-              alt="Fantom"
-            />
-            <Typography ml="0.5rem" variant="small">
-              Fantom
-            </Typography>
-          </Grid>,
-          1.5,
-          2.95,
-          ["AAVE", "COMP"],
-          "A+",
-          24800
-        ),
-        createData(
-          <></>,
-          <></>,
-          <Grid container alignItems="center" wrap="nowrap">
-            <Image
-              src={`/assets/images/protocol-icons/networks/Optimism.svg`}
-              height={24}
-              width={24}
-              alt="Optimism"
-            />
-            <Typography ml="0.5rem" variant="small">
-              Optimism
-            </Typography>
-          </Grid>,
-          1.3,
-          2.98,
-          ["AAVE", "COMP"],
-          "A+",
-          88000
-        ),
-        createData(
-          <></>,
-          <></>,
-          <Grid container alignItems="center" wrap="nowrap">
-            <Image
-              src={`/assets/images/protocol-icons/networks/Arbitrum.svg`}
-              height={24}
-              width={24}
-              alt="Arbitrum"
-            />
-            <Typography ml="0.5rem" variant="small">
-              Arbitrum
-            </Typography>
-          </Grid>,
-          1.3,
-          2.99,
-          ["AAVE", "COMP"],
-          "A+",
-          100000,
-          [
-            createData(
-              <></>,
-              <></>,
-              <Grid container alignItems="center" wrap="nowrap">
-                <Image
-                  src={`/assets/images/protocol-icons/networks/Arbitrum.svg`}
-                  height={24}
-                  width={24}
-                  alt="Arbitrum"
-                />
-                <Typography ml="0.5rem" variant="small">
-                  Arbitrum
-                </Typography>
-              </Grid>,
-              1.3,
-              3.01,
-              ["AAVE", "COMP"],
-              "A+",
-              100000
-            ),
-            createData(
-              <></>,
-              <></>,
-              <Grid container alignItems="center" wrap="nowrap">
-                <Image
-                  src={`/assets/images/protocol-icons/networks/Arbitrum.svg`}
-                  height={24}
-                  width={24}
-                  alt="Arbitrum"
-                />
-                <Typography ml="0.5rem" variant="small">
-                  Arbitrum
-                </Typography>
-              </Grid>,
-              1.3,
-              3.02,
-              ["WPC", "IB", "SONNE", "COMP", "COMP", "AAVE"],
-              "B+",
-              100000
-            ),
-          ]
-        ),
-      ]
-    ),
-    createData(
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/USDC.svg`}
-          height={32}
-          width={32}
-          alt="USDC"
-        />
-        <Typography ml="0.5rem" variant="small">
-          USDC
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
-          height={32}
-          width={32}
-          alt="ETH"
-        />
-        <Typography ml="0.5rem" variant="small">
-          ETH
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center" wrap="nowrap">
-        <Image
-          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-          height={24}
-          width={24}
-          alt="Ethereum"
-        />
-        <Typography ml="0.5rem" variant="small">
-          Ethereum
-        </Typography>
-      </Grid>,
-      1.8,
-      2.55,
-      ["AAVE", "COMP"],
-      "A+",
-      24800
-    ),
-    createData(
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/USDT.svg`}
-          height={32}
-          width={32}
-          alt="USDT"
-        />
-        <Typography ml="0.5rem" variant="small">
-          USDT
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center">
-        <Image
-          src={`/assets/images/protocol-icons/tokens/ETH.svg`}
-          height={32}
-          width={32}
-          alt="ETH"
-        />
-        <Typography ml="0.5rem" variant="small">
-          ETH
-        </Typography>
-      </Grid>,
-      <Grid container alignItems="center" wrap="nowrap">
-        <Image
-          src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-          height={24}
-          width={24}
-          alt="Ethereum"
-        />
-        <Typography ml="0.5rem" variant="small">
-          Ethereum
-        </Typography>
-      </Grid>,
-      1.8,
-      2.65,
-      ["WPC", "IB", "SONNE", "COMP", "COMP", "AAVE"],
-      "B+",
-      164800
-    ),
+  const rows: Row[] = [
+    {
+      borrow: "DAI",
+      collateral: "ETH",
+      bestRateChain: "Ethereum",
+      supplyAPI: 1.8,
+      borrowABR: 2.25,
+      integratedProtocols: ["AAVE", "COMP"],
+      safetyRating: "A+",
+      availableLiquidity: 164800,
+    },
+    {
+      borrow: "USDC",
+      collateral: "ETH",
+      bestRateChain: "Ethereum",
+      supplyAPI: 1.8,
+      borrowABR: 2.55,
+      integratedProtocols: ["AAVE", "COMP"],
+      safetyRating: "A+",
+      availableLiquidity: 164800,
+      collaspsedRows: [
+        {
+          borrow: null,
+          collateral: null,
+          bestRateChain: "Ethereum",
+          supplyAPI: 1.8,
+          borrowABR: 2.55,
+          integratedProtocols: ["AAVE", "COMP"],
+          safetyRating: "A+",
+          availableLiquidity: 24800,
+        },
+        {
+          borrow: null,
+          collateral: null,
+          bestRateChain: "Polygon",
+          supplyAPI: 1.5,
+          borrowABR: 2.75,
+          integratedProtocols: ["AAVE", "COMP"],
+          safetyRating: "A+",
+          availableLiquidity: 124800,
+        },
+        {
+          borrow: null,
+          collateral: null,
+          bestRateChain: "Fantom",
+          supplyAPI: 1.5,
+          borrowABR: 2.95,
+          integratedProtocols: ["AAVE", "COMP"],
+          safetyRating: "A+",
+          availableLiquidity: 24800,
+        },
+        {
+          borrow: null,
+          collateral: null,
+          bestRateChain: "Optimism",
+          supplyAPI: 1.3,
+          borrowABR: 2.98,
+          integratedProtocols: ["AAVE", "COMP"],
+          safetyRating: "A+",
+          availableLiquidity: 88000,
+        },
+        {
+          borrow: null,
+          collateral: null,
+          bestRateChain: "Arbitrum",
+          supplyAPI: 1.3,
+          borrowABR: 2.99,
+          integratedProtocols: ["AAVE", "COMP"],
+          safetyRating: "A+",
+          availableLiquidity: 100000,
+          collaspsedRows: [
+            {
+              borrow: null,
+              collateral: null,
+              bestRateChain: "Arbitrum",
+              supplyAPI: 1.3,
+              borrowABR: 3.01,
+              integratedProtocols: ["AAVE", "COMP"],
+              safetyRating: "A+",
+              availableLiquidity: 100000,
+            },
+            {
+              borrow: null,
+              collateral: null,
+              bestRateChain: "Arbitrum",
+              supplyAPI: 1.3,
+              borrowABR: 3.02,
+              integratedProtocols: [
+                "WPC",
+                "IB",
+                "SONNE",
+                "COMP",
+                "COMP",
+                "AAVE",
+              ],
+              safetyRating: "B+",
+              availableLiquidity: 100000,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      borrow: "USDC",
+      collateral: "ETH",
+      bestRateChain: "Ethereum",
+      supplyAPI: 1.8,
+      borrowABR: 2.55,
+      integratedProtocols: ["AAVE", "COMP"],
+      safetyRating: "A+",
+      availableLiquidity: 24800,
+    },
+    {
+      borrow: "USDT",
+      collateral: "ETH",
+      bestRateChain: "Ethereum",
+      supplyAPI: 1.8,
+      borrowABR: 2.65,
+      integratedProtocols: ["WPC", "IB", "SONNE", "COMP", "COMP", "AAVE"],
+      safetyRating: "B+",
+      availableLiquidity: 164800,
+    },
   ]
 
   return (
