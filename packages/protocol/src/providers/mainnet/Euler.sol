@@ -18,6 +18,8 @@ import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
 contract Euler is ILendingProvider {
 
   //TODO complete IEuler and use it to get modules
+  //TODO remove unused methods from interfaces
+  //TODO refactor repeated code
 
   function _getEuler() internal pure returns (IEuler) {
     return IEuler(0x27182842E098f60e3D576794A5bFFb0777E025d3);
@@ -89,12 +91,17 @@ contract Euler is ILendingProvider {
   //TODO
   /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
+    IEulerMarkets markets = _getEulerMarkets();
     rate = 0;
   }
 
   //TODO
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
+    IEulerMarkets markets = _getEulerMarkets();
+    IEuler.AssetConfig memory assetConfig = markets.underlyingToAssetConfig(vault.debtAsset());
+    rate = assetConfig.collateralFactor;
+ 
     rate = 0;
   }
 
@@ -108,13 +115,9 @@ contract Euler is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    console.log("@getDepositBalance");
     IEulerMarkets markets = _getEulerMarkets();
     IEulerEToken eToken = IEulerEToken(markets.underlyingToEToken(vault.asset()));
-
-    console.log("eToken.balanceOf(address(user)) - ", eToken.balanceOf(user));
-
-    balance = eToken.balanceOf(address(user));
+    balance = eToken.balanceOfUnderlying(address(user));
   }
 
   /// inheritdoc ILendingProvider
