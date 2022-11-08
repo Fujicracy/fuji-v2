@@ -2,6 +2,7 @@
 src = 'src'
 out = 'out'
 libs = ['lib']
+fs_permissions = [{ access = "read-write", path = "./.local"}]
 optimizer = true
 optimizer_runs = 1000
 
@@ -15,6 +16,15 @@ optimism = "${RPC_OPTIMISM}"
 mumbai = "${RPC_MUMBAI}"
 polygon = "${RPC_POLYGON}"
 arbitrum = "${RPC_ARBITRUM}"
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_KEY}" }
+goerli =  { key = "${ETHERSCAN_KEY}" }
+optimism_goerli = { key = "${OPTIMISM_ETHERSCAN_KEY}" }
+optimism = { key = "${OPTIMISM_ETHERSCAN_KEY}" }
+mumbai = { key = "${POLYGON_ETHERSCAN_KEY}" }
+polygon = { key = "${POLYGON_ETHERSCAN_KEY}" }
+arbitrum = { key = "${ARBITRUM_ETHERSCAN_KEY}" }
 
 [fmt]
 line_length = 100
