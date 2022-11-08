@@ -73,8 +73,8 @@ contract PrintGoerliBorrows is ScriptPlus {
   function xTransferWithCall(uint256 destDomain, address asset) public {
     vm.createSelectFork("optimism_goerli");
 
-    address vault = 0xBe170d083fB63CE3Eb62902C097E1656490B665F;
-    address router = 0x705791AD27229dd4CCf41b6720528AfE1bcC2910;
+    address vault = 0x62fd5C9A82991CDc522e4E748A9188E7B3DC7872;
+    address router = 0xdA1a42056BcBDd35b8E1C4f55773f0f11c171634;
 
     (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router);
     (IRouter.Action[] memory innerActions, bytes[] memory innerArgs) =
