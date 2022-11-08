@@ -4,6 +4,7 @@ import { TokenMap } from '../types';
 import {
   DAI_ADDRESS,
   USDC_ADDRESS,
+  USDT_ADDRESS,
   WETH9_ADDRESS,
   WNATIVE_ADDRESS,
 } from './addresses';
@@ -64,6 +65,65 @@ export const USDC: TokenMap = {
     6,
     'USDC',
     'USD Coin'
+  ),
+};
+
+export const USDT: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    USDT_ADDRESS[ChainId.ETHEREUM],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    USDT_ADDRESS[ChainId.GOERLI],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    USDT_ADDRESS[ChainId.MATIC],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    USDT_ADDRESS[ChainId.MATIC_MUMBAI],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    USDT_ADDRESS[ChainId.FANTOM],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    USDT_ADDRESS[ChainId.ARBITRUM],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    USDT_ADDRESS[ChainId.OPTIMISM],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    USDT_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    6,
+    'USDT',
+    'Tether'
   ),
 };
 
