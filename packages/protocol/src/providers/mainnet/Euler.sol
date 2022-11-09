@@ -17,10 +17,6 @@ import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
  */
 contract Euler is ILendingProvider {
 
-  //TODO complete IEuler and use it to get modules
-  //TODO remove unused methods from interfaces
-  //TODO refactor repeated code
-
   function _getEuler() internal pure returns (IEuler) {
     return IEuler(0x27182842E098f60e3D576794A5bFFb0777E025d3);
   }
@@ -35,14 +31,11 @@ contract Euler is ILendingProvider {
   }
 
 
-  //TODO remove this comment (address asset, address vault)
   /// inheritdoc ILendingProvider
   function approvedOperator(address, address) external pure override returns (address operator) {
-    // operator = address(_getEuler());
     operator = address(_getEuler());
   }
 
-  //TODO maybe create function _underlyingToEToken to avoid repeting code
   /// inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
@@ -56,7 +49,6 @@ contract Euler is ILendingProvider {
     success = true;
   }
   
-  //TODO maybe create function _underlyingToDToken to avoid repeting code
   /// inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
@@ -78,7 +70,6 @@ contract Euler is ILendingProvider {
     success = true;
   }
 
-  //TODO check if its necessary to approve to repay
   /// inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
@@ -88,20 +79,22 @@ contract Euler is ILendingProvider {
     success = true;
   }
 
-  //TODO
   /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
-    IEuler.AssetConfig memory assetConfig = markets.underlyingToAssetConfig(vault.asset());
-    rate = assetConfig.collateralFactor;
+    int iRate = markets.interestRate(vault.asset());
+    unchecked{
+      rate = iRate < 0 ? 0 : uint256(iRate);
+    }
   }
 
-  //TODO
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
-    IEuler.AssetConfig memory assetConfig = markets.underlyingToAssetConfig(vault.debtAsset());
-    rate = assetConfig.collateralFactor;
+    int iRate = markets.interestRate(vault.debtAsset());
+    unchecked{
+      rate = iRate < 0 ? 0 : uint256(iRate);
+    }
   }
 
   /// inheritdoc ILendingProvider
