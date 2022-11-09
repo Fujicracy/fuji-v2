@@ -40,6 +40,7 @@ export default function MarketsTableRow({
           sx={{
             position: "sticky",
             left: 0,
+            zIndex: 100,
             width: "11.25rem",
             background: isACollapsedRow
               ? row.collaspsedRows
