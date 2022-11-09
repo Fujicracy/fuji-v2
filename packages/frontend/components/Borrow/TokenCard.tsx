@@ -78,9 +78,6 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
     }
   }
 
-  const truncate = (input: string, length: number) =>
-    input.length > length ? `${input.substring(0, length)}...` : input
-
   return (
     <Card
       variant="outlined"
@@ -133,14 +130,11 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
       <div className={styles.cardLine}>
         {type === "collateral" ? (
           <>
-            <Typography variant="small" sx={{ maxWidth: "100%" }}>
-              {truncate(
-                (tokenValue * +value).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "usd",
-                }),
-                28
-              )}
+            <Typography variant="small" sx={{ width: "11rem" }}>
+              {(tokenValue * +value).toLocaleString("en-US", {
+                style: "currency",
+                currency: "usd",
+              })}
             </Typography>
             <div
               style={{
@@ -176,15 +170,13 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           </>
         ) : (
           <>
-            <Typography variant="small">
-              {truncate(
-                (tokenValue * +value).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "usd",
-                }),
-                16
-              )}
+            <Typography variant="small" sx={{ width: "7rem" }}>
+              {(tokenValue * +value).toLocaleString("en-US", {
+                style: "currency",
+                currency: "usd",
+              })}
             </Typography>
+
             <Stack direction="row">
               <Typography
                 variant="smallDark"
@@ -199,7 +191,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                 }
                 mr=".5rem"
               >
-                LTV {ltv}%
+                LTV {ltv <= 100 ? `${ltv}%` : "n/a"}
               </Typography>
               <Typography variant="smallDark">
                 (Recommended: {DEFAULT_LTV_RECOMMENDED}%)

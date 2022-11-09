@@ -112,6 +112,8 @@ const theme = createTheme(colorTheme, {
       fontWeight: 600,
       fontSize: "1.5rem",
       lineHeight: "120%",
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     h5: {
       fontWeight: 600,
@@ -137,12 +139,16 @@ const theme = createTheme(colorTheme, {
       fontWeight: 400,
       fontSize: "0.875rem",
       lineHeight: "160%",
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     smallDark: {
       fontWeight: 400,
       fontSize: "0.875rem",
       lineHeight: "160%",
       color: colorTheme.palette.info.dark,
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     xsmall: {
       fontWeight: 400,

@@ -28,9 +28,6 @@ export default function Overview() {
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
 
-  const truncate = (input: string, length: number) =>
-    input.length > length ? `${input.substring(0, length)}...` : input
-
   return (
     <Grid container alignItems="center" justifyContent="space-between">
       <Card
@@ -50,22 +47,15 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: `${truncate(
-                    collateral.amount.toLocaleString("en-US", {
-                      maximumFractionDigits: 2,
-                    }),
-                    13
-                  )} ${collateral.token.symbol}`,
-                  footer: truncate(
-                    (collateral.amount * collateral.usdValue).toLocaleString(
-                      "en-US",
-                      {
-                        style: "currency",
-                        currency: "usd",
-                      }
-                    ),
-                    35
-                  ),
+                  amount: `${collateral.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })} ${collateral.token.symbol}`,
+                  footer: (
+                    collateral.amount * collateral.usdValue
+                  ).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
                 }}
               />
             </Grid>
@@ -73,19 +63,16 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Borrowed Value",
-                  amount: truncate(
-                    (debt.amount * debt.usdValue).toLocaleString("en-US", {
+                  amount: (debt.amount * debt.usdValue).toLocaleString(
+                    "en-US",
+                    {
                       style: "currency",
                       currency: "usd",
-                    }),
-                    20
+                    }
                   ),
-                  footer: `${truncate(
-                    debt.amount.toLocaleString("en-US", {
-                      maximumFractionDigits: 2,
-                    }),
-                    28
-                  )} ${debt.token.symbol}`,
+                  footer: `${debt.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })} ${debt.token.symbol}`,
                 }}
               />
             </Grid>
@@ -140,7 +127,9 @@ export default function Overview() {
           <Grid container justifyContent="space-between">
             <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
-            <Typography variant="small">{ltv}%</Typography>
+            <Typography variant="small">
+              {ltv <= 100 ? `${ltv}%` : "n/a"}
+            </Typography>
           </Grid>
 
           <Divider sx={{ mt: 2, mb: 2 }} />
