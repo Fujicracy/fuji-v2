@@ -29,8 +29,6 @@ export default function Markets() {
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
-  console.log(currentTab === 0 || onMobile)
-
   return (
     <Box m={{ xs: "1rem", sm: "" }}>
       <Typography variant="h4">
