@@ -1,9 +1,14 @@
-import { useState } from "react"
-import { Card, Collapse, Typography, CircularProgress } from "@mui/material"
+import { ReactNode, useState } from "react"
+import {
+  Card,
+  Collapse,
+  Typography,
+  CircularProgress,
+  Stack,
+} from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import { useStore } from "../../store"
-import styles from "../../styles/components/Borrow.module.css"
 
 export const Fees = () => {
   const transactionMeta = useStore((state) => state.transactionMeta)
@@ -22,54 +27,46 @@ export const Fees = () => {
       sx={{ cursor: "pointer", border: "none" }}
       onClick={handleClick}
     >
-      <div className={styles.cardLine} style={{ height: 0 }}>
-        <Typography variant="small">Estimated Cost</Typography>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          {transactionMeta.status === "ready" && (
-            <>
-              <Typography variant="small">~$3.90</Typography>
-              {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </>
-          )}
-          {transactionMeta.status === "fetching" && (
-            <CircularProgress size="0.875rem" />
-          )}
-          {(transactionMeta.status === "error" ||
-            transactionMeta.status === "initial") && (
-            <Typography variant="small">n/a</Typography>
-          )}
-        </div>
-      </div>
+      <Stack direction="row" justifyContent="space-between" width="100%">
+        <Typography variant="small" display="block">
+          Estimated Cost
+        </Typography>
+        {transactionMeta.status === "ready" && (
+          <Stack direction="row" alignItems="center">
+            <Typography variant="small">~$3.90</Typography>
+            {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </Stack>
+        )}
+        {transactionMeta.status === "fetching" && (
+          <CircularProgress size="0.875rem" />
+        )}
+        {(transactionMeta.status === "error" ||
+          transactionMeta.status === "initial") && (
+          <Typography variant="small" display="block">
+            n/a
+          </Typography>
+        )}
+      </Stack>
       <Collapse in={show} sx={{ width: "100%" }}>
-        <div
-          className={styles.cardLine}
-          style={{ width: "92%", marginTop: "1rem" }}
-        >
-          <Typography variant="small">Gas fees</Typography>
-          <Typography variant="small">~$1.90</Typography>
-        </div>
-        <br />
-        <div className={styles.cardLine} style={{ width: "92%" }}>
-          <Typography variant="small">Bridges fees</Typography>
-          <Typography variant="small">
-            ~${transactionMeta.bridgeFees}
-          </Typography>
-        </div>
-        <br />
-        <div className={styles.cardLine} style={{ width: "92%" }}>
-          <Typography variant="small">Est. processing time</Typography>
-          <Typography variant="small">
-            ~{transactionMeta.estimateTime / 60} minutes
-          </Typography>
-        </div>
-        <br />
-        <div className={styles.cardLine} style={{ width: "92%" }}>
-          <Typography variant="small">Route</Typography>
-          <Typography variant="small">
-            <u>{"ETH > Polygon"}</u>
-          </Typography>
-        </div>
+        <Fee label="Gas fees" value="~$1.90" />
+        <Fee label="Bridges fees" value={`~$${transactionMeta.bridgeFees}`} />
+        <Fee
+          label="Est. processing time"
+          value={`~${transactionMeta.estimateTime / 60} minutes`}
+        />
+        <Fee label="Route" value={<u>{"ETH > Polygon"}</u>} />
       </Collapse>
     </Card>
   )
 }
+
+type FeeProps = {
+  label: string
+  value: string | ReactNode
+}
+const Fee = ({ label, value }: FeeProps) => (
+  <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
+    <Typography variant="small">{label}</Typography>
+    <Typography variant="small">{value}</Typography>
+  </Stack>
+)

@@ -278,7 +278,6 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: "0.75rem",
-          gap: "2rem",
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-start",
@@ -296,7 +295,6 @@ const theme = createTheme(colorTheme, {
             flexDirection: "column",
             borderRadius: "0.5rem",
             padding: "1rem",
-            gap: "1.5rem",
             flex: "none",
             order: 1,
             flexGrow: 0,

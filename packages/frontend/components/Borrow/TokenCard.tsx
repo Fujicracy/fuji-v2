@@ -127,7 +127,8 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           ))}
         </Menu>
       </div>
-      <div className={styles.cardLine}>
+
+      <div className={styles.cardLine} style={{ marginTop: "1rem" }}>
         {type === "collateral" ? (
           <>
             <Typography variant="small" sx={{ width: "11rem" }}>
