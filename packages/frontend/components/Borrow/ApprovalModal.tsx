@@ -12,6 +12,7 @@ import {
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
+import Image from "next/image"
 
 type ApprovalModalProps = {
   handleClose: (e: MouseEvent) => void
@@ -34,7 +35,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         ".MuiPaper-root": {
           width: isMobile ? "100%" : "auto",
         },
-        margin: isMobile ?? 1,
+        margin: isMobile ? 1 : "auto",
         backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
       }}
       maxWidth="xs"
@@ -51,7 +52,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         />
 
         <Box mt={2}>
-          <img src="/assets/images/usdroundicon.png" width="60" height="60" />
+          <Image src="/assets/images/usdroundicon.png" width="60" height="60" />
         </Box>
 
         <Typography variant="h5" mt="2rem">
@@ -70,7 +71,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         <Stack
           direction="row"
           justifyContent="space-between"
-          alignContent="center"
+          alignItems="center"
           mt="2rem"
           color="grey"
         >
