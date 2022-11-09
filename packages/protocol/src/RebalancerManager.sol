@@ -18,26 +18,39 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 contract RebalancerManager is SystemAccessControl {
   using SafeERC20 for IERC20;
 
+  event ChangedExecutorState(address indexed newExecutor, bool newState);
+
   // custom errors
-  error RebalancerManager__checkValidProviders_invalidProvider();
+  error RebalancerManager__rebalanceVault_notValidExecutor();
+  error RebalancerManager__rebalanceVault_notValidFlasher();
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
   error RebalanceManager__getFlashloan_notEmptyEntryPoint();
   error RebalanceManager__completeRebalance_invalidEntryPoint();
+  error RebalancerManager__zeroAddress();
+
+  mapping(address => bool) public allowedExecutor;
 
   bytes32 private _entryPoint;
 
   constructor(address chief_) SystemAccessControl(chief_) {}
 
   /**
-   * @notice Triggers a flashloan
+   * @notice rebalance funds of a vault between providers.
+   * @param vault address that will be rebalanced.
+   * @param assets amount to be rebalanced.
+   * @param debt amount to be rebalanced; only for {BorrowingVault}.
+   * @param from provider address.
+   * @param to provider address.
+   * @param flasher address that will facilitate flashloan.
+   * @param setToAsActiveProvider boolean if `activeProvider` should change.
    *
    * Requirements:
-   * - MUST check `from` and `to` are valid providers of `vault`.
+   * - MUST only be called by a valid executor.
    * - MUST check `assets` and `debt` amounts are less than vaults managed amounts.
    */
-  function rebalanceBorrowingVault(
+  function rebalanceVault(
     IVault vault,
     uint256 assets,
     uint256 debt,
@@ -47,32 +60,22 @@ contract RebalancerManager is SystemAccessControl {
     bool setToAsActiveProvider
   )
     external
-    hasRole(msg.sender, REBALANCER_ROLE)
-  {
-    _checkValidProviders(vault, from, to);
-    _checkAssetsAmount(vault, assets, from);
-    _checkDebtAmount(vault, debt, from);
-
-    _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
-  }
-
-  function rebalanceYieldVault(
-    IVault vault,
-    uint256 assets,
-    address from,
-    address to,
-    bool setToAsActiveProvider
-  )
-    external
-    hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool success)
   {
-    _checkValidProviders(vault, from, to);
+    if (!allowedExecutor[msg.sender]) {
+      revert RebalancerManager__rebalanceVault_notValidExecutor();
+    }
     _checkAssetsAmount(vault, assets, from);
 
-    bytes memory rebalanceParams = abi.encode(assets, from, to);
-
-    vault.rebalance(rebalanceParams);
+    if (vault.debtAsset() == address(0)) {
+      vault.rebalance(assets, 0, from, to, 0);
+    } else {
+      _checkDebtAmount(vault, debt, from);
+      if (!chief.allowedFlasher(address(flasher))) {
+        revert RebalancerManager__rebalanceVault_notValidFlasher();
+      }
+      _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
+    }
 
     if (setToAsActiveProvider) {
       vault.setActiveProvider(ILendingProvider(to));
@@ -81,25 +84,18 @@ contract RebalancerManager is SystemAccessControl {
     success = true;
   }
 
-  function _checkValidProviders(IVault vault, address from, address to) internal view {
-    bool isFromValid;
-    bool isToValid;
-    ILendingProvider[] memory lproviders = vault.getProviders();
-    uint256 length = lproviders.length;
-    for (uint256 i = 0; i < length;) {
-      if (from == address(lproviders[i])) {
-        isFromValid == true;
-      }
-      if (to == address(lproviders[i])) {
-        isToValid == true;
-      }
-      unchecked {
-        ++i;
-      }
+  /**
+   * @notice sets state for address in mapping `allowedExecutor`.
+   *
+   * Requirements:
+   * - MUST emit a
+   */
+  function setExecutorState(address executor, bool newState) external onlyTimelock {
+    if (executor == address(0)) {
+      revert RebalancerManager__zeroAddress();
     }
-    if (!isFromValid && !isToValid) {
-      revert RebalancerManager__checkValidProviders_invalidProvider();
-    }
+    allowedExecutor[executor] = newState;
+    emit ChangedExecutorState(executor, newState);
   }
 
   function _checkAssetsAmount(IVault vault, uint256 amount, address from) internal view {
@@ -202,14 +198,11 @@ contract RebalancerManager is SystemAccessControl {
 
     debtAsset.safeApprove(address(vault), debt);
 
-    bytes memory rebalanceParams =
-      abi.encode(assets, debt, flasher.computeFlashloanFee(address(debtAsset), debt), from, to);
+    uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debt);
 
-    vault.rebalance(rebalanceParams);
+    vault.rebalance(assets, debt, from, to, flashloanFee);
 
-    debtAsset.safeTransfer(
-      address(flasher), debt + flasher.computeFlashloanFee(address(debtAsset), debt)
-    );
+    debtAsset.safeTransfer(address(flasher), debt + flashloanFee);
 
     if (setToAsActiveProvider) {
       vault.setActiveProvider(ILendingProvider(to));

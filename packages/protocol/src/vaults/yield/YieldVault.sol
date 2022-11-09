@@ -9,6 +9,7 @@ import {BaseVault} from "../../abstracts/BaseVault.sol";
 
 contract YieldVault is BaseVault {
   error YieldVault__notApplicable();
+  error YieldVault__rebalance_invalidProvider();
 
   constructor(
     address asset_,
@@ -113,12 +114,27 @@ contract YieldVault is BaseVault {
   ///////////////////
 
   // inheritdoc IVault
-  function rebalance(bytes memory params)
+  function rebalance(
+    uint256 assets,
+    uint256 debt,
+    address from,
+    address to,
+    uint256 fee
+  )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    (uint256 assets, address from, address to) = abi.decode(params, (uint256, address, address));
+    if (!_isValidProvider(from) || !_isValidProvider(to)) {
+      revert YieldVault__rebalance_invalidProvider();
+    }
+
+    if (debt != 0) {
+      revert YieldVault__notApplicable();
+    }
+
+    _checkFee(fee, assets);
+
     _executeProviderAction(assets, "withdraw", from);
     SafeERC20.safeApprove(IERC20(asset()), to, assets);
     _executeProviderAction(assets, "deposit", to);

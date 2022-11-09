@@ -200,15 +200,29 @@ interface IVault is IERC4626 {
   /// Rebalancing Functions
 
   /**
-   * @notice Performs rebalancing of vault.
-   * @param params encoded parameters for rebalancing.
+   * @notice Performs rebalancing of vault by moving funds across providers.
+   * @param assets amount of this vault to be rebalanced.
+   * @param debt amount of this vault to be rebalanced. Note: pass zero for a {YieldVault}.
+   * @param from provider address currently custoding `assets` and/or `debt`.
+   * @param to provider address to which `assets` and/or `debt` will be transferred.
+   * @param fee expected from rebalancing operation.
    *
+   * - MUST check providers `from` and `to` are valid.
    * - MUST be called from a {RebalancerManager} contract that makes all proper checks.
    * - MUST revert if caller is not an approved rebalancer.
    * - MUST emit the VaultRebalance event.
+   * - MUST check `fee` is a reasonable amount.
    *
    */
-  function rebalance(bytes memory params) external returns (bool);
+  function rebalance(
+    uint256 assets,
+    uint256 debt,
+    address from,
+    address to,
+    uint256 fee
+  )
+    external
+    returns (bool);
 
   ///  Liquidation Functions
 

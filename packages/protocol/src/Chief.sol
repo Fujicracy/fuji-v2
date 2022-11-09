@@ -11,10 +11,10 @@ import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
 /// @dev Custom Errors
-error Chief__setTimelock_zeroAddress();
-error Chief__deployVault_zeroAddress();
+error Chief__checkInput_zeroAddress();
 error Chief__deployVault_factoryNotAllowed();
 error Chief__deployVault_missingRole(address account, bytes32 role);
+error Chief__onlyTimelock_callerIsNotTimelock();
 
 /// @notice Vault deployer contract with template factory allow.
 /// ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
@@ -23,8 +23,10 @@ contract Chief is CoreRoles, AccessControl {
 
   event OpenVaultFactory(bool state);
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
-  event AddToAllowed(address indexed factory);
-  event RemoveFromAllowed(address indexed factory);
+  event AddedFlasher(address indexed flasher);
+  event RemovedFlasher(address indexed flasher);
+  event AddedVaultFactory(address indexed factory);
+  event RemovedVaultFactory(address indexed factory);
   event TimelockUpdated(address indexed timelock);
 
   address public timelock;
@@ -34,6 +36,14 @@ contract Chief is CoreRoles, AccessControl {
   address[] internal _vaults;
   mapping(address => string) public vaultSafetyRating;
   mapping(address => bool) public allowedFactories;
+  mapping(address => bool) public allowedFlasher;
+
+  modifier onlyTimelock() {
+    if (msg.sender != timelock) {
+      revert Chief__onlyTimelock_callerIsNotTimelock();
+    }
+    _;
+  }
 
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -47,11 +57,9 @@ contract Chief is CoreRoles, AccessControl {
   }
 
   function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    if (newTimelock == address(0)) {
-      revert Chief__setTimelock_zeroAddress();
-    }
+    _checkInputIsNotZeroAddress(newTimelock);
     timelock = newTimelock;
-    emit TimelockUpdated(timelock);
+    emit TimelockUpdated(newTimelock);
   }
 
   function setOpenVaultFactory(bool state) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -79,20 +87,28 @@ contract Chief is CoreRoles, AccessControl {
     emit DeployVault(_factory, vault, _deployData);
   }
 
-  function addToAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    if (_factory == address(0)) {
-      revert Chief__deployVault_zeroAddress();
-    }
-    allowedFactories[_factory] = true;
-    emit AddToAllowed(_factory);
+  function addFlasher(address flasher) external onlyTimelock {
+    _checkInputIsNotZeroAddress(flasher);
+    allowedFlasher[flasher] = true;
+    emit AddedFlasher(flasher);
   }
 
-  function removeFromAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    if (_factory == address(0)) {
-      revert Chief__deployVault_zeroAddress();
-    }
+  function removeFlasher(address flasher) external onlyTimelock {
+    _checkInputIsNotZeroAddress(flasher);
+    allowedFlasher[flasher] = false;
+    emit RemovedFlasher(flasher);
+  }
+
+  function addVaultFactory(address _factory) external onlyTimelock {
+    _checkInputIsNotZeroAddress(_factory);
+    allowedFactories[_factory] = true;
+    emit AddedVaultFactory(_factory);
+  }
+
+  function removeVaultFactory(address _factory) external onlyTimelock {
+    _checkInputIsNotZeroAddress(_factory);
     allowedFactories[_factory] = false;
-    emit RemoveFromAllowed(_factory);
+    emit RemovedVaultFactory(_factory);
   }
 
   /**
@@ -162,6 +178,15 @@ contract Chief is CoreRoles, AccessControl {
       unchecked {
         ++i;
       }
+    }
+  }
+
+  /**
+   * @dev reverts if `input` is zero address.
+   */
+  function _checkInputIsNotZeroAddress(address input) internal pure {
+    if (input == address(0)) {
+      revert Chief__checkInput_zeroAddress();
     }
   }
 }

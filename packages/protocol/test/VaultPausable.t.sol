@@ -77,7 +77,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
 
-    chief.addToAllowed(address(bVaultFactory));
+    chief.addVaultFactory(address(bVaultFactory));
 
     address vault1Addr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"

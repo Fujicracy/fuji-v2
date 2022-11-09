@@ -34,6 +34,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_moreThanMax();
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
+  error BaseVault__checkFee_excessFee();
 
   IERC20Metadata internal immutable _asset;
   uint8 private immutable _decimals;
@@ -584,10 +585,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Returns true if provider is in `_providers` array.
+   * @dev returns true if provider is in `_providers` array.
    * Since providers are not many use of array is fine.
    */
-  function _isValidProvider(address provider) private view returns (bool check) {
+  function _isValidProvider(address provider) internal view returns (bool check) {
     uint256 len = _providers.length;
     for (uint256 i = 0; i < len;) {
       if (provider == address(_providers[i])) {
@@ -596,6 +597,19 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       unchecked {
         ++i;
       }
+    }
+  }
+
+  /**
+   * @dev check rebalance fee is reasonable.
+   *
+   * Requirements:
+   * - MUST be equal to or less than %0.10 (max 10 basis points) of `amount`.
+   */
+  function _checkFee(uint256 fee, uint256 amount) internal pure {
+    uint256 reasonableFee = (amount * 10) / 10000;
+    if (fee > reasonableFee) {
+      revert BaseVault__checkFee_excessFee();
     }
   }
 }

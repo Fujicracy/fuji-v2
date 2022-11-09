@@ -93,8 +93,8 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     yVaultFactory = new YieldVaultFactory(address(chief));
 
-    chief.addToAllowed(address(bVaultFactory));
-    chief.addToAllowed(address(yVaultFactory));
+    chief.addVaultFactory(address(bVaultFactory));
+    chief.addVaultFactory(address(yVaultFactory));
 
     address bvaultAddr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -199,11 +199,9 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     uint256 debt = 4 * BORROW_AMOUNT; // alice, bob, charlie, david
 
     dealMockERC20(MockERC20(address(debtAsset)), address(this), debt);
-    bytes memory params =
-      abi.encode(assets, debt, 0, address(mockProviderA), address(mockProviderB));
 
     SafeERC20.safeApprove(debtAsset, address(bvault), debt);
-    bvault.rebalance(params);
+    bvault.rebalance(assets, debt, address(mockProviderA), address(mockProviderB), 0);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
     assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
@@ -215,9 +213,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   function test_fullRebalancingYieldVault() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
 
-    bytes memory params = abi.encode(assets, address(mockProviderA), address(mockProviderB));
-
-    yvault.rebalance(params);
+    yvault.rebalance(assets, 0, address(mockProviderA), address(mockProviderB), 0);
 
     assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
     assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
@@ -230,11 +226,9 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     uint256 debt25 = BORROW_AMOUNT; // david
 
     dealMockERC20(MockERC20(address(debtAsset)), address(this), debt75);
-    bytes memory params =
-      abi.encode(assets75, debt75, 0, address(mockProviderA), address(mockProviderB));
 
     SafeERC20.safeApprove(debtAsset, address(bvault), debt75);
-    bvault.rebalance(params);
+    bvault.rebalance(assets75, debt75, address(mockProviderA), address(mockProviderB), 0);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), assets25);
     assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), debt25);

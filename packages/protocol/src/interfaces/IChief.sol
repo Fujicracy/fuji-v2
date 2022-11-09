@@ -13,4 +13,6 @@ interface IChief is IAccessControl {
   function timelock() external view returns (address);
 
   function addrMapper() external view returns (address);
+
+  function allowedFlasher(address flasher) external view returns (bool);
 }
