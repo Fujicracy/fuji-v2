@@ -24,17 +24,20 @@ export default function Markets() {
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [currentTab, setCurrentTab] = useState(0)
   const [filterValue, setFilterValue] = useState("")
+  const [chainFilters, setChainFilters] = useState<Chain[]>([])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
+  console.log(currentTab === 0 || onMobile)
+
   return (
     <Box m={{ xs: "1rem", sm: "" }}>
       <Typography variant="h4">
-        {currentTab === 0 ? "X-Fuji Markets" : "Lend"}
+        {currentTab === 0 || onMobile ? "X-Fuji Markets" : "Lend"}
       </Typography>
       <Typography variant="body">
-        {currentTab === 0 ? (
+        {currentTab === 0 || onMobile ? (
           "Fuji aggregates the best borrowing interest rates available across the markets"
         ) : (
           <span>
@@ -48,6 +51,7 @@ export default function Markets() {
         )}
       </Typography>
       <Grid
+        container
         sx={{
           mt: "2.5rem",
           mb: "1.563rem",
@@ -60,7 +64,7 @@ export default function Markets() {
           value={currentTab}
           onChange={handleTabChange}
           aria-label="Markets tabs"
-          sx={{ width: { xs: "100%", sm: "auto" } }}
+          sx={{ width: { xs: "100%", sm: "25%" } }}
           TabIndicatorProps={{ sx: { background: palette.text.primary } }}
         >
           <Tab
@@ -112,14 +116,28 @@ export default function Markets() {
               Filter Chains:
             </Typography>
             {chains.map((chain: Chain) => (
-              <Image
-                src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                height={18}
-                width={18}
-                layout="fixed"
-                alt={chain.label}
+              <Box
                 key={chain.id}
-              />
+                sx={{
+                  borderRadius: "100%",
+                  width: 22,
+                  height: 22,
+                  border: chainFilters.includes(chain) ? `2px solid white` : "",
+                }}
+              >
+                <Image
+                  src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                  height={18}
+                  width={18}
+                  layout="fixed"
+                  alt={chain.label}
+                  onClick={() => {
+                    chainFilters.includes(chain)
+                      ? setChainFilters(chainFilters.filter((c) => c !== chain))
+                      : setChainFilters([...chainFilters, chain])
+                  }}
+                />
+              </Box>
             ))}
             <TextField
               id="filter"
