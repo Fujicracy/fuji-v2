@@ -536,6 +536,7 @@ const theme = createTheme(colorTheme, {
           textTransform: "capitalize",
           fontWeigt: 500,
           fontSize: "0.875rem",
+          textAlign: "center !important",
         },
       },
     },
@@ -589,7 +590,7 @@ const theme = createTheme(colorTheme, {
           fontSize: "0.875rem",
           fontWeight: 500,
           lineHeight: "1.25rem",
-          width: "15%",
+
           paddingTop: 0,
           paddingBottom: 0,
         },

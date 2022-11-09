@@ -36,7 +36,18 @@ export default function MarketsTableRow({
   return (
     <>
       <TableRow sx={{ height: "3.438rem" }}>
-        <TableCell>
+        <TableCell
+          sx={{
+            position: "sticky",
+            left: 0,
+            width: "11.25rem",
+            background: isACollapsedRow
+              ? row.collaspsedRows
+                ? palette.secondary.main
+                : ""
+              : palette.secondary.contrastText,
+          }}
+        >
           {row.borrow && (
             <Stack direction="row" gap="0.5rem" alignItems="center">
               {row.collaspsedRows &&
@@ -52,11 +63,12 @@ export default function MarketsTableRow({
                     sx={{ cursor: "pointer" }}
                   />
                 ))}
-              <Grid container alignItems="center">
+              <Grid container alignItems="center" wrap="nowrap">
                 <Image
                   src={`/assets/images/protocol-icons/tokens/${row.borrow}.svg`}
                   height={32}
                   width={32}
+                  layout="fixed"
                   alt={row.borrow}
                 />
                 <Typography ml="0.5rem" variant="small">
@@ -66,13 +78,14 @@ export default function MarketsTableRow({
             </Stack>
           )}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ width: "11rem" }}>
           {row.collateral && (
-            <Grid container alignItems="center">
+            <Grid container alignItems="center" wrap="nowrap">
               <Image
                 src={`/assets/images/protocol-icons/tokens/${row.collateral}.svg`}
                 height={32}
                 width={32}
+                layout="fixed"
                 alt={row.collateral}
               />
               <Typography ml="0.5rem" variant="small">
@@ -81,7 +94,7 @@ export default function MarketsTableRow({
             </Grid>
           )}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ width: "11rem" }}>
           <Stack direction="row" gap="0.5rem" alignItems="center">
             {row.collaspsedRows &&
               isACollapsedRow &&
@@ -109,6 +122,7 @@ export default function MarketsTableRow({
                 src={`/assets/images/protocol-icons/networks/${row.bestRateChain}.svg`}
                 height={24}
                 width={24}
+                layout="fixed"
                 alt={row.bestRateChain}
               />
               <Typography ml="0.5rem" variant="small">
@@ -120,6 +134,7 @@ export default function MarketsTableRow({
         <TableCell
           align="right"
           sx={{
+            width: "8.75rem",
             color: palette.success.main,
           }}
         >
@@ -128,16 +143,22 @@ export default function MarketsTableRow({
         <TableCell
           align="right"
           sx={{
+            width: "8.75rem",
             color: palette.warning.main,
           }}
         >
-          <Grid container alignItems="center" justifyContent="center">
+          <Grid
+            container
+            alignItems="center"
+            justifyContent="center"
+            wrap="nowrap"
+          >
             {extra && <DropletIcon />}
-            {row.borrowABR.toFixed(2)} %
+            {row.borrowABR.toFixed(2)}%
           </Grid>
         </TableCell>
-        <TableCell align="right">
-          <Grid container justifyContent="center">
+        <TableCell align="right" sx={{ width: "8.75rem" }}>
+          <Grid container justifyContent="center" wrap="nowrap">
             {row.integratedProtocols.map((vault, i) => (
               <Box
                 sx={{
@@ -152,6 +173,7 @@ export default function MarketsTableRow({
                     src={`/assets/images/protocol-icons/tokens/${vault}.svg`}
                     height={24}
                     width={24}
+                    layout="fixed"
                     alt={vault}
                   />
                 )}
@@ -169,14 +191,14 @@ export default function MarketsTableRow({
             )}
           </Grid>
         </TableCell>
-        <TableCell align="right">
+        <TableCell align="right" sx={{ width: "8.75rem" }}>
           {row.safetyRating === "A+" ? (
             <Chip variant="success" label={row.safetyRating} />
           ) : (
             <Chip variant="warning" label={row.safetyRating} />
           )}
         </TableCell>
-        <TableCell align="right">
+        <TableCell align="right" sx={{ width: "8.75rem" }}>
           $
           {row.availableLiquidity
             .toString()
@@ -190,7 +212,12 @@ export default function MarketsTableRow({
             in={expandRow}
             timeout="auto"
             unmountOnExit
-            sx={{ background: palette.secondary.main }}
+            sx={{
+              background:
+                row.collaspsedRows && isACollapsedRow
+                  ? palette.secondary.light
+                  : palette.secondary.main,
+            }}
           >
             <Table aria-label="purchases">
               <TableBody>

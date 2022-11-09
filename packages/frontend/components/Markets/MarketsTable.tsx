@@ -157,11 +157,27 @@ export default function MarketsTable() {
       <Table aria-label="Markets table">
         <TableHead>
           <TableRow sx={{ height: "2.625rem" }}>
-            <TableCell align="center">Borrow</TableCell>
-            <TableCell align="center">Collateral</TableCell>
-            <TableCell align="center">Chain with the best rate</TableCell>
-            <TableCell align="center">Supply APY</TableCell>
-            <TableCell align="center">
+            <TableCell
+              sx={{
+                position: "sticky",
+                left: 0,
+                width: "11.25rem",
+                background: palette.secondary.contrastText,
+              }}
+              align="center"
+            >
+              Borrow
+            </TableCell>
+            <TableCell sx={{ width: "11.25rem" }} align="center">
+              Collateral
+            </TableCell>
+            <TableCell align="center" sx={{ width: "11.25rem" }}>
+              Chain with the best rate
+            </TableCell>
+            <TableCell align="center" sx={{ width: "8.75rem" }}>
+              Supply APY
+            </TableCell>
+            <TableCell align="center" sx={{ width: "8.75rem" }}>
               <Stack
                 direction="row"
                 spacing="0.25rem"
@@ -174,7 +190,7 @@ export default function MarketsTable() {
                 />
               </Stack>
             </TableCell>
-            <TableCell align="center">
+            <TableCell align="center" sx={{ width: "8.75rem" }}>
               <Stack
                 direction="row"
                 alignItems="center"
@@ -195,7 +211,7 @@ export default function MarketsTable() {
                 <span>Integrated Protocols</span>
               </Stack>
             </TableCell>
-            <TableCell align="center">
+            <TableCell align="center" sx={{ width: "8.75rem" }}>
               <Stack
                 direction="row"
                 alignItems="center"
@@ -229,7 +245,9 @@ export default function MarketsTable() {
                 <span>Safety Rating</span>
               </Stack>
             </TableCell>
-            <TableCell align="center">Available Liquidity</TableCell>
+            <TableCell align="center" sx={{ width: "8.75rem" }}>
+              Available Liquidity
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

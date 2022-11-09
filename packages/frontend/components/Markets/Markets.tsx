@@ -9,6 +9,7 @@ import {
   Tabs,
   TextField,
   Typography,
+  useMediaQuery,
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
@@ -16,9 +17,11 @@ import Lending from "./Lending"
 import { Chain, chains } from "../../store/auth.slice"
 import Image from "next/image"
 import SearchIcon from "@mui/icons-material/Search"
+import { theme } from "../../styles/theme"
 
 export default function Markets() {
   const { palette } = useTheme()
+  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [currentTab, setCurrentTab] = useState(0)
   const [filterValue, setFilterValue] = useState("")
 
@@ -26,7 +29,7 @@ export default function Markets() {
     setCurrentTab(newValue)
 
   return (
-    <div>
+    <Box m={{ xs: "1rem", sm: "" }}>
       <Typography variant="h4">
         {currentTab === 0 ? "X-Fuji Markets" : "Lend"}
       </Typography>
@@ -44,58 +47,63 @@ export default function Markets() {
           </span>
         )}
       </Typography>
-      <Stack
+      <Grid
         sx={{
           mt: "2.5rem",
           mb: "1.563rem",
         }}
-        direction="row"
         justifyContent="space-between"
         alignItems="center"
+        wrap="wrap"
       >
-        <Box>
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            aria-label="Markets tabs"
-            TabIndicatorProps={{ sx: { background: palette.text.primary } }}
-          >
-            <Tab
-              label="Borrowing"
-              sx={{
-                borderBottom: 1,
-                borderColor: "divider",
-
-                color:
-                  currentTab === 0 ? `${palette.text.primary} !important` : "",
-              }}
-            />
-            <Tab
-              label={
-                <Grid container alignItems="center">
-                  Lending
+        <Tabs
+          value={currentTab}
+          onChange={handleTabChange}
+          aria-label="Markets tabs"
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+          TabIndicatorProps={{ sx: { background: palette.text.primary } }}
+        >
+          <Tab
+            label="Borrowing"
+            sx={{
+              borderBottom: 1,
+              width: { xs: "50%", sm: "auto" },
+              borderColor: "divider",
+              color:
+                currentTab === 0 ? `${palette.text.primary} !important` : "",
+            }}
+          />
+          <Tab
+            label={
+              <Grid container alignItems="center" justifyContent="center">
+                Lending
+                {!onMobile && (
                   <Chip
                     variant="gradient"
                     label="Coming soon"
                     sx={{ ml: "0.625rem" }}
                   />
-                </Grid>
-              }
-              sx={{
-                pl: { xs: "0.75rem", sm: "2rem" },
-                pr: { xs: "0.5rem", sm: "1rem" },
-
-                borderBottom: 1,
-                borderColor: "divider",
-                color:
-                  currentTab === 1 ? `${palette.text.primary} !important` : "",
-              }}
-            />
-          </Tabs>
-        </Box>
+                )}
+              </Grid>
+            }
+            sx={{
+              width: { xs: "50%", sm: "auto" },
+              borderBottom: 1,
+              borderColor: "divider",
+              color:
+                currentTab === 1 ? `${palette.text.primary} !important` : "",
+            }}
+          />
+        </Tabs>
 
         {currentTab === 0 && (
-          <Stack direction="row" gap="0.5rem" alignItems="center">
+          <Stack
+            direction="row"
+            gap="0.5rem"
+            alignItems="center"
+            flexWrap="wrap"
+            mt="0.75rem"
+          >
             <Typography
               variant="smallDark"
               color={palette.info.main}
@@ -108,6 +116,7 @@ export default function Markets() {
                 src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
                 height={18}
                 width={18}
+                layout="fixed"
                 alt={chain.label}
                 key={chain.id}
               />
@@ -129,11 +138,11 @@ export default function Markets() {
             />
           </Stack>
         )}
-      </Stack>
+      </Grid>
 
       {currentTab === 0 && <MarketsTable />}
 
       {currentTab === 1 && <Lending />}
-    </div>
+    </Box>
   )
 }
