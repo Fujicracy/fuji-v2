@@ -135,7 +135,7 @@ export default function TransactionSummary() {
                   <Typography variant="smallDark">
                     Collateral Provided
                   </Typography>
-                  <Typography variant="small">
+                  <Typography variant="small" sx={{ width: "100%" }}>
                     {collateral.amount.toLocaleString()}{" "}
                     {collateral.token.symbol} (~
                     {(collateral.amount * collateral.usdValue).toLocaleString()}
@@ -148,7 +148,7 @@ export default function TransactionSummary() {
                   sx={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
-                  <Typography variant="small">
+                  <Typography variant="small" sx={{ width: "100%" }}>
                     ${(debt.amount * debt.usdValue).toLocaleString()} (
                     {debt.amount.toLocaleString()} {debt.token.symbol})
                   </Typography>
@@ -179,7 +179,7 @@ export default function TransactionSummary() {
                   <Typography variant="smallDark">
                     Current Price ({collateral.token.symbol})
                   </Typography>
-                  <Typography variant="small">
+                  <Typography variant="small" sx={{ width: "100%" }}>
                     ${collateral.usdValue.toLocaleString()}
                   </Typography>
                 </Grid>
