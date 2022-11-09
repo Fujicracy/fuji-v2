@@ -39,6 +39,9 @@ export default function TransactionSummary() {
 
   const closePreviewTransaction = () => setAnchorEl(null)
 
+  const truncate = (input: string, length: number) =>
+    input.length > length ? `${input.substring(0, length)}...` : input
+
   return (
     <>
       <Card
@@ -136,9 +139,14 @@ export default function TransactionSummary() {
                     Collateral Provided
                   </Typography>
                   <Typography variant="small">
-                    {collateral.amount.toLocaleString()}{" "}
+                    {truncate(collateral.amount.toLocaleString(), 10)}{" "}
                     {collateral.token.symbol} (~
-                    {(collateral.amount * collateral.usdValue).toLocaleString()}
+                    {truncate(
+                      (
+                        collateral.amount * collateral.usdValue
+                      ).toLocaleString(),
+                      10
+                    )}
                     )
                   </Typography>
                 </Grid>
@@ -149,8 +157,13 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
                   <Typography variant="small">
-                    ${(debt.amount * debt.usdValue).toLocaleString()} (
-                    {debt.amount.toLocaleString()} {debt.token.symbol})
+                    $
+                    {truncate(
+                      (debt.amount * debt.usdValue).toLocaleString(),
+                      10
+                    )}{" "}
+                    ({truncate(debt.amount.toLocaleString(), 10)}{" "}
+                    {debt.token.symbol})
                   </Typography>
                 </Grid>
 
@@ -180,7 +193,7 @@ export default function TransactionSummary() {
                     Current Price ({collateral.token.symbol})
                   </Typography>
                   <Typography variant="small">
-                    ${collateral.usdValue.toLocaleString()}
+                    ${truncate(collateral.usdValue.toLocaleString(), 25)}
                   </Typography>
                 </Grid>
               </Grid>

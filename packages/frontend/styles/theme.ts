@@ -147,7 +147,6 @@ const theme = createTheme(colorTheme, {
     xsmall: {
       fontWeight: 400,
       fontSize: "0.75rem",
-      lineHeight: "160%",
     },
     xsmallDark: {
       fontWeight: 400,
