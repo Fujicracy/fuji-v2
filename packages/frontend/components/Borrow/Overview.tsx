@@ -128,7 +128,10 @@ export default function Overview() {
           <Grid container justifyContent="space-between">
             <div style={{ display: "flex", alignItems: "center" }}>
               <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-              <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
+              <Tooltip
+                arrow
+                title="APR, or annual percentage rate, represents the price you pay to borrow money."
+              >
                 <InfoOutlinedIcon
                   sx={{
                     ml: "0.4rem",

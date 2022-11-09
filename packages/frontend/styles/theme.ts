@@ -392,11 +392,15 @@ const theme = createTheme(colorTheme, {
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          border: `1px solid ${colorTheme.palette.primary.main}`,
-          padding: "0.875rem 0.5rem",
-          fontSize: "0.75rem",
-          backgroundColor: "rgba(18, 18, 21, 0.5)",
+          padding: "0.75rem 1rem",
+          fontSize: "0.875rem",
+          borderRadius: "0.5rem",
+          background: colorTheme.palette.secondary.dark,
           textAlign: "center",
+          boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
+        },
+        arrow: {
+          color: colorTheme.palette.secondary.dark,
         },
       },
     },

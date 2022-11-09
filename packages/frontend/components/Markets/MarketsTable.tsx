@@ -198,6 +198,7 @@ export default function MarketsTable() {
                 justifyContent="center"
               >
                 <Tooltip
+                  arrow
                   title="FujiV2 refinances between these protocols to find the best yield"
                   placement="top"
                 >
@@ -219,6 +220,7 @@ export default function MarketsTable() {
                 justifyContent="center"
               >
                 <Tooltip
+                  arrow
                   title={
                     <span>
                       We take into account variables such as liquidity, audits

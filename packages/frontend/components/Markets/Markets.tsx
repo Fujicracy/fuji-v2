@@ -8,6 +8,7 @@ import {
   Tab,
   Tabs,
   TextField,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -114,28 +115,33 @@ export default function Markets() {
               Filter Chains:
             </Typography>
             {chains.map((chain: Chain) => (
-              <Box
-                key={chain.id}
-                sx={{
-                  borderRadius: "100%",
-                  width: 22,
-                  height: 22,
-                  border: chainFilters.includes(chain) ? `2px solid white` : "",
-                }}
-              >
-                <Image
-                  src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                  height={18}
-                  width={18}
-                  layout="fixed"
-                  alt={chain.label}
-                  onClick={() => {
-                    chainFilters.includes(chain)
-                      ? setChainFilters(chainFilters.filter((c) => c !== chain))
-                      : setChainFilters([...chainFilters, chain])
+              <Tooltip arrow title={chain.label} placement="top" key={chain.id}>
+                <Box
+                  sx={{
+                    borderRadius: "100%",
+                    width: "1.125rem",
+                    height: "1.125rem",
+                    border: chainFilters.includes(chain)
+                      ? `1px solid white`
+                      : "",
                   }}
-                />
-              </Box>
+                >
+                  <Image
+                    src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
+                    height={18}
+                    width={18}
+                    objectFit="cover"
+                    alt={chain.label}
+                    onClick={() => {
+                      chainFilters.includes(chain)
+                        ? setChainFilters(
+                            chainFilters.filter((c) => c !== chain)
+                          )
+                        : setChainFilters([...chainFilters, chain])
+                    }}
+                  />
+                </Box>
+              </Tooltip>
             ))}
             <TextField
               id="filter"

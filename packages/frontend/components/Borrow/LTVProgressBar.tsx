@@ -29,6 +29,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
       >
         <Grid item alignItems="center" margin="auto">
           <Tooltip
+            arrow
             title="Being in this area keeps you safe from sudden shifts in the market."
             placement="top"
           >
@@ -67,6 +68,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         </Grid>
         <Grid item alignItems="center" mr="3rem">
           <Tooltip
+            arrow
             title="This area is dangerous, if you exceed this threshold you can get liquidated."
             placement="top"
           >
@@ -168,7 +170,10 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           }}
         >
           <Typography variant="xsmall">LTV</Typography>
-          <Tooltip title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral.">
+          <Tooltip
+            arrow
+            title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral."
+          >
             <InfoOutlinedIcon
               sx={{
                 ml: "0.313rem",
@@ -185,7 +190,10 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             alignItems: "center",
           }}
         >
-          <Tooltip title="The maximum amount of borrowing power based on you collateral's market price.">
+          <Tooltip
+            arrow
+            title="The maximum amount of borrowing power based on you collateral's market price."
+          >
             <InfoOutlinedIcon
               sx={{
                 mr: "0.313rem",
