@@ -331,7 +331,7 @@ const theme = createTheme(colorTheme, {
             alignItems: "center",
             flexDirection: "column",
             textAlign: "center",
-            padding: "3.75rem 27.5rem",
+
             paddingBottom: "12.5rem",
           },
         },
@@ -537,9 +537,6 @@ const theme = createTheme(colorTheme, {
           fontWeigt: 500,
           fontSize: "0.875rem",
         },
-        ".Mui-selected": {
-          color: "blue !important",
-        },
       },
     },
     MuiTextField: {
@@ -592,7 +589,7 @@ const theme = createTheme(colorTheme, {
           fontSize: "0.875rem",
           fontWeight: 500,
           lineHeight: "1.25rem",
-          width: "10.5%",
+          width: "15%",
           paddingTop: 0,
           paddingBottom: 0,
         },

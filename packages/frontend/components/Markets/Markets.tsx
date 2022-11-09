@@ -58,20 +58,21 @@ export default function Markets() {
             value={currentTab}
             onChange={handleTabChange}
             aria-label="Markets tabs"
-            TabIndicatorProps={{ style: { background: palette.text.primary } }}
+            TabIndicatorProps={{ sx: { background: palette.text.primary } }}
           >
             <Tab
               label="Borrowing"
               sx={{
                 borderBottom: 1,
                 borderColor: "divider",
+
                 color:
                   currentTab === 0 ? `${palette.text.primary} !important` : "",
               }}
             />
             <Tab
               label={
-                <Grid>
+                <Grid container alignItems="center">
                   Lending
                   <Chip
                     variant="gradient"
@@ -81,8 +82,9 @@ export default function Markets() {
                 </Grid>
               }
               sx={{
-                pl: "2rem",
-                pr: "1rem",
+                pl: { xs: "0.75rem", sm: "2rem" },
+                pr: { xs: "0.5rem", sm: "1rem" },
+
                 borderBottom: 1,
                 borderColor: "divider",
                 color:
