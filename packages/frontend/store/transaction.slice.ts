@@ -1,10 +1,8 @@
 import { Address, Token } from "@x-fuji/sdk"
-import { formatUnits } from "ethers/lib/utils"
+import { formatUnits, parseUnits } from "ethers/lib/utils"
 import produce from "immer"
 import { StateCreator } from "zustand"
-import invariant from "tiny-invariant"
 import { debounce } from "debounce"
-import { BigNumber } from "ethers"
 import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
@@ -285,12 +283,11 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const position = get().position
     const { collateral, debt, vault } = position
     if (!vault || !collateral.amount || !debt.amount) {
-      set(
+      return set(
         produce((state: TransactionState) => {
           state.transactionMeta.status = "error"
         })
       )
-      return
     }
 
     set(
@@ -302,8 +299,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     try {
       const { bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(
         vault,
-        BigNumber.from(collateral.amount),
-        BigNumber.from(debt.amount),
+        parseUnits(collateral.amount.toString()),
+        parseUnits(debt.amount.toString()),
         collateral.token,
         debt.token,
         new Address(address)
@@ -321,6 +318,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           state.transactionMeta.status = "error"
         })
       )
+      console.error("sdk error", e)
     }
   }, 500),
 })
