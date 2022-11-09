@@ -6,8 +6,6 @@
   padding: 0.188rem 0.188rem;
   text-transform: uppercase;
   border-radius: 0.5rem;
-  line-height: 0.938rem;
-  margin-right: 0.4rem;
   cursor: pointer;
 }
 
@@ -21,7 +19,6 @@
   display: flex;
   width: 100%;
   justify-content: space-between;
-  flex-wrap: wrap;
   align-items: center;
 }
 

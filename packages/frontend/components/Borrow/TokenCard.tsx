@@ -78,6 +78,9 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
     }
   }
 
+  const truncate = (input: string, length: number) =>
+    input.length > length ? `${input.substring(0, length)}...` : input
+
   return (
     <Card
       variant="outlined"
@@ -95,16 +98,11 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           placeholder="0"
           value={value}
           onChange={(e) => handleInput(e.target.value)}
-          sx={{
-            fontSize: "1.125rem",
-            boxShadow: "none",
-            ".MuiOutlinedInput-notchedOutline": { border: "none" },
-            "input[type='number']": {
-              appearance: "textfield",
-            },
+          variant="standard"
+          InputProps={{
+            disableUnderline: true,
           }}
         />
-
         <Box
           id={`select-${type}-button`}
           onClick={open}
@@ -115,7 +113,6 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
             <TokenItem token={token} prepend={<KeyboardArrowDownIcon />} />
           )}
         </Box>
-
         <Menu
           id={`${type}-token`}
           anchorEl={anchorEl}
@@ -136,11 +133,14 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
       <div className={styles.cardLine}>
         {type === "collateral" ? (
           <>
-            <Typography variant="small">
-              {(tokenValue * +value).toLocaleString("en-US", {
-                style: "currency",
-                currency: "usd",
-              })}
+            <Typography variant="small" sx={{ maxWidth: "100%" }}>
+              {truncate(
+                (tokenValue * +value).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "usd",
+                }),
+                28
+              )}
             </Typography>
             <div
               style={{
@@ -154,6 +154,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                 className={styles.maxBtn}
                 onClick={handleMax}
                 data-cy="max-btn"
+                mr="0.4rem"
               >
                 MAX
               </Typography>
@@ -176,10 +177,13 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         ) : (
           <>
             <Typography variant="small">
-              {(tokenValue * +value).toLocaleString("en-US", {
-                style: "currency",
-                currency: "usd",
-              })}
+              {truncate(
+                (tokenValue * +value).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "usd",
+                }),
+                16
+              )}
             </Typography>
             <Stack direction="row">
               <Typography

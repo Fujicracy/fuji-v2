@@ -7,6 +7,7 @@ import {
   LinearProgress,
   Tooltip,
   Typography,
+  Stack,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import ClickableTooltip from "../Layout/ClickableTooltip"
@@ -29,82 +30,87 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           ml: "3rem",
         }}
       >
-        <Grid item alignItems="center" margin="auto">
-          <Tooltip
-            title="Being in this area keeps you safe from sudden shifts in the market."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-                display: { xs: "none", sm: "inline" },
-              }}
-            />
-          </Tooltip>
-          <ClickableTooltip
-            title="Being in this area keeps you safe from sudden shifts in the market."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-              }}
-            />
-          </ClickableTooltip>
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "none", sm: "inline" } }}
-          >
-            {props.recommendedLTV}% LTV (Recommended)
-          </Typography>
+        <Grid item margin="auto">
+          <Stack direction="row" alignItems="center">
+            <Tooltip
+              title="Being in this area keeps you safe from sudden shifts in the market."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                  display: { xs: "none", sm: "inline" },
+                }}
+              />
+            </Tooltip>
 
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "inline", sm: "none" } }}
-          >
-            SAFE LTV: {props.recommendedLTV}%
-          </Typography>
+            <ClickableTooltip
+              title="Being in this area keeps you safe from sudden shifts in the market."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                }}
+              />
+            </ClickableTooltip>
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "none", sm: "inline" } }}
+            >
+              {props.recommendedLTV}% LTV (Recommended)
+            </Typography>
+
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "inline", sm: "none" } }}
+            >
+              SAFE LTV: {props.recommendedLTV}%
+            </Typography>
+          </Stack>
         </Grid>
-        <Grid item alignItems="center" marginRight="3rem">
-          <Tooltip
-            title="This area is dangerous, if you exceed this threshold you can get liquidated."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-                display: { xs: "none", sm: "inline" },
-              }}
-            />
-          </Tooltip>
-          <ClickableTooltip
-            title="This area is dangerous, if you exceed this threshold you can get liquidated."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-              }}
-            />
-          </ClickableTooltip>
+        <Grid item marginRight="3rem">
+          <Stack direction="row" alignItems="center">
+            <Tooltip
+              title="This area is dangerous, if you exceed this threshold you can get liquidated."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                  display: { xs: "none", sm: "inline" },
+                }}
+              />
+            </Tooltip>
+            <ClickableTooltip
+              title="This area is dangerous, if you exceed this threshold you can get liquidated."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                }}
+              />
+            </ClickableTooltip>
 
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "none", sm: "inline" } }}
-          >
-            {props.maxLTV}% LTV (MAX)
-          </Typography>
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "none", sm: "inline" } }}
+            >
+              {props.maxLTV}% LTV (MAX)
+            </Typography>
 
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "inline", sm: "none" } }}
-          >
-            MAX LTV: {props.maxLTV}%
-          </Typography>
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "inline", sm: "none" } }}
+            >
+              MAX LTV: {props.maxLTV}%
+            </Typography>
+          </Stack>
         </Grid>
       </Grid>
 
