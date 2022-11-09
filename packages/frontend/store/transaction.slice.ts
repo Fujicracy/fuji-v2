@@ -238,10 +238,15 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       return
     }
 
-    const res = await sdk.getAllowanceFor(token, new Address(address))
-    const allowance = res.toNumber()
-
-    set({ collateralAllowance: allowance })
+    try {
+      const res = await sdk.getAllowanceFor(token, new Address(address))
+      const allowance = res.toNumber()
+      set({ collateralAllowance: allowance })
+    } catch (e) {
+      // TODO: how to handle the case where we can't fetch allowance ?
+      console.error(e)
+      set({ collateralAllowance: undefined })
+    }
   },
 
   async updateVault() {

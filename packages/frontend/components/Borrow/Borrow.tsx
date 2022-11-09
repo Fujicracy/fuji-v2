@@ -17,6 +17,7 @@ import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
 import { useLtv } from "../../store/transaction.slice"
 import { Fees } from "./Fees"
+import ApprovalModal from "./ApprovalModal"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -31,6 +32,7 @@ export default function Borrow() {
 
   const collateral = useStore((state) => state.position.collateral)
   const collateralChainId = useStore((state) => state.collateralChainId)
+  const collateralAllowance = useStore((state) => state.collateralAllowance)
   const debtChainId = useStore((state) => state.debtChainId)
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
@@ -44,6 +46,8 @@ export default function Borrow() {
 
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
+  const [showApprovalModal, setShowApprovalModal] = useState(false)
+  // TODO: refacto with a "status" ?
 
   const value = useStore((state) => parseFloat(state.collateralInput))
   const balance = useStore(
@@ -59,7 +63,14 @@ export default function Borrow() {
   const ltv = useLtv()
   const ltvMax = useStore((state) => state.position.ltvMax)
 
-  let error
+  let error:
+    | "mustLogin"
+    | "wrongNetwork"
+    | "insufficientBalance"
+    | "wrongLtv"
+    | "mustAllow"
+    | undefined
+  // TODO: refacto error as action (contain ReactoNode)
   if (!address) {
     error = "mustLogin"
   } else if (collateralChainId !== walletChain?.id) {
@@ -68,6 +79,11 @@ export default function Borrow() {
     error = "insufficientBalance"
   } else if (ltv > ltvMax) {
     error = "wrongLtv"
+  } else if (
+    collateralAllowance !== undefined &&
+    collateralAllowance < collateral.amount
+  ) {
+    error = "mustAllow"
   }
 
   return (
@@ -135,6 +151,15 @@ export default function Borrow() {
           {error === "wrongLtv" && (
             <Button variant="gradient" disabled fullWidth>
               Not enough collateral
+            </Button>
+          )}
+          {error === "mustAllow" && (
+            <Button
+              variant="gradient"
+              fullWidth
+              onClick={() => setShowApprovalModal(true)}
+            >
+              Allow
             </Button>
           )}
 
@@ -205,6 +230,9 @@ export default function Borrow() {
           setShowTransactionAbstract(true)
         }}
       />
+      {showApprovalModal && (
+        <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
+      )}
     </>
   )
 }
