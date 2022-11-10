@@ -6,9 +6,6 @@ import {DSTestPlus} from "./utils/DSTestPlus.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {MockERC20} from "../src/mocks/MockERC20.sol";
-import {MockProvider} from "../src/mocks/MockProvider.sol";
-import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
@@ -17,7 +14,11 @@ import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFacto
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {YieldVaultFactory} from "../src/vaults/yield/YieldVaultFactory.sol";
 import {YieldVault} from "../src/vaults/yield/YieldVault.sol";
-import {BaseVault} from "../src/abstracts/BaseVault.sol";
+import {RebalancerManager} from "../src/RebalancerManager.sol";
+import {MockERC20} from "../src/mocks/MockERC20.sol";
+import {MockProvider} from "../src/mocks/MockProvider.sol";
+import {MockOracle} from "../src/mocks/MockOracle.sol";
+import {MockFlasher} from "../src/mocks/MockFlasher.sol";
 
 contract MockProviderIdA is MockProvider {
   function providerName() public pure override returns (string memory) {
@@ -43,10 +44,13 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   ILendingProvider public mockProviderA;
   ILendingProvider public mockProviderB;
-  MockOracle public oracle;
 
+  MockOracle public oracle;
+  MockFlasher public flasher;
   MockERC20 public asset;
   MockERC20 public debtAsset;
+
+  RebalancerManager public rebalancer;
 
   uint256 alicePkey = 0xA;
   address alice = vm.addr(alicePkey);
@@ -93,13 +97,12 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     yVaultFactory = new YieldVaultFactory(address(chief));
 
-    bytes memory callDataBorrowing =
+    bytes memory executionCall =
       abi.encodeWithSelector(chief.addVaultFactory.selector, address(bVaultFactory));
-    _utils_callWithTimelock(address(chief), callDataBorrowing);
+    _utils_callWithTimelock(address(chief), executionCall);
 
-    bytes memory callDataYield =
-      abi.encodeWithSelector(chief.addVaultFactory.selector, address(yVaultFactory));
-    _utils_callWithTimelock(address(chief), callDataYield);
+    executionCall = abi.encodeWithSelector(chief.addVaultFactory.selector, address(yVaultFactory));
+    _utils_callWithTimelock(address(chief), executionCall);
 
     address bvaultAddr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -110,6 +113,17 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     address yvaultAddr = chief.deployVault(address(yVaultFactory), abi.encode(address(asset)), "A+");
     yvault = YieldVault(payable(yvaultAddr));
     _utils_setupVaultProviders(IVault(yvaultAddr));
+
+    flasher = new MockFlasher();
+    executionCall = abi.encodeWithSelector(chief.addFlasher.selector, address(flasher));
+    _utils_callWithTimelock(address(chief), executionCall);
+
+    rebalancer = new RebalancerManager(address(chief));
+    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+
+    executionCall =
+      abi.encodeWithSelector(rebalancer.setExecutorState.selector, address(this), true);
+    _utils_callWithTimelock(address(rebalancer), executionCall);
 
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), alice);
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), bob);
@@ -246,5 +260,19 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), assets75);
     assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt75);
+  }
+
+  //TODO add more test cases with RebalancerManager contract.
+  function test_rebalanceBorrowingVaultWithRebalancer() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 debt = 4 * BORROW_AMOUNT; // alice, bob, charlie, david
+
+    rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
+
+    assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
+    assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
+
+    assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), assets);
+    assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt);
   }
 }

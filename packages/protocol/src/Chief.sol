@@ -18,8 +18,6 @@ import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
-import "forge-std/console.sol";
-
 contract Chief is CoreRoles, AccessControl {
   using Address for address;
 
@@ -47,8 +45,6 @@ contract Chief is CoreRoles, AccessControl {
   mapping(address => bool) public allowedFlasher;
 
   modifier onlyTimelock() {
-    console.log("@modifier");
-    console.log("msg.sender", msg.sender, "timelock", timelock);
     if (msg.sender != timelock) {
       revert Chief__onlyTimelock_callerIsNotTimelock();
     }
@@ -69,10 +65,13 @@ contract Chief is CoreRoles, AccessControl {
   function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
     _checkInputIsNotZeroAddress(newTimelock);
     timelock = newTimelock;
+    // TODO update tests accordingly to grant timelock default admin role.
+    // _grantRole(DEFAULT_ADMIN_ROLE, timelock);
+    // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     emit TimelockUpdated(newTimelock);
   }
 
-  function setOpenVaultFactory(bool state) external onlyRole(DEFAULT_ADMIN_ROLE) {
+  function setOpenVaultFactory(bool state) external onlyTimelock {
     openVaultFactory = state;
     emit OpenVaultFactory(state);
   }

@@ -539,14 +539,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__setter_invalidInput();
     }
     activeProvider = activeProvider_;
-    SafeERC20.safeApprove(
-      IERC20(asset()), activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
+    IERC20(asset()).approve(
+      activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
     );
     if (debtAsset() != address(0)) {
-      SafeERC20.safeApprove(
-        IERC20(debtAsset()),
-        activeProvider.approvedOperator(debtAsset(), address(this)),
-        type(uint256).max
+      IERC20(debtAsset()).approve(
+        activeProvider.approvedOperator(debtAsset(), address(this)), type(uint256).max
       );
     }
     emit ActiveProviderChanged(activeProvider_);
