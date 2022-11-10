@@ -149,6 +149,8 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
 
         approve(ERC20(assetIn), address(swapper), maxAmountIn);
 
+        _addTokenToCheck(assetOut);
+
         // pull tokens and swap
         swapper.swap(assetIn, assetOut, amountOut, receiver, slippage);
       } else if (actions[i] == Action.Flashloan) {
