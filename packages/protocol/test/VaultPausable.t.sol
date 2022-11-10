@@ -76,8 +76,9 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     chief.setTimelock(address(timelock));
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
-
-    chief.addVaultFactory(address(bVaultFactory));
+    bytes memory callData =
+      abi.encodeWithSelector(chief.addVaultFactory.selector, address(bVaultFactory));
+    _utils_callWithTimelock(address(chief), callData);
 
     address vault1Addr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -113,10 +114,15 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(UNPAUSER_ROLE, charlie);
   }
 
-  function _utils_callWithTimelock(BorrowingVault vault_, bytes memory sendData) internal {
-    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contract_,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
@@ -124,8 +130,9 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    bytes memory sendData = abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimelock(vault_, sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault_.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
     vault_.setActiveProvider(mockProvider);
   }
 

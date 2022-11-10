@@ -98,10 +98,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, bob);
   }
 
-  function _utils_callWithTimelock(bytes memory sendData) internal {
-    timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contractToCall,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
+    timelock.execute(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
@@ -109,8 +114,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    bytes memory sendData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
     vault.setActiveProvider(mockProvider);
   }
 
@@ -289,14 +295,16 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   function test_setMinDeposit(uint256 min) public {
     vm.expectEmit(true, false, false, false);
     emit MinDepositAmountChanged(min);
-    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
   function test_tryLessThanMinDeposit(uint256 min, uint256 amount) public {
     vm.assume(amount < min);
-    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
@@ -307,8 +315,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.assume(maxCap > 0);
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
-    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
   function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
@@ -316,8 +325,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
       maxCap > 0 && depositAlice > 0 && depositBob > 0
         && _utils_add(depositBob, depositAlice) > maxCap && depositAlice < maxCap
     );
-    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.prank(address(timelock));
     vault.setDepositCap(maxCap);

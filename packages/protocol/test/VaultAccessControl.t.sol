@@ -97,8 +97,9 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
     _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    bytes memory sendData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
     vault.setActiveProvider(mockProvider);
   }
 
@@ -108,10 +109,15 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(bytes memory sendData) internal {
-    timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contract_,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
+    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 

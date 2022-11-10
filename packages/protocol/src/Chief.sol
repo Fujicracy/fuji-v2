@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+/**
+ * @title Chief.
+ * @author fujidao Labs
+ * @notice  Controls vault deploy factories, deployed flashers, vault ratings and core access control.
+ * Vault deployer contract with template factory allow.
+ * ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
+ */
+
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
@@ -10,14 +18,8 @@ import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
-/// @dev Custom Errors
-error Chief__checkInput_zeroAddress();
-error Chief__deployVault_factoryNotAllowed();
-error Chief__deployVault_missingRole(address account, bytes32 role);
-error Chief__onlyTimelock_callerIsNotTimelock();
+import "forge-std/console.sol";
 
-/// @notice Vault deployer contract with template factory allow.
-/// ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
 contract Chief is CoreRoles, AccessControl {
   using Address for address;
 
@@ -29,6 +31,12 @@ contract Chief is CoreRoles, AccessControl {
   event RemovedVaultFactory(address indexed factory);
   event TimelockUpdated(address indexed timelock);
 
+  /// @dev Custom Errors
+  error Chief__checkInput_zeroAddress();
+  error Chief__deployVault_factoryNotAllowed();
+  error Chief__deployVault_missingRole(address account, bytes32 role);
+  error Chief__onlyTimelock_callerIsNotTimelock();
+
   address public timelock;
   address public addrMapper;
   bool public openVaultFactory;
@@ -39,6 +47,8 @@ contract Chief is CoreRoles, AccessControl {
   mapping(address => bool) public allowedFlasher;
 
   modifier onlyTimelock() {
+    console.log("@modifier");
+    console.log("msg.sender", msg.sender, "timelock", timelock);
     if (msg.sender != timelock) {
       revert Chief__onlyTimelock_callerIsNotTimelock();
     }

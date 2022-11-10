@@ -82,17 +82,23 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
-    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contract_,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
   function _utils_setupVaultProvider(IVault vault_, ILendingProvider[] memory providers_) internal {
     _utils_setupTestRoles();
-    bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers_);
-    _utils_callWithTimelock(sendData, vault_);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(IVault.setProviders.selector, providers_);
+    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
   }
 
   function _utils_doDepositRoutine(address who, uint256 amount) internal {

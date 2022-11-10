@@ -120,10 +120,15 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(bytes memory sendData, IVault vault_) internal {
-    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contractToCall,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    timelock.execute(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
@@ -131,8 +136,9 @@ contract SimpleRouterUnitTests is DSTestPlus, CoreRoles {
     _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
-    _utils_callWithTimelock(sendData, vault_);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(IVault.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
     vault_.setActiveProvider(mockProvider);
   }
 

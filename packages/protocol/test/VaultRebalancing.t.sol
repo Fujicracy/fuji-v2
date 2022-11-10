@@ -93,8 +93,13 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     yVaultFactory = new YieldVaultFactory(address(chief));
 
-    chief.addVaultFactory(address(bVaultFactory));
-    chief.addVaultFactory(address(yVaultFactory));
+    bytes memory callDataBorrowing =
+      abi.encodeWithSelector(chief.addVaultFactory.selector, address(bVaultFactory));
+    _utils_callWithTimelock(address(chief), callDataBorrowing);
+
+    bytes memory callDataYield =
+      abi.encodeWithSelector(chief.addVaultFactory.selector, address(yVaultFactory));
+    _utils_callWithTimelock(address(chief), callDataYield);
 
     address bvaultAddr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -136,10 +141,15 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(REBALANCER_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(address vault_, bytes memory sendData) internal {
-    timelock.schedule(vault_, 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contract_,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(vault_, 0, sendData, 0x00, 0x00);
+    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
@@ -148,8 +158,9 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = mockProviderA;
     providers[1] = mockProviderB;
-    bytes memory sendData = abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimelock(address(vault_), sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault_.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
     vault_.setActiveProvider(mockProviderA);
   }
 
