@@ -8,13 +8,6 @@ pragma solidity 0.8.15;
  */
 
 interface IFlasher {
-  // struct FlasherParams {
-  //   address asset;
-  //   uint256 amount;
-  //   address requestor;
-  //   bytes requestorCalldata;
-  // }
-
   /**
    * @notice Initiates a flashloan a this provider.
    * @param asset address to be flashloaned.
