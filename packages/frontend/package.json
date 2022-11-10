@@ -17,8 +17,9 @@
   "dependencies": {
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
-    "@mui/icons-material": "^5.10.3",
-    "@mui/material": "^5.10.2",
+    "@mui/icons-material": "^5.10.9",
+    "@mui/lab": "^5.0.0-alpha.107",
+    "@mui/material": "5.10.13",
     "@web3-onboard/core": "^2.8.1",
     "@web3-onboard/injected-wallets": "^2.2.0",
     "@web3-onboard/walletconnect": "^2.1.1",
