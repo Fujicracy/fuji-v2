@@ -80,8 +80,8 @@ export default function Borrow() {
   } else if (ltv > ltvMax) {
     error = "wrongLtv"
   } else if (
-    collateralAllowance !== undefined &&
-    collateralAllowance < collateral.amount
+    collateralAllowance?.value !== undefined &&
+    collateralAllowance.value < collateral.amount
   ) {
     error = "mustAllow"
   }

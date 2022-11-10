@@ -1,7 +1,6 @@
 import { MouseEvent, useState } from "react"
 import {
   Box,
-  Button,
   Dialog,
   FormControlLabel,
   Paper,
@@ -10,22 +9,36 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material"
+import LoadingButton from "@mui/lab/LoadingButton"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 import Image from "next/image"
+import { useStore } from "../../store"
 
 type ApprovalModalProps = {
-  handleClose: (e: MouseEvent) => void
+  handleClose: () => void
 }
 
 export default function ApprovalModal(props: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const [infiniteApproval, setInfiniteApproval] = useState(false)
+  const collateralAllowance = useStore((state) => state.collateralAllowance)
+  const collateral = useStore((state) => state.position.collateral)
+  const meta = useStore((state) => state.transactionMeta)
 
+  const [infiniteApproval, setInfiniteApproval] = useState(false)
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInfiniteApproval(event.target.checked)
   }
+
+  const amount = infiniteApproval
+    ? Number.MAX_SAFE_INTEGER
+    : collateral.amount +
+      meta.bridgeFees / collateral.usdValue +
+      meta.gasFees / collateral.usdValue
+
+  const allow = useStore((state) => state.allow)
+  const handleAllow = () => allow(amount, props.handleClose)
 
   return (
     <Dialog
@@ -44,7 +57,6 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         variant="outlined"
         sx={{ p: { xs: "1rem", sm: "1.5rem" }, textAlign: "center" }}
       >
-        {/* TODO: Disable while waiting for approval. Note: also disable "esc" key */}
         <CloseIcon
           sx={{ cursor: "pointer", position: "absolute", right: 16, top: 16 }}
           onClick={props.handleClose}
@@ -78,15 +90,24 @@ export default function ApprovalModal(props: ApprovalModalProps) {
           <Typography variant="small">Infinite approval</Typography>
           <FormControlLabel
             control={
-              <Switch checked={infiniteApproval} onChange={handleChange} />
+              <Switch
+                checked={infiniteApproval}
+                onChange={handleChange}
+                disabled={collateralAllowance.status === "allowing"}
+              />
             }
             label={infiniteApproval ? "Enabled" : "Disabled"}
             labelPlacement="start"
           />
         </Stack>
-        <Button variant="gradient" fullWidth>
+        <LoadingButton
+          variant="gradient"
+          fullWidth
+          loading={collateralAllowance.status === "allowing"}
+          onClick={handleAllow}
+        >
           Approve
-        </Button>
+        </LoadingButton>
       </Paper>
     </Dialog>
   )

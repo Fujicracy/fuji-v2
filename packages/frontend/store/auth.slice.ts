@@ -9,7 +9,7 @@ import {
   WalletState,
 } from "@web3-onboard/core/dist/types"
 import { Sdk } from "@x-fuji/sdk"
-import { utils } from "ethers"
+import { ethers, utils } from "ethers"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -125,6 +125,7 @@ type StateConnected = {
   ens: string | undefined
   balance: Balances
   chain: ConnectedChain
+  provider: ethers.providers.Web3Provider
 }
 type StateInitial = {
   status: "initial"
@@ -132,6 +133,7 @@ type StateInitial = {
   ens: undefined
   balance: undefined
   chain: undefined
+  provider: undefined
 }
 type StateDisconnected = {
   status: "disconnected"
@@ -139,6 +141,7 @@ type StateDisconnected = {
   ens: undefined
   balance: undefined
   chain: undefined
+  provider: undefined
 }
 type State = StateInitial | StateConnected | StateDisconnected
 
@@ -157,6 +160,7 @@ const initialState: StateInitial = {
   ens: undefined,
   balance: undefined,
   chain: undefined,
+  provider: undefined,
 }
 
 type AuthSlice = StateCreator<AuthStore, [], [], AuthStore>
@@ -183,8 +187,9 @@ export const createAuthSlice: AuthSlice = (set, get) => ({
     const balance = wallets[0].accounts[0].balance
     const address = utils.getAddress(wallets[0].accounts[0].address)
     const chain = wallets[0].chains[0]
+    const provider = new ethers.providers.Web3Provider(wallets[0].provider)
 
-    set({ status: "connected", address, balance, chain })
+    set({ status: "connected", address, balance, chain, provider })
   },
 
   logout: async () => {
@@ -223,6 +228,8 @@ function onOnboardChange(
   get: StoreApi<State & Action>["getState"]
 ) {
   onboard.state.select("wallets").subscribe((w: WalletState[]) => {
+    const updates: Partial<StateConnected> = {}
+
     if (!w[0] && get().status === "disconnected") {
       return
     } else if (!w[0]) {
@@ -232,22 +239,32 @@ function onOnboardChange(
 
     const chain = w[0].chains[0]
     if (chain.id !== get().chain?.id) {
-      set({ chain })
+      updates.chain = chain
     }
 
     const balance = w[0].accounts[0].balance
     if (balance && balance !== get().balance) {
-      set({ balance })
+      updates.balance = balance
     }
 
     const address = w[0].accounts[0].address
     if (address && address !== get().address) {
-      set({ address: utils.getAddress(address) })
+      updates.address = utils.getAddress(address)
+    }
+
+    // TODO: how to !== new provider from old ?
+    const provider = new ethers.providers.Web3Provider(w[0].provider)
+    if (provider) {
+      updates.provider = provider
     }
 
     const ens = w[0].accounts[0].ens?.name
     if (ens !== get().ens) {
-      set({ ens })
+      updates.ens = ens
+    }
+
+    if (Object.entries(updates).length > 0) {
+      set(updates)
     }
   })
 }

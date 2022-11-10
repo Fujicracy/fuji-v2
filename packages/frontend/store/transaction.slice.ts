@@ -1,4 +1,4 @@
-import { Address, Token } from "@x-fuji/sdk"
+import { Address, CONNEXT_ROUTER_ADDRESS, contracts, Token } from "@x-fuji/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import produce from "immer"
 import { StateCreator } from "zustand"
@@ -7,6 +7,7 @@ import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
+import { ethers } from "ethers"
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
@@ -18,7 +19,10 @@ type TransactionState = {
 
   collateralTokens: Token[]
   collateralBalances: Record<string, number>
-  collateralAllowance?: number
+  collateralAllowance: {
+    status: "initial" | "fetching" | "allowing" | "ready" | "error"
+    value: number | undefined
+  }
   collateralInput: string
   collateralChainId: ChainId
 
@@ -50,6 +54,7 @@ type TransactionActions = {
   updateAllowance: () => void
   updateVault: () => void
   updateTransactionMeta: () => void
+  allow: (amount: number, callback: () => void) => void
 }
 type ChainId = string // hex value as string
 
@@ -83,6 +88,10 @@ const initialState: TransactionState = {
   collateralBalances: {},
   collateralInput: "",
   collateralChainId: initialChainId,
+  collateralAllowance: {
+    status: "initial",
+    value: undefined,
+  },
 
   debtTokens: initialDebtTokens,
   debtBalances: {},
@@ -123,6 +132,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateBalances("collateral")
     get().updateVault()
     get().updateTransactionMeta()
+    get().updateAllowance()
   },
 
   changeCollateralToken(token) {
@@ -135,6 +145,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateAllowance()
     get().updateVault()
     get().updateTransactionMeta()
+    get().updateAllowance()
   },
 
   async changeBorrowChain(chainId) {
@@ -238,14 +249,23 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       return
     }
 
+    set(
+      produce((s: TransactionState) => {
+        s.collateralAllowance.status = "fetching"
+      })
+    )
     try {
       const res = await sdk.getAllowanceFor(token, new Address(address))
-      const allowance = res.toNumber()
-      set({ collateralAllowance: allowance })
+      const value = parseFloat(ethers.utils.formatUnits(res, token.decimals))
+      set({ collateralAllowance: { status: "ready", value } })
     } catch (e) {
       // TODO: how to handle the case where we can't fetch allowance ?
       console.error(e)
-      set({ collateralAllowance: undefined })
+      set(
+        produce((s: TransactionState) => {
+          s.collateralAllowance.status = "error"
+        })
+      )
     }
   },
 
@@ -326,6 +346,45 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       console.error("sdk error", e)
     }
   }, 500),
+
+  /**
+   * Allow fuji contract to spend on behalf of the user an amount
+   * Token are deduced from collateral
+   * @param amount
+   * @param afterSuccess
+   */
+  async allow(amount, afterSuccess?) {
+    const token = get().position.collateral.token
+    const userAddress = useStore.getState().address
+    const provider = useStore.getState().provider
+    const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value
+
+    if (!provider || !userAddress) {
+      throw "Missing params"
+    }
+
+    set(
+      produce((s: TransactionState) => {
+        s.collateralAllowance.status = "allowing"
+      })
+    )
+    const owner = provider.getSigner()
+    try {
+      const approval = await contracts.ERC20__factory.connect(
+        token.address.value,
+        owner
+      ).approve(spender, parseUnits(amount.toString()))
+      await approval.wait()
+      set({ collateralAllowance: { status: "ready", value: amount } })
+      afterSuccess && afterSuccess()
+    } catch (e) {
+      set(
+        produce((s: TransactionState) => {
+          s.collateralAllowance.status = "error"
+        })
+      )
+    }
+  },
 })
 
 // Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
