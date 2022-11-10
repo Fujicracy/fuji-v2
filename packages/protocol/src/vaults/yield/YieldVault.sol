@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 
@@ -117,15 +118,15 @@ contract YieldVault is BaseVault {
   function rebalance(
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     uint256 fee
   )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    if (!_isValidProvider(from) || !_isValidProvider(to)) {
+    if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
       revert YieldVault__rebalance_invalidProvider();
     }
 
@@ -136,9 +137,9 @@ contract YieldVault is BaseVault {
     _checkFee(fee, assets);
 
     _executeProviderAction(assets, "withdraw", from);
-    SafeERC20.safeApprove(IERC20(asset()), to, assets);
+    SafeERC20.safeApprove(IERC20(asset()), address(to), assets);
     _executeProviderAction(assets, "deposit", to);
-    emit VaultRebalance(assets, 0, from, to);
+    emit VaultRebalance(assets, 0, address(from), address(to));
     return true;
   }
 

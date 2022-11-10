@@ -54,8 +54,8 @@ contract RebalancerManager is SystemAccessControl {
     IVault vault,
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     IFlasher flasher,
     bool setToAsActiveProvider
   )
@@ -98,14 +98,14 @@ contract RebalancerManager is SystemAccessControl {
     emit ChangedExecutorState(executor, newState);
   }
 
-  function _checkAssetsAmount(IVault vault, uint256 amount, address from) internal view {
-    uint256 assetsAtProvider = ILendingProvider(from).getDepositBalance(address(vault), vault);
+  function _checkAssetsAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
+    uint256 assetsAtProvider = from.getDepositBalance(address(vault), vault);
     if (amount > assetsAtProvider) {
       revert RebalancerManager__checkAssetsAmount_invalidAmount();
     }
   }
 
-  function _checkDebtAmount(IVault vault, uint256 amount, address from) internal view {
+  function _checkDebtAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
     uint256 debtAtProvider = ILendingProvider(from).getBorrowBalance(address(vault), vault);
     if (amount > debtAtProvider) {
       revert RebalancerManager__checkDebtAmount_invalidAmount();
@@ -123,8 +123,8 @@ contract RebalancerManager is SystemAccessControl {
     IVault vault,
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     IFlasher flasher,
     bool setToAsActiveProvider
   )
@@ -151,8 +151,8 @@ contract RebalancerManager is SystemAccessControl {
     IVault vault,
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     IFlasher flasher,
     bool setToAsActiveProvider
   )
@@ -180,8 +180,8 @@ contract RebalancerManager is SystemAccessControl {
     IVault vault,
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     IFlasher flasher,
     bool setToAsActiveProvider
   )

@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {IFlasher} from "../../interfaces/IFlasher.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -345,7 +346,7 @@ contract BorrowingVault is BaseVault {
     _mintDebtShares(owner, shares);
 
     address asset = debtAsset();
-    _executeProviderAction(assets, "borrow", address(activeProvider));
+    _executeProviderAction(assets, "borrow", activeProvider);
 
     SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
 
@@ -367,7 +368,7 @@ contract BorrowingVault is BaseVault {
     address asset = debtAsset();
     SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
 
-    _executeProviderAction(assets, "payback", address(activeProvider));
+    _executeProviderAction(assets, "payback", activeProvider);
 
     _burnDebtShares(owner, shares);
 
@@ -396,30 +397,30 @@ contract BorrowingVault is BaseVault {
   function rebalance(
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     uint256 fee
   )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    if (!_isValidProvider(from) || !_isValidProvider(to)) {
+    if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
       revert BorrowingVault__rebalance_invalidProvider();
     }
     SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
-    SafeERC20.safeApprove(IERC20(debtAsset()), from, debt);
+    SafeERC20.safeApprove(IERC20(debtAsset()), address(from), debt);
     _executeProviderAction(debt, "payback", from);
     _executeProviderAction(assets, "withdraw", from);
 
     _checkFee(fee, debt);
 
-    SafeERC20.safeApprove(IERC20(asset()), to, assets);
+    SafeERC20.safeApprove(IERC20(asset()), address(to), assets);
     _executeProviderAction(assets, "deposit", to);
     _executeProviderAction(debt + fee, "borrow", to);
     SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
 
-    emit VaultRebalance(assets, debt, from, to);
+    emit VaultRebalance(assets, debt, address(from), address(to));
     return true;
   }
 

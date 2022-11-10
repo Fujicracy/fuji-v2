@@ -217,8 +217,8 @@ interface IVault is IERC4626 {
   function rebalance(
     uint256 assets,
     uint256 debt,
-    address from,
-    address to,
+    ILendingProvider from,
+    ILendingProvider to,
     uint256 fee
   )
     external
