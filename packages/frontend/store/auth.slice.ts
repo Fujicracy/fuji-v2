@@ -9,6 +9,7 @@ import {
   WalletState,
 } from "@web3-onboard/core/dist/types"
 import { Sdk } from "@x-fuji/sdk"
+import { utils } from "ethers"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -180,7 +181,7 @@ export const createAuthSlice: AuthSlice = (set, get) => ({
     localStorage.setItem("connectedWallets", json)
 
     const balance = wallets[0].accounts[0].balance
-    const address = wallets[0].accounts[0].address
+    const address = utils.getAddress(wallets[0].accounts[0].address)
     const chain = wallets[0].chains[0]
 
     set({ status: "connected", address, balance, chain })
@@ -241,7 +242,7 @@ function onOnboardChange(
 
     const address = w[0].accounts[0].address
     if (address && address !== get().address) {
-      set({ address })
+      set({ address: utils.getAddress(address) })
     }
 
     const ens = w[0].accounts[0].ens?.name
