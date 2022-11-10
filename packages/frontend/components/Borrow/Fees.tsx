@@ -32,13 +32,15 @@ export const Fees = () => {
           Estimated Cost
         </Typography>
         {transactionMeta.status === "ready" && (
-          <Stack direction="row" alignItems="center">
+          <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">~$3.90</Typography>
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
         )}
         {transactionMeta.status === "fetching" && (
-          <CircularProgress size="0.875rem" />
+          <Stack direction="row" alignItems="center" maxHeight="22px">
+            <CircularProgress size="0.875rem" />
+          </Stack>
         )}
         {(transactionMeta.status === "error" ||
           transactionMeta.status === "initial") && (
@@ -47,6 +49,7 @@ export const Fees = () => {
           </Typography>
         )}
       </Stack>
+
       <Collapse in={show} sx={{ width: "100%" }}>
         <Fee label="Gas fees" value="~$1.90" />
         <Fee label="Bridges fees" value={`~$${transactionMeta.bridgeFees}`} />
