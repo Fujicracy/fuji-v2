@@ -44,7 +44,7 @@ contract AttackPermits is MockingSetup, Routines {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
   }
 
-  function testFail_PermitAttack() public {
+  function test_PermitAttack() public {
     // Alice signs a message for `simpleRouter` to borrow 800 tDAI.
     uint256 newBorrowAmount = 800e18;
 
@@ -56,7 +56,6 @@ contract AttackPermits is MockingSetup, Routines {
       _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
 
     // Attacker "somehow" gets hold of this signed message and calls simpleRouter.
-
     IRouter.Action[] memory actions = new IRouter.Action[](2);
 
     actions[0] = IRouter.Action.PermitBorrow;
@@ -65,11 +64,15 @@ contract AttackPermits is MockingSetup, Routines {
     bytes[] memory args = new bytes[](2);
 
     args[0] = abi.encode(address(vault), ALICE, attacker, newBorrowAmount, deadline, v, r, s);
+
+    // attacker sets themself as `receiver`.
     args[1] = abi.encode(address(vault), newBorrowAmount, attacker, ALICE);
 
+    vm.expectRevert();
     vm.prank(attacker);
     simpleRouter.xBundle(actions, args);
 
+    // Assert attacker received no funds.
     assertEq(IERC20(debtAsset).balanceOf(attacker), 0);
   }
 
@@ -85,6 +88,9 @@ contract AttackPermits is MockingSetup, Routines {
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
 
+    // read the balance of the simpleRouter prior to attack.
+    uint256 previousBalance = IERC20(debtAsset).balanceOf(address(simpleRouter));
+
     // Attacker "somehow" gets hold of this signed message and calls simpleRouter.
     IRouter.Action[] memory actions = new IRouter.Action[](2);
 
@@ -97,10 +103,15 @@ contract AttackPermits is MockingSetup, Routines {
       abi.encode(address(vault), ALICE, address(simpleRouter), newBorrowAmount, deadline, v, r, s);
     args[1] = abi.encode(address(vault), newBorrowAmount, address(simpleRouter), ALICE);
 
-    // With this call the attacker locks the funds in the simpleRouter contract.
+    // With this call the attacker tries to lock the funds in the simpleRouter contract.
+    vm.expectRevert();
     vm.prank(attacker);
     simpleRouter.xBundle(actions, args);
 
-    assertEq(IERC20(debtAsset).balanceOf(address(simpleRouter)), newBorrowAmount);
+    // read the balance of the simpleRouter after attempted attack.
+    uint256 afterBalance = IERC20(debtAsset).balanceOf(address(simpleRouter));
+
+    // no change in balances at simpleRouter
+    assertEq(previousBalance, afterBalance);
   }
 }
