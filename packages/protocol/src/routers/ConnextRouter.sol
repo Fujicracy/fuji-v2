@@ -73,6 +73,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   // Connext specific functions
 
+  /**
+   * @notice Called by Connext on the destination chain
+   * @param transferId - The unique identifier of the crosschain transfer.
+   * @param amount - The amount of transferring asset the recipient address receives.
+   * @param asset - The asset being transferred.
+   * @param originSender - The router on originDomain.
+   * @param origin - The origin domain identifier according Connext nomenclature.
+   * @param callData - The calldata that will get decoded and executed.
+   */
   function xReceive(
     bytes32 transferId,
     uint256 amount,
@@ -149,6 +158,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
       );
+  }
+
+  /**
+   * @notice Anyone can call this function on the origin domain to increase the relayer fee for a transfer.
+   * @param transferId - The unique identifier of the crosschain transaction
+   */
+  function bumpTransfer(bytes32 transferId) external payable {
+    connext.bumpTransfer{value: msg.value}(transferId);
   }
 
   ///////////////////////
