@@ -321,6 +321,8 @@ const theme = createTheme(colorTheme, {
           fontWeight: 400,
           fontSize: "0.875rem",
           lineHeight: "160%",
+          borderRadius: "2rem",
+          padding: ".25rem .5rem",
           color: colorTheme.palette.text.secondary,
         },
       },

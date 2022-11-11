@@ -22,9 +22,9 @@ export const ChainSelect = ({
 
   return (
     <Stack alignItems="center" direction="row" mb="1rem">
-      <label id={labelId} className={styles.selectLabel}>
+      <Typography id={labelId} variant="smallDark">
         {label}
-      </label>
+      </Typography>
       <Select
         labelId={labelId}
         id={selectId}
