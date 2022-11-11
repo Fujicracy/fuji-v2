@@ -34,7 +34,7 @@ import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
-if (process.env.NODE_ENV === "development") {
+if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
   pages.push("Theming") // TODO: "Theming" page is to test design system
 }
 

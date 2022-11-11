@@ -78,7 +78,7 @@ export const chains: Chain[] = [
   },
 ]
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
   chains.push(
     {
       id: "0x13881",
