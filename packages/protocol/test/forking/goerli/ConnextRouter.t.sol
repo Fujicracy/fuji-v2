@@ -77,7 +77,7 @@ contract ConnextRouterTest is Routines, ForkingSetup {
 
     actions[0] = IRouter.Action.XTransferWithCall;
     bytes memory randomData = abi.encode(keccak256("data_data"));
-    args[0] = abi.encode(destDomain, collateralAsset, amount, randomData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, randomData);
 
     /*bytes4 selector =*/
     /*bytes4(keccak256("xCall(uint32,address,address,address,uint256,uint256,bytes)"));*/

@@ -94,8 +94,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   function _crossTransfer(bytes memory params) internal override {
-    (uint256 destDomain, address asset, uint256 amount, address receiver) =
-      abi.decode(params, (uint256, address, uint256, address));
+    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver) =
+      abi.decode(params, (uint256, uint256, address, uint256, address));
 
     pullToken(ERC20(asset), amount, address(this));
     approve(ERC20(asset), address(connext), amount);
@@ -107,13 +107,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       receiver,
       // _asset: address of the token contract
       asset,
-      // _delegate: address that can revert or forceLocal on destination
+      // _delegate: address that has rights to update the original slippage tolerance
+      // by calling Connext's forceUpdateSlippage function
       msg.sender,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
-      // the maximum amount of slippage the user will accept in BPS, in this case 0.3%
-      30,
+      // the maximum amount of slippage the user will accept in BPS, 30 == 0.3%
+      slippage,
       // _callData: empty because we're only sending funds
       ""
     );
@@ -121,8 +122,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   function _crossTransferWithCalldata(bytes memory params) internal override {
-    (uint256 destDomain, address asset, uint256 amount, bytes memory callData) =
-      abi.decode(params, (uint256, address, uint256, bytes));
+    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
+      abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
     pullToken(ERC20(asset), amount, address(this));
     approve(ERC20(asset), address(connext), amount);
@@ -139,8 +140,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
-      // the maximum amount of slippage the user will accept in BPS, in this case 0.3%
-      30,
+      // the maximum amount of slippage the user will accept in BPS, 30 == 0.3%
+      slippage,
       // _callData: the encoded calldata to send
       callData
     );
