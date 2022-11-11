@@ -146,9 +146,9 @@ contract ForkingSetup is CoreRoles, Test {
 
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
-    // WETH and DAI prices by Aug 12h 2022
-    mockOracle.setPriceOf(collateralAsset, debtAsset, 528881643782407);
-    mockOracle.setPriceOf(debtAsset, collateralAsset, 1889069940262927605990);
+    // WETH and DAI prices by Nov 11h 2022
+    mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
+    mockOracle.setUSDPriceOf(debtAsset, 100000000);
 
     address[] memory admins = new address[](1);
     admins[0] = address(this);

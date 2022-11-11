@@ -75,9 +75,9 @@ contract DeployGoerli is ScriptPlus {
     vault.setProviders(providers);
     vault.setActiveProvider(mockProvider);
 
-    // WETH and DAI prices by Aug 12h 2022
-    mockOracle.setPriceOf(address(weth), address(mockDAI), 528881643782407);
-    mockOracle.setPriceOf(address(mockDAI), address(weth), 1889069940);
+    // WETH and DAI prices by Nov 11h 2022
+    mockOracle.setUSDPriceOf(address(weth), 796341757142697);
+    mockOracle.setUSDPriceOf(address(mockDAI), 100000000);
 
     vm.stopBroadcast();
   }
