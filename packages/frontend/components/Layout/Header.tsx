@@ -173,9 +173,12 @@ const Header = () => {
             >
               {status === "disconnected" && (
                 <>
-                  <Button variant="gradient" onClick={() => login()}>
-                    Connect wallet
-                  </Button>
+                  <Chip
+                    label="Connect wallet"
+                    variant="gradient"
+                    sx={{ fontSize: "1rem" }}
+                    onClick={() => login()}
+                  />
                   <Button
                     data-cy="login"
                     onClick={e2eConnect}

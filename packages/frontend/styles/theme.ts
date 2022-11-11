@@ -32,6 +32,12 @@ declare module "@mui/material/Typography" {
   }
 }
 
+declare module "@mui/material/Chip" {
+  interface ChipPropsVariantOverrides {
+    gradient: true
+  }
+}
+
 const colorTheme = createTheme({
   palette: {
     mode: "dark",
@@ -426,6 +432,15 @@ const theme = createTheme(colorTheme, {
           },
         },
       },
+      variants: [
+        {
+          props: { variant: "gradient" },
+          style: {
+            background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
+            border: `1px solid ${colorTheme.palette.primary.light}`,
+          },
+        },
+      ],
     },
     MuiCardContent: {
       styleOverrides: {
