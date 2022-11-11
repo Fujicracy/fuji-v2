@@ -8,6 +8,7 @@ import {
   Menu,
   MenuItem,
   Stack,
+  SxProps,
   TextField,
   Typography,
   useTheme,
@@ -107,7 +108,11 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           alignItems="center"
         >
           {token && (
-            <TokenItem token={token} prepend={<KeyboardArrowDownIcon />} />
+            <TokenItem
+              token={token}
+              prepend={<KeyboardArrowDownIcon />}
+              sx={{ borderRadius: "2rem" }}
+            />
           )}
         </Box>
         <Menu
@@ -209,16 +214,18 @@ type TokenItem = {
   token: Token
   balance?: number
   prepend?: ReactElement
+  sx?: SxProps<Theme>
   onClick?: (token: Token) => void
 }
 const TokenItem = (props: TokenItem) => {
-  const { token, balance, prepend, onClick } = props
+  const { token, balance, prepend, sx, onClick } = props
 
   return (
     <MenuItem
       key={token.name}
       value={token.symbol}
       onClick={() => onClick && onClick(token)}
+      sx={sx}
     >
       <ListItemIcon>
         <Image
