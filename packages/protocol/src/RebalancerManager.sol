@@ -26,8 +26,8 @@ contract RebalancerManager is SystemAccessControl {
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
-  error RebalanceManager__getFlashloan_notEmptyEntryPoint();
-  error RebalanceManager__completeRebalance_invalidEntryPoint();
+  error RebalancerManager__getFlashloan_notEmptyEntryPoint();
+  error RebalancerManager__completeRebalance_invalidEntryPoint();
   error RebalancerManager__zeroAddress();
 
   mapping(address => bool) public allowedExecutor;
@@ -114,7 +114,7 @@ contract RebalancerManager is SystemAccessControl {
 
   function _checkAndSetEntryPoint(bytes memory requestorCall) internal {
     if (_entryPoint != "") {
-      revert RebalanceManager__getFlashloan_notEmptyEntryPoint();
+      revert RebalancerManager__getFlashloan_notEmptyEntryPoint();
     }
     _entryPoint = keccak256(abi.encode(requestorCall));
   }
@@ -143,7 +143,7 @@ contract RebalancerManager is SystemAccessControl {
     );
     bytes32 hashCheck = keccak256(abi.encode(requestorCalldata));
     if (_entryPoint != hashCheck) {
-      revert RebalanceManager__completeRebalance_invalidEntryPoint();
+      revert RebalancerManager__completeRebalance_invalidEntryPoint();
     }
   }
 
