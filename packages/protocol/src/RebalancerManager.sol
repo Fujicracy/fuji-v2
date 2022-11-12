@@ -79,7 +79,7 @@ contract RebalancerManager is SystemAccessControl {
     }
 
     if (setToAsActiveProvider) {
-      vault.setActiveProvider(ILendingProvider(to));
+      vault.setActiveProvider(to);
     }
 
     success = true;
@@ -108,7 +108,7 @@ contract RebalancerManager is SystemAccessControl {
   }
 
   function _checkDebtAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
-    uint256 debtAtProvider = ILendingProvider(from).getBorrowBalance(address(vault), vault);
+    uint256 debtAtProvider = from.getBorrowBalance(address(vault), vault);
     if (amount > debtAtProvider) {
       revert RebalancerManager__checkDebtAmount_invalidAmount();
     }
@@ -205,10 +205,6 @@ contract RebalancerManager is SystemAccessControl {
     vault.rebalance(assets, debt, from, to, flashloanFee);
 
     debtAsset.safeTransfer(address(flasher), debt + flashloanFee);
-
-    if (setToAsActiveProvider) {
-      vault.setActiveProvider(ILendingProvider(to));
-    }
 
     // re-init
     _entryPoint = "";
