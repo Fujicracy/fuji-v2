@@ -18,7 +18,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 contract RebalancerManager is SystemAccessControl {
   using SafeERC20 for IERC20;
 
-  event ChangedExecutorState(address indexed newExecutor, bool newState);
+  event ExecutorAllow(address indexed executor, bool allow);
 
   // custom errors
   error RebalancerManager__rebalanceVault_notValidExecutor();
@@ -28,6 +28,7 @@ contract RebalancerManager is SystemAccessControl {
   error RebalancerManager__getFlashloan_flashloanFailed();
   error RebalancerManager__getFlashloan_notEmptyEntryPoint();
   error RebalancerManager__completeRebalance_invalidEntryPoint();
+  error RebalancerManager__allowExecutor_noAllowChange();
   error RebalancerManager__zeroAddress();
 
   mapping(address => bool) public allowedExecutor;
@@ -85,17 +86,18 @@ contract RebalancerManager is SystemAccessControl {
   }
 
   /**
-   * @notice sets state for address in mapping `allowedExecutor`.
-   *
-   * Requirements:
-   * - MUST emit a
+   * @notice Set `executor` as an authorized address for calling rebalancer operations.
+   * - Emit a `ExecutorAllow` event.
    */
-  function setExecutorState(address executor, bool newState) external onlyTimelock {
+  function allowExecutor(address executor, bool allow) external onlyTimelock {
     if (executor == address(0)) {
       revert RebalancerManager__zeroAddress();
     }
-    allowedExecutor[executor] = newState;
-    emit ChangedExecutorState(executor, newState);
+    if (allowedExecutor[executor] == allow) {
+      revert RebalancerManager__allowExecutor_noAllowChange();
+    }
+    allowedExecutor[executor] = allow;
+    emit ExecutorAllow(executor, allow);
   }
 
   function _checkAssetsAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {

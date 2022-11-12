@@ -122,8 +122,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     rebalancer = new RebalancerManager(address(chief));
     chief.grantRole(REBALANCER_ROLE, address(rebalancer));
 
-    executionCall =
-      abi.encodeWithSelector(rebalancer.setExecutorState.selector, address(this), true);
+    executionCall = abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
     _utils_callWithTimelock(address(rebalancer), executionCall);
 
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), alice);
