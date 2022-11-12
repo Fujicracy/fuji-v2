@@ -18,7 +18,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 contract RebalancerManager is SystemAccessControl {
   using SafeERC20 for IERC20;
 
-  event ExecutorAllow(address indexed executor, bool allow);
+  event AllowExecutor(address indexed executor, bool allowed);
 
   // custom errors
   error RebalancerManager__rebalanceVault_notValidExecutor();
@@ -87,17 +87,17 @@ contract RebalancerManager is SystemAccessControl {
 
   /**
    * @notice Set `executor` as an authorized address for calling rebalancer operations.
-   * - Emit a `ExecutorAllow` event.
+   * - Emit a `AllowExecutor` event.
    */
-  function allowExecutor(address executor, bool allow) external onlyTimelock {
+  function allowExecutor(address executor, bool allowed) external onlyTimelock {
     if (executor == address(0)) {
       revert RebalancerManager__zeroAddress();
     }
-    if (allowedExecutor[executor] == allow) {
+    if (allowedExecutor[executor] == allowed) {
       revert RebalancerManager__allowExecutor_noAllowChange();
     }
-    allowedExecutor[executor] = allow;
-    emit ExecutorAllow(executor, allow);
+    allowedExecutor[executor] = allowed;
+    emit AllowExecutor(executor, allowed);
   }
 
   function _checkAssetsAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {

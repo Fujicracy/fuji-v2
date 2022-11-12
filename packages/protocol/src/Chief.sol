@@ -23,8 +23,8 @@ contract Chief is CoreRoles, AccessControl {
 
   event OpenVaultFactory(bool state);
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
-  event FlasherAllow(address indexed flasher, bool allow);
-  event VaultFactoryAllow(address indexed factory, bool allow);
+  event AllowFlasher(address indexed flasher, bool allowed);
+  event AllowVaultFactory(address indexed factory, bool allowed);
   event TimelockUpdated(address indexed timelock);
 
   /// @dev Custom Errors
@@ -98,28 +98,28 @@ contract Chief is CoreRoles, AccessControl {
 
   /**
    * @notice Set `flasher` as an authorized address for flashloan operations.
-   * - Emits a `FlasherAllow` event.
+   * - Emits a `AllowFlasher` event.
    */
-  function allowFlasher(address flasher, bool allow) external onlyTimelock {
+  function allowFlasher(address flasher, bool allowed) external onlyTimelock {
     _checkInputIsNotZeroAddress(flasher);
-    if (allowedFlasher[flasher] == allow) {
+    if (allowedFlasher[flasher] == allowed) {
       revert Chief__allowFlasher_noAllowChange();
     }
-    allowedFlasher[flasher] = allow;
-    emit FlasherAllow(flasher, allow);
+    allowedFlasher[flasher] = allowed;
+    emit AllowFlasher(flasher, allowed);
   }
 
   /**
    * @notice Set `_factory` as an authorized address for vault deployments.
-   * - Emits a `VaultFactoryAllow` event.
+   * - Emits a `AllowVaultFactory` event.
    */
-  function allowVaultFactory(address _factory, bool allow) external onlyTimelock {
+  function allowVaultFactory(address _factory, bool allowed) external onlyTimelock {
     _checkInputIsNotZeroAddress(_factory);
-    if (allowedVaultFactory[_factory] == allow) {
+    if (allowedVaultFactory[_factory] == allowed) {
       revert Chief__allowVaultFactory_noAllowChange();
     }
-    allowedVaultFactory[_factory] = allow;
-    emit VaultFactoryAllow(_factory, allow);
+    allowedVaultFactory[_factory] = allowed;
+    emit AllowVaultFactory(_factory, allowed);
   }
 
   /**
