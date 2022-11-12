@@ -1,13 +1,14 @@
 import { ChainId } from '../enums';
 import { ChainTokenList } from '../types';
-import { DAI, USDC } from './tokens';
+import { DAI, USDC, USDT } from './tokens';
 
 export const DEBT_LIST: ChainTokenList = {
   [ChainId.ETHEREUM]: [USDC[ChainId.ETHEREUM], DAI[ChainId.ETHEREUM]],
-  [ChainId.GOERLI]: [USDC[ChainId.GOERLI], DAI[ChainId.GOERLI]],
+  [ChainId.GOERLI]: [DAI[ChainId.GOERLI]],
   [ChainId.MATIC]: [USDC[ChainId.MATIC], DAI[ChainId.MATIC]],
   [ChainId.MATIC_MUMBAI]: [
     USDC[ChainId.MATIC_MUMBAI],
+    USDT[ChainId.MATIC_MUMBAI],
     DAI[ChainId.MATIC_MUMBAI],
   ],
   [ChainId.FANTOM]: [USDC[ChainId.FANTOM], DAI[ChainId.FANTOM]],
@@ -15,6 +16,7 @@ export const DEBT_LIST: ChainTokenList = {
   [ChainId.OPTIMISM]: [USDC[ChainId.OPTIMISM], DAI[ChainId.OPTIMISM]],
   [ChainId.OPTIMISM_GOERLI]: [
     USDC[ChainId.OPTIMISM_GOERLI],
+    USDT[ChainId.OPTIMISM_GOERLI],
     DAI[ChainId.OPTIMISM_GOERLI],
   ],
 };
