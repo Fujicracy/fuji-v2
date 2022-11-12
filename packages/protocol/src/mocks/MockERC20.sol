@@ -24,28 +24,60 @@ contract MockERC20 is ERC20 {
     _burn(from, value);
   }
 
-  function makeDeposit(address from, uint256 value, string memory provider) public {
+  function makeDeposit(
+    address from,
+    uint256 value,
+    string memory provider
+  )
+    public
+    returns (bool success)
+  {
     _balancesDeposit[provider][from] += value;
     _burn(from, value);
     emit DepositRecorded(provider, from, value);
+    success = true;
   }
 
-  function withdrawDeposit(address to, uint256 value, string memory provider) public {
+  function withdrawDeposit(
+    address to,
+    uint256 value,
+    string memory provider
+  )
+    public
+    returns (bool success)
+  {
     _balancesDeposit[provider][to] -= value;
     _mint(to, value);
     emit WithdrawRecorded(provider, to, value);
+    success = true;
   }
 
-  function mintDebt(address to, uint256 value, string memory provider) public {
+  function mintDebt(
+    address to,
+    uint256 value,
+    string memory provider
+  )
+    public
+    returns (bool success)
+  {
     _balancesDebt[provider][to] += value;
     _mint(to, value);
     emit BorrowRecorded(provider, to, value);
+    success = true;
   }
 
-  function burnDebt(address from, uint256 value, string memory provider) public {
+  function burnDebt(
+    address from,
+    uint256 value,
+    string memory provider
+  )
+    public
+    returns (bool success)
+  {
     _balancesDebt[provider][from] -= value;
     _burn(from, value);
     emit PaybackRecorded(provider, from, value);
+    success = true;
   }
 
   function balanceOfDebt(address who, string memory provider) public view returns (uint256) {
