@@ -409,13 +409,11 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__rebalance_invalidProvider();
     }
     SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
-    SafeERC20.safeApprove(IERC20(debtAsset()), address(from), debt);
     _executeProviderAction(debt, "payback", from);
     _executeProviderAction(assets, "withdraw", from);
 
     _checkRebalanceFee(fee, debt);
 
-    SafeERC20.safeApprove(IERC20(asset()), address(to), assets);
     _executeProviderAction(assets, "deposit", to);
     _executeProviderAction(debt + fee, "borrow", to);
     SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
