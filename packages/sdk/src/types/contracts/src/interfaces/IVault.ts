@@ -28,6 +28,22 @@ import type {
   OnEvent,
 } from "../../common";
 
+export declare namespace IVault {
+  export type RebalanceActionStruct = {
+    amount: BigNumberish;
+    asset: string;
+    from: string;
+    to: string;
+  };
+
+  export type RebalanceActionStructOutput = [
+    BigNumber,
+    string,
+    string,
+    string
+  ] & { amount: BigNumber; asset: string; from: string; to: string };
+}
+
 export interface IVaultInterface extends utils.Interface {
   functions: {
     "activeProvider()": FunctionFragment;
@@ -45,6 +61,9 @@ export interface IVaultInterface extends utils.Interface {
     "debtDecimals()": FunctionFragment;
     "decimals()": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
+    "getHealthFactor(address)": FunctionFragment;
+    "getLiquidationFactor(address)": FunctionFragment;
+    "liquidate(address,address)": FunctionFragment;
     "maxBorrow(address)": FunctionFragment;
     "maxDeposit(address)": FunctionFragment;
     "maxMint(address)": FunctionFragment;
@@ -57,10 +76,12 @@ export interface IVaultInterface extends utils.Interface {
     "previewMint(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "previewWithdraw(uint256)": FunctionFragment;
+    "rebalance((uint256,address,address,address)[])": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
     "setActiveProvider(address)": FunctionFragment;
     "setDepositCap(uint256)": FunctionFragment;
     "setMinDepositAmount(uint256)": FunctionFragment;
+    "setProviders(address[])": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalAssets()": FunctionFragment;
     "totalDebt()": FunctionFragment;
@@ -87,6 +108,9 @@ export interface IVaultInterface extends utils.Interface {
       | "debtDecimals"
       | "decimals"
       | "deposit"
+      | "getHealthFactor"
+      | "getLiquidationFactor"
+      | "liquidate"
       | "maxBorrow"
       | "maxDeposit"
       | "maxMint"
@@ -99,10 +123,12 @@ export interface IVaultInterface extends utils.Interface {
       | "previewMint"
       | "previewRedeem"
       | "previewWithdraw"
+      | "rebalance"
       | "redeem"
       | "setActiveProvider"
       | "setDepositCap"
       | "setMinDepositAmount"
+      | "setProviders"
       | "symbol"
       | "totalAssets"
       | "totalDebt"
@@ -160,6 +186,18 @@ export interface IVaultInterface extends utils.Interface {
     functionFragment: "deposit",
     values: [BigNumberish, string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "getHealthFactor",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLiquidationFactor",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "liquidate",
+    values: [string, string]
+  ): string;
   encodeFunctionData(functionFragment: "maxBorrow", values: [string]): string;
   encodeFunctionData(functionFragment: "maxDeposit", values: [string]): string;
   encodeFunctionData(functionFragment: "maxMint", values: [string]): string;
@@ -191,6 +229,10 @@ export interface IVaultInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "rebalance",
+    values: [IVault.RebalanceActionStruct[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "redeem",
     values: [BigNumberish, string, string]
   ): string;
@@ -205,6 +247,10 @@ export interface IVaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "setMinDepositAmount",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setProviders",
+    values: [string[]]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
@@ -265,6 +311,15 @@ export interface IVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getHealthFactor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLiquidationFactor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxBorrow", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxMint", data: BytesLike): Result;
@@ -292,6 +347,7 @@ export interface IVaultInterface extends utils.Interface {
     functionFragment: "previewWithdraw",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "rebalance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setActiveProvider",
@@ -303,6 +359,10 @@ export interface IVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setMinDepositAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setProviders",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
@@ -552,7 +612,7 @@ export interface IVault extends BaseContract {
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     balanceOfDebt(
-      account: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { debt: BigNumber }>;
 
@@ -591,6 +651,22 @@ export interface IVault extends BaseContract {
 
     deposit(
       assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getHealthFactor(
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getLiquidationFactor(
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    liquidate(
+      owner: string,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -654,6 +730,11 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
+    rebalance(
+      actions: IVault.RebalanceActionStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     redeem(
       shares: BigNumberish,
       receiver: string,
@@ -673,6 +754,11 @@ export interface IVault extends BaseContract {
 
     setMinDepositAmount(
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setProviders(
+      providers: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -727,7 +813,7 @@ export interface IVault extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  balanceOfDebt(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+  balanceOfDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   borrow(
     debt: BigNumberish,
@@ -764,6 +850,22 @@ export interface IVault extends BaseContract {
 
   deposit(
     assets: BigNumberish,
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  getHealthFactor(
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  getLiquidationFactor(
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  liquidate(
+    owner: string,
     receiver: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -812,6 +914,11 @@ export interface IVault extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  rebalance(
+    actions: IVault.RebalanceActionStruct[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   redeem(
     shares: BigNumberish,
     receiver: string,
@@ -831,6 +938,11 @@ export interface IVault extends BaseContract {
 
   setMinDepositAmount(
     amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setProviders(
+    providers: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -881,10 +993,7 @@ export interface IVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOfDebt(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOfDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     borrow(
       debt: BigNumberish,
@@ -921,6 +1030,22 @@ export interface IVault extends BaseContract {
 
     deposit(
       assets: BigNumberish,
+      receiver: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getHealthFactor(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getLiquidationFactor(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    liquidate(
+      owner: string,
       receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -969,6 +1094,11 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    rebalance(
+      actions: IVault.RebalanceActionStruct[],
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     redeem(
       shares: BigNumberish,
       receiver: string,
@@ -990,6 +1120,8 @@ export interface IVault extends BaseContract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setProviders(providers: string[], overrides?: CallOverrides): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -1154,10 +1286,7 @@ export interface IVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOfDebt(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOfDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     borrow(
       debt: BigNumberish,
@@ -1194,6 +1323,22 @@ export interface IVault extends BaseContract {
 
     deposit(
       assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getHealthFactor(
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getLiquidationFactor(
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    liquidate(
+      owner: string,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1242,6 +1387,11 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    rebalance(
+      actions: IVault.RebalanceActionStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     redeem(
       shares: BigNumberish,
       receiver: string,
@@ -1261,6 +1411,11 @@ export interface IVault extends BaseContract {
 
     setMinDepositAmount(
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setProviders(
+      providers: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1318,7 +1473,7 @@ export interface IVault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     balanceOfDebt(
-      account: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1357,6 +1512,22 @@ export interface IVault extends BaseContract {
 
     deposit(
       assets: BigNumberish,
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getHealthFactor(
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getLiquidationFactor(
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    liquidate(
+      owner: string,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1420,6 +1591,11 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    rebalance(
+      actions: IVault.RebalanceActionStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     redeem(
       shares: BigNumberish,
       receiver: string,
@@ -1439,6 +1615,11 @@ export interface IVault extends BaseContract {
 
     setMinDepositAmount(
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setProviders(
+      providers: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1487,7 +1668,7 @@ export interface IVaultMulticall {
 
   balanceOf(account: string, overrides?: CallOverrides): Call<BigNumber>;
 
-  balanceOfDebt(account: string, overrides?: CallOverrides): Call<BigNumber>;
+  balanceOfDebt(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
   convertDebtToShares(
     debt: BigNumberish,

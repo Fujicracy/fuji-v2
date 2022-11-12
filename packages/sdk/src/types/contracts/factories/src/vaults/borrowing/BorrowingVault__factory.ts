@@ -33,13 +33,33 @@ const _abi = [
         name: "chief_",
         type: "address",
       },
+      {
+        internalType: "string",
+        name: "name_",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "symbol_",
+        type: "string",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
   },
   {
     inputs: [],
+    name: "BaseVault__deposit_lessThanMin",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__deposit_moreThanMax",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseVault__mint_lessThanMin",
     type: "error",
   },
   {
@@ -49,12 +69,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BaseVault__redeem_moreThanMax",
+    name: "BaseVault__redeem_invalidInput",
     type: "error",
   },
   {
     inputs: [],
-    name: "BaseVault__redeem_wrongInput",
+    name: "BaseVault__redeem_moreThanMax",
     type: "error",
   },
   {
@@ -64,22 +84,37 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseVault__withdraw_invalidInput",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__withdraw_moreThanMax",
     type: "error",
   },
   {
     inputs: [],
-    name: "BaseVault__withdraw_wrongInput",
+    name: "BorrowingVault__borrow_invalidInput",
     type: "error",
   },
   {
     inputs: [],
-    name: "BorrowingVault__borrow_notEnoughAssets",
+    name: "BorrowingVault__borrow_moreThanAllowed",
     type: "error",
   },
   {
     inputs: [],
-    name: "BorrowingVault__borrow_wrongInput",
+    name: "BorrowingVault__liquidate_invalidInput",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__liquidate_positionHealthy",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__payback_invalidInput",
     type: "error",
   },
   {
@@ -89,7 +124,33 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BorrowingVault__payback_wrongInput",
+    name: "PausableVault__requiredNotPaused_actionPaused",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "PausableVault__requiredPaused_actionNotPaused",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+    ],
+    name: "SystemAccessControl__hasRole_missingRole",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
     type: "error",
   },
   {
@@ -253,6 +314,55 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "collateralSold",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "debtPaid",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "liquidationFactor",
+        type: "uint256",
+      },
+    ],
+    name: "Liquidate",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "uint256",
         name: "newMaxLtv",
@@ -286,6 +396,38 @@ const _abi = [
       },
     ],
     name: "OracleChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "enum IPausableVault.VaultActions",
+        name: "actions",
+        type: "uint8",
+      },
+    ],
+    name: "Paused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "PausedForceAll",
     type: "event",
   },
   {
@@ -361,6 +503,38 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "enum IPausableVault.VaultActions",
+        name: "actions",
+        type: "uint8",
+      },
+    ],
+    name: "Unpaused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "UnpausedForceAll",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "sender",
@@ -421,7 +595,124 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "DEFAULT_LIQUIDATION_CLOSE_FACTOR",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "DOMAIN_SEPARATOR",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "FULL_LIQUIDATION_THRESHOLD",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HARVESTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "LIQUIDATION_PENALTY",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "LIQUIDATOR_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MAX_LIQUIDATION_CLOSE_FACTOR",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "PAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "REBALANCER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "UNPAUSER_ROLE",
     outputs: [
       {
         internalType: "bytes32",
@@ -529,7 +820,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "account",
+        name: "owner",
         type: "address",
       },
     ],
@@ -602,7 +893,7 @@ const _abi = [
     name: "chief",
     outputs: [
       {
-        internalType: "address",
+        internalType: "contract IChief",
         name: "",
         type: "address",
       },
@@ -848,6 +1139,44 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getHealthFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "healthFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getLiquidationFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "liquidationFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getProviders",
     outputs: [
@@ -943,6 +1272,30 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "liquidate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "gainedShares",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1138,6 +1491,45 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "enum IPausableVault.VaultActions",
+        name: "action",
+        type: "uint8",
+      },
+    ],
+    name: "pause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "pauseForceAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum IPausableVault.VaultActions",
+        name: "action",
+        type: "uint8",
+      },
+    ],
+    name: "paused",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "debt",
         type: "uint256",
@@ -1324,6 +1716,47 @@ const _abi = [
   {
     inputs: [
       {
+        components: [
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "asset",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "from",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "to",
+            type: "address",
+          },
+        ],
+        internalType: "struct IVault.RebalanceAction[]",
+        name: "actions",
+        type: "tuple[]",
+      },
+    ],
+    name: "rebalance",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "shares",
         type: "uint256",
@@ -1460,7 +1893,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "assets",
         type: "uint256",
       },
     ],
@@ -1549,6 +1982,26 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "enum IPausableVault.VaultActions",
+        name: "action",
+        type: "uint8",
+      },
+    ],
+    name: "unpause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "unpauseForceAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "assets",
         type: "uint256",
@@ -1598,6 +2051,10 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+  },
+  {
+    stateMutability: "payable",
+    type: "receive",
   },
 ];
 export class BorrowingVault__factory {

@@ -11,7 +11,12 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { Call } from "@hovoh/ethcall";
 import type {
@@ -69,8 +74,24 @@ export interface VaultDeployerInterface extends utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "VaultRegistered(address,address,bytes32)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "VaultRegistered"): EventFragment;
 }
+
+export interface VaultRegisteredEventObject {
+  vault: string;
+  asset: string;
+  salt: string;
+}
+export type VaultRegisteredEvent = TypedEvent<
+  [string, string, string],
+  VaultRegisteredEventObject
+>;
+
+export type VaultRegisteredEventFilter = TypedEventFilter<VaultRegisteredEvent>;
 
 export interface VaultDeployer extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -165,7 +186,18 @@ export interface VaultDeployer extends BaseContract {
     vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
-  filters: {};
+  filters: {
+    "VaultRegistered(address,address,bytes32)"(
+      vault?: null,
+      asset?: null,
+      salt?: null
+    ): VaultRegisteredEventFilter;
+    VaultRegistered(
+      vault?: null,
+      asset?: null,
+      salt?: null
+    ): VaultRegisteredEventFilter;
+  };
 
   estimateGas: {
     chief(overrides?: CallOverrides): Promise<BigNumber>;

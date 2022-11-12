@@ -58,11 +58,14 @@
 ### Vault data
 _Vault is an instance on a single chain, i.e. its collateral and debt token are from the same chain._
 
-1. Get an instance of a "Vault"
+1. Get all "Vault" for a given combo of tokens
 ```
-  const vault = await sdk.getBorrowingVaultFor(token1, token2);
+  const vaults = await sdk.getBorrowingVaultsFor(token1, token2);
 
-  // if vault is undefined, display error
+  // vaults are sorted, starting by this with the lowest borrow rate
+  // or if token1 and token2 are on the same chain, the first vault will
+  // be on that chain
+  const vault = vaults[0];
 ```
 
 2. Pre-load some data for the vault so that it's available for a later use
@@ -109,20 +112,21 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ### Transation
 
 ```
-  const srcChainId = token1.chainId
-  // TODO for cost
-  const { actions, cost } = await vault.previewDepositAndBorrow(amount1, amount2, srcChainId);
+  // TODO: cost and estimateTime are hardcoded
+  const { steps, actions, bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, token1, token2, user);
 
   // verify if user needs to sign a permit
   if (sdk.needPermit(actions)) {
-    const permitAction = actions.find(PERMIT_BORROW || PERMIT_WITHDRAW)
+    const permitAction = sdk.findPermitAction(actions)
+
+    // signing the permit action has to be done through the vault
     const digest = await vault.signPermitFor(permitAction)
 
     const signature = await ethers.signMessage(digest)
   }
 
-  // TODO
-  const txData = await vault.getTXDataFor(actions, signature?)
+  const txRequest = await vault.getTxDetails(actions, srcChainId, user, signature?)
+  await ethers.sendTransaction(txRequest);
 ```
 
 ### Misc
