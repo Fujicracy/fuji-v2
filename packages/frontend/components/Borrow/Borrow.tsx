@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import {
   Divider,
   Button,
@@ -18,6 +18,7 @@ import TokenCard from "./TokenCard"
 import { useLtv } from "../../store/transaction.slice"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
+import LoadingButton from "@mui/lab/LoadingButton"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -33,6 +34,7 @@ export default function Borrow() {
   const collateral = useStore((state) => state.position.collateral)
   const collateralChainId = useStore((state) => state.collateralChainId)
   const collateralAllowance = useStore((state) => state.collateralAllowance)
+  const debt = useStore((state) => state.position.debt)
   const debtChainId = useStore((state) => state.debtChainId)
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
@@ -63,27 +65,97 @@ export default function Borrow() {
   const ltv = useLtv()
   const ltvMax = useStore((state) => state.position.ltvMax)
 
-  let error:
-    | "mustLogin"
-    | "wrongNetwork"
-    | "insufficientBalance"
-    | "wrongLtv"
-    | "mustAllow"
-    | undefined
-  // TODO: refacto error as action (contain ReactoNode)
+  const signature = useStore((state) => state.signature)
+  const isSigning = useStore((state) => state.isSigning)
+  const signPermit = useStore((state) => state.signPermit)
+
+  let button: ReactNode
   if (!address) {
-    error = "mustLogin"
+    button = (
+      <Button
+        variant="gradient"
+        onClick={() => login()}
+        fullWidth
+        data-cy="borrow-login"
+      >
+        Connect wallet
+      </Button>
+    )
   } else if (collateralChainId !== walletChain?.id) {
-    error = "wrongNetwork"
+    button = (
+      <Button
+        variant="gradient"
+        fullWidth
+        onClick={() => changeChain(collateral.token.chainId)}
+      >
+        Switch network
+      </Button>
+    )
   } else if (value > 0 && value > balance) {
-    error = "insufficientBalance"
+    button = (
+      <Button variant="gradient" disabled fullWidth>
+        Insufficient {collateral.token.symbol} balance
+      </Button>
+    )
   } else if (ltv > ltvMax) {
-    error = "wrongLtv"
+    button = (
+      <Button variant="gradient" disabled fullWidth>
+        Not enough collateral
+      </Button>
+    )
   } else if (
     collateralAllowance?.value !== undefined &&
     collateralAllowance.value < collateral.amount
   ) {
-    error = "mustAllow"
+    button = (
+      <Button
+        variant="gradient"
+        fullWidth
+        onClick={() => setShowApprovalModal(true)}
+      >
+        Allow
+      </Button>
+    )
+  } else {
+    button = (
+      <>
+        <LoadingButton
+          variant="primary"
+          disabled={
+            collateral.amount <= 0 || debt.amount <= 0 || Boolean(signature)
+          }
+          loading={isSigning}
+          onClick={signPermit}
+          fullWidth
+        >
+          {signature ? "Signed" : "Sign"}
+        </LoadingButton>
+
+        <br />
+        <br />
+
+        <Button
+          variant="gradient"
+          onClick={() => {
+            setTransactionStatus(true)
+            setShowTransactionProcessingModal(true)
+          }}
+          fullWidth
+          className={styles.btn}
+          startIcon={
+            transactionStatus ? <CircularProgress size={15} /> : undefined
+          }
+          disabled={
+            collateral.amount <= 0 ||
+            collateral.amount > balance ||
+            balance < 0 ||
+            !signature
+          }
+        >
+          Borrow
+        </Button>
+      </>
+    )
   }
 
   return (
@@ -124,84 +196,7 @@ export default function Borrow() {
           <Fees />
           <br />
 
-          {error === "mustLogin" && (
-            <Button
-              variant="gradient"
-              onClick={() => login()}
-              fullWidth
-              data-cy="borrow-login"
-            >
-              Connect wallet
-            </Button>
-          )}
-          {error === "wrongNetwork" && (
-            <Button
-              variant="gradient"
-              fullWidth
-              onClick={() => changeChain(collateral.token.chainId)}
-            >
-              Switch network
-            </Button>
-          )}
-          {error === "insufficientBalance" && (
-            <Button variant="gradient" disabled fullWidth>
-              Insufficient {collateral.token.symbol} balance
-            </Button>
-          )}
-          {error === "wrongLtv" && (
-            <Button variant="gradient" disabled fullWidth>
-              Not enough collateral
-            </Button>
-          )}
-          {error === "mustAllow" && (
-            <Button
-              variant="gradient"
-              fullWidth
-              onClick={() => setShowApprovalModal(true)}
-            >
-              Allow
-            </Button>
-          )}
-
-          {!error && (
-            <>
-              <Button
-                variant="primary"
-                disabled={
-                  collateral.amount <= 0 ||
-                  collateral.amount > balance ||
-                  collateral.amount <= 0
-                }
-                onClick={() => alert("not implemented")}
-                fullWidth
-              >
-                Sign
-              </Button>
-
-              <br />
-              <br />
-
-              <Button
-                variant="gradient"
-                onClick={() => {
-                  setTransactionStatus(true)
-                  setShowTransactionProcessingModal(true)
-                }}
-                fullWidth
-                className={styles.btn}
-                startIcon={
-                  transactionStatus ? <CircularProgress size={15} /> : undefined
-                }
-                disabled={
-                  collateral.amount <= 0 ||
-                  collateral.amount > balance ||
-                  balance < 0
-                }
-              >
-                Borrow
-              </Button>
-            </>
-          )}
+          {button}
 
           <br />
           <br />

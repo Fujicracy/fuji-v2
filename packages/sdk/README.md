@@ -56,9 +56,11 @@
 ```
 
 ### Vault data
+
 _Vault is an instance on a single chain, i.e. its collateral and debt token are from the same chain._
 
 1. Get all "Vault" for a given combo of tokens
+
 ```
   const vaults = await sdk.getBorrowingVaultsFor(token1, token2);
 
@@ -69,15 +71,17 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ```
 
 2. Pre-load some data for the vault so that it's available for a later use
+
 ```
   await vault.preLoad(user);
 
   // pre-load makes available vault.maxLtv and vault.liqRatio
-  // that can be used to calculate health ratio and 
+  // that can be used to calculate health ratio and
   // liquidation price based on the amounts inputs below
 ```
 
 3. Get user deposit and borrow balances for this Vault
+
 ```
   const { deposit, borrow } = await vault.getBalances(user);
 
@@ -86,12 +90,14 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ```
 
 4. Get prices of collateral and debt token in $
+
 ```
   const collateralPrice = await token1.getPriceUSD();
   const debtPrice = await token2.getPriceUSD();
 ```
 
 5. fetch providers for this vault and their rates
+
 ```
   const providers = await vault.getProviders();
 ```
@@ -116,7 +122,7 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   const { steps, actions, bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, token1, token2, user);
 
   // verify if user needs to sign a permit
-  if (sdk.needPermit(actions)) {
+  if (sdk.needSignature(actions)) {
     const permitAction = sdk.findPermitAction(actions)
 
     // signing the permit action has to be done through the vault

@@ -1,4 +1,12 @@
-import { Address, CONNEXT_ROUTER_ADDRESS, contracts, Token } from "@x-fuji/sdk"
+import {
+  Address,
+  CONNEXT_ROUTER_ADDRESS,
+  contracts,
+  RouterAction,
+  RouterActionParams,
+  Sdk,
+  Token,
+} from "@x-fuji/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import produce from "immer"
 import { StateCreator } from "zustand"
@@ -7,7 +15,7 @@ import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
-import { ethers } from "ethers"
+import { ethers, Signature } from "ethers"
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
@@ -34,10 +42,14 @@ type TransactionState = {
 
   transactionMeta: {
     status: "initial" | "fetching" | "ready" | "error" // TODO: What if error ?
-    gasFees: number
+    gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
     bridgeFees: number
     estimateTime: number
   }
+
+  needPermit: boolean
+  isSigning: boolean
+  signature?: string
 }
 
 type TransactionActions = {
@@ -55,6 +67,7 @@ type TransactionActions = {
   updateVault: () => void
   updateTransactionMeta: () => void
   allow: (amount: number, callback: () => void) => void
+  signPermit: () => void
 }
 type ChainId = string // hex value as string
 
@@ -105,6 +118,10 @@ const initialState: TransactionState = {
     gasFees: 0,
     estimateTime: 0,
   },
+
+  needPermit: true,
+  signature: "",
+  isSigning: false,
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -284,7 +301,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
 
     const providers = await vault.getProviders()
-    const ltvMax = vault.maxLtv ? vault.maxLtv.toNumber() : DEFAULT_LTV_MAX
+    const ltvMax = vault.maxLtv
+      ? parseInt(ethers.utils.formatUnits(vault.maxLtv))
+      : DEFAULT_LTV_MAX
 
     await vault.preLoad(address ? new Address(address) : undefined)
 
@@ -292,7 +311,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       produce((state: TransactionState) => {
         state.position.vault = vault
         state.position.ltvMax = ltvMax
-        state.position.ltvThreshold = vault.liqRatio?.toNumber() || 0
+        state.position.ltvThreshold = vault.liqRatio
+          ? parseInt(ethers.utils.formatUnits(vault.liqRatio))
+          : 0
         state.position.providers = providers
         state.position.activeProvider = providers[0]
       })
@@ -301,7 +322,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
   updateTransactionMeta: debounce(async () => {
     const address = useStore.getState().address
-    if (!address) {
+    const provider = useStore.getState().provider
+    if (!address || !provider) {
       return
     }
 
@@ -318,23 +340,42 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set(
       produce((state: TransactionState) => {
         state.transactionMeta.status = "fetching"
+        state.signature = ""
       })
     )
 
     try {
-      const { bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(
-        vault,
-        parseUnits(collateral.amount.toString()),
-        parseUnits(debt.amount.toString()),
-        collateral.token,
-        debt.token,
-        new Address(address)
-      )
+      const { bridgeFee, estimateTime, actions } =
+        await sdk.previewDepositAndBorrow(
+          vault,
+          parseUnits(collateral.amount.toString()),
+          parseUnits(debt.amount.toString()),
+          collateral.token,
+          debt.token,
+          new Address(address)
+        )
+
+      // TODO (see in TxState for more details)
+      // const tx = sdk.getTxDetails(
+      //   withoutPermits(actions),
+      //   collateral.token.chainId,
+      //   new Address(address)
+      // )
+      // const signer = provider.getSigner()
+      // // https://github.com/ethers-io/ethers.js/discussions/2439#discussioncomment-1857403
+      // const gasLimit = await signer.estimateGas(tx)
+      // const gasPrice = (await provider.getFeeData()).maxFeePerGas?.mul(gasLimit)
+      // if (gasPrice) {
+      //   console.debug({ gasPrice: ethers.utils.formatUnits(gasPrice, "gwei") })
+      // }
+
       set(
         produce((state: TransactionState) => {
           state.transactionMeta.status = "ready"
           state.transactionMeta.bridgeFees = bridgeFee.toNumber()
           state.transactionMeta.estimateTime = estimateTime
+          // state.transactionMeta.gasFees = gasPrice?.toNumber() || 0
+          state.needPermit = Sdk.needSignature(actions)
         })
       )
     } catch (e) {
@@ -385,6 +426,41 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       )
     }
   },
+
+  async signPermit() {
+    const address = useStore.getState().address
+    const provider = useStore.getState().provider
+    if (!address || !provider) {
+      return
+    }
+
+    const position = get().position
+    const { collateral, debt, vault } = position
+    if (!vault || !collateral.amount || !debt.amount) {
+      throw "Missing params"
+    }
+
+    set({ isSigning: true })
+
+    const { actions } = await sdk.previewDepositAndBorrow(
+      vault,
+      parseUnits(collateral.amount.toString()),
+      parseUnits(debt.amount.toString()),
+      collateral.token,
+      debt.token,
+      new Address(address)
+    )
+
+    const permitAction = Sdk.findPermitAction(actions)
+    if (!permitAction) {
+      return
+    }
+    const digest = await vault.signPermitFor(permitAction)
+    const signer = provider.getSigner()
+    const signature = await signer.signMessage(digest)
+
+    set({ signature: signature, isSigning: false })
+  },
 })
 
 // Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
@@ -430,4 +506,25 @@ export function useLiquidationPrice(liquidationTreshold: number): {
   )
 
   return { liquidationPrice, liquidationDiff }
+}
+
+function withoutPermits(actions: RouterActionParams[]): RouterActionParams[] {
+  return actions.reduce(
+    (acc: RouterActionParams[], val: RouterActionParams) => {
+      if (
+        val.action === RouterAction.PERMIT_BORROW ||
+        val.action === RouterAction.PERMIT_WITHDRAW
+      ) {
+        return acc
+      }
+      if (val.action === RouterAction.X_TRANSFER_WITH_CALL) {
+        val.innerActions = withoutPermits(val.innerActions)
+        acc.push(val)
+        return acc
+      }
+      acc.push(val)
+      return [val, ...acc]
+    },
+    []
+  )
 }
