@@ -303,7 +303,8 @@ export class Sdk {
     account: Address,
     signature?: Signature
   ): TransactionRequest {
-    const permitAction = Sdk.findPermitAction(actionParams);
+    const _actionParams = actionParams.map((a) => ({ ...a }));
+    const permitAction = Sdk.findPermitAction(_actionParams);
 
     if (permitAction && signature) {
       permitAction.v = signature.v;
@@ -315,8 +316,8 @@ export class Sdk {
       invariant(true, 'No permit action although there is a signature!');
     }
 
-    const actions = actionParams.map(({ action }) => BigNumber.from(action));
-    const args = actionParams.map(encodeActionArgs);
+    const actions = _actionParams.map(({ action }) => BigNumber.from(action));
+    const args = _actionParams.map(encodeActionArgs);
     const callData =
       ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
         actions,
