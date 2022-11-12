@@ -413,7 +413,7 @@ contract BorrowingVault is BaseVault {
     _executeProviderAction(debt, "payback", from);
     _executeProviderAction(assets, "withdraw", from);
 
-    _checkFee(fee, debt);
+    _checkRebalanceFee(fee, debt);
 
     SafeERC20.safeApprove(IERC20(asset()), address(to), assets);
     _executeProviderAction(assets, "deposit", to);

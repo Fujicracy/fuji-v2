@@ -134,7 +134,7 @@ contract YieldVault is BaseVault {
       revert YieldVault__notApplicable();
     }
 
-    _checkFee(fee, assets);
+    _checkRebalanceFee(fee, assets);
 
     _executeProviderAction(assets, "withdraw", from);
     SafeERC20.safeApprove(IERC20(asset()), address(to), assets);
