@@ -24,31 +24,41 @@ contract DeployGoerli is ScriptPlus {
 
   ConnextRouter public connextRouter;
 
-  MockERC20 public mockDAI;
   MockProvider public mockProvider;
   MockOracle public mockOracle;
 
   function setUp() public {
-    chainName = "optimism-goerli";
+    chainName = "goerli";
 
-    weth = IWETH9(getAddress("WETH"));
+    /*weth = IWETH9(getAddress("WETH"));*/
+    weth = IWETH9(0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1);
     connextHandler = IConnext(getAddress("ConnextHandler"));
   }
 
   function run() public {
     vm.startBroadcast();
 
-    /*mockDAI = MockERC20(getAddress("MockDAI"))*/
-    mockDAI = new MockERC20("Test DAI", "tDAI");
-    saveAddress("MockDAI", address(mockDAI));
+    /*MockERC20 DAI = MockERC20(getAddress("MockDAI"));*/
+    /*MockERC20 USDC = MockERC20(getAddress("MockUSDC"));*/
+    /*MockERC20 USDT = MockERC20(getAddress("MockUSDT"));*/
+    MockERC20 DAI = new MockERC20("Test DAI", "tDAI");
+    saveAddress("MockDAI", address(DAI));
 
     /*mockOracle = MockOracle(getAddress("MockOracle"));*/
     mockOracle = new MockOracle();
     saveAddress("MockOracle", address(mockOracle));
 
+    // WETH and DAI prices by Nov 11h 2022
+    mockOracle.setUSDPriceOf(address(weth), 796341757142697);
+    mockOracle.setUSDPriceOf(address(DAI), 100000000);
+    /*mockOracle.setUSDPriceOf(address(USDC), 100000000);*/
+    /*mockOracle.setUSDPriceOf(address(USDT), 100000000);*/
+
     /*mockProvider = MockProvider(getAddress("MockProvider"));*/
     mockProvider = new MockProvider();
     saveAddress("MockProvider", address(mockProvider));
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
 
     /*chief = Chief(getAddress("Chief"));*/
     chief = new Chief();
@@ -60,24 +70,40 @@ contract DeployGoerli is ScriptPlus {
     connextRouter = new ConnextRouter(weth, connextHandler, chief);
     saveAddress("ConnextRouter", address(connextRouter));
 
-    vault = new BorrowingVault(
+    BorrowingVault vaultDAI = new BorrowingVault(
       address(weth),
-      address(mockDAI),
+      address(DAI),
       address(mockOracle),
       address(chief),
-      "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+      "Fuji-V2 TEST-DAI Vault Shares",
+      "fv2TESTDAI"
     );
-    saveAddress("BorrowingVault-DAI", address(vault));
+    saveAddress("BorrowingVault-TESTDAI", address(vaultDAI));
+    vaultDAI.setProviders(providers);
+    vaultDAI.setActiveProvider(mockProvider);
 
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    vault.setProviders(providers);
-    vault.setActiveProvider(mockProvider);
+    /*BorrowingVault vaultUSDC = new BorrowingVault(*/
+    /*address(weth),*/
+    /*address(USDC),*/
+    /*address(mockOracle),*/
+    /*address(chief),*/
+    /*"Fuji-V2 TEST-USDC Vault Shares",*/
+    /*"fv2TESTUSDC"*/
+    /*);*/
+    /*saveAddress("BorrowingVault-TESTUSDC", address(vaultUSDC));*/
+    /*vaultUSDC.setProviders(providers);*/
+    /*vaultUSDC.setActiveProvider(mockProvider);*/
 
-    // WETH and DAI prices by Nov 11h 2022
-    mockOracle.setUSDPriceOf(address(weth), 796341757142697);
-    mockOracle.setUSDPriceOf(address(mockDAI), 100000000);
+    /*BorrowingVault vaultUSDT = new BorrowingVault(*/
+    /*address(weth),*/
+    /*address(USDT),*/
+    /*address(mockOracle),*/
+    /*address(chief),*/
+    /*"Fuji-V2 TEST-USDT Vault Shares",*/
+    /*"fv2TESTUSDT"*/
+    /*);*/
+    /*saveAddress("BorrowingVault-TESTUSDT", address(vaultUSDT));*/
+    /*vaultUSDT.setProviders(providers);*/
 
     vm.stopBroadcast();
   }
