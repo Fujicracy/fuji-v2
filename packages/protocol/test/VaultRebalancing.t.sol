@@ -98,10 +98,11 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     yVaultFactory = new YieldVaultFactory(address(chief));
 
     bytes memory executionCall =
-      abi.encodeWithSelector(chief.addVaultFactory.selector, address(bVaultFactory));
+      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
     _utils_callWithTimelock(address(chief), executionCall);
 
-    executionCall = abi.encodeWithSelector(chief.addVaultFactory.selector, address(yVaultFactory));
+    executionCall =
+      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(yVaultFactory), true);
     _utils_callWithTimelock(address(chief), executionCall);
 
     address bvaultAddr = chief.deployVault(
@@ -115,7 +116,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     _utils_setupVaultProviders(IVault(yvaultAddr));
 
     flasher = new MockFlasher();
-    executionCall = abi.encodeWithSelector(chief.addFlasher.selector, address(flasher));
+    executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _utils_callWithTimelock(address(chief), executionCall);
 
     rebalancer = new RebalancerManager(address(chief));

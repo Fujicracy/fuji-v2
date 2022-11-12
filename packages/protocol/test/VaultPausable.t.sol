@@ -77,7 +77,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     bytes memory callData =
-      abi.encodeWithSelector(chief.addVaultFactory.selector, address(bVaultFactory));
+      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
     _utils_callWithTimelock(address(chief), callData);
 
     address vault1Addr = chief.deployVault(

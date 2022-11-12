@@ -23,14 +23,14 @@ contract Chief is CoreRoles, AccessControl {
 
   event OpenVaultFactory(bool state);
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
-  event AddedFlasher(address indexed flasher);
-  event RemovedFlasher(address indexed flasher);
-  event AddedVaultFactory(address indexed factory);
-  event RemovedVaultFactory(address indexed factory);
+  event FlasherAllow(address indexed flasher, bool allow);
+  event VaultFactoryAllow(address indexed factory, bool allow);
   event TimelockUpdated(address indexed timelock);
 
   /// @dev Custom Errors
   error Chief__checkInput_zeroAddress();
+  error Chief__allowFlasher_noAllowChange();
+  error Chief__allowVaultFactory_noAllowChange();
   error Chief__deployVault_factoryNotAllowed();
   error Chief__deployVault_missingRole(address account, bytes32 role);
   error Chief__onlyTimelock_callerIsNotTimelock();
@@ -41,7 +41,7 @@ contract Chief is CoreRoles, AccessControl {
 
   address[] internal _vaults;
   mapping(address => string) public vaultSafetyRating;
-  mapping(address => bool) public allowedFactories;
+  mapping(address => bool) public allowedVaultFactory;
   mapping(address => bool) public allowedFlasher;
 
   modifier onlyTimelock() {
@@ -84,7 +84,7 @@ contract Chief is CoreRoles, AccessControl {
     external
     returns (address vault)
   {
-    if (!allowedFactories[_factory]) {
+    if (!allowedVaultFactory[_factory]) {
       revert Chief__deployVault_factoryNotAllowed();
     }
     if (!openVaultFactory && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
@@ -96,28 +96,30 @@ contract Chief is CoreRoles, AccessControl {
     emit DeployVault(_factory, vault, _deployData);
   }
 
-  function addFlasher(address flasher) external onlyTimelock {
+  /**
+   * @notice Set `flasher` as an authorized address for flashloan operations.
+   * - Emits a `FlasherAllow` event.
+   */
+  function allowFlasher(address flasher, bool allow) external onlyTimelock {
     _checkInputIsNotZeroAddress(flasher);
-    allowedFlasher[flasher] = true;
-    emit AddedFlasher(flasher);
+    if (allowedFlasher[flasher] == allow) {
+      revert Chief__allowFlasher_noAllowChange();
+    }
+    allowedFlasher[flasher] = allow;
+    emit FlasherAllow(flasher, allow);
   }
 
-  function removeFlasher(address flasher) external onlyTimelock {
-    _checkInputIsNotZeroAddress(flasher);
-    allowedFlasher[flasher] = false;
-    emit RemovedFlasher(flasher);
-  }
-
-  function addVaultFactory(address _factory) external onlyTimelock {
+  /**
+   * @notice Set `_factory` as an authorized address for vault deployments.
+   * - Emits a `VaultFactoryAllow` event.
+   */
+  function allowVaultFactory(address _factory, bool allow) external onlyTimelock {
     _checkInputIsNotZeroAddress(_factory);
-    allowedFactories[_factory] = true;
-    emit AddedVaultFactory(_factory);
-  }
-
-  function removeVaultFactory(address _factory) external onlyTimelock {
-    _checkInputIsNotZeroAddress(_factory);
-    allowedFactories[_factory] = false;
-    emit RemovedVaultFactory(_factory);
+    if (allowedVaultFactory[_factory] == allow) {
+      revert Chief__allowVaultFactory_noAllowChange();
+    }
+    allowedVaultFactory[_factory] = allow;
+    emit VaultFactoryAllow(_factory, allow);
   }
 
   /**
