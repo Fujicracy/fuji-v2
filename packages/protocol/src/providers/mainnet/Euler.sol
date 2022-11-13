@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IEuler} from "../../interfaces/euler/IEuler.sol";
 import {IEulerMarkets} from "../../interfaces/euler/IEulerMarkets.sol";
 import {IEulerEToken} from "../../interfaces/euler/IEulerEToken.sol";
 import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
@@ -16,13 +14,8 @@ import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
  * @notice This contract allows interaction with Euler Finance.
  */
 contract Euler is ILendingProvider {
-
-  function _getEuler() internal pure returns (IEuler) {
-    return IEuler(0x27182842E098f60e3D576794A5bFFb0777E025d3);
-  }
-
   function _getEulerMarkets() internal pure returns (IEulerMarkets) {
-    return IEulerMarkets(0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3); 
+    return IEulerMarkets(0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3);
   }
 
   /// inheritdoc ILendingProvider
@@ -30,10 +23,9 @@ contract Euler is ILendingProvider {
     return "Euler";
   }
 
-
   /// inheritdoc ILendingProvider
   function approvedOperator(address, address) external pure override returns (address operator) {
-    operator = address(_getEuler());
+    operator = 0x27182842E098f60e3D576794A5bFFb0777E025d3;
   }
 
   /// inheritdoc ILendingProvider
@@ -48,11 +40,11 @@ contract Euler is ILendingProvider {
     markets.enterMarket(0, vault.asset());
     success = true;
   }
-  
+
   /// inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
-    
+
     // Get the dToken address of the borrowed asset:
     IEulerDToken borrowedDToken = IEulerDToken(markets.underlyingToDToken(vault.debtAsset()));
     borrowedDToken.borrow(0, amount);
@@ -82,8 +74,8 @@ contract Euler is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
-    int iRate = markets.interestRate(vault.asset());
-    unchecked{
+    int256 iRate = markets.interestRate(vault.asset());
+    unchecked {
       rate = iRate < 0 ? 0 : uint256(iRate);
     }
   }
@@ -91,17 +83,14 @@ contract Euler is ILendingProvider {
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
-    int iRate = markets.interestRate(vault.debtAsset());
-    unchecked{
+    int256 iRate = markets.interestRate(vault.debtAsset());
+    unchecked {
       rate = iRate < 0 ? 0 : uint256(iRate);
     }
   }
 
   /// inheritdoc ILendingProvider
-  function getDepositBalance(
-    address user,
-    IVault vault
-  )
+  function getDepositBalance(address user, IVault vault)
     external
     view
     override
@@ -113,15 +102,12 @@ contract Euler is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function getBorrowBalance(
-    address user,
-    IVault vault
-  )
+  function getBorrowBalance(address user, IVault vault)
     external
     view
     override
     returns (uint256 balance)
-  { 
+  {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerDToken dToken = IEulerDToken(markets.underlyingToDToken(vault.debtAsset()));
 
