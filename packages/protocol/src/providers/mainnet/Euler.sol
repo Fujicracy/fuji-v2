@@ -98,7 +98,7 @@ contract Euler is ILendingProvider {
   {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerEToken eToken = IEulerEToken(markets.underlyingToEToken(vault.asset()));
-    balance = eToken.balanceOfUnderlying(address(user));
+    balance = eToken.balanceOfUnderlying(user);
   }
 
   /// inheritdoc ILendingProvider
@@ -111,6 +111,6 @@ contract Euler is ILendingProvider {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerDToken dToken = IEulerDToken(markets.underlyingToDToken(vault.debtAsset()));
 
-    balance = dToken.balanceOf(address(user));
+    balance = dToken.balanceOf(user);
   }
 }
