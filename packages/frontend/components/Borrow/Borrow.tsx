@@ -6,7 +6,6 @@ import {
   CardContent,
   Card,
   Grid,
-  CircularProgress,
 } from "@mui/material"
 import Image from "next/image"
 
@@ -25,8 +24,12 @@ export default function Borrow() {
   const walletChain = useStore((state) => state.chain)
   const changeChain = useStore((state) => state.changeChain)
   const updateBalance = useStore((state) => state.updateBalances)
+  const updateVault = useStore((state) => state.updateVault)
   useEffect(() => {
     updateBalance("collateral")
+    if (address) {
+      updateVault()
+    }
   }, [address, updateBalance])
 
   const login = useStore((state) => state.login)
@@ -40,8 +43,6 @@ export default function Borrow() {
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
   // const debt = useStore((state) => state.position.debt)
 
-  const transactionStatus = useStore((state) => state.transactionStatus)
-  const setTransactionStatus = useStore((state) => state.setTransactionStatus)
   const setShowTransactionAbstract = useStore(
     (state) => state.setShowTransactionAbstract
   )
@@ -68,6 +69,8 @@ export default function Borrow() {
   const signature = useStore((state) => state.signature)
   const isSigning = useStore((state) => state.isSigning)
   const signPermit = useStore((state) => state.signPermit)
+  const borrow = useStore((state) => state.borrow)
+  const isBorrowing = useStore((state) => state.isBorrowing)
 
   let button: ReactNode
   if (!address) {
@@ -134,26 +137,16 @@ export default function Borrow() {
         <br />
         <br />
 
-        <Button
+        <LoadingButton
           variant="gradient"
-          onClick={() => {
-            setTransactionStatus(true)
-            setShowTransactionProcessingModal(true)
-          }}
+          onClick={borrow}
           fullWidth
           className={styles.btn}
-          startIcon={
-            transactionStatus ? <CircularProgress size={15} /> : undefined
-          }
-          disabled={
-            collateral.amount <= 0 ||
-            collateral.amount > balance ||
-            balance < 0 ||
-            !signature
-          }
+          disabled={collateral.amount <= 0 || debt.amount <= 0 || !signature}
+          loading={isBorrowing}
         >
           Borrow
-        </Button>
+        </LoadingButton>
       </>
     )
   }

@@ -49,29 +49,36 @@ type TransactionState = {
 
   needPermit: boolean
   isSigning: boolean
-  signature?: string
+  signature?: Signature
+  actions?: RouterActionParams[]
+
+  isBorrowing: boolean
 }
 
 type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
   setShowTransactionAbstract: (show: boolean) => void
+
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
   changeCollateralChain: (chainId: ChainId) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
+
   updateTokenPrice: (type: "debt" | "collateral") => void
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
   updateVault: () => void
   updateTransactionMeta: () => void
+
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
+  borrow: () => void
 }
 type ChainId = string // hex value as string
 
-const initialChainId = "0x1"
+const initialChainId = "0x1a4"
 const initialDebtTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
 const initialCollateralTokens = sdk.getCollateralForChain(
   parseInt(initialChainId, 16)
@@ -120,8 +127,8 @@ const initialState: TransactionState = {
   },
 
   needPermit: true,
-  signature: "",
   isSigning: false,
+  isBorrowing: false,
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -249,7 +256,14 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async updateTokenPrice(type) {
-    const tokenValue = await get().position[type].token.getPriceUSD()
+    const token = get().position[type].token
+
+    let tokenValue = await token.getPriceUSD()
+    if (token.symbol === "WETH") {
+      // TODO: remove (fix bc value on testnet is too low)
+      tokenValue = 1242.42
+    }
+    console.log(token.symbol, "=>", tokenValue, "USD")
 
     set(
       produce((state: TransactionState) => {
@@ -301,19 +315,20 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
 
     const providers = await vault.getProviders()
-    const ltvMax = vault.maxLtv
-      ? parseInt(ethers.utils.formatUnits(vault.maxLtv))
-      : DEFAULT_LTV_MAX
-
     await vault.preLoad(address ? new Address(address) : undefined)
+
+    const ltvMax = vault.maxLtv
+      ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
+      : DEFAULT_LTV_MAX
+    const ltvThreshold = vault.liqRatio
+      ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
+      : DEFAULT_LTV_TRESHOLD
 
     set(
       produce((state: TransactionState) => {
         state.position.vault = vault
         state.position.ltvMax = ltvMax
-        state.position.ltvThreshold = vault.liqRatio
-          ? parseInt(ethers.utils.formatUnits(vault.liqRatio))
-          : 0
+        state.position.ltvThreshold = ltvThreshold
         state.position.providers = providers
         state.position.activeProvider = providers[0]
       })
@@ -340,7 +355,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set(
       produce((state: TransactionState) => {
         state.transactionMeta.status = "fetching"
-        state.signature = ""
+        state.signature = undefined
+        state.actions = undefined
       })
     )
 
@@ -348,8 +364,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const { bridgeFee, estimateTime, actions } =
         await sdk.previewDepositAndBorrow(
           vault,
-          parseUnits(collateral.amount.toString()),
-          parseUnits(debt.amount.toString()),
+          parseUnits(collateral.amount.toString(), collateral.token.decimals),
+          parseUnits(debt.amount.toString(), debt.token.decimals),
           collateral.token,
           debt.token,
           new Address(address)
@@ -376,6 +392,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           state.transactionMeta.estimateTime = estimateTime
           // state.transactionMeta.gasFees = gasPrice?.toNumber() || 0
           state.needPermit = Sdk.needSignature(actions)
+          state.actions = actions
         })
       )
     } catch (e) {
@@ -428,38 +445,68 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async signPermit() {
-    const address = useStore.getState().address
+    const actions = get().actions
+    const vault = get().position.vault
     const provider = useStore.getState().provider
-    if (!address || !provider) {
-      return
-    }
-
-    const position = get().position
-    const { collateral, debt, vault } = position
-    if (!vault || !collateral.amount || !debt.amount) {
-      throw "Missing params"
+    if (!actions || !vault || !provider) {
+      throw "Unexpected undefined value"
     }
 
     set({ isSigning: true })
-
-    const { actions } = await sdk.previewDepositAndBorrow(
-      vault,
-      parseUnits(collateral.amount.toString()),
-      parseUnits(debt.amount.toString()),
-      collateral.token,
-      debt.token,
-      new Address(address)
-    )
 
     const permitAction = Sdk.findPermitAction(actions)
     if (!permitAction) {
       return
     }
-    const digest = await vault.signPermitFor(permitAction)
-    const signer = provider.getSigner()
-    const signature = await signer.signMessage(digest)
 
-    set({ signature: signature, isSigning: false })
+    let signature
+    try {
+      const { domain, types, value } = await vault.signPermitFor(permitAction)
+      const signer = provider.getSigner()
+      const s = await signer._signTypedData(domain, types, value)
+      signature = ethers.utils.splitSignature(s)
+    } catch (e) {
+      console.error(e)
+    }
+
+    set({ signature, isSigning: false })
+  },
+
+  async borrow() {
+    const address = useStore.getState().address
+    const provider = useStore.getState().provider
+    const { actions, signature } = get()
+    if (!actions || !address || !signature || !provider) {
+      throw "Unexpected undefined param"
+    }
+    const srcChainId = get().position.collateral.token.chainId
+
+    set({ isBorrowing: true })
+    let t
+    try {
+      const txRequest = await sdk.getTxDetails(
+        actions,
+        srcChainId,
+        new Address(address),
+        signature
+      )
+      const signer = provider.getSigner()
+      t = await signer.sendTransaction(txRequest)
+    } catch (e) {
+      // TODO: handle borrow error, if error refuse in metamask or the tx fail for some reason
+      return set({ isBorrowing: false })
+    }
+    set({ transactionStatus: true, showTransactionAbstract: true }) // TODO: Tx successfully sent
+    await t.wait()
+    set({
+      isBorrowing: false,
+      transactionStatus: false,
+      showTransactionAbstract: false,
+    })
+    // TODO: set success
+    get().updateBalances("debt")
+    get().updateAllowance()
+    get().updateBalances("collateral")
   },
 })
 
@@ -506,25 +553,4 @@ export function useLiquidationPrice(liquidationTreshold: number): {
   )
 
   return { liquidationPrice, liquidationDiff }
-}
-
-function withoutPermits(actions: RouterActionParams[]): RouterActionParams[] {
-  return actions.reduce(
-    (acc: RouterActionParams[], val: RouterActionParams) => {
-      if (
-        val.action === RouterAction.PERMIT_BORROW ||
-        val.action === RouterAction.PERMIT_WITHDRAW
-      ) {
-        return acc
-      }
-      if (val.action === RouterAction.X_TRANSFER_WITH_CALL) {
-        val.innerActions = withoutPermits(val.innerActions)
-        acc.push(val)
-        return acc
-      }
-      acc.push(val)
-      return [val, ...acc]
-    },
-    []
-  )
 }
