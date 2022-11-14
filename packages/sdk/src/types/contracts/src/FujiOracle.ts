@@ -30,58 +30,88 @@ import type {
 
 export interface FujiOracleInterface extends utils.Interface {
   functions: {
+    "HARVESTER_ROLE()": FunctionFragment;
+    "LIQUIDATOR_ROLE()": FunctionFragment;
+    "PAUSER_ROLE()": FunctionFragment;
+    "REBALANCER_ROLE()": FunctionFragment;
+    "UNPAUSER_ROLE()": FunctionFragment;
+    "chief()": FunctionFragment;
     "getPriceOf(address,address,uint8)": FunctionFragment;
-    "owner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "setPriceFeed(address,address)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "usdPriceFeeds(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "HARVESTER_ROLE"
+      | "LIQUIDATOR_ROLE"
+      | "PAUSER_ROLE"
+      | "REBALANCER_ROLE"
+      | "UNPAUSER_ROLE"
+      | "chief"
       | "getPriceOf"
-      | "owner"
-      | "renounceOwnership"
       | "setPriceFeed"
-      | "transferOwnership"
       | "usdPriceFeeds"
   ): FunctionFragment;
 
   encodeFunctionData(
+    functionFragment: "HARVESTER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LIQUIDATOR_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REBALANCER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UNPAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "chief", values?: undefined): string;
+  encodeFunctionData(
     functionFragment: "getPriceOf",
     values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "setPriceFeed",
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "usdPriceFeeds",
     values: [string]
   ): string;
 
-  decodeFunctionResult(functionFragment: "getPriceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "HARVESTER_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "LIQUIDATOR_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "REBALANCER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UNPAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getPriceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setPriceFeed",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -91,11 +121,9 @@ export interface FujiOracleInterface extends utils.Interface {
 
   events: {
     "AssetPriceFeedChanged(address,address)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AssetPriceFeedChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
 export interface AssetPriceFeedChangedEventObject {
@@ -109,18 +137,6 @@ export type AssetPriceFeedChangedEvent = TypedEvent<
 
 export type AssetPriceFeedChangedEventFilter =
   TypedEventFilter<AssetPriceFeedChangedEvent>;
-
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
-}
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface FujiOracle extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -149,6 +165,18 @@ export interface FujiOracle extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    chief(overrides?: CallOverrides): Promise<[string]>;
+
     getPriceOf(
       _currencyAsset: string,
       _commodityAsset: string,
@@ -156,25 +184,26 @@ export interface FujiOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { price: BigNumber }>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setPriceFeed(
       _asset: string,
       _priceFeed: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     usdPriceFeeds(arg0: string, overrides?: CallOverrides): Promise<[string]>;
   };
+
+  HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  chief(overrides?: CallOverrides): Promise<string>;
 
   getPriceOf(
     _currencyAsset: string,
@@ -183,26 +212,27 @@ export interface FujiOracle extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setPriceFeed(
     _asset: string,
     _priceFeed: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   usdPriceFeeds(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    chief(overrides?: CallOverrides): Promise<string>;
+
     getPriceOf(
       _currencyAsset: string,
       _commodityAsset: string,
@@ -210,18 +240,9 @@ export interface FujiOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
     setPriceFeed(
       _asset: string,
       _priceFeed: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -237,18 +258,21 @@ export interface FujiOracle extends BaseContract {
       asset?: null,
       newPriceFeedAddress?: null
     ): AssetPriceFeedChangedEventFilter;
-
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
   };
 
   estimateGas: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    chief(overrides?: CallOverrides): Promise<BigNumber>;
+
     getPriceOf(
       _currencyAsset: string,
       _commodityAsset: string,
@@ -256,20 +280,9 @@ export interface FujiOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     setPriceFeed(
       _asset: string,
       _priceFeed: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -277,6 +290,18 @@ export interface FujiOracle extends BaseContract {
   };
 
   populateTransaction: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getPriceOf(
       _currencyAsset: string,
       _commodityAsset: string,
@@ -284,20 +309,9 @@ export interface FujiOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     setPriceFeed(
       _asset: string,
       _priceFeed: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -313,14 +327,24 @@ export interface FujiOracleMulticall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
+  HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Call<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  chief(overrides?: CallOverrides): Call<string>;
+
   getPriceOf(
     _currencyAsset: string,
     _commodityAsset: string,
     _decimals: BigNumberish,
     overrides?: CallOverrides
   ): Call<BigNumber>;
-
-  owner(overrides?: CallOverrides): Call<string>;
 
   usdPriceFeeds(arg0: string, overrides?: CallOverrides): Call<string>;
 }

@@ -300,9 +300,9 @@ contract SimpleRouterUnitTests is MockingSetup {
     debtAsset2 = new MockERC20("Test KAI", "tKAI");
     vm.label(address(debtAsset2), "tKAI");
 
-    // WETH and DAI prices by Aug 12h 2022
-    oracle.setPriceOf(collateralAsset, address(debtAsset2), 528881643782407);
-    oracle.setPriceOf(address(debtAsset2), collateralAsset, 1889069940262927605990);
+    // WETH and DAI prices by Nov 11h 2022
+    oracle.setUSDPriceOf(address(collateralAsset), 796341757142697);
+    oracle.setUSDPriceOf(address(debtAsset2), 100000000);
 
     newVault = new BorrowingVault(
       collateralAsset,

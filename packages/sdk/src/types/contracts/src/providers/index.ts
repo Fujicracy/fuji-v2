@@ -3,5 +3,7 @@
 /* eslint-disable */
 import type * as goerli from "./goerli";
 export type { goerli };
-import type * as rinkeby from "./rinkeby";
-export type { rinkeby };
+import type * as mainnet from "./mainnet";
+export type { mainnet };
+import type * as optimism from "./optimism";
+export type { optimism };

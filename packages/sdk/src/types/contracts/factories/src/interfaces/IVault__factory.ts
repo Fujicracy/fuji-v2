@@ -385,7 +385,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "account",
+        name: "owner",
         type: "address",
       },
     ],
@@ -562,6 +562,68 @@ const _abi = [
       {
         internalType: "uint256",
         name: "shares",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getHealthFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "healthFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getLiquidationFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "liquidationFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "liquidate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "gainedShares",
         type: "uint256",
       },
     ],
@@ -803,6 +865,47 @@ const _abi = [
   {
     inputs: [
       {
+        components: [
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "asset",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "from",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "to",
+            type: "address",
+          },
+        ],
+        internalType: "struct IVault.RebalanceAction[]",
+        name: "actions",
+        type: "tuple[]",
+      },
+    ],
+    name: "rebalance",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "shares",
         type: "uint256",
@@ -864,6 +967,19 @@ const _abi = [
       },
     ],
     name: "setMinDepositAmount",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract ILendingProvider[]",
+        name: "providers",
+        type: "address[]",
+      },
+    ],
+    name: "setProviders",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

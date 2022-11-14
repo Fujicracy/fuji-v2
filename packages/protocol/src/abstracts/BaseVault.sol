@@ -6,7 +6,6 @@ pragma solidity 0.8.15;
  * @author Fujidao Labs
  * @notice Defines the interface and common functions for all vaults.
  */
-
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
@@ -181,7 +180,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxRedeem(address owner) public view override returns (uint256) {
-    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Down);
+    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Up);
   }
 
   /// @inheritdoc IERC4626

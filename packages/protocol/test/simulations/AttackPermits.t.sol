@@ -29,8 +29,8 @@ contract AttackPermits is MockingSetup, Routines {
     vm.label(CHARLIE, "attacker");
     attacker = CHARLIE;
 
-    oracle.setPriceOf(collateralAsset, debtAsset, ETH_PER_USD_PRICE);
-    oracle.setPriceOf(debtAsset, collateralAsset, USD_PER_ETH_PRICE);
+    oracle.setUSDPriceOf(collateralAsset, USD_PER_ETH_PRICE);
+    oracle.setUSDPriceOf(debtAsset, ETH_PER_USD_PRICE);
 
     mockProvider = new MockProvider();
     ILendingProvider[] memory providers = new ILendingProvider[](1);

@@ -3,6 +3,8 @@
 /* eslint-disable */
 import type * as abstracts from "./abstracts";
 export type { abstracts };
+import type * as access from "./access";
+export type { access };
 import type * as flashloans from "./flashloans";
 export type { flashloans };
 import type * as helpers from "./helpers";

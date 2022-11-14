@@ -64,7 +64,11 @@ contract ConnextRouterTest is Routines, ForkingSetup {
   }
 
   function test_bridgeOutbound() public {
-    uint256 amount = 0.2 ether;
+    uint256 amount = 2 ether;
+    // Replacing collateralAsset with Connext TEST token
+    // becasue Connext throwing an error "more than pool balance"
+    // if using WETH
+    collateralAsset = 0x68Db1c8d85C09d546097C65ec7DCBFF4D6497CbF;
     deal(collateralAsset, ALICE, amount);
 
     uint32 destDomain = GOERLI_DOMAIN;
@@ -78,7 +82,7 @@ contract ConnextRouterTest is Routines, ForkingSetup {
 
     actions[0] = IRouter.Action.XTransferWithCall;
     bytes memory randomData = abi.encode(keccak256("data_data"));
-    args[0] = abi.encode(destDomain, collateralAsset, amount, randomData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, randomData);
 
     /*bytes4 selector =*/
     /*bytes4(keccak256("xCall(uint32,address,address,address,uint256,uint256,bytes)"));*/

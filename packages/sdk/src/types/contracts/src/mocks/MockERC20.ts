@@ -35,6 +35,7 @@ export interface MockERC20Interface extends utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "balanceOfDebt(address)": FunctionFragment;
     "burn(address,uint256)": FunctionFragment;
+    "burnDebt(address,uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
@@ -54,6 +55,7 @@ export interface MockERC20Interface extends utils.Interface {
       | "balanceOf"
       | "balanceOfDebt"
       | "burn"
+      | "burnDebt"
       | "decimals"
       | "decreaseAllowance"
       | "increaseAllowance"
@@ -81,6 +83,10 @@ export interface MockERC20Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "burn",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnDebt",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
@@ -123,6 +129,7 @@ export interface MockERC20Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burnDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "decreaseAllowance",
@@ -228,6 +235,12 @@ export interface MockERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    burnDebt(
+      from: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
     decreaseAllowance(
@@ -296,6 +309,12 @@ export interface MockERC20 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  burnDebt(
+    from: string,
+    value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   decimals(overrides?: CallOverrides): Promise<number>;
 
   decreaseAllowance(
@@ -359,6 +378,12 @@ export interface MockERC20 extends BaseContract {
     balanceOfDebt(who: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     burn(
+      from: string,
+      value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    burnDebt(
       from: string,
       value: BigNumberish,
       overrides?: CallOverrides
@@ -457,6 +482,12 @@ export interface MockERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    burnDebt(
+      from: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     decreaseAllowance(
@@ -527,6 +558,12 @@ export interface MockERC20 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     burn(
+      from: string,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    burnDebt(
       from: string,
       value: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

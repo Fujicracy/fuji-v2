@@ -73,6 +73,8 @@ interface IConnext {
   function execute(ExecuteArgs calldata _args)
     external
     returns (bool success, bytes memory returnData);
+
+  function bumpTransfer(bytes32 transferId) external payable;
 }
 
 interface IXReceiver {

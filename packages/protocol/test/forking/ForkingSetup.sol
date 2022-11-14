@@ -23,8 +23,11 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant GOERLI_DOMAIN = 1735353714;
   uint32 public constant OPTIMISM_GOERLI_DOMAIN = 1735356532;
   uint32 public constant MUMBAI_DOMAIN = 9991;
+
   uint32 public constant MAINNET_DOMAIN = 6648936;
   uint32 public constant OPTIMISM_DOMAIN = 22222222; // TODO: replace with the real one
+  uint32 public constant ARBITRUM_DOMAIN = 33333333; // TODO: replace with the real one
+  uint32 public constant POLYGON_DOMAIN = 44444444; // TODO: replace with the real one
 
   uint256 public constant ALICE_PK = 0xA;
   address public ALICE = vm.addr(ALICE_PK);
@@ -64,6 +67,8 @@ contract ForkingSetup is CoreRoles, Test {
     forks[MUMBAI_DOMAIN] = vm.createFork("mumbai");
     forks[MAINNET_DOMAIN] = vm.createFork("mainnet");
     forks[OPTIMISM_DOMAIN] = vm.createFork("optimism");
+    forks[ARBITRUM_DOMAIN] = vm.createFork("arbitrum");
+    forks[POLYGON_DOMAIN] = vm.createFork("polygon");
 
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
@@ -99,6 +104,20 @@ contract ForkingSetup is CoreRoles, Test {
       connext: address(0)
     });
     registry[OPTIMISM_DOMAIN] = optimism;
+
+    Registry memory arbitrum = Registry({
+      weth: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,
+      usdc: 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8,
+      connext: address(0)
+    });
+    registry[ARBITRUM_DOMAIN] = arbitrum;
+
+    Registry memory polygon = Registry({
+      weth: 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619,
+      usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
+      connext: address(0)
+    });
+    registry[POLYGON_DOMAIN] = polygon;
   }
 
   function deploy(uint32 domain) public {
@@ -127,9 +146,9 @@ contract ForkingSetup is CoreRoles, Test {
 
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
-    // WETH and DAI prices by Aug 12h 2022
-    mockOracle.setPriceOf(collateralAsset, debtAsset, 528881643782407);
-    mockOracle.setPriceOf(debtAsset, collateralAsset, 1889069940262927605990);
+    // WETH and DAI prices by Nov 11h 2022
+    mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
+    mockOracle.setUSDPriceOf(debtAsset, 100000000);
 
     address[] memory admins = new address[](1);
     admins[0] = address(this);

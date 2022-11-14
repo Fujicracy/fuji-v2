@@ -14,7 +14,50 @@ import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
-  event NewRouterAdded(address router, uint256 domain);
+  /**
+   * @notice Emitted when a new destination router gets added.
+   * @param router - The router on another chain.
+   * @param domain - The destination domain identifier according Connext nomenclature.
+   */
+  event NewRouterAdded(address indexed router, uint256 indexed domain);
+
+  /**
+   * @notice Emitted when Connext `xCall` is invoked.
+   * @param transferId - The unique identifier of the crosschain transfer.
+   * @param caller - The account that called the function.
+   * @param receiver - The router on destDomain.
+   * @param destDomain - The destination domain identifier according Connext nomenclature.
+   * @param asset - The asset being transferred.
+   * @param amount - The amount of transferring asset the recipient address receives.
+   * @param callData - The calldata sent to destination router that will get decoded and executed.
+   */
+  event XCalled(
+    bytes32 indexed transferId,
+    address indexed caller,
+    address indexed receiver,
+    uint256 destDomain,
+    address asset,
+    uint256 amount,
+    bytes callData
+  );
+
+  /**
+   * @notice Emitted when the router receives a cross-chain call.
+   * @param transferId - The unique identifier of the crosschain transfer.
+   * @param originSender - The router on originDomain.
+   * @param originDomain - The origin domain identifier according Connext nomenclature.
+   * @param asset - The asset being transferred.
+   * @param amount - The amount of transferring asset the recipient address receives.
+   * @param callData - The calldata that will get decoded and executed.
+   */
+  event XReceived(
+    bytes32 indexed transferId,
+    address indexed originSender,
+    uint256 originDomain,
+    address asset,
+    uint256 amount,
+    bytes callData
+  );
 
   error ConnextRouter__setRouter_invalidInput();
 
@@ -24,78 +67,77 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   // ref: https://docs.nomad.xyz/developers/environments/domain-chain-ids
   mapping(uint256 => address) public routerByDomain;
 
-  // A modifier for permissioned function calls.
-  // Note: This is an important security consideration. If your target
-  //       contract function is meant to be permissioned, it must check
-  //       that the originating call is from the correct domain and contract.
-  //       Also, check that the msg.sender is the Connext address.
-  modifier onlyConnext(address originSender, uint32 originDomain) {
-    require(
-      // TODO subject to change in the new version of amarok
-      originSender == routerByDomain[originDomain] && msg.sender == address(connext),
-      "Expected origin contract on origin domain called by Connext"
-    );
-    _;
-  }
-
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
   }
 
   // Connext specific functions
 
+  /**
+   * @notice Called by Connext on the destination chain
+   * @param transferId - The unique identifier of the crosschain transfer.
+   * @param amount - The amount of transferring asset the recipient address receives.
+   * @param asset - The asset being transferred.
+   * @param originSender - The router on originDomain.
+   * @param origin - The origin domain identifier according Connext nomenclature.
+   * @param callData - The calldata that will get decoded and executed.
+   */
   function xReceive(
-    bytes32, /* transferId */
-    uint256, /* amount */
-    address, /* asset */
+    bytes32 transferId,
+    uint256 amount,
+    address asset,
     address originSender,
     uint32 origin,
-    bytes memory params
+    bytes memory callData
   )
     external
-    onlyConnext(originSender, origin)
     returns (bytes memory)
   {
-    (Action[] memory actions, bytes[] memory args) = abi.decode(params, (Action[], bytes[]));
+    (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     _bundleInternal(actions, args);
+
+    emit XReceived(transferId, originSender, origin, asset, amount, callData);
+
     return "";
   }
 
   function _crossTransfer(bytes memory params) internal override {
-    (uint256 destDomain, address asset, uint256 amount, address receiver) =
-      abi.decode(params, (uint256, address, uint256, address));
+    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver) =
+      abi.decode(params, (uint256, uint256, address, uint256, address));
 
     pullToken(ERC20(asset), amount, address(this));
     approve(ERC20(asset), address(connext), amount);
 
-    connext.xcall(
+    bytes32 transferId = connext.xcall(
       // _destination: Domain ID of the destination chain
       uint32(destDomain),
       // _to: address of the target contract
       receiver,
       // _asset: address of the token contract
       asset,
-      // _delegate: address that can revert or forceLocal on destination
+      // _delegate: address that has rights to update the original slippage tolerance
+      // by calling Connext's forceUpdateSlippage function
       msg.sender,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
-      // the maximum amount of slippage the user will accept in BPS, in this case 0.3%
-      30,
+      // the maximum amount of slippage the user will accept in BPS, 30 == 0.3%
+      slippage,
       // _callData: empty because we're only sending funds
       ""
     );
+    emit XCalled(transferId, msg.sender, receiver, destDomain, asset, amount, "");
   }
 
   function _crossTransferWithCalldata(bytes memory params) internal override {
-    (uint256 destDomain, address asset, uint256 amount, bytes memory callData) =
-      abi.decode(params, (uint256, address, uint256, bytes));
+    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
+      abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
     pullToken(ERC20(asset), amount, address(this));
     approve(ERC20(asset), address(connext), amount);
 
-    connext.xcall(
+    bytes32 transferId = connext.xcall(
       // _destination: Domain ID of the destination chain
       uint32(destDomain),
       // _to: address of the target contract
@@ -107,11 +149,23 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
-      // the maximum amount of slippage the user will accept in BPS, in this case 0.3%
-      30,
+      // the maximum amount of slippage the user will accept in BPS, 30 == 0.3%
+      slippage,
       // _callData: the encoded calldata to send
       callData
     );
+
+    emit XCalled(
+      transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
+      );
+  }
+
+  /**
+   * @notice Anyone can call this function on the origin domain to increase the relayer fee for a transfer.
+   * @param transferId - The unique identifier of the crosschain transaction
+   */
+  function bumpTransfer(bytes32 transferId) external payable {
+    connext.bumpTransfer{value: msg.value}(transferId);
   }
 
   ///////////////////////

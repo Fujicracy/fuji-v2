@@ -44,9 +44,9 @@ contract MockingSetup is CoreRoles, Test {
     vm.label(debtAsset, "testDAI");
 
     oracle = new MockOracle();
-    // WETH and DAI prices by Aug 12h 2022
-    oracle.setPriceOf(collateralAsset, debtAsset, 528881643782407);
-    oracle.setPriceOf(debtAsset, collateralAsset, 1889069940262927605990);
+    // WETH and DAI prices by Nov 11h 2022
+    oracle.setUSDPriceOf(collateralAsset, 796341757142697);
+    oracle.setUSDPriceOf(debtAsset, 100000000);
 
     address[] memory admins = new address[](1);
     admins[0] = address(this);

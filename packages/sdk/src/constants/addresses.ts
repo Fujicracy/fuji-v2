@@ -18,10 +18,10 @@ export const USDC_ADDRESS: AddressMap = {
   ),
   [ChainId.GOERLI]: Address.from('0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb'
+    '0x345889dEb3F296B69719322537F53C4E0b1fd9BE'
   ),
   [ChainId.MATIC_MUMBAI]: Address.from(
-    '0x742DfA5Aa70a8212857966D491D67B09Ce7D6ec7'
+    '0xfC6c77DCddBDDdca077b5Ed2680cbe44E94081C4'
   ),
 };
 
@@ -39,10 +39,10 @@ export const WETH9_ADDRESS: AddressMap = {
   ),
   [ChainId.GOERLI]: Address.from('0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0x4200000000000000000000000000000000000006'
+    '0x74c6FD7D2Bc6a8F0Ebd7D78321A95471b8C2B806'
   ),
   [ChainId.MATIC_MUMBAI]: Address.from(
-    '0x714550C2C1Ea08688607D86ed8EeF4f5E4F22323'
+    '0xFD2AB41e083c75085807c4A65C0A14FDD93d55A9'
   ),
 };
 
@@ -71,9 +71,13 @@ export const DAI_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM]: Address.from(
     '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
   ),
-  [ChainId.GOERLI]: Address.from(AddressZero),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from('0xb08B4FC6b8B6cAcd69d21F1C94d07FcD4753B5F1'),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0x267C950378eeDacE9D4285F1b4EF59fD78aB0169'
+  ),
+  [ChainId.MATIC_MUMBAI]: Address.from(
+    '0x0A5AE664dE0E74b8b433Fb276d1DCe3C6B09B709'
+  ),
 };
 
 export const USDT_ADDRESS: AddressMap = {
@@ -90,46 +94,37 @@ export const USDT_ADDRESS: AddressMap = {
   ),
   [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.MATIC_MUMBAI]: Address.from(
+    '0xd0F5f1904e332ab204966e810DdbCeA923d71A15'
+  ),
 };
 
-export const MULTICALL2_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(
-    '0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696'
-  ),
-  [ChainId.ARBITRUM]: Address.from(
-    '0x80C7DD17B01855a6D2347444a0FCC36136a314de'
-  ),
-  [ChainId.OPTIMISM]: Address.from(AddressZero),
-  [ChainId.FANTOM]: Address.from('0x22D4cF72C45F8198CfbF4B568dBdB5A85e8DC0B5'),
-  [ChainId.MATIC]: Address.from('0x02817C1e3543c2d908a590F5dB6bc97f933dB4BD'),
-  [ChainId.GOERLI]: Address.from('0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696'),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
-};
-
-export const CONNEXT_ADDRESS: AddressMap = {
+export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(AddressZero),
   [ChainId.OPTIMISM]: Address.from(AddressZero),
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.MATIC]: Address.from(AddressZero),
-  [ChainId.GOERLI]: Address.from('0xD9e8b18Db316d7736A3d0386C59CA3332810df3B'),
+  [ChainId.GOERLI]: Address.from('0xf969CD6c5B4780a96a064DdA50cCbE239a60E2Db'),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0xD26C613D853a1774151293CD8d1E0A901C95c2A6'
+  ),
   [ChainId.MATIC_MUMBAI]: Address.from(
-    '0xfdA9C9aE45866D12E5008912318bf3c34fc30912'
+    '0x20d1b5489Dd80E3Aa75A41eA14dFDC00099756d1'
+  ),
+};
+
+export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
+  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(AddressZero),
+  [ChainId.OPTIMISM]: Address.from(AddressZero),
+  [ChainId.FANTOM]: Address.from(AddressZero),
+  [ChainId.MATIC]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from('0x99A784d082476E551E5fc918ce3d849f2b8e89B6'),
+  [ChainId.MATIC_MUMBAI]: Address.from(
+    '0xb359F343512eAF2d026911726173a149D330bA8F'
   ),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0xA04f29c24CCf3AF30D4164F608A56Dc495B2c976'
+    '0xdA1a42056BcBDd35b8E1C4f55773f0f11c171634'
   ),
-};
-
-export const CONNEXT_EXECUTOR_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
-  [ChainId.ARBITRUM]: Address.from(AddressZero),
-  [ChainId.OPTIMISM]: Address.from(AddressZero),
-  [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from(AddressZero),
-  [ChainId.GOERLI]: Address.from('0x262C3A0228c8A1364A4E29a6cB14EE8a31c349ef'),
-  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
-  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
 };

@@ -13,7 +13,12 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { Call } from "@hovoh/ethcall";
 import type {
@@ -29,6 +34,7 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
     "configAddress(bytes32)": FunctionFragment;
     "deployVault(bytes)": FunctionFragment;
     "getVaults(address,uint256,uint256)": FunctionFragment;
+    "nonce()": FunctionFragment;
     "vaultsByAsset(address,uint256)": FunctionFragment;
     "vaultsCount(address)": FunctionFragment;
   };
@@ -39,6 +45,7 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
       | "configAddress"
       | "deployVault"
       | "getVaults"
+      | "nonce"
       | "vaultsByAsset"
       | "vaultsCount"
   ): FunctionFragment;
@@ -56,6 +63,7 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
     functionFragment: "getVaults",
     values: [string, BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "nonce", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "vaultsByAsset",
     values: [string, BigNumberish]
@@ -72,6 +80,7 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "vaultsByAsset",
     data: BytesLike
@@ -81,8 +90,24 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "VaultRegistered(address,address,bytes32)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "VaultRegistered"): EventFragment;
 }
+
+export interface VaultRegisteredEventObject {
+  vault: string;
+  asset: string;
+  salt: string;
+}
+export type VaultRegisteredEvent = TypedEvent<
+  [string, string, string],
+  VaultRegisteredEventObject
+>;
+
+export type VaultRegisteredEventFilter = TypedEventFilter<VaultRegisteredEvent>;
 
 export interface BorrowingVaultFactory extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -130,6 +155,8 @@ export interface BorrowingVaultFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string[]] & { vaults: string[] }>;
 
+    nonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     vaultsByAsset(
       arg0: string,
       arg1: BigNumberish,
@@ -158,6 +185,8 @@ export interface BorrowingVaultFactory extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string[]>;
 
+  nonce(overrides?: CallOverrides): Promise<BigNumber>;
+
   vaultsByAsset(
     arg0: string,
     arg1: BigNumberish,
@@ -183,6 +212,8 @@ export interface BorrowingVaultFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string[]>;
 
+    nonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     vaultsByAsset(
       arg0: string,
       arg1: BigNumberish,
@@ -192,7 +223,18 @@ export interface BorrowingVaultFactory extends BaseContract {
     vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
-  filters: {};
+  filters: {
+    "VaultRegistered(address,address,bytes32)"(
+      vault?: null,
+      asset?: null,
+      salt?: null
+    ): VaultRegisteredEventFilter;
+    VaultRegistered(
+      vault?: null,
+      asset?: null,
+      salt?: null
+    ): VaultRegisteredEventFilter;
+  };
 
   estimateGas: {
     chief(overrides?: CallOverrides): Promise<BigNumber>;
@@ -213,6 +255,8 @@ export interface BorrowingVaultFactory extends BaseContract {
       count: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     vaultsByAsset(
       arg0: string,
@@ -243,6 +287,8 @@ export interface BorrowingVaultFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    nonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     vaultsByAsset(
       arg0: string,
       arg1: BigNumberish,
@@ -271,6 +317,8 @@ export interface BorrowingVaultFactoryMulticall {
     count: BigNumberish,
     overrides?: CallOverrides
   ): Call<string[]>;
+
+  nonce(overrides?: CallOverrides): Call<BigNumber>;
 
   vaultsByAsset(
     arg0: string,
