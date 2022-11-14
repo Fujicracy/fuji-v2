@@ -122,17 +122,17 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   const { steps, actions, bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, token1, token2, user);
 
   // verify if user needs to sign a permit
-  if (sdk.needSignature(actions)) {
-    const permitAction = sdk.findPermitAction(actions)
+  if (Sdk.needPermit(actions)) {
+    const permitAction = Sdk.findPermitAction(actions)
 
     // signing the permit action has to be done through the vault
-    const digest = await vault.signPermitFor(permitAction)
+    const { domain, types, value } = await vault.signPermitFor(permitAction)
 
-    const signature = await ethers.signMessage(digest)
+    const signature = await signer.signMessage(domain, types, value)
   }
 
   const txRequest = await vault.getTxDetails(actions, srcChainId, user, signature?)
-  await ethers.sendTransaction(txRequest);
+  await signer.sendTransaction(txRequest);
 ```
 
 ### Misc
