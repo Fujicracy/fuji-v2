@@ -46,36 +46,36 @@ export const sdk = new Sdk({
 
 export type Chain = IChain
 export const chains: Chain[] = [
-  {
-    id: "0x1",
-    token: "ETH",
-    label: "Ethereum",
-    rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
-  },
-  {
-    id: "0x89",
-    token: "MATIC",
-    label: "Polygon",
-    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-  },
-  {
-    id: "0xfa",
-    token: "FTM",
-    label: "Fantom",
-    rpcUrl: "https://rpc.ftm.tools/",
-  },
-  {
-    id: "0xa4b1",
-    token: "AETH",
-    label: "Arbitrum",
-    rpcUrl: "https://arb1.arbitrum.io/rpc",
-  },
-  {
-    id: "0xa",
-    token: "ETH",
-    label: "Optimism",
-    rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
-  },
+  // {
+  //   id: "0x1",
+  //   token: "ETH",
+  //   label: "Ethereum",
+  //   rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+  // },
+  // {
+  //   id: "0x89",
+  //   token: "MATIC",
+  //   label: "Polygon",
+  //   rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+  // },
+  // {
+  //   id: "0xfa",
+  //   token: "FTM",
+  //   label: "Fantom",
+  //   rpcUrl: "https://rpc.ftm.tools/",
+  // },
+  // {
+  //   id: "0xa4b1",
+  //   token: "AETH",
+  //   label: "Arbitrum",
+  //   rpcUrl: "https://arb1.arbitrum.io/rpc",
+  // },
+  // {
+  //   id: "0xa",
+  //   token: "ETH",
+  //   label: "Optimism",
+  //   rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
+  // },
 ]
 
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
