@@ -368,7 +368,7 @@ describe('Sdk', () => {
       const permitBorrow = actions.find(
         (a) => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
-      const digest = await vault.signPermitFor(permitBorrow);
+      const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
@@ -405,7 +405,7 @@ describe('Sdk', () => {
       const permitBorrow = actions.find(
         (a) => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
-      const digest = await vault.signPermitFor(permitBorrow);
+      const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
@@ -443,7 +443,7 @@ describe('Sdk', () => {
       const permitBorrow = innerActions.find(
         (a) => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
-      const digest = await vault.signPermitFor(permitBorrow);
+      const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
