@@ -152,7 +152,6 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     _utils_doWithdrawRoutine(alice, maxAmount);
   }
 
-
   function test_getBalances() public {
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     _utils_doDepositRoutine(alice, DEPOSIT_AMOUNT);
