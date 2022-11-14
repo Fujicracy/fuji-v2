@@ -99,7 +99,7 @@ export default function Borrow() {
                           width={18}
                           alt={chain.label}
                         />
-                        <Typography ml="0.5rem" variant={"small"}>
+                        <Typography ml="0.5rem" variant="small">
                           {chain.label} Network
                         </Typography>
                       </Grid>
