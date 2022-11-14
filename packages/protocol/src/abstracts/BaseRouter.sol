@@ -10,16 +10,26 @@ pragma solidity 0.8.15;
 import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
+import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
-abstract contract BaseRouter is PeripheryPayments, IRouter {
+abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_wrongInput();
 
-  constructor(IWETH9 weth) PeripheryPayments(weth) {}
+  constructor(
+    IWETH9 weth,
+    IChief chief
+  )
+    PeripheryPayments(weth)
+    SystemAccessControl(address(chief))
+  {}
 
   function xBundle(Action[] memory actions, bytes[] memory args) external override {
+    // add auth?
+    // msg.sender == ??
     _bundleInternal(actions, args);
   }
 

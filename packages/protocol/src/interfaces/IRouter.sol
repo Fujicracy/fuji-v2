@@ -22,6 +22,4 @@ interface IRouter {
   }
 
   function xBundle(Action[] memory actions, bytes[] memory args) external;
-
-  function inboundXCall(bytes memory params) external;
 }
