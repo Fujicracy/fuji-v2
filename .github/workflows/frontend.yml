@@ -79,6 +79,7 @@ jobs:
       run: |
         echo service: v2-staging-${{ steps.findPr.outputs.pr }} >> frontend-app.yaml
         echo NEXT_PUBLIC_INFURA_KEY=${{ secrets.INFURA_ID }} >> packages/frontend/.env
+        echo NEXT_PUBLIC_APP_ENV=development >> packages/frontend/.env
 
     - name: Build
       run: yarn workspace @x-fuji/frontend build
