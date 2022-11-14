@@ -377,6 +377,7 @@ const theme = createTheme(colorTheme, {
     },
     MuiTooltip: {
       styleOverrides: {
+        cursor: "help",
         tooltip: {
           border: `1px solid ${colorTheme.palette.primary.main}`,
           padding: "0.875rem 0.5rem",
