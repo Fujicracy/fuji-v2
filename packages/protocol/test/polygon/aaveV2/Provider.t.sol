@@ -41,7 +41,6 @@ contract ProviderTest is DSTestPlus, CoreRoles {
     weth = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
     usdc = IERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
 
-
     vm.label(address(alice), "alice");
     vm.label(address(bob), "bob");
     vm.label(address(weth), "weth");
