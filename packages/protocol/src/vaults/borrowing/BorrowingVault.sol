@@ -4,9 +4,11 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
+import {IFlasher} from "../../interfaces/IFlasher.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
@@ -33,12 +35,17 @@ contract BorrowingVault is BaseVault {
     uint256 liquidationFactor
   );
 
+  // Custom errors
+
   error BorrowingVault__borrow_invalidInput();
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
+  error BorrowingVault__rebalance_invalidProvider();
+  error BorrowingVault__rebalance_invalidFlasher();
+  error BorrowingVault__checkFee_excessFee();
 
   /// Liquidation controls
 
@@ -339,7 +346,7 @@ contract BorrowingVault is BaseVault {
     _mintDebtShares(owner, shares);
 
     address asset = debtAsset();
-    _executeProviderAction(assets, "borrow");
+    _executeProviderAction(assets, "borrow", activeProvider);
 
     SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
 
@@ -361,7 +368,7 @@ contract BorrowingVault is BaseVault {
     address asset = debtAsset();
     SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
 
-    _executeProviderAction(assets, "payback");
+    _executeProviderAction(assets, "payback", activeProvider);
 
     _burnDebtShares(owner, shares);
 
@@ -387,12 +394,32 @@ contract BorrowingVault is BaseVault {
   ///////////////////
 
   // inheritdoc IVault
-  function rebalance(RebalanceAction[] memory actions)
+  function rebalance(
+    uint256 assets,
+    uint256 debt,
+    ILendingProvider from,
+    ILendingProvider to,
+    uint256 fee
+  )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+    if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
+      revert BorrowingVault__rebalance_invalidProvider();
+    }
+    SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
+    _executeProviderAction(debt, "payback", from);
+    _executeProviderAction(assets, "withdraw", from);
+
+    _checkRebalanceFee(fee, debt);
+
+    _executeProviderAction(assets, "deposit", to);
+    _executeProviderAction(debt + fee, "borrow", to);
+    SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
+
+    emit VaultRebalance(assets, debt, address(from), address(to));
+    return true;
   }
 
   //////////////////////

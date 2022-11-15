@@ -51,6 +51,8 @@ interface IV2Pool {
   )
     external;
 
+  function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
+
   function deposit(
     address _asset,
     uint256 _amount,

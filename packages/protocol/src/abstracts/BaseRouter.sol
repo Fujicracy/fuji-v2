@@ -124,11 +124,20 @@ abstract contract BaseRouter is PeripheryPayments, IRouter {
         // FLASHLOAN
 
         // Decode params
-        (IFlasher flasher, IFlasher.FlashloanParams memory flParams, uint8 providerId) =
-          abi.decode(args[i], (IFlasher, IFlasher.FlashloanParams, uint8));
+        (
+          IFlasher flasher,
+          address asset,
+          uint256 flashAmount,
+          address requestor,
+          bytes memory requestorCalldata
+        ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
+
+        if (requestor != address(this)) {
+          revert BaseRouter__bundleInternal_wrongInput();
+        }
 
         // Call Flasher
-        flasher.initiateFlashloan(flParams, providerId);
+        flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
       }
       unchecked {
         ++i;
