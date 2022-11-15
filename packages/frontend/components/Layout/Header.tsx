@@ -96,7 +96,24 @@ const Header = () => {
                     alignItems: "center",
                   }}
                 >
-                  <ChainSelect />
+                  {status === "disconnected" && (
+                    <>
+                      <Chip
+                        label="Connect wallet"
+                        variant="gradient"
+                        sx={{ fontSize: "1rem" }}
+                        onClick={() => login()}
+                      />
+                      <Button
+                        data-cy="login"
+                        onClick={e2eConnect}
+                        sx={{ position: "absolute", visibility: "hidden" }}
+                      >
+                        e2e
+                      </Button>
+                    </>
+                  )}
+                  {status === "connected" && <ChainSelect />}
 
                   <IconButton
                     size="large"
