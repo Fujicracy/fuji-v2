@@ -36,7 +36,7 @@ contract PrintGoerliBorrows is ScriptPlus {
   }
 
   function sameChain(address vault, address router) public {
-    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router);
+    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner);
     (IRouter.Action[] memory actions, bytes[] memory args) =
       depositAndBorrow(vault, owner, router, v, r, s);
 
@@ -48,7 +48,7 @@ contract PrintGoerliBorrows is ScriptPlus {
     IRouter.Action[] memory actions = new IRouter.Action[](4);
     bytes[] memory args = new bytes[](4);
 
-    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router);
+    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner);
 
     actions[0] = IRouter.Action.Deposit;
     /*(IVault vault, uint256 amount, address receiver, address sender)*/
@@ -76,7 +76,7 @@ contract PrintGoerliBorrows is ScriptPlus {
     address vault = 0x62fd5C9A82991CDc522e4E748A9188E7B3DC7872;
     address router = 0xdA1a42056BcBDd35b8E1C4f55773f0f11c171634;
 
-    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router);
+    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner);
     (IRouter.Action[] memory innerActions, bytes[] memory innerArgs) =
       depositAndBorrow(vault, router, router, v, r, s);
 
@@ -122,10 +122,18 @@ contract PrintGoerliBorrows is ScriptPlus {
     return (actions, args);
   }
 
-  function signMsg(address vault, address spender) public returns (uint8 v, bytes32 r, bytes32 s) {
+  function signMsg(
+    address vault,
+    address operator,
+    address receiver
+  )
+    public
+    returns (uint8 v, bytes32 r, bytes32 s)
+  {
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
-      spender: spender,
+      operator: operator,
+      receiver: receiver,
       amount: borrowAmount,
       nonce: IVaultPermissions(vault).nonces(owner),
       deadline: deadline

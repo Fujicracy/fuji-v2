@@ -57,6 +57,9 @@ contract SimpleRouterUnitTests is MockingSetup {
   uint256 amount = 2 ether;
   uint256 borrowAmount = 1000e18;
 
+  MockERC20 public debtAsset2;
+  IVault public newVault;
+
   function setUp() public {
     oracle = new MockOracle();
 
@@ -78,15 +81,18 @@ contract SimpleRouterUnitTests is MockingSetup {
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     bytes[] memory args = new bytes[](3);
 
+    LibSigUtils.Permit memory permit =
+      LibSigUtils.buildPermitStruct(ALICE, address(simpleRouter), ALICE, debt, 0, address(vault));
+
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(ALICE, ALICE_PK, address(simpleRouter), debt, 0, address(vault_));
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault_));
 
     actions[0] = IRouter.Action.Deposit;
     actions[1] = IRouter.Action.PermitBorrow;
     actions[2] = IRouter.Action.Borrow;
 
     args[0] = abi.encode(address(vault_), deposit, ALICE, ALICE);
-    args[1] = abi.encode(address(vault_), ALICE, address(simpleRouter), debt, deadline, v, r, s);
+    args[1] = abi.encode(address(vault_), ALICE, ALICE, debt, deadline, v, r, s);
     args[2] = abi.encode(address(vault_), debt, ALICE, ALICE);
 
     vm.expectEmit(true, true, true, true);
@@ -105,8 +111,12 @@ contract SimpleRouterUnitTests is MockingSetup {
   }
 
   function test_depositAndBorrow() public {
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(vault)
+    );
+
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(ALICE, ALICE_PK, address(simpleRouter), borrowAmount, 0, address(vault));
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
@@ -115,8 +125,7 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
-    args[1] =
-      abi.encode(address(vault), ALICE, address(simpleRouter), borrowAmount, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
     args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
 
     vm.expectEmit(true, true, true, true);
@@ -140,8 +149,11 @@ contract SimpleRouterUnitTests is MockingSetup {
   function test_paybackAndWithdraw() public {
     _depositAndBorrow(amount, borrowAmount, vault);
 
+    LibSigUtils.Permit memory permit =
+      LibSigUtils.buildPermitStruct(ALICE, address(simpleRouter), ALICE, amount, 0, address(vault));
+
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitWithdrawArgs(ALICE, ALICE_PK, address(simpleRouter), amount, 0, address(vault));
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
 
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Payback;
@@ -150,7 +162,7 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
-    args[1] = abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), ALICE, ALICE, amount, deadline, v, r, s);
     args[2] = abi.encode(address(vault), amount, ALICE, ALICE);
 
     vm.expectEmit(true, true, true, true);
@@ -168,16 +180,18 @@ contract SimpleRouterUnitTests is MockingSetup {
     assertEq(vault.balanceOf(ALICE), 0);
   }
 
-  // TODO re-incorporate flashloan tests once flasher interface changes are finalized.
-
   // function test_closePositionWithFlashloan() public {
   //   uint256 withdrawAmount = 2 ether;
   //   uint256 flashAmount = 1000e18;
 
-  //   utils_doDepositAndBorrow(withdrawAmount, flashAmount, vault);
+  //   _depositAndBorrow(withdrawAmount, flashAmount, vault);
+
+  //   LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+  //     ALICE, address(simpleRouter), address(simpleRouter), withdrawAmount, 0, address(vault)
+  //   );
 
   //   (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-  //     utils_getPermitWithdrawArgs(alice, address(simpleRouter), withdrawAmount, 0, address(vault));
+  //     _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
 
   //   IRouter.Action[] memory actions = new IRouter.Action[](1);
   //   bytes[] memory args = new bytes[](1);
@@ -193,57 +207,30 @@ contract SimpleRouterUnitTests is MockingSetup {
   //   innerActions[2] = IRouter.Action.Withdraw;
   //   innerActions[3] = IRouter.Action.Swap;
 
-  //   innerArgs[0] = abi.encode(address(vault), flashAmount, alice, address(flasher));
+  //   innerArgs[0] = abi.encode(address(vault), flashAmount, ALICE, address(flasher));
   //   innerArgs[1] =
-  //     abi.encode(address(vault), alice, address(simpleRouter), withdrawAmount, deadline, v, r, s);
-  //   innerArgs[2] = abi.encode(address(vault), withdrawAmount, address(simpleRouter), alice);
+  //     abi.encode(address(vault), ALICE, address(simpleRouter), withdrawAmount, deadline, v, r, s);
+  //   innerArgs[2] = abi.encode(address(vault), withdrawAmount, address(simpleRouter), ALICE);
   //   innerArgs[3] = abi.encode(
-  //     address(swapper),
-  //     address(asset),
-  //     address(debtAsset),
-  //     withdrawAmount,
-  //     flashAmount,
-  //     address(flasher),
-  //     0
+  //     address(swapper), collateralAsset, debtAsset, withdrawAmount, flashAmount, address(flasher), 0
   //   );
   //   // ------------
 
-  //   bytes memory requestorCalldata =
-  //     abi.encodeWithSelector(IRouter.xBundle.selector, innerActions, innerArgs);
-
-  //   args[0] = abi.encode(
-  //     address(flasher), address(debtAsset), flashAmount, address(simpleRouter), requestorCalldata
+  //   IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
+  //     debtAsset, flashAmount, address(simpleRouter), innerActions, innerArgs
   //   );
+  //   uint8 providerId = 0;
+  //   args[0] = abi.encode(address(flasher), params, providerId);
 
-  //   vm.prank(alice);
+  //   vm.prank(ALICE);
   //   simpleRouter.xBundle(actions, args);
 
-  //   assertEq(vault.balanceOf(alice), 0);
+  //   assertEq(vault.balanceOf(ALICE), 0);
   // }
 
   // function test_refinancePosition() public {
-  //   MockERC20 debtAsset2 = new MockERC20("Test KAI", "tKAI");
-  //   vm.label(address(debtAsset2), "tKAI");
-
-  //   utils_setupOracle(address(asset), address(debtAsset2));
-  //   utils_setupOracle(address(debtAsset), address(debtAsset2));
-
-  //   IVault newVault = new BorrowingVault(
-  //     address(asset),
-  //     address(debtAsset2),
-  //     address(oracle),
-  //     address(chief),
-  //     "Fuji-V2 WETH Vault Shares",
-  //     "fv2WETH"
-  //   );
-  //   vm.label(address(newVault), "newVault");
-
-  //   _utils_setupVaultProvider(newVault);
-
-  //   uint256 amount = 2 ether;
-  //   uint256 borrowAmount = 1000e18;
-
-  //   utils_doDepositAndBorrow(amount, borrowAmount, vault);
+  //   _setupNewVault();
+  //   _depositAndBorrow(amount, borrowAmount, vault);
 
   //   IRouter.Action[] memory actions = new IRouter.Action[](1);
   //   bytes[] memory args = new bytes[](1);
@@ -262,22 +249,32 @@ contract SimpleRouterUnitTests is MockingSetup {
   //   innerActions[5] = IRouter.Action.Borrow; // at newVault
   //   innerActions[6] = IRouter.Action.Swap;
 
-  //   innerArgs[0] = abi.encode(address(vault), borrowAmount, alice, address(flasher));
+  //   innerArgs[0] = abi.encode(address(vault), borrowAmount, ALICE, address(flasher));
+
+  //   LibSigUtils.Permit memory permitW = LibSigUtils.buildPermitStruct(
+  //     ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+  //   );
+
   //   (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-  //     utils_getPermitWithdrawArgs(alice, address(simpleRouter), amount, 0, address(vault));
+  //     _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
+
   //   innerArgs[1] =
-  //     abi.encode(address(vault), alice, address(simpleRouter), amount, deadline, v, r, s);
-  //   innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), alice);
-  //   innerArgs[3] = abi.encode(address(newVault), amount, alice, address(simpleRouter));
-  //   (deadline, v, r, s) =
-  //     utils_getPermitBorrowArgs(alice, address(simpleRouter), borrowAmount, 0, address(newVault));
+  //     abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
+  //   innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), ALICE);
+  //   innerArgs[3] = abi.encode(address(newVault), amount, ALICE, address(simpleRouter));
+
+  //   LibSigUtils.Permit memory permitB = LibSigUtils.buildPermitStruct(
+  //     ALICE, address(simpleRouter), address(simpleRouter), borrowAmount, 0, address(newVault)
+  //   );
+
+  //   (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(newVault));
   //   innerArgs[4] =
-  //     abi.encode(address(newVault), alice, address(simpleRouter), borrowAmount, deadline, v, r, s);
-  //   innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), alice);
+  //     abi.encode(address(newVault), ALICE, address(simpleRouter), borrowAmount, deadline, v, r, s);
+  //   innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), ALICE);
   //   innerArgs[6] = abi.encode(
   //     address(swapper),
   //     address(debtAsset2),
-  //     address(debtAsset),
+  //     debtAsset,
   //     borrowAmount,
   //     borrowAmount,
   //     address(flasher),
@@ -285,16 +282,41 @@ contract SimpleRouterUnitTests is MockingSetup {
   //   );
   //   // ------------
 
-  //   bytes memory requestorCalldata =
-  //     abi.encodeWithSelector(IRouter.xBundle.selector, innerActions, innerArgs);
-  //   args[0] = abi.encode(
-  //     address(flasher), vault.debtAsset(), borrowAmount, address(simpleRouter), requestorCalldata
+  //   IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
+  //     vault.debtAsset(), borrowAmount, address(simpleRouter), innerActions, innerArgs
   //   );
+  //   uint8 providerId = 0;
+  //   args[0] = abi.encode(address(flasher), params, providerId);
 
-  //   vm.prank(alice);
+  //   vm.prank(ALICE);
   //   simpleRouter.xBundle(actions, args);
 
-  //   assertEq(vault.balanceOf(alice), 0);
-  //   assertEq(newVault.balanceOf(alice), amount);
+  //   assertEq(vault.balanceOf(ALICE), 0);
+  //   assertEq(newVault.balanceOf(ALICE), amount);
   // }
+
+  // Split this from `test_refinancePosition` to avoid Stack overflow.
+  function _setupNewVault() internal {
+    debtAsset2 = new MockERC20("Test KAI", "tKAI");
+    vm.label(address(debtAsset2), "tKAI");
+
+    // WETH and DAI prices by Nov 11h 2022
+    oracle.setUSDPriceOf(address(collateralAsset), 796341757142697);
+    oracle.setUSDPriceOf(address(debtAsset2), 100000000);
+
+    newVault = new BorrowingVault(
+      collateralAsset,
+      address(debtAsset2),
+      address(oracle),
+      address(chief),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH"
+    );
+    vm.label(address(newVault), "newVault");
+
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+    _setVaultProviders(newVault, providers);
+    newVault.setActiveProvider(mockProvider);
+  }
 }

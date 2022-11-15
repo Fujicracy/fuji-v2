@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
-import {DSTestPlus} from "./utils/DSTestPlus.sol";
+import "forge-std/console.sol";
+import {Routines} from "./utils/Routines.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
@@ -14,7 +15,7 @@ import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 
-contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
+contract VaultPermissionsUnitTests is Routines, CoreRoles {
   BorrowingVault public vault;
   Chief public chief;
   TimelockController public timelock;
@@ -26,9 +27,11 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
   MockERC20 public debtAsset;
 
   uint256 ownerPkey = 0xA;
-  uint256 operatorPkey = 0xB;
   address owner = vm.addr(ownerPkey);
+  uint256 operatorPkey = 0xB;
   address operator = vm.addr(operatorPkey);
+  uint256 receiverPKey = 0xC;
+  address receiver = vm.addr(receiverPKey);
 
   uint256 public depositAmount = 10 * 1e18;
   uint256 public withdrawDelegated = 3 * 1e18;
@@ -39,6 +42,10 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
   uint256 public constant TEST_ETH_PER_USD_PRICE = 5e14;
 
   function setUp() public {
+    vm.label(owner, "owner");
+    vm.label(operator, "operator");
+    vm.label(receiver, "receiver");
+
     asset = new MockERC20("Test WETH", "tWETH");
     vm.label(address(asset), "tWETH");
     debtAsset = new MockERC20("Test DAI", "tDAI");
@@ -113,18 +120,26 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
   }
 
   function testFail_operatorTriesWithdraw() public {
-    _utils_doDeposit(depositAmount, vault);
+    do_deposit(depositAmount, vault, owner);
 
     vm.prank(operator);
-    vault.withdraw(withdrawDelegated, operator, owner);
+    vault.withdraw(withdrawDelegated, receiver, owner);
+  }
+
+  function testFail_receiverTriesWithdraw() public {
+    do_deposit(depositAmount, vault, owner);
+
+    vm.prank(receiver);
+    vault.withdraw(withdrawDelegated, receiver, owner);
   }
 
   function testWithdrawWithPermit() public {
-    _utils_doDeposit(depositAmount, vault);
+    do_deposit(depositAmount, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
-      spender: operator,
+      operator: operator,
+      receiver: receiver,
       amount: withdrawDelegated,
       nonce: vault.nonces(owner),
       deadline: block.timestamp + 1 days
@@ -137,29 +152,38 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
 
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
-    vault.permitWithdraw(permit.owner, permit.spender, permit.amount, permit.deadline, v, r, s);
+    vm.prank(operator);
+    vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.withdrawAllowance(owner, operator), withdrawDelegated);
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated);
 
     vm.prank(operator);
-    vault.withdraw(withdrawDelegated, operator, owner);
+    vault.withdraw(withdrawDelegated, receiver, owner);
 
-    assertEq(asset.balanceOf(operator), withdrawDelegated);
+    assertEq(asset.balanceOf(receiver), withdrawDelegated);
   }
 
   function testFail_operatorTriesBorrow() public {
-    _utils_doDeposit(depositAmount, vault);
+    do_deposit(depositAmount, vault, owner);
 
     vm.prank(operator);
-    vault.borrow(borrowDelegated, operator, owner);
+    vault.borrow(borrowDelegated, receiver, owner);
+  }
+
+  function testFail_receiverTriesBorrow() public {
+    do_deposit(depositAmount, vault, owner);
+
+    vm.prank(receiver);
+    vault.borrow(borrowDelegated, receiver, owner);
   }
 
   function test_borrowWithPermit() public {
-    _utils_doDeposit(depositAmount, vault);
+    do_deposit(depositAmount, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       owner: owner,
-      spender: operator,
+      operator: operator,
+      receiver: receiver,
       amount: borrowDelegated,
       nonce: vault.nonces(owner),
       deadline: block.timestamp + 1 days
@@ -172,13 +196,15 @@ contract VaultPermissionsUnitTests is DSTestPlus, CoreRoles {
 
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
-    vault.permitBorrow(permit.owner, permit.spender, permit.amount, permit.deadline, v, r, s);
-
-    assertEq(vault.borrowAllowance(owner, operator), borrowDelegated);
 
     vm.prank(operator);
-    vault.borrow(borrowDelegated, operator, owner);
+    vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(debtAsset.balanceOf(operator), borrowDelegated);
+    assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated);
+
+    vm.prank(operator);
+    vault.borrow(borrowDelegated, receiver, owner);
+
+    assertEq(debtAsset.balanceOf(receiver), borrowDelegated);
   }
 }

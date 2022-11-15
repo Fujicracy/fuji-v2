@@ -83,24 +83,13 @@ contract MockingSetup is CoreRoles, Test {
   // plusNonce is necessary for compound operations,
   // those that needs more than one signiture in the same tx
   function _getPermitBorrowArgs(
-    address owner,
+    LibSigUtils.Permit memory permit,
     uint256 ownerPrivateKey,
-    address operator,
-    uint256 borrowAmount,
-    uint256 plusNonce,
     address vault_
   )
     internal
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
-    deadline = block.timestamp + 1 days;
-    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-      owner: owner,
-      spender: operator,
-      amount: borrowAmount,
-      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
-      deadline: deadline
-    });
     bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.
@@ -108,34 +97,25 @@ contract MockingSetup is CoreRoles, Test {
       structHash
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    deadline = permit.deadline;
   }
 
   // plusNonce is necessary for compound operations,
   // those that needs more than one signiture in the same tx
   function _getPermitWithdrawArgs(
-    address owner,
+    LibSigUtils.Permit memory permit,
     uint256 ownerPrivateKey,
-    address operator,
-    uint256 amount,
-    uint256 plusNonce,
     address vault_
   )
     internal
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
-    deadline = block.timestamp + 1 days;
-    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-      owner: owner,
-      spender: operator,
-      amount: amount,
-      nonce: IVaultPermissions(vault_).nonces(owner) + plusNonce,
-      deadline: deadline
-    });
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.
       IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
       LibSigUtils.getStructHashAsset(permit)
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    deadline = permit.deadline;
   }
 }

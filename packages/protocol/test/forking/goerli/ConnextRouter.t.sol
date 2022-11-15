@@ -14,6 +14,7 @@ import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
+import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
 contract ConnextRouterTest is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
@@ -112,11 +113,14 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(ALICE, ALICE_PK, address(connextRouter), borrowAmount, 0, address(vault));
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
+    );
 
-    args[1] =
-      abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
 
     args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
 

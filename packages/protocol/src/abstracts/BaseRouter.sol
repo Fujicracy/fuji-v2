@@ -13,11 +13,20 @@ import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
 
 abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter {
+  struct BalanceChecker {
+    address token;
+    uint256 balance;
+  }
+
   error BaseRouter__bundleInternal_wrongInput();
+  error BaseRouter__bundleInternal_noRemnantBalance();
+
+  BalanceChecker[] private _tokensToCheck;
 
   constructor(
     IWETH9 weth,
@@ -33,6 +42,12 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
     _bundleInternal(actions, args);
   }
 
+  /**
+   * @dev executes a bundle of actions.
+   *
+   * Requirements:
+   * - MUST not leave any balance in this contract after all actions.
+   */
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     if (actions.length != args.length) {
       revert BaseRouter__bundleInternal_wrongInput();
@@ -58,11 +73,17 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        // Check balance of `asset` before execution at vault.
+        _addTokenToCheck(vault.asset());
+
         vault.withdraw(amount, receiver, owner);
       } else if (actions[i] == Action.Borrow) {
         // BORROW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
+
+        // Check balance of `debtAsset` before execution at vault.
+        _addTokenToCheck(vault.debtAsset());
 
         vault.borrow(amount, receiver, owner);
       } else if (actions[i] == Action.Payback) {
@@ -80,7 +101,7 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (
           IVaultPermissions vault,
           address owner,
-          address spender,
+          address receiver,
           uint256 amount,
           uint256 deadline,
           uint8 v,
@@ -89,13 +110,13 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         ) = abi.decode(
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
-        vault.permitWithdraw(owner, spender, amount, deadline, v, r, s);
+        vault.permitWithdraw(owner, receiver, amount, deadline, v, r, s);
       } else if (actions[i] == Action.PermitBorrow) {
         // PERMIT BORROW
         (
           IVaultPermissions vault,
           address owner,
-          address spender,
+          address receiver,
           uint256 amount,
           uint256 deadline,
           uint8 v,
@@ -105,7 +126,7 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
 
-        vault.permitBorrow(owner, spender, amount, deadline, v, r, s);
+        vault.permitBorrow(owner, receiver, amount, deadline, v, r, s);
       } else if (actions[i] == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 
@@ -128,6 +149,8 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
 
         approve(ERC20(assetIn), address(swapper), maxAmountIn);
 
+        _addTokenToCheck(assetOut);
+
         // pull tokens and swap
         swapper.swap(assetIn, assetOut, amountOut, receiver, slippage);
       } else if (actions[i] == Action.Flashloan) {
@@ -144,9 +167,38 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         ++i;
       }
     }
+    _checkNoRemnantBalance(_tokensToCheck);
+    _checkNoNativeBalance();
   }
 
   function _crossTransfer(bytes memory) internal virtual;
 
   function _crossTransferWithCalldata(bytes memory) internal virtual;
+
+  function _addTokenToCheck(address token) private {
+    BalanceChecker memory checkedToken =
+      BalanceChecker(token, IERC20(token).balanceOf(address(this)));
+    _tokensToCheck.push(checkedToken);
+  }
+
+  function _checkNoRemnantBalance(BalanceChecker[] memory tokensToCheck) private {
+    uint256 tlenght = tokensToCheck.length;
+    for (uint256 i = 0; i < tlenght;) {
+      uint256 previousBalance = tokensToCheck[i].balance;
+      uint256 currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
+      if (currentBalance > previousBalance) {
+        revert BaseRouter__bundleInternal_noRemnantBalance();
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    delete _tokensToCheck;
+  }
+
+  function _checkNoNativeBalance() private view {
+    if (address(this).balance > 0) {
+      revert BaseRouter__bundleInternal_noRemnantBalance();
+    }
+  }
 }
