@@ -21,7 +21,10 @@ import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { useStore } from "../../store"
+import { formatUnits } from "ethers/lib/utils"
 
+// TODO: create helper to get these images and throw / warn us if 404 ?
+const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
 export default function TransactionSummary() {
   const { palette } = useTheme()
 
@@ -30,6 +33,7 @@ export default function TransactionSummary() {
   const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
+  const providers = useStore((state) => state.position.providers)
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -228,17 +232,21 @@ export default function TransactionSummary() {
                   </Typography>
 
                   <Grid item>
-                    <Grid container alignItems="center">
-                      <Image
-                        src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                        height={18}
-                        width={18}
-                        alt="Ethereum icon"
-                      />
-                      <Typography ml="0.375rem" variant="small">
-                        Aave V2
-                      </Typography>
-                    </Grid>
+                    {providers?.length ? (
+                      <Grid container alignItems="center">
+                        <Image
+                          src={ethIconPath}
+                          height={18}
+                          width={18}
+                          alt="Ethereum icon"
+                        />
+                        <Typography ml="0.375rem" variant="small">
+                          {providers[0].name}
+                        </Typography>
+                      </Grid>
+                    ) : (
+                      "n/a"
+                    )}
                   </Grid>
                 </Grid>
 
@@ -274,16 +282,16 @@ export default function TransactionSummary() {
                     </div>
                     <Box>
                       <Box sx={{ alignItems: "center", cursor: "pointer" }}>
-                        <Typography variant="small">
-                          Aave:{" "}
-                          <span
-                            style={{
-                              color: palette.success.main,
-                            }}
-                          >
-                            1.83%
-                          </span>
-                        </Typography>
+                        {providers?.length ? (
+                          <Typography variant="small">
+                            {providers[0].name}:{" "}
+                            <span style={{ color: palette.success.main }}>
+                              {formatUnits(providers[0].borrowRate, 27)}%
+                            </span>
+                          </Typography>
+                        ) : (
+                          "n/a"
+                        )}
                       </Box>
                     </Box>
                   </Grid>

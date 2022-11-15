@@ -18,6 +18,10 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
+import { formatUnits } from "ethers/lib/utils"
+
+// TODO: create helper to get these images and throw / warn us if 404 ?
+const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -27,6 +31,7 @@ export default function Overview() {
     useLiquidationPrice(ltvThreshold)
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
+  const providers = useStore((state) => state.position.providers)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -151,17 +156,18 @@ export default function Overview() {
               </Typography>
             </Grid>
             <Grid item>
-              <Grid container alignItems="center">
-                <Image
-                  src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                  height={18}
-                  width={18}
-                  alt="Ethereum icon"
-                />
-                <Typography ml="0.375rem" variant="small">
-                  Aave V2
-                </Typography>
-              </Grid>
+              {providers?.length ? (
+                <Grid container alignItems="center">
+                  {/* TODO[design]: what logo should i put here ? */}
+                  <Image src={ethIconPath} height={18} width={18} alt="Eth" />
+
+                  <Typography ml="0.375rem" variant="small">
+                    {providers[0].name}
+                  </Typography>
+                </Grid>
+              ) : (
+                "n/a"
+              )}
             </Grid>
           </Grid>
 
@@ -193,19 +199,17 @@ export default function Overview() {
                 />
               </ClickableTooltip>
             </div>
-            <Box>
-              <Box sx={{ alignItems: "center", cursor: "pointer" }}>
+            <Box sx={{ alignItems: "center", cursor: "pointer" }}>
+              {providers?.length ? (
                 <Typography variant="small">
-                  Aave:{" "}
-                  <span
-                    style={{
-                      color: palette.success.main,
-                    }}
-                  >
-                    1.83%
+                  {providers[0].name}:{" "}
+                  <span style={{ color: palette.success.main }}>
+                    {formatUnits(providers[0].borrowRate, 27)}%
                   </span>
                 </Typography>
-              </Box>
+              ) : (
+                "n/a"
+              )}
             </Box>
           </Grid>
         </CardContent>
