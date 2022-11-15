@@ -34,8 +34,9 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
       >
         <TableCell
           sx={{
+            // position: "sticky", TODO: Problem with borders on Firefox only
             left: 0,
-            zIndex: 5,
+            zIndex: 10,
             background: row.isChild
               ? row.children && palette.secondary.main
               : palette.secondary.contrastText,

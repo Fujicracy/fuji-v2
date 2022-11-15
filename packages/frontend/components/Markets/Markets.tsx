@@ -82,7 +82,7 @@ export default function Markets() {
                   <Chip
                     variant="gradient"
                     label="Coming soon"
-                    sx={{ ml: "0.625rem" }}
+                    sx={{ ml: "0.625rem", cursor: "pointer" }}
                   />
                 )}
               </Grid>

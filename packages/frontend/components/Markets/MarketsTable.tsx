@@ -174,6 +174,7 @@ export default function MarketsTable() {
           <TableRow sx={{ height: "2.625rem" }}>
             <TableCell
               sx={{
+                // position: "sticky", TODO: Problem with borders on Firefox only
                 left: 0,
                 background: palette.secondary.contrastText,
               }}
