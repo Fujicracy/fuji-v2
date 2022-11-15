@@ -26,7 +26,7 @@ export default function Overview() {
         sx={{
           flexDirection: "column",
           alignItems: "center",
-          padding: "1.5rem 2rem",
+          p: "1.5rem 2rem",
           width: "100%",
         }}
       >

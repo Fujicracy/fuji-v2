@@ -7,10 +7,7 @@ export default function Lending() {
   const [email, setEmail] = useState("")
 
   return (
-    <Card
-      variant="lending"
-      sx={{ padding: { xs: "1rem", sm: "3.75rem 27.5rem" } }}
-    >
+    <Card variant="lending" sx={{ p: { xs: "1rem", sm: "3.75rem 27.5rem" } }}>
       <Image
         src="/assets/images/logo/himalaya.svg"
         alt="Logo Himalaya"

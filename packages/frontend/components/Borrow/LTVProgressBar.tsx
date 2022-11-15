@@ -21,13 +21,8 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
 
   return (
     <Box>
-      <Grid
-        container
-        sx={{
-          ml: "3rem",
-        }}
-      >
-        <Grid item alignItems="center" margin="auto">
+      <Grid container ml="3rem">
+        <Grid item alignItems="center" m="auto">
           <Tooltip
             arrow
             title="Being in this area keeps you safe from sudden shifts in the market."

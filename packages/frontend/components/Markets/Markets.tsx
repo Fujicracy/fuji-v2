@@ -51,10 +51,8 @@ export default function Markets() {
       </Typography>
       <Grid
         container
-        sx={{
-          mt: "2.5rem",
-          mb: "1.563rem",
-        }}
+        mt="2.5rem"
+        mb="1.563rem"
         justifyContent="space-between"
         alignItems="center"
         wrap="wrap"
@@ -63,7 +61,7 @@ export default function Markets() {
           value={currentTab}
           onChange={handleTabChange}
           aria-label="Markets tabs"
-          sx={{ width: { xs: "100%", sm: "25%" } }}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
           TabIndicatorProps={{ sx: { background: palette.text.primary } }}
         >
           <Tab
@@ -121,6 +119,7 @@ export default function Markets() {
                     borderRadius: "100%",
                     width: "1.125rem",
                     height: "1.125rem",
+                    cursor: "pointer",
                     border: chainFilters.includes(chain)
                       ? `1px solid white`
                       : "",
@@ -150,6 +149,7 @@ export default function Markets() {
               value={filterValue}
               onChange={(e) => setFilterValue(e.target.value)}
               variant="outlined"
+              sx={{ ".MuiInputBase-input": { minWidth: "170px" } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
