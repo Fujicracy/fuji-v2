@@ -32,6 +32,12 @@ contract MockProviderIdB is MockProvider {
   }
 }
 
+contract ThiefProvider is MockProvider {
+  function providerName() public pure override returns (string memory) {
+    return "ThiefProvider";
+  }
+}
+
 contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   BorrowingVaultFactory public bVaultFactory;
   BorrowingVault public bvault;
@@ -276,8 +282,6 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt);
   }
 
-  //NORMAL FUNCTIONS
-
   function test_rebalanceYieldVaultWithRebalancer() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
 
@@ -286,4 +290,83 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
     assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
   }
+
+  //MALICIOUS TESTS
+
+  function test_rebalanceYieldVaultWithRebalancerAndInvalidDebt(uint256 debt) public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+
+    //debt !=0
+    rebalancer.rebalanceVault(yvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
+
+    assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
+    assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
+  }
+
+  function test_rebalanceYieldVaultWithRebalancerAndInvalidProvider() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+
+    //fake provider to steal funds
+    ILendingProvider thiefProvider = new ThiefProvider();
+
+    //rebalance with fake provider should fail
+    vm.expectRevert(YieldVault.YieldVault__rebalance_invalidProvider.selector);
+    rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, thiefProvider, flasher, true);
+  }
+
+  //TEST FOR ERRORS
+  // error RebalancerManager__rebalanceVault_notValidFlasher();
+  function test_notValidFlasher() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    MockFlasher invalidFlasher = new MockFlasher();
+
+    //rebalance with invalid flasher should fail
+    vm.expectRevert(RebalancerManager.RebalancerManager__rebalanceVault_notValidFlasher.selector);
+    rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
+  }
+
+  // error RebalancerManager__checkAssetsAmount_invalidAmount();
+  function test_checkAssetsAmountInvalidAmount(uint256 invalidAmount) public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    vm.assume(invalidAmount > assets);
+
+    //rebalance with more amount than available should revert
+    vm.expectRevert(RebalancerManager.RebalancerManager__checkAssetsAmount_invalidAmount.selector);
+
+    rebalancer.rebalanceVault(yvault, invalidAmount, 0, mockProviderA, mockProviderB, flasher, true);
+  }
+  // error RebalancerManager__checkDebtAmount_invalidAmount();
+
+  function test_checkDebtAmountInvalidAmount(uint256 invalidAmount) public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 debt = 4 * BORROW_AMOUNT;
+    vm.assume(invalidAmount > debt); //alice, bob, charlie, david
+
+    //rebalance with more amount than available should revert
+    vm.expectRevert(RebalancerManager.RebalancerManager__checkDebtAmount_invalidAmount.selector);
+
+    rebalancer.rebalanceVault(
+      bvault, assets, invalidAmount, mockProviderA, mockProviderB, flasher, true
+    );
+  }
+  // // error RebalancerManager__getFlashloan_flashloanFailed();
+  // function test_flashLoanFailed() public {
+  //
+  // }
+  // // error RebalancerManager__getFlashloan_notEmptyEntryPoint();
+  // function test_notEmptyEntryPoint() public {
+  //
+  // }
+  // // error RebalancerManager__completeRebalance_invalidEntryPoint();
+  // function test_invalidEntryPoint() public {
+  //
+  // }
+  // // error RebalancerManager__allowExecutor_noAllowChange();
+  // function test_noAllowChange() public {
+  //
+  // }
+  // // error RebalancerManager__zeroAddress();
+  // function test_zeroAddress() public {
+  //
+  // }
 }
