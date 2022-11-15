@@ -275,4 +275,15 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), assets);
     assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt);
   }
+
+  //NORMAL FUNCTIONS
+
+  function test_rebalanceYieldVaultWithRebalancer() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+
+    rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
+
+    assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
+    assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
+  }
 }
