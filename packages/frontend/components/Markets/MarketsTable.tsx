@@ -10,8 +10,10 @@ import {
   useTheme,
 } from "@mui/material"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
+import { useState } from "react"
 
 export type Row = {
   borrow?: string | null
@@ -22,11 +24,13 @@ export type Row = {
   integratedProtocols: string[]
   safetyRating: string
   availableLiquidity: number
-  collaspsedRows?: Row[]
+  children?: Row[]
+  isChild: boolean
 }
 
 export default function MarketsTable() {
   const { palette } = useTheme()
+  const [aprSorting, setAprSorting] = useState("descending")
 
   const rows: Row[] = [
     {
@@ -38,6 +42,7 @@ export default function MarketsTable() {
       integratedProtocols: ["AAVE", "COMP"],
       safetyRating: "A+",
       availableLiquidity: 164800,
+      isChild: false,
     },
     {
       borrow: "USDC",
@@ -48,7 +53,8 @@ export default function MarketsTable() {
       integratedProtocols: ["AAVE", "COMP"],
       safetyRating: "A+",
       availableLiquidity: 164800,
-      collaspsedRows: [
+      isChild: false,
+      children: [
         {
           borrow: null,
           collateral: null,
@@ -58,6 +64,7 @@ export default function MarketsTable() {
           integratedProtocols: ["AAVE", "COMP"],
           safetyRating: "A+",
           availableLiquidity: 24800,
+          isChild: true,
         },
         {
           borrow: null,
@@ -68,6 +75,7 @@ export default function MarketsTable() {
           integratedProtocols: ["AAVE", "COMP"],
           safetyRating: "A+",
           availableLiquidity: 124800,
+          isChild: true,
         },
         {
           borrow: null,
@@ -78,6 +86,7 @@ export default function MarketsTable() {
           integratedProtocols: ["AAVE", "COMP"],
           safetyRating: "A+",
           availableLiquidity: 24800,
+          isChild: true,
         },
         {
           borrow: null,
@@ -88,6 +97,7 @@ export default function MarketsTable() {
           integratedProtocols: ["AAVE", "COMP"],
           safetyRating: "A+",
           availableLiquidity: 88000,
+          isChild: true,
         },
         {
           borrow: null,
@@ -98,7 +108,8 @@ export default function MarketsTable() {
           integratedProtocols: ["AAVE", "COMP"],
           safetyRating: "A+",
           availableLiquidity: 100000,
-          collaspsedRows: [
+          isChild: true,
+          children: [
             {
               borrow: null,
               collateral: null,
@@ -108,6 +119,7 @@ export default function MarketsTable() {
               integratedProtocols: ["AAVE", "COMP"],
               safetyRating: "A+",
               availableLiquidity: 100000,
+              isChild: true,
             },
             {
               borrow: null,
@@ -125,6 +137,7 @@ export default function MarketsTable() {
               ],
               safetyRating: "B+",
               availableLiquidity: 100000,
+              isChild: true,
             },
           ],
         },
@@ -139,6 +152,7 @@ export default function MarketsTable() {
       integratedProtocols: ["AAVE", "COMP"],
       safetyRating: "A+",
       availableLiquidity: 24800,
+      isChild: false,
     },
     {
       borrow: "USDT",
@@ -149,6 +163,7 @@ export default function MarketsTable() {
       integratedProtocols: ["WPC", "IB", "SONNE", "COMP", "COMP", "AAVE"],
       safetyRating: "B+",
       availableLiquidity: 164800,
+      isChild: false,
     },
   ]
 
@@ -159,38 +174,50 @@ export default function MarketsTable() {
           <TableRow sx={{ height: "2.625rem" }}>
             <TableCell
               sx={{
-                position: "sticky",
                 left: 0,
-                width: "11.25rem",
                 background: palette.secondary.contrastText,
               }}
               align="center"
             >
               Borrow
             </TableCell>
-            <TableCell sx={{ width: "11.25rem" }} align="center">
-              Collateral
-            </TableCell>
-            <TableCell align="center" sx={{ width: "11.25rem" }}>
-              Chain with the best rate
-            </TableCell>
-            <TableCell align="center" sx={{ width: "8.75rem" }}>
-              Supply APY
-            </TableCell>
-            <TableCell align="center" sx={{ width: "8.75rem" }}>
+            <TableCell align="center">Collateral</TableCell>
+            <TableCell align="center">Chain with the best rate</TableCell>
+            <TableCell align="center">Supply APY</TableCell>
+            <TableCell align="center">
               <Stack
                 direction="row"
                 spacing="0.25rem"
                 alignItems="center"
                 justifyContent="center"
+                sx={{
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  setAprSorting(
+                    aprSorting === "ascending" ? "descending" : "ascending"
+                  )
+                }
               >
                 <span>Borrow APR</span>
-                <KeyboardArrowUpIcon
-                  sx={{ color: palette.info.main, fontSize: "0.875rem" }}
-                />
+                {aprSorting === "descending" ? (
+                  <KeyboardArrowUpIcon
+                    sx={{
+                      color: palette.info.main,
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                ) : (
+                  <KeyboardArrowDownIcon
+                    sx={{
+                      color: palette.info.main,
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                )}
               </Stack>
             </TableCell>
-            <TableCell align="center" sx={{ width: "8.75rem" }}>
+            <TableCell align="center">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -205,14 +232,15 @@ export default function MarketsTable() {
                   <InfoOutlinedIcon
                     sx={{
                       fontSize: "0.875rem",
+                      mt: "0 !important",
                       color: palette.info.main,
                     }}
                   />
                 </Tooltip>
-                <span>Integrated Protocols</span>
+                <span>Protocols</span>
               </Stack>
             </TableCell>
-            <TableCell align="center" sx={{ width: "8.75rem" }}>
+            <TableCell align="center">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -247,19 +275,12 @@ export default function MarketsTable() {
                 <span>Safety Rating</span>
               </Stack>
             </TableCell>
-            <TableCell align="center" sx={{ width: "8.75rem" }}>
-              Available Liquidity
-            </TableCell>
+            <TableCell align="center">Liquidity</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* TODO: Not sure for the key value */}
           {rows.map((row, i) => (
-            <MarketsTableRow
-              key={i + row.availableLiquidity}
-              row={row}
-              extra={i === 0}
-            />
+            <MarketsTableRow key={i} row={row} extra={i === 0} />
           ))}
         </TableBody>
       </Table>

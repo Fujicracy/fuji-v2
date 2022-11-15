@@ -2,10 +2,7 @@ import { useState } from "react"
 import {
   Chip,
   Collapse,
-  Grid,
   Stack,
-  Table,
-  TableBody,
   TableCell,
   TableRow,
   Typography,
@@ -22,49 +19,54 @@ import { Row } from "./MarketsTable"
 type MarketsTableRowProps = {
   row: Row
   extra?: boolean
-  isACollapsedRow?: boolean
 }
 
-export default function MarketsTableRow({
-  row,
-  extra,
-  isACollapsedRow,
-}: MarketsTableRowProps) {
+export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
 
   return (
     <>
-      <TableRow sx={{ height: "3.438rem" }}>
+      <TableRow
+        sx={{
+          height: "3.438rem",
+        }}
+      >
         <TableCell
           sx={{
-            position: "sticky",
             left: 0,
-            zIndex: 100,
-            width: "11.25rem",
-            background: isACollapsedRow
-              ? row.collaspsedRows
-                ? palette.secondary.main
-                : ""
+            zIndex: 5,
+            background: row.isChild
+              ? row.children && palette.secondary.main
               : palette.secondary.contrastText,
           }}
         >
           {row.borrow && (
             <Stack direction="row" gap="0.5rem" alignItems="center">
-              {row.collaspsedRows &&
-                !isACollapsedRow &&
-                (expandRow ? (
-                  <KeyboardArrowDownIcon
-                    onClick={() => setExpandRow(false)}
-                    sx={{ cursor: "pointer" }}
-                  />
-                ) : (
-                  <KeyboardArrowRightIcon
-                    onClick={() => setExpandRow(true)}
-                    sx={{ cursor: "pointer" }}
-                  />
-                ))}
-              <Grid container alignItems="center" wrap="nowrap">
+              {expandRow ? (
+                <KeyboardArrowDownIcon
+                  onClick={() => setExpandRow(false)}
+                  sx={{
+                    cursor: "pointer",
+                    visibility:
+                      row.children && row.children.length > 0
+                        ? "visible"
+                        : "hidden",
+                  }}
+                />
+              ) : (
+                <KeyboardArrowRightIcon
+                  onClick={() => setExpandRow(true)}
+                  sx={{
+                    cursor: "pointer",
+                    visibility:
+                      row.children && row.children.length > 0
+                        ? "visible"
+                        : "hidden",
+                  }}
+                />
+              )}
+              <Stack direction="row" alignItems="center" flexWrap="nowrap">
                 <Image
                   src={`/assets/images/protocol-icons/tokens/${row.borrow}.svg`}
                   height={32}
@@ -75,13 +77,13 @@ export default function MarketsTableRow({
                 <Typography ml="0.5rem" variant="small">
                   {row.borrow}
                 </Typography>
-              </Grid>
+              </Stack>
             </Stack>
           )}
         </TableCell>
-        <TableCell sx={{ width: "11rem" }}>
+        <TableCell>
           {row.collateral && (
-            <Grid container alignItems="center" wrap="nowrap">
+            <Stack direction="row" alignItems="center" flexWrap="nowrap">
               <Image
                 src={`/assets/images/protocol-icons/tokens/${row.collateral}.svg`}
                 height={32}
@@ -92,33 +94,31 @@ export default function MarketsTableRow({
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}
               </Typography>
-            </Grid>
+            </Stack>
           )}
         </TableCell>
-        <TableCell sx={{ width: "11rem" }}>
+        <TableCell>
           <Stack direction="row" gap="0.5rem" alignItems="center">
-            {row.collaspsedRows &&
-              isACollapsedRow &&
-              (expandRow ? (
-                <KeyboardArrowDownIcon
-                  onClick={() => setExpandRow(false)}
-                  sx={{ cursor: "pointer" }}
-                />
-              ) : (
-                <KeyboardArrowRightIcon
-                  onClick={() => setExpandRow(true)}
-                  sx={{ cursor: "pointer" }}
-                />
-              ))}
-
-            <Grid
-              container
-              alignItems="center"
-              wrap="nowrap"
-              sx={{
-                ml: !row.collaspsedRows && isACollapsedRow ? "2rem" : "",
-              }}
-            >
+            {expandRow ? (
+              <KeyboardArrowDownIcon
+                onClick={() => setExpandRow(false)}
+                sx={{
+                  cursor: "pointer",
+                  visibility:
+                    row.isChild && row.children ? "visible" : "hidden",
+                }}
+              />
+            ) : (
+              <KeyboardArrowRightIcon
+                onClick={() => setExpandRow(true)}
+                sx={{
+                  cursor: "pointer",
+                  visibility:
+                    row.isChild && row.children ? "visible" : "hidden",
+                }}
+              />
+            )}
+            <Stack direction="row" alignItems="center" flexWrap="nowrap">
               <Image
                 src={`/assets/images/protocol-icons/networks/${row.bestRateChain}.svg`}
                 height={24}
@@ -129,13 +129,12 @@ export default function MarketsTableRow({
               <Typography ml="0.5rem" variant="small">
                 {row.bestRateChain}
               </Typography>
-            </Grid>
+            </Stack>
           </Stack>
         </TableCell>
         <TableCell
           align="right"
           sx={{
-            width: "8.75rem",
             color: palette.success.main,
           }}
         >
@@ -144,28 +143,27 @@ export default function MarketsTableRow({
         <TableCell
           align="right"
           sx={{
-            width: "8.75rem",
             color: palette.warning.main,
           }}
         >
-          <Grid
-            container
+          <Stack
+            direction="row"
             alignItems="center"
             justifyContent="center"
-            wrap="nowrap"
+            flexWrap="nowrap"
           >
             {extra && <DropletIcon />}
             {row.borrowABR.toFixed(2)}%
-          </Grid>
+          </Stack>
         </TableCell>
-        <TableCell align="right" sx={{ width: "8.75rem" }}>
-          <Grid container justifyContent="center" wrap="nowrap">
+        <TableCell align="right">
+          <Stack direction="row" justifyContent="center" flexWrap="nowrap">
             {row.integratedProtocols.map((vault, i) => (
               <Box
                 sx={{
                   position: "relative",
                   right: `${i * 0.25}rem`,
-                  zIndex: 50 + -i,
+                  zIndex: row.integratedProtocols.length - i,
                 }}
                 key={vault}
               >
@@ -183,23 +181,23 @@ export default function MarketsTableRow({
             {row.integratedProtocols.length >= 4 && (
               <Chip
                 label={
-                  <Grid container justifyContent="center">
+                  <Stack direction="row" justifyContent="center">
                     +{row.integratedProtocols.length - 3}
-                  </Grid>
+                  </Stack>
                 }
                 variant="number"
               />
             )}
-          </Grid>
+          </Stack>
         </TableCell>
-        <TableCell align="right" sx={{ width: "8.75rem" }}>
+        <TableCell align="right">
           {row.safetyRating === "A+" ? (
             <Chip variant="success" label={row.safetyRating} />
           ) : (
             <Chip variant="warning" label={row.safetyRating} />
           )}
         </TableCell>
-        <TableCell align="right" sx={{ width: "8.75rem" }}>
+        <TableCell align="right">
           $
           {row.availableLiquidity
             .toString()
@@ -208,33 +206,26 @@ export default function MarketsTableRow({
       </TableRow>
 
       <TableRow>
-        <TableCell sx={{ p: 0 }} colSpan={8}>
+        <TableCell
+          sx={{
+            p: 0,
+            borderBottom: "none !important",
+          }}
+          colSpan={8}
+        >
           <Collapse
             in={expandRow}
             timeout="auto"
             unmountOnExit
             sx={{
-              background:
-                row.collaspsedRows && isACollapsedRow
-                  ? palette.secondary.light
-                  : palette.secondary.main,
+              background: row.isChild
+                ? palette.secondary.light
+                : palette.secondary.main,
             }}
           >
-            <Table aria-label="purchases">
-              <TableBody>
-                {row.collaspsedRows?.map((collaspsedRow, i) => (
-                  <MarketsTableRow
-                    key={
-                      i +
-                      collaspsedRow.availableLiquidity /* TODO: Not sure for the key value */
-                    }
-                    row={collaspsedRow}
-                    extra={false}
-                    isACollapsedRow={true}
-                  />
-                ))}
-              </TableBody>
-            </Table>
+            {row.children?.map((collaspsedRow, i) => (
+              <MarketsTableRow key={i} row={collaspsedRow} extra={false} />
+            ))}
           </Collapse>
         </TableCell>
       </TableRow>

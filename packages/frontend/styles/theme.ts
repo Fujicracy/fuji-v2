@@ -359,35 +359,9 @@ const theme = createTheme(colorTheme, {
             fontWeight: 400,
             fontSize: "0.875rem",
             lineHeight: "160%",
-            ".MuiOutlinedInput-notchedOutline": {
-              border: 0,
-            },
           },
         },
       ],
-    },
-    MuiInputBase: {
-      styleOverrides: {
-        root: {
-          padding: 0,
-          fontSize: "1.125rem",
-          height: "1.813rem",
-          fontWeight: 400,
-          lineHeight: "160%",
-          display: "flex",
-          alignItems: "center",
-          flex: "none",
-          order: 0,
-          flexGrow: 0,
-        },
-      },
-    },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        input: {
-          paddingLeft: "0.25rem",
-        },
-      },
     },
     MuiTooltip: {
       styleOverrides: {
@@ -544,7 +518,20 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          borderRadius: "0.5rem !important",
+          alignItems: "center",
+        },
+      },
+    },
     MuiTextField: {
+      styleOverrides: {
+        root: {
+          borderRadius: "0.5rem",
+        },
+      },
       variants: [
         {
           props: {
@@ -552,17 +539,7 @@ const theme = createTheme(colorTheme, {
           },
           style: {
             background: colorTheme.palette.secondary.dark,
-            borderRadius: "0.5rem",
-            border: `1px solid ${colorTheme.palette.secondary.light}`,
-            "& input::placeholder": {
-              fontSize: "0.875rem",
-            },
             color: colorTheme.palette.info.dark,
-            padding: "0.5rem",
-            fontSize: "0.875rem",
-            ".MuiOutlinedInput-notchedOutline": {
-              border: "none",
-            },
           },
         },
       ],
@@ -571,10 +548,11 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           textAlign: "center",
-          border: `1px solid ${colorTheme.palette.secondary.light}`,
           borderRadius: "0.75rem",
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
           background: colorTheme.palette.secondary.contrastText,
           fontSize: "0.75rem",
+          borderBottom: "none",
         },
       },
     },
@@ -593,10 +571,10 @@ const theme = createTheme(colorTheme, {
         root: {
           fontSize: "0.875rem",
           fontWeight: 500,
-          lineHeight: "1.25rem",
-
           paddingTop: 0,
           paddingBottom: 0,
+          minWidth: "160px",
+          whiteSpace: "nowrap",
         },
       },
     },

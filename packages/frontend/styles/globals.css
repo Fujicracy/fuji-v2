@@ -1,15 +1,15 @@
 @font-face {
-  font-family: "Inter";
+  font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  src: url("../public/assets/fonts/Inter-Regular.ttf");
+  src: url('../public/assets/fonts/Inter-Regular.ttf');
 }
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: "Inter";
+  font-family: 'Inter';
 }
 
 a {
@@ -23,7 +23,7 @@ a {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
@@ -49,3 +49,13 @@ body {
   background: black;
 }
 /* } */
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  appearance: textfield;
+}
