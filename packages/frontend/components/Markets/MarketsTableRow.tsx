@@ -191,11 +191,10 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           </Stack>
         </TableCell>
         <TableCell align="right">
-          {row.safetyRating === "A+" ? (
-            <Chip variant="success" label={row.safetyRating} />
-          ) : (
-            <Chip variant="warning" label={row.safetyRating} />
-          )}
+          <Chip
+            variant={row.safetyRating === "A+" ? "success" : "warning"}
+            label={row.safetyRating}
+          />
         </TableCell>
         <TableCell align="right">
           $
