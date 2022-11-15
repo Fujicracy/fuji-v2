@@ -46,3 +46,7 @@ body {
   color: white;
   background: black;
 }
+
+input[type=number] {
+  appearance:textfield;
+}
