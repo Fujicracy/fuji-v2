@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+/**
+ * @title Chief.
+ * @author fujidao Labs
+ * @notice  Controls vault deploy factories, deployed flashers, vault ratings and core access control.
+ * Vault deployer contract with template factory allow.
+ * ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
+ */
+
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
@@ -11,21 +19,22 @@ import {IChief} from "./interfaces/IChief.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
-/// @notice Vault deployer contract with template factory allow.
-/// ref: https://github.com/sushiswap/trident/blob/master/contracts/deployer/MasterDeployer.sol
 contract Chief is CoreRoles, AccessControl, IChief {
   using Address for address;
 
   event OpenVaultFactory(bool state);
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
-  event AddToAllowed(address indexed factory);
-  event RemoveFromAllowed(address indexed factory);
+  event AllowFlasher(address indexed flasher, bool allowed);
+  event AllowVaultFactory(address indexed factory, bool allowed);
   event TimelockUpdated(address indexed timelock);
 
-  error Chief__setTimelock_zeroAddress();
-  error Chief__deployVault_zeroAddress();
+  /// @dev Custom Errors
+  error Chief__checkInput_zeroAddress();
+  error Chief__allowFlasher_noAllowChange();
+  error Chief__allowVaultFactory_noAllowChange();
   error Chief__deployVault_factoryNotAllowed();
   error Chief__deployVault_missingRole(address account, bytes32 role);
+  error Chief__onlyTimelock_callerIsNotTimelock();
 
   address public timelock;
   address public addrMapper;
@@ -33,7 +42,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   address[] internal _vaults;
   mapping(address => string) public vaultSafetyRating;
-  mapping(address => bool) public allowedFactories;
+  mapping(address => bool) public allowedVaultFactory;
+  mapping(address => bool) public allowedFlasher;
+
+  modifier onlyTimelock() {
+    if (msg.sender != timelock) {
+      revert Chief__onlyTimelock_callerIsNotTimelock();
+    }
+    _;
+  }
 
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -47,14 +64,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    if (newTimelock == address(0)) {
-      revert Chief__setTimelock_zeroAddress();
-    }
+    _checkInputIsNotZeroAddress(newTimelock);
     timelock = newTimelock;
-    emit TimelockUpdated(timelock);
+    // TODO update tests accordingly to grant timelock default admin role.
+    // _grantRole(DEFAULT_ADMIN_ROLE, timelock);
+    // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    emit TimelockUpdated(newTimelock);
   }
 
-  function setOpenVaultFactory(bool state) external onlyRole(DEFAULT_ADMIN_ROLE) {
+  function setOpenVaultFactory(bool state) external onlyTimelock {
     openVaultFactory = state;
     emit OpenVaultFactory(state);
   }
@@ -67,7 +85,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
     external
     returns (address vault)
   {
-    if (!allowedFactories[_factory]) {
+    if (!allowedVaultFactory[_factory]) {
       revert Chief__deployVault_factoryNotAllowed();
     }
     if (!openVaultFactory && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
@@ -79,20 +97,30 @@ contract Chief is CoreRoles, AccessControl, IChief {
     emit DeployVault(_factory, vault, _deployData);
   }
 
-  function addToAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    if (_factory == address(0)) {
-      revert Chief__deployVault_zeroAddress();
+  /**
+   * @notice Set `flasher` as an authorized address for flashloan operations.
+   * - Emits a `AllowFlasher` event.
+   */
+  function allowFlasher(address flasher, bool allowed) external onlyTimelock {
+    _checkInputIsNotZeroAddress(flasher);
+    if (allowedFlasher[flasher] == allowed) {
+      revert Chief__allowFlasher_noAllowChange();
     }
-    allowedFactories[_factory] = true;
-    emit AddToAllowed(_factory);
+    allowedFlasher[flasher] = allowed;
+    emit AllowFlasher(flasher, allowed);
   }
 
-  function removeFromAllowed(address _factory) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    if (_factory == address(0)) {
-      revert Chief__deployVault_zeroAddress();
+  /**
+   * @notice Set `_factory` as an authorized address for vault deployments.
+   * - Emits a `AllowVaultFactory` event.
+   */
+  function allowVaultFactory(address _factory, bool allowed) external onlyTimelock {
+    _checkInputIsNotZeroAddress(_factory);
+    if (allowedVaultFactory[_factory] == allowed) {
+      revert Chief__allowVaultFactory_noAllowChange();
     }
-    allowedFactories[_factory] = false;
-    emit RemoveFromAllowed(_factory);
+    allowedVaultFactory[_factory] = allowed;
+    emit AllowVaultFactory(_factory, allowed);
   }
 
   /**
@@ -162,6 +190,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
       unchecked {
         ++i;
       }
+    }
+  }
+
+  /**
+   * @dev reverts if `input` is zero address.
+   */
+  function _checkInputIsNotZeroAddress(address input) internal pure {
+    if (input == address(0)) {
+      revert Chief__checkInput_zeroAddress();
     }
   }
 }

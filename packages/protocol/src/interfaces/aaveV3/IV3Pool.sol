@@ -91,5 +91,7 @@ interface IV3Pool {
   )
     external;
 
+  function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
+
   function getReserveData(address asset) external view returns (ReserveData memory);
 }

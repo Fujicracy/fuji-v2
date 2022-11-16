@@ -2,11 +2,11 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { IMulticallProvider } from '@hovoh/ethcall';
+import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { ChainId, RouterAction } from '../enums';
-import { getPermitDigest } from '../functions';
 import {
   BorrowParams,
   ChainConfig,
@@ -63,6 +63,11 @@ export class BorrowingVault extends StreamManager {
    * @readonly
    */
   readonly debt: Token;
+
+  /**
+   * Name of the vault, assigned at deployment
+   */
+  private name: string;
 
   /**
    * A factor that defines the maximum Loan-To-Value a user can take.
@@ -132,23 +137,18 @@ export class BorrowingVault extends StreamManager {
    */
   private _cache: Map<string, BigNumber>;
 
-  /**
-   * Domain separator needed when signing a tx
-   */
-  private _domainSeparator: string;
-
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
     super();
 
+    this.name = '';
     this.address = address;
     this.collateral = collateral;
     this.chainId = collateral.chainId;
     this.debt = debt;
 
     this._cache = new Map<string, BigNumber>();
-    this._domainSeparator = '';
   }
 
   /**
@@ -174,7 +174,7 @@ export class BorrowingVault extends StreamManager {
   }
 
   /**
-   * Loads and sets domainSeparator and account's nonce
+   * Loads and sets name and account's nonce
    * that will be used when signing operations.
    *
    * @param account - (optional) user address, wrapped in {@link Address}
@@ -185,19 +185,20 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    const [maxLtv, liqRatio, nonce, domainSeparator] =
-      await this.multicallRpcProvider.all([
+    const [maxLtv, liqRatio, nonce, name] = await this.multicallRpcProvider.all(
+      [
         this.multicallContract.maxLtv(),
         this.multicallContract.liqRatio(),
         this.multicallContract.nonces(account ? account.value : AddressZero),
-        this.multicallContract.DOMAIN_SEPARATOR(),
-      ]);
+        this.multicallContract.name(),
+      ]
+    );
 
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
 
     if (account) this._cache.set(account.value, nonce);
-    this._domainSeparator = domainSeparator;
+    this.name = name;
   }
 
   /**
@@ -311,27 +312,29 @@ export class BorrowingVault extends StreamManager {
    *
    * @param params - the permit action that needs to be signed
    */
-  async signPermitFor(params: PermitParams): Promise<string> {
+  async signPermitFor(params: PermitParams): Promise<{
+    digest: string;
+    domain: TypedDataDomain;
+    types: Record<string, TypedDataField[]>;
+    value: Record<string, string>;
+  }> {
     const { owner } = params;
 
-    // if nonce for this user or domainSeparator aren't loaded yet
-    if (!this._cache.get(owner.value) || this._domainSeparator === '') {
+    // if nonce for this user or name aren't loaded yet
+    if (!this._cache.get(owner.value) || this.name === '') {
       await this.preLoad(owner);
     }
     const nonce: BigNumber = this._cache.get(owner.value) as BigNumber;
 
-    const digest: string = getPermitDigest(
-      params,
-      nonce,
-      this._domainSeparator
-    );
+    const { domain, types, value } = this._getPermitDigest(params, nonce);
+    const digest = utils._TypedDataEncoder.hash(domain, types, value);
 
     // update _cache if user has to sign another operation in the same tx
     // For ex. when shifting a position from one vault to another,
     // user has to sign first WITHDRAW and then BORROW
     this._cache.set(owner.value, nonce.add(BigNumber.from(1)));
 
-    return digest;
+    return { digest, domain, types, value };
   }
 
   previewDeposit(
@@ -374,5 +377,38 @@ export class BorrowingVault extends StreamManager {
       owner: account,
       deadline: deadline ?? oneDayLater,
     };
+  }
+
+  private _getPermitDigest(params: PermitParams, nonce: BigNumber) {
+    const { action, owner, spender, amount, deadline } = params;
+
+    const domain: TypedDataDomain = {
+      name: this.name,
+      version: '1',
+      chainId: this.chainId,
+      verifyingContract: this.address.value,
+    };
+
+    const permitType =
+      action === RouterAction.PERMIT_BORROW ? 'PermitBorrow' : 'PermitWithdraw';
+    const types: Record<string, TypedDataField[]> = {
+      [permitType]: [
+        { name: 'owner', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'amount', type: 'uint256' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    };
+
+    const value: Record<string, string> = {
+      owner: owner.value,
+      spender: spender.value,
+      amount: amount.toString(),
+      nonce: nonce.toString(),
+      deadline: deadline?.toString() ?? '',
+    };
+
+    return { domain, types, value };
   }
 }
