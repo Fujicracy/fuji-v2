@@ -37,8 +37,6 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
   {}
 
   function xBundle(Action[] memory actions, bytes[] memory args) external override {
-    // add auth?
-    // msg.sender == ??
     _bundleInternal(actions, args);
   }
 

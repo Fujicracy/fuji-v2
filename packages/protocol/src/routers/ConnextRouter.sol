@@ -7,6 +7,8 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
@@ -44,16 +46,16 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /**
    * @notice Emitted when the router receives a cross-chain call.
    * @param transferId - The unique identifier of the crosschain transfer.
-   * @param originSender - The router on originDomain.
    * @param originDomain - The origin domain identifier according Connext nomenclature.
+   * @param success - Whether or not the xBundle call succeeds.
    * @param asset - The asset being transferred.
    * @param amount - The amount of transferring asset the recipient address receives.
    * @param callData - The calldata that will get decoded and executed.
    */
   event XReceived(
     bytes32 indexed transferId,
-    address indexed originSender,
-    uint256 originDomain,
+    uint256 indexed originDomain,
+    bool success,
     address asset,
     uint256 amount,
     bytes callData
@@ -74,20 +76,22 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   // Connext specific functions
 
   /**
-   * @notice Called by Connext on the destination chain
+   * @notice Called by Connext on the destination chain. It doesn't perform an authentification
+   * by doing a check on `originSender`. As a result of that, all txns go through the fast path.
+   * If `xBundle` fails on our side, this contract will keep the custody of the sent funds.
+   *
    * @param transferId - The unique identifier of the crosschain transfer.
    * @param amount - The amount of transferring asset the recipient address receives.
    * @param asset - The asset being transferred.
-   * @param originSender - The router on originDomain.
-   * @param origin - The origin domain identifier according Connext nomenclature.
+   * @param originDomain - The origin domain identifier according Connext nomenclature.
    * @param callData - The calldata that will get decoded and executed.
    */
   function xReceive(
     bytes32 transferId,
     uint256 amount,
     address asset,
-    address originSender,
-    uint32 origin,
+    address, /* originSender */
+    uint32 originDomain,
     bytes memory callData
   )
     external
@@ -95,9 +99,12 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
-    _bundleInternal(actions, args);
-
-    emit XReceived(transferId, originSender, origin, asset, amount, callData);
+    try this.xBundle(actions, args) {
+      emit XReceived(transferId, originDomain, true, asset, amount, callData);
+    } catch {
+      // else keep funds in router and let them be handled by admin
+      emit XReceived(transferId, originDomain, false, asset, amount, callData);
+    }
 
     return "";
   }

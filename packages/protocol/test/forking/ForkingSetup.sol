@@ -10,6 +10,7 @@ import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
+import {IRouter} from "../../src/interfaces/IRouter.sol";
 import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
@@ -200,5 +201,35 @@ contract ForkingSetup is CoreRoles, Test {
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
     deadline = permit.deadline;
+  }
+
+  function _getDepositAndBorrowCallData(
+    uint256 amount,
+    uint256 borrowAmount,
+    address connextRouter,
+    address vault_
+  )
+    internal
+    returns (bytes memory callData)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(vault_, amount, ALICE, connextRouter);
+
+    LibSigUtils.Permit memory permit =
+      LibSigUtils.buildPermitStruct(ALICE, connextRouter, ALICE, borrowAmount, 0, vault_);
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, vault_);
+
+    args[1] = abi.encode(vault_, ALICE, ALICE, borrowAmount, deadline, v, r, s);
+
+    args[2] = abi.encode(vault_, borrowAmount, ALICE, ALICE);
+
+    callData = abi.encode(actions, args);
   }
 }

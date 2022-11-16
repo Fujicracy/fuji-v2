@@ -8,7 +8,7 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Goerli} from "../../../src/providers/goerli/AaveV3Goerli.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {MockProvider} from "../../../src/mocks/MockProvider.sol";
+import {MockProviderV0} from "../../../src/mocks/MockProviderV0.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
@@ -55,7 +55,7 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     _callWithTimelock(callData, address(connextRouter));
 
     // test with a mock provider because Connext's and Aave's WETH mismatch
-    MockProvider mockProvider = new MockProvider();
+    MockProviderV0 mockProvider = new MockProviderV0();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
 
@@ -105,26 +105,8 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    IRouter.Action[] memory actions = new IRouter.Action[](3);
-    actions[0] = IRouter.Action.Deposit;
-    actions[1] = IRouter.Action.PermitBorrow;
-    actions[2] = IRouter.Action.Borrow;
-
-    bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
-
-    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
-    );
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
-
-    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
-
-    args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
-
-    bytes memory callData = abi.encode(actions, args);
+    bytes memory callData =
+      _getDepositAndBorrowCallData(amount, borrowAmount, address(connextRouter), address(vault));
 
     vm.expectEmit(true, true, true, false);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
@@ -135,11 +117,29 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
     deal(collateralAsset, address(connextRouter), amount);
-    address originSender = connextRouter.routerByDomain(originDomain);
 
-    vm.startPrank(registry[originDomain].connext);
-    connextRouter.xReceive("", 0, address(0), originSender, originDomain, callData);
+    connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
 
     assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
+  }
+
+  function test_bridgeInboundXBundleFails() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // make the callData to fail
+    bytes memory callData =
+      _getDepositAndBorrowCallData(amount, borrowAmount, address(0), address(vault));
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
+
+    assertEq(vault.balanceOf(ALICE), 0);
+    // funds are kept at the Router
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
   }
 }
