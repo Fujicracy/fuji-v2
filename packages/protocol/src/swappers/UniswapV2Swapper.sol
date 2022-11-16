@@ -7,24 +7,25 @@ pragma solidity 0.8.15;
  * @notice Wrapper of UniswapV2 to to be called from the router.
  */
 
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IUniswapV2Router01} from "../interfaces/uniswap/IUniswapV2Router01.sol";
-import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+import {IWETH9} from "../abstracts/WETH9.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 
-contract UniswapV2Swapper is PeripheryPayments, ISwapper {
+contract UniswapV2Swapper is ISwapper {
+  using SafeERC20 for ERC20;
+
   IUniswapV2Router01 public uniswapRouter;
   IFujiOracle public oracle;
 
-  constructor(
-    IWETH9 weth,
-    IUniswapV2Router01 _uniswapRouter,
-    IFujiOracle _oracle
-  )
-    PeripheryPayments(weth)
-  {
+  IWETH9 public immutable WETH9;
+
+  constructor(IWETH9 weth, IUniswapV2Router01 _uniswapRouter, IFujiOracle _oracle) {
     uniswapRouter = _uniswapRouter;
     oracle = _oracle;
+    WETH9 = weth;
   }
 
   function swap(
@@ -52,8 +53,8 @@ contract UniswapV2Swapper is PeripheryPayments, ISwapper {
     slippage;
     // TODO check for slippage with value from oracle
 
-    pullToken(ERC20(assetIn), amounts[0], address(this));
-    approve(ERC20(assetIn), address(uniswapRouter), amounts[0]);
+    ERC20(assetIn).safeTransferFrom(msg.sender, address(this), amounts[0]);
+    ERC20(assetIn).safeApprove(address(uniswapRouter), amounts[0]);
     // swap and transfer swapped amount to Flasher
     uniswapRouter.swapTokensForExactTokens(
       amountOut,
