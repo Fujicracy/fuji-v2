@@ -385,7 +385,6 @@ export class BorrowingVault extends StreamManager {
     const domain: TypedDataDomain = {
       name: this.name,
       version: '1',
-      chainId: this.chainId,
       verifyingContract: this.address.value,
     };
 
