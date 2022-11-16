@@ -8,7 +8,7 @@ import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
-import {IWETH9} from "../src/helpers/PeripheryPayments.sol";
+import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";

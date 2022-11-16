@@ -10,7 +10,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../../../src/routers/SimpleRouter.sol";
-import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
+import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";

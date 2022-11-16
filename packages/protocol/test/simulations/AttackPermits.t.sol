@@ -8,7 +8,7 @@ import {MockProvider} from "../../src/mocks/MockProvider.sol";
 import {SimpleRouter} from "../../src/routers/SimpleRouter.sol";
 import {IRouter} from "../../src/interfaces/IRouter.sol";
 import {Routines} from "../utils/Routines.sol";
-import {IWETH9} from "../../src/helpers/PeripheryPayments.sol";
+import {IWETH9} from "../../src/abstracts/WETH9.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 

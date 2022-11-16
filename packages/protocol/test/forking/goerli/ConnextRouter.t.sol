@@ -13,7 +13,7 @@ import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
-import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
+import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
 contract ConnextRouterTest is Routines, ForkingSetup {

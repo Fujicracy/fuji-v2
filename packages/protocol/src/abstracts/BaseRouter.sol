@@ -7,17 +7,21 @@ pragma solidity 0.8.15;
  * @notice Defines the interface and common functions for all routers.
  */
 
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
-import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+import {IWETH9} from "../abstracts/WETH9.sol";
 
-abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter {
+abstract contract BaseRouter is SystemAccessControl, IRouter {
+  using SafeERC20 for ERC20;
+
   struct BalanceChecker {
     address token;
     uint256 balance;
@@ -26,15 +30,13 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
   error BaseRouter__bundleInternal_wrongInput();
   error BaseRouter__bundleInternal_noRemnantBalance();
 
+  IWETH9 public immutable WETH9;
+
   BalanceChecker[] private _tokensToCheck;
 
-  constructor(
-    IWETH9 weth,
-    IChief chief
-  )
-    PeripheryPayments(weth)
-    SystemAccessControl(address(chief))
-  {}
+  constructor(IWETH9 weth, IChief chief) SystemAccessControl(address(chief)) {
+    WETH9 = weth;
+  }
 
   function xBundle(Action[] memory actions, bytes[] memory args) external override {
     _bundleInternal(actions, args);
@@ -58,13 +60,10 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
-        // this check is needed because when we bundle mulptiple actions
-        // it can happen the router already holds the assets in question;
-        // for. example when we withdraw from a vault and deposit to another one
-        if (sender != address(this)) {
-          pullTokenFrom(ERC20(vault.asset()), amount, address(this), sender);
-        }
-        approve(ERC20(vault.asset()), address(vault), amount);
+        address token = vault.asset();
+        _safePullTokenFrom(token, sender, amount);
+        _safeApprove(token, address(vault), amount);
+
         vault.deposit(amount, receiver);
       } else if (actions[i] == Action.Withdraw) {
         // WITHDRAW
@@ -89,10 +88,10 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
-        if (sender != address(this)) {
-          pullTokenFrom(ERC20(vault.debtAsset()), amount, address(this), sender);
-        }
-        approve(ERC20(vault.debtAsset()), address(vault), amount);
+        address token = vault.debtAsset();
+        _safePullTokenFrom(token, sender, amount);
+        _safeApprove(token, address(vault), amount);
+
         vault.payback(amount, receiver);
       } else if (actions[i] == Action.PermitWithdraw) {
         // PERMIT ASSETS
@@ -145,7 +144,7 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
           uint256 slippage
         ) = abi.decode(args[i], (ISwapper, address, address, uint256, uint256, address, uint256));
 
-        approve(ERC20(assetIn), address(swapper), maxAmountIn);
+        _safeApprove(assetIn, address(swapper), maxAmountIn);
 
         _addTokenToCheck(assetOut);
 
@@ -178,6 +177,19 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
     _checkNoNativeBalance();
   }
 
+  function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
+    // this check is needed because when we bundle mulptiple actions
+    // it can happen the router already holds the assets in question;
+    // for. example when we withdraw from a vault and deposit to another one
+    if (sender != address(this)) {
+      ERC20(token).safeTransferFrom(sender, address(this), amount);
+    }
+  }
+
+  function _safeApprove(address token, address to, uint256 amount) internal {
+    ERC20(token).safeApprove(to, amount);
+  }
+
   function _crossTransfer(bytes memory) internal virtual;
 
   function _crossTransferWithCalldata(bytes memory) internal virtual;
@@ -208,4 +220,6 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
       revert BaseRouter__bundleInternal_noRemnantBalance();
     }
   }
+
+  receive() external payable {}
 }
