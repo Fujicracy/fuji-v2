@@ -22,6 +22,7 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { useStore } from "../../store"
 import { formatUnits } from "ethers/lib/utils"
+import TokenIcon from "../TokenIcon"
 
 // TODO: create helper to get these images and throw / warn us if 404 ?
 const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
@@ -234,11 +235,10 @@ export default function TransactionSummary() {
                   <Grid item>
                     {providers?.length ? (
                       <Grid container alignItems="center">
-                        <Image
-                          src={ethIconPath}
+                        <TokenIcon
+                          token={collateral.token}
                           height={18}
                           width={18}
-                          alt="Ethereum icon"
                         />
                         <Typography ml="0.375rem" variant="small">
                           {providers[0].name}

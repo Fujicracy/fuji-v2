@@ -15,7 +15,6 @@ import {
   Theme,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import Image from "next/image"
 
 import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
@@ -23,6 +22,7 @@ import Balance from "../Balance"
 import { useStore } from "../../store"
 import { useLtv } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
+import TokenIcon from "../TokenIcon"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
@@ -229,12 +229,7 @@ const TokenItem = (props: TokenItem) => {
       sx={sx}
     >
       <ListItemIcon>
-        <Image
-          src={`/assets/images/protocol-icons/tokens/${token.symbol}.svg`}
-          height={24}
-          width={24}
-          alt={token.name}
-        />
+        <TokenIcon token={token} height={24} width={24} />
       </ListItemIcon>
       <ListItemText>
         <Typography variant="h6">{token.symbol}</Typography>

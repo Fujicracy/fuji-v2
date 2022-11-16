@@ -10,15 +10,15 @@ import {
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
+import { formatUnits } from "ethers/lib/utils"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import Image from "next/image"
+import TokenIcon from "../TokenIcon"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
-import { formatUnits } from "ethers/lib/utils"
 
 // TODO: create helper to get these images and throw / warn us if 404 ?
 const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
@@ -159,7 +159,7 @@ export default function Overview() {
               {providers?.length ? (
                 <Grid container alignItems="center">
                   {/* TODO[design]: what logo should i put here ? */}
-                  <Image src={ethIconPath} height={18} width={18} alt="Eth" />
+                  <TokenIcon token={collateral.token} height={18} width={18} />
 
                   <Typography ml="0.375rem" variant="small">
                     {providers[0].name}
