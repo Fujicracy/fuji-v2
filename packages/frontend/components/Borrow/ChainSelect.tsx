@@ -3,6 +3,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Image from "next/image"
 import { chains } from "../../store/auth.slice"
 import styles from "../../styles/components/Borrow.module.css"
+import NetworkIcon from "../NetworkIcon"
 
 type ChainSelectProps = {
   label: string
@@ -38,12 +39,7 @@ export const ChainSelect = ({
         {chains.map((chain) => (
           <MenuItem key={chain.id} value={chain.id}>
             <Grid container>
-              <Image
-                src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                height={18}
-                width={18}
-                alt={chain.label}
-              />
+              <NetworkIcon networkName={chain.label} height={18} width={18} />
               <span style={{ marginLeft: "0.5rem" }}>
                 <Typography variant="small">{chain.label}</Typography>
               </span>
