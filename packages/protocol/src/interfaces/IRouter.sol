@@ -18,8 +18,10 @@ interface IRouter {
     PermitWithdraw,
     PermitBorrow,
     XTransfer,
-    XTransferWithCall
+    XTransferWithCall,
+    DepositETH,
+    WithdrawETH
   }
 
-  function xBundle(Action[] memory actions, bytes[] memory args) external;
+  function xBundle(Action[] memory actions, bytes[] memory args) external payable;
 }

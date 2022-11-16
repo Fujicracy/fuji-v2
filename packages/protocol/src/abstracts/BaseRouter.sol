@@ -29,6 +29,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   error BaseRouter__bundleInternal_wrongInput();
   error BaseRouter__bundleInternal_noRemnantBalance();
+  error BaseRouter__bundleInternal_insufficientETH();
+  error BaseRouter__bundleInternal_transferETHFailed();
 
   IWETH9 public immutable WETH9;
 
@@ -38,7 +40,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     WETH9 = weth;
   }
 
-  function xBundle(Action[] memory actions, bytes[] memory args) external override {
+  function xBundle(Action[] memory actions, bytes[] memory args) external payable override {
     _bundleInternal(actions, args);
   }
 
@@ -168,6 +170,25 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         // Call Flasher
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
+      } else if (actions[i] == Action.DepositETH) {
+        uint256 amount = abi.decode(args[i], (uint256));
+
+        if (amount != msg.value) {
+          revert BaseRouter__bundleInternal_insufficientETH();
+        }
+
+        WETH9.deposit{value: msg.value}();
+
+        _addTokenToCheck(address(WETH9));
+      } else if (actions[i] == Action.WithdrawETH) {
+        (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
+
+        WETH9.withdraw(amount);
+
+        (bool success,) = receiver.call{value: amount}(new bytes(0));
+        if (!success) {
+          revert BaseRouter__bundleInternal_transferETHFailed();
+        }
       }
       unchecked {
         ++i;
