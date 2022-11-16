@@ -68,6 +68,10 @@ contract MockingSetup is CoreRoles, Test {
     );
   }
 
+  function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {
+    MockERC20(mockerc20).mint(to, amount);
+  }
+
   function _callWithTimelock(bytes memory sendData, IVault v) internal {
     timelock.schedule(address(v), 0, sendData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);

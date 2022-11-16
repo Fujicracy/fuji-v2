@@ -101,7 +101,7 @@ contract SimpleRouterUnitTests is MockingSetup {
     vm.expectEmit(true, true, true, true);
     emit Borrow(address(simpleRouter), ALICE, ALICE, debt, debt);
 
-    deal(vault_.asset(), ALICE, deposit);
+    _dealMockERC20(vault_.asset(), ALICE, deposit);
 
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(vault_.asset()), address(simpleRouter), deposit);
@@ -134,7 +134,7 @@ contract SimpleRouterUnitTests is MockingSetup {
     vm.expectEmit(true, true, true, true);
     emit Borrow(address(simpleRouter), ALICE, ALICE, borrowAmount, borrowAmount);
 
-    deal(collateralAsset, ALICE, amount);
+    _dealMockERC20(collateralAsset, ALICE, amount);
 
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(collateralAsset), address(simpleRouter), amount);
