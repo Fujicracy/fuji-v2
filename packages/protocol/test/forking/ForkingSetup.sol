@@ -42,6 +42,7 @@ contract ForkingSetup is CoreRoles, Test {
   struct Registry {
     address weth;
     address usdc;
+    address dai;
     address connext;
   }
   // domain => addresses registry
@@ -74,6 +75,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
       usdc: address(0),
+      dai: address(0),
       connext: 0x99A784d082476E551E5fc918ce3d849f2b8e89B6
     });
     registry[GOERLI_DOMAIN] = goerli;
@@ -81,6 +83,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory optimismGoerli = Registry({
       weth: 0x74c6FD7D2Bc6a8F0Ebd7D78321A95471b8C2B806,
       usdc: address(0),
+      dai: address(0),
       connext: 0x705791AD27229dd4CCf41b6720528AfE1bcC2910
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
@@ -88,6 +91,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory mumbai = Registry({
       weth: 0xFD2AB41e083c75085807c4A65C0A14FDD93d55A9,
       usdc: address(0),
+      dai: address(0),
       connext: 0xfeBBcfe9a88aadefA6e305945F2d2011493B15b4
     });
     registry[MUMBAI_DOMAIN] = mumbai;
@@ -95,6 +99,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory mainnet = Registry({
       weth: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
       usdc: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,
+      dai: address(0),
       connext: address(0)
     });
     registry[MAINNET_DOMAIN] = mainnet;
@@ -102,6 +107,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory optimism = Registry({
       weth: 0x4200000000000000000000000000000000000006,
       usdc: 0x7F5c764cBc14f9669B88837ca1490cCa17c31607,
+      dai: address(0),
       connext: address(0)
     });
     registry[OPTIMISM_DOMAIN] = optimism;
@@ -109,6 +115,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory arbitrum = Registry({
       weth: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,
       usdc: 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8,
+      dai: address(0),
       connext: address(0)
     });
     registry[ARBITRUM_DOMAIN] = arbitrum;
@@ -116,6 +123,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory polygon = Registry({
       weth: 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619,
       usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
+      dai: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063,
       connext: address(0)
     });
     registry[POLYGON_DOMAIN] = polygon;
