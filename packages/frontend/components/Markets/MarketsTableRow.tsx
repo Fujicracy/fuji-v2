@@ -116,6 +116,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
               />
             )}
             <Stack direction="row" alignItems="center" flexWrap="nowrap">
+              {/* TODO after merge: use NetworkIcon component */}
               <Image
                 src={`/assets/images/protocol-icons/networks/${row.bestRateChain}.svg`}
                 height={24}
@@ -129,24 +130,14 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
             </Stack>
           </Stack>
         </TableCell>
-        <TableCell
-          align="right"
-          sx={{
-            color: palette.success.main,
-          }}
-        >
+        <TableCell align="right" sx={{ color: palette.success.main }}>
           {row.supplyAPI.toFixed(2)} %
         </TableCell>
-        <TableCell
-          align="right"
-          sx={{
-            color: palette.warning.main,
-          }}
-        >
+        <TableCell align="right" sx={{ color: palette.warning.main }}>
           <Stack
             direction="row"
             alignItems="center"
-            justifyContent="center"
+            justifyContent="right"
             flexWrap="nowrap"
           >
             {extra && <DropletIcon />}
@@ -154,7 +145,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           </Stack>
         </TableCell>
         <TableCell align="right">
-          <Stack direction="row" justifyContent="center" flexWrap="nowrap">
+          <Stack direction="row" justifyContent="right" flexWrap="nowrap">
             {row.integratedProtocols.map((vault, i) => (
               <Box
                 sx={{

@@ -188,13 +188,13 @@ export default function MarketsTable() {
             </TableCell>
             <TableCell align="center">Collateral</TableCell>
             <TableCell align="center">Chain with the best rate</TableCell>
-            <TableCell align="center">Supply APY</TableCell>
-            <TableCell align="center">
+            <TableCell align="right">Supply APY</TableCell>
+            <TableCell align="right">
               <Stack
                 direction="row"
                 spacing="0.25rem"
                 alignItems="center"
-                justifyContent="center"
+                justifyContent="right"
                 sx={{ cursor: "pointer" }}
                 onClick={() =>
                   setAprSorting(
@@ -220,12 +220,12 @@ export default function MarketsTable() {
                 )}
               </Stack>
             </TableCell>
-            <TableCell align="center">
+            <TableCell align="right">
               <Stack
                 direction="row"
                 alignItems="center"
                 spacing="0.25rem"
-                justifyContent="center"
+                justifyContent="right"
               >
                 <Tooltip
                   arrow
@@ -242,12 +242,12 @@ export default function MarketsTable() {
                 <span>Protocols</span>
               </Stack>
             </TableCell>
-            <TableCell align="center">
+            <TableCell>
               <Stack
                 direction="row"
                 alignItems="center"
                 spacing="0.25rem"
-                justifyContent="center"
+                justifyContent="right"
               >
                 <Tooltip
                   arrow
@@ -274,7 +274,7 @@ export default function MarketsTable() {
                 <span>Safety Rating</span>
               </Stack>
             </TableCell>
-            <TableCell align="center">Liquidity</TableCell>
+            <TableCell align="right">Liquidity</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
