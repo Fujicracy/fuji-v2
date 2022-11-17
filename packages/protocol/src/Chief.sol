@@ -54,6 +54,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _grantRole(HOUSE_KEEPER_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
     _deployAddrMapper();

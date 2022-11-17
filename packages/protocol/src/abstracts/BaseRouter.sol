@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 /**
  * @title Abstract contract for all routers.
  * @author Fujidao Labs
- * @notice Defines the interface and common functions for all routers.
+ * @dev Defines the interface and common functions for all routers.
  */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -30,7 +30,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_wrongInput();
   error BaseRouter__bundleInternal_noRemnantBalance();
   error BaseRouter__bundleInternal_insufficientETH();
-  error BaseRouter__bundleInternal_transferETHFailed();
+  error BaseRouter__safeTransferETH_transferFailed();
 
   IWETH9 public immutable WETH9;
 
@@ -42,6 +42,26 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   function xBundle(Action[] memory actions, bytes[] memory args) external payable override {
     _bundleInternal(actions, args);
+  }
+
+  /**
+   * @dev Sweep accidental ERC-20 transfers to this contract or stuck funds due to failed
+   * cross-chain calls (cf. ConnextRouter).
+   * @param token The address of the ERC-20 token to sweep.
+   * @param receiver The address that will receive the swept funds.
+   */
+  function sweepToken(ERC20 token, address receiver) external onlyChiefHouseKeeper {
+    uint256 balance = token.balanceOf(address(this));
+    token.transfer(receiver, balance);
+  }
+
+  /**
+   * @dev Sweep accidental ETH transfers to this contract.
+   * @param receiver The address that will receive the swept funds
+   */
+  function sweepETH(address receiver) external onlyChiefHouseKeeper {
+    uint256 balance = address(this).balance;
+    _safeTransferETH(receiver, balance);
   }
 
   /**
@@ -185,10 +205,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         WETH9.withdraw(amount);
 
-        (bool success,) = receiver.call{value: amount}(new bytes(0));
-        if (!success) {
-          revert BaseRouter__bundleInternal_transferETHFailed();
-        }
+        _safeTransferETH(receiver, amount);
       }
       unchecked {
         ++i;
@@ -196,6 +213,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
     _checkNoRemnantBalance(_tokensToCheck);
     _checkNoNativeBalance();
+  }
+
+  function _safeTransferETH(address receiver, uint256 amount) internal {
+    (bool success,) = receiver.call{value: amount}(new bytes(0));
+    if (!success) {
+      revert BaseRouter__safeTransferETH_transferFailed();
+    }
   }
 
   function _safePullTokenFrom(address token, address sender, uint256 amount) internal {

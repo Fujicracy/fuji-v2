@@ -14,12 +14,20 @@ import {CoreRoles} from "./CoreRoles.sol";
 contract SystemAccessControl is CoreRoles {
   error SystemAccessControl__hasRole_missingRole(address caller, bytes32 role);
   error SystemAccessControl__onlyTimelock_callerIsNotTimelock();
+  error SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper();
 
   IChief public immutable chief;
 
   modifier hasRole(address caller, bytes32 role) {
     if (!chief.hasRole(role, caller)) {
       revert SystemAccessControl__hasRole_missingRole(caller, role);
+    }
+    _;
+  }
+
+  modifier onlyChiefHouseKeeper() {
+    if (!chief.hasRole(HOUSE_KEEPER_ROLE, msg.sender)) {
+      revert SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper();
     }
     _;
   }

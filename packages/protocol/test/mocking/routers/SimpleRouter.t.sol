@@ -5,11 +5,13 @@ import "forge-std/Test.sol";
 
 import "forge-std/console2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../../../src/routers/SimpleRouter.sol";
+import {SystemAccessControl} from "../../../src/access/SystemAccessControl.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
@@ -260,6 +262,41 @@ contract SimpleRouterUnitTests is MockingSetup {
     assertEq(vault.balanceOf(BOB), 0);
     assertEq(BOB.balance, amount);
   }
+
+  function test_sweepETH(uint256 amount_) public {
+    vm.deal(address(simpleRouter), amount_);
+
+    simpleRouter.sweepETH(BOB);
+    assertEq(BOB.balance, amount_);
+  }
+
+  function test_tryFoeSweepETH(address foe, uint256 amount_) public {
+    vm.deal(address(simpleRouter), amount_);
+
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper.selector
+    );
+
+    vm.prank(foe);
+    simpleRouter.sweepETH(foe);
+  }
+
+  function test_sweepToken(uint256 amount_) public {
+    _dealMockERC20(collateralAsset, address(simpleRouter), amount_);
+
+    simpleRouter.sweepToken(ERC20(collateralAsset), BOB);
+    assertEq(ERC20(collateralAsset).balanceOf(BOB), amount_);
+  }
+
+  function test_tryFoeSweepToken(address foe) public {
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper.selector
+    );
+
+    vm.prank(foe);
+    simpleRouter.sweepToken(ERC20(collateralAsset), foe);
+  }
+
   // function test_closePositionWithFlashloan() public {
   //   uint256 withdrawAmount = 2 ether;
   //   uint256 flashAmount = 1000e18;
