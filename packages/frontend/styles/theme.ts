@@ -573,7 +573,6 @@ const theme = createTheme(colorTheme, {
           fontWeight: 500,
           paddingTop: 0,
           paddingBottom: 0,
-          minWidth: "160px",
           whiteSpace: "nowrap",
         },
       },

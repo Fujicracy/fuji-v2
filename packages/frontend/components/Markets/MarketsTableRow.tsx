@@ -3,6 +3,7 @@ import {
   Chip,
   Collapse,
   Stack,
+  Table,
   TableCell,
   TableRow,
   Typography,
@@ -211,7 +212,9 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
             }}
           >
             {row.children?.map((collaspsedRow, i) => (
-              <MarketsTableRow key={i} row={collaspsedRow} extra={false} />
+              <Table key={i}>
+                <MarketsTableRow row={collaspsedRow} extra={false} />
+              </Table>
             ))}
           </Collapse>
         </TableCell>
