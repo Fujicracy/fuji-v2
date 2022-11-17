@@ -27,16 +27,12 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
 
   return (
     <>
-      <TableRow
-        sx={{
-          height: "3.438rem",
-        }}
-      >
+      <TableRow sx={{ height: "3.438rem" }}>
         <TableCell
           sx={{
-            // position: "sticky", TODO: Problem with borders on Firefox only
+            position: "sticky",
             left: 0,
-            zIndex: 10,
+            zIndex: 1,
             background: row.isChild
               ? row.children && palette.secondary.main
               : palette.secondary.contrastText,

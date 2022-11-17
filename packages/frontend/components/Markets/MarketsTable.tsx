@@ -169,13 +169,17 @@ export default function MarketsTable() {
 
   return (
     <TableContainer>
-      <Table aria-label="Markets table">
+      <Table
+        aria-label="Markets table"
+        sx={{ borderCollapse: "initial" }} // border-collapse fix bug on borders on firefox
+      >
         <TableHead>
           <TableRow sx={{ height: "2.625rem" }}>
             <TableCell
               sx={{
-                // position: "sticky", TODO: Problem with borders on Firefox only
+                position: "sticky",
                 left: 0,
+                zIndex: 1,
                 background: palette.secondary.contrastText,
               }}
               align="center"
@@ -191,9 +195,7 @@ export default function MarketsTable() {
                 spacing="0.25rem"
                 alignItems="center"
                 justifyContent="center"
-                sx={{
-                  cursor: "pointer",
-                }}
+                sx={{ cursor: "pointer" }}
                 onClick={() =>
                   setAprSorting(
                     aprSorting === "ascending" ? "descending" : "ascending"
@@ -233,7 +235,6 @@ export default function MarketsTable() {
                   <InfoOutlinedIcon
                     sx={{
                       fontSize: "0.875rem",
-                      mt: "0 !important",
                       color: palette.info.main,
                     }}
                   />
@@ -267,10 +268,7 @@ export default function MarketsTable() {
                   placement="top"
                 >
                   <InfoOutlinedIcon
-                    sx={{
-                      fontSize: "0.875rem",
-                      color: palette.info.main,
-                    }}
+                    sx={{ fontSize: "0.875rem", color: palette.info.main }}
                   />
                 </Tooltip>
                 <span>Safety Rating</span>
