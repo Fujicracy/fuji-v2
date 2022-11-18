@@ -9,18 +9,28 @@ import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 contract VaultPermissions is IVaultPermissions, EIP712 {
   using Counters for Counters.Counter;
 
-  mapping(address => mapping(address => uint256)) internal _withdrawAllowance;
-  mapping(address => mapping(address => uint256)) internal _borrowAllowance;
+  /// custom errors
+  error VaultPermissions__zeroAddress();
+  error VaultPermissions__expiredDeadline();
+  error VaultPermissions__invalidSignature();
+  error VaultPermissions__insufficientWithdrawAllowance();
+  error VaultPermissions__insufficientBorrowAllowance();
+  error VaultPermissions__allowanceBelowZero();
+
+  /// Allowance structure:
+  /// owner => operator => receiver => amount
+  mapping(address => mapping(address => mapping(address => uint256))) internal _withdrawAllowance;
+  mapping(address => mapping(address => mapping(address => uint256))) internal _borrowAllowance;
 
   mapping(address => Counters.Counter) private _nonces;
 
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant _PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(address owner,address spender,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitBorrow(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
   /**
@@ -36,14 +46,24 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   constructor(string memory name_) EIP712(name_, "1") {}
 
   /// @inheritdoc IVaultPermissions
-  function withdrawAllowance(address owner, address spender) public view override returns (uint256) {
-    return _withdrawAllowance[owner][spender];
+  function withdrawAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    public
+    view
+    override
+    returns (uint256)
+  {
+    return _withdrawAllowance[owner][operator][receiver];
   }
 
   /// @inheritdoc IVaultPermissions
   function borrowAllowance(
     address owner,
-    address spender
+    address operator,
+    address receiver
   )
     public
     view
@@ -51,12 +71,13 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     override
     returns (uint256)
   {
-    return _borrowAllowance[owner][spender];
+    return _borrowAllowance[owner][operator][receiver];
   }
 
   /// @inheritdoc IVaultPermissions
   function increaseWithdrawAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -64,13 +85,16 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    _setWithdrawAllowance(owner, spender, _withdrawAllowance[owner][spender] + byAmount);
+    _setWithdrawAllowance(
+      owner, operator, receiver, _withdrawAllowance[owner][operator][receiver] + byAmount
+    );
     return true;
   }
 
   /// @inheritdoc IVaultPermissions
   function decreaseWithdrawAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -78,17 +102,20 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    uint256 currentAllowance = withdrawAllowance(owner, spender);
-    require(currentAllowance >= byAmount, "ERC20: decreased allowance below zero");
+    uint256 currentAllowance = _withdrawAllowance[owner][operator][receiver];
+    if (byAmount > currentAllowance) {
+      revert VaultPermissions__allowanceBelowZero();
+    }
     unchecked {
-      _setWithdrawAllowance(owner, spender, _withdrawAllowance[owner][spender] - byAmount);
+      _setWithdrawAllowance(owner, operator, receiver, currentAllowance - byAmount);
     }
     return true;
   }
 
   /// @inheritdoc IVaultPermissions
   function increaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -97,13 +124,16 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    _setBorrowAllowance(owner, spender, _borrowAllowance[owner][spender] + byAmount);
+    _setBorrowAllowance(
+      owner, operator, receiver, _borrowAllowance[owner][operator][receiver] + byAmount
+    );
     return true;
   }
 
   /// @inheritdoc IVaultPermissions
   function decreaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -112,10 +142,12 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     returns (bool)
   {
     address owner = msg.sender;
-    uint256 currentAllowance = withdrawAllowance(owner, spender);
-    require(currentAllowance >= byAmount, "ERC20: decreased allowance below zero");
+    uint256 currentAllowance = _borrowAllowance[owner][operator][receiver];
+    if (byAmount > currentAllowance) {
+      revert VaultPermissions__allowanceBelowZero();
+    }
     unchecked {
-      _setBorrowAllowance(owner, spender, _borrowAllowance[owner][spender] - byAmount);
+      _setBorrowAllowance(owner, operator, receiver, currentAllowance - byAmount);
     }
     return true;
   }
@@ -134,7 +166,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /// @inheritdoc IVaultPermissions
   function permitWithdraw(
     address owner,
-    address spender,
+    address receiver,
     uint256 amount,
     uint256 deadline,
     uint8 v,
@@ -144,21 +176,22 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     public
     override
   {
-    require(block.timestamp <= deadline, "Expired deadline");
+    _checkDeadline(deadline);
+    address operator = msg.sender;
     bytes32 structHash = keccak256(
-      abi.encode(PERMIT_WITHDRAW_TYPEHASH, owner, spender, amount, _useNonce(owner), deadline)
+      abi.encode(
+        PERMIT_WITHDRAW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+      )
     );
-    bytes32 digest = _hashTypedDataV4(structHash);
-    address signer = ECDSA.recover(digest, v, r, s);
-    require(signer == owner, "Invalid signature");
+    _checkSigner(structHash, owner, v, r, s);
 
-    _setWithdrawAllowance(owner, spender, amount);
+    _setWithdrawAllowance(owner, operator, receiver, amount);
   }
 
   /// @inheritdoc IVaultPermissions
   function permitBorrow(
     address owner,
-    address spender,
+    address receiver,
     uint256 amount,
     uint256 deadline,
     uint8 v,
@@ -169,60 +202,86 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     virtual
     override
   {
-    require(block.timestamp <= deadline, "Expired deadline");
+    _checkDeadline(deadline);
+    address operator = msg.sender;
     bytes32 structHash = keccak256(
-      abi.encode(_PERMIT_BORROW_TYPEHASH, owner, spender, amount, _useNonce(owner), deadline)
+      abi.encode(
+        _PERMIT_BORROW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+      )
     );
-    bytes32 digest = _hashTypedDataV4(structHash);
-    address signer = ECDSA.recover(digest, v, r, s);
-    require(signer == owner, "Invalid signature");
+    _checkSigner(structHash, owner, v, r, s);
 
-    _setBorrowAllowance(owner, spender, amount);
+    _setBorrowAllowance(owner, operator, receiver, amount);
   }
 
   /// Internal Functions
 
   /**
-   * @dev Sets `assets amount` as the allowance of `spender` over the `owner` assets.
+   * @dev Sets `assets amount` as the allowance of `operator` over the `owner` assets.
    * This internal function is equivalent to `approve`, and can be used to
    * ONLY on 'withdrawal()'
    * Emits an {WithdrawApproval} event.
    * Requirements:
    * - `owner` cannot be the zero address.
-   * - `spender` cannot be the zero address.
+   * - `operator` cannot be the zero address.
    */
-  function _setWithdrawAllowance(address owner, address spender, uint256 amount) internal {
-    require(owner != address(0), "Zero address");
-    require(spender != address(0), "Zero address");
-    _withdrawAllowance[owner][spender] = amount;
-    emit WithdrawApproval(owner, spender, amount);
+  function _setWithdrawAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+  {
+    if (owner == address(0) || operator == address(0) || receiver == address(0)) {
+      revert VaultPermissions__zeroAddress();
+    }
+    _withdrawAllowance[owner][operator][receiver] = amount;
+    emit WithdrawApproval(owner, operator, receiver, amount);
   }
 
   /**
-   * @dev Sets `amount` as the borrow allowance of `spender` over the `owner`'s debt.
+   * @dev Sets `amount` as the borrow allowance of `operator` over the `owner`'s debt.
    * This internal function is equivalent to `approve`, and can be used to
    * ONLY on 'borrow()'
    * Emits an {BorrowApproval} event.
    * Requirements:
    * - `owner` cannot be the zero address.
-   * - `spender` cannot be the zero address.
+   * - `operator` cannot be the zero address.
    */
-  function _setBorrowAllowance(address owner, address spender, uint256 amount) internal {
-    require(owner != address(0), "Zero address");
-    require(spender != address(0), "Zero address");
-    _borrowAllowance[owner][spender] = amount;
-    emit BorrowApproval(owner, spender, amount);
+  function _setBorrowAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+  {
+    if (owner == address(0) || operator == address(0) || receiver == address(0)) {
+      revert VaultPermissions__zeroAddress();
+    }
+    _borrowAllowance[owner][operator][receiver] = amount;
+    emit BorrowApproval(owner, operator, receiver, amount);
   }
 
   /**
    * @dev Based on OZ {ERC20-spendAllowance} for assets.
    */
-  function _spendWithdrawAllowance(address owner, address spender, uint256 amount) internal {
-    uint256 currentAllowance = withdrawAllowance(owner, spender);
+  function _spendWithdrawAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+  {
+    uint256 currentAllowance = withdrawAllowance(owner, operator, receiver);
     if (currentAllowance != type(uint256).max) {
-      require(currentAllowance >= amount, "Insufficient withdrawAllowance");
+      if (amount > currentAllowance) {
+        revert VaultPermissions__insufficientWithdrawAllowance();
+      }
       unchecked {
-        _setWithdrawAllowance(owner, spender, currentAllowance - amount);
+        _setWithdrawAllowance(owner, operator, receiver, currentAllowance - amount);
       }
     }
   }
@@ -230,12 +289,22 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /**
    * @dev Based on OZ {ERC20-spendAllowance} for assets.
    */
-  function _spendBorrowAllowance(address owner, address spender, uint256 amount) internal virtual {
-    uint256 currentAllowance = _borrowAllowance[owner][spender];
+  function _spendBorrowAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 amount
+  )
+    internal
+    virtual
+  {
+    uint256 currentAllowance = _borrowAllowance[owner][operator][receiver];
     if (currentAllowance != type(uint256).max) {
-      require(currentAllowance >= amount, "Insufficient borrowAllowance");
+      if (amount > currentAllowance) {
+        revert VaultPermissions__insufficientBorrowAllowance();
+      }
       unchecked {
-        _setBorrowAllowance(owner, spender, currentAllowance - amount);
+        _setBorrowAllowance(owner, operator, receiver, currentAllowance - amount);
       }
     }
   }
@@ -248,5 +317,35 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     Counters.Counter storage nonce = _nonces[owner];
     current = nonce.current();
     nonce.increment();
+  }
+
+  /**
+   * @dev Reverts if block.timestamp is expired according to `deadline`.
+   */
+  function _checkDeadline(uint256 deadline) private view {
+    // require(block.timestamp <= deadline, "Expired deadline");
+    if (block.timestamp > deadline) {
+      revert VaultPermissions__expiredDeadline();
+    }
+  }
+
+  /**
+   * @dev Reverts if `presumedOwner` is not signer of `structHash`.
+   */
+  function _checkSigner(
+    bytes32 structHash,
+    address presumedOwner,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  )
+    internal
+    view
+  {
+    bytes32 digest = _hashTypedDataV4(structHash);
+    address signer = ECDSA.recover(digest, v, r, s);
+    if (signer != presumedOwner) {
+      revert VaultPermissions__invalidSignature();
+    }
   }
 }

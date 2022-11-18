@@ -70,14 +70,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function allowance(
     address owner,
-    address spender
+    address receiver
   )
     public
     view
     override (ERC20, IERC20)
     returns (uint256)
   {
-    return convertToShares(withdrawAllowance(owner, spender));
+    address operator = receiver;
+    return convertToShares(withdrawAllowance(owner, operator, receiver));
   }
 
   /**
@@ -85,9 +86,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
    * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
    */
-  function approve(address spender, uint256 shares) public override (ERC20, IERC20) returns (bool) {
+  function approve(address receiver, uint256 shares) public override (ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
-    _setWithdrawAllowance(owner, spender, convertToAssets(shares));
+    address operator = receiver;
+    _setWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
     return true;
   }
 
@@ -95,8 +97,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Override to call {VaultPermissions-increaseWithdrawAllowance}.
    * Converts extraShares argument to assets in VaultPermissions-increaseWithdrawAllowance.
    */
-  function increaseAllowance(address spender, uint256 extraShares) public override returns (bool) {
-    increaseWithdrawAllowance(spender, convertToAssets(extraShares));
+  function increaseAllowance(address receiver, uint256 extraShares) public override returns (bool) {
+    address operator = receiver;
+    increaseWithdrawAllowance(operator, receiver, convertToAssets(extraShares));
     return true;
   }
 
@@ -105,14 +108,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts subtractedShares argument to assets in VaultPermissions-decreaseWithdrawAllowance.
    */
   function decreaseAllowance(
-    address spender,
+    address receiver,
     uint256 subtractedShares
   )
     public
     override
     returns (bool)
   {
-    decreaseWithdrawAllowance(spender, convertToAssets(subtractedShares));
+    address operator = receiver;
+    decreaseWithdrawAllowance(operator, receiver, convertToAssets(subtractedShares));
     return true;
   }
 
@@ -121,8 +125,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts shares argument to assets in VaultPermissions-_spendWithdrawAllowance.
    * This internal function is called during ERC4626-transferFrom.
    */
-  function _spendAllowance(address owner, address spender, uint256 shares) internal override {
-    _spendWithdrawAllowance(owner, spender, convertToAssets(shares));
+  function _spendAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 shares
+  )
+    internal
+  {
+    _spendWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
   }
 
   ////////////////////////////////////////////
@@ -246,7 +257,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
     address caller = _msgSender();
     if (caller != owner) {
-      _spendAllowance(owner, caller, convertToShares(assets));
+      _spendAllowance(owner, caller, receiver, convertToShares(assets));
     }
 
     uint256 shares = previewWithdraw(assets);
@@ -275,11 +286,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
     address caller = _msgSender();
     if (caller != owner) {
-      _spendAllowance(owner, caller, shares);
+      _spendAllowance(owner, caller, receiver, shares);
     }
 
     uint256 assets = previewRedeem(shares);
-    _withdraw(_msgSender(), receiver, owner, assets, shares);
+    _withdraw(caller, receiver, owner, assets, shares);
 
     return assets;
   }
@@ -403,7 +414,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function borrowAllowance(
     address owner,
-    address spender
+    address operator,
+    address receiver
   )
     public
     view
@@ -417,7 +429,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
   function increaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -431,7 +444,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
   function decreaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -446,7 +460,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function permitBorrow(
     address owner,
-    address spender,
+    address receiver,
     uint256 value,
     uint256 deadline,
     uint8 v,

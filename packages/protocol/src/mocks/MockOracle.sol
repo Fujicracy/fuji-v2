@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import {IFujiOracle} from "../interfaces/IFujiOracle.sol";
 
 contract MockOracle is IFujiOracle {
-  mapping(address => mapping(address => uint256)) public prices;
+  mapping(address => uint256) public prices;
 
   function getPriceOf(
     address currencyAsset,
@@ -15,12 +15,22 @@ contract MockOracle is IFujiOracle {
     view
     returns (uint256 price)
   {
-    decimals;
-    uint256 p = prices[currencyAsset][commodityAsset];
-    price = p == 0 ? 1e18 : p;
+    price = 10 ** uint256(decimals);
+
+    if (commodityAsset != address(0)) {
+      price = price * prices[commodityAsset];
+    } else {
+      price = price * (10 ** 8);
+    }
+
+    if (currencyAsset != address(0)) {
+      price = price / prices[currencyAsset];
+    } else {
+      price = price / (10 ** 8);
+    }
   }
 
-  function setPriceOf(address currencyAsset, address commodityAsset, uint256 price) public {
-    prices[currencyAsset][commodityAsset] = price;
+  function setUSDPriceOf(address asset, uint256 price) public {
+    prices[asset] = price;
   }
 }

@@ -1,84 +1,91 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
-// ============= Structs =============
 
 /**
- * @notice These are the call parameters that will remain constant between the
+ * @notice These are the parameters that will remain constant between the
  * two chains. They are supplied on `xcall` and should be asserted on `execute`
  * @property to - The account that receives funds, in the event of a crosschain call,
  * will receive funds if the call fails.
- * @param to - The address you are sending funds (and potentially data) to
- * @param callData - The data to execute on the receiving chain. If no crosschain call is needed, then leave empty.
+ *
  * @param originDomain - The originating domain (i.e. where `xcall` is called). Must match nomad domain schema
  * @param destinationDomain - The final domain (i.e. where `execute` / `reconcile` are called). Must match nomad domain schema
- * @param agent - An address who can execute txs on behalf of `to`, in addition to allowing relayers
- * @param recovery - The address to send funds to if your `Executor.execute call` fails
- * @param callback - The address on the origin domain of the callback contract
- * @param callbackFee - The relayer fee to execute the callback
- * @param forceSlow - If true, will take slow liquidity path even if it is not a permissioned call
+ * @param canonicalDomain - The canonical domain of the asset you are bridging
+ * @param to - The address you are sending funds (and potentially data) to
+ * @param delegate - An address who can execute txs on behalf of `to`, in addition to allowing relayers
  * @param receiveLocal - If true, will use the local nomad asset on the destination instead of adopted.
- * @param relayerFee - The amount of relayer fee the tx called xcall with
- * @param slippageTol - Max bps of original due to slippage (i.e. would be 9995 to tolerate .05% slippage)
+ * @param callData - The data to execute on the receiving chain. If no crosschain call is needed, then leave empty.
+ * @param slippage - Slippage user is willing to accept from original amount in expressed in BPS (i.e. if
+ * a user takes 1% slippage, this is expressed as 1_000)
+ * @param originSender - The msg.sender of the xcall
+ * @param bridgedAmt - The amount sent over the bridge (after potential AMM on xcall)
+ * @param normalizedIn - The amount sent to `xcall`, normalized to 18 decimals
+ * @param nonce - The nonce on the origin domain used to ensure the transferIds are unique
+ * @param canonicalId - The unique identifier of the canonical token corresponding to bridge assets
  */
-struct CallParams {
-  address to;
-  bytes callData;
+struct TransferInfo {
   uint32 originDomain;
   uint32 destinationDomain;
-  address agent;
-  address recovery;
-  bool forceSlow;
-  bool receiveLocal;
-  address callback;
-  uint256 callbackFee;
-  uint256 relayerFee;
-  uint256 destinationMinOut;
-}
-
-/**
- * @notice The arguments you supply to the `xcall` function called by user on origin domain
- * @param params - The CallParams. These are consistent across sending and receiving chains
- * @param transactingAsset - The asset the caller sent with the transfer. Can be the adopted, canonical,
- * or the representational asset.
- * @param transactingAmount - The amount of transferring asset supplied by the user in the `xcall`.
- * @param originMinOut - Minimum amount received on swaps for adopted <> local on origin chain
- */
-struct XCallArgs {
-  CallParams params;
-  address transactingAsset; // Could be adopted, local, or canonical.
-  uint256 transactingAmount;
-  uint256 originMinOut;
-}
-
-/**
- * @param _transferId Unique identifier of transaction id that necessitated
- * calldata execution
- * @param _amount The amount to approve or send with the call
- * @param _to The address to execute the calldata on
- * @param _assetId The assetId of the funds to approve to the contract or
- * send along with the call
- * @param _properties The origin properties
- * @param _callData The data to execute
- */
-struct ExecutorArgs {
-  bytes32 transferId;
-  uint256 amount;
+  uint32 canonicalDomain;
   address to;
-  address recovery;
-  address assetId;
-  address originSender;
-  uint32 originDomain;
+  address delegate;
+  bool receiveLocal;
   bytes callData;
+  uint256 slippage;
+  address originSender;
+  uint256 bridgedAmt;
+  uint256 normalizedIn;
+  uint256 nonce;
+  bytes32 canonicalId;
 }
 
-interface IConnextHandler {
-  function domain() external view returns (uint256);
-  function executor() external view returns (address);
-  function xcall(XCallArgs calldata _args) external payable returns (bytes32);
+/**
+ * @notice
+ * @param params - The TransferInfo. These are consistent across sending and receiving chains.
+ * @param routers - The routers who you are sending the funds on behalf of.
+ * @param routerSignatures - Signatures belonging to the routers indicating permission to use funds
+ * for the signed transfer ID.
+ * @param sequencer - The sequencer who assigned the router path to this transfer.
+ * @param sequencerSignature - Signature produced by the sequencer for path assignment accountability
+ * for the path that was signed.
+ */
+struct ExecuteArgs {
+  TransferInfo params;
+  address[] routers;
+  bytes[] routerSignatures;
+  address sequencer;
+  bytes sequencerSignature;
 }
 
-interface IExecutor {
-  function execute(ExecutorArgs calldata _args)
+interface IConnext {
+  function xcall(
+    uint32 _destination,
+    address _to,
+    address _asset,
+    address _delegate,
+    uint256 _amount,
+    uint256 _slippage,
+    bytes calldata _callData
+  )
+    external
+    payable
+    returns (bytes32);
+
+  function execute(ExecuteArgs calldata _args)
     external
     returns (bool success, bytes memory returnData);
+
+  function bumpTransfer(bytes32 transferId) external payable;
+}
+
+interface IXReceiver {
+  function xReceive(
+    bytes32 _transferId,
+    uint256 _amount,
+    address _asset,
+    address _originSender,
+    uint32 _origin,
+    bytes memory _callData
+  )
+    external
+    returns (bytes memory);
 }

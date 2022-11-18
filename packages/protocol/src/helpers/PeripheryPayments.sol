@@ -77,21 +77,6 @@ abstract contract PeripheryPayments {
   {
     token.safeTransferFrom(sender, recipient, amount);
   }
-
-  function sweepToken(ERC20 token, uint256 amountMinimum, address recipient) public payable {
-    uint256 balanceToken = token.balanceOf(address(this));
-    require(balanceToken >= amountMinimum, "Insufficient token");
-
-    if (balanceToken > 0) {
-      token.safeTransfer(recipient, balanceToken);
-    }
-  }
-
-  function refundETH() external payable {
-    if (address(this).balance > 0) {
-      safeTransferETH(msg.sender, address(this).balance);
-    }
-  }
 }
 
 abstract contract IWETH9 is ERC20 {
