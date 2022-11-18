@@ -9,14 +9,14 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
-import {MockProvider} from "../src/mocks/MockProvider.sol";
+import {MockProviderV0} from "../src/mocks/MockProviderV0.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract DeployGoerli is ScriptPlus {
+contract DeploySystem is ScriptPlus {
   IVault public vault;
   IWETH9 public weth;
   IConnext public connextHandler;
@@ -24,14 +24,13 @@ contract DeployGoerli is ScriptPlus {
 
   ConnextRouter public connextRouter;
 
-  MockProvider public mockProvider;
+  MockProviderV0 public mockProvider;
   MockOracle public mockOracle;
 
   function setUp() public {
-    chainName = "goerli";
+    chainName = "mumbai";
 
-    /*weth = IWETH9(getAddress("WETH"));*/
-    weth = IWETH9(0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1);
+    weth = IWETH9(getAddress("WETH"));
     connextHandler = IConnext(getAddress("ConnextHandler"));
   }
 
@@ -54,8 +53,8 @@ contract DeployGoerli is ScriptPlus {
     /*mockOracle.setUSDPriceOf(address(USDC), 100000000);*/
     /*mockOracle.setUSDPriceOf(address(USDT), 100000000);*/
 
-    /*mockProvider = MockProvider(getAddress("MockProvider"));*/
-    mockProvider = new MockProvider();
+    /*mockProvider = MockProviderV0(getAddress("MockProvider"));*/
+    mockProvider = new MockProviderV0();
     saveAddress("MockProvider", address(mockProvider));
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
@@ -70,6 +69,7 @@ contract DeployGoerli is ScriptPlus {
     connextRouter = new ConnextRouter(weth, connextHandler, chief);
     saveAddress("ConnextRouter", address(connextRouter));
 
+    /*BorrowingVault vaultDAI = BorrowingVault(payable(getAddress("BorrowingVault-TESTDAI")));*/
     BorrowingVault vaultDAI = new BorrowingVault(
       address(weth),
       address(DAI),
@@ -104,6 +104,7 @@ contract DeployGoerli is ScriptPlus {
     /*);*/
     /*saveAddress("BorrowingVault-TESTUSDT", address(vaultUSDT));*/
     /*vaultUSDT.setProviders(providers);*/
+    /*vaultUSDT.setActiveProvider(mockProvider);*/
 
     vm.stopBroadcast();
   }
