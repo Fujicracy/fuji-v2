@@ -88,7 +88,7 @@ abstract contract EIP712 {
   {
     return keccak256(
       abi.encode(
-        typeHash, nameHash, versionHash, address(this), keccak256(abi.encodePacked(block.chainid))
+        typeHash, nameHash, versionHash, address(this), keccak256(abi.encode(block.chainid))
       )
     );
   }

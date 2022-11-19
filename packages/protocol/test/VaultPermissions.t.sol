@@ -139,7 +139,7 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault.withdraw(withdrawDelegated, receiver, owner);
   }
 
-  function testWithdrawWithPermit() public {
+  function test_withdrawWithPermit() public {
     do_deposit(depositAmount, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
