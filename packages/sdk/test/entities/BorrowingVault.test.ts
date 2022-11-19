@@ -55,7 +55,7 @@ describe('BorrowingVault', () => {
 
       const { digest } = await vault.signPermitFor(params);
       expect(digest).toEqual(
-        '0x194a90fe3d33fe2643bce3659ccd2ac8ee1eeaa63b4f1954a35f3eebbbb232b0'
+        '0x2120b4dc81bb0eff221969b4f2a7d469e6c6cd1be06535ba542d49899a7596c8'
       );
     });
 
@@ -77,7 +77,7 @@ describe('BorrowingVault', () => {
 
       const { digest } = await vault.signPermitFor(params);
       expect(digest).toEqual(
-        '0x9a7fbfae8f9e80e022f93fd7da27509378374fcee6527c2e04494eae972c04f3'
+        '0xe07600445792f6b44159b3d34362cbb7d746d1bc1e470095eed760589bcf377a'
       );
     });
 
@@ -107,14 +107,14 @@ describe('BorrowingVault', () => {
 
       const { digest: digestBorrow } = await vault.signPermitFor(borrowParams);
       expect(digestBorrow).toEqual(
-        '0x194a90fe3d33fe2643bce3659ccd2ac8ee1eeaa63b4f1954a35f3eebbbb232b0'
+        '0x2120b4dc81bb0eff221969b4f2a7d469e6c6cd1be06535ba542d49899a7596c8'
       );
 
       const { digest: digestWithdraw } = await vault.signPermitFor(
         withdrawParams
       );
       expect(digestWithdraw).toEqual(
-        '0xebe476294730b15271b46248a4c6e41448357e0293b7a37ed46bb6d64f2b0103'
+        '0xdfa6d72f08e2e156d9cb6c785b010f5126878f5adcc6aaf3fa596c5d182e9d3e'
       );
     });
   });
