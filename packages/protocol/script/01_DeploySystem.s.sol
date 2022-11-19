@@ -28,7 +28,7 @@ contract DeploySystem is ScriptPlus {
   MockOracle public mockOracle;
 
   function setUp() public {
-    chainName = "mumbai";
+    chainName = "optimism-goerli";
 
     weth = IWETH9(getAddress("WETH"));
     connextHandler = IConnext(getAddress("ConnextHandler"));
@@ -37,37 +37,43 @@ contract DeploySystem is ScriptPlus {
   function run() public {
     vm.startBroadcast();
 
-    /*MockERC20 DAI = MockERC20(getAddress("MockDAI"));*/
-    /*MockERC20 USDC = MockERC20(getAddress("MockUSDC"));*/
-    /*MockERC20 USDT = MockERC20(getAddress("MockUSDT"));*/
-    MockERC20 DAI = new MockERC20("Test DAI", "tDAI");
-    saveAddress("MockDAI", address(DAI));
+    MockERC20 DAI = MockERC20(getAddress("MockDAI"));
+    /*MockERC20 DAI = new MockERC20("Test DAI", "tDAI");*/
+    /*saveAddress("MockDAI", address(DAI));*/
 
-    /*mockOracle = MockOracle(getAddress("MockOracle"));*/
-    mockOracle = new MockOracle();
-    saveAddress("MockOracle", address(mockOracle));
+    MockERC20 USDC = MockERC20(getAddress("MockUSDC"));
+    /*MockERC20 USDC = new MockERC20("Test USDC", "tUSDC");*/
+    /*saveAddress("MockUSDC", address(USDC));*/
+
+    MockERC20 USDT = MockERC20(getAddress("MockUSDT"));
+    /*MockERC20 USDT = new MockERC20("Test USDT", "tUSDT");*/
+    /*saveAddress("MockUSDT", address(USDT));*/
+
+    mockOracle = MockOracle(getAddress("MockOracle"));
+    /*mockOracle = new MockOracle();*/
+    /*saveAddress("MockOracle", address(mockOracle));*/
 
     // WETH and DAI prices by Nov 11h 2022
-    mockOracle.setUSDPriceOf(address(weth), 796341757142697);
-    mockOracle.setUSDPriceOf(address(DAI), 100000000);
+    /*mockOracle.setUSDPriceOf(address(weth), 796341757142697);*/
+    /*mockOracle.setUSDPriceOf(address(DAI), 100000000);*/
     /*mockOracle.setUSDPriceOf(address(USDC), 100000000);*/
     /*mockOracle.setUSDPriceOf(address(USDT), 100000000);*/
 
-    /*mockProvider = MockProviderV0(getAddress("MockProvider"));*/
-    mockProvider = new MockProviderV0();
-    saveAddress("MockProvider", address(mockProvider));
+    mockProvider = MockProviderV0(getAddress("MockProvider"));
+    /*mockProvider = new MockProviderV0();*/
+    /*saveAddress("MockProvider", address(mockProvider));*/
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
 
-    /*chief = Chief(getAddress("Chief"));*/
-    chief = new Chief();
-    saveAddress("Chief", address(chief));
-    bytes32 REBALANCER_ROLE = keccak256("REBALANCER_ROLE");
-    chief.grantRole(REBALANCER_ROLE, msg.sender);
-    chief.setTimelock(msg.sender);
+    chief = Chief(getAddress("Chief"));
+    /*chief = new Chief();*/
+    /*saveAddress("Chief", address(chief));*/
+    /*bytes32 REBALANCER_ROLE = keccak256("REBALANCER_ROLE");*/
+    /*chief.grantRole(REBALANCER_ROLE, msg.sender);*/
+    /*chief.setTimelock(msg.sender);*/
 
-    connextRouter = new ConnextRouter(weth, connextHandler, chief);
-    saveAddress("ConnextRouter", address(connextRouter));
+    /*connextRouter = new ConnextRouter(weth, connextHandler, chief);*/
+    /*saveAddress("ConnextRouter", address(connextRouter));*/
 
     /*BorrowingVault vaultDAI = BorrowingVault(payable(getAddress("BorrowingVault-TESTDAI")));*/
     BorrowingVault vaultDAI = new BorrowingVault(
