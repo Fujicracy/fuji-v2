@@ -19,9 +19,14 @@ import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.s
  * The main difference with OZ is that the "chainid" is not included in the domain separator but in the structHash.
  * The rationale behind is to adapt EIP712 to our cross-chain message signing: allowing a user on chain A to sign
  * a message that will be verified on chain B. If we were to include the "chainid" in the domain separator, that
- * would require the user to switch networks back and forth, thus deteriorating the UX. Indeed, EIP712 doesn't forbid it
- * as it states that "Protocol designers only need to include the fields that make sense for their signing domain."
- * into the the struct "EIP712Domain".
+ * would require the user to switch networks back and forth, because of the limitation:
+ * "The user-agent should refuse signing if it does not match the currently active chain.". That would serously
+ * deteriorate the UX.
+ *
+ * Indeed, EIP712 doesn't forbid it as it states that
+ * "Protocol designers only need to include the fields that make sense for their signing domain."
+ * into the the struct "EIP712Domain". However, we decided to add a ref to "chainid" in the param salt. Together
+ * with "chainid" in the typeHash, we assume those provide sufficient security guarantees.
  *
  */
 abstract contract EIP712 {
@@ -52,7 +57,7 @@ abstract contract EIP712 {
     bytes32 hashedName = keccak256(bytes(name));
     bytes32 hashedVersion = keccak256(bytes(version));
     bytes32 typeHash =
-      keccak256("EIP712Domain(string name,string version,address verifyingContract)");
+      keccak256("EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)");
     _HASHED_NAME = hashedName;
     _HASHED_VERSION = hashedVersion;
     _CACHED_CHAIN_ID = block.chainid;
@@ -81,7 +86,11 @@ abstract contract EIP712 {
     view
     returns (bytes32)
   {
-    return keccak256(abi.encode(typeHash, nameHash, versionHash, address(this)));
+    return keccak256(
+      abi.encode(
+        typeHash, nameHash, versionHash, address(this), keccak256(abi.encodePacked(block.chainid))
+      )
+    );
   }
 
   /**

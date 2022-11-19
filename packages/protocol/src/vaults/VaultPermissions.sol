@@ -26,11 +26,11 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(uint256 chainid,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(uint256 chainid,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
   /**
