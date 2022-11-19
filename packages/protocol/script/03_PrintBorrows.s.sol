@@ -131,6 +131,7 @@ contract PrintGoerliBorrows is ScriptPlus {
     returns (uint8 v, bytes32 r, bytes32 s)
   {
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
       owner: owner,
       operator: operator,
       receiver: receiver,

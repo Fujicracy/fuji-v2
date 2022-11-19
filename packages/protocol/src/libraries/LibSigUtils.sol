@@ -13,14 +13,15 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 library LibSigUtils {
   // solhint-disable-next-line var-name-mixedcase
   bytes32 internal constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(uint256 chainid,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 internal constant _PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+  bytes32 internal constant PERMIT_BORROW_TYPEHASH = keccak256(
+    "PermitBorrow(uint256 chainid,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
   struct Permit {
+    uint256 chainid;
     address owner;
     address operator;
     address receiver;
@@ -41,6 +42,7 @@ library LibSigUtils {
     view
     returns (Permit memory permit)
   {
+    permit.chainid = block.chainid;
     permit.owner = owner;
     permit.operator = operator;
     permit.receiver = receiver;
@@ -54,6 +56,7 @@ library LibSigUtils {
     return keccak256(
       abi.encode(
         PERMIT_WITHDRAW_TYPEHASH,
+        permit.chainid,
         permit.owner,
         permit.operator,
         permit.receiver,
@@ -68,7 +71,8 @@ library LibSigUtils {
   function getStructHashBorrow(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
-        _PERMIT_BORROW_TYPEHASH,
+        PERMIT_BORROW_TYPEHASH,
+        permit.chainid,
         permit.owner,
         permit.operator,
         permit.receiver,
