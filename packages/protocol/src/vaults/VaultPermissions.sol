@@ -29,7 +29,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     "PermitWithdraw(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 private constant _PERMIT_BORROW_TYPEHASH = keccak256(
+  bytes32 private constant PERMIT_BORROW_TYPEHASH = keccak256(
     "PermitBorrow(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
@@ -206,7 +206,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     address operator = msg.sender;
     bytes32 structHash = keccak256(
       abi.encode(
-        _PERMIT_BORROW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+        PERMIT_BORROW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
       )
     );
     _checkSigner(structHash, owner, v, r, s);
