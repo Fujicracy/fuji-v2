@@ -6,6 +6,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {Chief} from "../../src/Chief.sol";
@@ -155,6 +156,8 @@ contract ForkingSetup is CoreRoles, Test {
 
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
+    /*address[] memory empty = new address[](0);*/
+    /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
     // WETH and DAI prices by Nov 11h 2022
     mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
     mockOracle.setUSDPriceOf(debtAsset, 100000000);
@@ -174,8 +177,8 @@ contract ForkingSetup is CoreRoles, Test {
       debtAsset,
       address(mockOracle),
       address(chief),
-      "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+      "Fuji-V2 WETH-USDC Vault Shares",
+      "fv2WETHUSDC"
     );
   }
 
@@ -191,8 +194,6 @@ contract ForkingSetup is CoreRoles, Test {
     _callWithTimelock(callData, address(v));
   }
 
-  // plusNonce is necessary for compound operations,
-  // those that needs more than one signiture in the same tx
   function _getPermitBorrowArgs(
     LibSigUtils.Permit memory permit,
     uint256 ownerPrivateKey,
@@ -202,11 +203,23 @@ contract ForkingSetup is CoreRoles, Test {
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
     bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
-    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
-      // This domain should be obtained from the chain on which state will change.
-      IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
-      structHash
-    );
+    bytes32 digest =
+      LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
+    (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    deadline = permit.deadline;
+  }
+
+  function _getPermitWithdrawArgs(
+    LibSigUtils.Permit memory permit,
+    uint256 ownerPrivateKey,
+    address vault_
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    bytes32 structHash = LibSigUtils.getStructHashAsset(permit);
+    bytes32 digest =
+      LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
     deadline = permit.deadline;
   }
@@ -214,7 +227,7 @@ contract ForkingSetup is CoreRoles, Test {
   function _getDepositAndBorrowCallData(
     uint256 amount,
     uint256 borrowAmount,
-    address connextRouter,
+    address router,
     address vault_
   )
     internal
@@ -226,10 +239,10 @@ contract ForkingSetup is CoreRoles, Test {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, ALICE, connextRouter);
+    args[0] = abi.encode(vault_, amount, ALICE, router);
 
     LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(ALICE, connextRouter, ALICE, borrowAmount, 0, vault_);
+      LibSigUtils.buildPermitStruct(ALICE, router, ALICE, borrowAmount, 0, vault_);
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitBorrowArgs(permit, ALICE_PK, vault_);
