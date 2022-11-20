@@ -20,18 +20,6 @@ import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 
-// This is a test template meant to be used in a forked environement.
-// Copy it to the dedicated chain directory and customize it.
-
-// "ForkingSetup"
-// Get some basic properties and contracts deployed and initialized or some utility functions:
-// - collateralAsset - WETH
-// - debtAsset - USDC
-// - vault - a borrowing vault
-// - (for a complete list check the contract)
-// By inheriting from "ForkingSetup", all those are available in your test.
-// It also takes care of the fork creation and selection.
-
 contract SimpleRouterTest is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
@@ -66,9 +54,9 @@ contract SimpleRouterTest is Routines, ForkingSetup {
     _setVaultProviders(vault, providers);
     vault.setActiveProvider(aaveV2);
 
-    // new BorrowingVault with DAI as debtAsset
-
-    debtAsset2 = registry[POLYGON_DOMAIN].dai;
+    // new BorrowingVault with USDT
+    debtAsset2 = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
+    vm.label(debtAsset2, "USDT");
     mockOracle.setUSDPriceOf(debtAsset2, 100000000);
 
     vault2 = new BorrowingVault(
@@ -76,9 +64,10 @@ contract SimpleRouterTest is Routines, ForkingSetup {
       debtAsset2,
       address(mockOracle),
       address(chief),
-      "Fuji-V2 WETH-DAI Vault Shares",
+      "Fuji-V2 WETH-USDT Vault Shares",
       "fv2WETHDAI"
     );
+    vm.label(address(vault2), "Vault2");
 
     aaveV3 = new AaveV3Polygon();
     providers[0] = aaveV3;
@@ -142,5 +131,79 @@ contract SimpleRouterTest is Routines, ForkingSetup {
 
     assertEq(vault.balanceOf(ALICE), 0);
     assertGt(IERC20(collateralAsset).balanceOf(ALICE), 0);
+  }
+
+  function test_debtSwap() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    LibSigUtils.Permit memory permitW = LibSigUtils.buildPermitStruct(
+      ALICE, address(router), address(router), amount, 0, address(vault)
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
+
+    // construct inner actions
+    IRouter.Action[] memory innerActions = new IRouter.Action[](7);
+    bytes[] memory innerArgs = new bytes[](7);
+
+    innerActions[0] = IRouter.Action.Payback; // at initial vault
+    innerActions[1] = IRouter.Action.PermitWithdraw; // at initial vault
+    innerActions[2] = IRouter.Action.Withdraw; // at initial vault
+    innerActions[3] = IRouter.Action.Deposit; // at vault2
+    innerActions[4] = IRouter.Action.PermitBorrow; // at vault2
+    innerActions[5] = IRouter.Action.Borrow; // at vault2
+    innerActions[6] = IRouter.Action.Swap;
+
+    // at initial vault
+    innerArgs[0] = abi.encode(address(vault), borrowAmount, ALICE, address(router));
+    innerArgs[1] = abi.encode(address(vault), ALICE, address(router), amount, deadline, v, r, s);
+    innerArgs[2] = abi.encode(address(vault), amount, address(router), ALICE);
+
+    // at vault2
+    uint256 fee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
+    // borrow more to account for swap fees
+    LibSigUtils.Permit memory permitB = LibSigUtils.buildPermitStruct(
+      ALICE, address(router), address(router), borrowAmount + fee * 30, 0, address(vault2)
+    );
+
+    (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(vault2));
+
+    innerArgs[3] = abi.encode(address(vault2), amount, ALICE, address(router));
+    innerArgs[4] = abi.encode(
+      address(vault2), ALICE, address(router), borrowAmount + fee * 30, deadline, v, r, s
+    );
+    innerArgs[5] = abi.encode(address(vault2), borrowAmount + fee * 30, address(router), ALICE);
+
+    // swap to repay flashloan
+    innerArgs[6] = abi.encode(
+      address(swapper),
+      debtAsset2,
+      debtAsset,
+      borrowAmount + fee * 30,
+      borrowAmount + fee,
+      address(flasher),
+      ALICE,
+      0
+    );
+    // ------------
+
+    bytes memory requestorCalldata =
+      abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Flashloan;
+    args[0] =
+      abi.encode(address(flasher), debtAsset, borrowAmount, address(router), requestorCalldata);
+
+    vm.prank(ALICE);
+    router.xBundle(actions, args);
+
+    assertEq(vault.balanceOf(ALICE), 0);
+    assertEq(vault2.balanceOf(ALICE), amount);
   }
 }
