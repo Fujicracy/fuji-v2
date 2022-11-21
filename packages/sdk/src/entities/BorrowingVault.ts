@@ -245,16 +245,20 @@ export class BorrowingVault extends StreamManager {
         this.address.value
       )
     );
+    const nameCalls = allProvidersAddrs.map((addr) =>
+      ILendingProvider__factory.multicall(addr).providerName()
+    );
 
     // do a common call for both types and use an index to split them below
     const rates: BigNumber[] = await this.multicallRpcProvider.all([
       ...depositCalls,
       ...borrowCalls,
     ]);
+    const names: string[] = await this.multicallRpcProvider.all(nameCalls);
 
     const splitIndex = rates.length / 2;
     return allProvidersAddrs.map((addr: string, i: number) => ({
-      name: `Provider ${i}`,
+      name: names[i].split('_').join(' '),
       depositRate: rates[i],
       borrowRate: rates[i + splitIndex],
       active: addr === activeProviderAddr,
