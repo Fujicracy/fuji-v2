@@ -90,7 +90,6 @@ abstract contract BaseFlasher is IFlasher {
 
     requestor.functionCall(requestorCalldata);
 
-    IERC20(asset).safeTransferFrom(requestor, address(this), amount + fee);
     // approve flashloan source address to spend to repay flashloan
     IERC20(asset).safeApprove(getFlashloanSourceAddr(asset), amount + fee);
 

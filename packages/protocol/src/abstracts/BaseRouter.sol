@@ -165,18 +165,20 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           ISwapper swapper,
           address assetIn,
           address assetOut,
-          uint256 maxAmountIn,
+          uint256 amountIn,
           uint256 amountOut,
           address receiver,
-          uint256 slippage
-        ) = abi.decode(args[i], (ISwapper, address, address, uint256, uint256, address, uint256));
+          address sweeper,
+          uint256 minSweepOut
+        ) = abi.decode(
+          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
+        );
 
-        _safeApprove(assetIn, address(swapper), maxAmountIn);
+        _safeApprove(assetIn, address(swapper), amountIn);
 
         _addTokenToCheck(assetOut);
 
-        // pull tokens and swap
-        swapper.swap(assetIn, assetOut, amountOut, receiver, slippage);
+        swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
       } else if (actions[i] == Action.Flashloan) {
         // FLASHLOAN
 
