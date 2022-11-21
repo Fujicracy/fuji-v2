@@ -533,6 +533,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
+      IERC20(asset()).approve(
+        providers[i].approvedOperator(asset(), address(this)), type(uint256).max
+      );
+      if (debtAsset() != address(0)) {
+        IERC20(debtAsset()).approve(
+          providers[i].approvedOperator(debtAsset(), address(this)), type(uint256).max
+        );
+      }
       unchecked {
         ++i;
       }
@@ -552,14 +560,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__setter_invalidInput();
     }
     activeProvider = activeProvider_;
-    IERC20(asset()).approve(
-      activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
-    );
-    if (debtAsset() != address(0)) {
-      IERC20(debtAsset()).approve(
-        activeProvider.approvedOperator(debtAsset(), address(this)), type(uint256).max
-      );
-    }
     emit ActiveProviderChanged(activeProvider_);
   }
 
