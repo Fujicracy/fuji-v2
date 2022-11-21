@@ -12,14 +12,6 @@ import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVault is IERC4626 {
-  /// TODO rebalancing implementation.
-  struct RebalanceAction {
-    uint256 amount;
-    address asset;
-    address from;
-    address to;
-  }
-
   /// Events
   /**
    * @dev Emitted when borrow action occurs.
@@ -63,6 +55,15 @@ interface IVault is IERC4626 {
    * @param newActiveProvider the new active provider
    */
   event ActiveProviderChanged(ILendingProvider newActiveProvider);
+
+  /**
+   * @dev Emitted when the vault is rebalanced
+   * @param assets amount to be rebalanced
+   * @param debt amount to be rebalanced
+   * @param from provider
+   * @param to provider
+   */
+  event VaultRebalance(uint256 assets, uint256 debt, address indexed from, address indexed to);
 
   /**
    * @dev Emitted when the max LTV is changed
@@ -190,20 +191,38 @@ interface IVault is IERC4626 {
   /**
    * @notice Returns the active provider of this vault.
    */
-  function activeProvider() external returns (ILendingProvider);
+  function getProviders() external view returns (ILendingProvider[] memory);
+  /**
+   * @notice Returns the active provider of this vault.
+   */
+  function activeProvider() external view returns (ILendingProvider);
 
   /// Rebalancing Functions
 
   /**
-   * @notice Performs rebalancing of vault by performing `RebalanceAction` actions.
-   * @param actions array of encoded instructions for rebalancing.
+   * @notice Performs rebalancing of vault by moving funds across providers.
+   * @param assets amount of this vault to be rebalanced.
+   * @param debt amount of this vault to be rebalanced. Note: pass zero for a {YieldVault}.
+   * @param from provider address currently custoding `assets` and/or `debt`.
+   * @param to provider address to which `assets` and/or `debt` will be transferred.
+   * @param fee expected from rebalancing operation.
    *
+   * - MUST check providers `from` and `to` are valid.
+   * - MUST be called from a {RebalancerManager} contract that makes all proper checks.
    * - MUST revert if caller is not an approved rebalancer.
-   * - MUST emit the Rebalancing event.
+   * - MUST emit the VaultRebalance event.
+   * - MUST check `fee` is a reasonable amount.
    *
    */
-  /// TODO rebalancing implementation.
-  function rebalance(RebalanceAction[] memory actions) external returns (bool);
+  function rebalance(
+    uint256 assets,
+    uint256 debt,
+    ILendingProvider from,
+    ILendingProvider to,
+    uint256 fee
+  )
+    external
+    returns (bool);
 
   ///  Liquidation Functions
 

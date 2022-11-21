@@ -76,8 +76,9 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     chief.setTimelock(address(timelock));
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
-
-    chief.addToAllowed(address(bVaultFactory));
+    bytes memory callData =
+      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
+    _utils_callWithTimelock(address(chief), callData);
 
     address vault1Addr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -113,10 +114,15 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(UNPAUSER_ROLE, charlie);
   }
 
-  function _utils_callWithTimelock(BorrowingVault vault_, bytes memory sendData) internal {
-    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contract_,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
@@ -124,13 +130,18 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    bytes memory sendData = abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimelock(vault_, sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault_.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
     vault_.setActiveProvider(mockProvider);
   }
 
+  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
+    mockerc20.mint(to, amount);
+  }
+
   function _utils_doDeposit(uint256 amount, BorrowingVault v, address who) internal {
-    deal(address(asset), who, amount);
+    dealMockERC20(asset, who, amount);
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -251,7 +262,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault1.paused(IPausableVault.VaultActions.Borrow), true);
     assertEq(vault1.paused(IPausableVault.VaultActions.Payback), true);
 
-    deal(address(asset), alice, DEPOSIT_AMOUNT);
+    dealMockERC20(asset, alice, DEPOSIT_AMOUNT);
 
     vm.startPrank(alice);
     SafeERC20.safeApprove(asset, address(vault1), DEPOSIT_AMOUNT);
@@ -287,8 +298,8 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault1.paused(IPausableVault.VaultActions.Deposit), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
 
-    deal(address(asset), alice, DEPOSIT_AMOUNT);
-    deal(address(asset), bob, DEPOSIT_AMOUNT);
+    dealMockERC20(asset, alice, DEPOSIT_AMOUNT);
+    dealMockERC20(asset, bob, DEPOSIT_AMOUNT);
 
     // BorrowingVault1 called by Alice
     vm.startPrank(alice);

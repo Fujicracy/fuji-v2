@@ -5,9 +5,11 @@ interface ISwapper {
   function swap(
     address assetIn,
     address assetOut,
+    uint256 amountIn,
     uint256 amountOut,
     address receiver,
-    uint256 slippage
+    address sweeper,
+    uint256 minSweepOut
   )
     external;
 }

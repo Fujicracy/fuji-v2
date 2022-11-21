@@ -184,10 +184,13 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           }}
         >
           <Typography variant="xsmall">LTV</Typography>
-          <Tooltip title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral.">
+          <Tooltip
+            arrow
+            title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral."
+          >
             <InfoOutlinedIcon
               sx={{
-                marginLeft: "0.313rem",
+                ml: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -201,10 +204,13 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             alignItems: "center",
           }}
         >
-          <Tooltip title="The maximum amount of borrowing power based on you collateral's market price.">
+          <Tooltip
+            arrow
+            title="The maximum amount of borrowing power based on you collateral's market price."
+          >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />

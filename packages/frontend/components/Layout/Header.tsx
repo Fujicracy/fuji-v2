@@ -186,7 +186,8 @@ const Header = () => {
               columnGap="0.5rem"
               justifyContent="flex-end"
               alignItems="center"
-              sx={{ display: { xs: "none", md: "flex" }, mt: "1rem" }}
+              mt="1rem"
+              sx={{ display: { xs: "none", md: "flex" } }}
             >
               {status === "disconnected" && (
                 <>
