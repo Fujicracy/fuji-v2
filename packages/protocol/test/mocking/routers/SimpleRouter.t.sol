@@ -274,7 +274,7 @@ contract SimpleRouterUnitTests is MockingSetup {
     vm.deal(address(simpleRouter), amount_);
 
     vm.expectRevert(
-      SystemAccessControl.SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper.selector
+      SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
     );
 
     vm.prank(foe);
@@ -290,7 +290,7 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   function test_tryFoeSweepToken(address foe) public {
     vm.expectRevert(
-      SystemAccessControl.SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper.selector
+      SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
     );
 
     vm.prank(foe);
