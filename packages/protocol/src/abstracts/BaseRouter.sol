@@ -31,6 +31,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_noRemnantBalance();
   error BaseRouter__bundleInternal_insufficientETH();
   error BaseRouter__safeTransferETH_transferFailed();
+  error BaseRouter__receive_senderNotWETH();
+  error BaseRouter__fallback_notAllowed();
 
   IWETH9 public immutable WETH9;
 
@@ -266,5 +268,20 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
   }
 
-  receive() external payable {}
+  /**
+   * @dev Only WETH contract is allowed to transfer ETH here.
+   * Prevent other addresses to send Ether to this contract.
+   */
+  receive() external payable {
+    if (msg.sender != address(WETH9)) {
+      revert BaseRouter__receive_senderNotWETH();
+    }
+  }
+
+  /**
+   * @dev Revert fallback calls
+   */
+  fallback() external payable {
+    revert BaseRouter__fallback_notAllowed();
+  }
 }
