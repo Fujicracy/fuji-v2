@@ -7,6 +7,8 @@ pragma solidity 0.8.15;
  * @notice Defines the interface for router operations.
  */
 
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+
 interface IRouter {
   enum Action {
     Deposit,
@@ -18,10 +20,14 @@ interface IRouter {
     PermitWithdraw,
     PermitBorrow,
     XTransfer,
-    XTransferWithCall
+    XTransferWithCall,
+    DepositETH,
+    WithdrawETH
   }
 
-  function xBundle(Action[] memory actions, bytes[] memory args) external;
+  function xBundle(Action[] memory actions, bytes[] memory args) external payable;
 
-  function inboundXCall(bytes memory params) external;
+  function sweepToken(ERC20 token, address receiver) external;
+
+  function sweepETH(address receiver) external;
 }

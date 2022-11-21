@@ -9,46 +9,63 @@ contract MockProvider is ILendingProvider {
   /**
    * @notice See {ILendingProvider}
    */
-  function providerName() public pure override returns (string memory) {
+  function providerName() public pure virtual override returns (string memory) {
     return "Mock_V1";
   }
   /**
    * @notice See {ILendingProvider}
    */
 
-  function approvedOperator(address, address) external pure override returns (address operator) {
-    operator = address(0xAbc123);
+  function approvedOperator(
+    address asset,
+    address
+  )
+    external
+    pure
+    override
+    returns (address operator)
+  {
+    operator = asset;
   }
 
   /**
    * @notice See {ILendingProvider}
    */
-  function deposit(uint256, IVault) external pure override returns (bool success) {
-    success = true;
+  function deposit(uint256 amount, IVault vault) external override returns (bool success) {
+    MockERC20 merc20 = MockERC20(vault.asset());
+    try merc20.makeDeposit(address(vault), amount, providerName()) returns (bool result) {
+      success = result;
+    } catch {}
   }
 
   /**
    * @notice See {ILendingProvider}
    */
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
-    MockERC20(vault.debtAsset()).mintDebt(address(vault), amount);
-    success = true;
+    MockERC20 merc20 = MockERC20(vault.debtAsset());
+    try merc20.mintDebt(address(vault), amount, providerName()) returns (bool result) {
+      success = result;
+    } catch {}
   }
 
   /**
    * @notice See {ILendingProvider}
    */
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
-    MockERC20(vault.asset()).mint(address(vault), amount);
-    success = true;
+    MockERC20 merc20 = MockERC20(vault.asset());
+    try merc20.withdrawDeposit(address(vault), amount, providerName()) returns (bool result) {
+      success = result;
+    } catch {}
   }
 
   /**
    * @notice See {ILendingProvider}
    */
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
-    MockERC20(vault.debtAsset()).burnDebt(address(vault), amount);
-    success = true;
+    MockERC20 merc20 = MockERC20(vault.debtAsset());
+    try merc20.burnDebt(address(vault), amount, providerName()) returns (bool result) {
+      success = result;
+    } catch {}
   }
 
   /**
@@ -77,7 +94,7 @@ contract MockProvider is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(vault.asset()).balanceOf(user);
+    balance = MockERC20(vault.asset()).balanceOfDeposit(user, providerName());
   }
 
   /**
@@ -92,6 +109,6 @@ contract MockProvider is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    balance = MockERC20(vault.debtAsset()).balanceOfDebt(user);
+    balance = MockERC20(vault.debtAsset()).balanceOfDebt(user, providerName());
   }
 }

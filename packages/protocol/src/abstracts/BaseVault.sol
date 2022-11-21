@@ -33,6 +33,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_moreThanMax();
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
+  error BaseVault__checkRebalanceFee_excessFee();
 
   IERC20Metadata internal immutable _asset;
   uint8 private immutable _decimals;
@@ -69,14 +70,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function allowance(
     address owner,
-    address spender
+    address receiver
   )
     public
     view
     override (ERC20, IERC20)
     returns (uint256)
   {
-    return convertToShares(withdrawAllowance(owner, spender));
+    address operator = receiver;
+    return convertToShares(withdrawAllowance(owner, operator, receiver));
   }
 
   /**
@@ -84,9 +86,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
    * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
    */
-  function approve(address spender, uint256 shares) public override (ERC20, IERC20) returns (bool) {
+  function approve(address receiver, uint256 shares) public override (ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
-    _setWithdrawAllowance(owner, spender, convertToAssets(shares));
+    address operator = receiver;
+    _setWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
     return true;
   }
 
@@ -94,8 +97,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Override to call {VaultPermissions-increaseWithdrawAllowance}.
    * Converts extraShares argument to assets in VaultPermissions-increaseWithdrawAllowance.
    */
-  function increaseAllowance(address spender, uint256 extraShares) public override returns (bool) {
-    increaseWithdrawAllowance(spender, convertToAssets(extraShares));
+  function increaseAllowance(address receiver, uint256 extraShares) public override returns (bool) {
+    address operator = receiver;
+    increaseWithdrawAllowance(operator, receiver, convertToAssets(extraShares));
     return true;
   }
 
@@ -104,14 +108,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts subtractedShares argument to assets in VaultPermissions-decreaseWithdrawAllowance.
    */
   function decreaseAllowance(
-    address spender,
+    address receiver,
     uint256 subtractedShares
   )
     public
     override
     returns (bool)
   {
-    decreaseWithdrawAllowance(spender, convertToAssets(subtractedShares));
+    address operator = receiver;
+    decreaseWithdrawAllowance(operator, receiver, convertToAssets(subtractedShares));
     return true;
   }
 
@@ -120,8 +125,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts shares argument to assets in VaultPermissions-_spendWithdrawAllowance.
    * This internal function is called during ERC4626-transferFrom.
    */
-  function _spendAllowance(address owner, address spender, uint256 shares) internal override {
-    _spendWithdrawAllowance(owner, spender, convertToAssets(shares));
+  function _spendAllowance(
+    address owner,
+    address operator,
+    address receiver,
+    uint256 shares
+  )
+    internal
+  {
+    _spendWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
   }
 
   ////////////////////////////////////////////
@@ -245,7 +257,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
     address caller = _msgSender();
     if (caller != owner) {
-      _spendAllowance(owner, caller, convertToShares(assets));
+      _spendAllowance(owner, caller, receiver, convertToShares(assets));
     }
 
     uint256 shares = previewWithdraw(assets);
@@ -274,11 +286,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
     address caller = _msgSender();
     if (caller != owner) {
-      _spendAllowance(owner, caller, shares);
+      _spendAllowance(owner, caller, receiver, shares);
     }
 
     uint256 assets = previewRedeem(shares);
-    _withdraw(_msgSender(), receiver, owner, assets, shares);
+    _withdraw(caller, receiver, owner, assets, shares);
 
     return assets;
   }
@@ -331,7 +343,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     whenNotPaused(VaultActions.Deposit)
   {
     SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
-    _executeProviderAction(assets, "deposit");
+    _executeProviderAction(assets, "deposit", activeProvider);
     _mint(receiver, shares);
 
     emit Deposit(caller, receiver, assets, shares);
@@ -351,7 +363,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     whenNotPaused(VaultActions.Withdraw)
   {
     _burn(owner, shares);
-    _executeProviderAction(assets, "withdraw");
+    _executeProviderAction(assets, "withdraw", activeProvider);
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
@@ -402,7 +414,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function borrowAllowance(
     address owner,
-    address spender
+    address operator,
+    address receiver
   )
     public
     view
@@ -416,7 +429,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
   function increaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -430,7 +444,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Implement in {BorrowingVault}, revert in {LendingVault}
    */
   function decreaseBorrowAllowance(
-    address spender,
+    address operator,
+    address receiver,
     uint256 byAmount
   )
     public
@@ -445,7 +460,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function permitBorrow(
     address owner,
-    address spender,
+    address receiver,
     uint256 value,
     uint256 deadline,
     uint8 v,
@@ -472,11 +487,17 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Fuji Vault functions ///
   ////////////////////////////
 
-  function _executeProviderAction(uint256 assets, string memory name) internal {
+  function _executeProviderAction(
+    uint256 assets,
+    string memory name,
+    ILendingProvider provider
+  )
+    internal
+  {
     bytes memory data = abi.encodeWithSignature(
       string(abi.encodePacked(name, "(uint256,address)")), assets, address(this)
     );
-    address(activeProvider).functionDelegateCall(
+    address(provider).functionDelegateCall(
       data, string(abi.encodePacked(name, ": delegate call failed"))
     );
   }
@@ -512,6 +533,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
+      IERC20(asset()).approve(
+        providers[i].approvedOperator(asset(), address(this)), type(uint256).max
+      );
+      if (debtAsset() != address(0)) {
+        IERC20(debtAsset()).approve(
+          providers[i].approvedOperator(debtAsset(), address(this)), type(uint256).max
+        );
+      }
       unchecked {
         ++i;
       }
@@ -531,16 +560,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__setter_invalidInput();
     }
     activeProvider = activeProvider_;
-    SafeERC20.safeApprove(
-      IERC20(asset()), activeProvider.approvedOperator(asset(), address(this)), type(uint256).max
-    );
-    if (debtAsset() != address(0)) {
-      SafeERC20.safeApprove(
-        IERC20(debtAsset()),
-        activeProvider.approvedOperator(debtAsset(), address(this)),
-        type(uint256).max
-      );
-    }
     emit ActiveProviderChanged(activeProvider_);
   }
 
@@ -585,10 +604,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Returns true if provider is in `_providers` array.
+   * @dev returns true if provider is in `_providers` array.
    * Since providers are not many use of array is fine.
    */
-  function _isValidProvider(address provider) private view returns (bool check) {
+  function _isValidProvider(address provider) internal view returns (bool check) {
     uint256 len = _providers.length;
     for (uint256 i = 0; i < len;) {
       if (provider == address(_providers[i])) {
@@ -597,6 +616,19 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       unchecked {
         ++i;
       }
+    }
+  }
+
+  /**
+   * @dev check rebalance fee is reasonable.
+   *
+   * Requirements:
+   * - MUST be equal to or less than %0.10 (max 10 basis points) of `amount`.
+   */
+  function _checkRebalanceFee(uint256 fee, uint256 amount) internal pure {
+    uint256 reasonableFee = (amount * 10) / 10000;
+    if (fee > reasonableFee) {
+      revert BaseVault__checkRebalanceFee_excessFee();
     }
   }
 }

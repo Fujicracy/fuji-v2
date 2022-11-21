@@ -26,7 +26,7 @@ export default function Overview() {
         sx={{
           flexDirection: "column",
           alignItems: "center",
-          padding: "1.5rem 2rem",
+          p: "1.5rem 2rem",
           width: "100%",
         }}
       >
@@ -128,7 +128,10 @@ export default function Overview() {
           <Grid container justifyContent="space-between">
             <div style={{ display: "flex", alignItems: "center" }}>
               <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-              <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
+              <Tooltip
+                arrow
+                title="APR, or annual percentage rate, represents the price you pay to borrow money."
+              >
                 <InfoOutlinedIcon
                   sx={{
                     ml: "0.4rem",
@@ -164,8 +167,8 @@ export default function Overview() {
                   </span>
                   <Divider
                     sx={{
-                      marginLeft: "0.531rem",
-                      marginRight: "0.25rem",
+                      ml: "0.531rem",
+                      mr: "0.25rem",
                       borderRight: `0.063rem solid ${palette.text.secondary}`,
                       borderBottom: 0,
                       display: "inline",
@@ -174,7 +177,7 @@ export default function Overview() {
                 </Typography>
                 <AddCircleIcon
                   sx={{
-                    marginLeft: "0.25rem",
+                    ml: "0.25rem",
                     cursor: "pointer",
                     fontSize: "0.875rem",
                   }}

@@ -21,20 +21,16 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
 
   return (
     <Box>
-      <Grid
-        container
-        sx={{
-          marginLeft: "3rem",
-        }}
-      >
-        <Grid item alignItems="center" margin="auto">
+      <Grid container ml="3rem">
+        <Grid item alignItems="center" m="auto">
           <Tooltip
+            arrow
             title="Being in this area keeps you safe from sudden shifts in the market."
             placement="top"
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -46,7 +42,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
@@ -65,14 +61,15 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             SAFE LTV: 45%
           </Typography>
         </Grid>
-        <Grid item alignItems="center" marginRight="3rem">
+        <Grid item alignItems="center" mr="3rem">
           <Tooltip
+            arrow
             title="This area is dangerous, if you exceed this threshold you can get liquidated."
             placement="top"
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -84,7 +81,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />
@@ -133,8 +130,8 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           background: palette.background.default,
           height: "0.5rem",
           marginBottom: "0.5rem",
-          ".css-uu0lzf-MuiLinearProgress-bar1": {
-            background:
+          "& .MuiLinearProgress-barColorPrimary": {
+            backgroundColor:
               props.value <= 45 ? palette.success.main : palette.warning.main,
             borderRadius: "1.25rem",
           },
@@ -168,10 +165,13 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           }}
         >
           <Typography variant="xsmall">LTV</Typography>
-          <Tooltip title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral.">
+          <Tooltip
+            arrow
+            title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral."
+          >
             <InfoOutlinedIcon
               sx={{
-                marginLeft: "0.313rem",
+                ml: "0.313rem",
                 fontSize: "0.875rem",
                 display: { xs: "none", sm: "inline" },
               }}
@@ -185,10 +185,13 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             alignItems: "center",
           }}
         >
-          <Tooltip title="The maximum amount of borrowing power based on you collateral's market price.">
+          <Tooltip
+            arrow
+            title="The maximum amount of borrowing power based on you collateral's market price."
+          >
             <InfoOutlinedIcon
               sx={{
-                marginRight: "0.313rem",
+                mr: "0.313rem",
                 fontSize: "0.875rem",
               }}
             />

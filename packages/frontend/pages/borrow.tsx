@@ -23,7 +23,12 @@ const BorrowPage: NextPage = () => {
 
       <Header />
 
-      <Divider sx={{ display: { xs: "block", sm: "none" }, mb: "1rem" }} />
+      <Divider
+        sx={{
+          display: { xs: "block", sm: "none" },
+          mb: "1rem",
+        }}
+      />
 
       <Container
         sx={{
@@ -31,6 +36,7 @@ const BorrowPage: NextPage = () => {
           mb: { xs: "7rem", sm: "0" },
           pl: { xs: "0.25rem", sm: "1rem" },
           pr: { xs: "0.25rem", sm: "1rem" },
+          minHeight: "75vh",
         }}
       >
         <Grid container wrap="wrap" justifyContent="center">

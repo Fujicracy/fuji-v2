@@ -98,10 +98,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, bob);
   }
 
-  function _utils_callWithTimelock(bytes memory sendData) internal {
-    timelock.schedule(address(vault), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _utils_callWithTimelock(
+    address contractToCall,
+    bytes memory encodedWithSelectorData
+  )
+    internal
+  {
+    timelock.schedule(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault), 0, sendData, 0x00, 0x00);
+    timelock.execute(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00);
     rewind(2 days);
   }
 
@@ -109,13 +114,18 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-    bytes memory sendData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setProviders.selector, providers);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
     vault.setActiveProvider(mockProvider);
   }
 
+  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
+    mockerc20.mint(to, amount);
+  }
+
   function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
-    deal(address(asset), who, amount);
+    dealMockERC20(asset, who, amount);
     vm.startPrank(who);
     SafeERC20.safeApprove(asset, address(v), amount);
     v.deposit(amount, who);
@@ -285,14 +295,16 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   function test_setMinDeposit(uint256 min) public {
     vm.expectEmit(true, false, false, false);
     emit MinDepositAmountChanged(min);
-    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
   function test_tryLessThanMinDeposit(uint256 min, uint256 amount) public {
     vm.assume(amount < min);
-    bytes memory sendData = abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
@@ -303,8 +315,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.assume(maxCap > 0);
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
-    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
   function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
@@ -312,8 +325,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
       maxCap > 0 && depositAlice > 0 && depositBob > 0
         && _utils_add(depositBob, depositAlice) > maxCap && depositAlice < maxCap
     );
-    bytes memory sendData = abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _utils_callWithTimelock(sendData);
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.prank(address(timelock));
     vault.setDepositCap(maxCap);
@@ -403,7 +417,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint256 price = currentPrice - priceDrop;
     _utils_setPrice(address(asset), address(debtAsset), price);
     _utils_setPrice(address(debtAsset), address(asset), 1e18 / price);
-    deal(address(debtAsset), bob, liquidatorAmount);
+    dealMockERC20(debtAsset, bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
@@ -457,7 +471,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _utils_setPrice(address(asset), address(debtAsset), 1e18 / newPrice);
     _utils_setPrice(address(debtAsset), address(asset), newPrice);
     uint256 liquidatorAmount = borrowAmount;
-    deal(address(debtAsset), bob, liquidatorAmount);
+    dealMockERC20(debtAsset, bob, liquidatorAmount);
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
@@ -491,4 +505,70 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOf(bob), amountGivenToLiquidator);
     assertEq(vault.balanceOfDebt(bob), 0);
   }
+
+  //error BorrowingVault__borrow_invalidInput();
+  function test_borrowInvalidInput() public {
+    uint256 borrowAmount = 1000e18;
+    uint256 invalidBorrowAmount = 0; 
+    address invalidAddress = address(0);
+
+    //invalid debt
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
+    vault.borrow(invalidBorrowAmount, alice, bob);
+
+    //invalid receiver
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
+    vault.borrow(borrowAmount, invalidAddress, bob);
+
+    //invalid owner
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
+    vault.borrow(borrowAmount, alice, invalidAddress);
+  }
+
+  //error BorrowingVault__borrow_moreThanAllowed();
+  function test_borrowMoreThanAllowed(uint96 invalidBorrowAmount) public {
+    uint96 amount = 1 ether; 
+    vm.assume(invalidBorrowAmount > 0 && !_utils_checkMaxLTV(amount, invalidBorrowAmount));
+
+    _utils_doDeposit(amount, vault, alice);
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
+    vault.borrow(invalidBorrowAmount, alice, alice);
+  }
+
+  //error BorrowingVault__payback_invalidInput();
+  function test_paybackInvalidInput() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+    uint256 invalidDebt = 0;
+
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    //invalid debt
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
+    vault.payback(invalidDebt, alice);
+
+    //invalid owner
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
+    vault.payback(borrowAmount, address(0));
+  }
+
+  //error BorrowingVault__payback_moreThanMax();
+  function test_paybackMoreThanMax(uint256 amountPayback) public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+    vm.assume(amountPayback > borrowAmount);
+
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_moreThanMax.selector);
+    vault.payback(amountPayback, alice);
+  }
+
+  //error BorrowingVault__liquidate_invalidInput();
+  function test_liquidateInvalidInput() public {
+    vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
+    vault.liquidate(alice, address(0)); 
+  }
+
 }

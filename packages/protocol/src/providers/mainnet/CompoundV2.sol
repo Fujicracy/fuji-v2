@@ -8,7 +8,7 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
-import {IWETH9} from "../../helpers/PeripheryPayments.sol";
+import {IWETH9} from "../../abstracts/WETH9.sol";
 
 /**
  * @title Compound V2 Lending Provider.

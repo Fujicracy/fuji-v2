@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 
 contract YieldVault is BaseVault {
   error YieldVault__notApplicable();
+  error YieldVault__rebalance_invalidProvider();
 
   constructor(
     address asset_,
@@ -62,7 +66,17 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-borrowAllowance}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function borrowAllowance(address, address) public view virtual override returns (uint256) {
+  function borrowAllowance(
+    address,
+    address,
+    address
+  )
+    public
+    view
+    virtual
+    override
+    returns (uint256)
+  {
     revert YieldVault__notApplicable();
   }
 
@@ -70,7 +84,16 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function increaseBorrowAllowance(address, uint256) public virtual override returns (bool) {
+  function increaseBorrowAllowance(
+    address,
+    address,
+    uint256
+  )
+    public
+    virtual
+    override
+    returns (bool)
+  {
     revert YieldVault__notApplicable();
   }
 
@@ -78,7 +101,16 @@ contract YieldVault is BaseVault {
    * @dev See {IVaultPermissions-decreaseborrowAllowance}.
    * Implement in {BorrowingVault}, revert in {YieldVault}
    */
-  function decreaseBorrowAllowance(address, uint256) public virtual override returns (bool) {
+  function decreaseBorrowAllowance(
+    address,
+    address,
+    uint256
+  )
+    public
+    virtual
+    override
+    returns (bool)
+  {
     revert YieldVault__notApplicable();
   }
 
@@ -111,12 +143,31 @@ contract YieldVault is BaseVault {
   ///////////////////
 
   // inheritdoc IVault
-  function rebalance(RebalanceAction[] memory actions)
+  function rebalance(
+    uint256 assets,
+    uint256 debt,
+    ILendingProvider from,
+    ILendingProvider to,
+    uint256 fee
+  )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
     returns (bool)
   {
-    // TODO implement, and check if rebalance function can be refactored to BaseVault.
+    if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
+      revert YieldVault__rebalance_invalidProvider();
+    }
+
+    if (debt != 0) {
+      revert YieldVault__notApplicable();
+    }
+
+    _checkRebalanceFee(fee, assets);
+
+    _executeProviderAction(assets, "withdraw", from);
+    _executeProviderAction(assets, "deposit", to);
+    emit VaultRebalance(assets, 0, address(from), address(to));
+    return true;
   }
 
   //////////////////////

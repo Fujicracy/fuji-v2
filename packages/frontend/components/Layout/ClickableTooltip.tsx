@@ -33,6 +33,7 @@ export default function ClickableTooltip(props: ClickableTooltipProps) {
       placement={props.placement}
       onClose={handleTooltipClose}
       open={open}
+      arrow
       sx={{ display: { xs: "inline", sm: "none" } }}
     >
       <Link onClick={handleTooltipOpen}>{props.children}</Link>
