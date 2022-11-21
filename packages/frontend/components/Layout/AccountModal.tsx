@@ -167,7 +167,7 @@ export default function AccountModal(props: AccountModalProps) {
           <Typography variant="body">Recent Transactions</Typography>
           <Typography variant="small">clear all</Typography>
         </Grid>
-        <Grid sx={{ mt: "1rem" }} container justifyContent="space-between">
+        <Grid mt="1rem" container justifyContent="space-between">
           <Box sx={{ maxWidth: "20rem" }}>
             <Typography variant="small">
               Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon{" "}

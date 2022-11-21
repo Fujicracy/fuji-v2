@@ -9,7 +9,7 @@ export const DiscordIcon = () => {
       viewBox="0 0 24 24"
       sx={{
         fontSize: 22,
-        marginLeft: "0.25rem",
+        ml: "0.25rem",
         "&:hover": {
           color: palette.primary.main,
           textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,

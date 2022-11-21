@@ -33,11 +33,9 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
           placeholder="0"
           value={props.value}
           onChange={props.onChangeValue}
-          sx={{
-            fontSize: "1.125rem",
-            boxShadow: "none",
-            ".MuiOutlinedInput-notchedOutline": { border: 0 },
-            width: "40%",
+          variant="standard"
+          InputProps={{
+            disableUnderline: true,
           }}
         />
 
@@ -67,9 +65,9 @@ export default function SelectTokenCard(props: SelectTokenCardProps) {
                       width={24}
                       alt={token}
                     />
-                    <span style={{ marginLeft: "0.5rem" }}>
-                      <Typography variant="h6">{token}</Typography>
-                    </span>
+                    <Typography ml="0.5rem" variant="h6">
+                      {token}
+                    </Typography>
                   </Grid>
                 </MenuItem>
               ))}
