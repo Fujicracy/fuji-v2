@@ -7,12 +7,13 @@ interface Props extends Omit<ImageProps, "src"> {
 }
 export default function TokenIcon(props: Props) {
   const path = `/assets/images/protocol-icons/tokens/${props.token.symbol}.svg`
+  const { token, ...rest } = props
 
   const [error, setError] = useState<any>()
   useEffect(() => {
     if (error)
       console.error(
-        `404 Not found. No image found for toke ${props.token.symbol}. Searched in ${path}"`
+        `404 Not found. No image found for toke ${token.symbol}. Searched in ${path}"`
       )
   }, [error])
 
@@ -21,9 +22,9 @@ export default function TokenIcon(props: Props) {
   }
   return (
     <Image
-      {...props}
+      {...rest}
       src={path}
-      alt={`${props.token.name} icon`}
+      alt={`${token.name} icon`}
       onError={(e) => setError(e)}
     />
   )

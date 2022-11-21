@@ -9,12 +9,13 @@ interface Props extends Omit<ImageProps, "src"> {
 }
 export default function NetworkIcon(props: Props) {
   const path = `/assets/images/protocol-icons/networks/${props.networkName}.svg`
+  const { networkName, ...rest } = props
 
   const [error, setError] = useState<any>()
   useEffect(() => {
     if (error)
       console.error(
-        `404 Not found. No image found for network ${props.networkName}. Searched in ${path}`
+        `404 Not found. No image found for network ${networkName}. Searched in ${path}`
       )
   }, [error])
 
@@ -23,9 +24,9 @@ export default function NetworkIcon(props: Props) {
   }
   return (
     <Image
-      {...props}
+      {...rest}
       src={path}
-      alt={`${props.networkName} icon`}
+      alt={`${networkName} icon`}
       onError={(e) => setError(e)}
     />
   )
