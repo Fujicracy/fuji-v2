@@ -2,15 +2,22 @@ import React from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box,
+  Button,
   Card,
   CardContent,
+  Chip,
   Divider,
   Grid,
+  Menu,
+  MenuItem,
+  Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import Image from "next/image"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
@@ -44,7 +51,14 @@ export default function Overview() {
         }}
       >
         <CardContent sx={{ padding: 0, gap: "1rem" }}>
-          <Typography variant="body2">Overview</Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="body2">Overview</Typography>
+            <ProvidersMenu />
+          </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
           <Grid container columnSpacing="1rem">
@@ -218,5 +232,87 @@ export default function Overview() {
         </CardContent>
       </Card>
     </Grid>
+  )
+}
+
+function ProvidersMenu() {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const { palette } = useTheme()
+
+  const open = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const close = () => {
+    setAnchorEl(null)
+  }
+
+  return (
+    <>
+      <Button
+        id="button-provider-menu"
+        variant="secondary"
+        onClick={open}
+        style={{ position: "relative" }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Tooltip
+            arrow
+            title={
+              <span>
+                We take into account variables such as liquidity, audits and
+                team behind each protocol, you can read more on our risk
+                framework{" "}
+                <a
+                  href="https://docs.fujidao.org/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <u> here</u>
+                </a>
+              </span>
+            }
+            placement="top"
+          >
+            <InfoOutlinedIcon
+              sx={{ fontSize: "1rem", color: palette.info.main }}
+            />
+          </Tooltip>
+          <Box display="flex" alignItems="center">
+            <Image
+              src={`/assets/images/protocol-icons/tokens/USDT.svg`}
+              height={16}
+              width={16}
+              layout="fixed"
+              alt="USDT"
+            />
+            <Image
+              src={`/assets/images/protocol-icons/tokens/USDC.svg`}
+              height={16}
+              width={16}
+              layout="fixed"
+              alt="USDC"
+            />
+          </Box>
+          {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
+          <Chip variant="success" label="A+" />
+          <KeyboardArrowDownIcon width={16} height={16} />
+        </Stack>
+      </Button>
+      <Menu
+        id="providers-menu"
+        anchorEl={anchorEl}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        open={Boolean(anchorEl)}
+        onClose={close}
+        MenuListProps={{
+          "aria-labelledby": "button-provider-menu",
+        }}
+      >
+        <MenuItem onClick={close}>Provider 1 </MenuItem>
+        <MenuItem onClick={close}>Provider 2</MenuItem>
+        <MenuItem onClick={close}>Provider 3</MenuItem>
+      </Menu>
+    </>
   )
 }
