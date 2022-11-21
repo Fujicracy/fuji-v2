@@ -27,9 +27,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     uint256 balance;
   }
 
-  error BaseRouter__bundleInternal_wrongInput();
+  error BaseRouter__bundleInternal_paramsMismatch();
+  error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noRemnantBalance();
   error BaseRouter__bundleInternal_insufficientETH();
+  error BaseRouter__bundleInternal_withdrawETHWrongOrder();
+  error BaseRouter__bundleInternal_withdrawETHReceiverNotOwner();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
@@ -74,7 +77,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    */
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     if (actions.length != args.length) {
-      revert BaseRouter__bundleInternal_wrongInput();
+      revert BaseRouter__bundleInternal_paramsMismatch();
     }
 
     uint256 len = actions.length;
@@ -187,7 +190,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
 
         if (requestor != address(this)) {
-          revert BaseRouter__bundleInternal_wrongInput();
+          revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
 
         // Call Flasher
@@ -203,7 +206,17 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         _addTokenToCheck(address(WETH9));
       } else if (actions[i] == Action.WithdrawETH) {
+        // make sure this action can be executed only after 'Withdraw' or 'Borrow'
+        if (i == 0 || (actions[i - 1] != Action.Withdraw && actions[i] != Action.Borrow)) {
+          revert BaseRouter__bundleInternal_withdrawETHWrongOrder();
+        }
+        // get owner from the previous action: BORROW or WITHDRAW
+        (,,, address owner) = abi.decode(args[i - 1], (IVault, uint256, address, address));
+
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
+        if (receiver != owner) {
+          revert BaseRouter__bundleInternal_withdrawETHReceiverNotOwner();
+        }
 
         WETH9.withdraw(amount);
 
