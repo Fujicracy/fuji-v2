@@ -7,13 +7,15 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Goerli} from "../../../src/providers/goerli/AaveV3Goerli.sol";
+import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {MockProviderV0} from "../../../src/mocks/MockProviderV0.sol";
+import {MockERC20} from "../../../src/mocks/MockERC20.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
-import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
+import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
 contract ConnextRouterTest is Routines, ForkingSetup {
@@ -141,5 +143,45 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), 0);
     // funds are kept at the Router
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+  }
+
+  function test_depositAndBorrow() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
+    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
+    args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
+
+    vm.expectEmit(true, true, true, true);
+    emit Deposit(address(connextRouter), ALICE, amount, amount);
+
+    vm.expectEmit(true, true, true, true);
+    emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
+
+    /*MockERC20(collateralAsset).mint(ALICE, amount);*/
+    deal(collateralAsset, ALICE, amount);
+
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), amount);
+
+    connextRouter.xBundle(actions, args);
+    vm.stopPrank();
+
+    assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 }

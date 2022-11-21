@@ -17,13 +17,17 @@ contract MockSwapper is ISwapper {
   function swap(
     address assetIn,
     address assetOut,
+    uint256 amountIn,
     uint256 amountOut,
     address receiver,
+    address sweeper,
     uint256 slippage
   )
     external
   {
     slippage;
+    amountIn;
+    sweeper;
     uint256 amount = oracle.getPriceOf(assetOut, assetIn, 18);
     uint256 amountInMax = amountOut / amount;
 

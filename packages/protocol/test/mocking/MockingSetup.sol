@@ -57,6 +57,7 @@ contract MockingSetup is CoreRoles, Test {
     // Grant this address all roles.
     chief.grantRole(REBALANCER_ROLE, address(this));
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    chief.grantRole(HOUSE_KEEPER_ROLE, address(this));
 
     vault = new BorrowingVault(
       collateralAsset,

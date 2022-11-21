@@ -298,9 +298,9 @@ function CustomStepIcon(props: StepIconProps) {
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {
     borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
-    marginLeft: "0.7rem",
-    marginTop: "-0.5rem",
-    marginBottom: "-0.5rem",
+    ml: "0.7rem",
+    mt: "-0.5rem",
+    mb: "-0.5rem",
     height: "3rem",
   },
 }))

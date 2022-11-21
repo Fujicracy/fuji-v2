@@ -4,40 +4,69 @@ pragma solidity 0.8.15;
 /**
  * @title Abstract contract for all routers.
  * @author Fujidao Labs
- * @notice Defines the interface and common functions for all routers.
+ * @dev Defines the interface and common functions for all routers.
  */
 
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
-import {PeripheryPayments, IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+import {IWETH9} from "../abstracts/WETH9.sol";
 
-abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter {
+abstract contract BaseRouter is SystemAccessControl, IRouter {
+  using SafeERC20 for ERC20;
+
   struct BalanceChecker {
     address token;
     uint256 balance;
   }
 
-  error BaseRouter__bundleInternal_wrongInput();
+  error BaseRouter__bundleInternal_paramsMismatch();
+  error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noRemnantBalance();
+  error BaseRouter__bundleInternal_insufficientETH();
+  error BaseRouter__bundleInternal_withdrawETHWrongOrder();
+  error BaseRouter__bundleInternal_withdrawETHReceiverNotOwner();
+  error BaseRouter__safeTransferETH_transferFailed();
+  error BaseRouter__receive_senderNotWETH();
+  error BaseRouter__fallback_notAllowed();
+
+  IWETH9 public immutable WETH9;
 
   BalanceChecker[] private _tokensToCheck;
 
-  constructor(
-    IWETH9 weth,
-    IChief chief
-  )
-    PeripheryPayments(weth)
-    SystemAccessControl(address(chief))
-  {}
+  constructor(IWETH9 weth, IChief chief) SystemAccessControl(address(chief)) {
+    WETH9 = weth;
+  }
 
-  function xBundle(Action[] memory actions, bytes[] memory args) external override {
+  function xBundle(Action[] memory actions, bytes[] memory args) external payable override {
     _bundleInternal(actions, args);
+  }
+
+  /**
+   * @dev Sweep accidental ERC-20 transfers to this contract or stuck funds due to failed
+   * cross-chain calls (cf. ConnextRouter).
+   * @param token The address of the ERC-20 token to sweep.
+   * @param receiver The address that will receive the swept funds.
+   */
+  function sweepToken(ERC20 token, address receiver) external onlyHouseKeeper {
+    uint256 balance = token.balanceOf(address(this));
+    token.transfer(receiver, balance);
+  }
+
+  /**
+   * @dev Sweep accidental ETH transfers to this contract.
+   * @param receiver The address that will receive the swept funds
+   */
+  function sweepETH(address receiver) external onlyHouseKeeper {
+    uint256 balance = address(this).balance;
+    _safeTransferETH(receiver, balance);
   }
 
   /**
@@ -48,7 +77,7 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
    */
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     if (actions.length != args.length) {
-      revert BaseRouter__bundleInternal_wrongInput();
+      revert BaseRouter__bundleInternal_paramsMismatch();
     }
 
     uint256 len = actions.length;
@@ -58,13 +87,10 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
-        // this check is needed because when we bundle mulptiple actions
-        // it can happen the router already holds the assets in question;
-        // for. example when we withdraw from a vault and deposit to another one
-        if (sender != address(this)) {
-          pullTokenFrom(ERC20(vault.asset()), amount, address(this), sender);
-        }
-        approve(ERC20(vault.asset()), address(vault), amount);
+        address token = vault.asset();
+        _safePullTokenFrom(token, sender, amount);
+        _safeApprove(token, address(vault), amount);
+
         vault.deposit(amount, receiver);
       } else if (actions[i] == Action.Withdraw) {
         // WITHDRAW
@@ -89,10 +115,10 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
-        if (sender != address(this)) {
-          pullTokenFrom(ERC20(vault.debtAsset()), amount, address(this), sender);
-        }
-        approve(ERC20(vault.debtAsset()), address(vault), amount);
+        address token = vault.debtAsset();
+        _safePullTokenFrom(token, sender, amount);
+        _safeApprove(token, address(vault), amount);
+
         vault.payback(amount, receiver);
       } else if (actions[i] == Action.PermitWithdraw) {
         // PERMIT ASSETS
@@ -139,18 +165,20 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
           ISwapper swapper,
           address assetIn,
           address assetOut,
-          uint256 maxAmountIn,
+          uint256 amountIn,
           uint256 amountOut,
           address receiver,
-          uint256 slippage
-        ) = abi.decode(args[i], (ISwapper, address, address, uint256, uint256, address, uint256));
+          address sweeper,
+          uint256 minSweepOut
+        ) = abi.decode(
+          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
+        );
 
-        approve(ERC20(assetIn), address(swapper), maxAmountIn);
+        _safeApprove(assetIn, address(swapper), amountIn);
 
         _addTokenToCheck(assetOut);
 
-        // pull tokens and swap
-        swapper.swap(assetIn, assetOut, amountOut, receiver, slippage);
+        swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
       } else if (actions[i] == Action.Flashloan) {
         // FLASHLOAN
 
@@ -164,11 +192,37 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
         ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
 
         if (requestor != address(this)) {
-          revert BaseRouter__bundleInternal_wrongInput();
+          revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
 
         // Call Flasher
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
+      } else if (actions[i] == Action.DepositETH) {
+        uint256 amount = abi.decode(args[i], (uint256));
+
+        if (amount != msg.value) {
+          revert BaseRouter__bundleInternal_insufficientETH();
+        }
+
+        WETH9.deposit{value: msg.value}();
+
+        _addTokenToCheck(address(WETH9));
+      } else if (actions[i] == Action.WithdrawETH) {
+        // make sure this action can be executed only after 'Withdraw' or 'Borrow'
+        if (i == 0 || (actions[i - 1] != Action.Withdraw && actions[i] != Action.Borrow)) {
+          revert BaseRouter__bundleInternal_withdrawETHWrongOrder();
+        }
+        // get owner from the previous action: BORROW or WITHDRAW
+        (,,, address owner) = abi.decode(args[i - 1], (IVault, uint256, address, address));
+
+        (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
+        if (receiver != owner) {
+          revert BaseRouter__bundleInternal_withdrawETHReceiverNotOwner();
+        }
+
+        WETH9.withdraw(amount);
+
+        _safeTransferETH(receiver, amount);
       }
       unchecked {
         ++i;
@@ -176,6 +230,26 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
     }
     _checkNoRemnantBalance(_tokensToCheck);
     _checkNoNativeBalance();
+  }
+
+  function _safeTransferETH(address receiver, uint256 amount) internal {
+    (bool success,) = receiver.call{value: amount}(new bytes(0));
+    if (!success) {
+      revert BaseRouter__safeTransferETH_transferFailed();
+    }
+  }
+
+  function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
+    // this check is needed because when we bundle mulptiple actions
+    // it can happen the router already holds the assets in question;
+    // for. example when we withdraw from a vault and deposit to another one
+    if (sender != address(this)) {
+      ERC20(token).safeTransferFrom(sender, address(this), amount);
+    }
+  }
+
+  function _safeApprove(address token, address to, uint256 amount) internal {
+    ERC20(token).safeApprove(to, amount);
   }
 
   function _crossTransfer(bytes memory) internal virtual;
@@ -207,5 +281,22 @@ abstract contract BaseRouter is PeripheryPayments, SystemAccessControl, IRouter 
     if (address(this).balance > 0) {
       revert BaseRouter__bundleInternal_noRemnantBalance();
     }
+  }
+
+  /**
+   * @dev Only WETH contract is allowed to transfer ETH here.
+   * Prevent other addresses to send Ether to this contract.
+   */
+  receive() external payable {
+    if (msg.sender != address(WETH9)) {
+      revert BaseRouter__receive_senderNotWETH();
+    }
+  }
+
+  /**
+   * @dev Revert fallback calls
+   */
+  fallback() external payable {
+    revert BaseRouter__fallback_notAllowed();
   }
 }

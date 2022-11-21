@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
-import {EIP712} from "openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
+import {EIP712} from "../abstracts/EIP712.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 
@@ -26,11 +26,11 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 private constant _PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+  bytes32 private constant PERMIT_BORROW_TYPEHASH = keccak256(
+    "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
   );
 
   /**
@@ -180,7 +180,14 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     address operator = msg.sender;
     bytes32 structHash = keccak256(
       abi.encode(
-        PERMIT_WITHDRAW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+        PERMIT_WITHDRAW_TYPEHASH,
+        block.chainid,
+        owner,
+        operator,
+        receiver,
+        amount,
+        _useNonce(owner),
+        deadline
       )
     );
     _checkSigner(structHash, owner, v, r, s);
@@ -206,7 +213,14 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     address operator = msg.sender;
     bytes32 structHash = keccak256(
       abi.encode(
-        _PERMIT_BORROW_TYPEHASH, owner, operator, receiver, amount, _useNonce(owner), deadline
+        PERMIT_BORROW_TYPEHASH,
+        block.chainid,
+        owner,
+        operator,
+        receiver,
+        amount,
+        _useNonce(owner),
+        deadline
       )
     );
     _checkSigner(structHash, owner, v, r, s);

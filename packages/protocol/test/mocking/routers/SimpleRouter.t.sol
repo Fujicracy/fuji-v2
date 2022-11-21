@@ -5,12 +5,14 @@ import "forge-std/Test.sol";
 
 import "forge-std/console2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {SimpleRouter} from "../../../src/routers/SimpleRouter.sol";
-import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
+import {SystemAccessControl} from "../../../src/access/SystemAccessControl.sol";
+import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
@@ -180,143 +182,118 @@ contract SimpleRouterUnitTests is MockingSetup {
     assertEq(vault.balanceOf(ALICE), 0);
   }
 
-  // function test_closePositionWithFlashloan() public {
-  //   uint256 withdrawAmount = 2 ether;
-  //   uint256 flashAmount = 1000e18;
-
-  //   _depositAndBorrow(withdrawAmount, flashAmount, vault);
-
-  //   LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-  //     ALICE, address(simpleRouter), address(simpleRouter), withdrawAmount, 0, address(vault)
-  //   );
-
-  //   (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-  //     _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
-
-  //   IRouter.Action[] memory actions = new IRouter.Action[](1);
-  //   bytes[] memory args = new bytes[](1);
-
-  //   actions[0] = IRouter.Action.Flashloan;
-
-  //   // construct inner actions
-  //   IRouter.Action[] memory innerActions = new IRouter.Action[](4);
-  //   bytes[] memory innerArgs = new bytes[](4);
-
-  //   innerActions[0] = IRouter.Action.Payback;
-  //   innerActions[1] = IRouter.Action.PermitWithdraw;
-  //   innerActions[2] = IRouter.Action.Withdraw;
-  //   innerActions[3] = IRouter.Action.Swap;
-
-  //   innerArgs[0] = abi.encode(address(vault), flashAmount, ALICE, address(flasher));
-  //   innerArgs[1] =
-  //     abi.encode(address(vault), ALICE, address(simpleRouter), withdrawAmount, deadline, v, r, s);
-  //   innerArgs[2] = abi.encode(address(vault), withdrawAmount, address(simpleRouter), ALICE);
-  //   innerArgs[3] = abi.encode(
-  //     address(swapper), collateralAsset, debtAsset, withdrawAmount, flashAmount, address(flasher), 0
-  //   );
-  //   // ------------
-
-  //   IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
-  //     debtAsset, flashAmount, address(simpleRouter), innerActions, innerArgs
-  //   );
-  //   uint8 providerId = 0;
-  //   args[0] = abi.encode(address(flasher), params, providerId);
-
-  //   vm.prank(ALICE);
-  //   simpleRouter.xBundle(actions, args);
-
-  //   assertEq(vault.balanceOf(ALICE), 0);
-  // }
-
-  // function test_refinancePosition() public {
-  //   _setupNewVault();
-  //   _depositAndBorrow(amount, borrowAmount, vault);
-
-  //   IRouter.Action[] memory actions = new IRouter.Action[](1);
-  //   bytes[] memory args = new bytes[](1);
-
-  //   actions[0] = IRouter.Action.Flashloan;
-
-  //   // construct inner actions
-  //   IRouter.Action[] memory innerActions = new IRouter.Action[](7);
-  //   bytes[] memory innerArgs = new bytes[](7);
-
-  //   innerActions[0] = IRouter.Action.Payback; // at initial vault
-  //   innerActions[1] = IRouter.Action.PermitWithdraw; // at initial vault
-  //   innerActions[2] = IRouter.Action.Withdraw; // at initial vault
-  //   innerActions[3] = IRouter.Action.Deposit; // at newVault
-  //   innerActions[4] = IRouter.Action.PermitBorrow; // at newVault
-  //   innerActions[5] = IRouter.Action.Borrow; // at newVault
-  //   innerActions[6] = IRouter.Action.Swap;
-
-  //   innerArgs[0] = abi.encode(address(vault), borrowAmount, ALICE, address(flasher));
-
-  //   LibSigUtils.Permit memory permitW = LibSigUtils.buildPermitStruct(
-  //     ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
-  //   );
-
-  //   (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-  //     _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
-
-  //   innerArgs[1] =
-  //     abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
-  //   innerArgs[2] = abi.encode(address(vault), amount, address(simpleRouter), ALICE);
-  //   innerArgs[3] = abi.encode(address(newVault), amount, ALICE, address(simpleRouter));
-
-  //   LibSigUtils.Permit memory permitB = LibSigUtils.buildPermitStruct(
-  //     ALICE, address(simpleRouter), address(simpleRouter), borrowAmount, 0, address(newVault)
-  //   );
-
-  //   (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(newVault));
-  //   innerArgs[4] =
-  //     abi.encode(address(newVault), ALICE, address(simpleRouter), borrowAmount, deadline, v, r, s);
-  //   innerArgs[5] = abi.encode(address(newVault), borrowAmount, address(simpleRouter), ALICE);
-  //   innerArgs[6] = abi.encode(
-  //     address(swapper),
-  //     address(debtAsset2),
-  //     debtAsset,
-  //     borrowAmount,
-  //     borrowAmount,
-  //     address(flasher),
-  //     0
-  //   );
-  //   // ------------
-
-  //   IFlasher.FlashloanParams memory params = IFlasher.FlashloanParams(
-  //     vault.debtAsset(), borrowAmount, address(simpleRouter), innerActions, innerArgs
-  //   );
-  //   uint8 providerId = 0;
-  //   args[0] = abi.encode(address(flasher), params, providerId);
-
-  //   vm.prank(ALICE);
-  //   simpleRouter.xBundle(actions, args);
-
-  //   assertEq(vault.balanceOf(ALICE), 0);
-  //   assertEq(newVault.balanceOf(ALICE), amount);
-  // }
-
-  // Split this from `test_refinancePosition` to avoid Stack overflow.
-  function _setupNewVault() internal {
-    debtAsset2 = new MockERC20("Test KAI", "tKAI");
-    vm.label(address(debtAsset2), "tKAI");
-
-    // WETH and DAI prices by Nov 11h 2022
-    oracle.setUSDPriceOf(address(collateralAsset), 796341757142697);
-    oracle.setUSDPriceOf(address(debtAsset2), 100000000);
-
-    newVault = new BorrowingVault(
-      collateralAsset,
-      address(debtAsset2),
-      address(oracle),
-      address(chief),
-      "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+  function test_depositETHAndBorrow() public {
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(vault)
     );
-    vm.label(address(newVault), "newVault");
 
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    _setVaultProviders(newVault, providers);
-    newVault.setActiveProvider(mockProvider);
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    IRouter.Action[] memory actions = new IRouter.Action[](4);
+    actions[0] = IRouter.Action.DepositETH;
+    actions[1] = IRouter.Action.Deposit;
+    actions[2] = IRouter.Action.PermitBorrow;
+    actions[3] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](4);
+    args[0] = abi.encode(amount);
+    args[1] = abi.encode(address(vault), amount, ALICE, address(simpleRouter));
+    args[2] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
+    args[3] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
+
+    vm.expectEmit(true, true, true, true);
+    emit Deposit(address(simpleRouter), ALICE, amount, amount);
+
+    vm.expectEmit(true, true, true, true);
+    emit Borrow(address(simpleRouter), ALICE, ALICE, borrowAmount, borrowAmount);
+
+    vm.deal(ALICE, amount);
+
+    vm.prank(ALICE);
+    simpleRouter.xBundle{value: amount}(actions, args);
+
+    assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+  }
+
+  function test_depositETHAndWithdrawETH() public {
+    IRouter.Action[] memory actions = new IRouter.Action[](2);
+    actions[0] = IRouter.Action.DepositETH;
+    actions[1] = IRouter.Action.Deposit;
+
+    bytes[] memory args = new bytes[](2);
+    args[0] = abi.encode(amount);
+    args[1] = abi.encode(address(vault), amount, BOB, address(simpleRouter));
+
+    vm.expectEmit(true, true, true, true);
+    emit Deposit(address(simpleRouter), BOB, amount, amount);
+
+    vm.deal(BOB, amount);
+
+    vm.prank(BOB);
+    simpleRouter.xBundle{value: amount}(actions, args);
+
+    assertEq(vault.balanceOf(BOB), amount);
+
+    actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.PermitWithdraw;
+    actions[1] = IRouter.Action.Withdraw;
+    actions[2] = IRouter.Action.WithdrawETH;
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      BOB, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, BOB_PK, address(vault));
+
+    args = new bytes[](3);
+    args[0] = abi.encode(address(vault), BOB, address(simpleRouter), amount, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), amount, address(simpleRouter), BOB);
+    args[2] = abi.encode(amount, BOB);
+
+    vm.expectEmit(true, true, true, true);
+    emit Withdraw(address(simpleRouter), address(simpleRouter), BOB, amount, amount);
+
+    vm.prank(BOB);
+    simpleRouter.xBundle(actions, args);
+
+    assertEq(vault.balanceOf(BOB), 0);
+    assertEq(BOB.balance, amount);
+  }
+
+  function test_sweepETH(uint256 amount_) public {
+    vm.deal(address(simpleRouter), amount_);
+
+    simpleRouter.sweepETH(BOB);
+    assertEq(BOB.balance, amount_);
+  }
+
+  function test_tryFoeSweepETH(address foe, uint256 amount_) public {
+    vm.deal(address(simpleRouter), amount_);
+
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
+    );
+
+    vm.prank(foe);
+    simpleRouter.sweepETH(foe);
+  }
+
+  function test_sweepToken(uint256 amount_) public {
+    _dealMockERC20(collateralAsset, address(simpleRouter), amount_);
+
+    simpleRouter.sweepToken(ERC20(collateralAsset), BOB);
+    assertEq(ERC20(collateralAsset).balanceOf(BOB), amount_);
+  }
+
+  function test_tryFoeSweepToken(address foe) public {
+    vm.expectRevert(
+      SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
+    );
+
+    vm.prank(foe);
+    simpleRouter.sweepToken(ERC20(collateralAsset), foe);
   }
 }

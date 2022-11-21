@@ -18,6 +18,7 @@ contract SignOptimismGoerliBorrow is ScriptPlus {
     uint256 deadline = block.timestamp + 1 days;
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
       owner: msg.sender,
       operator: getAddress("ConnextRouter"),
       receiver: receiver,

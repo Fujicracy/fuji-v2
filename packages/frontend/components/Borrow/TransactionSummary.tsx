@@ -226,7 +226,10 @@ export default function TransactionSummary() {
                         Borrow Interest (APR)
                       </Typography>
 
-                      <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
+                      <Tooltip
+                        arrow
+                        title="APR, or annual percentage rate, represents the price you pay to borrow money."
+                      >
                         <InfoOutlinedIcon
                           sx={{
                             ml: "0.4rem",
@@ -262,8 +265,8 @@ export default function TransactionSummary() {
                           </span>
                           <Divider
                             sx={{
-                              marginLeft: "0.531rem",
-                              marginRight: "0.25rem",
+                              ml: "0.531rem",
+                              mr: "0.25rem",
                               borderRight: `0.063rem solid ${palette.text.secondary}`,
                               borderBottom: 0,
                               display: "inline",
@@ -273,7 +276,7 @@ export default function TransactionSummary() {
 
                         <AddCircleIcon
                           sx={{
-                            marginLeft: "0.25rem",
+                            ml: "0.25rem",
                             cursor: "pointer",
                             fontSize: "0.875rem",
                           }}
