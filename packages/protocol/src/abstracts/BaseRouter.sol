@@ -52,7 +52,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param token The address of the ERC-20 token to sweep.
    * @param receiver The address that will receive the swept funds.
    */
-  function sweepToken(ERC20 token, address receiver) external onlyChiefHouseKeeper {
+  function sweepToken(ERC20 token, address receiver) external onlyHouseKeeper {
     uint256 balance = token.balanceOf(address(this));
     token.transfer(receiver, balance);
   }
@@ -61,7 +61,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @dev Sweep accidental ETH transfers to this contract.
    * @param receiver The address that will receive the swept funds
    */
-  function sweepETH(address receiver) external onlyChiefHouseKeeper {
+  function sweepETH(address receiver) external onlyHouseKeeper {
     uint256 balance = address(this).balance;
     _safeTransferETH(receiver, balance);
   }

@@ -88,29 +88,29 @@ contract DeploySystem is ScriptPlus {
     vaultDAI.setProviders(providers);
     vaultDAI.setActiveProvider(mockProvider);
 
-    /*BorrowingVault vaultUSDC = new BorrowingVault(*/
-    /*address(weth),*/
-    /*address(USDC),*/
-    /*address(mockOracle),*/
-    /*address(chief),*/
-    /*"Fuji-V2 TEST-USDC Vault Shares",*/
-    /*"fv2TESTUSDC"*/
-    /*);*/
-    /*saveAddress("BorrowingVault-TESTUSDC", address(vaultUSDC));*/
-    /*vaultUSDC.setProviders(providers);*/
-    /*vaultUSDC.setActiveProvider(mockProvider);*/
+    BorrowingVault vaultUSDC = new BorrowingVault(
+      address(weth),
+      address(USDC),
+      address(mockOracle),
+      address(chief),
+      "Fuji-V2 TEST-USDC Vault Shares",
+      "fv2TESTUSDC"
+    );
+    saveAddress("BorrowingVault-TESTUSDC", address(vaultUSDC));
+    vaultUSDC.setProviders(providers);
+    vaultUSDC.setActiveProvider(mockProvider);
 
-    /*BorrowingVault vaultUSDT = new BorrowingVault(*/
-    /*address(weth),*/
-    /*address(USDT),*/
-    /*address(mockOracle),*/
-    /*address(chief),*/
-    /*"Fuji-V2 TEST-USDT Vault Shares",*/
-    /*"fv2TESTUSDT"*/
-    /*);*/
-    /*saveAddress("BorrowingVault-TESTUSDT", address(vaultUSDT));*/
-    /*vaultUSDT.setProviders(providers);*/
-    /*vaultUSDT.setActiveProvider(mockProvider);*/
+    BorrowingVault vaultUSDT = new BorrowingVault(
+      address(weth),
+      address(USDT),
+      address(mockOracle),
+      address(chief),
+      "Fuji-V2 TEST-USDT Vault Shares",
+      "fv2TESTUSDT"
+    );
+    saveAddress("BorrowingVault-TESTUSDT", address(vaultUSDT));
+    vaultUSDT.setProviders(providers);
+    vaultUSDT.setActiveProvider(mockProvider);
 
     vm.stopBroadcast();
   }

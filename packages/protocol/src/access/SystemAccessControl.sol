@@ -25,7 +25,7 @@ contract SystemAccessControl is CoreRoles {
     _;
   }
 
-  modifier onlyChiefHouseKeeper() {
+  modifier onlyHouseKeeper() {
     if (!chief.hasRole(HOUSE_KEEPER_ROLE, msg.sender)) {
       revert SystemAccessControl__onlyChiefHouseKeeper_notHouseKeeper();
     }
