@@ -25,9 +25,11 @@ export default function Borrow() {
   const changeChain = useStore((state) => state.changeChain)
   const updateBalance = useStore((state) => state.updateBalances)
   const updateVault = useStore((state) => state.updateVault)
+  const updateAllowance = useStore((state) => state.updateAllowance)
   useEffect(() => {
-    updateBalance("collateral")
     if (address) {
+      updateBalance("collateral")
+      updateAllowance()
       updateVault()
     }
   }, [address, updateBalance])
