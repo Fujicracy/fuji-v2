@@ -18,7 +18,7 @@ contract AaveV3Goerli is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "Aave_V3";
+    return "Aave_V3_Goerli";
   }
 
   /// inheritdoc ILendingProvider

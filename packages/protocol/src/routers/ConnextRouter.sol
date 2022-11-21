@@ -11,7 +11,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
-import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 
@@ -113,8 +113,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver) =
       abi.decode(params, (uint256, uint256, address, uint256, address));
 
-    pullToken(ERC20(asset), amount, address(this));
-    approve(ERC20(asset), address(connext), amount);
+    _safePullTokenFrom(asset, msg.sender, amount);
+    _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
       // _destination: Domain ID of the destination chain
@@ -141,8 +141,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
-    pullToken(ERC20(asset), amount, address(this));
-    approve(ERC20(asset), address(connext), amount);
+    _safePullTokenFrom(asset, msg.sender, amount);
+    _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
       // _destination: Domain ID of the destination chain

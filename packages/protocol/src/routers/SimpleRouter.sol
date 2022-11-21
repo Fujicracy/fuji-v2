@@ -9,7 +9,7 @@ pragma solidity 0.8.15;
  */
 
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
-import {IWETH9, ERC20} from "../helpers/PeripheryPayments.sol";
+import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 
