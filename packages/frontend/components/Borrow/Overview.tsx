@@ -57,7 +57,34 @@ export default function Overview() {
             alignItems="center"
           >
             <Typography variant="body2">Overview</Typography>
-            <ProvidersMenu />
+            <Stack direction="row" alignItems="center">
+              <Tooltip
+                arrow
+                title={
+                  <span>
+                    We take into account variables such as liquidity, audits and
+                    team behind each protocol, you can read more on our risk
+                    framework{" "}
+                    <a
+                      href="https://docs.fujidao.org/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <u> here</u>
+                    </a>
+                  </span>
+                }
+                placement="top"
+              >
+                <InfoOutlinedIcon
+                  sx={{ fontSize: "1rem", color: palette.info.main }}
+                />
+              </Tooltip>
+              <Typography variant="smallDark" ml={0.5} mr={1}>
+                Safety rating:
+              </Typography>
+              <ProvidersMenu />
+            </Stack>
           </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
@@ -255,43 +282,15 @@ function ProvidersMenu() {
         style={{ position: "relative" }}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Tooltip
-            arrow
-            title={
-              <span>
-                We take into account variables such as liquidity, audits and
-                team behind each protocol, you can read more on our risk
-                framework{" "}
-                <a
-                  href="https://docs.fujidao.org/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <u> here</u>
-                </a>
-              </span>
-            }
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{ fontSize: "1rem", color: palette.info.main }}
-            />
-          </Tooltip>
           <Box display="flex" alignItems="center">
             <Image
-              src={`/assets/images/protocol-icons/tokens/USDT.svg`}
+              src={`/assets/images/protocol-icons/tokens/AAVE.svg`}
               height={16}
               width={16}
               layout="fixed"
               alt="USDT"
             />
-            <Image
-              src={`/assets/images/protocol-icons/tokens/USDC.svg`}
-              height={16}
-              width={16}
-              layout="fixed"
-              alt="USDC"
-            />
+            <Typography variant="small">Aave</Typography>
           </Box>
           {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
           <Chip variant="success" label="A+" />
