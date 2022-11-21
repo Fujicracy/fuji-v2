@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { AddressZero } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
 
-import { USDC, WNATIVE } from '../../src/constants';
+import { USDC, VAULT_LIST, WNATIVE } from '../../src/constants';
 import { Address, BorrowingVault } from '../../src/entities';
 import { ChainId, RouterAction } from '../../src/enums';
 import { ChainConfig, PermitParams } from '../../src/types';
@@ -25,11 +25,7 @@ describe('BorrowingVault', () => {
 
   describe('#getProviders', () => {
     it('fetches providers and borrowRate', async () => {
-      const vault = new BorrowingVault(
-        Address.from('0xfF4606Aa93e576E61b473f4B11D3e32BB9ec63BB'),
-        WNATIVE[ChainId.GOERLI],
-        USDC[ChainId.GOERLI]
-      ).setConnection(config);
+      const vault = VAULT_LIST[ChainId.GOERLI][0].setConnection(config);
 
       const providers = await vault.getProviders();
       expect(providers).toBeTruthy();
