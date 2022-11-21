@@ -42,16 +42,12 @@ input::-webkit-inner-spin-button {
   filter: blur(1.75rem);
 }
 
-/* @media (prefers-color-scheme: dark) { */
-
 body {
   color: white;
   background: black;
 }
 /* } */
 
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  appearance: none;
-  margin: 0;
+input[type="number"] {
+  -moz-appearance: textfield;
 }

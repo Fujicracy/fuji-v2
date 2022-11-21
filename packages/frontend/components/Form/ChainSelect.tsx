@@ -10,6 +10,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material"
+
 import Image from "next/image"
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
@@ -18,6 +19,7 @@ import Fade from "@mui/material/Fade"
 
 import { useStore } from "../../store"
 import { chains, Chain } from "../../store/auth.slice"
+import NetworkIcon from "../NetworkIcon"
 
 export default function ChainSelect() {
   const theme = useTheme()
@@ -102,12 +104,7 @@ const ListItem = (props: ListItemProps) => {
   return (
     <>
       <ListItemIcon sx={{ minWidth: "inherit" }}>
-        <Image
-          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-          height={20}
-          width={20}
-          alt={chain.label}
-        />
+        <NetworkIcon networkName={`${chain.label}`} height={20} width={20} />
       </ListItemIcon>
       {!onMobile && <ListItemText>{chain.label}</ListItemText>}
 

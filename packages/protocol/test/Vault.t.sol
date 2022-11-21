@@ -509,7 +509,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   //error BorrowingVault__borrow_invalidInput();
   function test_borrowInvalidInput() public {
     uint256 borrowAmount = 1000e18;
-    uint256 invalidBorrowAmount = 0; 
+    uint256 invalidBorrowAmount = 0;
     address invalidAddress = address(0);
 
     //invalid debt
@@ -527,7 +527,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
   //error BorrowingVault__borrow_moreThanAllowed();
   function test_borrowMoreThanAllowed(uint96 invalidBorrowAmount) public {
-    uint96 amount = 1 ether; 
+    uint96 amount = 1 ether;
     vm.assume(invalidBorrowAmount > 0 && !_utils_checkMaxLTV(amount, invalidBorrowAmount));
 
     _utils_doDeposit(amount, vault, alice);
@@ -568,7 +568,6 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   //error BorrowingVault__liquidate_invalidInput();
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
-    vault.liquidate(alice, address(0)); 
+    vault.liquidate(alice, address(0));
   }
-
 }

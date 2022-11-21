@@ -217,6 +217,7 @@ export class Sdk {
    * @param tokenOut - token that user want to borrow
    * @param account - user address, wrapped in {@link Address}
    * @param deadline - timestamp for validity of permit (defaults to 24h starting from now)
+   * @param slippage - accepted slippage in BPS as 30 == 0.3% (defaults to 0.3%)
    */
   async previewDepositAndBorrow(
     vault: BorrowingVault,
@@ -225,7 +226,8 @@ export class Sdk {
     tokenIn: Token,
     tokenOut: Token,
     account: Address,
-    deadline?: number
+    deadline?: number,
+    slippage?: number
   ): Promise<{
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
@@ -239,6 +241,8 @@ export class Sdk {
     // TODO estimate bridge cost
     const bridgeFee = BigNumber.from(1);
     const estimateTime = 5 * 60;
+
+    const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -254,7 +258,13 @@ export class Sdk {
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
         vault.previewBorrow(amountOut, account),
-        this.previewXTransfer(destChainId, vault.debt, amountOut, account),
+        this.previewXTransfer(
+          destChainId,
+          vault.debt,
+          amountOut,
+          account,
+          _slippage
+        ),
       ];
     } else if (destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
@@ -269,6 +279,7 @@ export class Sdk {
           destChainId,
           tokenIn,
           amountIn,
+          _slippage,
           innerActions
         ),
       ];
@@ -303,7 +314,8 @@ export class Sdk {
     account: Address,
     signature?: Signature
   ): TransactionRequest {
-    const permitAction = Sdk.findPermitAction(actionParams);
+    const _actionParams = actionParams.map((a) => ({ ...a }));
+    const permitAction = Sdk.findPermitAction(_actionParams);
 
     if (permitAction && signature) {
       permitAction.v = signature.v;
@@ -315,8 +327,8 @@ export class Sdk {
       invariant(true, 'No permit action although there is a signature!');
     }
 
-    const actions = actionParams.map(({ action }) => BigNumber.from(action));
-    const args = actionParams.map(encodeActionArgs);
+    const actions = _actionParams.map(({ action }) => BigNumber.from(action));
+    const args = _actionParams.map(encodeActionArgs);
     const callData =
       ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
         actions,
@@ -335,7 +347,8 @@ export class Sdk {
     destChainId: ChainId,
     asset: Token,
     amount: BigNumber,
-    receiver: Address
+    receiver: Address,
+    slippage: number
   ): XTransferParams {
     const destDomain = CONNEXT_DOMAIN[destChainId];
     invariant(destDomain, 'Chain is not available on Connext!');
@@ -343,6 +356,7 @@ export class Sdk {
     return {
       action: RouterAction.X_TRANSFER,
       destDomain,
+      slippage,
       amount,
       asset: asset.address,
       receiver: receiver,
@@ -353,6 +367,7 @@ export class Sdk {
     destChainId: ChainId,
     asset: Token,
     amount: BigNumber,
+    slippage: number,
     innerActions: RouterActionParams[]
   ): XTransferWithCallParams {
     const destDomain = CONNEXT_DOMAIN[destChainId];
@@ -363,6 +378,7 @@ export class Sdk {
       destDomain,
       amount,
       asset: asset.address,
+      slippage,
       innerActions,
     };
   }

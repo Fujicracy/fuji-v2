@@ -47,7 +47,7 @@ describe("Metamask", () => {
       }).then((networkAdded) => {
         expect(networkAdded).to.be.true
       })
-      cy.get('[data-cy="chain"]').contains("Polygon")
+      // cy.get('[data-cy="chain"]').contains("Polygon")
     })
     it(`getNetwork should return valid network after adding a new network`, () => {
       cy.getNetwork().then((network: any) => {
@@ -55,7 +55,7 @@ describe("Metamask", () => {
         expect(network.networkId).to.be.equal(137)
         expect(network.isTestnet).to.be.false
       })
-      cy.get('[data-cy="chain"]').contains("Polygon")
+      // cy.get('[data-cy="chain"]').contains("Polygon")
     })
     //
     // I let the other test below as reference, we may need to reactivate them or simply

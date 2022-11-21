@@ -42,6 +42,12 @@ declare module "@mui/material/Typography" {
   }
 }
 
+declare module "@mui/material/Chip" {
+  interface ChipPropsVariantOverrides {
+    gradient: true
+  }
+}
+
 const colorTheme = createTheme({
   palette: {
     mode: "dark",
@@ -122,6 +128,8 @@ const theme = createTheme(colorTheme, {
       fontWeight: 600,
       fontSize: "1.5rem",
       lineHeight: "120%",
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     h5: {
       fontWeight: 600,
@@ -147,17 +155,20 @@ const theme = createTheme(colorTheme, {
       fontWeight: 400,
       fontSize: "0.875rem",
       lineHeight: "160%",
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     smallDark: {
       fontWeight: 400,
       fontSize: "0.875rem",
       lineHeight: "160%",
       color: colorTheme.palette.info.dark,
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     xsmall: {
       fontWeight: 400,
       fontSize: "0.75rem",
-      lineHeight: "160%",
     },
     xsmallDark: {
       fontWeight: 400,
@@ -283,7 +294,6 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: "0.75rem",
-          gap: "2rem",
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-start",
@@ -301,7 +311,6 @@ const theme = createTheme(colorTheme, {
             flexDirection: "column",
             borderRadius: "0.5rem",
             padding: "1rem",
-            gap: "1.5rem",
             flex: "none",
             order: 1,
             flexGrow: 0,
@@ -343,6 +352,8 @@ const theme = createTheme(colorTheme, {
           fontWeight: 400,
           fontSize: "0.875rem",
           lineHeight: "160%",
+          borderRadius: "2rem",
+          padding: ".25rem .5rem",
           color: colorTheme.palette.text.secondary,
         },
       },
@@ -365,6 +376,7 @@ const theme = createTheme(colorTheme, {
     },
     MuiTooltip: {
       styleOverrides: {
+        cursor: "help",
         tooltip: {
           padding: "0.75rem 1rem",
           fontSize: "0.875rem",
@@ -429,11 +441,10 @@ const theme = createTheme(colorTheme, {
       },
       variants: [
         {
-          props: {
-            variant: "gradient",
-          },
+          props: { variant: "gradient" },
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
+            border: `1px solid ${colorTheme.palette.primary.light}`,
             padding: "0.125rem 0",
             height: "100%",
             lineHeight: "160%",

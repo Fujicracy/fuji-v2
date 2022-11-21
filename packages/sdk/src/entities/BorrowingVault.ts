@@ -1,6 +1,8 @@
+import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import { keccak256 } from '@ethersproject/solidity';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import { Observable } from 'rxjs';
@@ -382,19 +384,25 @@ export class BorrowingVault extends StreamManager {
   private _getPermitDigest(params: PermitParams, nonce: BigNumber) {
     const { action, owner, spender, amount, deadline } = params;
 
+    const salt = keccak256(
+      ['bytes'],
+      [defaultAbiCoder.encode(['uint256'], [this.chainId])]
+    );
     const domain: TypedDataDomain = {
       name: this.name,
       version: '1',
-      chainId: this.chainId,
       verifyingContract: this.address.value,
+      salt,
     };
 
     const permitType =
       action === RouterAction.PERMIT_BORROW ? 'PermitBorrow' : 'PermitWithdraw';
     const types: Record<string, TypedDataField[]> = {
       [permitType]: [
+        { name: 'destChainId', type: 'uint256' },
         { name: 'owner', type: 'address' },
-        { name: 'spender', type: 'address' },
+        { name: 'operator', type: 'address' },
+        { name: 'receiver', type: 'address' },
         { name: 'amount', type: 'uint256' },
         { name: 'nonce', type: 'uint256' },
         { name: 'deadline', type: 'uint256' },
@@ -402,8 +410,10 @@ export class BorrowingVault extends StreamManager {
     };
 
     const value: Record<string, string> = {
+      destChainId: this.chainId.toString(),
       owner: owner.value,
-      spender: spender.value,
+      operator: spender.value,
+      receiver: owner.value,
       amount: amount.toString(),
       nonce: nonce.toString(),
       deadline: deadline?.toString() ?? '',

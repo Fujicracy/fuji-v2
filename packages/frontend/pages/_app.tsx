@@ -12,7 +12,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     mixpanel.init("030ddddf19623797be516b634956d108", {
-      debug: process.env.NODE_ENV === "development",
+      debug: process.env.NEXT_PUBLIC_APP_ENV === "development",
     })
     init()
   }, [init])

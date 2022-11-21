@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import {
   Divider,
   Button,
@@ -6,269 +6,223 @@ import {
   CardContent,
   Card,
   Grid,
-  FormControl,
-  Select,
-  MenuItem,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CircularProgress,
-  Container,
 } from "@mui/material"
-import { useTheme } from "@mui/material/styles"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 
-import { chains, Chain } from "../../store/auth.slice"
 import { useStore } from "../../store"
-import SelectTokenCard from "./SelectTokenCard"
 import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
+import { ChainSelect } from "./ChainSelect"
+import TokenCard from "./TokenCard"
+import { useLtv } from "../../store/transaction.slice"
+import { Fees } from "./Fees"
+import ApprovalModal from "./ApprovalModal"
+import LoadingButton from "@mui/lab/LoadingButton"
 
 export default function Borrow() {
-  const tokens = ["ETH", "USDC"] // TODO: Should be selected depending on ??
-  const { palette } = useTheme()
+  const address = useStore((state) => state.address)
+  const walletChain = useStore((state) => state.chain)
+  const changeChain = useStore((state) => state.changeChain)
+  const updateBalance = useStore((state) => state.updateBalances)
+  const updateVault = useStore((state) => state.updateVault)
+  const updateAllowance = useStore((state) => state.updateAllowance)
+  useEffect(() => {
+    if (address) {
+      updateBalance("collateral")
+      updateAllowance()
+      updateVault()
+    }
+  }, [address, updateBalance])
 
-  const [collateralChainId, setCollateralChain] = useState(chains[0].id)
-  const [collateralValue, setCollateralValue] = useState("")
-  const [collateralToken, setCollateralToken] = useState(tokens[0])
+  const login = useStore((state) => state.login)
 
-  const [borrowChainId, setBorrowChainId] = useState(chains[1].id)
-  const [borrowValue, setBorrowValue] = useState("")
-  const [borrowToken, setBorrowToken] = useState(tokens[1])
-  const {
-    transactionStatus,
-    setTransactionStatus,
-    setShowTransactionAbstract,
-  } = useStore((state) => ({
-    transactionStatus: state.transactionStatus,
-    setTransactionStatus: state.setTransactionStatus,
-    setShowTransactionAbstract: state.setShowTransactionAbstract,
-  }))
+  const collateral = useStore((state) => state.position.collateral)
+  const collateralChainId = useStore((state) => state.collateralChainId)
+  const collateralAllowance = useStore((state) => state.collateralAllowance)
+  const debt = useStore((state) => state.position.debt)
+  const debtChainId = useStore((state) => state.debtChainId)
+  const changeBorrowChain = useStore((state) => state.changeBorrowChain)
+  const changeCollateralChain = useStore((state) => state.changeCollateralChain)
+  // const debt = useStore((state) => state.position.debt)
+
+  const setShowTransactionAbstract = useStore(
+    (state) => state.setShowTransactionAbstract
+  )
 
   const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
     useState(false)
+  const [showApprovalModal, setShowApprovalModal] = useState(false)
+  // TODO: refacto with a "status" ?
+
+  const value = useStore((state) => parseFloat(state.collateralInput))
+  const balance = useStore(
+    (state) => state.collateralBalances[state.position.collateral.token.symbol]
+  )
+
+  const updateTokenPrice = useStore((state) => state.updateTokenPrice)
+  useEffect(() => {
+    updateTokenPrice("collateral")
+    updateTokenPrice("debt")
+  }, [updateTokenPrice])
+
+  const ltv = useLtv()
+  const ltvMax = useStore((state) => state.position.ltvMax)
+
+  const signature = useStore((state) => state.signature)
+  const isSigning = useStore((state) => state.isSigning)
+  const signPermit = useStore((state) => state.signPermit)
+  const borrow = useStore((state) => state.borrow)
+  const isBorrowing = useStore((state) => state.isBorrowing)
+
+  let button: ReactNode
+  if (!address) {
+    button = (
+      <Button
+        variant="gradient"
+        onClick={() => login()}
+        fullWidth
+        data-cy="borrow-login"
+      >
+        Connect wallet
+      </Button>
+    )
+  } else if (collateralChainId !== walletChain?.id) {
+    button = (
+      <Button
+        variant="gradient"
+        fullWidth
+        onClick={() => changeChain(collateral.token.chainId)}
+      >
+        Switch network
+      </Button>
+    )
+  } else if (value > 0 && value > balance) {
+    button = (
+      <Button variant="gradient" disabled fullWidth>
+        Insufficient {collateral.token.symbol} balance
+      </Button>
+    )
+  } else if (ltv > ltvMax) {
+    button = (
+      <Button variant="gradient" disabled fullWidth>
+        Not enough collateral
+      </Button>
+    )
+  } else if (
+    collateralAllowance?.value !== undefined &&
+    collateralAllowance.value < collateral.amount
+  ) {
+    button = (
+      <Button
+        variant="gradient"
+        fullWidth
+        onClick={() => setShowApprovalModal(true)}
+      >
+        Allow
+      </Button>
+    )
+  } else {
+    button = (
+      <>
+        <LoadingButton
+          variant="primary"
+          disabled={
+            collateral.amount <= 0 || debt.amount <= 0 || Boolean(signature)
+          }
+          loading={isSigning}
+          onClick={signPermit}
+          fullWidth
+        >
+          {signature ? "Signed" : "Sign"}
+        </LoadingButton>
+
+        <br />
+        <br />
+
+        <LoadingButton
+          variant="gradient"
+          onClick={borrow}
+          fullWidth
+          className={styles.btn}
+          disabled={collateral.amount <= 0 || debt.amount <= 0 || !signature}
+          loading={isBorrowing}
+        >
+          Borrow
+        </LoadingButton>
+      </>
+    )
+  }
 
   return (
-    <Container>
-      <>
-        <Card
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            p: "0.5rem 0",
-          }}
-        >
-          <CardContent>
-            <Typography variant="body2">Borrow</Typography>
+    <>
+      <Card
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          p: "0.5rem 0",
+        }}
+      >
+        <CardContent>
+          <Typography variant="body2">Borrow</Typography>
 
-            <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
+          <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
-            <FormControl>
-              <Grid container alignItems="center">
-                <label
-                  id="collateral-chain-label"
-                  className={styles.selectLabel}
-                >
-                  Collateral from
-                </label>
-                <Select
-                  labelId="collateral-chain-label"
-                  id="collateral-chain"
-                  value={collateralChainId}
-                  onChange={(e) => setCollateralChain(e.target.value)}
-                  IconComponent={KeyboardArrowDownIcon}
-                  sx={{
-                    marginBottom: "1rem",
-                    boxShadow: "none",
-                    ".MuiOutlinedInput-notchedOutline": {
-                      border: 0,
-                    },
-                  }}
-                  variant="standard"
-                  disableUnderline
-                >
-                  {chains.map((chain: Chain) => (
-                    <MenuItem key={chain.id} value={chain.id}>
-                      <Grid container>
-                        <Image
-                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                          height={18}
-                          width={18}
-                          alt={chain.label}
-                        />
-                        <Typography ml="0.5rem" variant="small">
-                          {chain.label} Network
-                        </Typography>
-                      </Grid>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
-            </FormControl>
+          <ChainSelect
+            label="Collateral from"
+            type="collateral"
+            value={collateralChainId}
+            onChange={(chainId) => changeCollateralChain(chainId)}
+          />
+          <TokenCard type="collateral" />
 
-            <SelectTokenCard
-              value={collateralValue}
-              onChangeValue={(e) => setCollateralValue(e.target.value)}
-              token={collateralToken}
-              onChangeToken={(e) => setCollateralToken(e.target.value)}
-              tokens={tokens}
-              type="collateral"
-            />
+          <br />
 
-            <FormControl>
-              <Grid container alignItems="center">
-                <label id="borrow-chain-label" className={styles.selectLabel}>
-                  Borrow to
-                </label>
-                <Select
-                  labelId="borrow-chain-label"
-                  id="borrow-chain"
-                  value={borrowChainId}
-                  onChange={(e) => setBorrowChainId(e.target.value)}
-                  IconComponent={KeyboardArrowDownIcon}
-                  sx={{
-                    marginBottom: "1rem",
-                    boxShadow: "none",
-                    ".MuiOutlinedInput-notchedOutline": {
-                      border: 0,
-                    },
-                  }}
-                  variant="standard"
-                  disableUnderline
-                >
-                  {chains.map((chain: Chain) => (
-                    <MenuItem key={chain.id} value={chain.id}>
-                      <Grid container>
-                        <Image
-                          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                          height={18}
-                          width={18}
-                          alt={chain.label}
-                        />
-                        <Typography ml="0.5rem" variant={"small"}>
-                          {chain.label} Network
-                        </Typography>
-                      </Grid>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
-            </FormControl>
+          <ChainSelect
+            label="Borrow to"
+            type="borrow"
+            value={debtChainId}
+            onChange={(chainId) => changeBorrowChain(chainId)}
+          />
+          <TokenCard type="debt" />
 
-            <SelectTokenCard
-              value={borrowValue}
-              onChangeValue={(e) => setBorrowValue(e.target.value)}
-              token={borrowToken}
-              onChangeToken={(e) => setBorrowToken(e.target.value)}
-              tokens={tokens}
-              type="borrow"
-            />
+          <br />
 
-            <br />
+          <Fees />
+          <br />
 
-            <Accordion
-              sx={{
-                "::before": { content: "none" },
-                padding: "0.3rem 0.5rem",
-                boxShadow: "none",
-                background: palette.secondary.dark,
-                borderRadius: "0.5rem",
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <div className={styles.cardLine}>
-                  <Typography variant="small">Estimated Cost</Typography>
-                  <Typography variant="small">~$3.90</Typography>
-                </div>
-              </AccordionSummary>
-              <AccordionDetails>
-                <div className={styles.cardLine} style={{ width: "92%" }}>
-                  <Typography variant="small">Gas fees</Typography>
-                  <Typography variant="small">~$1.90</Typography>
-                </div>
-                <br />
-                <div className={styles.cardLine} style={{ width: "92%" }}>
-                  <Typography variant="small">Bridges fees</Typography>
-                  <Typography variant="small">~$2.00</Typography>
-                </div>
-                <br />
-                <div className={styles.cardLine} style={{ width: "92%" }}>
-                  <Typography variant="small">Est. processing time</Typography>
-                  <Typography variant="small">~2 Minutes</Typography>
-                </div>
-                <br />
-                <div className={styles.cardLine} style={{ width: "92%" }}>
-                  <Typography variant="small">Route</Typography>
-                  <Typography variant="small">
-                    <u>{"ETH > Polygon"}</u>
-                  </Typography>
-                </div>
-              </AccordionDetails>
-            </Accordion>
+          {button}
 
-            <br />
+          <br />
+          <br />
 
-            <Button
-              variant="primary"
-              disabled
-              onClick={() => alert("not implemented")}
-              fullWidth
-              className={styles.btn}
-            >
-              Sign
-            </Button>
-
-            <br />
-            <br />
-
-            <Button
-              variant="gradient"
-              onClick={() => {
-                setTransactionStatus(true)
-                setShowTransactionProcessingModal(true)
-              }}
-              fullWidth
-              className={styles.btn}
-              startIcon={
-                transactionStatus ? <CircularProgress size={15} /> : undefined
-              }
-            >
-              Borrow
-            </Button>
-
-            <br />
-            <br />
-
-            <Grid container justifyContent="center">
-              <Typography variant="small">
-                Powered by
-                <a
-                  href="https://www.connext.network/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Image
-                    src="/assets/images/logo/connext-title.svg"
-                    height={16}
-                    width={95}
-                    alt="Connext logo"
-                  />
-                </a>
-              </Typography>
+          <a
+            href="https://www.connext.network/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Grid container justifyContent="center" alignItems="center">
+              <Typography variant="small">Powered by</Typography>
+              <Image
+                src="/assets/images/logo/connext-title.svg"
+                height={16}
+                width={95}
+                alt="Connext logo"
+              />
             </Grid>
-          </CardContent>
-        </Card>
-        <TransactionProcessingModal
-          open={showTransactionProcessingModal}
-          handleClose={() => {
-            setShowTransactionProcessingModal(false)
-            setShowTransactionAbstract(true)
-          }}
-        />
-      </>
-    </Container>
+          </a>
+        </CardContent>
+      </Card>
+      <TransactionProcessingModal
+        open={showTransactionProcessingModal}
+        handleClose={() => {
+          setShowTransactionProcessingModal(false)
+          setShowTransactionAbstract(true)
+        }}
+      />
+      {showApprovalModal && (
+        <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
+      )}
+    </>
   )
 }

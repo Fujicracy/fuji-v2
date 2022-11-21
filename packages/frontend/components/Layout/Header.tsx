@@ -34,7 +34,7 @@ import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
-if (process.env.NODE_ENV === "development") {
+if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
   pages.push("Theming") // TODO: "Theming" page is to test design system
 }
 
@@ -59,6 +59,10 @@ const Header = () => {
     setAnchorElNav(event.currentTarget)
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
+
+  // Auto select metamask and connect, used as workaround for e2e testing
+  const e2eConnect = () =>
+    login({ autoSelect: { label: "MetaMask", disableModals: true } })
 
   return (
     <>
@@ -92,7 +96,24 @@ const Header = () => {
                     alignItems: "center",
                   }}
                 >
-                  <ChainSelect />
+                  {status === "disconnected" && (
+                    <>
+                      <Chip
+                        label="Connect wallet"
+                        variant="gradient"
+                        sx={{ fontSize: "1rem" }}
+                        onClick={() => login()}
+                      />
+                      <Button
+                        data-cy="login"
+                        onClick={e2eConnect}
+                        sx={{ position: "absolute", visibility: "hidden" }}
+                      >
+                        e2e
+                      </Button>
+                    </>
+                  )}
+                  {status === "connected" && <ChainSelect />}
 
                   <IconButton
                     size="large"
@@ -169,9 +190,21 @@ const Header = () => {
               sx={{ display: { xs: "none", md: "flex" } }}
             >
               {status === "disconnected" && (
-                <Button variant="gradient" onClick={() => login()}>
-                  Connect wallet
-                </Button>
+                <>
+                  <Chip
+                    label="Connect wallet"
+                    variant="gradient"
+                    sx={{ fontSize: "1rem" }}
+                    onClick={() => login()}
+                  />
+                  <Button
+                    data-cy="login"
+                    onClick={e2eConnect}
+                    sx={{ position: "absolute", visibility: "hidden" }}
+                  >
+                    e2e
+                  </Button>
+                </>
               )}
               {status === "connected" && (
                 <>
@@ -200,9 +233,9 @@ const Header = () => {
 }
 
 type BalanceAddressProps = {
-  balance?: Balances
   address: string
-  ens: string | null
+  balance?: Balances
+  ens?: string
   transactionStatus: boolean
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
@@ -267,9 +300,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           lineHeight: ".9rem",
           position: "relative",
           left: "-2rem",
-          ":hover": {
-            background: palette.secondary.main,
-          },
+          backgroundColor: palette.secondary.light,
         }}
       />
       {props.transactionStatus && showTransactionAbstract && (

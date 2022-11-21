@@ -35,7 +35,7 @@ export function encodeActionArgs(params: RouterActionParams): string {
       [
         params.vault.value,
         params.owner.value,
-        params.spender.value,
+        params.owner.value,
         params.amount.toString(),
         params.deadline.toString(),
         params.v.toString(),
@@ -55,9 +55,10 @@ export function encodeActionArgs(params: RouterActionParams): string {
     );
   } else if (params.action === RouterAction.X_TRANSFER) {
     return defaultAbiCoder.encode(
-      ['uint256', 'address', 'uint256', 'address'],
+      ['uint256', 'uint256', 'address', 'uint256', 'address'],
       [
         params.destDomain,
+        params.slippage,
         params.asset.value,
         params.amount.toString(),
         params.receiver.value,
@@ -73,9 +74,10 @@ export function encodeActionArgs(params: RouterActionParams): string {
       [innerActions, innerArgs]
     );
     return defaultAbiCoder.encode(
-      ['uint256', 'address', 'uint256', 'bytes'],
+      ['uint256', 'uint256', 'address', 'uint256', 'bytes'],
       [
         params.destDomain,
+        params.slippage,
         params.asset.value,
         params.amount.toString(),
         callData,

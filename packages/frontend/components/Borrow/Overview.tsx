@@ -10,15 +10,28 @@ import {
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import AddCircleIcon from "@mui/icons-material/AddCircle"
+import { formatUnits } from "ethers/lib/utils"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import Image from "next/image"
+import TokenIcon from "../TokenIcon"
 import ClickableTooltip from "../Layout/ClickableTooltip"
+import { useStore } from "../../store"
+import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
+import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
+
+// TODO: create helper to get these images and throw / warn us if 404 ?
+const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
 
 export default function Overview() {
   const { palette } = useTheme()
+  const ltv = useLtv()
+  const { ltvMax, ltvThreshold } = useStore((state) => state.position)
+  const { liquidationPrice, liquidationDiff } =
+    useLiquidationPrice(ltvThreshold)
+  const collateral = useStore((state) => state.position.collateral)
+  const debt = useStore((state) => state.position.debt)
+  const providers = useStore((state) => state.position.providers)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -39,8 +52,15 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: "0 ETH",
-                  footer: "0.00 USD",
+                  amount: `${collateral.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })} ${collateral.token.symbol}`,
+                  footer: (
+                    collateral.amount * collateral.usdValue
+                  ).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
                 }}
               />
             </Grid>
@@ -48,8 +68,16 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Borrowed Value",
-                  amount: "$0.00",
-                  footer: "0.00 USDC",
+                  amount: (debt.amount * debt.usdValue).toLocaleString(
+                    "en-US",
+                    {
+                      style: "currency",
+                      currency: "usd",
+                    }
+                  ),
+                  footer: `${debt.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })} ${debt.token.symbol}`,
                 }}
               />
             </Grid>
@@ -58,8 +86,17 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Liquidation Price",
-                  amount: "$0.00",
-                  footer: "n/a",
+                  amount:
+                    liquidationDiff >= 0
+                      ? liquidationPrice.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "usd",
+                        })
+                      : "$0",
+                  footer:
+                    liquidationDiff >= 0
+                      ? `~${liquidationDiff}% below current price`
+                      : `n/a`,
                 }}
               />
             </Grid>
@@ -67,8 +104,11 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Current Price",
-                  amount: "$2000.00",
-                  footer: "ETH",
+                  amount: collateral.usdValue.toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
+                  footer: collateral.token.symbol,
                 }}
               />
             </Grid>
@@ -76,7 +116,12 @@ export default function Overview() {
 
           <Divider sx={{ mb: 1.5 }} />
 
-          <LTVProgressBar borrowLimit={0} value={45} />
+          <LTVProgressBar
+            borrowLimit={0} // TODO: should be dynamic
+            value={ltv > ltvMax ? ltvMax : ltv}
+            maxLTV={ltvMax}
+            recommendedLTV={DEFAULT_LTV_RECOMMENDED} // TODO: Should be dynamic thanks to SDK method
+          />
 
           <Divider sx={{ mt: 2, mb: 2 }} />
 
@@ -87,7 +132,9 @@ export default function Overview() {
           <Grid container justifyContent="space-between">
             <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
-            <Typography variant="small">45%</Typography>
+            <Typography variant="small">
+              {ltv <= 100 ? `${ltv}%` : "n/a"}
+            </Typography>
           </Grid>
 
           <Divider sx={{ mt: 2, mb: 2 }} />
@@ -97,7 +144,7 @@ export default function Overview() {
               LTV liquidation threshold
             </Typography>
 
-            <Typography variant="small">75%</Typography>
+            <Typography variant="small">{ltvThreshold}%</Typography>
           </Grid>
 
           <Divider sx={{ mt: 2, mb: 2 }} />
@@ -109,17 +156,18 @@ export default function Overview() {
               </Typography>
             </Grid>
             <Grid item>
-              <Grid container alignItems="center">
-                <Image
-                  src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                  height={18}
-                  width={18}
-                  alt="Ethereum icon"
-                />
-                <Typography ml="0.375rem" variant="small">
-                  Aave V2
-                </Typography>
-              </Grid>
+              {providers?.length ? (
+                <Grid container alignItems="center">
+                  {/* TODO[design]: what logo should i put here ? */}
+                  <TokenIcon token={collateral.token} height={18} width={18} />
+
+                  <Typography ml="0.375rem" variant="small">
+                    {providers[0].name}
+                  </Typography>
+                </Grid>
+              ) : (
+                "n/a"
+              )}
             </Grid>
           </Grid>
 
@@ -154,35 +202,17 @@ export default function Overview() {
                 />
               </ClickableTooltip>
             </div>
-            <Box>
-              <Box sx={{ alignItems: "center", cursor: "pointer" }}>
+            <Box sx={{ alignItems: "center", cursor: "pointer" }}>
+              {providers?.length ? (
                 <Typography variant="small">
-                  Aave:{" "}
-                  <span
-                    style={{
-                      color: palette.success.main,
-                    }}
-                  >
-                    1.83%
+                  {providers[0].name}:{" "}
+                  <span style={{ color: palette.success.main }}>
+                    {formatUnits(providers[0].borrowRate, 27)}%
                   </span>
-                  <Divider
-                    sx={{
-                      ml: "0.531rem",
-                      mr: "0.25rem",
-                      borderRight: `0.063rem solid ${palette.text.secondary}`,
-                      borderBottom: 0,
-                      display: "inline",
-                    }}
-                  />
                 </Typography>
-                <AddCircleIcon
-                  sx={{
-                    ml: "0.25rem",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                />
-              </Box>
+              ) : (
+                "n/a"
+              )}
             </Box>
           </Grid>
         </CardContent>

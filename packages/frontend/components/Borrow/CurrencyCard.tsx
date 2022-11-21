@@ -10,7 +10,7 @@ export default function CurrencyCard(props: CurrencyCardProps) {
     <Card variant="currency">
       <Typography variant="smallDark">{props.informations.title}</Typography>
 
-      <Typography variant="regularH4" mb="0.5rem">
+      <Typography variant="regularH4" mb="0.5rem" sx={{ width: "16rem" }}>
         {props.informations.amount}
       </Typography>
 

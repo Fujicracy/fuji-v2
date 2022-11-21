@@ -7,6 +7,7 @@ import {
   LinearProgress,
   Tooltip,
   Typography,
+  Stack,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import ClickableTooltip from "../Layout/ClickableTooltip"
@@ -14,6 +15,8 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 type LTVProgressBarProps = {
   borrowLimit: number
   value: number
+  maxLTV: number
+  recommendedLTV: number
 }
 
 export default function LTVProgressBar(props: LTVProgressBarProps) {
@@ -21,85 +24,93 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
 
   return (
     <Box>
-      <Grid container ml="3rem">
-        <Grid item alignItems="center" m="auto">
-          <Tooltip
-            arrow
-            title="Being in this area keeps you safe from sudden shifts in the market."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-                display: { xs: "none", sm: "inline" },
-              }}
-            />
-          </Tooltip>
-          <ClickableTooltip
-            title="Being in this area keeps you safe from sudden shifts in the market."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-              }}
-            />
-          </ClickableTooltip>
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "none", sm: "inline" } }}
-          >
-            45% LTV (Recommended)
-          </Typography>
+      <Grid
+        container
+        sx={{
+          ml: "3rem",
+        }}
+      >
+        <Grid item margin="auto">
+          <Stack direction="row" alignItems="center">
+            <Tooltip
+              title="Being in this area keeps you safe from sudden shifts in the market."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                  display: { xs: "none", sm: "inline" },
+                }}
+              />
+            </Tooltip>
 
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "inline", sm: "none" } }}
-          >
-            SAFE LTV: 45%
-          </Typography>
+            <ClickableTooltip
+              title="Being in this area keeps you safe from sudden shifts in the market."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                }}
+              />
+            </ClickableTooltip>
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "none", sm: "inline" } }}
+            >
+              {props.recommendedLTV}% LTV (Recommended)
+            </Typography>
+
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "inline", sm: "none" } }}
+            >
+              SAFE LTV: {props.recommendedLTV}%
+            </Typography>
+          </Stack>
         </Grid>
-        <Grid item alignItems="center" mr="3rem">
-          <Tooltip
-            arrow
-            title="This area is dangerous, if you exceed this threshold you can get liquidated."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-                display: { xs: "none", sm: "inline" },
-              }}
-            />
-          </Tooltip>
-          <ClickableTooltip
-            title="This area is dangerous, if you exceed this threshold you can get liquidated."
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{
-                mr: "0.313rem",
-                fontSize: "0.875rem",
-              }}
-            />
-          </ClickableTooltip>
+        <Grid item marginRight="3rem">
+          <Stack direction="row" alignItems="center">
+            <Tooltip
+              title="This area is dangerous, if you exceed this threshold you can get liquidated."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                  display: { xs: "none", sm: "inline" },
+                }}
+              />
+            </Tooltip>
+            <ClickableTooltip
+              title="This area is dangerous, if you exceed this threshold you can get liquidated."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  mr: "0.313rem",
+                  fontSize: "0.875rem",
+                }}
+              />
+            </ClickableTooltip>
 
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "none", sm: "inline" } }}
-          >
-            75% LTV (MAX)
-          </Typography>
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "none", sm: "inline" } }}
+            >
+              {props.maxLTV}% LTV (MAX)
+            </Typography>
 
-          <Typography
-            variant="xsmall"
-            sx={{ display: { xs: "inline", sm: "none" } }}
-          >
-            MAX LTV: 75%
-          </Typography>
+            <Typography
+              variant="xsmall"
+              sx={{ display: { xs: "inline", sm: "none" } }}
+            >
+              MAX LTV: {props.maxLTV}%
+            </Typography>
+          </Stack>
         </Grid>
       </Grid>
 
@@ -132,11 +143,17 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           marginBottom: "0.5rem",
           "& .MuiLinearProgress-barColorPrimary": {
             backgroundColor:
-              props.value <= 45 ? palette.success.main : palette.warning.main,
+              props.value <= props.recommendedLTV
+                ? palette.success.main
+                : palette.warning.main,
             borderRadius: "1.25rem",
           },
         }}
-        value={props.value > 75 ? props.value : (props.value * 100) / 75}
+        value={
+          props.value > props.maxLTV
+            ? props.value
+            : (props.value * 100) / props.maxLTV
+        }
         variant="determinate"
       />
 
@@ -144,7 +161,9 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
         variant="label"
         color="success.main"
         ml={`${
-          (props.value > 75 ? props.value : (props.value * 100) / 75) - 5
+          (props.value > props.maxLTV
+            ? props.value
+            : (props.value * 100) / props.maxLTV) - 5
         }%`}
         sx={{
           display: { xs: "block", sm: "none" },
