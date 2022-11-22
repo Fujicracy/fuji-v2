@@ -102,8 +102,8 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: TransactionState = {
-  transactionStatus: true,
-  showTransactionAbstract: true,
+  transactionStatus: false,
+  showTransactionAbstract: false,
 
   availableVaults: [],
   allProviders: {},
@@ -310,7 +310,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       // TODO: remove (fix bc value on testnet is too low)
       tokenValue = 1242.42
     }
-    console.log(token.symbol, "=>", tokenValue, "USD")
 
     set(
       produce((state: TransactionState) => {
