@@ -26,7 +26,7 @@ import type {
 export interface MockSwapperInterface extends utils.Interface {
   functions: {
     "oracle()": FunctionFragment;
-    "swap(address,address,uint256,address,uint256)": FunctionFragment;
+    "swap(address,address,uint256,uint256,address,address,uint256)": FunctionFragment;
   };
 
   getFunction(nameOrSignatureOrTopic: "oracle" | "swap"): FunctionFragment;
@@ -34,7 +34,15 @@ export interface MockSwapperInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "swap",
-    values: [string, string, BigNumberish, string, BigNumberish]
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      string,
+      string,
+      BigNumberish
+    ]
   ): string;
 
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
@@ -75,8 +83,10 @@ export interface MockSwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
+      sweeper: string,
       slippage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -87,8 +97,10 @@ export interface MockSwapper extends BaseContract {
   swap(
     assetIn: string,
     assetOut: string,
+    amountIn: BigNumberish,
     amountOut: BigNumberish,
     receiver: string,
+    sweeper: string,
     slippage: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -99,8 +111,10 @@ export interface MockSwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
+      sweeper: string,
       slippage: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -114,8 +128,10 @@ export interface MockSwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
+      sweeper: string,
       slippage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -127,8 +143,10 @@ export interface MockSwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
+      sweeper: string,
       slippage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

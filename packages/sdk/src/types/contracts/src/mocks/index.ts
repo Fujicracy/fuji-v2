@@ -7,4 +7,5 @@ export type { MockERC20 } from "./MockERC20";
 export type { MockFlasher } from "./MockFlasher";
 export type { MockOracle } from "./MockOracle";
 export type { MockProvider } from "./MockProvider";
+export type { MockProviderV0 } from "./MockProviderV0";
 export type { MockSwapper } from "./MockSwapper";

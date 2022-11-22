@@ -31,30 +31,30 @@ import type {
 export interface MockOracleInterface extends utils.Interface {
   functions: {
     "getPriceOf(address,address,uint8)": FunctionFragment;
-    "prices(address,address)": FunctionFragment;
-    "setPriceOf(address,address,uint256)": FunctionFragment;
+    "prices(address)": FunctionFragment;
+    "setUSDPriceOf(address,uint256)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "getPriceOf" | "prices" | "setPriceOf"
+    nameOrSignatureOrTopic: "getPriceOf" | "prices" | "setUSDPriceOf"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "getPriceOf",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "prices", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "prices",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setPriceOf",
-    values: [string, string, BigNumberish]
+    functionFragment: "setUSDPriceOf",
+    values: [string, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "getPriceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "prices", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setPriceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setUSDPriceOf",
+    data: BytesLike
+  ): Result;
 
   events: {
     "AssetPriceFeedChanged(address,address)": EventFragment;
@@ -109,15 +109,10 @@ export interface MockOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { price: BigNumber }>;
 
-    prices(
-      arg0: string,
-      arg1: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    prices(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    setPriceOf(
-      currencyAsset: string,
-      commodityAsset: string,
+    setUSDPriceOf(
+      asset: string,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -130,15 +125,10 @@ export interface MockOracle extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  prices(
-    arg0: string,
-    arg1: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  prices(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  setPriceOf(
-    currencyAsset: string,
-    commodityAsset: string,
+  setUSDPriceOf(
+    asset: string,
     price: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -151,15 +141,10 @@ export interface MockOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    prices(
-      arg0: string,
-      arg1: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    prices(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    setPriceOf(
-      currencyAsset: string,
-      commodityAsset: string,
+    setUSDPriceOf(
+      asset: string,
       price: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -184,15 +169,10 @@ export interface MockOracle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    prices(
-      arg0: string,
-      arg1: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    prices(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    setPriceOf(
-      currencyAsset: string,
-      commodityAsset: string,
+    setUSDPriceOf(
+      asset: string,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -208,13 +188,11 @@ export interface MockOracle extends BaseContract {
 
     prices(
       arg0: string,
-      arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setPriceOf(
-      currencyAsset: string,
-      commodityAsset: string,
+    setUSDPriceOf(
+      asset: string,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -233,9 +211,5 @@ export interface MockOracleMulticall {
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
-  prices(
-    arg0: string,
-    arg1: string,
-    overrides?: CallOverrides
-  ): Call<BigNumber>;
+  prices(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
 }

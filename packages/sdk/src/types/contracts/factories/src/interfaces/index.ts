@@ -8,6 +8,7 @@ export * as chainlink from "./chainlink";
 export * as compoundV2 from "./compoundV2";
 export * as compoundV3 from "./compoundV3";
 export * as connext from "./connext";
+export * as euler from "./euler";
 export * as uniswap from "./uniswap";
 export * as velodrome from "./velodrome";
 export { IAddrMapper__factory } from "./IAddrMapper__factory";

@@ -14,41 +14,67 @@ const _abi = [
   {
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "asset",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "amount",
-            type: "uint256",
-          },
-          {
-            internalType: "address",
-            name: "router",
-            type: "address",
-          },
-          {
-            internalType: "enum IRouter.Action[]",
-            name: "actions",
-            type: "uint8[]",
-          },
-          {
-            internalType: "bytes[]",
-            name: "args",
-            type: "bytes[]",
-          },
-        ],
-        internalType: "struct IFlasher.FlashloanParams",
-        name: "params",
-        type: "tuple",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
       {
-        internalType: "uint8",
-        name: "providerId",
-        type: "uint8",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "computeFlashloanFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "getFlashloanSourceAddr",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "requestor",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "requestorCalldata",
+        type: "bytes",
       },
     ],
     name: "initiateFlashloan",

@@ -30,6 +30,7 @@ import type {
 export interface IChiefInterface extends utils.Interface {
   functions: {
     "addrMapper()": FunctionFragment;
+    "allowedFlasher(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
@@ -41,6 +42,7 @@ export interface IChiefInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "addrMapper"
+      | "allowedFlasher"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
@@ -52,6 +54,10 @@ export interface IChiefInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "addrMapper",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowedFlasher",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -76,6 +82,10 @@ export interface IChiefInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "addrMapper", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedFlasher",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -166,6 +176,11 @@ export interface IChief extends BaseContract {
   functions: {
     addrMapper(overrides?: CallOverrides): Promise<[string]>;
 
+    allowedFlasher(
+      flasher: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     grantRole(
@@ -197,6 +212,8 @@ export interface IChief extends BaseContract {
 
   addrMapper(overrides?: CallOverrides): Promise<string>;
 
+  allowedFlasher(flasher: string, overrides?: CallOverrides): Promise<boolean>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   grantRole(
@@ -227,6 +244,11 @@ export interface IChief extends BaseContract {
 
   callStatic: {
     addrMapper(overrides?: CallOverrides): Promise<string>;
+
+    allowedFlasher(
+      flasher: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -295,6 +317,11 @@ export interface IChief extends BaseContract {
   estimateGas: {
     addrMapper(overrides?: CallOverrides): Promise<BigNumber>;
 
+    allowedFlasher(
+      flasher: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -329,6 +356,11 @@ export interface IChief extends BaseContract {
 
   populateTransaction: {
     addrMapper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowedFlasher(
+      flasher: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -369,6 +401,8 @@ export interface IChiefMulticall {
   functions: FunctionFragment[];
 
   addrMapper(overrides?: CallOverrides): Call<string>;
+
+  allowedFlasher(flasher: string, overrides?: CallOverrides): Call<boolean>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Call<string>;
 

@@ -152,7 +152,7 @@ export interface MockProvider extends BaseContract {
 
   functions: {
     approvedOperator(
-      arg0: string,
+      asset: string,
       arg1: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
@@ -164,10 +164,10 @@ export interface MockProvider extends BaseContract {
     ): Promise<ContractTransaction>;
 
     deposit(
-      arg0: BigNumberish,
-      arg1: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { success: boolean }>;
+      amount: BigNumberish,
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getBorrowBalance(
       user: string,
@@ -207,7 +207,7 @@ export interface MockProvider extends BaseContract {
   };
 
   approvedOperator(
-    arg0: string,
+    asset: string,
     arg1: string,
     overrides?: CallOverrides
   ): Promise<string>;
@@ -219,10 +219,10 @@ export interface MockProvider extends BaseContract {
   ): Promise<ContractTransaction>;
 
   deposit(
-    arg0: BigNumberish,
-    arg1: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+    amount: BigNumberish,
+    vault: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getBorrowBalance(
     user: string,
@@ -259,7 +259,7 @@ export interface MockProvider extends BaseContract {
 
   callStatic: {
     approvedOperator(
-      arg0: string,
+      asset: string,
       arg1: string,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -271,8 +271,8 @@ export interface MockProvider extends BaseContract {
     ): Promise<boolean>;
 
     deposit(
-      arg0: BigNumberish,
-      arg1: string,
+      amount: BigNumberish,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -317,7 +317,7 @@ export interface MockProvider extends BaseContract {
 
   estimateGas: {
     approvedOperator(
-      arg0: string,
+      asset: string,
       arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -329,9 +329,9 @@ export interface MockProvider extends BaseContract {
     ): Promise<BigNumber>;
 
     deposit(
-      arg0: BigNumberish,
-      arg1: string,
-      overrides?: CallOverrides
+      amount: BigNumberish,
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getBorrowBalance(
@@ -373,7 +373,7 @@ export interface MockProvider extends BaseContract {
 
   populateTransaction: {
     approvedOperator(
-      arg0: string,
+      asset: string,
       arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -385,9 +385,9 @@ export interface MockProvider extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     deposit(
-      arg0: BigNumberish,
-      arg1: string,
-      overrides?: CallOverrides
+      amount: BigNumberish,
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getBorrowBalance(
@@ -434,16 +434,10 @@ export interface MockProviderMulticall {
   functions: FunctionFragment[];
 
   approvedOperator(
-    arg0: string,
+    asset: string,
     arg1: string,
     overrides?: CallOverrides
   ): Call<string>;
-
-  deposit(
-    arg0: BigNumberish,
-    arg1: string,
-    overrides?: CallOverrides
-  ): Call<boolean>;
 
   getBorrowBalance(
     user: string,

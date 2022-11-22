@@ -15,7 +15,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "asset",
         type: "address",
       },
       {
@@ -63,12 +63,12 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "amount",
         type: "uint256",
       },
       {
         internalType: "contract IVault",
-        name: "",
+        name: "vault",
         type: "address",
       },
     ],
@@ -80,7 +80,7 @@ const _abi = [
         type: "bool",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

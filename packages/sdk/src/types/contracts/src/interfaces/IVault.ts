@@ -28,22 +28,6 @@ import type {
   OnEvent,
 } from "../../common";
 
-export declare namespace IVault {
-  export type RebalanceActionStruct = {
-    amount: BigNumberish;
-    asset: string;
-    from: string;
-    to: string;
-  };
-
-  export type RebalanceActionStructOutput = [
-    BigNumber,
-    string,
-    string,
-    string
-  ] & { amount: BigNumber; asset: string; from: string; to: string };
-}
-
 export interface IVaultInterface extends utils.Interface {
   functions: {
     "activeProvider()": FunctionFragment;
@@ -63,6 +47,7 @@ export interface IVaultInterface extends utils.Interface {
     "deposit(uint256,address)": FunctionFragment;
     "getHealthFactor(address)": FunctionFragment;
     "getLiquidationFactor(address)": FunctionFragment;
+    "getProviders()": FunctionFragment;
     "liquidate(address,address)": FunctionFragment;
     "maxBorrow(address)": FunctionFragment;
     "maxDeposit(address)": FunctionFragment;
@@ -76,7 +61,7 @@ export interface IVaultInterface extends utils.Interface {
     "previewMint(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "previewWithdraw(uint256)": FunctionFragment;
-    "rebalance((uint256,address,address,address)[])": FunctionFragment;
+    "rebalance(uint256,uint256,address,address,uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
     "setActiveProvider(address)": FunctionFragment;
     "setDepositCap(uint256)": FunctionFragment;
@@ -110,6 +95,7 @@ export interface IVaultInterface extends utils.Interface {
       | "deposit"
       | "getHealthFactor"
       | "getLiquidationFactor"
+      | "getProviders"
       | "liquidate"
       | "maxBorrow"
       | "maxDeposit"
@@ -195,6 +181,10 @@ export interface IVaultInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "getProviders",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "liquidate",
     values: [string, string]
   ): string;
@@ -230,7 +220,7 @@ export interface IVaultInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "rebalance",
-    values: [IVault.RebalanceActionStruct[]]
+    values: [BigNumberish, BigNumberish, string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "redeem",
@@ -319,6 +309,10 @@ export interface IVaultInterface extends utils.Interface {
     functionFragment: "getLiquidationFactor",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProviders",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxBorrow", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxDeposit", data: BytesLike): Result;
@@ -395,6 +389,7 @@ export interface IVaultInterface extends utils.Interface {
     "Payback(address,address,uint256,uint256)": EventFragment;
     "ProvidersChanged(address[])": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "VaultRebalance(uint256,uint256,address,address)": EventFragment;
     "Withdraw(address,address,address,uint256,uint256)": EventFragment;
   };
 
@@ -410,6 +405,7 @@ export interface IVaultInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Payback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProvidersChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "VaultRebalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
@@ -548,6 +544,19 @@ export type TransferEvent = TypedEvent<
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
+export interface VaultRebalanceEventObject {
+  assets: BigNumber;
+  debt: BigNumber;
+  from: string;
+  to: string;
+}
+export type VaultRebalanceEvent = TypedEvent<
+  [BigNumber, BigNumber, string, string],
+  VaultRebalanceEventObject
+>;
+
+export type VaultRebalanceEventFilter = TypedEventFilter<VaultRebalanceEvent>;
+
 export interface WithdrawEventObject {
   sender: string;
   receiver: string;
@@ -589,9 +598,7 @@ export interface IVault extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    activeProvider(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    activeProvider(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
       owner: string,
@@ -665,6 +672,8 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getProviders(overrides?: CallOverrides): Promise<[string[]]>;
+
     liquidate(
       owner: string,
       receiver: string,
@@ -731,7 +740,11 @@ export interface IVault extends BaseContract {
     ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     rebalance(
-      actions: IVault.RebalanceActionStruct[],
+      assets: BigNumberish,
+      debt: BigNumberish,
+      from: string,
+      to: string,
+      fee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -793,9 +806,7 @@ export interface IVault extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  activeProvider(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  activeProvider(overrides?: CallOverrides): Promise<string>;
 
   allowance(
     owner: string,
@@ -864,6 +875,8 @@ export interface IVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getProviders(overrides?: CallOverrides): Promise<string[]>;
+
   liquidate(
     owner: string,
     receiver: string,
@@ -915,7 +928,11 @@ export interface IVault extends BaseContract {
   ): Promise<BigNumber>;
 
   rebalance(
-    actions: IVault.RebalanceActionStruct[],
+    assets: BigNumberish,
+    debt: BigNumberish,
+    from: string,
+    to: string,
+    fee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1044,6 +1061,8 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getProviders(overrides?: CallOverrides): Promise<string[]>;
+
     liquidate(
       owner: string,
       receiver: string,
@@ -1095,7 +1114,11 @@ export interface IVault extends BaseContract {
     ): Promise<BigNumber>;
 
     rebalance(
-      actions: IVault.RebalanceActionStruct[],
+      assets: BigNumberish,
+      debt: BigNumberish,
+      from: string,
+      to: string,
+      fee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1249,6 +1272,19 @@ export interface IVault extends BaseContract {
       value?: null
     ): TransferEventFilter;
 
+    "VaultRebalance(uint256,uint256,address,address)"(
+      assets?: null,
+      debt?: null,
+      from?: string | null,
+      to?: string | null
+    ): VaultRebalanceEventFilter;
+    VaultRebalance(
+      assets?: null,
+      debt?: null,
+      from?: string | null,
+      to?: string | null
+    ): VaultRebalanceEventFilter;
+
     "Withdraw(address,address,address,uint256,uint256)"(
       sender?: string | null,
       receiver?: string | null,
@@ -1266,9 +1302,7 @@ export interface IVault extends BaseContract {
   };
 
   estimateGas: {
-    activeProvider(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    activeProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
       owner: string,
@@ -1337,6 +1371,8 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getProviders(overrides?: CallOverrides): Promise<BigNumber>;
+
     liquidate(
       owner: string,
       receiver: string,
@@ -1388,7 +1424,11 @@ export interface IVault extends BaseContract {
     ): Promise<BigNumber>;
 
     rebalance(
-      actions: IVault.RebalanceActionStruct[],
+      assets: BigNumberish,
+      debt: BigNumberish,
+      from: string,
+      to: string,
+      fee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1449,9 +1489,7 @@ export interface IVault extends BaseContract {
   };
 
   populateTransaction: {
-    activeProvider(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    activeProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
       owner: string,
@@ -1526,6 +1564,8 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    getProviders(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     liquidate(
       owner: string,
       receiver: string,
@@ -1592,7 +1632,11 @@ export interface IVault extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     rebalance(
-      actions: IVault.RebalanceActionStruct[],
+      assets: BigNumberish,
+      debt: BigNumberish,
+      from: string,
+      to: string,
+      fee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1658,6 +1702,8 @@ export interface IVaultMulticall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
+  activeProvider(overrides?: CallOverrides): Call<string>;
+
   allowance(
     owner: string,
     spender: string,
@@ -1695,6 +1741,8 @@ export interface IVaultMulticall {
   debtDecimals(overrides?: CallOverrides): Call<number>;
 
   decimals(overrides?: CallOverrides): Call<number>;
+
+  getProviders(overrides?: CallOverrides): Call<string[]>;
 
   maxBorrow(borrower: string, overrides?: CallOverrides): Call<BigNumber>;
 

@@ -9,7 +9,6 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -27,86 +26,38 @@ import type {
 export interface UniswapV2SwapperInterface extends utils.Interface {
   functions: {
     "WETH9()": FunctionFragment;
-    "approve(address,address,uint256)": FunctionFragment;
-    "oracle()": FunctionFragment;
-    "pullToken(address,uint256,address)": FunctionFragment;
-    "pullTokenFrom(address,uint256,address,address)": FunctionFragment;
-    "refundETH()": FunctionFragment;
-    "swap(address,address,uint256,address,uint256)": FunctionFragment;
-    "sweepToken(address,uint256,address)": FunctionFragment;
+    "swap(address,address,uint256,uint256,address,address,uint256)": FunctionFragment;
     "uniswapRouter()": FunctionFragment;
-    "unwrapWETH9(uint256,address)": FunctionFragment;
-    "wrapWETH9()": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic:
-      | "WETH9"
-      | "approve"
-      | "oracle"
-      | "pullToken"
-      | "pullTokenFrom"
-      | "refundETH"
-      | "swap"
-      | "sweepToken"
-      | "uniswapRouter"
-      | "unwrapWETH9"
-      | "wrapWETH9"
+    nameOrSignatureOrTopic: "WETH9" | "swap" | "uniswapRouter"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "approve",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "pullToken",
-    values: [string, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "pullTokenFrom",
-    values: [string, BigNumberish, string, string]
-  ): string;
-  encodeFunctionData(functionFragment: "refundETH", values?: undefined): string;
-  encodeFunctionData(
     functionFragment: "swap",
-    values: [string, string, BigNumberish, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "sweepToken",
-    values: [string, BigNumberish, string]
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      string,
+      string,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "uniswapRouter",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "unwrapWETH9",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(functionFragment: "wrapWETH9", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "pullToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "pullTokenFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "refundETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniswapRouter",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrapWETH9",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "wrapWETH9", data: BytesLike): Result;
 
   events: {};
 }
@@ -140,175 +91,50 @@ export interface UniswapV2Swapper extends BaseContract {
   functions: {
     WETH9(overrides?: CallOverrides): Promise<[string]>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    oracle(overrides?: CallOverrides): Promise<[string]>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    sweepToken(
-      token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     uniswapRouter(overrides?: CallOverrides): Promise<[string]>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
 
   WETH9(overrides?: CallOverrides): Promise<string>;
 
-  approve(
-    token: string,
-    to: string,
-    amount: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  oracle(overrides?: CallOverrides): Promise<string>;
-
-  pullToken(
-    token: string,
-    amount: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  pullTokenFrom(
-    token: string,
-    amount: BigNumberish,
-    recipient: string,
-    sender: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  refundETH(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   swap(
     assetIn: string,
     assetOut: string,
+    amountIn: BigNumberish,
     amountOut: BigNumberish,
     receiver: string,
-    slippage: BigNumberish,
+    sweeper: string,
+    minSweepOut: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  sweepToken(
-    token: string,
-    amountMinimum: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   uniswapRouter(overrides?: CallOverrides): Promise<string>;
 
-  unwrapWETH9(
-    amountMinimum: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  wrapWETH9(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     WETH9(overrides?: CallOverrides): Promise<string>;
-
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    oracle(overrides?: CallOverrides): Promise<string>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    refundETH(overrides?: CallOverrides): Promise<void>;
 
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    sweepToken(
-      token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     uniswapRouter(overrides?: CallOverrides): Promise<string>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    wrapWETH9(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {};
@@ -316,121 +142,35 @@ export interface UniswapV2Swapper extends BaseContract {
   estimateGas: {
     WETH9(overrides?: CallOverrides): Promise<BigNumber>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    oracle(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    sweepToken(
-      token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     uniswapRouter(overrides?: CallOverrides): Promise<BigNumber>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    sweepToken(
-      token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     uniswapRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
   };
 }
 
@@ -440,8 +180,6 @@ export interface UniswapV2SwapperMulticall {
   functions: FunctionFragment[];
 
   WETH9(overrides?: CallOverrides): Call<string>;
-
-  oracle(overrides?: CallOverrides): Call<string>;
 
   uniswapRouter(overrides?: CallOverrides): Call<string>;
 }

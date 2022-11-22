@@ -23,6 +23,7 @@ import type {
 export interface CoreRolesInterface extends utils.Interface {
   functions: {
     "HARVESTER_ROLE()": FunctionFragment;
+    "HOUSE_KEEPER_ROLE()": FunctionFragment;
     "LIQUIDATOR_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
     "REBALANCER_ROLE()": FunctionFragment;
@@ -32,6 +33,7 @@ export interface CoreRolesInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "HARVESTER_ROLE"
+      | "HOUSE_KEEPER_ROLE"
       | "LIQUIDATOR_ROLE"
       | "PAUSER_ROLE"
       | "REBALANCER_ROLE"
@@ -40,6 +42,10 @@ export interface CoreRolesInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "HARVESTER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "HOUSE_KEEPER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -61,6 +67,10 @@ export interface CoreRolesInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "HARVESTER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "HOUSE_KEEPER_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -112,6 +122,8 @@ export interface CoreRoles extends BaseContract {
   functions: {
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
@@ -123,6 +135,8 @@ export interface CoreRoles extends BaseContract {
 
   HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
   LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
 
   PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -133,6 +147,8 @@ export interface CoreRoles extends BaseContract {
 
   callStatic: {
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
 
@@ -148,6 +164,8 @@ export interface CoreRoles extends BaseContract {
   estimateGas: {
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -159,6 +177,8 @@ export interface CoreRoles extends BaseContract {
 
   populateTransaction: {
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -176,6 +196,8 @@ export interface CoreRolesMulticall {
   functions: FunctionFragment[];
 
   HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Call<string>;
 
   LIQUIDATOR_ROLE(overrides?: CallOverrides): Call<string>;
 

@@ -32,13 +32,16 @@ export interface ChiefInterface extends utils.Interface {
   functions: {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "HARVESTER_ROLE()": FunctionFragment;
+    "HOUSE_KEEPER_ROLE()": FunctionFragment;
     "LIQUIDATOR_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
     "REBALANCER_ROLE()": FunctionFragment;
     "UNPAUSER_ROLE()": FunctionFragment;
-    "addToAllowed(address)": FunctionFragment;
     "addrMapper()": FunctionFragment;
-    "allowedFactories(address)": FunctionFragment;
+    "allowFlasher(address,bool)": FunctionFragment;
+    "allowVaultFactory(address,bool)": FunctionFragment;
+    "allowedFlasher(address)": FunctionFragment;
+    "allowedVaultFactory(address)": FunctionFragment;
     "deployVault(address,bytes,string)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getVaults()": FunctionFragment;
@@ -47,7 +50,6 @@ export interface ChiefInterface extends utils.Interface {
     "openVaultFactory()": FunctionFragment;
     "pauseActionInAllVaults(uint8)": FunctionFragment;
     "pauseForceAllVaults()": FunctionFragment;
-    "removeFromAllowed(address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setOpenVaultFactory(bool)": FunctionFragment;
@@ -63,13 +65,16 @@ export interface ChiefInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "DEFAULT_ADMIN_ROLE"
       | "HARVESTER_ROLE"
+      | "HOUSE_KEEPER_ROLE"
       | "LIQUIDATOR_ROLE"
       | "PAUSER_ROLE"
       | "REBALANCER_ROLE"
       | "UNPAUSER_ROLE"
-      | "addToAllowed"
       | "addrMapper"
-      | "allowedFactories"
+      | "allowFlasher"
+      | "allowVaultFactory"
+      | "allowedFlasher"
+      | "allowedVaultFactory"
       | "deployVault"
       | "getRoleAdmin"
       | "getVaults"
@@ -78,7 +83,6 @@ export interface ChiefInterface extends utils.Interface {
       | "openVaultFactory"
       | "pauseActionInAllVaults"
       | "pauseForceAllVaults"
-      | "removeFromAllowed"
       | "renounceRole"
       | "revokeRole"
       | "setOpenVaultFactory"
@@ -99,6 +103,10 @@ export interface ChiefInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "LIQUIDATOR_ROLE",
     values?: undefined
   ): string;
@@ -115,15 +123,23 @@ export interface ChiefInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "addToAllowed",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "addrMapper",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "allowedFactories",
+    functionFragment: "allowFlasher",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowVaultFactory",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowedFlasher",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowedVaultFactory",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -154,10 +170,6 @@ export interface ChiefInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "pauseForceAllVaults",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeFromAllowed",
-    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
@@ -199,6 +211,10 @@ export interface ChiefInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "LIQUIDATOR_ROLE",
     data: BytesLike
   ): Result;
@@ -214,13 +230,21 @@ export interface ChiefInterface extends utils.Interface {
     functionFragment: "UNPAUSER_ROLE",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "addToAllowed",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "addrMapper", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "allowedFactories",
+    functionFragment: "allowFlasher",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowVaultFactory",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedFlasher",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedVaultFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -244,10 +268,6 @@ export interface ChiefInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "pauseForceAllVaults",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeFromAllowed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -282,32 +302,48 @@ export interface ChiefInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "AddToAllowed(address)": EventFragment;
+    "AllowFlasher(address,bool)": EventFragment;
+    "AllowVaultFactory(address,bool)": EventFragment;
     "DeployVault(address,address,bytes)": EventFragment;
     "OpenVaultFactory(bool)": EventFragment;
-    "RemoveFromAllowed(address)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
     "TimelockUpdated(address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "AddToAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AllowFlasher"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AllowVaultFactory"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DeployVault"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OpenVaultFactory"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RemoveFromAllowed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TimelockUpdated"): EventFragment;
 }
 
-export interface AddToAllowedEventObject {
-  factory: string;
+export interface AllowFlasherEventObject {
+  flasher: string;
+  allowed: boolean;
 }
-export type AddToAllowedEvent = TypedEvent<[string], AddToAllowedEventObject>;
+export type AllowFlasherEvent = TypedEvent<
+  [string, boolean],
+  AllowFlasherEventObject
+>;
 
-export type AddToAllowedEventFilter = TypedEventFilter<AddToAllowedEvent>;
+export type AllowFlasherEventFilter = TypedEventFilter<AllowFlasherEvent>;
+
+export interface AllowVaultFactoryEventObject {
+  factory: string;
+  allowed: boolean;
+}
+export type AllowVaultFactoryEvent = TypedEvent<
+  [string, boolean],
+  AllowVaultFactoryEventObject
+>;
+
+export type AllowVaultFactoryEventFilter =
+  TypedEventFilter<AllowVaultFactoryEvent>;
 
 export interface DeployVaultEventObject {
   factory: string;
@@ -331,17 +367,6 @@ export type OpenVaultFactoryEvent = TypedEvent<
 
 export type OpenVaultFactoryEventFilter =
   TypedEventFilter<OpenVaultFactoryEvent>;
-
-export interface RemoveFromAllowedEventObject {
-  factory: string;
-}
-export type RemoveFromAllowedEvent = TypedEvent<
-  [string],
-  RemoveFromAllowedEventObject
->;
-
-export type RemoveFromAllowedEventFilter =
-  TypedEventFilter<RemoveFromAllowedEvent>;
 
 export interface RoleAdminChangedEventObject {
   role: string;
@@ -421,6 +446,8 @@ export interface Chief extends BaseContract {
 
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
@@ -429,14 +456,23 @@ export interface Chief extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-    addToAllowed(
-      _factory: string,
+    addrMapper(overrides?: CallOverrides): Promise<[string]>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    addrMapper(overrides?: CallOverrides): Promise<[string]>;
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    allowedFactories(
+    allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    allowedVaultFactory(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -472,11 +508,6 @@ export interface Chief extends BaseContract {
     ): Promise<ContractTransaction>;
 
     pauseForceAllVaults(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeFromAllowed(
-      _factory: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -528,6 +559,8 @@ export interface Chief extends BaseContract {
 
   HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
   LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
 
   PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -536,14 +569,26 @@ export interface Chief extends BaseContract {
 
   UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  addToAllowed(
-    _factory: string,
+  addrMapper(overrides?: CallOverrides): Promise<string>;
+
+  allowFlasher(
+    flasher: string,
+    allowed: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  addrMapper(overrides?: CallOverrides): Promise<string>;
+  allowVaultFactory(
+    _factory: string,
+    allowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  allowedFactories(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+  allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  allowedVaultFactory(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   deployVault(
     _factory: string,
@@ -576,11 +621,6 @@ export interface Chief extends BaseContract {
   ): Promise<ContractTransaction>;
 
   pauseForceAllVaults(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeFromAllowed(
-    _factory: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -629,6 +669,8 @@ export interface Chief extends BaseContract {
 
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -637,11 +679,26 @@ export interface Chief extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    addToAllowed(_factory: string, overrides?: CallOverrides): Promise<void>;
-
     addrMapper(overrides?: CallOverrides): Promise<string>;
 
-    allowedFactories(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    allowedVaultFactory(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     deployVault(
       _factory: string,
@@ -674,11 +731,6 @@ export interface Chief extends BaseContract {
     ): Promise<void>;
 
     pauseForceAllVaults(overrides?: CallOverrides): Promise<void>;
-
-    removeFromAllowed(
-      _factory: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     renounceRole(
       role: BytesLike,
@@ -717,8 +769,23 @@ export interface Chief extends BaseContract {
   };
 
   filters: {
-    "AddToAllowed(address)"(factory?: string | null): AddToAllowedEventFilter;
-    AddToAllowed(factory?: string | null): AddToAllowedEventFilter;
+    "AllowFlasher(address,bool)"(
+      flasher?: string | null,
+      allowed?: null
+    ): AllowFlasherEventFilter;
+    AllowFlasher(
+      flasher?: string | null,
+      allowed?: null
+    ): AllowFlasherEventFilter;
+
+    "AllowVaultFactory(address,bool)"(
+      factory?: string | null,
+      allowed?: null
+    ): AllowVaultFactoryEventFilter;
+    AllowVaultFactory(
+      factory?: string | null,
+      allowed?: null
+    ): AllowVaultFactoryEventFilter;
 
     "DeployVault(address,address,bytes)"(
       factory?: string | null,
@@ -733,11 +800,6 @@ export interface Chief extends BaseContract {
 
     "OpenVaultFactory(bool)"(state?: null): OpenVaultFactoryEventFilter;
     OpenVaultFactory(state?: null): OpenVaultFactoryEventFilter;
-
-    "RemoveFromAllowed(address)"(
-      factory?: string | null
-    ): RemoveFromAllowedEventFilter;
-    RemoveFromAllowed(factory?: string | null): RemoveFromAllowedEventFilter;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
@@ -783,6 +845,8 @@ export interface Chief extends BaseContract {
 
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -791,14 +855,23 @@ export interface Chief extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addToAllowed(
-      _factory: string,
+    addrMapper(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    addrMapper(overrides?: CallOverrides): Promise<BigNumber>;
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    allowedFactories(
+    allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowedVaultFactory(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -837,11 +910,6 @@ export interface Chief extends BaseContract {
     ): Promise<BigNumber>;
 
     pauseForceAllVaults(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeFromAllowed(
-      _factory: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -896,6 +964,8 @@ export interface Chief extends BaseContract {
 
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -904,14 +974,26 @@ export interface Chief extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    addToAllowed(
-      _factory: string,
+    addrMapper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    addrMapper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
-    allowedFactories(
+    allowedFlasher(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    allowedVaultFactory(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -950,11 +1032,6 @@ export interface Chief extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     pauseForceAllVaults(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeFromAllowed(
-      _factory: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1012,6 +1089,8 @@ export interface ChiefMulticall {
 
   HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
 
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Call<string>;
+
   LIQUIDATOR_ROLE(overrides?: CallOverrides): Call<string>;
 
   PAUSER_ROLE(overrides?: CallOverrides): Call<string>;
@@ -1022,7 +1101,9 @@ export interface ChiefMulticall {
 
   addrMapper(overrides?: CallOverrides): Call<string>;
 
-  allowedFactories(arg0: string, overrides?: CallOverrides): Call<boolean>;
+  allowedFlasher(arg0: string, overrides?: CallOverrides): Call<boolean>;
+
+  allowedVaultFactory(arg0: string, overrides?: CallOverrides): Call<boolean>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Call<string>;
 

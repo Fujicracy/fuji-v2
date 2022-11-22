@@ -102,6 +102,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "flasher",
+        type: "address",
+      },
+    ],
+    name: "allowedFlasher",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "role",
         type: "bytes32",
