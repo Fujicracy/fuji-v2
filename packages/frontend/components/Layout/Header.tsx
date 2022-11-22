@@ -11,7 +11,6 @@ import {
   MenuItem,
   MenuList,
   Grid,
-  LinearProgress,
   Fade,
   Snackbar,
   Button,
@@ -273,6 +272,17 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         label={formattedBalance}
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
+      <button
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          border: "2px solid red",
+        }}
+        onClick={() => setShowTransactionAbstract(true)}
+      >
+        toggle
+      </button>
       <Chip
         onClick={() => setShowAccountModal(true)}
         label={
@@ -303,37 +313,22 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           backgroundColor: palette.secondary.light,
         }}
       />
-      {props.transactionStatus && showTransactionAbstract && (
+      {showTransactionAbstract && (
         <Snackbar
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          sx={{ mr: "2rem" }}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
           open={showTransactionAbstract}
           onClose={closeTransactionProcessing}
+          sx={{ mt: "2.5rem" }}
+          autoHideDuration={1000 * 60 * 60}
         >
           <SnackbarContent
-            sx={{
-              background: "transparent",
-              boxShadow: "none",
-              mt: "1.5rem",
-            }}
             message={
-              <Box
-                sx={{
-                  background: palette.secondary.contrastText,
-                  border: `1px solid ${palette.secondary.light}`,
-                  borderRadius: "1.125rem",
-                  p: "1rem",
-                  color: palette.text.primary,
-                }}
-              >
+              <Box>
                 <CloseIcon
                   sx={{
                     cursor: "pointer",
                     position: "absolute",
-                    right: "2rem",
+                    right: "1rem",
                   }}
                   onClick={closeTransactionProcessing}
                   fontSize="small"
@@ -343,12 +338,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
                     <SyncIcon sx={{ mr: "0.563rem" }} />
                   </Grid>
                   <Grid item>
-                    <Box
-                      sx={{
-                        maxWidth: "14.25rem",
-                        mr: "3rem",
-                      }}
-                    >
+                    <Box mr="3rem" maxWidth="230px">
                       <Typography variant="small">
                         Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on
                         Polygon
@@ -356,12 +346,14 @@ const BalanceAddress = (props: BalanceAddressProps) => {
                       <br />
 
                       <Typography variant="xsmallDark">
+                        {/* TODO */}
                         Estimated time:{" "}
                         <span style={{ color: palette.success.main }}>
                           2m 15s
                         </span>
                       </Typography>
-                      <LinearProgress
+                      {/* TODO */}
+                      {/* <LinearProgress
                         sx={{
                           background: palette.text.primary,
                           height: "0.125rem",
@@ -372,7 +364,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
                         }}
                         value={25}
                         variant="determinate"
-                      />
+                      /> */}
                     </Box>
                   </Grid>
                 </Grid>

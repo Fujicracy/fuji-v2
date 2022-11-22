@@ -1,7 +1,9 @@
 import {
   Address,
+  BorrowingVault,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  LendingProviderDetails,
   RouterActionParams,
   Sdk,
   Token,
@@ -10,11 +12,13 @@ import { formatUnits, parseUnits } from "ethers/lib/utils"
 import produce, { setAutoFreeze } from "immer"
 import { StateCreator } from "zustand"
 import { debounce } from "debounce"
+
 import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
+
 setAutoFreeze(false)
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
@@ -24,6 +28,9 @@ type TransactionState = {
   showTransactionAbstract: boolean
 
   position: Position
+  availableVaults: BorrowingVault[]
+  // Providers are mapped with their vault address
+  allProviders: Record<string, LendingProviderDetails[]>
 
   collateralTokens: Token[]
   collateralBalances: Record<string, number>
@@ -53,7 +60,15 @@ type TransactionState = {
   actions?: RouterActionParams[]
 
   isBorrowing: boolean
+  // history: TransactionHistory[] // State normalization ? (all id / by id ?)
 }
+
+// type TransactionHistory = {
+//   id: string // TX hash
+//   type: "borrow"
+//   position: Position
+//   status: "ongoing" | "error" | "done"
+// }
 
 type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
@@ -65,7 +80,9 @@ type TransactionActions = {
   changeCollateralChain: (chainId: ChainId) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
+  changeActiveVault: (v: BorrowingVault) => void
 
+  updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
@@ -85,9 +102,11 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: TransactionState = {
-  transactionStatus: false,
-  showTransactionAbstract: false,
+  transactionStatus: true,
+  showTransactionAbstract: true,
 
+  availableVaults: [],
+  allProviders: {},
   position: {
     collateral: {
       amount: 0,
@@ -129,6 +148,7 @@ const initialState: TransactionState = {
   needPermit: true,
   isSigning: false,
   isBorrowing: false,
+  // history: [],
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -220,6 +240,33 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTransactionMeta()
   },
 
+  async changeActiveVault(vault) {
+    const address = useStore.getState().address
+    if (!address) {
+      return
+    }
+    const providers = await vault.getProviders()
+    await vault.preLoad(address ? new Address(address) : undefined)
+
+    const ltvMax = vault.maxLtv
+      ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
+      : DEFAULT_LTV_MAX
+    const ltvThreshold = vault.liqRatio
+      ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
+      : DEFAULT_LTV_TRESHOLD
+
+    set(
+      produce((s: TransactionState) => {
+        s.position.vault = vault
+        s.position.vault = vault
+        s.position.ltvMax = ltvMax
+        s.position.ltvThreshold = ltvThreshold
+        s.position.providers = providers
+        s.position.activeProvider = providers[0]
+      })
+    )
+  },
+
   async updateBalances(type) {
     const address = useStore.getState().address
     const tokens = type === "debt" ? get().debtTokens : get().collateralTokens
@@ -307,32 +354,29 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
     const collateral = get().position.collateral.token
     const debt = get().position.debt.token
-
-    const [vault] = await sdk.getBorrowingVaultsFor(collateral, debt)
+    const availableVaults = await sdk.getBorrowingVaultsFor(collateral, debt)
+    const [vault] = availableVaults
     if (!vault) {
       // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
       return
     }
 
-    const providers = await vault.getProviders()
-    await vault.preLoad(address ? new Address(address) : undefined)
+    set({ availableVaults })
+    get().changeActiveVault(vault)
+    get().updateAllProviders()
+  },
 
-    const ltvMax = vault.maxLtv
-      ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
-      : DEFAULT_LTV_MAX
-    const ltvThreshold = vault.liqRatio
-      ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
-      : DEFAULT_LTV_TRESHOLD
+  async updateAllProviders() {
+    const { availableVaults } = get()
 
-    set(
-      produce((state: TransactionState) => {
-        state.position.vault = vault
-        state.position.ltvMax = ltvMax
-        state.position.ltvThreshold = ltvThreshold
-        state.position.providers = providers
-        state.position.activeProvider = providers[0]
-      })
-    )
+    const allProviders: Record<string, LendingProviderDetails[]> = {}
+    for (const v of availableVaults) {
+      const providers = await v.getProviders()
+      allProviders[v.address.value] = providers
+    }
+
+    // TODO: status fetching ?
+    set({ allProviders })
   },
 
   updateTransactionMeta: debounce(async () => {
@@ -493,8 +537,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const signer = provider.getSigner()
       t = await signer.sendTransaction(txRequest)
     } catch (e) {
-      console.log(e)
       // TODO: handle borrow error, if error refuse in metamask or the tx fail for some reason
+      console.error(e)
       return set({ isBorrowing: false })
     }
     set({ transactionStatus: true, showTransactionAbstract: true }) // TODO: Tx successfully sent

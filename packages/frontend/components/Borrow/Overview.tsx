@@ -7,6 +7,7 @@ import {
   CardContent,
   Chip,
   Divider,
+  Fade,
   Grid,
   Menu,
   MenuItem,
@@ -26,9 +27,8 @@ import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
-
-// TODO: create helper to get these images and throw / warn us if 404 ?
-const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
+import { BorrowingVault } from "@x-fuji/sdk"
+import ProviderIcon from "../ProviderIcon"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -83,7 +83,7 @@ export default function Overview() {
               <Typography variant="smallDark" ml={0.5} mr={1}>
                 Safety rating:
               </Typography>
-              <ProvidersMenu />
+              <VaultsMenu />
             </Stack>
           </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
@@ -262,35 +262,47 @@ export default function Overview() {
   )
 }
 
-function ProvidersMenu() {
+function VaultsMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const { palette } = useTheme()
+  // TODO: use vaults instead of provider.
+  // use provider only to display pictures
+  const providers = useStore((state) => state.position.providers)
+  const vault = useStore((state) => state.position.vault)
+  const vaults = useStore((state) => state.availableVaults)
+  const changeVault = useStore((state) => state.changeActiveVault)
 
   const open = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
   }
-  const close = () => {
+  const select = (v: BorrowingVault) => {
+    changeVault(v)
     setAnchorEl(null)
+  }
+
+  if (!vaults || !vault) {
+    return <></>
   }
 
   return (
     <>
       <Button
-        id="button-provider-menu"
+        id="button-vaults-menu"
         variant="secondary"
         onClick={open}
         style={{ position: "relative" }}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <Box display="flex" alignItems="center">
-            <Image
-              src={`/assets/images/protocol-icons/tokens/AAVE.svg`}
-              height={16}
-              width={16}
-              layout="fixed"
-              alt="USDT"
-            />
-            <Typography variant="small">Aave</Typography>
+            {providers?.map((p) => (
+              <Image
+                src={`/assets/images/protocol-icons/providers/${p.name}.svg`}
+                key={p.name}
+                height={16}
+                width={16}
+                layout="fixed"
+                alt="Protocol icon"
+              />
+            ))}
           </Box>
           {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
           <Chip variant="success" label="A+" />
@@ -298,20 +310,52 @@ function ProvidersMenu() {
         </Stack>
       </Button>
       <Menu
-        id="providers-menu"
+        id="vaults-menu"
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         open={Boolean(anchorEl)}
-        onClose={close}
-        MenuListProps={{
-          "aria-labelledby": "button-provider-menu",
-        }}
+        onClose={() => setAnchorEl(null)}
+        MenuListProps={{ "aria-labelledby": "button-vaults-menu" }}
+        TransitionComponent={Fade}
       >
-        <MenuItem onClick={close}>Provider 1 </MenuItem>
-        <MenuItem onClick={close}>Provider 2</MenuItem>
-        <MenuItem onClick={close}>Provider 3</MenuItem>
+        {vaults.map((vault: BorrowingVault) => (
+          <VaultMenuItem
+            key={vault.address.value}
+            vault={vault}
+            onClick={() => select(vault)}
+          />
+        ))}
       </Menu>
     </>
+  )
+}
+
+type VaultMenuItemProps = {
+  vault: BorrowingVault
+  onClick: (p: BorrowingVault) => void
+}
+const VaultMenuItem = ({ vault, onClick }: VaultMenuItemProps) => {
+  const providers = useStore((state) => state.allProviders[vault.address.value])
+
+  return (
+    <MenuItem onClick={() => onClick(vault)}>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Box display="flex" alignItems="center">
+          {providers.map((p, i) => (
+            <Box
+              display="flex"
+              alignItems="center"
+              key={p.name}
+              sx={{ right: `${i * 4}px`, position: "relative" }}
+            >
+              <ProviderIcon providerName={p.name} height={16} width={16} />
+            </Box>
+          ))}
+        </Box>
+        {/* TODO: How to fetch safety rating? */}
+        {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
+        <Chip variant="success" label="A+" />
+      </Stack>
+    </MenuItem>
   )
 }
