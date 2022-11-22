@@ -39,6 +39,7 @@ export default function Overview() {
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
   const providers = useStore((state) => state.position.providers)
+  const vault = useStore((state) => state.position.vault)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -55,36 +56,39 @@ export default function Overview() {
             direction="row"
             justifyContent="space-between"
             alignItems="center"
+            height="40px"
           >
             <Typography variant="body2">Overview</Typography>
-            <Stack direction="row" alignItems="center">
-              <Tooltip
-                arrow
-                title={
-                  <span>
-                    We take into account variables such as liquidity, audits and
-                    team behind each protocol, you can read more on our risk
-                    framework{" "}
-                    <a
-                      href="https://docs.fujidao.org/"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <u> here</u>
-                    </a>
-                  </span>
-                }
-                placement="top"
-              >
-                <InfoOutlinedIcon
-                  sx={{ fontSize: "1rem", color: palette.info.main }}
-                />
-              </Tooltip>
-              <Typography variant="smallDark" ml={0.5} mr={1}>
-                Safety rating:
-              </Typography>
-              <VaultsMenu />
-            </Stack>
+            {vault && (
+              <Stack direction="row" alignItems="center">
+                <Tooltip
+                  arrow
+                  title={
+                    <span>
+                      We take into account variables such as liquidity, audits
+                      and team behind each protocol, you can read more on our
+                      risk framework{" "}
+                      <a
+                        href="https://docs.fujidao.org/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <u> here</u>
+                      </a>
+                    </span>
+                  }
+                  placement="top"
+                >
+                  <InfoOutlinedIcon
+                    sx={{ fontSize: "1rem", color: palette.info.main }}
+                  />
+                </Tooltip>
+                <Typography variant="smallDark" ml={0.5} mr={1}>
+                  Safety rating:
+                </Typography>
+                <VaultsMenu />
+              </Stack>
+            )}
           </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 

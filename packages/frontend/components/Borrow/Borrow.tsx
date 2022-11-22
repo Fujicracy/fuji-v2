@@ -164,7 +164,9 @@ export default function Borrow() {
         }}
       >
         <CardContent>
-          <Typography variant="body2">Borrow</Typography>
+          <Typography variant="body2" height="40px" lineHeight="40px">
+            Borrow
+          </Typography>
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
