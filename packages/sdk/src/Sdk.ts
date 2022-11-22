@@ -314,6 +314,7 @@ export class Sdk {
     account: Address,
     signature?: Signature
   ): TransactionRequest {
+    // dummy copy actionParams because of the immutabiltiy of Immer
     const _actionParams = actionParams.map((a) => ({ ...a }));
     const permitAction = Sdk.findPermitAction(_actionParams);
 
