@@ -22,7 +22,6 @@ import Image from "next/image"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import TokenIcon from "../TokenIcon"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
@@ -203,8 +202,11 @@ export default function Overview() {
             <Grid item>
               {providers?.length ? (
                 <Grid container alignItems="center">
-                  {/* TODO[design]: what logo should i put here ? */}
-                  <TokenIcon token={collateral.token} height={18} width={18} />
+                  <ProviderIcon
+                    providerName={providers[0].name}
+                    height={18}
+                    width={18}
+                  />
 
                   <Typography ml="0.375rem" variant="small">
                     {providers[0].name}

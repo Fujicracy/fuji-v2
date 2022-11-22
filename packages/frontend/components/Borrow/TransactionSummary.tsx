@@ -15,14 +15,13 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import Image from "next/image"
 
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { useStore } from "../../store"
 import { formatUnits } from "ethers/lib/utils"
-import TokenIcon from "../TokenIcon"
+import ProviderIcon from "../ProviderIcon"
 
 // TODO: create helper to get these images and throw / warn us if 404 ?
 const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
@@ -235,8 +234,8 @@ export default function TransactionSummary() {
                   <Grid item>
                     {providers?.length ? (
                       <Grid container alignItems="center">
-                        <TokenIcon
-                          token={collateral.token}
+                        <ProviderIcon
+                          providerName={providers[0].name}
                           height={18}
                           width={18}
                         />
