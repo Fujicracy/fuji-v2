@@ -90,7 +90,7 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
       id: "0x5",
       token: "GTH",
       label: "Goerli",
-      rpcUrl: `https://goerli.infura.io/v3/`,
+      rpcUrl: `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
     },
     {
       id: "0x1a4",
