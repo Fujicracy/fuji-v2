@@ -184,7 +184,7 @@ export class Sdk {
     // and sort them by borrow rate
     const sorted = vaults
       .map((vault, i) => ({ vault, rate: rates[i] }))
-      .sort((a, b) => (a.rate.lt(b.rate) ? -1 : 0))
+      .sort((a, b) => (a.rate.lte(b.rate) ? -1 : 0))
       .map(({ vault }) => vault);
 
     if (collateral.chainId === debt.chainId) {
@@ -240,7 +240,7 @@ export class Sdk {
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
     // TODO estimate bridge cost
     const bridgeFee = BigNumber.from(1);
-    const estimateTime = 5 * 60;
+    const estimateTime = 3 * 60;
 
     const _slippage = slippage ?? 30;
 
@@ -249,15 +249,15 @@ export class Sdk {
       // everything happens on the same chain
       actions = [
         vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, account),
+        vault.previewPermitBorrow(amountOut, account, account, deadline),
+        vault.previewBorrow(amountOut, account, account),
       ];
     } else if (srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       actions = [
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, account),
+        vault.previewBorrow(amountOut, connextRouter, account),
         this.previewXTransfer(
           destChainId,
           vault.debt,
@@ -271,8 +271,8 @@ export class Sdk {
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
         vault.previewDeposit(amountIn, connextRouter, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, account),
+        vault.previewPermitBorrow(amountOut, account, account, deadline),
+        vault.previewBorrow(amountOut, account, account),
       ];
       actions = [
         this.previewXTransferWithCall(

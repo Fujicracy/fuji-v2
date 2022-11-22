@@ -8,6 +8,7 @@ import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
+import { CONNEXT_ROUTER_ADDRESS } from '../constants';
 import { ChainId, RouterAction } from '../enums';
 import {
   BorrowParams,
@@ -357,20 +358,24 @@ export class BorrowingVault extends StreamManager {
     };
   }
 
-  previewBorrow(amount: BigNumber, account: Address): BorrowParams {
+  previewBorrow(
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address
+  ): BorrowParams {
     return {
       action: RouterAction.BORROW,
       vault: this.address,
       amount,
-      receiver: account,
-      owner: account,
+      receiver,
+      owner,
     };
   }
 
   previewPermitBorrow(
     amount: BigNumber,
-    spender: Address,
-    account: Address,
+    receiver: Address,
+    owner: Address,
     deadline?: number
   ): PermitParams {
     // set deadline to approx. 24h
@@ -379,14 +384,14 @@ export class BorrowingVault extends StreamManager {
       action: RouterAction.PERMIT_BORROW,
       vault: this.address,
       amount,
-      spender,
-      owner: account,
+      receiver,
+      owner,
       deadline: deadline ?? oneDayLater,
     };
   }
 
   private _getPermitDigest(params: PermitParams, nonce: BigNumber) {
-    const { action, owner, spender, amount, deadline } = params;
+    const { action, owner, receiver, amount, deadline } = params;
 
     const salt = keccak256(
       ['bytes'],
@@ -416,8 +421,8 @@ export class BorrowingVault extends StreamManager {
     const value: Record<string, string> = {
       destChainId: this.chainId.toString(),
       owner: owner.value,
-      operator: spender.value,
-      receiver: owner.value,
+      operator: CONNEXT_ROUTER_ADDRESS[this.chainId].value,
+      receiver: receiver.value,
       amount: amount.toString(),
       nonce: nonce.toString(),
       deadline: deadline?.toString() ?? '',

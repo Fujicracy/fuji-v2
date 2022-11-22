@@ -19,7 +19,7 @@ export function getPermitDigest(
   nonce: BigNumber,
   domainSeparator: string
 ): string {
-  const { action, owner, spender, amount, deadline } = params;
+  const { action, owner, receiver, amount, deadline } = params;
 
   const typehash =
     action === RouterAction.PERMIT_BORROW
@@ -34,7 +34,7 @@ export function getPermitDigest(
         [
           typehash,
           owner.value,
-          spender.value,
+          receiver.value,
           amount.toString(),
           nonce.toString(),
           deadline?.toString(),
