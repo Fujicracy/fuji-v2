@@ -4,3 +4,4 @@
 export { AaveV2__factory } from "./AaveV2__factory";
 export { CompoundV2__factory } from "./CompoundV2__factory";
 export { CompoundV3__factory } from "./CompoundV3__factory";
+export { Euler__factory } from "./Euler__factory";

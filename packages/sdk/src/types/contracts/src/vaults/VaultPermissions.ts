@@ -31,15 +31,15 @@ import type {
 export interface VaultPermissionsInterface extends utils.Interface {
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
-    "borrowAllowance(address,address)": FunctionFragment;
-    "decreaseBorrowAllowance(address,uint256)": FunctionFragment;
-    "decreaseWithdrawAllowance(address,uint256)": FunctionFragment;
-    "increaseBorrowAllowance(address,uint256)": FunctionFragment;
-    "increaseWithdrawAllowance(address,uint256)": FunctionFragment;
+    "borrowAllowance(address,address,address)": FunctionFragment;
+    "decreaseBorrowAllowance(address,address,uint256)": FunctionFragment;
+    "decreaseWithdrawAllowance(address,address,uint256)": FunctionFragment;
+    "increaseBorrowAllowance(address,address,uint256)": FunctionFragment;
+    "increaseWithdrawAllowance(address,address,uint256)": FunctionFragment;
     "nonces(address)": FunctionFragment;
     "permitBorrow(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "permitWithdraw(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "withdrawAllowance(address,address)": FunctionFragment;
+    "withdrawAllowance(address,address,address)": FunctionFragment;
   };
 
   getFunction(
@@ -62,23 +62,23 @@ export interface VaultPermissionsInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "borrowAllowance",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseBorrowAllowance",
-    values: [string, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "decreaseWithdrawAllowance",
-    values: [string, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseBorrowAllowance",
-    values: [string, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "increaseWithdrawAllowance",
-    values: [string, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "nonces", values: [string]): string;
   encodeFunctionData(
@@ -107,7 +107,7 @@ export interface VaultPermissionsInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawAllowance",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
 
   decodeFunctionResult(
@@ -149,8 +149,8 @@ export interface VaultPermissionsInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "BorrowApproval(address,address,uint256)": EventFragment;
-    "WithdrawApproval(address,address,uint256)": EventFragment;
+    "BorrowApproval(address,address,address,uint256)": EventFragment;
+    "WithdrawApproval(address,address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "BorrowApproval"): EventFragment;
@@ -159,11 +159,12 @@ export interface VaultPermissionsInterface extends utils.Interface {
 
 export interface BorrowApprovalEventObject {
   owner: string;
-  spender: string;
+  operator: string;
+  receiver: string;
   amount: BigNumber;
 }
 export type BorrowApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
+  [string, string, string, BigNumber],
   BorrowApprovalEventObject
 >;
 
@@ -171,11 +172,12 @@ export type BorrowApprovalEventFilter = TypedEventFilter<BorrowApprovalEvent>;
 
 export interface WithdrawApprovalEventObject {
   owner: string;
-  spender: string;
+  operator: string;
+  receiver: string;
   amount: BigNumber;
 }
 export type WithdrawApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
+  [string, string, string, BigNumber],
   WithdrawApprovalEventObject
 >;
 
@@ -213,30 +215,35 @@ export interface VaultPermissions extends BaseContract {
 
     borrowAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     decreaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     decreaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     increaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     increaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -245,7 +252,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitBorrow(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -256,7 +263,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitWithdraw(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -267,7 +274,8 @@ export interface VaultPermissions extends BaseContract {
 
     withdrawAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
@@ -276,30 +284,35 @@ export interface VaultPermissions extends BaseContract {
 
   borrowAllowance(
     owner: string,
-    spender: string,
+    operator: string,
+    receiver: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   decreaseBorrowAllowance(
-    spender: string,
+    operator: string,
+    receiver: string,
     byAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   decreaseWithdrawAllowance(
-    spender: string,
+    operator: string,
+    receiver: string,
     byAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   increaseBorrowAllowance(
-    spender: string,
+    operator: string,
+    receiver: string,
     byAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   increaseWithdrawAllowance(
-    spender: string,
+    operator: string,
+    receiver: string,
     byAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -308,7 +321,7 @@ export interface VaultPermissions extends BaseContract {
 
   permitBorrow(
     owner: string,
-    spender: string,
+    receiver: string,
     amount: BigNumberish,
     deadline: BigNumberish,
     v: BigNumberish,
@@ -319,7 +332,7 @@ export interface VaultPermissions extends BaseContract {
 
   permitWithdraw(
     owner: string,
-    spender: string,
+    receiver: string,
     amount: BigNumberish,
     deadline: BigNumberish,
     v: BigNumberish,
@@ -330,7 +343,8 @@ export interface VaultPermissions extends BaseContract {
 
   withdrawAllowance(
     owner: string,
-    spender: string,
+    operator: string,
+    receiver: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -339,30 +353,35 @@ export interface VaultPermissions extends BaseContract {
 
     borrowAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     decreaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     decreaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     increaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     increaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -371,7 +390,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitBorrow(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -382,7 +401,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitWithdraw(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -393,31 +412,36 @@ export interface VaultPermissions extends BaseContract {
 
     withdrawAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   filters: {
-    "BorrowApproval(address,address,uint256)"(
+    "BorrowApproval(address,address,address,uint256)"(
       owner?: string | null,
-      spender?: null,
+      operator?: null,
+      receiver?: null,
       amount?: null
     ): BorrowApprovalEventFilter;
     BorrowApproval(
       owner?: string | null,
-      spender?: null,
+      operator?: null,
+      receiver?: null,
       amount?: null
     ): BorrowApprovalEventFilter;
 
-    "WithdrawApproval(address,address,uint256)"(
+    "WithdrawApproval(address,address,address,uint256)"(
       owner?: string | null,
-      spender?: null,
+      operator?: null,
+      receiver?: null,
       amount?: null
     ): WithdrawApprovalEventFilter;
     WithdrawApproval(
       owner?: string | null,
-      spender?: null,
+      operator?: null,
+      receiver?: null,
       amount?: null
     ): WithdrawApprovalEventFilter;
   };
@@ -427,30 +451,35 @@ export interface VaultPermissions extends BaseContract {
 
     borrowAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     decreaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     decreaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     increaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     increaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -459,7 +488,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitBorrow(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -470,7 +499,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitWithdraw(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -481,7 +510,8 @@ export interface VaultPermissions extends BaseContract {
 
     withdrawAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -491,30 +521,35 @@ export interface VaultPermissions extends BaseContract {
 
     borrowAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     decreaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     decreaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     increaseBorrowAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     increaseWithdrawAllowance(
-      spender: string,
+      operator: string,
+      receiver: string,
       byAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -526,7 +561,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitBorrow(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -537,7 +572,7 @@ export interface VaultPermissions extends BaseContract {
 
     permitWithdraw(
       owner: string,
-      spender: string,
+      receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
       v: BigNumberish,
@@ -548,7 +583,8 @@ export interface VaultPermissions extends BaseContract {
 
     withdrawAllowance(
       owner: string,
-      spender: string,
+      operator: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
@@ -563,7 +599,8 @@ export interface VaultPermissionsMulticall {
 
   borrowAllowance(
     owner: string,
-    spender: string,
+    operator: string,
+    receiver: string,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
@@ -571,7 +608,8 @@ export interface VaultPermissionsMulticall {
 
   withdrawAllowance(
     owner: string,
-    spender: string,
+    operator: string,
+    receiver: string,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 }

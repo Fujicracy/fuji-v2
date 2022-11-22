@@ -15,7 +15,7 @@ import type {
 } from "ethers";
 import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
@@ -23,42 +23,41 @@ import type {
   OnEvent,
 } from "../../common";
 
-export declare namespace IFlasher {
-  export type FlashloanParamsStruct = {
-    asset: string;
-    amount: BigNumberish;
-    router: string;
-    actions: BigNumberish[];
-    args: BytesLike[];
-  };
-
-  export type FlashloanParamsStructOutput = [
-    string,
-    BigNumber,
-    string,
-    number[],
-    string[]
-  ] & {
-    asset: string;
-    amount: BigNumber;
-    router: string;
-    actions: number[];
-    args: string[];
-  };
-}
-
 export interface MockFlasherInterface extends utils.Interface {
   functions: {
-    "initiateFlashloan((address,uint256,address,uint8[],bytes[]),uint8)": FunctionFragment;
+    "computeFlashloanFee(address,uint256)": FunctionFragment;
+    "getFlashloanSourceAddr(address)": FunctionFragment;
+    "initiateFlashloan(address,uint256,address,bytes)": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "initiateFlashloan"): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic:
+      | "computeFlashloanFee"
+      | "getFlashloanSourceAddr"
+      | "initiateFlashloan"
+  ): FunctionFragment;
 
   encodeFunctionData(
+    functionFragment: "computeFlashloanFee",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFlashloanSourceAddr",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "initiateFlashloan",
-    values: [IFlasher.FlashloanParamsStruct, BigNumberish]
+    values: [string, BigNumberish, string, BytesLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "computeFlashloanFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFlashloanSourceAddr",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "initiateFlashloan",
     data: BytesLike
@@ -94,23 +93,62 @@ export interface MockFlasher extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    computeFlashloanFee(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { fee: BigNumber }>;
+
+    getFlashloanSourceAddr(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     initiateFlashloan(
-      params: IFlasher.FlashloanParamsStruct,
-      providerId: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      requestor: string,
+      requestorCalldata: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
+  computeFlashloanFee(
+    arg0: string,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getFlashloanSourceAddr(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   initiateFlashloan(
-    params: IFlasher.FlashloanParamsStruct,
-    providerId: BigNumberish,
+    asset: string,
+    amount: BigNumberish,
+    requestor: string,
+    requestorCalldata: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    computeFlashloanFee(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFlashloanSourceAddr(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     initiateFlashloan(
-      params: IFlasher.FlashloanParamsStruct,
-      providerId: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      requestor: string,
+      requestorCalldata: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -118,17 +156,43 @@ export interface MockFlasher extends BaseContract {
   filters: {};
 
   estimateGas: {
+    computeFlashloanFee(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFlashloanSourceAddr(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     initiateFlashloan(
-      params: IFlasher.FlashloanParamsStruct,
-      providerId: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      requestor: string,
+      requestorCalldata: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    computeFlashloanFee(
+      arg0: string,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFlashloanSourceAddr(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     initiateFlashloan(
-      params: IFlasher.FlashloanParamsStruct,
-      providerId: BigNumberish,
+      asset: string,
+      amount: BigNumberish,
+      requestor: string,
+      requestorCalldata: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
@@ -138,4 +202,12 @@ export interface MockFlasherMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  computeFlashloanFee(
+    arg0: string,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getFlashloanSourceAddr(arg0: string, overrides?: CallOverrides): Call<string>;
 }

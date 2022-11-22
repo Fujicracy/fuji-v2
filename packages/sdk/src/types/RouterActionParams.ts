@@ -40,7 +40,7 @@ export type PermitParams = BaseRouterActionParams & {
   action: RouterAction.PERMIT_BORROW | RouterAction.PERMIT_WITHDRAW;
   vault: Address;
   owner: Address;
-  spender: Address;
+  receiver: Address;
   deadline?: number;
   v?: number;
   r?: string;

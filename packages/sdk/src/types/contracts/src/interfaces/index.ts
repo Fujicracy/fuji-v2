@@ -15,6 +15,8 @@ import type * as compoundV3 from "./compoundV3";
 export type { compoundV3 };
 import type * as connext from "./connext";
 export type { connext };
+import type * as euler from "./euler";
+export type { euler };
 import type * as uniswap from "./uniswap";
 export type { uniswap };
 import type * as velodrome from "./velodrome";

@@ -40,6 +40,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "SystemAccessControl__onlyHouseKeeper_notHouseKeeper",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
     type: "error",
   },
@@ -65,6 +70,19 @@ const _abi = [
   {
     inputs: [],
     name: "HARVESTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
     outputs: [
       {
         internalType: "bytes32",

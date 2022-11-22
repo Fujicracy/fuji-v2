@@ -2,13 +2,12 @@ import {
   Address,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
-  RouterAction,
   RouterActionParams,
   Sdk,
   Token,
 } from "@x-fuji/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
-import produce from "immer"
+import produce, { setAutoFreeze } from "immer"
 import { StateCreator } from "zustand"
 import { debounce } from "debounce"
 import { useStore } from "."
@@ -16,6 +15,7 @@ import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
+setAutoFreeze(false)
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
@@ -484,15 +484,16 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ isBorrowing: true })
     let t
     try {
-      const txRequest = await sdk.getTxDetails(
+      const txRequest = sdk.getTxDetails(
         actions,
         srcChainId,
-        new Address(address),
+        Address.from(address),
         signature
       )
       const signer = provider.getSigner()
       t = await signer.sendTransaction(txRequest)
     } catch (e) {
+      console.log(e)
       // TODO: handle borrow error, if error refuse in metamask or the tx fail for some reason
       return set({ isBorrowing: false })
     }

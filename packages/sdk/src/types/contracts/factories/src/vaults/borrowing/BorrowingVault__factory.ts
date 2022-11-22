@@ -49,6 +49,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseVault__checkRebalanceFee_excessFee",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__deposit_lessThanMin",
     type: "error",
   },
@@ -104,6 +109,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BorrowingVault__checkFee_excessFee",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BorrowingVault__liquidate_invalidInput",
     type: "error",
   },
@@ -120,6 +130,16 @@ const _abi = [
   {
     inputs: [],
     name: "BorrowingVault__payback_moreThanMax",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__rebalance_invalidFlasher",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__rebalance_invalidProvider",
     type: "error",
   },
   {
@@ -150,7 +170,42 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "SystemAccessControl__onlyHouseKeeper_notHouseKeeper",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__allowanceBelowZero",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__expiredDeadline",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__insufficientBorrowAllowance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__insufficientWithdrawAllowance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__invalidSignature",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__zeroAddress",
     type: "error",
   },
   {
@@ -240,7 +295,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -535,6 +596,37 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "VaultRebalance",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "sender",
@@ -580,7 +672,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -635,6 +733,19 @@ const _abi = [
   {
     inputs: [],
     name: "HARVESTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
     outputs: [
       {
         internalType: "bytes32",
@@ -745,7 +856,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
     ],
@@ -764,7 +875,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -873,7 +984,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],
@@ -1033,7 +1149,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1057,7 +1173,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1081,7 +1202,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1193,7 +1319,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1217,7 +1343,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1241,7 +1372,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1560,7 +1696,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1603,7 +1739,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1716,31 +1852,29 @@ const _abi = [
   {
     inputs: [
       {
-        components: [
-          {
-            internalType: "uint256",
-            name: "amount",
-            type: "uint256",
-          },
-          {
-            internalType: "address",
-            name: "asset",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "from",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "to",
-            type: "address",
-          },
-        ],
-        internalType: "struct IVault.RebalanceAction[]",
-        name: "actions",
-        type: "tuple[]",
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        internalType: "contract ILendingProvider",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "contract ILendingProvider",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
       },
     ],
     name: "rebalance",
@@ -2037,7 +2171,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],

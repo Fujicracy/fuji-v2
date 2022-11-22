@@ -14,12 +14,30 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes",
-        name: "params",
-        type: "bytes",
+        internalType: "address",
+        name: "receiver",
+        type: "address",
       },
     ],
-    name: "inboundXCall",
+    name: "sweepETH",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract ERC20",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "sweepToken",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -39,7 +57,7 @@ const _abi = [
     ],
     name: "xBundle",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
 ];

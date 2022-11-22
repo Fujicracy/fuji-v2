@@ -76,6 +76,7 @@ export declare namespace IV2Pool {
 
 export interface IV2PoolInterface extends utils.Interface {
   functions: {
+    "FLASHLOAN_PREMIUM_TOTAL()": FunctionFragment;
     "borrow(address,uint256,uint256,uint16,address)": FunctionFragment;
     "deposit(address,uint256,address,uint16)": FunctionFragment;
     "flashLoan(address,address[],uint256[],uint256[],address,bytes,uint16)": FunctionFragment;
@@ -87,6 +88,7 @@ export interface IV2PoolInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "FLASHLOAN_PREMIUM_TOTAL"
       | "borrow"
       | "deposit"
       | "flashLoan"
@@ -96,6 +98,10 @@ export interface IV2PoolInterface extends utils.Interface {
       | "withdraw"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "FLASHLOAN_PREMIUM_TOTAL",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "borrow",
     values: [string, BigNumberish, BigNumberish, BigNumberish, string]
@@ -133,6 +139,10 @@ export interface IV2PoolInterface extends utils.Interface {
     values: [string, BigNumberish, string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "FLASHLOAN_PREMIUM_TOTAL",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
@@ -177,6 +187,8 @@ export interface IV2Pool extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    FLASHLOAN_PREMIUM_TOTAL(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     borrow(
       _asset: string,
       _amount: BigNumberish,
@@ -231,6 +243,8 @@ export interface IV2Pool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  FLASHLOAN_PREMIUM_TOTAL(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrow(
     _asset: string,
@@ -287,6 +301,8 @@ export interface IV2Pool extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    FLASHLOAN_PREMIUM_TOTAL(overrides?: CallOverrides): Promise<BigNumber>;
+
     borrow(
       _asset: string,
       _amount: BigNumberish,
@@ -345,6 +361,8 @@ export interface IV2Pool extends BaseContract {
   filters: {};
 
   estimateGas: {
+    FLASHLOAN_PREMIUM_TOTAL(overrides?: CallOverrides): Promise<BigNumber>;
+
     borrow(
       _asset: string,
       _amount: BigNumberish,
@@ -401,6 +419,10 @@ export interface IV2Pool extends BaseContract {
   };
 
   populateTransaction: {
+    FLASHLOAN_PREMIUM_TOTAL(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     borrow(
       _asset: string,
       _amount: BigNumberish,
@@ -461,6 +483,8 @@ export interface IV2PoolMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  FLASHLOAN_PREMIUM_TOTAL(overrides?: CallOverrides): Call<BigNumber>;
 
   getReserveData(
     asset: string,

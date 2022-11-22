@@ -12,6 +12,19 @@ import type {
 import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
+    inputs: [],
+    name: "FLASHLOAN_PREMIUM_TOTAL",
+    outputs: [
+      {
+        internalType: "uint128",
+        name: "",
+        type: "uint128",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",

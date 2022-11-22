@@ -35,7 +35,7 @@ export function encodeActionArgs(params: RouterActionParams): string {
       [
         params.vault.value,
         params.owner.value,
-        params.owner.value,
+        params.receiver.value,
         params.amount.toString(),
         params.deadline.toString(),
         params.v.toString(),

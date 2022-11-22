@@ -26,82 +26,98 @@ import type {
 
 export interface SimpleRouterInterface extends utils.Interface {
   functions: {
+    "HARVESTER_ROLE()": FunctionFragment;
+    "HOUSE_KEEPER_ROLE()": FunctionFragment;
+    "LIQUIDATOR_ROLE()": FunctionFragment;
+    "PAUSER_ROLE()": FunctionFragment;
+    "REBALANCER_ROLE()": FunctionFragment;
+    "UNPAUSER_ROLE()": FunctionFragment;
     "WETH9()": FunctionFragment;
-    "approve(address,address,uint256)": FunctionFragment;
-    "inboundXCall(bytes)": FunctionFragment;
-    "pullToken(address,uint256,address)": FunctionFragment;
-    "pullTokenFrom(address,uint256,address,address)": FunctionFragment;
-    "refundETH()": FunctionFragment;
-    "sweepToken(address,uint256,address)": FunctionFragment;
-    "unwrapWETH9(uint256,address)": FunctionFragment;
-    "wrapWETH9()": FunctionFragment;
+    "chief()": FunctionFragment;
+    "sweepETH(address)": FunctionFragment;
+    "sweepToken(address,address)": FunctionFragment;
     "xBundle(uint8[],bytes[])": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "HARVESTER_ROLE"
+      | "HOUSE_KEEPER_ROLE"
+      | "LIQUIDATOR_ROLE"
+      | "PAUSER_ROLE"
+      | "REBALANCER_ROLE"
+      | "UNPAUSER_ROLE"
       | "WETH9"
-      | "approve"
-      | "inboundXCall"
-      | "pullToken"
-      | "pullTokenFrom"
-      | "refundETH"
+      | "chief"
+      | "sweepETH"
       | "sweepToken"
-      | "unwrapWETH9"
-      | "wrapWETH9"
       | "xBundle"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "HARVESTER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LIQUIDATOR_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REBALANCER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UNPAUSER_ROLE",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "approve",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "inboundXCall",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "pullToken",
-    values: [string, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "pullTokenFrom",
-    values: [string, BigNumberish, string, string]
-  ): string;
-  encodeFunctionData(functionFragment: "refundETH", values?: undefined): string;
+  encodeFunctionData(functionFragment: "chief", values?: undefined): string;
+  encodeFunctionData(functionFragment: "sweepETH", values: [string]): string;
   encodeFunctionData(
     functionFragment: "sweepToken",
-    values: [string, BigNumberish, string]
+    values: [string, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "unwrapWETH9",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(functionFragment: "wrapWETH9", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "xBundle",
     values: [BigNumberish[], BytesLike[]]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "HARVESTER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "LIQUIDATOR_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "REBALANCER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UNPAUSER_ROLE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "inboundXCall",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "pullToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "pullTokenFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "refundETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrapWETH9",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "wrapWETH9", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
 
   events: {};
@@ -134,156 +150,97 @@ export interface SimpleRouter extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
     WETH9(overrides?: CallOverrides): Promise<[string]>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    chief(overrides?: CallOverrides): Promise<[string]>;
 
-    inboundXCall(params: BytesLike, overrides?: CallOverrides): Promise<[void]>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
+  HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
   WETH9(overrides?: CallOverrides): Promise<string>;
 
-  approve(
-    token: string,
-    to: string,
-    amount: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  chief(overrides?: CallOverrides): Promise<string>;
 
-  inboundXCall(params: BytesLike, overrides?: CallOverrides): Promise<void>;
-
-  pullToken(
-    token: string,
-    amount: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  pullTokenFrom(
-    token: string,
-    amount: BigNumberish,
-    recipient: string,
-    sender: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  refundETH(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  sweepETH(
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   sweepToken(
     token: string,
-    amountMinimum: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  unwrapWETH9(
-    amountMinimum: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  wrapWETH9(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xBundle(
     actions: BigNumberish[],
     args: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
     WETH9(overrides?: CallOverrides): Promise<string>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    chief(overrides?: CallOverrides): Promise<string>;
 
-    inboundXCall(params: BytesLike, overrides?: CallOverrides): Promise<void>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    refundETH(overrides?: CallOverrides): Promise<void>;
+    sweepETH(receiver: string, overrides?: CallOverrides): Promise<void>;
 
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    wrapWETH9(overrides?: CallOverrides): Promise<void>;
 
     xBundle(
       actions: BigNumberish[],
@@ -295,118 +252,72 @@ export interface SimpleRouter extends BaseContract {
   filters: {};
 
   estimateGas: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
     WETH9(overrides?: CallOverrides): Promise<BigNumber>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    chief(overrides?: CallOverrides): Promise<BigNumber>;
 
-    inboundXCall(
-      params: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    inboundXCall(
-      params: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }
@@ -416,7 +327,19 @@ export interface SimpleRouterMulticall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
+  HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Call<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
   WETH9(overrides?: CallOverrides): Call<string>;
 
-  inboundXCall(params: BytesLike, overrides?: CallOverrides): Call<void>;
+  chief(overrides?: CallOverrides): Call<string>;
 }

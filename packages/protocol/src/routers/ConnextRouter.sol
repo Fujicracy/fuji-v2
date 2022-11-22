@@ -110,10 +110,16 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   function _crossTransfer(bytes memory params) internal override {
-    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver) =
-      abi.decode(params, (uint256, uint256, address, uint256, address));
+    (
+      uint256 destDomain,
+      uint256 slippage,
+      address asset,
+      uint256 amount,
+      address receiver,
+      address sender
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
-    _safePullTokenFrom(asset, msg.sender, amount);
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(

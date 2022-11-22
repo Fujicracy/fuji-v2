@@ -9,6 +9,7 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -25,27 +26,27 @@ import type {
 
 export interface IRouterInterface extends utils.Interface {
   functions: {
-    "inboundXCall(bytes)": FunctionFragment;
+    "sweepETH(address)": FunctionFragment;
+    "sweepToken(address,address)": FunctionFragment;
     "xBundle(uint8[],bytes[])": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "inboundXCall" | "xBundle"
+    nameOrSignatureOrTopic: "sweepETH" | "sweepToken" | "xBundle"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "sweepETH", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "inboundXCall",
-    values: [BytesLike]
+    functionFragment: "sweepToken",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "xBundle",
     values: [BigNumberish[], BytesLike[]]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "inboundXCall",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
 
   events: {};
@@ -78,31 +79,49 @@ export interface IRouter extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    inboundXCall(
-      params: BytesLike,
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    sweepToken(
+      token: string,
+      receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  inboundXCall(
-    params: BytesLike,
+  sweepETH(
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  sweepToken(
+    token: string,
+    receiver: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xBundle(
     actions: BigNumberish[],
     args: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    inboundXCall(params: BytesLike, overrides?: CallOverrides): Promise<void>;
+    sweepETH(receiver: string, overrides?: CallOverrides): Promise<void>;
+
+    sweepToken(
+      token: string,
+      receiver: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     xBundle(
       actions: BigNumberish[],
@@ -114,28 +133,40 @@ export interface IRouter extends BaseContract {
   filters: {};
 
   estimateGas: {
-    inboundXCall(
-      params: BytesLike,
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    sweepToken(
+      token: string,
+      receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    inboundXCall(
-      params: BytesLike,
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    sweepToken(
+      token: string,
+      receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

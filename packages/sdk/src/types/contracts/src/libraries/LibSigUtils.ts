@@ -23,22 +23,28 @@ import type {
 
 export declare namespace LibSigUtils {
   export type PermitStruct = {
+    chainid: BigNumberish;
     owner: string;
-    spender: string;
+    operator: string;
+    receiver: string;
     amount: BigNumberish;
     nonce: BigNumberish;
     deadline: BigNumberish;
   };
 
   export type PermitStructOutput = [
+    BigNumber,
+    string,
     string,
     string,
     BigNumber,
     BigNumber,
     BigNumber
   ] & {
+    chainid: BigNumber;
     owner: string;
-    spender: string;
+    operator: string;
+    receiver: string;
     amount: BigNumber;
     nonce: BigNumber;
     deadline: BigNumber;
@@ -47,18 +53,24 @@ export declare namespace LibSigUtils {
 
 export interface LibSigUtilsInterface extends utils.Interface {
   functions: {
+    "buildPermitStruct(address,address,address,uint256,uint256,address)": FunctionFragment;
     "getHashTypedDataV4Digest(bytes32,bytes32)": FunctionFragment;
-    "getStructHashAsset((address,address,uint256,uint256,uint256))": FunctionFragment;
-    "getStructHashBorrow((address,address,uint256,uint256,uint256))": FunctionFragment;
+    "getStructHashAsset((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
+    "getStructHashBorrow((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "buildPermitStruct"
       | "getHashTypedDataV4Digest"
       | "getStructHashAsset"
       | "getStructHashBorrow"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "buildPermitStruct",
+    values: [string, string, string, BigNumberish, BigNumberish, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "getHashTypedDataV4Digest",
     values: [BytesLike, BytesLike]
@@ -72,6 +84,10 @@ export interface LibSigUtilsInterface extends utils.Interface {
     values: [LibSigUtils.PermitStruct]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "buildPermitStruct",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getHashTypedDataV4Digest",
     data: BytesLike
@@ -115,6 +131,20 @@ export interface LibSigUtils extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    buildPermitStruct(
+      owner: string,
+      operator: string,
+      receiver: string,
+      amount: BigNumberish,
+      plusNonce: BigNumberish,
+      vault_: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [LibSigUtils.PermitStructOutput] & {
+        permit: LibSigUtils.PermitStructOutput;
+      }
+    >;
+
     getHashTypedDataV4Digest(
       domainSeperator: BytesLike,
       structHash: BytesLike,
@@ -131,6 +161,16 @@ export interface LibSigUtils extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
   };
+
+  buildPermitStruct(
+    owner: string,
+    operator: string,
+    receiver: string,
+    amount: BigNumberish,
+    plusNonce: BigNumberish,
+    vault_: string,
+    overrides?: CallOverrides
+  ): Promise<LibSigUtils.PermitStructOutput>;
 
   getHashTypedDataV4Digest(
     domainSeperator: BytesLike,
@@ -149,6 +189,16 @@ export interface LibSigUtils extends BaseContract {
   ): Promise<string>;
 
   callStatic: {
+    buildPermitStruct(
+      owner: string,
+      operator: string,
+      receiver: string,
+      amount: BigNumberish,
+      plusNonce: BigNumberish,
+      vault_: string,
+      overrides?: CallOverrides
+    ): Promise<LibSigUtils.PermitStructOutput>;
+
     getHashTypedDataV4Digest(
       domainSeperator: BytesLike,
       structHash: BytesLike,
@@ -169,6 +219,16 @@ export interface LibSigUtils extends BaseContract {
   filters: {};
 
   estimateGas: {
+    buildPermitStruct(
+      owner: string,
+      operator: string,
+      receiver: string,
+      amount: BigNumberish,
+      plusNonce: BigNumberish,
+      vault_: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getHashTypedDataV4Digest(
       domainSeperator: BytesLike,
       structHash: BytesLike,
@@ -187,6 +247,16 @@ export interface LibSigUtils extends BaseContract {
   };
 
   populateTransaction: {
+    buildPermitStruct(
+      owner: string,
+      operator: string,
+      receiver: string,
+      amount: BigNumberish,
+      plusNonce: BigNumberish,
+      vault_: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getHashTypedDataV4Digest(
       domainSeperator: BytesLike,
       structHash: BytesLike,
@@ -209,6 +279,16 @@ export interface LibSigUtilsMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  buildPermitStruct(
+    owner: string,
+    operator: string,
+    receiver: string,
+    amount: BigNumberish,
+    plusNonce: BigNumberish,
+    vault_: string,
+    overrides?: CallOverrides
+  ): Call<LibSigUtils.PermitStructOutput>;
 
   getHashTypedDataV4Digest(
     domainSeperator: BytesLike,

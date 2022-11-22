@@ -4,3 +4,4 @@
 export type { AaveV2 } from "./AaveV2";
 export type { CompoundV2 } from "./CompoundV2";
 export type { CompoundV3 } from "./CompoundV3";
+export type { Euler } from "./Euler";

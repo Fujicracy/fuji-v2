@@ -14,6 +14,21 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "Chief__allowFlasher_noAllowChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Chief__allowVaultFactory_noAllowChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Chief__checkInput_zeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "Chief__deployVault_factoryNotAllowed",
     type: "error",
   },
@@ -35,13 +50,27 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "Chief__deployVault_zeroAddress",
+    name: "Chief__onlyTimelock_callerIsNotTimelock",
     type: "error",
   },
   {
-    inputs: [],
-    name: "Chief__setTimelock_zeroAddress",
-    type: "error",
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "flasher",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "AllowFlasher",
+    type: "event",
   },
   {
     anonymous: false,
@@ -52,8 +81,14 @@ const _abi = [
         name: "factory",
         type: "address",
       },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
     ],
-    name: "AddToAllowed",
+    name: "AllowVaultFactory",
     type: "event",
   },
   {
@@ -92,19 +127,6 @@ const _abi = [
       },
     ],
     name: "OpenVaultFactory",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "factory",
-        type: "address",
-      },
-    ],
-    name: "RemoveFromAllowed",
     type: "event",
   },
   {
@@ -223,6 +245,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "LIQUIDATOR_ROLE",
     outputs: [
       {
@@ -274,19 +309,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_factory",
-        type: "address",
-      },
-    ],
-    name: "addToAllowed",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "addrMapper",
     outputs: [
@@ -303,11 +325,66 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "flasher",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "allowFlasher",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_factory",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "allowVaultFactory",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "",
         type: "address",
       },
     ],
-    name: "allowedFactories",
+    name: "allowedFlasher",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "allowedVaultFactory",
     outputs: [
       {
         internalType: "bool",
@@ -450,19 +527,6 @@ const _abi = [
   {
     inputs: [],
     name: "pauseForceAllVaults",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_factory",
-        type: "address",
-      },
-    ],
-    name: "removeFromAllowed",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

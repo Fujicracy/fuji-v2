@@ -25,14 +25,22 @@ import type {
 
 export interface ISwapperInterface extends utils.Interface {
   functions: {
-    "swap(address,address,uint256,address,uint256)": FunctionFragment;
+    "swap(address,address,uint256,uint256,address,address,uint256)": FunctionFragment;
   };
 
   getFunction(nameOrSignatureOrTopic: "swap"): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "swap",
-    values: [string, string, BigNumberish, string, BigNumberish]
+    values: [
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      string,
+      string,
+      BigNumberish
+    ]
   ): string;
 
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
@@ -70,9 +78,11 @@ export interface ISwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -80,9 +90,11 @@ export interface ISwapper extends BaseContract {
   swap(
     assetIn: string,
     assetOut: string,
+    amountIn: BigNumberish,
     amountOut: BigNumberish,
     receiver: string,
-    slippage: BigNumberish,
+    sweeper: string,
+    minSweepOut: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -90,9 +102,11 @@ export interface ISwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -103,9 +117,11 @@ export interface ISwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -114,9 +130,11 @@ export interface ISwapper extends BaseContract {
     swap(
       assetIn: string,
       assetOut: string,
+      amountIn: BigNumberish,
       amountOut: BigNumberish,
       receiver: string,
-      slippage: BigNumberish,
+      sweeper: string,
+      minSweepOut: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

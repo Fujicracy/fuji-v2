@@ -49,12 +49,22 @@ const _abi = [
       },
       {
         internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
         name: "amountOut",
         type: "uint256",
       },
       {
         internalType: "address",
         name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "sweeper",
         type: "address",
       },
       {
