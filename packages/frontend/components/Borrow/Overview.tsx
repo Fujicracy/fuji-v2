@@ -288,6 +288,24 @@ function VaultsMenu() {
     return <></>
   }
 
+  if (vaults.length < 2) {
+    return (
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Box display="flex" alignItems="center">
+          {providers?.map((p) => (
+            <ProviderIcon
+              key={p.name}
+              providerName={p.name}
+              height={16}
+              width={16}
+            />
+          ))}
+        </Box>
+        <Chip variant="success" label="A+" />
+      </Stack>
+    )
+  }
+
   return (
     <>
       <Button
