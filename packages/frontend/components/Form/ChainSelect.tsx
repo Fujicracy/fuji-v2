@@ -11,7 +11,6 @@ import {
   useTheme,
 } from "@mui/material"
 
-import Image from "next/image"
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"

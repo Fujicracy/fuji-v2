@@ -18,19 +18,17 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
-import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { useStore } from "../../store"
 import { formatUnits } from "ethers/lib/utils"
 import ProviderIcon from "../ProviderIcon"
 
-// TODO: create helper to get these images and throw / warn us if 404 ?
-const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
 export default function TransactionSummary() {
   const { palette } = useTheme()
 
-  const ltv = useLtv()
+  const ltv = useStore((state) => state.position.ltv)
   const ltvMax = useStore((state) => state.position.ltvMax)
-  const { liquidationPrice, liquidationDiff } = useLiquidationPrice(75)
+  const liquidationPrice = useStore((state) => state.position.liquidationPrice)
+  const liquidationDiff = useStore((state) => state.position.liquidationDiff)
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
   const providers = useStore((state) => state.position.providers)

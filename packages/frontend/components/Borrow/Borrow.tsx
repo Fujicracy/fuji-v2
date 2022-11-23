@@ -31,7 +31,7 @@ export default function Borrow() {
       updateAllowance()
       updateVault()
     }
-  }, [address, updateBalance])
+  }, [address, updateBalance, updateAllowance, updateVault])
 
   const login = useStore((state) => state.login)
 

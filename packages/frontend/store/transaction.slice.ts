@@ -121,6 +121,8 @@ const initialState: TransactionState = {
       usdValue: 0,
     },
     ltv: 0,
+    liquidationDiff: 0,
+    liquidationPrice: 0,
     ltvMax: DEFAULT_LTV_MAX,
     ltvThreshold: DEFAULT_LTV_TRESHOLD,
   },

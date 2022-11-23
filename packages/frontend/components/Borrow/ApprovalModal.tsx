@@ -1,4 +1,4 @@
-import { MouseEvent, useState } from "react"
+import { useState } from "react"
 import {
   Box,
   Dialog,
@@ -64,7 +64,12 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         />
 
         <Box mt={2}>
-          <Image src="/assets/images/usdroundicon.png" width="60" height="60" />
+          <Image
+            src="/assets/images/usdroundicon.png"
+            width="60"
+            height="60"
+            alt="ust icon"
+          />
         </Box>
 
         <Typography variant="h5" mt="2rem">
