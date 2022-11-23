@@ -4,6 +4,8 @@ import { SyntheticEvent, useEffect, useState } from "react"
 interface Props extends Omit<ImageProps, "src"> {
   providerName: string
 }
+const defaultImage = "/assets/images/protocol-icons/providers/Aave V3.svg"
+
 export default function ProviderIcon(props: Props) {
   const { providerName, ...rest } = props
   const path = `/assets/images/protocol-icons/providers/${providerName}.svg`
@@ -16,13 +18,10 @@ export default function ProviderIcon(props: Props) {
       )
   }, [error, path, providerName])
 
-  if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything ?
-  }
   return (
     <Image
       {...rest}
-      src={path}
+      src={error ? defaultImage : path}
       alt={`${providerName} icon`}
       onError={(e) => setError(e)}
     />

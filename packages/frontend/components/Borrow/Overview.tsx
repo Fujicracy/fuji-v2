@@ -18,7 +18,6 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import Image from "next/image"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
@@ -300,13 +299,11 @@ function VaultsMenu() {
         <Stack direction="row" alignItems="center" spacing={1}>
           <Box display="flex" alignItems="center">
             {providers?.map((p) => (
-              <Image
-                src={`/assets/images/protocol-icons/providers/${p.name}.svg`}
+              <ProviderIcon
                 key={p.name}
+                providerName={p.name}
                 height={16}
                 width={16}
-                layout="fixed"
-                alt="Protocol icon"
               />
             ))}
           </Box>
