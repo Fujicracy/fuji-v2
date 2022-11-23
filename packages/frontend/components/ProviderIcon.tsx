@@ -13,7 +13,7 @@ export default function ProviderIcon(props: Props) {
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
   useEffect(() => {
     if (error)
-      console.error(
+      console.warn(
         `404 Not found. No image found for network ${providerName}. Searched in ${path}`
       )
   }, [error, path, providerName])
