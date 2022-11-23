@@ -28,6 +28,7 @@ export default function Borrow() {
   useEffect(() => {
     if (address) {
       updateBalance("collateral")
+      updateBalance("debt")
       updateAllowance()
       updateVault()
     }
@@ -42,7 +43,6 @@ export default function Borrow() {
   const debtChainId = useStore((state) => state.debtChainId)
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
-  // const debt = useStore((state) => state.position.debt)
 
   const setShowTransactionAbstract = useStore(
     (state) => state.setShowTransactionAbstract
@@ -53,7 +53,7 @@ export default function Borrow() {
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   // TODO: refacto with a "status" ?
 
-  const value = useStore((state) => parseFloat(state.collateralInput))
+  const value = useStore((state) => state.position.collateral.amount)
   const balance = useStore(
     (state) => state.collateralBalances[state.position.collateral.token.symbol]
   )
