@@ -14,7 +14,6 @@ import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
-import { useLtv } from "../../store/transaction.slice"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
@@ -65,7 +64,7 @@ export default function Borrow() {
     updateTokenPrice("debt")
   }, [updateTokenPrice])
 
-  const ltv = useLtv()
+  const ltv = useStore((state) => state.position.ltv)
   const ltvMax = useStore((state) => state.position.ltvMax)
 
   const signature = useStore((state) => state.signature)

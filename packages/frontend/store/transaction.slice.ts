@@ -88,6 +88,7 @@ type TransactionActions = {
   updateAllowance: () => void
   updateVault: () => void
   updateTransactionMeta: () => void
+  updateLtv: () => void
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
@@ -228,6 +229,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateTransactionMeta()
+    get().updateLtv()
   },
 
   changeCollateralValue(value) {
@@ -238,6 +240,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateTransactionMeta()
+    get().updateLtv()
   },
 
   async changeActiveVault(vault) {
@@ -316,6 +319,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         state.position[type].usdValue = tokenValue
       })
     )
+    get().updateLtv()
   },
 
   async updateAllowance() {
@@ -448,6 +452,24 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
   }, 500),
 
+  updateLtv() {
+    const collateralValue = parseFloat(get().collateralInput)
+    const collateralUsdValue = get().position.collateral.usdValue
+    const collateral = collateralValue * collateralUsdValue
+
+    const debtValue = parseFloat(get().debtInput)
+    const debtUsdValue = get().position.debt.usdValue
+    const debt = debtValue * debtUsdValue
+
+    const ltv = collateral && debt ? Math.round((debt / collateral) * 100) : 0
+
+    set(
+      produce((s: TransactionState) => {
+        s.position.ltv = ltv
+      })
+    )
+  },
+
   /**
    * Allow fuji contract to spend on behalf of the user an amount
    * Token are deduced from collateral
@@ -553,25 +575,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateBalances("collateral")
   },
 })
-
-// Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
-// Better refacto using zustand-middleware-computed-state but it creates typing probleme idk how to solve
-export function useLtv(): number {
-  const collateralValue = useStore((state) => parseFloat(state.collateralInput))
-  const collateralUsdValue = useStore(
-    (state) => state.position.collateral.usdValue
-  )
-  const collateral = collateralValue * collateralUsdValue
-
-  const debtValue = useStore((state) => parseFloat(state.debtInput))
-  const debtUsdValue = useStore((state) => state.position.debt.usdValue)
-  const debt = debtValue * debtUsdValue
-
-  if (!collateral || !debt) {
-    return 0
-  }
-  return Math.round((debt / collateral) * 100)
-}
 
 export function useLiquidationPrice(liquidationTreshold: number): {
   liquidationPrice: number

@@ -16,8 +16,7 @@ export interface Position {
     usdValue: number
   }
 
-  // TODO liquidationPrice?: number
-  ltv: number // TODO
+  ltv: number
   ltvMax: number
   ltvThreshold: number
   activeProvider?: LendingProviderDetails

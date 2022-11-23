@@ -24,14 +24,14 @@ import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
-import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
+import { useLiquidationPrice } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import { BorrowingVault } from "@x-fuji/sdk"
 import ProviderIcon from "../ProviderIcon"
 
 export default function Overview() {
   const { palette } = useTheme()
-  const ltv = useLtv()
+  const ltv = useStore((state) => state.position.ltv)
   const { ltvMax, ltvThreshold } = useStore((state) => state.position)
   const { liquidationPrice, liquidationDiff } =
     useLiquidationPrice(ltvThreshold)
