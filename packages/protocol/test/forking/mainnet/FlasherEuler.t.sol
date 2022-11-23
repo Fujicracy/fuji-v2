@@ -118,6 +118,9 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     console.log("balance debt - ", IERC20(debtAsset).balanceOf(address(this)));
 
     console.log("@onFlashloan inside test");
+
+    // IERC20(debtAsset).approve(address(providerAave), BORROW_AMOUNT);
+    IERC20(debtAsset).transfer(address(providerAave), BORROW_AMOUNT);
     //amount, IVault
     providerAave.payback(BORROW_AMOUNT, vault);
     console.log("after payback provider origin");
