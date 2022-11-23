@@ -35,21 +35,16 @@ contract MockRebalancerManager {
     external
     returns (bool success)
   {
-    console.log("@rebalanceVault");
     _checkAssetsAmount(vault, assets, from);
 
-    console.log("@rebalanceVault");
     if (vault.debtAsset() == address(0)) {
-      console.log("@rebalanceVault123");
       vault.rebalance(assets, 0, from, to, 0);
     } else {
-      console.log("@rebalanceVault456");
       _checkDebtAmount(vault, debt, from);
-      console.log("@rebalanceVault456");
+
       _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
     }
 
-    console.log("@rebalanceVault");
     if (setToAsActiveProvider) {
       vault.setActiveProvider(to);
     }
@@ -60,7 +55,6 @@ contract MockRebalancerManager {
   function _checkAssetsAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
     uint256 assetsAtProvider = from.getDepositBalance(address(vault), vault);
     if (amount > assetsAtProvider) {
-      console.log("@RebalancerManager");
       revert RebalancerManager__checkAssetsAmount_invalidAmount();
     }
   }
@@ -68,8 +62,6 @@ contract MockRebalancerManager {
   function _checkDebtAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
     uint256 debtAtProvider = from.getBorrowBalance(address(vault), vault);
     if (amount > debtAtProvider) {
-      console.log("@RebalancerManager check debtAmount - ", debtAtProvider);
-      console.log("@RebalancerManager amount - ", amount);
       revert RebalancerManager__checkDebtAmount_invalidAmount();
     }
   }
@@ -120,7 +112,6 @@ contract MockRebalancerManager {
   )
     internal
   {
-    console.log("@_getFlashloan");
     bytes memory requestorCall = abi.encodeWithSelector(
       MockRebalancerManager.completeRebalance.selector,
       vault,
@@ -132,16 +123,9 @@ contract MockRebalancerManager {
       setToAsActiveProvider
     );
 
-    console.log("@_getFlashloan");
     _checkAndSetEntryPoint(requestorCall);
-
-    console.log("@_getFlashloan");
     address debtAsset = vault.debtAsset();
-
-    console.log("@_getFlashloan before initiateFlashloan");
     flasher.initiateFlashloan(debtAsset, debt, address(this), requestorCall);
-
-    console.log("@_getFlashloan after initiate");
   }
 
   function completeRebalance(
@@ -164,12 +148,15 @@ contract MockRebalancerManager {
       revert RebalancerManager__getFlashloan_flashloanFailed();
     }
 
-    // debtAsset.safeApprove(address(vault), debt);
+    debtAsset.approve(address(vault), debt);
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debt);
+    // uint256 flashloanFee = 0;
 
+    console.log("@MockRebalancerManager @completeRebalance before rebalance");
     vault.rebalance(assets, debt, from, to, flashloanFee);
 
+    console.log("@MockRebalancerManager @completeRebalance before transfer");
     debtAsset.transfer(address(flasher), debt + flashloanFee);
 
     // re-init
