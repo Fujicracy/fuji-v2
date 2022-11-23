@@ -89,6 +89,7 @@ type TransactionActions = {
   updateVault: () => void
   updateTransactionMeta: () => void
   updateLtv: () => void
+  updateLiquidation: () => void
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
@@ -230,6 +231,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().updateTransactionMeta()
     get().updateLtv()
+    get().updateLiquidation()
   },
 
   changeCollateralValue(value) {
@@ -241,6 +243,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().updateTransactionMeta()
     get().updateLtv()
+    get().updateLiquidation()
   },
 
   async changeActiveVault(vault) {
@@ -320,6 +323,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateLtv()
+    get().updateLiquidation()
   },
 
   async updateAllowance() {
@@ -470,6 +474,34 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
   },
 
+  updateLiquidation() {
+    const collateralAmount = parseFloat(get().collateralInput)
+    const collateralUsdValue = get().position.collateral.usdValue
+
+    const debtValue = parseFloat(get().debtInput)
+    const debtUsdValue = get().position.debt.usdValue
+    const debt = debtValue * debtUsdValue
+
+    if (!debt || !collateralAmount) {
+      return { liquidationPrice: 0, liquidationDiff: 0 }
+    }
+
+    const liquidationTreshold = get().position.ltvThreshold
+
+    const liquidationPrice =
+      debt / (collateralAmount * (liquidationTreshold / 100))
+    const liquidationDiff = Math.round(
+      (1 - liquidationPrice / collateralUsdValue) * 100
+    )
+
+    set(
+      produce((s: TransactionState) => {
+        s.position.liquidationPrice = liquidationPrice
+        s.position.liquidationDiff = liquidationDiff
+      })
+    )
+  },
+
   /**
    * Allow fuji contract to spend on behalf of the user an amount
    * Token are deduced from collateral
@@ -575,29 +607,3 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateBalances("collateral")
   },
 })
-
-export function useLiquidationPrice(liquidationTreshold: number): {
-  liquidationPrice: number
-  liquidationDiff: number
-} {
-  const collateralAmount = useStore((state) => state.position.collateral.amount)
-  const collateralUsdValue = useStore(
-    (state) => state.position.collateral.usdValue
-  )
-
-  const debtValue = useStore((state) => parseFloat(state.debtInput))
-  const debtUsdValue = useStore((state) => state.position.debt.usdValue)
-  const debt = debtValue * debtUsdValue
-
-  if (!debt || !collateralAmount) {
-    return { liquidationPrice: 0, liquidationDiff: 0 }
-  }
-
-  const liquidationPrice =
-    debt / (collateralAmount * (liquidationTreshold / 100))
-  const liquidationDiff = Math.round(
-    (1 - liquidationPrice / collateralUsdValue) * 100
-  )
-
-  return { liquidationPrice, liquidationDiff }
-}

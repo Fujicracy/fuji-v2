@@ -19,6 +19,10 @@ export interface Position {
   ltv: number
   ltvMax: number
   ltvThreshold: number
+
+  liquidationPrice: number
+  liquidationDiff: number
+
   activeProvider?: LendingProviderDetails
   providers?: LendingProviderDetails[]
 }
