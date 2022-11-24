@@ -1,8 +1,6 @@
 import { Typography, Grid, Select, MenuItem, Stack, Fade } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import Image from "next/image"
 import { chains } from "../../store/auth.slice"
-import styles from "../../styles/components/Borrow.module.css"
 import NetworkIcon from "../NetworkIcon"
 
 type ChainSelectProps = {

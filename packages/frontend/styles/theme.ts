@@ -588,6 +588,17 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
+    MuiSnackbarContent: {
+      styleOverrides: {
+        root: {
+          background: colorTheme.palette.secondary.contrastText,
+          border: `2px solid ${colorTheme.palette.secondary.light}`,
+          borderRadius: "1.125rem",
+          p: "1rem",
+          color: colorTheme.palette.text.primary,
+        },
+      },
+    },
   },
 })
 

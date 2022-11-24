@@ -16,10 +16,13 @@ export interface Position {
     usdValue: number
   }
 
-  // TODO liquidationPrice?: number
-  ltv: number // TODO
+  ltv: number
   ltvMax: number
   ltvThreshold: number
+
+  liquidationPrice: number
+  liquidationDiff: number
+
   activeProvider?: LendingProviderDetails
   providers?: LendingProviderDetails[]
 }
