@@ -18,6 +18,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import CheckIcon from "@mui/icons-material/Check"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
@@ -339,11 +340,12 @@ function VaultsMenu() {
         MenuListProps={{ "aria-labelledby": "button-vaults-menu" }}
         TransitionComponent={Fade}
       >
-        {vaults.map((vault: BorrowingVault) => (
+        {vaults.map((v: BorrowingVault) => (
           <VaultMenuItem
-            key={vault.address.value}
-            vault={vault}
-            onClick={() => select(vault)}
+            key={v.address.value}
+            selected={v.address.value === vault.address.value}
+            vault={v}
+            onClick={() => select(v)}
           />
         ))}
       </Menu>
@@ -353,9 +355,10 @@ function VaultsMenu() {
 
 type VaultMenuItemProps = {
   vault: BorrowingVault
+  selected: boolean
   onClick: (p: BorrowingVault) => void
 }
-const VaultMenuItem = ({ vault, onClick }: VaultMenuItemProps) => {
+const VaultMenuItem = ({ vault, selected, onClick }: VaultMenuItemProps) => {
   const providers = useStore((state) => state.allProviders[vault.address.value])
 
   return (
@@ -373,9 +376,10 @@ const VaultMenuItem = ({ vault, onClick }: VaultMenuItemProps) => {
             </Box>
           ))}
         </Box>
-        {/* TODO: How to fetch safety rating? */}
+        {/* TODO: safety rating? */}
         {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
         <Chip variant="success" label="A+" />
+        {selected && <CheckIcon />}
       </Stack>
     </MenuItem>
   )
