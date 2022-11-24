@@ -26,7 +26,7 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
   MockRebalancerManager public rebalancer;
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-  uint256 public constant BORROW_AMOUNT = 10e16;
+  uint256 public constant BORROW_AMOUNT = 100;
 
   function setUp() public {
     deploy(POLYGON_DOMAIN);
@@ -47,6 +47,9 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
     flasher = new FlasherAaveV3(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
+
+    vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 1 minutes);
   }
 
   function executeOperation(
@@ -64,6 +67,7 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
 
     assertEq(IERC20(debtAsset_).balanceOf(address(this)), amount_);
 
+    IERC20(debtAsset_).approve(msg.sender, amount_);
     success = true;
   }
 
@@ -73,6 +77,35 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
     IV3Pool(flasher.getFlashloanSourceAddr(debtAsset)).flashLoanSimple(
       address(this), debtAsset, BORROW_AMOUNT, data, 0
     );
+
     assertEq(IERC20(debtAsset).balanceOf(address(this)), 0);
+  }
+
+  // test rebalance a full position to another provider
+  function test_rebalanceWithRebalancer() public {
+    uint256 assets = DEPOSIT_AMOUNT;
+    uint256 debt = BORROW_AMOUNT;
+
+    rebalancer.rebalanceVault(vault, assets, debt, providerAaveV3, providerAaveV2, flasher, true);
+
+    //issue with rounding
+    assertApproxEqAbs(
+      providerAaveV3.getDepositBalance(address(vault), IVault(address(vault))),
+      0,
+      DEPOSIT_AMOUNT / 100
+    );
+    assertEq(providerAaveV3.getBorrowBalance(address(vault), IVault(address(vault))), 0);
+
+    //issue with rounding
+    assertApproxEqAbs(
+      providerAaveV2.getDepositBalance(address(vault), IVault(address(vault))),
+      assets,
+      DEPOSIT_AMOUNT / 100
+    );
+    assertApproxEqAbs(
+      providerAaveV2.getBorrowBalance(address(vault), IVault(address(vault))),
+      debt,
+      BORROW_AMOUNT / 100
+    );
   }
 }
