@@ -8,7 +8,6 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-// import {CompoundV3Polygon} from "../../../src/providers/polygon/CompoundV3Polygon.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
