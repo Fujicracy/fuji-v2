@@ -7,7 +7,7 @@ on:
     paths:
       - "packages/frontend/**"
   push:
-    branches-ignore:
+    branches:
       - main
     paths:
       - "packages/frontend/**"
@@ -43,6 +43,7 @@ jobs:
 
   deploy:
     name: Deploy Staging
+    if: github.ref != 'refs/heads/main'
     permissions:
       contents: 'read'
       id-token: 'write'
