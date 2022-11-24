@@ -119,7 +119,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
-    _safePullTokenFrom(asset, sender, amount);
+    _safePullTokenFrom(asset, sender, receiver, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
@@ -147,7 +147,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
-    _safePullTokenFrom(asset, msg.sender, amount);
+    _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
