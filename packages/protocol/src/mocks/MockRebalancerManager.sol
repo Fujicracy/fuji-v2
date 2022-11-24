@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
@@ -9,15 +8,11 @@ import {MockERC20} from "../mocks/MockERC20.sol";
 
 contract MockRebalancerManager {
   // custom errors
-  error RebalancerManager__rebalanceVault_notValidExecutor();
-  error RebalancerManager__rebalanceVault_notValidFlasher();
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
   error RebalancerManager__getFlashloan_notEmptyEntryPoint();
   error RebalancerManager__completeRebalance_invalidEntryPoint();
-  error RebalancerManager__allowExecutor_noAllowChange();
-  error RebalancerManager__zeroAddress();
 
   bytes32 private _entryPoint;
 
@@ -151,12 +146,9 @@ contract MockRebalancerManager {
     debtAsset.approve(address(vault), debt);
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debt);
-    // uint256 flashloanFee = 0;
 
-    console.log("@MockRebalancerManager @completeRebalance before rebalance");
     vault.rebalance(assets, debt, from, to, flashloanFee);
 
-    console.log("@MockRebalancerManager @completeRebalance before transfer");
     debtAsset.transfer(address(flasher), debt + flashloanFee);
 
     // re-init

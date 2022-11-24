@@ -7,7 +7,6 @@ pragma solidity 0.8.15;
  * @notice Handles logic of Euler as a flashloan provider.
  */
 
-import "forge-std/console.sol";
 import {BaseFlasher} from "../abstracts/BaseFlasher.sol";
 import {IEulerDToken} from "../interfaces/euler/IEulerDToken.sol";
 import {IFlashloan} from "../interfaces/euler/IFlashloan.sol";
@@ -50,9 +49,6 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
   }
 
   function onFlashLoan(bytes calldata data) external {
-    //this check is being done by the if() revert
-    // require(msg.sender == 0x27182842E098f60e3D576794A5bFFb0777E025d3, "not allowed");
-
     (address asset, uint256 amount, address requestor, bytes memory requestorCalldata) =
       _checkReentryPoint(data);
 
@@ -61,8 +57,6 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
     }
     _requestorExecution(asset, amount, 0, requestor, requestorCalldata);
 
-    //the repay is done in the _requestorExecution??
-    //only the approve is done in the requestor execution??
     IERC20(asset).transfer(msg.sender, amount); // repay
   }
 }

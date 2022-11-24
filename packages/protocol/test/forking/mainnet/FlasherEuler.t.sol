@@ -13,8 +13,6 @@ import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {MockRebalancerManager} from "../../../src/mocks/MockRebalancerManager.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Euler} from "../../../src/providers/mainnet/Euler.sol";
-import {MockProviderV0} from "../../../src/mocks/MockProviderV0.sol";
-
 import {IEulerDToken} from "../../../src/interfaces/euler/IEulerDToken.sol";
 import {IFlashloan} from "../../../src/interfaces/euler/IFlashloan.sol";
 import {IEulerMarkets} from "../../../src/interfaces/euler/IEulerMarkets.sol";
@@ -34,11 +32,7 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     deploy(MAINNET_DOMAIN);
 
     providerAave = new AaveV2();
-    // providerEuler = new Euler();
     providerEuler = new CompoundV2();
-
-    // providerAave = new MockProviderV0();
-    // providerEuler = new MockProviderV0();
 
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = providerAave;
@@ -77,41 +71,7 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     uint256 assets = DEPOSIT_AMOUNT;
     uint256 debt = BORROW_AMOUNT;
 
-    console.log("BALANCES IN TEST START");
-    console.log(
-      "aave deposit - ", providerAave.getDepositBalance(address(vault), IVault(address(vault)))
-    );
-    console.log(
-      "aave borrow - ", providerAave.getBorrowBalance(address(vault), IVault(address(vault)))
-    );
-
-    console.log(
-      "compound deposit - ", providerEuler.getDepositBalance(address(vault), IVault(address(vault)))
-    );
-    console.log(
-      "compound borrow - ", providerEuler.getBorrowBalance(address(vault), IVault(address(vault)))
-    );
-
     rebalancer.rebalanceVault(vault, assets, debt, providerAave, providerEuler, flasher, true);
-
-    // wait for block to be mined
-    // vm.roll(block.number + 1);
-    // vm.warp(block.timestamp + 1 minutes);
-
-    console.log("BALANCES IN TEST AFTER REBALANCE");
-    console.log(
-      "aave deposit - ", providerAave.getDepositBalance(address(vault), IVault(address(vault)))
-    );
-    console.log(
-      "aave borrow - ", providerAave.getBorrowBalance(address(vault), IVault(address(vault)))
-    );
-
-    console.log(
-      "compound deposit - ", providerEuler.getDepositBalance(address(vault), IVault(address(vault)))
-    );
-    console.log(
-      "compound borrow - ", providerEuler.getBorrowBalance(address(vault), IVault(address(vault)))
-    );
 
     assertEq(providerAave.getDepositBalance(address(vault), IVault(address(vault))), 0);
     assertEq(providerAave.getBorrowBalance(address(vault), IVault(address(vault))), 0);
@@ -127,6 +87,5 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
       debt,
       BORROW_AMOUNT / 100
     );
-    // make note in github to test when rounding issue is resolved
   }
 }
