@@ -31,6 +31,7 @@ import styles from "../../styles/components/Header.module.css"
 import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
+import { useHistory } from "../../store/history.store"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
@@ -249,7 +250,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     })
   )
 
-  const closeTransactionProcessing = () => setShowTransactionAbstract(false)
+  const inNotification = useHistory((state) => state.inNotification)
+  const closeNotification = useHistory((state) => state.closeNotification)
 
   if (!balance) {
     return <></>
@@ -315,9 +317,9 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       />
       <Snackbar
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        open={showTransactionAbstract}
+        open={Boolean(inNotification)}
         sx={{ mt: "2.5rem" }}
-        autoHideDuration={1000 * 60 * 60}
+        autoHideDuration={10000 * 60 * 60}
       >
         <SnackbarContent
           message={
@@ -328,7 +330,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
                   position: "absolute",
                   right: "1rem",
                 }}
-                onClick={closeTransactionProcessing}
+                onClick={closeNotification}
                 fontSize="small"
               />
               <Grid container>

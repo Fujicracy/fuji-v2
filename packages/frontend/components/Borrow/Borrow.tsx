@@ -17,6 +17,7 @@ import TokenCard from "./TokenCard"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
+import { useHistory } from "../../store/history.store"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -72,6 +73,9 @@ export default function Borrow() {
   const signPermit = useStore((state) => state.signPermit)
   const borrow = useStore((state) => state.borrow)
   const isBorrowing = useStore((state) => state.isBorrowing)
+
+  const currentTxHash = useHistory((state) => state.inModal)
+  const closeModal = useHistory((state) => state.closeModal)
 
   let button: ReactNode
   if (!address) {
@@ -214,12 +218,10 @@ export default function Borrow() {
           </a>
         </CardContent>
       </Card>
+      {/* TODO: Move txprocessing outside of borrow */}
       <TransactionProcessingModal
-        open={showTransactionProcessingModal}
-        handleClose={() => {
-          setShowTransactionProcessingModal(false)
-          setShowTransactionAbstract(true)
-        }}
+        hash={currentTxHash}
+        handleClose={closeModal}
       />
       {showApprovalModal && (
         <ApprovalModal handleClose={() => setShowApprovalModal(false)} />

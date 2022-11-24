@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useState } from "react"
+import { MouseEvent, useState } from "react"
 import {
   Box,
   Button,
@@ -24,11 +24,10 @@ import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
-import shallow from "zustand/shallow"
 
 import styles from "../../styles/components/Borrow.module.css"
-import { useStore } from "../../store"
 import NetworkIcon from "../NetworkIcon"
+import { useHistory } from "../../store/history.store"
 
 type Step = {
   label: string
@@ -37,7 +36,7 @@ type Step = {
 }
 
 type TransactionProcessingModalProps = {
-  open: boolean
+  hash?: string
   handleClose: (e: MouseEvent) => void
 }
 
@@ -59,27 +58,14 @@ const steps: Step[] = [
   },
 ]
 
-export default function TransactionProcessingModal(
-  props: TransactionProcessingModalProps
-) {
+export default function TransactionProcessingModal({
+  hash,
+  handleClose,
+}: TransactionProcessingModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
-
-  const { transactionStatus, setTransactionStatus } = useStore(
-    (state) => ({
-      transactionStatus: state.transactionStatus,
-      setTransactionStatus: state.setTransactionStatus,
-    }),
-    shallow
-  )
-
-  useEffect(() => {
-    const sleep = setTimeout(() => setTransactionStatus(false), 10000) // TODO: change this sleeping process
-    return () => {
-      clearTimeout(sleep)
-    }
-  })
+  const entry = useHistory((state) => state.byHash[hash || ""])
 
   // Commented till we use it cause it make the linter fail
   // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
@@ -88,8 +74,8 @@ export default function TransactionProcessingModal(
 
   return (
     <Dialog
-      open={props.open}
-      onClose={props.handleClose}
+      open={Boolean(hash)}
+      onClose={handleClose}
       sx={{
         ".MuiPaper-root": {
           width: isMobile ? "100%" : "auto",
@@ -102,22 +88,19 @@ export default function TransactionProcessingModal(
         sx={{
           p: { xs: "1rem", sm: "1.5rem" },
           maxHeight: {
-            xs: !transactionStatus ? "28rem" : "",
-            sm: !transactionStatus ? "24.688rem" : "",
+            xs: entry?.status === "done" ? "28rem" : "",
+            sm: entry?.status === "done" ? "24.688rem" : "",
           },
         }}
       >
         <CloseIcon
-          sx={{
-            cursor: "pointer",
-            float: "right",
-          }}
-          onClick={props.handleClose}
+          sx={{ cursor: "pointer", float: "right" }}
+          onClick={handleClose}
           fontSize="small"
         />
 
         <Box textAlign="center" mt="1.625rem" mb="2.688rem">
-          {!transactionStatus ? (
+          {entry?.status === "done" ? (
             <>
               <CheckIcon
                 sx={{
@@ -175,7 +158,7 @@ export default function TransactionProcessingModal(
             </>
           )}
         </Box>
-        {transactionStatus && (
+        {entry?.status === "ongoing" && (
           <DialogContent>
             <Stepper
               activeStep={activeStep}

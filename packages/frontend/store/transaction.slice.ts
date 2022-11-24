@@ -18,14 +18,15 @@ import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
+import { useHistory } from "./history.store"
 
 setAutoFreeze(false)
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
 type TransactionState = {
-  transactionStatus: boolean
-  showTransactionAbstract: boolean
+  transactionStatus: boolean // TODO: remove
+  showTransactionAbstract: boolean // TODO: remove
 
   position: Position
   availableVaults: BorrowingVault[]
@@ -152,7 +153,6 @@ const initialState: TransactionState = {
   needPermit: true,
   isSigning: false,
   isBorrowing: false,
-  // history: [],
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -574,12 +574,13 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   async borrow() {
     const address = useStore.getState().address
     const provider = useStore.getState().provider
-    const { actions, signature } = get()
+    const { actions, signature, position } = get()
     if (!actions || !address || !signature || !provider) {
       throw "Unexpected undefined param"
     }
-    const srcChainId = get().position.collateral.token.chainId
+    const srcChainId = position.collateral.token.chainId
 
+    // TODO: freeze inputs / store
     set({ isBorrowing: true })
     let t
     try {
@@ -596,16 +597,15 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       console.error(e)
       return set({ isBorrowing: false })
     }
-    set({ transactionStatus: true, showTransactionAbstract: true }) // TODO: Tx successfully sent
-    await t.wait()
-    set({
-      isBorrowing: false,
-      transactionStatus: false,
-      showTransactionAbstract: false,
-    })
-    // TODO: set success
-    get().updateBalances("debt")
-    get().updateAllowance()
-    get().updateBalances("collateral")
+    useHistory.getState().add(
+      {
+        hash: t.hash,
+        type: "borrow",
+        position,
+        status: "ongoing",
+      },
+      t
+    )
+    set(initialState)
   },
 })
