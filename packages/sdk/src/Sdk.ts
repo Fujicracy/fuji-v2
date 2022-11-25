@@ -2,6 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
+import axios from 'axios';
 import invariant from 'tiny-invariant';
 
 import {
@@ -342,6 +343,108 @@ export class Sdk {
       data: callData,
       chainId: srcChainId,
     };
+  }
+
+  async watchTxStatus(
+    transactionHash: string,
+    steps: RoutingStepDetails[]
+  ): Promise<Promise<string>[]> {
+    const srcChainId = steps[0].chainId;
+    const transferId = await this.getTransferId(srcChainId, transactionHash);
+
+    const destTxHash = transferId
+      ? this.getDestTxHash(transferId)
+      : Promise.resolve(transactionHash);
+
+    return steps.map((s, i) => {
+      if (s.step === RoutingStep.START) {
+        return Promise.resolve(transactionHash);
+      } else if (s.step === RoutingStep.X_TRANSFER) {
+        invariant(i === 1 || i === 3, 'Wrong index of X_TRANSFER');
+        if (i === 1) {
+          // transfer from chain A and deposit and borrow on chain B
+          return Promise.resolve(transactionHash);
+        } else {
+          // deposit and borrow on chain A and transfer to chain B
+          return destTxHash;
+        }
+      } else if (s.step === RoutingStep.DEPOSIT) {
+        invariant(i === 2 || i === 4, 'Wrong index of DEPOSIT');
+        if (i === 2) {
+          // transfer from chain A and deposit and borrow on chain B
+          return destTxHash;
+        } else {
+          // deposit and borrow on chain A and transfer to chain B
+          return Promise.resolve(transactionHash);
+        }
+      } else if (s.step === RoutingStep.BORROW) {
+        invariant(i === 3 || i === 5, 'Wrong index of DEPOSIT');
+        if (i === 3) {
+          // transfer from chain A and deposit and borrow on chain B
+          return destTxHash;
+        } else {
+          // deposit and borrow on chain A and transfer to chain B
+          return Promise.resolve(transactionHash);
+        }
+      } else if (s.step === RoutingStep.END) {
+        if (i === 3) {
+          // transfer from chain A and deposit and borrow on chain B
+          return Promise.resolve(transactionHash);
+        } else {
+          return destTxHash;
+        }
+      }
+      return Promise.resolve('NONE');
+    });
+  }
+
+  async getTransferId(
+    chainId: ChainId,
+    transactionHash: string
+  ): Promise<string | undefined> {
+    const { rpcProvider } = ChainConnection.from(this._configParams, chainId);
+    const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
+    invariant(
+      !!receipt,
+      `Receipt not valid from tx with hash ${transactionHash}`
+    );
+    const blockHash = receipt.blockHash;
+    const srcContract = ConnextRouter__factory.connect(
+      CONNEXT_ROUTER_ADDRESS[chainId].value,
+      rpcProvider
+    );
+    const events = await srcContract.queryFilter(
+      srcContract.filters.XCalled(),
+      blockHash
+    );
+    let transferId;
+    for (const event of events.filter(
+      (e) => e.transactionHash == transactionHash
+    )) {
+      transferId = event.args[0];
+    }
+    return transferId;
+  }
+
+  getDestTxHash(transferId: string): Promise<string> {
+    return new Promise((resolve) => {
+      const apiCall = () =>
+        axios.get(
+          `https://postgrest.testnet.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
+        );
+
+      const interval = () => {
+        apiCall()
+          .then(({ data }) => {
+            if (data.length > 0 && data[0].execute_transaction_hash)
+              resolve(data[0].execute_transaction_hash);
+            else setTimeout(interval, 2000);
+          })
+          .catch((err) => console.error(err));
+      };
+
+      interval();
+    });
   }
 
   previewXTransfer(
