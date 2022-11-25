@@ -164,7 +164,7 @@ export default function TransactionProcessingModal({
           )}
         </Box>
         {entry?.status === "ongoing" && (
-          <DialogContent mt="1rem">
+          <DialogContent>
             <Stepper
               activeStep={activeStep}
               orientation="vertical"

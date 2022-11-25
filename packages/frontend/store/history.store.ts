@@ -56,14 +56,14 @@ export const useHistory = create<HistoryStore>()(
           // Deposit & borrow on the same chain, just wait for 1 confirmation
           try {
             await t.wait()
-            console.debug("ok")
             set(
               produce((s: HistoryStore) => {
                 s.byHash[e.hash].status = "done"
               })
             )
-          } catch (e) {
-            console.debug("error")
+          } catch (err) {
+            console.error(err)
+            // TODO: Display notification or smth ?
             set(
               produce((s: HistoryStore) => {
                 s.byHash[e.hash].status = "error"
