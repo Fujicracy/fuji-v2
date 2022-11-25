@@ -209,7 +209,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         _addTokenToCheck(address(WETH9));
       } else if (actions[i] == Action.WithdrawETH) {
         // make sure this action can be executed only after 'Withdraw' or 'Borrow'
-        if (i == 0 || (actions[i - 1] != Action.Withdraw && actions[i] != Action.Borrow)) {
+        if (i == 0 || (actions[i - 1] != Action.Withdraw && actions[i - 1] != Action.Borrow)) {
           revert BaseRouter__bundleInternal_withdrawETHWrongOrder();
         }
         // get owner from the previous action: BORROW or WITHDRAW
