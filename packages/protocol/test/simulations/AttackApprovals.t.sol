@@ -38,7 +38,7 @@ contract AttackApprovals is ForkingSetup, Routines {
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
   }
 
-  function test_PermitAttack() public {
+  function test_approvalAttack() public {
     deal(collateralAsset, ALICE, DEPOSIT_AMOUNT);
     vm.prank(ALICE);
     IERC20(collateralAsset).approve(address(simpleRouter), DEPOSIT_AMOUNT);

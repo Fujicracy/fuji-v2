@@ -206,4 +206,21 @@ contract SimpleRouterTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), 0);
     assertEq(vault2.balanceOf(ALICE), amount);
   }
+
+  function test_depositOnBehalf() public {
+    deal(collateralAsset, ALICE, DEPOSIT_AMOUNT);
+    vm.prank(ALICE);
+    IERC20(collateralAsset).approve(address(router), DEPOSIT_AMOUNT);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(vault), DEPOSIT_AMOUNT, BOB, ALICE);
+
+    vm.prank(ALICE);
+    router.xBundle(actions, args);
+
+    assertEq(vault.balanceOf(BOB), DEPOSIT_AMOUNT);
+  }
 }

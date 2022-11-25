@@ -250,7 +250,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     // this check is needed because when we bundle mulptiple actions
     // it can happen the router already holds the assets in question;
     // for. example when we withdraw from a vault and deposit to another one
-    if (sender != address(this) && sender == owner) {
+    if (sender != address(this) && (sender == owner || sender == msg.sender)) {
       ERC20(token).safeTransferFrom(sender, address(this), amount);
     }
   }
