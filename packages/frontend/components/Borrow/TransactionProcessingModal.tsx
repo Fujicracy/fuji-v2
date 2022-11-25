@@ -238,7 +238,7 @@ function CustomStepIcon(props: StepIconProps) {
   const { palette } = useTheme()
 
   const icons: Record<string, React.ReactElement> = {
-    1: <NetworkIcon networkName="Ethereum" height={32} width={32} />,
+    1: <NetworkIcon network="Ethereum" height={32} width={32} />,
     2: (
       <Image
         src={`/assets/images/logo/Connext.svg`}
@@ -247,7 +247,7 @@ function CustomStepIcon(props: StepIconProps) {
         alt="Connext"
       />
     ),
-    3: <NetworkIcon networkName="Polygon" height={32} width={32} />,
+    3: <NetworkIcon network="Polygon" height={32} width={32} />,
   }
 
   return (

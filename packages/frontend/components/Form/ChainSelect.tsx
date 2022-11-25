@@ -103,7 +103,7 @@ const ListItem = (props: ListItemProps) => {
   return (
     <>
       <ListItemIcon sx={{ minWidth: "inherit" }}>
-        <NetworkIcon networkName={`${chain.label}`} height={20} width={20} />
+        <NetworkIcon network={chain.label} height={20} width={20} />
       </ListItemIcon>
       {!onMobile && <ListItemText>{chain.label}</ListItemText>}
 

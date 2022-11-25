@@ -1,20 +1,30 @@
+import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
+import { chains } from "../store/auth.slice"
 
 interface Props extends Omit<ImageProps, "src"> {
-  networkName: string
+  network: string | ChainId
 }
 export default function NetworkIcon(props: Props) {
-  const path = `/assets/images/protocol-icons/networks/${props.networkName}.svg`
-  const { networkName, ...rest } = props
+  const { network, ...rest } = props
+
+  let name: string | undefined
+  if (typeof network === "string") {
+    name = network
+  } else {
+    const chain = chains.find((c) => parseInt(c.id) === network)
+    name = chain?.label
+  }
+  const path = `/assets/images/protocol-icons/networks/${name}.svg`
 
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
   useEffect(() => {
     if (error)
       console.error(
-        `404 Not found. No image found for network ${networkName}. Searched in ${path}`
+        `404 Not found. No image found for network ${name}. Searched in ${path}`
       )
-  }, [error, networkName, path])
+  }, [error, network, path])
 
   if (error) {
     return <></> // TODO: Is it fine to fallback to not displaying anything ?
@@ -23,7 +33,7 @@ export default function NetworkIcon(props: Props) {
     <Image
       {...rest}
       src={path}
-      alt={`${networkName} icon`}
+      alt={`${name} icon`}
       onError={(e) => setError(e)}
     />
   )

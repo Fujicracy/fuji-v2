@@ -27,6 +27,7 @@ import { useStore } from "../../store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import { BorrowingVault } from "@x-fuji/sdk"
 import ProviderIcon from "../ProviderIcon"
+import NetworkIcon from "../NetworkIcon"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -202,8 +203,8 @@ export default function Overview() {
             <Grid item>
               {providers?.length ? (
                 <Grid container alignItems="center">
-                  <ProviderIcon
-                    providerName={providers[0].name}
+                  <NetworkIcon
+                    network={vault?.chainId || ""}
                     height={18}
                     width={18}
                   />
