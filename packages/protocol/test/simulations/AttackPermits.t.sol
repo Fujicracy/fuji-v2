@@ -40,11 +40,10 @@ contract AttackPermits is MockingSetup, Routines {
     vault.setActiveProvider(mockProvider);
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
-
-    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
   }
 
-  function test_PermitAttack() public {
+  function test_permitAttack() public {
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
     // Alice signs a message for `simpleRouter` to borrow 800 tDAI.
     uint256 newBorrowAmount = 800e18;
 
@@ -76,7 +75,8 @@ contract AttackPermits is MockingSetup, Routines {
     assertEq(IERC20(debtAsset).balanceOf(attacker), 0);
   }
 
-  function test_PermitAttackWithReceiver() public {
+  function test_permitAttackWithReceiver() public {
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
     // Alice signs a message for `simpleRouter` to borrow 800 tDAI and do "something" with
     // funds. Therefore 'receiver` is also `operator`.
     uint256 newBorrowAmount = 800e18;
@@ -113,5 +113,84 @@ contract AttackPermits is MockingSetup, Routines {
 
     // no change in balances at simpleRouter
     assertEq(previousBalance, afterBalance);
+  }
+
+  // attacker tries to withdraw 0
+  function test_permitAttackWithdrawETH_1() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+
+    uint256 ATTACKER_AMOUNT = 0;
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), DEPOSIT_AMOUNT, 0, address(vault)
+    );
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+    IRouter.Action[] memory actions = new IRouter.Action[](4);
+    actions[0] = IRouter.Action.PermitWithdraw;
+    actions[1] = IRouter.Action.Withdraw;
+    actions[2] = IRouter.Action.Withdraw;
+    actions[3] = IRouter.Action.WithdrawETH;
+
+    bytes[] memory args = new bytes[](4);
+    args[0] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), DEPOSIT_AMOUNT, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), DEPOSIT_AMOUNT, address(simpleRouter), ALICE);
+    args[2] = abi.encode(address(vault), ATTACKER_AMOUNT, attacker, attacker);
+    args[3] = abi.encode(DEPOSIT_AMOUNT, attacker);
+
+    vm.expectRevert();
+    vm.prank(attacker);
+    simpleRouter.xBundle(actions, args);
+  }
+
+  // attacker tries to withdraw > 0
+  function test_permitAttackWithdrawETH_2() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+
+    // Attacker prepares
+    uint256 ATTACKER_AMOUNT = 1;
+    do_deposit(ATTACKER_AMOUNT, vault, attacker);
+    LibSigUtils.Permit memory permitAttacker = LibSigUtils.buildPermitStruct(
+      attacker, address(simpleRouter), attacker, ATTACKER_AMOUNT, 0, address(vault)
+    );
+    (uint256 deadline2, uint8 v2, bytes32 r2, bytes32 s2) =
+      _getPermitWithdrawArgs(permitAttacker, CHARLIE_PK, address(vault));
+
+    IRouter.Action[] memory actions2 = new IRouter.Action[](1);
+    actions2[0] = IRouter.Action.PermitWithdraw;
+
+    bytes[] memory args2 = new bytes[](1);
+    args2[0] =
+      abi.encode(address(vault), attacker, attacker, ATTACKER_AMOUNT, deadline2, v2, r2, s2);
+
+    vm.prank(attacker);
+    simpleRouter.xBundle(actions2, args2);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), DEPOSIT_AMOUNT, 0, address(vault)
+    );
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+    IRouter.Action[] memory actions = new IRouter.Action[](4);
+    actions[0] = IRouter.Action.PermitWithdraw;
+    actions[1] = IRouter.Action.Withdraw;
+    actions[2] = IRouter.Action.Withdraw;
+    actions[3] = IRouter.Action.WithdrawETH;
+
+    bytes[] memory args = new bytes[](4);
+    args[0] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), DEPOSIT_AMOUNT, deadline, v, r, s);
+    args[1] = abi.encode(address(vault), DEPOSIT_AMOUNT, address(simpleRouter), ALICE);
+    args[2] = abi.encode(address(vault), ATTACKER_AMOUNT, attacker, attacker);
+    args[3] = abi.encode(DEPOSIT_AMOUNT, attacker);
+
+    vm.expectRevert();
+    vm.prank(attacker);
+    simpleRouter.xBundle(actions, args);
   }
 }
