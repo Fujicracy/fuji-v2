@@ -11,6 +11,7 @@ export type HistoryStore = HistoryState & HistoryActions
 type HistoryState = {
   allHash: string[]
   byHash: Record<string, HistoryEntry>
+
   inModal?: string // The tx hash displayed in modal
   inNotification?: string
 }

@@ -606,6 +606,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       },
       t
     )
-    set(initialState)
+    get().changeCollateralValue("")
+    get().changeBorrowValue("")
   },
 })
