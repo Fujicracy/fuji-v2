@@ -24,7 +24,11 @@ export type HistoryEntry = {
 
 type HistoryActions = {
   add: (e: HistoryEntry, t: ethers.providers.TransactionResponse) => void
+  update: (hash: string, patch: Partial<HistoryEntry>) => void
+
+  openModal: (hash: string) => void
   closeModal: () => void
+
   closeNotification: () => void
 }
 
@@ -72,6 +76,26 @@ export const useHistory = create<HistoryStore>()(
           useStore.getState().updateAllowance()
         },
 
+        update(hash, patch) {
+          const entry = get().byHash[hash]
+          if (!entry) {
+            console.error("No entry in history for hash", hash)
+          }
+          set(
+            produce((s: HistoryState) => {
+              s.byHash[hash] = { ...s.byHash[hash], ...patch }
+            })
+          )
+        },
+
+        openModal(hash) {
+          const entry = get().byHash[hash]
+          if (!entry) {
+            console.error("No entry in history for hash", hash)
+          }
+          set({ inModal: hash })
+        },
+
         closeModal() {
           const inModal = get().inModal
           if (!inModal) {
@@ -91,6 +115,7 @@ export const useHistory = create<HistoryStore>()(
         enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
         name: "xFuji/history",
       }
-    )
+    ),
+    { name: "xFuji/history" }
   )
 )

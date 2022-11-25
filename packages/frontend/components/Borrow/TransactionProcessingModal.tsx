@@ -28,18 +28,13 @@ import Image from "next/image"
 import styles from "../../styles/components/Borrow.module.css"
 import NetworkIcon from "../NetworkIcon"
 import { useHistory } from "../../store/history.store"
+import { chains } from "../../store/auth.slice"
 
 type Step = {
   label: string
   description: string
   link: string | undefined
 }
-
-type TransactionProcessingModalProps = {
-  hash?: string
-  handleClose: (e: MouseEvent) => void
-}
-
 const steps: Step[] = [
   {
     label: "Deposit 1 ETH on Aave",
@@ -58,6 +53,10 @@ const steps: Step[] = [
   },
 ]
 
+type TransactionProcessingModalProps = {
+  hash?: string
+  handleClose: (e: MouseEvent) => void
+}
 export default function TransactionProcessingModal({
   hash,
   handleClose,
@@ -66,6 +65,13 @@ export default function TransactionProcessingModal({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
   const entry = useHistory((state) => state.byHash[hash || ""])
+
+  const chainId = entry?.position.vault?.chainId
+  const networkName = chains.find((c) => parseInt(c.id) === chainId)
+
+  const update = useHistory((state) => state.update)
+  const toOngoing = () => update(entry.hash, { status: "ongoing" })
+  const toDone = () => update(entry.hash, { status: "done" })
 
   // Commented till we use it cause it make the linter fail
   // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
@@ -99,7 +105,7 @@ export default function TransactionProcessingModal({
           fontSize="small"
         />
 
-        <Box textAlign="center" mt="1.625rem" mb="2.688rem">
+        <Box textAlign="center" mt="1.625rem" mb="2.5rem">
           {entry?.status === "done" ? (
             <>
               <CheckIcon
@@ -115,17 +121,15 @@ export default function TransactionProcessingModal({
               />
               <Typography variant="h5">Transaction successful!</Typography>
               <Typography variant="body">
-                You have borrowed 900.00 USDC
+                You have borrowed {entry.position.debt.amount} USDC
               </Typography>
-              <Grid container justifyContent="center">
-                <Button
-                  className={styles.btn}
-                  variant="text"
-                  sx={{ mt: "1.5rem", mb: "2rem" }}
-                >
-                  Add USDC
-                </Button>
-              </Grid>
+              <Button
+                className={styles.btn}
+                variant="text"
+                sx={{ m: "2rem auto", display: "block" }}
+              >
+                Add USDC
+              </Button>
               <Grid
                 container
                 columnGap="1rem"
@@ -148,18 +152,19 @@ export default function TransactionProcessingModal({
                   View Position
                 </Button>
               </Grid>
+              <Button onClick={toOngoing}>Hack</Button>
             </>
           ) : (
             <>
               <Typography variant="h6">Transaction processing</Typography>
               <Typography variant="body">
-                Borrowing on Polygon Network
+                Borrowing on {networkName?.label}
               </Typography>
             </>
           )}
         </Box>
         {entry?.status === "ongoing" && (
-          <DialogContent>
+          <DialogContent mt="1rem">
             <Stepper
               activeStep={activeStep}
               orientation="vertical"
@@ -227,6 +232,7 @@ export default function TransactionProcessingModal({
                 </Typography>
               </CardContent>
             </Card>
+            <Button onClick={toDone}>Hack</Button>
           </DialogContent>
         )}
       </Paper>
@@ -268,9 +274,8 @@ function CustomStepIcon(props: StepIconProps) {
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {
     borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
-    ml: "0.7rem",
-    mt: "-0.5rem",
-    mb: "-0.5rem",
+    margin: "-0.5rem 0.7rem",
     height: "3rem",
+    position: "relative",
   },
 }))
