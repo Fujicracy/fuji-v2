@@ -348,54 +348,17 @@ export class Sdk {
   async watchTxStatus(
     transactionHash: string,
     steps: RoutingStepDetails[]
-  ): Promise<Promise<string>[]> {
+  ): Promise<RoutingStepDetails[]> {
     const srcChainId = steps[0].chainId;
     const transferId = await this.getTransferId(srcChainId, transactionHash);
 
-    const destTxHash = transferId
-      ? this.getDestTxHash(transferId)
-      : Promise.resolve(transactionHash);
+    const srcTxHash = Promise.resolve(transactionHash);
+    const destTxHash = this.getDestTxHash(transferId ?? '');
 
-    return steps.map((s, i) => {
-      if (s.step === RoutingStep.START) {
-        return Promise.resolve(transactionHash);
-      } else if (s.step === RoutingStep.X_TRANSFER) {
-        invariant(i === 1 || i === 3, 'Wrong index of X_TRANSFER');
-        if (i === 1) {
-          // transfer from chain A and deposit and borrow on chain B
-          return Promise.resolve(transactionHash);
-        } else {
-          // deposit and borrow on chain A and transfer to chain B
-          return destTxHash;
-        }
-      } else if (s.step === RoutingStep.DEPOSIT) {
-        invariant(i === 2 || i === 4, 'Wrong index of DEPOSIT');
-        if (i === 2) {
-          // transfer from chain A and deposit and borrow on chain B
-          return destTxHash;
-        } else {
-          // deposit and borrow on chain A and transfer to chain B
-          return Promise.resolve(transactionHash);
-        }
-      } else if (s.step === RoutingStep.BORROW) {
-        invariant(i === 3 || i === 5, 'Wrong index of DEPOSIT');
-        if (i === 3) {
-          // transfer from chain A and deposit and borrow on chain B
-          return destTxHash;
-        } else {
-          // deposit and borrow on chain A and transfer to chain B
-          return Promise.resolve(transactionHash);
-        }
-      } else if (s.step === RoutingStep.END) {
-        if (i === 3) {
-          // transfer from chain A and deposit and borrow on chain B
-          return Promise.resolve(transactionHash);
-        } else {
-          return destTxHash;
-        }
-      }
-      return Promise.resolve('NONE');
-    });
+    return steps.map((step) => ({
+      ...step,
+      txHash: step.chainId === srcChainId ? srcTxHash : destTxHash,
+    }));
   }
 
   async getTransferId(
@@ -429,6 +392,7 @@ export class Sdk {
   getDestTxHash(transferId: string): Promise<string> {
     return new Promise((resolve) => {
       const apiCall = () =>
+        // TODO: replace with prod API url
         axios.get(
           `https://postgrest.testnet.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
         );
@@ -512,7 +476,7 @@ export class Sdk {
         step: RoutingStep.START,
         amount: amountIn,
         chainId: srcChainId,
-        tokenSym: vault.collateral.symbol,
+        token: vault.collateral,
       },
     ];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -521,15 +485,15 @@ export class Sdk {
         {
           step: RoutingStep.DEPOSIT,
           amount: amountIn,
-          chainId: vault.chainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: srcChainId,
+          token: vault.collateral,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.BORROW,
           amount: amountOut,
-          chainId: vault.chainId,
-          tokenSym: vault.debt.symbol,
+          chainId: srcChainId,
+          token: vault.debt,
           lendingProvider: activeProvider,
         }
       );
@@ -539,22 +503,22 @@ export class Sdk {
         {
           step: RoutingStep.DEPOSIT,
           amount: amountIn,
-          chainId: vault.chainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: srcChainId,
+          token: vault.collateral,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.BORROW,
           amount: amountOut,
-          chainId: vault.chainId,
-          tokenSym: vault.debt.symbol,
+          chainId: srcChainId,
+          token: vault.debt,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.X_TRANSFER,
           amount: amountOut,
           chainId: destChainId,
-          tokenSym: vault.debt.symbol,
+          token: vault.debt,
         }
       );
     } else if (destChainId === vault.chainId) {
@@ -563,21 +527,21 @@ export class Sdk {
         {
           step: RoutingStep.X_TRANSFER,
           amount: amountIn,
-          chainId: destChainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: srcChainId,
+          token: vault.collateral,
         },
         {
           step: RoutingStep.DEPOSIT,
           amount: amountIn,
-          chainId: vault.chainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: destChainId,
+          token: vault.collateral,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.BORROW,
           amount: amountOut,
-          chainId: vault.chainId,
-          tokenSym: vault.debt.symbol,
+          chainId: destChainId,
+          token: vault.debt,
           lendingProvider: activeProvider,
         }
       );
@@ -586,7 +550,7 @@ export class Sdk {
       step: RoutingStep.END,
       amount: amountOut,
       chainId: destChainId,
-      tokenSym: vault.debt.symbol,
+      token: vault.debt,
     });
 
     return steps;
