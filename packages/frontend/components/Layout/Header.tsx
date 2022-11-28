@@ -153,7 +153,6 @@ const Header = () => {
                 flexGrow: 1,
                 display: { xs: "none", lg: "flex" },
                 justifyContent: "center",
-                mt: 1,
               }}
             >
               {pages.map((page: string) => (
@@ -185,7 +184,6 @@ const Header = () => {
               columnGap="0.5rem"
               justifyContent="flex-end"
               alignItems="center"
-              mt="1rem"
               sx={{ display: { xs: "none", md: "flex" } }}
             >
               {status === "disconnected" && (

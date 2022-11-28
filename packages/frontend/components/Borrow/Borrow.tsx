@@ -6,6 +6,7 @@ import {
   CardContent,
   Card,
   Grid,
+  Box,
 } from "@mui/material"
 import Image from "next/image"
 
@@ -140,55 +141,51 @@ export default function Borrow() {
 
   return (
     <>
-      <Card
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          p: "0.5rem 0",
-        }}
-      >
-        <CardContent>
+      <Card sx={{ maxWidth: "500px", margin: "auto" }}>
+        <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <Typography variant="body2" height="40px" lineHeight="40px">
             Borrow
           </Typography>
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
-          <ChainSelect
-            label="Collateral from"
-            type="collateral"
-            value={collateralChainId}
-            onChange={(chainId) => changeCollateralChain(chainId)}
-          />
-          <TokenCard type="collateral" />
+          <Box mb="1rem">
+            <ChainSelect
+              label="Collateral from"
+              type="collateral"
+              value={collateralChainId}
+              onChange={(chainId) => changeCollateralChain(chainId)}
+            />
+            <TokenCard type="collateral" />
+          </Box>
 
-          <br />
+          <Box mb="2rem">
+            <ChainSelect
+              label="Borrow to"
+              type="borrow"
+              value={debtChainId}
+              onChange={(chainId) => changeBorrowChain(chainId)}
+            />
+            <TokenCard type="debt" />
+          </Box>
 
-          <ChainSelect
-            label="Borrow to"
-            type="borrow"
-            value={debtChainId}
-            onChange={(chainId) => changeBorrowChain(chainId)}
-          />
-          <TokenCard type="debt" />
-
-          <br />
-
-          <Fees />
-          <br />
+          <Box mb="1rem">
+            <Fees />
+          </Box>
 
           {button}
-
-          <br />
-          <br />
 
           <a
             href="https://www.connext.network/"
             target="_blank"
             rel="noreferrer"
           >
-            <Grid container justifyContent="center" alignItems="center">
+            <Grid
+              container
+              justifyContent="center"
+              alignItems="center"
+              mt="2rem"
+            >
               <Typography variant="small">Powered by</Typography>
               <Image
                 src="/assets/images/logo/connext-title.svg"
