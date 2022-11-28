@@ -44,7 +44,7 @@ export class Sdk {
    * @param params - array of actions
    */
   static needSignature(params: RouterActionParams[]): boolean {
-    return !!params.find((p) => {
+    return !!params.find(p => {
       if (p.action === RouterAction.X_TRANSFER_WITH_CALL) {
         return Sdk.needSignature(p.innerActions);
       }
@@ -142,7 +142,7 @@ export class Sdk {
     chainId: ChainId
   ): Promise<BigNumber[]> {
     invariant(
-      !tokens.find((t) => t.chainId !== chainId),
+      !tokens.find(t => t.chainId !== chainId),
       'Token from a different chain!'
     );
     const { multicallRpcProvider } = ChainConnection.from(
@@ -150,9 +150,9 @@ export class Sdk {
       chainId
     );
     const balances = tokens
-      .map((token) => token.setConnection(this._configParams))
+      .map(token => token.setConnection(this._configParams))
       .map(
-        (token) =>
+        token =>
           token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
       );
 
@@ -176,11 +176,12 @@ export class Sdk {
   ): Promise<BorrowingVault[]> {
     // TODO: sort by safety rating too
     // find all vaults with this pair
-    const vaults = this._findVaultsByTokens(collateral, debt).map(
-      (v: BorrowingVault) => v.setConnection(this._configParams)
-    );
+    const vaults = this._findVaultsByTokens(
+      collateral,
+      debt
+    ).map((v: BorrowingVault) => v.setConnection(this._configParams));
 
-    const rates = await Promise.all(vaults.map((v) => v.getBorrowRate()));
+    const rates = await Promise.all(vaults.map(v => v.getBorrowRate()));
 
     // and sort them by borrow rate
     const sorted = vaults
@@ -190,9 +191,7 @@ export class Sdk {
 
     if (collateral.chainId === debt.chainId) {
       // sort again to privilege vaults on the same chain
-      sorted.sort((a) =>
-        a.collateral.chainId === collateral.chainId ? -1 : 0
-      );
+      sorted.sort(a => (a.collateral.chainId === collateral.chainId ? -1 : 0));
     }
 
     return sorted;
@@ -316,7 +315,7 @@ export class Sdk {
     signature?: Signature
   ): TransactionRequest {
     // dummy copy actionParams because of the immutabiltiy of Immer
-    const _actionParams = actionParams.map((a) => ({ ...a }));
+    const _actionParams = actionParams.map(a => ({ ...a }));
     const permitAction = Sdk.findPermitAction(_actionParams);
 
     if (permitAction && signature) {
@@ -331,11 +330,10 @@ export class Sdk {
 
     const actions = _actionParams.map(({ action }) => BigNumber.from(action));
     const args = _actionParams.map(encodeActionArgs);
-    const callData =
-      ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
-        actions,
-        args,
-      ]);
+    const callData = ConnextRouter__factory.createInterface().encodeFunctionData(
+      'xBundle',
+      [actions, args]
+    );
 
     return {
       from: account.value,
@@ -355,7 +353,7 @@ export class Sdk {
     const srcTxHash = Promise.resolve(transactionHash);
     const destTxHash = this.getDestTxHash(transferId ?? '');
 
-    return steps.map((step) => ({
+    return steps.map(step => ({
       ...step,
       txHash: step.chainId === srcChainId ? srcTxHash : destTxHash,
     }));
@@ -382,7 +380,7 @@ export class Sdk {
     );
     let transferId;
     for (const event of events.filter(
-      (e) => e.transactionHash == transactionHash
+      e => e.transactionHash == transactionHash
     )) {
       transferId = event.args[0];
     }
@@ -390,7 +388,7 @@ export class Sdk {
   }
 
   getDestTxHash(transferId: string): Promise<string> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const apiCall = () =>
         // TODO: replace with prod API url
         axios.get(
@@ -404,7 +402,7 @@ export class Sdk {
               resolve(data[0].execute_transaction_hash);
             else setTimeout(interval, 2000);
           })
-          .catch((err) => console.error(err));
+          .catch(err => console.error(err));
       };
 
       interval();
@@ -469,7 +467,7 @@ export class Sdk {
     srcChainId: ChainId,
     destChainId: ChainId
   ): Promise<RoutingStepDetails[]> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = (await vault.getProviders()).find(p => p.active);
 
     const steps: RoutingStepDetails[] = [
       {

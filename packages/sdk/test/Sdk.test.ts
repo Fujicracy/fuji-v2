@@ -57,7 +57,7 @@ describe('Sdk', () => {
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
         ChainId.ETHEREUM
       );
-      bals.forEach((bal) => {
+      bals.forEach(bal => {
         expect(parseFloat(formatUnits(bal))).toBeGreaterThan(0);
       });
     });
@@ -368,7 +368,7 @@ describe('Sdk', () => {
       );
 
       const permitBorrow = actions.find(
-        (a) => a.action === RouterAction.PERMIT_BORROW
+        a => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
@@ -401,7 +401,7 @@ describe('Sdk', () => {
       );
 
       const permitBorrow = actions.find(
-        (a) => a.action === RouterAction.PERMIT_BORROW
+        a => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
@@ -419,8 +419,9 @@ describe('Sdk', () => {
     });
 
     it('returns a cross-chain calldata for TrasactionRequest (transfer from chain A and deposit+borrow on chain B)', async () => {
-      const vault =
-        VAULT_LIST[ChainId.OPTIMISM_GOERLI][0].setConnection(config);
+      const vault = VAULT_LIST[ChainId.OPTIMISM_GOERLI][0].setConnection(
+        config
+      );
 
       const owner = new Wallet(JUNK_KEY);
 
@@ -436,7 +437,7 @@ describe('Sdk', () => {
       const innerActions = (actions[0] as XTransferWithCallParams).innerActions;
 
       const permitBorrow = innerActions.find(
-        (a) => a.action === RouterAction.PERMIT_BORROW
+        a => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
