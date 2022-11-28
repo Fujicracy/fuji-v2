@@ -80,6 +80,11 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
     _utils_callWithTimelock(address(chief), callData);
 
+    callData = abi.encodeWithSelector(
+      bVaultFactory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
+    );
+    _utils_callWithTimelock(address(bVaultFactory), callData);
+
     address vault1Addr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
     );

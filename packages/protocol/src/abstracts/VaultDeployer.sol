@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
-/// @dev Custom Errors
-error Unauthorized();
-error ZeroAddress();
-error InvalidTokenOrder();
+import {IChief} from "../interfaces/IChief.sol";
 
 /// @notice Vault deployer for whitelisted template factories.
 abstract contract VaultDeployer {
+  error VaultDeployer__onlyChief_notAuthorized();
+  error VaultDeployer__onlyTimelock_notAuthorized();
+  error VaultDeployer__zeroAddress();
+
   /**
    * @dev Emit when a vault is registered
    * @param vault address
@@ -23,14 +24,21 @@ abstract contract VaultDeployer {
 
   modifier onlyChief() {
     if (msg.sender != chief) {
-      revert Unauthorized();
+      revert VaultDeployer__onlyChief_notAuthorized();
+    }
+    _;
+  }
+
+  modifier onlyTimelock() {
+    if (msg.sender != IChief(chief).timelock()) {
+      revert VaultDeployer__onlyTimelock_notAuthorized();
     }
     _;
   }
 
   constructor(address _chief) {
     if (_chief == address(0)) {
-      revert ZeroAddress();
+      revert VaultDeployer__zeroAddress();
     }
     chief = _chief;
   }

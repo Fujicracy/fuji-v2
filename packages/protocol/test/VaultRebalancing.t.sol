@@ -95,9 +95,14 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     chief.setTimelock(address(timelock));
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
+    bytes memory executionCall = abi.encodeWithSelector(
+      bVaultFactory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
+    );
+    _utils_callWithTimelock(address(bVaultFactory), executionCall);
+
     yVaultFactory = new YieldVaultFactory(address(chief));
 
-    bytes memory executionCall =
+    executionCall =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
     _utils_callWithTimelock(address(chief), executionCall);
 
