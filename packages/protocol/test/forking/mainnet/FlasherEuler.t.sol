@@ -10,7 +10,7 @@ import {CompoundV2} from "../../../src/providers/mainnet/CompoundV2.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {FlasherEuler} from "../../../src/flashloans/FlasherEuler.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
-import {MockRebalancerManager} from "../../../src/mocks/MockRebalancerManager.sol";
+import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Euler} from "../../../src/providers/mainnet/Euler.sol";
 import {IEulerDToken} from "../../../src/interfaces/euler/IEulerDToken.sol";
@@ -19,11 +19,11 @@ import {IEulerMarkets} from "../../../src/interfaces/euler/IEulerMarkets.sol";
 
 contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
   ILendingProvider public providerAave;
-  ILendingProvider public providerEuler;
+  ILendingProvider public providerCompound;
 
   IFlasher public flasher;
 
-  MockRebalancerManager public rebalancer;
+  RebalancerManager public rebalancer;
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
   uint256 public constant BORROW_AMOUNT = 100;
@@ -32,19 +32,25 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     deploy(MAINNET_DOMAIN);
 
     providerAave = new AaveV2();
-    providerEuler = new CompoundV2();
+    providerCompound = new CompoundV2();
 
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = providerAave;
-    providers[1] = providerEuler;
+    providers[1] = providerCompound;
 
     _setVaultProviders(vault, providers);
     vault.setActiveProvider(providerAave);
 
-    rebalancer = new MockRebalancerManager();
+    rebalancer = new RebalancerManager(address(chief));
     chief.grantRole(REBALANCER_ROLE, address(rebalancer));
 
+    bytes memory executionCall =
+      abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
+    _callWithTimelock(executionCall, address(rebalancer));
+
     flasher = new FlasherEuler(0x27182842E098f60e3D576794A5bFFb0777E025d3);
+    executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(executionCall, address(chief));
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
   }
@@ -71,19 +77,19 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     uint256 assets = DEPOSIT_AMOUNT;
     uint256 debt = BORROW_AMOUNT;
 
-    rebalancer.rebalanceVault(vault, assets, debt, providerAave, providerEuler, flasher, true);
+    rebalancer.rebalanceVault(vault, assets, debt, providerAave, providerCompound, flasher, true);
 
     assertEq(providerAave.getDepositBalance(address(vault), IVault(address(vault))), 0);
     assertEq(providerAave.getBorrowBalance(address(vault), IVault(address(vault))), 0);
 
     //issue with rounding
     assertApproxEqAbs(
-      providerEuler.getDepositBalance(address(vault), IVault(address(vault))),
+      providerCompound.getDepositBalance(address(vault), IVault(address(vault))),
       assets,
       DEPOSIT_AMOUNT / 100
     );
     assertApproxEqAbs(
-      providerEuler.getBorrowBalance(address(vault), IVault(address(vault))),
+      providerCompound.getBorrowBalance(address(vault), IVault(address(vault))),
       debt,
       BORROW_AMOUNT / 100
     );

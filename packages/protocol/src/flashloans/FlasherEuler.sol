@@ -14,6 +14,8 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IEulerMarkets} from "../interfaces/euler/IEulerMarkets.sol";
 
 contract FlasherEuler is BaseFlasher, IFlashloan {
+  address public constant EULER_MARKETS = 0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3;
+
   // IEuler mainnet = 0x27182842E098f60e3D576794A5bFFb0777E025d3
   constructor(address euler) BaseFlasher("FlasherEuler", euler) {}
 
@@ -30,18 +32,16 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
     bytes memory data = abi.encode(asset, amount, requestor, requestorCalldata);
     _checkAndSetEntryPoint(data);
 
-    IEulerDToken dToken = IEulerDToken(
-      IEulerMarkets(0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3).underlyingToDToken(asset)
-    );
+    IEulerDToken dToken = IEulerDToken(IEulerMarkets(EULER_MARKETS).underlyingToDToken(asset));
     dToken.flashLoan(amount, data);
   }
 
   function computeFlashloanFee(
-    address asset,
-    uint256 amount
+    address, /*asset*/
+    uint256 /*amount*/
   )
     external
-    view
+    pure
     override
     returns (uint256 fee)
   {

@@ -11,7 +11,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
-import {MockRebalancerManager} from "../../../src/mocks/MockRebalancerManager.sol";
+import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV3Pool} from "../../../src/interfaces/aaveV3/IV3Pool.sol";
 import {IFlashLoanSimpleReceiver} from "../../../src/interfaces/aaveV3/IFlashLoanSimpleReceiver.sol";
@@ -22,7 +22,7 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
 
   IFlasher public flasher;
 
-  MockRebalancerManager public rebalancer;
+  RebalancerManager public rebalancer;
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
   uint256 public constant BORROW_AMOUNT = 100;
@@ -40,10 +40,16 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
     _setVaultProviders(vault, providers);
     vault.setActiveProvider(providerAaveV3);
 
-    rebalancer = new MockRebalancerManager();
+    rebalancer = new RebalancerManager(address(chief));
     chief.grantRole(REBALANCER_ROLE, address(rebalancer));
 
+    bytes memory executionCall =
+      abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
+    _callWithTimelock(executionCall, address(rebalancer));
+
     flasher = new FlasherAaveV3(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
+    executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(executionCall, address(chief));
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
@@ -52,10 +58,10 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
   }
 
   function executeOperation(
-    address asset,
-    uint256 amount,
-    uint256 premium,
-    address initiator,
+    address, /*asset*/
+    uint256, /*amount*/
+    uint256, /*premium*/
+    address, /*initiator*/
     bytes calldata data
   )
     external
