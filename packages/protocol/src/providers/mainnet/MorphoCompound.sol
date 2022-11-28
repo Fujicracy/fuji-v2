@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IMorpho} from "../../interfaces/Morpho/IMorpho.sol";
+import {IMorpho} from "../../interfaces/morpho/IMorpho.sol";
 import {ILens} from "../../interfaces/morpho/ILens.sol";
 
 /**
