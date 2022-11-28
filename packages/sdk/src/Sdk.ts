@@ -561,13 +561,21 @@ export class Sdk {
     const collateralSym = collateral.symbol;
     const debtSym = debt.symbol;
 
+    const chains = [collateral.chainId, debt.chainId];
+
     return Object.entries(VAULT_LIST)
       .map(([, list]) => list)
       .reduce((acc, list) => {
-        const vaults = list.filter(
-          (v: BorrowingVault) =>
-            v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
-        );
+        const vaults = list
+          .filter(
+            (v: BorrowingVault) =>
+              chains.includes(v.collateral.chainId) ||
+              chains.includes(v.debt.chainId)
+          )
+          .filter(
+            (v: BorrowingVault) =>
+              v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
+          );
         return [...acc, ...vaults];
       }, []);
   }
