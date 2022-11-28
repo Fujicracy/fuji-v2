@@ -73,7 +73,7 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 2. Pre-load some data for the vault so that it's available for a later use
 
 ```
-  await vault.preLoad(user);
+  await vault.preLoad();
 
   // pre-load makes available vault.maxLtv and vault.liqRatio
   // that can be used to calculate health ratio and
@@ -132,7 +132,13 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   }
 
   const txRequest = await vault.getTxDetails(actions, srcChainId, user, signature?)
-  await signer.sendTransaction(txRequest);
+  const tx = await signer.sendTransaction(txRequest);
+  const receipt = await tx.wait();
+  const stepsWithStatus = await sdk.watchTxStatus(receipt.transactionHash, steps);
+
+  // 'step.txHash' is a Promise returning the transactionHash when the tx gets validated
+  // use step.chainId and step.txHash to construct the etherscan links
+  stepsWithStatus.forEach((step) => step.txHash.then(console.log));
 ```
 
 ### Misc
