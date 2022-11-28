@@ -136,7 +136,7 @@ export class Token extends AbstractCurrency {
         this.rpcProvider
       )
         .getPriceOf(this.address.value, AddressZero, this.decimals)
-        .then(price =>
+        .then((price) =>
           parseFloat(formatUnits(price.toString(), this.decimals))
         );
     }

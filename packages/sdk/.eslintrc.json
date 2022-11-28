@@ -13,7 +13,8 @@
   ],
   "ignorePatterns": [
     "src/types/contracts/**/*",
-    "dist"
+    "dist",
+    "jest*"
   ],
   "rules": {
     "tsdoc/syntax": "error",

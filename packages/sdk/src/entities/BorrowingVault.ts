@@ -216,17 +216,17 @@ export class BorrowingVault extends StreamManager {
     const allProvidersAddrs: string[] = await this.contract.getProviders();
     const activeProviderAddr: string = await this.contract.activeProvider();
 
-    const depositCalls = allProvidersAddrs.map(addr =>
+    const depositCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).getDepositRateFor(
         this.address.value
       )
     );
-    const borrowCalls = allProvidersAddrs.map(addr =>
+    const borrowCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).getBorrowRateFor(
         this.address.value
       )
     );
-    const nameCalls = allProvidersAddrs.map(addr =>
+    const nameCalls = allProvidersAddrs.map((addr) =>
       ILendingProvider__factory.multicall(addr).providerName()
     );
 
@@ -299,9 +299,7 @@ export class BorrowingVault extends StreamManager {
    *
    * @param params - the permit action that needs to be signed
    */
-  async signPermitFor(
-    params: PermitParams
-  ): Promise<{
+  async signPermitFor(params: PermitParams): Promise<{
     digest: string;
     domain: TypedDataDomain;
     types: Record<string, TypedDataField[]>;
