@@ -67,11 +67,11 @@ export default function Borrow() {
   const ltv = useStore((state) => state.position.ltv)
   const ltvMax = useStore((state) => state.position.ltvMax)
 
-  const signature = useStore((state) => state.signature)
+  const signAndBorrow = useStore((state) => state.signAndBorrow)
   const isSigning = useStore((state) => state.isSigning)
-  const signPermit = useStore((state) => state.signPermit)
-  const borrow = useStore((state) => state.borrow)
   const isBorrowing = useStore((state) => state.isBorrowing)
+
+  const metaStatus = useStore((state) => state.transactionMeta.status)
 
   let button: ReactNode
   if (!address) {
@@ -122,33 +122,22 @@ export default function Borrow() {
     )
   } else {
     button = (
-      <>
-        <LoadingButton
-          variant="primary"
-          disabled={
-            collateral.amount <= 0 || debt.amount <= 0 || Boolean(signature)
-          }
-          loading={isSigning}
-          onClick={signPermit}
-          fullWidth
-        >
-          {signature ? "Signed" : "Sign"}
-        </LoadingButton>
-
-        <br />
-        <br />
-
-        <LoadingButton
-          variant="gradient"
-          onClick={borrow}
-          fullWidth
-          className={styles.btn}
-          disabled={collateral.amount <= 0 || debt.amount <= 0 || !signature}
-          loading={isBorrowing}
-        >
-          Borrow
-        </LoadingButton>
-      </>
+      <LoadingButton
+        variant="gradient"
+        onClick={signAndBorrow}
+        fullWidth
+        className={styles.btn}
+        disabled={
+          collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
+        }
+        loading={isSigning || isBorrowing}
+        loadingPosition="start"
+        startIcon={<></>}
+      >
+        {(isSigning && "(1/2) Signing...") ||
+          (isBorrowing && "(2/2) Borrowing...") ||
+          "Sign & Borrow"}
+      </LoadingButton>
     )
   }
 
