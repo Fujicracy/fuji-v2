@@ -24,7 +24,7 @@ export default function NetworkIcon(props: Props) {
       console.error(
         `404 Not found. No image found for network ${name}. Searched in ${path}`
       )
-  }, [error, network, path])
+  }, [error, network, path, name])
 
   if (error) {
     return <></> // TODO: Is it fine to fallback to not displaying anything ?

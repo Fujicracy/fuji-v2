@@ -5,6 +5,7 @@ import {
   contracts,
   LendingProviderDetails,
   RouterActionParams,
+  RoutingStepDetails,
   Sdk,
   Token,
 } from "@x-fuji/sdk"
@@ -25,9 +26,6 @@ setAutoFreeze(false)
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
 type TransactionState = {
-  transactionStatus: boolean // TODO: remove
-  showTransactionAbstract: boolean // TODO: remove
-
   position: Position
   availableVaults: BorrowingVault[]
   // Providers are mapped with their vault address
@@ -53,6 +51,7 @@ type TransactionState = {
     gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
     bridgeFees: number
     estimateTime: number
+    steps: RoutingStepDetails[]
   }
 
   needPermit: boolean
@@ -61,20 +60,9 @@ type TransactionState = {
   actions?: RouterActionParams[]
 
   isBorrowing: boolean
-  // history: TransactionHistory[] // State normalization ? (all id / by id ?)
 }
 
-// type TransactionHistory = {
-//   id: string // TX hash
-//   type: "borrow"
-//   position: Position
-//   status: "ongoing" | "error" | "done"
-// }
-
 type TransactionActions = {
-  setTransactionStatus: (newStatus: boolean) => void
-  setShowTransactionAbstract: (show: boolean) => void
-
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
@@ -106,9 +94,6 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: TransactionState = {
-  transactionStatus: false,
-  showTransactionAbstract: false,
-
   availableVaults: [],
   allProviders: {},
   position: {
@@ -149,6 +134,7 @@ const initialState: TransactionState = {
     bridgeFees: 0,
     gasFees: 0,
     estimateTime: 0,
+    steps: [],
   },
 
   needPermit: true,
@@ -158,14 +144,6 @@ const initialState: TransactionState = {
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
   ...initialState,
-
-  setTransactionStatus: (transactionStatus: boolean) => {
-    set({ transactionStatus })
-  },
-
-  setShowTransactionAbstract: (showTransactionAbstract: boolean) => {
-    set({ showTransactionAbstract })
-  },
 
   async changeCollateralChain(chainId) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
@@ -411,7 +389,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
 
     try {
-      const { bridgeFee, estimateTime, actions } =
+      const { bridgeFee, estimateTime, actions, steps } =
         await sdk.previewDepositAndBorrow(
           vault,
           parseUnits(collateral.amount.toString(), collateral.token.decimals),
@@ -440,6 +418,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           state.transactionMeta.status = "ready"
           state.transactionMeta.bridgeFees = bridgeFee.toNumber()
           state.transactionMeta.estimateTime = estimateTime
+          state.transactionMeta.steps = steps
           // state.transactionMeta.gasFees = gasPrice?.toNumber() || 0
           state.needPermit = Sdk.needSignature(actions)
           state.actions = actions
@@ -577,10 +556,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
     const srcChainId = position.collateral.token.chainId
 
-    // TODO: freeze inputs / store
-    set({ isBorrowing: true })
-    let t
     try {
+      // TODO: freeze inputs / store
+      set({ isBorrowing: true })
+
       const txRequest = sdk.getTxDetails(
         actions,
         srcChainId,
@@ -588,23 +567,23 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         signature
       )
       const signer = provider.getSigner()
-      t = await signer.sendTransaction(txRequest)
+      const t = await signer.sendTransaction(txRequest)
+      useHistory.getState().add(
+        {
+          hash: t.hash,
+          type: "borrow",
+          position,
+          status: "ongoing",
+        },
+        t
+      )
+      get().changeCollateralValue("")
+      get().changeBorrowValue("")
     } catch (e) {
-      // TODO: handle borrow error, if error refuse in metamask or the tx fail for some reason
-      console.error(e)
-      return set({ isBorrowing: false })
+      throw e
+    } finally {
+      set({ isBorrowing: false })
     }
-    useHistory.getState().add(
-      {
-        hash: t.hash,
-        type: "borrow",
-        position,
-        status: "ongoing",
-      },
-      t
-    )
-    get().changeCollateralValue("")
-    get().changeBorrowValue("")
   },
 
   async signAndBorrow() {

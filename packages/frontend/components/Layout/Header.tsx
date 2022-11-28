@@ -39,14 +39,13 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
 }
 
 const Header = () => {
-  const { address, ens, status, balance, login, transactionStatus } = useStore(
+  const { address, ens, status, balance, login } = useStore(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
       login: state.login,
-      transactionStatus: state.transactionStatus,
     }),
     shallow
   )
@@ -216,7 +215,8 @@ const Header = () => {
                       balance={balance}
                       address={address as string}
                       ens={ens}
-                      transactionStatus={transactionStatus}
+                      // TODO: should be coming from store
+                      transactionStatus={false}
                     />
                   </Grid>
                   <Grid item>
@@ -241,14 +241,7 @@ type BalanceAddressProps = {
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
   const [showAccountModal, setShowAccountModal] = useState(false)
-  const { balance, address, ens } = props
-
-  const { showTransactionAbstract, setShowTransactionAbstract } = useStore(
-    (state) => ({
-      showTransactionAbstract: state.showTransactionAbstract,
-      setShowTransactionAbstract: state.setShowTransactionAbstract,
-    })
-  )
+  const { balance, address, ens, transactionStatus } = props
 
   const inNotification = useHistory((state) => state.inNotification)
   const closeNotification = useHistory((state) => state.closeNotification)
@@ -268,7 +261,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       ? `${bal.substring(0, 5)} ${token}`
       : `${bal.substring(0, 4)} ${token}`
 
-  const pending = showTransactionAbstract && (
+  const pending = transactionStatus && (
     <Grid container alignItems="center">
       <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
       <Typography variant="small" onClick={() => setShowAccountModal(true)}>
@@ -283,18 +276,6 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         label={formattedBalance}
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
-      {/* TODO: remove this button */}
-      <button
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          border: "2px solid red",
-        }}
-        onClick={() => setShowTransactionAbstract(true)}
-      >
-        toggle
-      </button>
       <Chip
         onClick={() => setShowAccountModal(true)}
         label={pending || ens || formattedAddress}

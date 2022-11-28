@@ -45,14 +45,8 @@ export default function Borrow() {
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
 
-  const setShowTransactionAbstract = useStore(
-    (state) => state.setShowTransactionAbstract
-  )
-
-  const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
-    useState(false)
+  // TODO: refacto with a "status" in store (i.e status = "editing, approving, signing, borrowing...") ?
   const [showApprovalModal, setShowApprovalModal] = useState(false)
-  // TODO: refacto with a "status" ?
 
   const value = useStore((state) => state.position.collateral.amount)
   const balance = useStore(

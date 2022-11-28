@@ -152,7 +152,12 @@ export default function TransactionProcessingModal({
                   View Position
                 </Button>
               </Grid>
-              <Button onClick={toOngoing}>Hack</Button>
+              <Button
+                onClick={toOngoing}
+                sx={{ position: "fixed", top: "0", left: "0" }}
+              >
+                Hack
+              </Button>
             </>
           ) : (
             <>
@@ -232,7 +237,12 @@ export default function TransactionProcessingModal({
                 </Typography>
               </CardContent>
             </Card>
-            <Button onClick={toDone}>Hack</Button>
+            <Button
+              onClick={toDone}
+              sx={{ position: "fixed", top: "0", left: "0" }}
+            >
+              Hack
+            </Button>
           </DialogContent>
         )}
       </Paper>
