@@ -95,6 +95,7 @@ type TransactionActions = {
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
   borrow: () => void
+  signAndBorrow: () => void
 }
 type ChainId = string // hex value as string
 
@@ -608,5 +609,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().changeCollateralValue("")
     get().changeBorrowValue("")
+  },
+
+  async signAndBorrow() {
+    await get().signPermit()
+    get().borrow()
   },
 })

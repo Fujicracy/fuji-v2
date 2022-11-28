@@ -2,6 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
+import axios from 'axios';
 import invariant from 'tiny-invariant';
 
 import {
@@ -344,6 +345,72 @@ export class Sdk {
     };
   }
 
+  async watchTxStatus(
+    transactionHash: string,
+    steps: RoutingStepDetails[]
+  ): Promise<RoutingStepDetails[]> {
+    const srcChainId = steps[0].chainId;
+    const transferId = await this.getTransferId(srcChainId, transactionHash);
+
+    const srcTxHash = Promise.resolve(transactionHash);
+    const destTxHash = this.getDestTxHash(transferId ?? '');
+
+    return steps.map((step) => ({
+      ...step,
+      txHash: step.chainId === srcChainId ? srcTxHash : destTxHash,
+    }));
+  }
+
+  async getTransferId(
+    chainId: ChainId,
+    transactionHash: string
+  ): Promise<string | undefined> {
+    const { rpcProvider } = ChainConnection.from(this._configParams, chainId);
+    const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
+    invariant(
+      !!receipt,
+      `Receipt not valid from tx with hash ${transactionHash}`
+    );
+    const blockHash = receipt.blockHash;
+    const srcContract = ConnextRouter__factory.connect(
+      CONNEXT_ROUTER_ADDRESS[chainId].value,
+      rpcProvider
+    );
+    const events = await srcContract.queryFilter(
+      srcContract.filters.XCalled(),
+      blockHash
+    );
+    let transferId;
+    for (const event of events.filter(
+      (e) => e.transactionHash == transactionHash
+    )) {
+      transferId = event.args[0];
+    }
+    return transferId;
+  }
+
+  getDestTxHash(transferId: string): Promise<string> {
+    return new Promise((resolve) => {
+      const apiCall = () =>
+        // TODO: replace with prod API url
+        axios.get(
+          `https://postgrest.testnet.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
+        );
+
+      const interval = () => {
+        apiCall()
+          .then(({ data }) => {
+            if (data.length > 0 && data[0].execute_transaction_hash)
+              resolve(data[0].execute_transaction_hash);
+            else setTimeout(interval, 2000);
+          })
+          .catch((err) => console.error(err));
+      };
+
+      interval();
+    });
+  }
+
   previewXTransfer(
     destChainId: ChainId,
     asset: Token,
@@ -409,7 +476,7 @@ export class Sdk {
         step: RoutingStep.START,
         amount: amountIn,
         chainId: srcChainId,
-        tokenSym: vault.collateral.symbol,
+        token: vault.collateral,
       },
     ];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -418,15 +485,15 @@ export class Sdk {
         {
           step: RoutingStep.DEPOSIT,
           amount: amountIn,
-          chainId: vault.chainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: srcChainId,
+          token: vault.collateral,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.BORROW,
           amount: amountOut,
-          chainId: vault.chainId,
-          tokenSym: vault.debt.symbol,
+          chainId: srcChainId,
+          token: vault.debt,
           lendingProvider: activeProvider,
         }
       );
@@ -436,22 +503,22 @@ export class Sdk {
         {
           step: RoutingStep.DEPOSIT,
           amount: amountIn,
-          chainId: vault.chainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: srcChainId,
+          token: vault.collateral,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.BORROW,
           amount: amountOut,
-          chainId: vault.chainId,
-          tokenSym: vault.debt.symbol,
+          chainId: srcChainId,
+          token: vault.debt,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.X_TRANSFER,
           amount: amountOut,
           chainId: destChainId,
-          tokenSym: vault.debt.symbol,
+          token: vault.debt,
         }
       );
     } else if (destChainId === vault.chainId) {
@@ -460,21 +527,21 @@ export class Sdk {
         {
           step: RoutingStep.X_TRANSFER,
           amount: amountIn,
-          chainId: destChainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: srcChainId,
+          token: vault.collateral,
         },
         {
           step: RoutingStep.DEPOSIT,
           amount: amountIn,
-          chainId: vault.chainId,
-          tokenSym: vault.collateral.symbol,
+          chainId: destChainId,
+          token: vault.collateral,
           lendingProvider: activeProvider,
         },
         {
           step: RoutingStep.BORROW,
           amount: amountOut,
-          chainId: vault.chainId,
-          tokenSym: vault.debt.symbol,
+          chainId: destChainId,
+          token: vault.debt,
           lendingProvider: activeProvider,
         }
       );
@@ -483,7 +550,7 @@ export class Sdk {
       step: RoutingStep.END,
       amount: amountOut,
       chainId: destChainId,
-      tokenSym: vault.debt.symbol,
+      token: vault.debt,
     });
 
     return steps;
@@ -496,13 +563,21 @@ export class Sdk {
     const collateralSym = collateral.symbol;
     const debtSym = debt.symbol;
 
+    const chains = [collateral.chainId, debt.chainId];
+
     return Object.entries(VAULT_LIST)
       .map(([, list]) => list)
       .reduce((acc, list) => {
-        const vaults = list.filter(
-          (v: BorrowingVault) =>
-            v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
-        );
+        const vaults = list
+          .filter(
+            (v: BorrowingVault) =>
+              chains.includes(v.collateral.chainId) ||
+              chains.includes(v.debt.chainId)
+          )
+          .filter(
+            (v: BorrowingVault) =>
+              v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
+          );
         return [...acc, ...vaults];
       }, []);
   }
