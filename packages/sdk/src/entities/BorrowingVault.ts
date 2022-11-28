@@ -1,6 +1,5 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
-import { AddressZero } from '@ethersproject/constants';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { IMulticallProvider } from '@hovoh/ethcall';
@@ -130,16 +129,6 @@ export class BorrowingVault extends StreamManager {
    */
   multicallRpcProvider?: IMulticallProvider;
 
-  /**
-   * Map of user address and their nonce for this vault.
-   *
-   * @remarks
-   * Caching "nonce" is needed when composing compound operations.
-   * A compound operation is one that needs more then one signature
-   * in the same tx.
-   */
-  private _cache: Map<string, BigNumber>;
-
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
@@ -150,8 +139,6 @@ export class BorrowingVault extends StreamManager {
     this.collateral = collateral;
     this.chainId = collateral.chainId;
     this.debt = debt;
-
-    this._cache = new Map<string, BigNumber>();
   }
 
   /**
@@ -177,33 +164,23 @@ export class BorrowingVault extends StreamManager {
   }
 
   /**
-   * Loads and sets name and account's nonce
-   * that will be used when signing operations.
+   * Loads and sets name, maxLtv and liqRatio.
    *
-   * @param account - (optional) user address, wrapped in {@link Address}
    * @throws if {@link setConnection} was not called beforehand
    */
-  async preLoad(account?: Address) {
+  async preLoad() {
     invariant(
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    const [
-      maxLtv,
-      liqRatio,
-      nonce,
-      name,
-    ] = await this.multicallRpcProvider.all([
+    const [maxLtv, liqRatio, name] = await this.multicallRpcProvider.all([
       this.multicallContract.maxLtv(),
       this.multicallContract.liqRatio(),
-      this.multicallContract.nonces(account ? account.value : AddressZero),
       this.multicallContract.name(),
     ]);
 
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
-
-    if (account) this._cache.set(account.value, nonce);
     this.name = name;
   }
 
@@ -330,21 +307,13 @@ export class BorrowingVault extends StreamManager {
     types: Record<string, TypedDataField[]>;
     value: Record<string, string>;
   }> {
+    invariant(this.contract, 'Connection not set!');
     const { owner } = params;
 
-    // if nonce for this user or name aren't loaded yet
-    if (!this._cache.get(owner.value) || this.name === '') {
-      await this.preLoad(owner);
-    }
-    const nonce: BigNumber = this._cache.get(owner.value) as BigNumber;
+    const nonce: BigNumber = await this.contract.nonces(owner.value);
 
     const { domain, types, value } = this._getPermitDigest(params, nonce);
     const digest = utils._TypedDataEncoder.hash(domain, types, value);
-
-    // update _cache if user has to sign another operation in the same tx
-    // For ex. when shifting a position from one vault to another,
-    // user has to sign first WITHDRAW and then BORROW
-    this._cache.set(owner.value, nonce.add(BigNumber.from(1)));
 
     return { digest, domain, types, value };
   }
