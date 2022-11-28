@@ -250,12 +250,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async changeActiveVault(vault) {
-    const address = useStore.getState().address
-    if (!address) {
-      return
-    }
     const providers = await vault.getProviders()
-    await vault.preLoad(address ? new Address(address) : undefined)
+    await vault.preLoad()
 
     const ltvMax = vault.maxLtv
       ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
