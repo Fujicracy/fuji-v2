@@ -6,7 +6,7 @@ chains.map((c) => {
   chainsMap.set(parseInt(c.id), c.label) // num id
 })
 
-export function chainName(id?: string | number) {
+export function chainName(id?: string | number): string {
   const name = chainsMap.get(id)
   if (!name) {
     throw `No chain found with id ${id}. "id" must either:

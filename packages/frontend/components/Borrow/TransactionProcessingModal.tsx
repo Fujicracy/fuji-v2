@@ -19,7 +19,6 @@ import { useTheme, styled, alpha } from "@mui/material/styles"
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector"
-import { StepIconProps } from "@mui/material/StepIcon"
 import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
@@ -28,30 +27,16 @@ import Image from "next/image"
 import styles from "../../styles/components/Borrow.module.css"
 import NetworkIcon from "../NetworkIcon"
 import { useHistory } from "../../store/history.store"
-import { chains } from "../../store/auth.slice"
+import { RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
+import { formatUnits } from "ethers/lib/utils"
+import { chainName } from "../../helpers/chainName"
 
 type Step = {
   label: string
   description: string
   link: string | undefined
+  icon: () => JSX.Element
 }
-const steps: Step[] = [
-  {
-    label: "Deposit 1 ETH on Aave",
-    description: "Ethereum Network",
-    link: "https://ethereum.org/fr/",
-  },
-  {
-    label: "Validate Transaction",
-    description: "Connext bridge",
-    link: "https://www.connext.network/",
-  },
-  {
-    label: "Borrow 900 USDC from Aave",
-    description: "Polygon Network",
-    link: undefined,
-  },
-]
 
 type TransactionProcessingModalProps = {
   hash?: string
@@ -67,11 +52,81 @@ export default function TransactionProcessingModal({
   const entry = useHistory((state) => state.byHash[hash || ""])
 
   const chainId = entry?.position.vault?.chainId
-  const networkName = chains.find((c) => parseInt(c.id) === chainId)
+  const networkName = chainId ? chainName(chainId) : ""
 
   const update = useHistory((state) => state.update)
   const toOngoing = () => update(entry.hash, { status: "ongoing" })
   const toDone = () => update(entry.hash, { status: "done" })
+  if (!entry) {
+    return <></>
+  }
+
+  console.log(entry)
+
+  const steps: Step[] = entry?.steps
+    .map((s) => {
+      const token = s.token
+      const amount = formatUnits(s.amount, token.decimals)
+      const provider = s.lendingProvider?.name
+      const chain = chainName(s.chainId)
+      // const link = "" + s.txHash
+
+      const style = {
+        background: theme.palette.secondary.light,
+        mr: "0.5rem",
+        p: "0.5rem 0.5rem 0.3rem 0.5rem",
+        borderRadius: "100%",
+      }
+
+      switch (s.step) {
+        case RoutingStep.DEPOSIT:
+          return {
+            label: `Deposit ${amount} ${token.symbol} on ${provider}`,
+            description: `${chain} Network`,
+            link: "{scannerlink}", // Async
+            icon: () => (
+              <Box sx={style}>
+                <NetworkIcon network={chain} height={32} width={32} />
+              </Box>
+            ),
+          }
+        case RoutingStep.BORROW:
+          return {
+            label: `Borrow ${amount} ${token.symbol} from ${provider}`, // TODO
+            description: `${chain} Network`,
+            link: "scannerlink", // Asynx
+            icon: () => (
+              <Box sx={style}>
+                <NetworkIcon network={chain} height={32} width={32} />
+              </Box>
+            ),
+          }
+        case RoutingStep.X_TRANSFER:
+          return {
+            label: "Validate Transaction",
+            description: "Connext bridge",
+            link: "{scannerlink}", // Async
+            icon: () => (
+              <Box sx={style}>
+                <Image
+                  src={`/assets/images/logo/Connext.svg`}
+                  height={32}
+                  width={32}
+                  alt="Connext"
+                />
+              </Box>
+            ),
+          }
+        default:
+          return {
+            label: "Invalid",
+            description: "",
+            link: "", // Async
+            icon: () => <NetworkIcon network={chain} height={32} width={32} />,
+          }
+      }
+    })
+    .filter((s) => s.label !== "Invalid")
 
   // Commented till we use it cause it make the linter fail
   // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
@@ -162,9 +217,7 @@ export default function TransactionProcessingModal({
           ) : (
             <>
               <Typography variant="h6">Transaction processing</Typography>
-              <Typography variant="body">
-                Borrowing on {networkName?.label}
-              </Typography>
+              <Typography variant="body">Borrowing on {networkName}</Typography>
             </>
           )}
         </Box>
@@ -184,7 +237,7 @@ export default function TransactionProcessingModal({
                     alignItems="center"
                   >
                     <Grid item>
-                      <StepLabel StepIconComponent={CustomStepIcon}>
+                      <StepLabel StepIconComponent={step.icon}>
                         <Typography variant="body">{step.label}</Typography>
                         <br />
                         <a href={step.link} target="_blank" rel="noreferrer">
@@ -247,37 +300,6 @@ export default function TransactionProcessingModal({
         )}
       </Paper>
     </Dialog>
-  )
-}
-
-function CustomStepIcon(props: StepIconProps) {
-  const { palette } = useTheme()
-
-  const icons: Record<string, React.ReactElement> = {
-    1: <NetworkIcon network="Ethereum" height={32} width={32} />,
-    2: (
-      <Image
-        src={`/assets/images/logo/Connext.svg`}
-        height={32}
-        width={32}
-        alt="Connext"
-      />
-    ),
-    3: <NetworkIcon network="Polygon" height={32} width={32} />,
-  }
-
-  return (
-    <Box
-      sx={{
-        background: palette.secondary.light,
-        mr: "0.5rem",
-        p: "0.5rem",
-        borderRadius: "100%",
-        paddingBottom: "0.3rem",
-      }}
-    >
-      {icons[String(props.icon)]}
-    </Box>
   )
 }
 
