@@ -12,7 +12,7 @@ import {IWETH9} from "../../src/abstracts/WETH9.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 
-contract AttackPermits is MockingSetup, Routines {
+contract AttackPermitsUnitTests is MockingSetup, Routines {
   address attacker;
 
   ILendingProvider public mockProvider;
@@ -144,13 +144,24 @@ contract AttackPermits is MockingSetup, Routines {
     actions[4] = IRouter.Action.WithdrawETH;
 
     bytes[] memory args = new bytes[](5);
-    args[0] = abi.encode(address(vault), ALICE, address(simpleRouter), DEPOSIT_AMOUNT, deadlineAl, vAl, rAl, sAl);
-    args[1] = abi.encode(address(vault), address(attacker), address(attacker), DEPOSIT_AMOUNT, deadlineAt, vAt, rAt, sAt);
+    args[0] = abi.encode(
+      address(vault), ALICE, address(simpleRouter), DEPOSIT_AMOUNT, deadlineAl, vAl, rAl, sAl
+    );
+    args[1] = abi.encode(
+      address(vault),
+      address(attacker),
+      address(attacker),
+      DEPOSIT_AMOUNT,
+      deadlineAt,
+      vAt,
+      rAt,
+      sAt
+    );
     args[2] = abi.encode(address(vault), DEPOSIT_AMOUNT, address(simpleRouter), ALICE);
-    args[3] = abi.encode(address(vault), DEPOSIT_AMOUNT-1, attacker, attacker);
+    args[3] = abi.encode(address(vault), DEPOSIT_AMOUNT - 1, attacker, attacker);
     args[4] = abi.encode(DEPOSIT_AMOUNT, attacker);
 
-    // vm.expectRevert();
+    vm.expectRevert();
     vm.prank(attacker);
     simpleRouter.xBundle(actions, args);
   }

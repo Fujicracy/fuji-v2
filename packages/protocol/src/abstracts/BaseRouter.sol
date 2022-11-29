@@ -31,7 +31,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noRemnantBalance();
   error BaseRouter__bundleInternal_insufficientETH();
-  error BaseRouter__bundleInternal_withdrawETHReceiverNotOwner();
+  error BaseRouter__bundleInternal_notBeneficiary();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
@@ -39,6 +39,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   IWETH9 public immutable WETH9;
 
   BalanceChecker[] private _tokensToCheck;
+  address private _beneficiary;
 
   constructor(IWETH9 weth, IChief chief) SystemAccessControl(address(chief)) {
     WETH9 = weth;
@@ -85,6 +86,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // DEPOSIT
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
+        _checkBeneficiary(receiver);
 
         address token = vault.asset();
         _safePullTokenFrom(token, sender, receiver, amount);
@@ -95,6 +97,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // WITHDRAW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
+        _checkBeneficiary(owner);
 
         // Check balance of `asset` before execution at vault.
         _addTokenToCheck(vault.asset());
@@ -104,6 +107,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // BORROW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
+        _checkBeneficiary(owner);
 
         // Check balance of `debtAsset` before execution at vault.
         _addTokenToCheck(vault.debtAsset());
@@ -113,6 +117,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // PAYBACK
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
+        _checkBeneficiary(receiver);
 
         address token = vault.debtAsset();
         _safePullTokenFrom(token, sender, receiver, amount);
@@ -208,6 +213,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         _addTokenToCheck(address(WETH9));
       } else if (actions[i] == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
+        _checkBeneficiary(receiver);
 
         WETH9.withdraw(amount);
 
@@ -271,11 +277,23 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       }
     }
     delete _tokensToCheck;
+    _beneficiary = address(0);
   }
 
   function _checkNoNativeBalance() private view {
     if (address(this).balance > 0) {
       revert BaseRouter__bundleInternal_noRemnantBalance();
+    }
+  }
+
+  function _checkBeneficiary(address user) private {
+    // when bundling multiple actions assure that we act for a single beneficiary;
+    // receivers on DEPOSIT and PAYBACK and owners on WITHDRAW and BORROW
+    // must be the same user
+    if (_beneficiary == address(0)) {
+      _beneficiary = user;
+    } else {
+      if (_beneficiary != user) revert BaseRouter__bundleInternal_notBeneficiary();
     }
   }
 
