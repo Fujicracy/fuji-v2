@@ -296,4 +296,26 @@ contract SimpleRouterUnitTests is MockingSetup {
     vm.prank(foe);
     simpleRouter.sweepToken(ERC20(collateralAsset), foe);
   }
+
+  function test_approvalAttack() public {
+    deal(collateralAsset, ALICE, amount);
+
+    // alice has approved for some reason the router
+    vm.prank(ALICE);
+    IERC20(collateralAsset).approve(address(simpleRouter), amount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    // attacker sets themself as `receiver`.
+    args[0] = abi.encode(address(vault), amount, BOB, ALICE);
+
+    vm.expectRevert();
+    vm.prank(BOB);
+    simpleRouter.xBundle(actions, args);
+
+    // Assert attacker received no funds.
+    assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
+  }
 }

@@ -2,15 +2,15 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {MockingSetup} from "../mocking/MockingSetup.sol";
-import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
-import {MockProvider} from "../../src/mocks/MockProvider.sol";
-import {SimpleRouter} from "../../src/routers/SimpleRouter.sol";
-import {IRouter} from "../../src/interfaces/IRouter.sol";
-import {Routines} from "../utils/Routines.sol";
-import {IWETH9} from "../../src/abstracts/WETH9.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
+import {MockingSetup} from "../MockingSetup.sol";
+import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {MockProvider} from "../../../src/mocks/MockProvider.sol";
+import {SimpleRouter} from "../../../src/routers/SimpleRouter.sol";
+import {IRouter} from "../../../src/interfaces/IRouter.sol";
+import {Routines} from "../../utils/Routines.sol";
+import {IWETH9} from "../../../src/abstracts/WETH9.sol";
+import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
 contract AttackPermitsUnitTests is MockingSetup, Routines {
   address attacker;
