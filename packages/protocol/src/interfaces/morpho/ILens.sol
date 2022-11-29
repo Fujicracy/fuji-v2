@@ -6,6 +6,26 @@ pragma solidity ^0.8.0;
 // import "./IMorpho.sol";
 //
 interface ILens {
+  //TODO separate interfaces (aave, morpho) or leave together???
+  /// aave ///
+
+  function getCurrentUserSupplyRatePerYear(
+    address _poolToken,
+    address _user
+  )
+    external
+    view
+    returns (uint256);
+
+  function getCurrentUserBorrowRatePerYear(
+    address _poolToken,
+    address _user
+  )
+    external
+    view
+    returns (uint256);
+
+  /// FOR MORPHO ///
   // /// STORAGE ///
   //
   // function MAX_BASIS_POINTS() external view returns (uint256);
