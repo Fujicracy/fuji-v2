@@ -25,7 +25,7 @@ import CheckIcon from "@mui/icons-material/Check"
 
 import { useStore } from "../../store"
 import { HistoryEntry, useHistory } from "../../store/history.store"
-import { chains } from "../../store/auth.slice"
+import { chainName } from "../../helpers/chainName"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -211,7 +211,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const { collateral, debt, vault } = entry.position
   const { palette } = useTheme()
   const chainId = entry.position.vault?.chainId
-  const networkName = chains.find((c) => parseInt(c.id) === chainId)
+  const networkName = chainName(chainId)
 
   const listAction =
     entry.status === "ongoing" ? (
@@ -233,7 +233,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
         <ListItemText>
           <Typography variant="small">
             Deposit {collateral.amount} {collateral.token.symbol} on Ethereum
-            and Borrow {debt.amount} {debt.token.symbol} on {networkName?.label}{" "}
+            and Borrow {debt.amount} {debt.token.symbol} on {networkName}.
           </Typography>
         </ListItemText>
       </ListItem>

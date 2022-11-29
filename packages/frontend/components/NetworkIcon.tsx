@@ -1,7 +1,7 @@
 import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
-import { chains } from "../store/auth.slice"
+import { chainName } from "../helpers/chainName"
 
 interface Props extends Omit<ImageProps, "src"> {
   network: string | ChainId
@@ -9,13 +9,7 @@ interface Props extends Omit<ImageProps, "src"> {
 export default function NetworkIcon(props: Props) {
   const { network, ...rest } = props
 
-  let name: string | undefined
-  if (typeof network === "string") {
-    name = network
-  } else {
-    const chain = chains.find((c) => parseInt(c.id) === network)
-    name = chain?.label
-  }
+  const name = typeof network === "string" ? network : chainName(network)
   const path = `/assets/images/protocol-icons/networks/${name}.svg`
 
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
