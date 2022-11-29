@@ -6,7 +6,7 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {MorphoAaveV2} from "../../../src/providers/mainnet/MorphoAAveV2.sol";
+import {MorphoAaveV2} from "../../../src/providers/mainnet/MorphoAaveV2.sol";
 
 contract MorphoAaveV2Test is Routines, ForkingSetup {
   ILendingProvider public morphoAaveV2;
