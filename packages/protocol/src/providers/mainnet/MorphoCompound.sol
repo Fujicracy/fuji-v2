@@ -10,7 +10,7 @@ import {ILens} from "../../interfaces/morpho/ILens.sol";
 /**
  * @title Morpho Lending Provider.
  * @author fujidao Labs
- * @notice This contract allows interaction with Euler Finance.
+ * @notice This contract allows interaction with Morpho.
  */
 contract MorphoCompound is ILendingProvider {
   //TODO use address mapper
