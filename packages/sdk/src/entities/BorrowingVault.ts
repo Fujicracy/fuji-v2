@@ -210,7 +210,7 @@ export class BorrowingVault extends StreamManager {
   async getProviders(): Promise<LendingProviderDetails[]> {
     invariant(
       this.contract && this.multicallRpcProvider,
-      'Connection not set?'
+      'Connection not set!'
     );
     // TODO: move this to preLoad and load them only if they are not init
     const allProvidersAddrs: string[] = await this.contract.getProviders();

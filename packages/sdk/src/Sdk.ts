@@ -6,6 +6,7 @@ import axios from 'axios';
 import invariant from 'tiny-invariant';
 
 import {
+  CHAIN,
   COLLATERAL_LIST,
   CONNEXT_DOMAIN,
   CONNEXT_ROUTER_ADDRESS,
@@ -157,6 +158,18 @@ export class Sdk {
       );
 
     return multicallRpcProvider.all(balances);
+  }
+
+  /**
+   * Retruns all vaults.
+   */
+  getAllBorrowingVaults(): BorrowingVault[] {
+    const vaults = [];
+    for (const id of Object.keys(CHAIN)) {
+      vaults.push(...VAULT_LIST[parseInt(id) as ChainId]);
+    }
+
+    return vaults;
   }
 
   /**
