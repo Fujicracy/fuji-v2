@@ -550,7 +550,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   async borrow() {
     const address = useStore.getState().address
     const provider = useStore.getState().provider
-    const { actions, signature, position } = get()
+    const { actions, signature, position, transactionMeta } = get()
     if (!actions || !address || !signature || !provider) {
       throw "Unexpected undefined param"
     }
@@ -568,15 +568,13 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       )
       const signer = provider.getSigner()
       const t = await signer.sendTransaction(txRequest)
-      useHistory.getState().add(
-        {
-          hash: t.hash,
-          type: "borrow",
-          position,
-          status: "ongoing",
-        },
-        t
-      )
+      useHistory.getState().add({
+        hash: t.hash,
+        type: "borrow",
+        position,
+        steps: transactionMeta.steps,
+        status: "ongoing",
+      })
       get().changeCollateralValue("")
       get().changeBorrowValue("")
     } catch (e) {

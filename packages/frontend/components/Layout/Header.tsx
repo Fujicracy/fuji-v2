@@ -243,6 +243,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
 
   const inNotification = useHistory((state) => state.inNotification)
   const closeNotification = useHistory((state) => state.closeNotification)
+  const active = useHistory((state) => state.activeHash.length)
 
   if (!balance) {
     return <></>
@@ -259,11 +260,11 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       ? `${bal.substring(0, 5)} ${token}`
       : `${bal.substring(0, 4)} ${token}`
 
-  const pending = transactionStatus && (
+  const pending = active && (
     <Grid container alignItems="center">
       <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
       <Typography variant="small" onClick={() => setShowAccountModal(true)}>
-        1 pending
+        {active} pending
       </Typography>
     </Grid>
   )
@@ -294,63 +295,6 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           },
         }}
       />
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        open={Boolean(inNotification)}
-        sx={{ mt: "2.5rem" }}
-        autoHideDuration={10000 * 60 * 60}
-      >
-        <SnackbarContent
-          message={
-            <Box>
-              <CloseIcon
-                sx={{
-                  cursor: "pointer",
-                  position: "absolute",
-                  right: "1rem",
-                }}
-                onClick={closeNotification}
-                fontSize="small"
-              />
-              <Grid container>
-                <Grid item>
-                  <SyncIcon sx={{ mr: "0.563rem" }} />
-                </Grid>
-                <Grid item>
-                  <Box mr="3rem" maxWidth="230px">
-                    <Typography variant="small">
-                      Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on
-                      Polygon
-                    </Typography>
-                    <br />
-
-                    <Typography variant="xsmallDark">
-                      {/* TODO */}
-                      Estimated time:{" "}
-                      <span style={{ color: palette.success.main }}>
-                        2m 15s
-                      </span>
-                    </Typography>
-                    {/* TODO */}
-                    {/* <LinearProgress
-                        sx={{
-                          background: palette.text.primary,
-                          height: "0.125rem",
-                          mt: "1rem",
-                          ".css-uu0lzf-MuiLinearProgress-bar1": {
-                            background: palette.success.main,
-                          },
-                        }}
-                        value={25}
-                        variant="determinate"
-                      /> */}
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
-          }
-        />
-      </Snackbar>
       <AccountModal
         isOpen={showAccountModal}
         closeAccountModal={() => setShowAccountModal(false)}
@@ -361,3 +305,65 @@ const BalanceAddress = (props: BalanceAddressProps) => {
 }
 
 export default Header
+
+const Notification = () => {
+  const inNotification = false
+  const closeNotification = () => 0
+
+  return (
+    <Snackbar
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      open={Boolean(inNotification)}
+      sx={{ mt: "2.5rem" }}
+      autoHideDuration={10000 * 60 * 60}
+    >
+      <SnackbarContent
+        message={
+          <Box>
+            <CloseIcon
+              sx={{
+                cursor: "pointer",
+                position: "absolute",
+                right: "1rem",
+              }}
+              onClick={closeNotification}
+              fontSize="small"
+            />
+            <Grid container>
+              <Grid item>
+                <SyncIcon sx={{ mr: "0.563rem" }} />
+              </Grid>
+              <Grid item>
+                <Box mr="3rem" maxWidth="230px">
+                  <Typography variant="small">
+                    Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
+                  </Typography>
+                  <br />
+
+                  <Typography variant="xsmallDark">
+                    {/* TODO */}
+                    Estimated time:{" "}
+                    <span style={{ color: palette.success.main }}>2m 15s</span>
+                  </Typography>
+                  {/* TODO */}
+                  {/* <LinearProgress
+                  sx={{
+                    background: palette.text.primary,
+                    height: "0.125rem",
+                    mt: "1rem",
+                    ".css-uu0lzf-MuiLinearProgress-bar1": {
+                      background: palette.success.main,
+                    },
+                  }}
+                  value={25}
+                  variant="determinate"
+                /> */}
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        }
+      />
+    </Snackbar>
+  )
+}

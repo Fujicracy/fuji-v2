@@ -1,8 +1,10 @@
-import { ethers } from "ethers"
+import { RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import produce from "immer"
+import { has } from "immer/dist/internal"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { useStore } from "."
+import { sdk } from "./auth.slice"
 
 import { Position } from "./Position"
 
@@ -10,6 +12,7 @@ export type HistoryStore = HistoryState & HistoryActions
 
 type HistoryState = {
   allHash: string[]
+  activeHash: string[] // ongoing tx
   byHash: Record<string, HistoryEntry>
 
   inModal?: string // The tx hash displayed in modal
@@ -19,12 +22,14 @@ export type HistoryEntry = {
   hash: string
   type: "borrow" // || withdraw || flashclose...
   position: Position
+  steps: RoutingStepDetails[]
   status: "ongoing" | "error" | "done"
 }
 
 type HistoryActions = {
-  add: (e: HistoryEntry, t: ethers.providers.TransactionResponse) => void
+  add: (e: HistoryEntry) => void
   update: (hash: string, patch: Partial<HistoryEntry>) => void
+  watch: (hash: string) => void
 
   openModal: (hash: string) => void
   closeModal: () => void
@@ -34,6 +39,7 @@ type HistoryActions = {
 
 const initialState: HistoryState = {
   allHash: [],
+  activeHash: [],
   byHash: {},
 }
 
@@ -43,43 +49,63 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        // Add ongoing transaction
-        async add(e, t) {
+        // TODO: onboot / start, should we rewatch for all active tx ?
+
+        // Add active transaction
+        async add(e) {
           set(
             produce((s: HistoryState) => {
               s.inModal = e.hash
               s.byHash[e.hash] = e
               s.allHash = [e.hash, ...s.allHash]
+              s.activeHash = [e.hash, ...s.activeHash]
             })
           )
 
-          // Deposit & borrow on the same chain, just wait for 1 confirmation
-          try {
-            await t.wait()
-            set(
-              produce((s: HistoryStore) => {
-                s.byHash[e.hash].status = "done"
-              })
-            )
-          } catch (err) {
-            console.error(err)
-            // TODO: Display notification or smth ?
-            set(
-              produce((s: HistoryStore) => {
-                s.byHash[e.hash].status = "error"
-              })
-            )
+          get().watch(e.hash)
+        },
+
+        async watch(hash) {
+          const entry = get().byHash[hash]
+          if (!entry) {
+            throw `No entry in history for hash ${hash}`
           }
-          console.debug("after")
-          useStore.getState().updateBalances("debt")
-          useStore.getState().updateBalances("collateral")
-          useStore.getState().updateAllowance()
+
+          const debtToken = entry.position.debt.token
+          const collToken = entry.position.collateral.token
+          if (debtToken.chainId === collToken.chainId) {
+            // Hack, we consider that the transaction will success anyway and we wait for ~2 blocks to display it as successfull
+            // Can't find a proper way to use provider.getTransaction(hash) because provider is not set on first render
+            // also using useStore.getState() make webpack crash (useStore is undefined which shouldn't be)
+            await new Promise((resolve) => setTimeout(resolve, 10000))
+          } else {
+            const stepsWithHash = await sdk.watchTxStatus(hash, entry.steps)
+
+            for (const step of stepsWithHash) {
+              console.time(step.step)
+              await step.txHash
+              console.timeEnd(step.step)
+              if (step.step === RoutingStep.DEPOSIT) {
+                useStore.getState().updateBalances("collateral")
+                useStore.getState().updateAllowance()
+              }
+              if (step.step === RoutingStep.BORROW) {
+                useStore.getState().updateBalances("collateral")
+              }
+              // TODO: can we have error ? if yes mark the tx as failed. Design ? Retry ?
+            }
+          }
+          get().update(hash, { status: "done" })
+          set({
+            activeHash: get().activeHash.filter((h) => h !== hash),
+            inNotification: hash,
+          })
         },
 
         update(hash, patch) {
           const entry = get().byHash[hash]
           if (!entry) {
-            console.error("No entry in history for hash", hash)
+            throw `No entry in history for hash ${hash}`
           }
           set(
             produce((s: HistoryState) => {
@@ -116,6 +142,23 @@ export const useHistory = create<HistoryStore>()(
         name: "xFuji/history",
       }
     ),
-    { name: "xFuji/history" }
+    {
+      name: "xFuji/history",
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          if (error) {
+            return console.error("an error happened during hydration", error)
+          }
+          if (!state) {
+            return console.error("no state")
+          }
+          for (const hash of state.activeHash) {
+            state.watch(hash)
+          }
+        }
+      },
+    }
   )
 )
+
+console.log("watch: ", useHistory.getState().watch)
