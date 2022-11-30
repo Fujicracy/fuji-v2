@@ -54,9 +54,6 @@ export default function TransactionProcessingModal({
   const chainId = entry?.position.vault?.chainId
   const networkName = chainId ? chainName(chainId) : ""
 
-  const update = useHistory((state) => state.update)
-  const toOngoing = () => update(entry.hash, { status: "ongoing" })
-  const toDone = () => update(entry.hash, { status: "done" })
   if (!entry) {
     return <></>
   }
@@ -207,12 +204,6 @@ export default function TransactionProcessingModal({
                   View Position
                 </Button>
               </Grid>
-              <Button
-                onClick={toOngoing}
-                sx={{ position: "fixed", top: "0", left: "0" }}
-              >
-                Hack
-              </Button>
             </>
           ) : (
             <>
@@ -290,12 +281,6 @@ export default function TransactionProcessingModal({
                 </Typography>
               </CardContent>
             </Card>
-            <Button
-              onClick={toDone}
-              sx={{ position: "fixed", top: "0", left: "0" }}
-            >
-              Hack
-            </Button>
           </DialogContent>
         )}
       </Paper>
