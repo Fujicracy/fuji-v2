@@ -308,6 +308,10 @@ export class BorrowingVault extends StreamManager {
     invariant(this.contract, 'Connection not set!');
     const { owner } = params;
 
+    if (this.name === '') {
+      await this.preLoad();
+    }
+
     const nonce: BigNumber = await this.contract.nonces(owner.value);
 
     const { domain, types, value } = this._getPermitDigest(params, nonce);
