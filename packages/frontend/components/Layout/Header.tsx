@@ -307,6 +307,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
 export default Header
 
 const Notification = () => {
+  const { palette } = useTheme()
   const inNotification = false
   const closeNotification = () => 0
 
