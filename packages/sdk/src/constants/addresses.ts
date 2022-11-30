@@ -122,11 +122,11 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM]: Address.from(AddressZero),
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.MATIC]: Address.from(AddressZero),
-  [ChainId.GOERLI]: Address.from('0xB88de8C986b800b01F89e45EccCE6B7ca5FDf109'),
+  [ChainId.GOERLI]: Address.from('0x5eb8a11887FE5C9764C814f5081783934737de3b'),
   [ChainId.MATIC_MUMBAI]: Address.from(
-    '0x4D0bCE5F2524E80C85965c28B56AD6231C0e5c7c'
+    '0x2ff2835C9C305B0d23E75BbaE8081FC01bDD7a82'
   ),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
-    '0xD8863e338Cf07460C70DAa7BB8eA1F9758569B45'
+    '0xEA3b174493B7F0b4dB89Cb34E5aD190F7aE398eE'
   ),
 };
