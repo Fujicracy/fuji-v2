@@ -1,6 +1,7 @@
 import { RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import produce from "immer"
 import { has } from "immer/dist/internal"
+import { posix } from "path"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { useStore } from "."
@@ -74,10 +75,13 @@ export const useHistory = create<HistoryStore>()(
           const debtToken = entry.position.debt.token
           const collToken = entry.position.collateral.token
           if (debtToken.chainId === collToken.chainId) {
-            // Hack, we consider that the transaction will success anyway and we wait for ~2 blocks to display it as successfull
-            // Can't find a proper way to use provider.getTransaction(hash) because provider is not set on first render
-            // also using useStore.getState() make webpack crash (useStore is undefined which shouldn't be)
-            await new Promise((resolve) => setTimeout(resolve, 10000))
+            const provider = entry.position.vault?.rpcProvider
+            if (provider) {
+              const tx = await provider.getTransaction(hash)
+              await tx.wait()
+            } else {
+              console.error("No provider found in position.vault")
+            }
           } else {
             const stepsWithHash = await sdk.watchTxStatus(hash, entry.steps)
 
