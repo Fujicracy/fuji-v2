@@ -25,6 +25,18 @@ interface ILens {
     view
     returns (uint256);
 
+  /// RATES ///
+
+  function getAverageSupplyRatePerYear(address _poolToken)
+    external
+    view
+    returns (uint256 avgSupplyRatePerYear, uint256 p2pSupplyAmount, uint256 poolSupplyAmount);
+
+  function getAverageBorrowRatePerYear(address _poolToken)
+    external
+    view
+    returns (uint256 avgBorrowRatePerYear, uint256 p2pBorrowAmount, uint256 poolBorrowAmount);
+
   /// FOR MORPHO ///
   // /// STORAGE ///
   //
