@@ -116,15 +116,6 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
-  function _utils_doDeposit(uint256 amount, BorrowingVault v) internal {
-    deal(address(asset), owner, amount);
-
-    vm.startPrank(owner);
-    SafeERC20.safeApprove(asset, address(v), amount);
-    v.deposit(amount, owner);
-    vm.stopPrank();
-  }
-
   function testFail_operatorTriesWithdraw() public {
     do_deposit(depositAmount, vault, owner);
 
@@ -215,4 +206,10 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
 
     assertEq(debtAsset.balanceOf(receiver), borrowDelegated);
   }
+
+  // test increase and decrease withdrawAllowance, check proper allowance.
+
+  // test erc4626-approve sets _withdrawAllowance properly.
+
+  // test increase and decrease borrowAllowance, check proper allowance.
 }
