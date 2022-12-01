@@ -35,7 +35,7 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
 
   uint256 public depositAmount = 10 * 1e18;
   uint256 public withdrawDelegated = 3 * 1e18;
-  uint256 public borrowDelegated = 200 * 1e6;
+  uint256 public BORROW_LIMIT = 500 * 1e18;
 
   // WETH and DAI prices: 2000 DAI/WETH
   uint256 public constant TEST_USD_PER_ETH_PRICE = 2000e18;
@@ -116,29 +116,42 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
-  function testFail_operatorTriesWithdraw() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_operatorTriesWithdraw(
+    uint256 depositAmount_,
+    uint256 withdrawDelegated_
+  )
+    public
+  {
+    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(operator);
-    vault.withdraw(withdrawDelegated, receiver, owner);
+    vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function testFail_receiverTriesWithdraw() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_receiverTriesWithdraw(
+    uint256 depositAmount_,
+    uint256 withdrawDelegated_
+  )
+    public
+  {
+    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(receiver);
-    vault.withdraw(withdrawDelegated, receiver, owner);
+    vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function test_withdrawWithPermit() public {
-    do_deposit(depositAmount, vault, owner);
+  function test_withdrawWithPermit(uint256 depositAmount_, uint256 withdrawDelegated_) public {
+    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    do_deposit(depositAmount_, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
       owner: owner,
       operator: operator,
       receiver: receiver,
-      amount: withdrawDelegated,
+      amount: withdrawDelegated_,
       nonce: vault.nonces(owner),
       deadline: block.timestamp + 1 days
     });
@@ -153,29 +166,32 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vm.prank(operator);
     vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated);
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated_);
 
     vm.prank(operator);
-    vault.withdraw(withdrawDelegated, receiver, owner);
+    vault.withdraw(withdrawDelegated_, receiver, owner);
 
-    assertEq(asset.balanceOf(receiver), withdrawDelegated);
+    assertEq(asset.balanceOf(receiver), withdrawDelegated_);
   }
 
-  function testFail_operatorTriesBorrow() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_operatorTriesBorrow(uint256 depositAmount_, uint256 borrowDelegated_) public {
+    vm.assume(depositAmount_ > 0 && borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(operator);
-    vault.borrow(borrowDelegated, receiver, owner);
+    vault.borrow(borrowDelegated_, receiver, owner);
   }
 
-  function testFail_receiverTriesBorrow() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_receiverTriesBorrow(uint256 depositAmount_, uint256 borrowDelegated_) public {
+    vm.assume(depositAmount_ > 0 && borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(receiver);
-    vault.borrow(borrowDelegated, receiver, owner);
+    vault.borrow(borrowDelegated_, receiver, owner);
   }
 
-  function test_borrowWithPermit() public {
+  function test_borrowWithPermit(uint256 depositAmount_, uint256 borrowDelegated_) public {
+    vm.assume(depositAmount_ > 0 && borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
     do_deposit(depositAmount, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
@@ -183,7 +199,7 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
       owner: owner,
       operator: operator,
       receiver: receiver,
-      amount: borrowDelegated,
+      amount: borrowDelegated_,
       nonce: vault.nonces(owner),
       deadline: block.timestamp + 1 days
     });
@@ -199,12 +215,12 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vm.prank(operator);
     vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated);
+    assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated_);
 
     vm.prank(operator);
-    vault.borrow(borrowDelegated, receiver, owner);
+    vault.borrow(borrowDelegated_, receiver, owner);
 
-    assertEq(debtAsset.balanceOf(receiver), borrowDelegated);
+    assertEq(debtAsset.balanceOf(receiver), borrowDelegated_);
   }
 
   // test increase and decrease withdrawAllowance, check proper allowance.
