@@ -318,4 +318,21 @@ contract SimpleRouterUnitTests is MockingSetup {
     // Assert attacker received no funds.
     assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
   }
+
+  function test_depositStuckFundsExploit() public {
+    deal(collateralAsset, address(simpleRouter), amount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(vault), amount, ALICE, address(simpleRouter));
+
+    vm.expectRevert();
+    vm.prank(ALICE);
+    simpleRouter.xBundle(actions, args);
+
+    // Assert attacker received no funds.
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), 0);
+  }
 }
