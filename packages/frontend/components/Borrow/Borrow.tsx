@@ -124,7 +124,6 @@ export default function Borrow() {
         variant="gradient"
         onClick={signAndBorrow}
         fullWidth
-        className={styles.btn}
         disabled={
           collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
         }

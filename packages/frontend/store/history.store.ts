@@ -1,7 +1,5 @@
 import { RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import produce from "immer"
-import { has } from "immer/dist/internal"
-import { posix } from "path"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { useStore } from "."
@@ -19,12 +17,17 @@ type HistoryState = {
   inModal?: string // The tx hash displayed in modal
   inNotification?: string
 }
+
 export type HistoryEntry = {
   hash: string
   type: "borrow" // || withdraw || flashclose...
   position: Position
-  steps: RoutingStepDetails[]
+  steps: HistoryRoutingStep[]
   status: "ongoing" | "error" | "done"
+}
+
+type HistoryRoutingStep = Omit<RoutingStepDetails, "txHash"> & {
+  txHash?: string
 }
 
 type HistoryActions = {
@@ -83,12 +86,22 @@ export const useHistory = create<HistoryStore>()(
               console.error("No provider found in position.vault")
             }
           } else {
-            const stepsWithHash = await sdk.watchTxStatus(hash, entry.steps)
+            const convertedSteps = entry.steps.map((s) => ({
+              ...s,
+              txHash: undefined,
+            }))
+            const stepsWithHash = await sdk.watchTxStatus(hash, convertedSteps)
 
-            for (const step of stepsWithHash) {
-              console.time(step.step)
-              await step.txHash
-              console.timeEnd(step.step)
+            for (let i = 0; i < stepsWithHash.length; i++) {
+              const step = stepsWithHash[i]
+              console.debug("waiting", step.step, "...")
+              const txHash = await step.txHash
+              set(
+                produce((s: HistoryState) => {
+                  s.byHash[hash].steps[i].txHash = txHash
+                })
+              )
+              console.debug(step.step, txHash)
               if (step.step === RoutingStep.DEPOSIT) {
                 useStore.getState().updateBalances("collateral")
                 useStore.getState().updateAllowance()

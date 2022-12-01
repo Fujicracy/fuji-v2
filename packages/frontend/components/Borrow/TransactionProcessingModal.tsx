@@ -1,11 +1,11 @@
-import { MouseEvent, useState } from "react"
+import { MouseEvent, useEffect, useState } from "react"
 import {
   Box,
   Button,
   Card,
-  CardContent,
   CircularProgress,
   Dialog,
+  DialogActions,
   DialogContent,
   Grid,
   Paper,
@@ -15,7 +15,7 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material"
-import { useTheme, styled, alpha } from "@mui/material/styles"
+import { useTheme, styled } from "@mui/material/styles"
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector"
@@ -24,10 +24,9 @@ import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 
-import styles from "../../styles/components/Borrow.module.css"
 import NetworkIcon from "../NetworkIcon"
 import { useHistory } from "../../store/history.store"
-import { RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
+import { RoutingStep } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"
 
@@ -36,6 +35,7 @@ type Step = {
   description: string
   link: string | undefined
   icon: () => JSX.Element
+  txHash?: Promise<string>
 }
 
 type TransactionProcessingModalProps = {
@@ -86,6 +86,7 @@ export default function TransactionProcessingModal({
                 <NetworkIcon network={chain} height={32} width={32} />
               </Box>
             ),
+            txHash: s.txHash,
           }
         case RoutingStep.BORROW:
           return {
@@ -97,6 +98,7 @@ export default function TransactionProcessingModal({
                 <NetworkIcon network={chain} height={32} width={32} />
               </Box>
             ),
+            txHash: s.txHash,
           }
         case RoutingStep.X_TRANSFER:
           return {
@@ -113,6 +115,7 @@ export default function TransactionProcessingModal({
                 />
               </Box>
             ),
+            txHash: s.txHash,
           }
         default:
           return {
@@ -135,154 +138,95 @@ export default function TransactionProcessingModal({
       open={Boolean(hash)}
       onClose={handleClose}
       sx={{
-        ".MuiPaper-root": {
-          width: isMobile ? "100%" : "auto",
-        },
+        ".MuiPaper-root": { width: isMobile ? "100%" : "430px" },
         backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
       }}
     >
-      <Paper
-        variant="outlined"
-        sx={{
-          p: { xs: "1rem", sm: "1.5rem" },
-          maxHeight: {
-            xs: entry?.status === "done" ? "28rem" : "",
-            sm: entry?.status === "done" ? "24.688rem" : "",
-          },
-        }}
-      >
+      <Paper variant="outlined" sx={{ p: { xs: "1rem", sm: "1.5rem" } }}>
         <CloseIcon
           sx={{ cursor: "pointer", float: "right" }}
           onClick={handleClose}
           fontSize="small"
         />
-
         <Box textAlign="center" mt="1.625rem" mb="2.5rem">
-          {entry?.status === "done" ? (
-            <>
-              <CheckIcon
-                sx={{
-                  backgroundColor: alpha(theme.palette.success.dark, 0.1),
-                  color: theme.palette.success.dark,
-                  borderRadius: "100%",
-                  padding: "0.4rem",
-                  width: "3.75rem",
-                  height: "3.75rem",
-                  mb: "2.5rem",
-                }}
-              />
-              <Typography variant="h5">Transaction successful!</Typography>
-              <Typography variant="body">
-                You have borrowed {entry.position.debt.amount} USDC
-              </Typography>
-              <Button
-                className={styles.btn}
-                variant="text"
-                sx={{ m: "2rem auto", display: "block" }}
-              >
-                Add USDC
-              </Button>
-              <Grid
-                container
-                columnGap="1rem"
-                rowGap="1rem"
-                justifyContent="center"
-                sx={{ flexDirection: { xs: "column-reverse", sm: "row" } }}
-              >
-                <Button
-                  sx={{ minWidth: "13rem" }}
-                  variant={isMobile ? "ghost" : "secondary"}
-                  className={styles.btn}
-                >
-                  Transaction Details
-                </Button>
-                <Button
-                  sx={{ minWidth: "13rem" }}
-                  variant="gradient"
-                  className={styles.btn}
-                >
-                  View Position
-                </Button>
-              </Grid>
-            </>
-          ) : (
-            <>
-              <Typography variant="h6">Transaction processing</Typography>
-              <Typography variant="body">Borrowing on {networkName}</Typography>
-            </>
-          )}
+          <Typography variant="h6">
+            Transaction {entry.status === "ongoing" && "processing..."}
+            {entry.status === "done" && "success"}
+          </Typography>
+          <Typography variant="body">Borrowing on {networkName}</Typography>
         </Box>
-        {entry?.status === "ongoing" && (
-          <DialogContent>
-            <Stepper
-              activeStep={activeStep}
-              orientation="vertical"
-              connector={<CustomConnector />}
-            >
-              {steps.map((step, index) => (
-                <Step key={step.label}>
-                  <Grid
-                    container
-                    justifyContent="space-between"
-                    wrap="nowrap"
-                    alignItems="center"
-                  >
-                    <Grid item>
-                      <StepLabel StepIconComponent={step.icon}>
-                        <Typography variant="body">{step.label}</Typography>
-                        <br />
-                        <a href={step.link} target="_blank" rel="noreferrer">
-                          <Typography variant="smallDark">
-                            {step.description}
-                          </Typography>
-                          {step.link && (
-                            <LaunchIcon
-                              sx={{
-                                ml: "0.3rem",
-                                fontSize: "0.6rem",
-                                color: theme.palette.info.dark,
-                              }}
-                            />
-                          )}
-                        </a>
-                      </StepLabel>
-                    </Grid>
-                    <Grid item>
-                      {activeStep === index ? (
-                        <CircularProgress size={32} />
-                      ) : (
-                        <CheckIcon
-                          sx={{
-                            backgroundColor: theme.palette.success.dark,
-                            borderRadius: "100%",
-                            padding: "0.4rem",
-                          }}
-                          fontSize="large"
-                        />
-                      )}
-                    </Grid>
+        <DialogContent>
+          <Stepper
+            activeStep={activeStep}
+            orientation="vertical"
+            connector={<CustomConnector />}
+          >
+            {steps.map((step, index) => (
+              <Step key={step.label}>
+                <Grid
+                  container
+                  justifyContent="space-between"
+                  wrap="nowrap"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <StepLabel StepIconComponent={step.icon}>
+                      <Typography variant="body">{step.label}</Typography>
+                      <br />
+                      <a href={step.link} target="_blank" rel="noreferrer">
+                        <Typography variant="smallDark">
+                          {step.description}
+                        </Typography>
+                        {step.link && (
+                          <LaunchIcon
+                            sx={{
+                              ml: "0.3rem",
+                              fontSize: "0.6rem",
+                              color: theme.palette.info.dark,
+                            }}
+                          />
+                        )}
+                      </a>
+                    </StepLabel>
                   </Grid>
-                </Step>
-              ))}
-            </Stepper>
-            <Card
-              variant="outlined"
-              sx={{
-                p: 0,
-                textAlign: "center",
-                mt: "2.5rem",
-                maxWidth: "27rem",
-              }}
-            >
-              <CardContent>
-                <Typography variant="small">
-                  This step takes a few minutes to process. If you close this
-                  window, your transaction will still be processed.
-                </Typography>
-              </CardContent>
-            </Card>
-          </DialogContent>
+                  <Grid item>
+                    {step.txHash ? (
+                      <CheckIcon
+                        sx={{
+                          backgroundColor: theme.palette.success.dark,
+                          borderRadius: "100%",
+                          padding: "0.4rem",
+                        }}
+                        fontSize="large"
+                      />
+                    ) : (
+                      <CircularProgress size={32} />
+                    )}
+                  </Grid>
+                </Grid>
+              </Step>
+            ))}
+          </Stepper>
+        </DialogContent>
+        {entry.status === "ongoing" && (
+          <Card variant="outlined" sx={{ mt: 3, maxWidth: "100%" }}>
+            <Typography variant="small" textAlign="center">
+              This step takes a few minutes to process. If you close this
+              window, your transaction will still be processed.
+            </Typography>
+          </Card>
         )}
+        {entry.status === "done" && (
+          <DialogActions sx={{ mt: 3 }}>
+            <Button fullWidth variant="secondary">
+              Add USDC
+            </Button>
+            <Button fullWidth variant="gradient">
+              View Position
+            </Button>
+          </DialogActions>
+        )}
+        {/* TODO: in case of error ??? */}
       </Paper>
     </Dialog>
   )

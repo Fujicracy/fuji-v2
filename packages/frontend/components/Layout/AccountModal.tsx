@@ -1,4 +1,4 @@
-import { SyntheticEvent, useState } from "react"
+import { SyntheticEvent, useEffect, useState } from "react"
 import {
   Alert,
   Box,
@@ -39,7 +39,7 @@ export default function AccountModal(props: AccountModalProps) {
   const [showSnackbar, setShowSnackbar] = useState(false)
 
   const historyEntries = useHistory((state) =>
-    state.allHash.map((hash) => state.byHash[hash])
+    state.allHash.map((hash) => state.byHash[hash]).slice(0, 3)
   )
   const openModal = useHistory((state) => state.openModal)
 
