@@ -1,4 +1,5 @@
 export * from './AddressMap';
+export * from './BorrowingVaultFinancials';
 export * from './ChainConfig';
 export * from './ChainTokenList';
 export * from './ChainVaultList';

@@ -13,11 +13,13 @@ import {
   DEBT_LIST,
   VAULT_LIST,
 } from './constants';
+import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
 import { Address, ChainConnection, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { encodeActionArgs } from './functions';
 import {
+  BorrowingVaultFinancials,
   ChainConfig,
   PermitParams,
   RouterActionParams,
@@ -164,12 +166,7 @@ export class Sdk {
    * Retruns all vaults.
    */
   getAllBorrowingVaults(): BorrowingVault[] {
-    const vaults = [];
-    for (const id of Object.keys(CHAIN)) {
-      vaults.push(...VAULT_LIST[parseInt(id) as ChainId]);
-    }
-
-    return vaults;
+    return this._getAllVaults();
   }
 
   /**
@@ -209,6 +206,74 @@ export class Sdk {
     }
 
     return sorted;
+  }
+
+  /**
+   * Retruns all vaults with financial data such as deposit APYs and
+   * borrow APYs. This data is fetched from DefiLlama API and it can take
+   * longer than expected to get loaded.
+   */
+  async getAllVaultsWithFinancials(): Promise<
+    {
+      vault: BorrowingVault;
+      financials: BorrowingVaultFinancials;
+    }[]
+  > {
+    const vaults = this._getAllVaults();
+
+    // TODO: change this because it's very inefficient
+    const providers = (await Promise.all(
+      vaults.map((v) => v.contract?.activeProvider())
+    )) as string[];
+
+    // fetch from DefiLlama
+    const [borrows, pools] = await Promise.all([
+      axios.get('https://yields.llama.fi/lendBorrow').then(({ data }) => data),
+      axios.get('https://yields.llama.fi/pools').then(({ data }) => data.data),
+    ]);
+
+    return vaults.map((v, i) => {
+      const chain = CHAIN[v.chainId].llama;
+      const project = LENDING_PROVIDERS_LIST[v.chainId][providers[i]];
+      const collateralSym = v.collateral.symbol;
+      const debtSym = v.debt.symbol;
+      const {
+        apyBase: depositApyBase,
+        apyReward: depositApyReward,
+        apy: depositApy,
+        rewardTokens: depositRewardTokens,
+      } = pools.find(
+        (p: { chain: string; project: string; symbol: string }) =>
+          p.chain === chain &&
+          p.project === project &&
+          p.symbol === collateralSym
+      );
+
+      const { pool: borrowPoolId } = pools.find(
+        (p: { chain: string; project: string; symbol: string }) =>
+          p.chain === chain && p.project === project && p.symbol === debtSym
+      );
+
+      const {
+        apyBaseBorrow: borrowApyBase,
+        apyRewardBorrow: borrowApyReward,
+        rewardTokens: borrowRewardTokens,
+        totalSupplyUsd,
+        totalBorrowUsd,
+      } = borrows.find((b: { pool: string }) => b.pool === borrowPoolId);
+
+      const financials: BorrowingVaultFinancials = {
+        depositApyBase,
+        depositApyReward,
+        depositApy,
+        depositRewardTokens,
+        borrowApyBase,
+        borrowApyReward,
+        borrowRewardTokens,
+        availableToBorrow: totalSupplyUsd - totalBorrowUsd,
+      };
+      return { vault: v, financials };
+    });
   }
 
   /**
@@ -593,5 +658,14 @@ export class Sdk {
           );
         return [...acc, ...vaults];
       }, []);
+  }
+
+  private _getAllVaults(): BorrowingVault[] {
+    const vaults = [];
+    for (const id of Object.keys(CHAIN)) {
+      vaults.push(...VAULT_LIST[parseInt(id) as ChainId]);
+    }
+
+    return vaults.map((v) => v.setConnection(this._configParams));
   }
 }

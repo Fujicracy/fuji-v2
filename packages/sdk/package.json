@@ -32,7 +32,7 @@
     "@ethersproject/providers": "^5.6.8",
     "@ethersproject/units": "^5.7.0",
     "@hovoh/ethcall": "^9.9.8",
-    "axios": "^1.2.0",
+    "axios": "1.1.3",
     "ethers": "^5.6.9",
     "rxjs": "^6.5.4",
     "tiny-invariant": "^1.2.0",
