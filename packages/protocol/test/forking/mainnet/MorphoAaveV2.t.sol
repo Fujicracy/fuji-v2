@@ -56,14 +56,10 @@ contract MorphoAaveV2Test is Routines, ForkingSetup {
   }
 
   function test_getInterestRates() public {
-    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
-
     uint256 depositRate = morphoAaveV2.getDepositRateFor(vault);
     assertGt(depositRate, 0); // Should be greater than zero.
-    console.log("deposit rate = ", depositRate);
 
     uint256 borrowRate = morphoAaveV2.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
-    console.log("borrow rate = ", borrowRate);
   }
 }
