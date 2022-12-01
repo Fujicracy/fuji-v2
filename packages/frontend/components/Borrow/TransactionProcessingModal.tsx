@@ -33,7 +33,7 @@ import { chainName } from "../../helpers/chainName"
 type Step = {
   label: string
   description: string
-  link: string | undefined
+  chainId: number
   icon: () => JSX.Element
   txHash?: Promise<string>
 }
@@ -58,8 +58,6 @@ export default function TransactionProcessingModal({
     return <></>
   }
 
-  console.log(entry)
-
   const steps: Step[] = entry?.steps
     .map((s) => {
       const token = s.token
@@ -80,7 +78,7 @@ export default function TransactionProcessingModal({
           return {
             label: `Deposit ${amount} ${token.symbol} on ${provider}`,
             description: `${chain} Network`,
-            link: "{scannerlink}", // Async
+            chainId: s.chainId,
             icon: () => (
               <Box sx={style}>
                 <NetworkIcon network={chain} height={32} width={32} />
@@ -92,7 +90,7 @@ export default function TransactionProcessingModal({
           return {
             label: `Borrow ${amount} ${token.symbol} from ${provider}`, // TODO
             description: `${chain} Network`,
-            link: "scannerlink", // Asynx
+            chainId: s.chainId,
             icon: () => (
               <Box sx={style}>
                 <NetworkIcon network={chain} height={32} width={32} />
@@ -102,9 +100,9 @@ export default function TransactionProcessingModal({
           }
         case RoutingStep.X_TRANSFER:
           return {
-            label: "Validate Transaction",
+            label: `Bridging ${amount} ${token.symbol} to ${chain}`,
             description: "Connext bridge",
-            link: "{scannerlink}", // Async
+            chainId: s.chainId,
             icon: () => (
               <Box sx={style}>
                 <Image
@@ -173,11 +171,15 @@ export default function TransactionProcessingModal({
                     <StepLabel StepIconComponent={step.icon}>
                       <Typography variant="body">{step.label}</Typography>
                       <br />
-                      <a href={step.link} target="_blank" rel="noreferrer">
-                        <Typography variant="smallDark">
-                          {step.description}
-                        </Typography>
-                        {step.link && (
+                      {step.chainId && (
+                        <a
+                          href={chainToLink[step.chainId] + step.txHash}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Typography variant="smallDark">
+                            {step.description}
+                          </Typography>
                           <LaunchIcon
                             sx={{
                               ml: "0.3rem",
@@ -185,8 +187,8 @@ export default function TransactionProcessingModal({
                               color: theme.palette.info.dark,
                             }}
                           />
-                        )}
-                      </a>
+                        </a>
+                      )}
                     </StepLabel>
                   </Grid>
                   <Grid item>
@@ -240,3 +242,9 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
     position: "relative",
   },
 }))
+
+const chainToLink = {
+  420: "https://goerli-optimism.etherscan.io/tx/",
+  5: "https://goerli.etherscan.io/tx/",
+  // TODO: all links + move to helpers
+}
