@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -40,6 +41,7 @@ contract MorphoAaveV2 is ILendingProvider {
 
   function _getAToken(address underlying) internal pure returns (address aToken) {
     //TODO use address mapper
+    //check where to get addresses from morpho
     if (underlying == WETH) {
       aToken = AWETH;
     }
@@ -87,15 +89,12 @@ contract MorphoAaveV2 is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
-    //TODO check everything is related to the user and not generally
-    //rates depend on the user p2p
-    rate = ILens(LENS).getCurrentUserSupplyRatePerYear(_getAToken(vault.asset()), address(vault));
+    (rate,,) = ILens(LENS).getAverageSupplyRatePerYear(_getAToken(vault.asset()));
   }
 
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
-    rate =
-      ILens(LENS).getCurrentUserBorrowRatePerYear(_getAToken(vault.debtAsset()), address(vault));
+    (rate,,) = ILens(LENS).getAverageBorrowRatePerYear(_getAToken(vault.debtAsset()));
   }
 
   /// inheritdoc ILendingProvider
