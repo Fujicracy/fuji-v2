@@ -116,6 +116,93 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
+  function test_increaseWithdrawAllowance(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), 0);
+
+    vm.prank(owner);
+    vault.increaseWithdrawAllowance(operator, receiver, amount);
+
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), amount);
+  }
+
+  function test_decreaseWithdrawAllowance(uint256 decreaseAmount_) public {
+    vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
+
+    uint256 difference = 1 ether - decreaseAmount_;
+
+    vm.startPrank(owner);
+    vault.increaseWithdrawAllowance(operator, receiver, 1 ether);
+    vault.decreaseWithdrawAllowance(operator, receiver, decreaseAmount_);
+    vm.stopPrank();
+
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), difference);
+  }
+
+  function test_increaseBorrowAllowance(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.borrowAllowance(owner, operator, receiver), 0);
+
+    vm.prank(owner);
+    vault.increaseBorrowAllowance(operator, receiver, amount);
+
+    assertEq(vault.borrowAllowance(owner, operator, receiver), amount);
+  }
+
+  function test_decreaseBorrowAllowance(uint256 decreaseAmount_) public {
+    vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
+
+    uint256 difference = 1 ether - decreaseAmount_;
+
+    vm.startPrank(owner);
+    vault.increaseBorrowAllowance(operator, receiver, 1 ether);
+    vault.decreaseBorrowAllowance(operator, receiver, decreaseAmount_);
+
+    assertEq(vault.borrowAllowance(owner, operator, receiver), difference);
+  }
+
+  function test_checkAllowanceSetViaERC4626Approve(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.allowance(owner, receiver), 0);
+
+    vm.prank(owner);
+    // BaseVault should override ERC20-approve function and assign `operator` and `receiver` as
+    // the same address when calling an "approve".
+    vault.approve(receiver, amount);
+
+    assertEq(vault.allowance(owner, receiver), amount);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), amount);
+  }
+
+  function test_checkAllowanceIncreaseViaERC4626IncreaseAllowance(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.allowance(owner, receiver), 0);
+
+    vm.prank(owner);
+    // BaseVault should override ERC20-approve function and assign `operator` and `receiver` as
+    // the same address when calling an "approve".
+    vault.increaseAllowance(receiver, amount);
+
+    assertEq(vault.allowance(owner, receiver), amount);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), amount);
+  }
+
+  function test_checkAllowanceDecreaseViaERC4626DecreaseAllowance(uint256 decreaseAmount_) public {
+    vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
+
+    uint256 difference = 1 ether - decreaseAmount_;
+    vm.startPrank(owner);
+    vault.approve(receiver, 1 ether);
+    vault.decreaseAllowance(receiver, decreaseAmount_);
+
+    assertEq(vault.allowance(owner, receiver), difference);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), difference);
+  }
+
   function testFail_operatorTriesWithdraw(
     uint256 depositAmount_,
     uint256 withdrawDelegated_
@@ -222,10 +309,4 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
 
     assertEq(debtAsset.balanceOf(receiver), borrowDelegated_);
   }
-
-  // test increase and decrease withdrawAllowance, check proper allowance.
-
-  // test erc4626-approve sets _withdrawAllowance properly.
-
-  // test increase and decrease borrowAllowance, check proper allowance.
 }
