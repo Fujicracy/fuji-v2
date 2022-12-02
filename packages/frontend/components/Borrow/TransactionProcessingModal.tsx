@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useState } from "react"
+import { MouseEvent, useCallback, useEffect, useState } from "react"
 import {
   Box,
   Button,
@@ -26,13 +26,14 @@ import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
+import { RoutingStep } from "@x-fuji/sdk"
 
 import NetworkIcon from "../NetworkIcon"
 import { useHistory } from "../../store/history.store"
-import { RoutingStep } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"
 import { transactionLink } from "../../helpers/transactionLink"
+import { AddTokenButton } from "../AddTokenButton"
 
 type InvalidStep = {
   label: "Invalid"
@@ -218,9 +219,10 @@ export default function TransactionProcessingModal({
         )}
         {entry.status === "done" && (
           <DialogActions sx={{ mt: 3 }}>
-            <Button fullWidth variant="secondary">
-              Add USDC
-            </Button>
+            {/* This check is to fix the problem that address is a class and thus cannot be rehydrated. See `addTokenToMetamask` */}
+            {entry.position.debt.token.address.value && (
+              <AddTokenButton token={entry.position.debt.token} />
+            )}
             <Button fullWidth variant="gradient">
               View Position
             </Button>
