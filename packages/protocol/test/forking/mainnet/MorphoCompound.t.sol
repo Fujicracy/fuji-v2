@@ -7,46 +7,15 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {MorphoCompound} from "../../../src/providers/mainnet/MorphoCompound.sol";
-import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
-import {AddrMapper} from "../../../src/helpers/AddrMapper.sol";
 
 contract MorphoCompoundTest is Routines, ForkingSetup {
   ILendingProvider public morphoCompound;
-  IAddrMapper public addrMapper;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
     deploy(MAINNET_DOMAIN);
-
-    addrMapper = AddrMapper(chief.addrMapper());
-
-    //ex. compound_v2=>usdc=>cusdc
-    // addrMapper.setMapping("Compound", WETH, CETH);
-    // bytes memory encodedWithSelectorData =
-    //   abi.encodeWithSelector(addrMapper.setMapping.selector, "Compound", WETH, CETH);
-    // _callWithTimelock(encodedWithSelectorData, address(addrMapper));
-    //
-    // // addrMapper.setMapping("Compound", DAI, CDAI);
-    // encodedWithSelectorData =
-    //   abi.encodeWithSelector(addrMapper.setMapping.selector, "Compound", DAI, CDAI);
-    // _callWithTimelock(encodedWithSelectorData, address(addrMapper));
-    //
-    // // addrMapper.setMapping("Compound", USDC, CUSDC);
-    // encodedWithSelectorData =
-    //   abi.encodeWithSelector(addrMapper.setMapping.selector, "Compound", USDC, CUSDC);
-    // _callWithTimelock(encodedWithSelectorData, address(addrMapper));
-    //
-    // // addrMapper.setMapping("Compound", USDT, CUSDT);
-    // encodedWithSelectorData =
-    //   abi.encodeWithSelector(addrMapper.setMapping.selector, "Compound", USDT, CUSDT);
-    // _callWithTimelock(encodedWithSelectorData, address(addrMapper));
-    //
-    // // addrMapper.setMapping("Compound", WBTC, CWBTC);
-    // encodedWithSelectorData =
-    //   abi.encodeWithSelector(addrMapper.setMapping.selector, "Compound", WBTC, CWBTC);
-    // _callWithTimelock(encodedWithSelectorData, address(addrMapper));
 
     morphoCompound = new MorphoCompound();
     ILendingProvider[] memory providers = new ILendingProvider[](1);

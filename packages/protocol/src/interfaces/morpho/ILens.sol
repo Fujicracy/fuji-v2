@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GNU AGPLv3
 pragma solidity ^0.8.0;
 
-// import "./compound/ICompound.sol";
-// import "./IRewardsManager.sol";
-// import "./IMorpho.sol";
-//
 interface ILens {
   function getCurrentSupplyBalanceInOf(
     address _poolToken,
@@ -36,7 +32,7 @@ interface ILens {
     view
     returns (uint256 avgBorrowRatePerYear, uint256 p2pBorrowAmount, uint256 poolBorrowAmount);
 
-  /// COMPOUND ///
+  /// Compound ///
 
   /// RATES ///
 
