@@ -19,7 +19,7 @@ import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
-import { useHistory } from "./history.store"
+import { HistoryEntry, useHistory } from "./history.store"
 
 setAutoFreeze(false)
 
@@ -531,7 +531,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     const permitAction = Sdk.findPermitAction(actions)
     if (!permitAction) {
-      return
+      console.error("No permit action found")
+      return set({ isSigning: false })
     }
 
     let signature
@@ -572,12 +573,11 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         hash: t.hash,
         type: "borrow",
         position,
-        steps: transactionMeta.steps,
+        steps: transactionMeta.steps as HistoryEntry["steps"],
         status: "ongoing",
       })
-      get().changeCollateralValue("")
-      get().changeBorrowValue("")
     } catch (e) {
+      // TODO: user cancel tx
       throw e
     } finally {
       set({ isBorrowing: false })
@@ -586,6 +586,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
   async signAndBorrow() {
     await get().signPermit()
-    get().borrow()
+    await get().borrow()
+    get().changeCollateralValue("")
+    get().changeBorrowValue("")
   },
 })

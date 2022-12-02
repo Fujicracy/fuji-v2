@@ -1,9 +1,10 @@
-import { RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
+import { ChainConnection, RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import produce from "immer"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { useStore } from "."
-import { sdk } from "./auth.slice"
+import { sdk, sdkInitOptions } from "./auth.slice"
+import ethers from "ethers"
 
 import { Position } from "./Position"
 
@@ -75,16 +76,31 @@ export const useHistory = create<HistoryStore>()(
             throw `No entry in history for hash ${hash}`
           }
 
+          let receipt: ethers.providers.TransactionReceipt
+          // TODO: refacto: as long as we cannot store class methods in storage we should not use it (i.e vault.provider.getSmth)
+          const { rpcProvider } = ChainConnection.from(
+            sdkInitOptions,
+            entry.steps[0].chainId
+          )
+          if (rpcProvider) {
+            console.debug("waitForTransaction", hash)
+            receipt = await rpcProvider.waitForTransaction(hash)
+          } else {
+            return console.error("No provider found in position.vault")
+          }
+
           const debtToken = entry.position.debt.token
           const collToken = entry.position.collateral.token
           if (debtToken.chainId === collToken.chainId) {
-            const provider = entry.position.vault?.rpcProvider
-            if (provider) {
-              const tx = await provider.getTransaction(hash)
-              await tx.wait()
-            } else {
-              console.error("No provider found in position.vault")
-            }
+            set(
+              produce((s: HistoryState) => {
+                const steps = s.byHash[hash].steps
+                const b = steps.find((s) => s.step === RoutingStep.BORROW)
+                const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
+                if (b) b.txHash = receipt.transactionHash
+                if (d) d.txHash = receipt.transactionHash
+              })
+            )
           } else {
             const convertedSteps = entry.steps.map((s) => ({
               ...s,
