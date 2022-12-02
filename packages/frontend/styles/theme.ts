@@ -280,6 +280,10 @@ const theme = createTheme(colorTheme, {
             borderRadius: "1rem",
           },
         },
+        {
+          props: { size: "large" },
+          style: { padding: ".7rem", fontSize: "1rem" },
+        },
       ],
     },
     MuiCircularProgress: {

@@ -76,6 +76,7 @@ export default function Borrow() {
     button = (
       <Button
         variant="gradient"
+        size="large"
         onClick={() => login()}
         fullWidth
         data-cy="borrow-login"
@@ -87,6 +88,7 @@ export default function Borrow() {
     button = (
       <Button
         variant="gradient"
+        size="large"
         fullWidth
         onClick={() => changeChain(collateral.token.chainId)}
       >
@@ -95,13 +97,13 @@ export default function Borrow() {
     )
   } else if (value > 0 && value > balance) {
     button = (
-      <Button variant="gradient" disabled fullWidth>
+      <Button variant="gradient" size="large" disabled fullWidth>
         Insufficient {collateral.token.symbol} balance
       </Button>
     )
   } else if (ltv > ltvMax) {
     button = (
-      <Button variant="gradient" disabled fullWidth>
+      <Button variant="gradient" size="large" disabled fullWidth>
         Not enough collateral
       </Button>
     )
@@ -113,6 +115,7 @@ export default function Borrow() {
       <Button
         variant="gradient"
         fullWidth
+        size="large"
         onClick={() => setShowApprovalModal(true)}
       >
         Allow
@@ -123,6 +126,7 @@ export default function Borrow() {
       <LoadingButton
         variant="gradient"
         onClick={signAndBorrow}
+        size="large"
         fullWidth
         disabled={
           collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"

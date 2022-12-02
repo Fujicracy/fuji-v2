@@ -107,6 +107,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         </Stack>
         <LoadingButton
           variant="gradient"
+          size="large"
           fullWidth
           loading={collateralAllowance.status === "allowing"}
           onClick={handleAllow}
