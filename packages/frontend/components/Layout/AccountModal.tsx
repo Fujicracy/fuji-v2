@@ -191,7 +191,7 @@ export default function AccountModal(props: AccountModalProps) {
               />
             ))
           ) : (
-            <ListItem sx={{ p: "0 1,5rem 1rem" }}>
+            <ListItem sx={{ p: "0 1.5rem 1rem" }}>
               <Typography variant="small">
                 Nothing here... What are you waiting for ?
               </Typography>
