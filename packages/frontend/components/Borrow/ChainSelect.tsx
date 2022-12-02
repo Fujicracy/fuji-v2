@@ -7,12 +7,14 @@ type ChainSelectProps = {
   label: string
   type: "collateral" | "borrow"
   value: string
+  disabled?: boolean
   onChange: (chainId: string) => void
 }
 export const ChainSelect = ({
   value,
   label,
   type,
+  disabled,
   onChange,
 }: ChainSelectProps) => {
   const labelId = `${type}-label`
@@ -28,6 +30,7 @@ export const ChainSelect = ({
         labelId={labelId}
         id={selectId}
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         IconComponent={KeyboardArrowDownIcon}
         variant="standard"

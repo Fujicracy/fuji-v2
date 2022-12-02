@@ -157,6 +157,7 @@ export default function Borrow() {
               label="Collateral from"
               type="collateral"
               value={collateralChainId}
+              disabled={isBorrowing}
               onChange={(chainId) => changeCollateralChain(chainId)}
             />
             <TokenCard type="collateral" />
@@ -167,6 +168,7 @@ export default function Borrow() {
               label="Borrow to"
               type="borrow"
               value={debtChainId}
+              disabled={isBorrowing}
               onChange={(chainId) => changeBorrowChain(chainId)}
             />
             <TokenCard type="debt" />
