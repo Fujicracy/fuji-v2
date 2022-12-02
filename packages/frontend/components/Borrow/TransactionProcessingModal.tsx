@@ -176,10 +176,8 @@ export default function TransactionProcessingModal({
                       <Typography variant="body">{step.label}</Typography>
                       <br />
                       {step.txHash && (
-                        <Link href={step.link} variant="secondary">
-                          {/* <Typography variant="smallDark"> */}
+                        <Link href={step.link} variant="smallDark">
                           {step.description}
-                          {/* </Typography> */}
                           <LaunchIcon
                             sx={{
                               ml: "0.3rem",
@@ -243,6 +241,6 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
     marginTop: "-2rem",
     height: "6rem",
     marginBottom: "-2rem",
-    // position: "relative",
+    width: "fit-content",
   },
 }))
