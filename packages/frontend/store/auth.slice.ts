@@ -85,18 +85,21 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
       token: "MATIC",
       label: "Mumbai",
       rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+      blockExplorerUrl: "https://mumbai.polygonscan.com/",
     },
     {
       id: "0x5",
       token: "GTH",
       label: "Goerli",
       rpcUrl: `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+      blockExplorerUrl: "https://goerli-optimism.etherscan.io/",
     },
     {
       id: "0x1a4",
       token: "ETH",
       label: "Optimism Goerli",
       rpcUrl: "https://goerli.optimism.io/",
+      blockExplorerUrl: "https://goerli.etherscan.io/",
     }
   )
 }

@@ -29,14 +29,20 @@ import { useHistory } from "../../store/history.store"
 import { RoutingStep } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"
+import { transactionLink } from "../../helpers/transactionLink"
 
-type Step = {
+type InvalidStep = {
+  label: "Invalid"
+}
+type ValidStep = {
   label: string
   description: string
   chainId: number
+  txHash?: string
+  link?: string
   icon: () => JSX.Element
-  txHash?: Promise<string>
 }
+type TransactionStep = InvalidStep | ValidStep
 
 type TransactionProcessingModalProps = {
   hash?: string
@@ -58,13 +64,14 @@ export default function TransactionProcessingModal({
     return <></>
   }
 
-  const steps: Step[] = entry?.steps
-    .map((s) => {
+  const steps = entry.steps
+    .map((s): TransactionStep => {
       const token = s.token
       const amount = formatUnits(s.amount, token.decimals)
       const provider = s.lendingProvider?.name
       const chain = chainName(s.chainId)
-      // const link = "" + s.txHash
+      const link = s.txHash && transactionLink(s.chainId, s.txHash)
+      const { txHash, chainId } = s
 
       const style = {
         background: theme.palette.secondary.light,
@@ -78,31 +85,35 @@ export default function TransactionProcessingModal({
           return {
             label: `Deposit ${amount} ${token.symbol} on ${provider}`,
             description: `${chain} Network`,
-            chainId: s.chainId,
+            chainId,
+            txHash,
+            link,
             icon: () => (
               <Box sx={style}>
                 <NetworkIcon network={chain} height={32} width={32} />
               </Box>
             ),
-            txHash: s.txHash,
           }
         case RoutingStep.BORROW:
           return {
-            label: `Borrow ${amount} ${token.symbol} from ${provider}`, // TODO
+            label: `Borrow ${amount} ${token.symbol} from ${provider}`,
             description: `${chain} Network`,
-            chainId: s.chainId,
+            chainId,
+            txHash,
+            link,
             icon: () => (
               <Box sx={style}>
                 <NetworkIcon network={chain} height={32} width={32} />
               </Box>
             ),
-            txHash: s.txHash,
           }
         case RoutingStep.X_TRANSFER:
           return {
             label: `Bridging ${amount} ${token.symbol} to ${chain}`,
             description: "Connext bridge",
-            chainId: s.chainId,
+            chainId,
+            txHash,
+            link,
             icon: () => (
               <Box sx={style}>
                 <Image
@@ -113,18 +124,12 @@ export default function TransactionProcessingModal({
                 />
               </Box>
             ),
-            txHash: s.txHash,
           }
         default:
-          return {
-            label: "Invalid",
-            description: "",
-            link: "", // Async
-            icon: () => <NetworkIcon network={chain} height={32} width={32} />,
-          }
+          return { label: "Invalid" }
       }
     })
-    .filter((s) => s.label !== "Invalid")
+    .filter((s) => s.label !== "Invalid") as ValidStep[]
 
   // Commented till we use it cause it make the linter fail
   // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
@@ -159,7 +164,7 @@ export default function TransactionProcessingModal({
             orientation="vertical"
             connector={<CustomConnector />}
           >
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <Step key={step.label}>
                 <Grid
                   container
@@ -171,12 +176,8 @@ export default function TransactionProcessingModal({
                     <StepLabel StepIconComponent={step.icon}>
                       <Typography variant="body">{step.label}</Typography>
                       <br />
-                      {step.chainId && (
-                        <a
-                          href={chainToLink[step.chainId] + step.txHash}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
+                      {step.txHash && (
+                        <a href={step.link} target="_blank" rel="noreferrer">
                           <Typography variant="smallDark">
                             {step.description}
                           </Typography>
@@ -192,7 +193,7 @@ export default function TransactionProcessingModal({
                     </StepLabel>
                   </Grid>
                   <Grid item>
-                    {step.txHash ? (
+                    {step.txHash || entry.status === "done" ? (
                       <CheckIcon
                         sx={{
                           backgroundColor: theme.palette.success.dark,
@@ -242,9 +243,3 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
     position: "relative",
   },
 }))
-
-const chainToLink = {
-  420: "https://goerli-optimism.etherscan.io/tx/",
-  5: "https://goerli.etherscan.io/tx/",
-  // TODO: all links + move to helpers
-}
