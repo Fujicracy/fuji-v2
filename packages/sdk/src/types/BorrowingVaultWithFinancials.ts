@@ -1,4 +1,7 @@
-export type BorrowingVaultFinancials = {
+import { BorrowingVault } from '../entities/BorrowingVault';
+
+export type BorrowingVaultWithFinancials = {
+  vault: BorrowingVault;
   depositApyBase: number;
   depositApyReward: number;
   depositApy: number;
@@ -6,5 +9,5 @@ export type BorrowingVaultFinancials = {
   borrowApyBase: number;
   borrowApyReward: number;
   borrowRewardTokens: string[];
-  availableToBorrow: number;
+  availableToBorrowUSD: number;
 };
