@@ -48,6 +48,12 @@ declare module "@mui/material/Chip" {
   }
 }
 
+declare module "@mui/material/Link" {
+  interface LinkPropsVariantOverrides {
+    secondary: true
+  }
+}
+
 const colorTheme = createTheme({
   palette: {
     mode: "dark",
@@ -412,6 +418,15 @@ const theme = createTheme(colorTheme, {
           },
         },
       },
+      variants: [
+        {
+          props: { variant: "secondary" },
+          style: {
+            color: colorTheme.palette.text.disabled,
+            fontSize: "0.875rem",
+          },
+        },
+      ],
     },
     MuiDialog: {
       styleOverrides: {

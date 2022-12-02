@@ -8,8 +8,11 @@ import {
   DialogActions,
   DialogContent,
   Grid,
+  Link,
   Paper,
+  Stack,
   Step,
+  StepContent,
   StepLabel,
   Stepper,
   Typography,
@@ -78,6 +81,7 @@ export default function TransactionProcessingModal({
         mr: "0.5rem",
         p: "0.5rem 0.5rem 0.3rem 0.5rem",
         borderRadius: "100%",
+        zIndex: 1,
       }
 
       switch (s.step) {
@@ -109,7 +113,7 @@ export default function TransactionProcessingModal({
           }
         case RoutingStep.X_TRANSFER:
           return {
-            label: `Bridging ${amount} ${token.symbol} to ${chain}`,
+            label: `Bridge ${amount} ${token.symbol} to ${chain}`,
             description: "Connext bridge",
             chainId,
             txHash,
@@ -166,21 +170,16 @@ export default function TransactionProcessingModal({
           >
             {steps.map((step) => (
               <Step key={step.label}>
-                <Grid
-                  container
-                  justifyContent="space-between"
-                  wrap="nowrap"
-                  alignItems="center"
-                >
-                  <Grid item>
-                    <StepLabel StepIconComponent={step.icon}>
+                <StepLabel StepIconComponent={step.icon}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Box>
                       <Typography variant="body">{step.label}</Typography>
                       <br />
                       {step.txHash && (
-                        <a href={step.link} target="_blank" rel="noreferrer">
-                          <Typography variant="smallDark">
-                            {step.description}
-                          </Typography>
+                        <Link href={step.link} variant="secondary">
+                          {/* <Typography variant="smallDark"> */}
+                          {step.description}
+                          {/* </Typography> */}
                           <LaunchIcon
                             sx={{
                               ml: "0.3rem",
@@ -188,25 +187,25 @@ export default function TransactionProcessingModal({
                               color: theme.palette.info.dark,
                             }}
                           />
-                        </a>
+                        </Link>
                       )}
-                    </StepLabel>
-                  </Grid>
-                  <Grid item>
-                    {step.txHash || entry.status === "done" ? (
-                      <CheckIcon
-                        sx={{
-                          backgroundColor: theme.palette.success.dark,
-                          borderRadius: "100%",
-                          padding: "0.4rem",
-                        }}
-                        fontSize="large"
-                      />
-                    ) : (
-                      <CircularProgress size={32} />
-                    )}
-                  </Grid>
-                </Grid>
+                    </Box>
+                    <Box>
+                      {step.txHash || entry.status === "done" ? (
+                        <CheckIcon
+                          sx={{
+                            backgroundColor: theme.palette.success.dark,
+                            borderRadius: "100%",
+                            padding: "0.4rem",
+                          }}
+                          fontSize="large"
+                        />
+                      ) : (
+                        <CircularProgress size={32} />
+                      )}
+                    </Box>
+                  </Stack>
+                </StepLabel>
               </Step>
             ))}
           </Stepper>
@@ -237,9 +236,13 @@ export default function TransactionProcessingModal({
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {
+    borderColor: theme.palette.secondary.light,
     borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
-    margin: "-0.5rem 0.7rem",
-    height: "3rem",
+    left: "12px",
     position: "relative",
+    marginTop: "-2rem",
+    height: "6rem",
+    marginBottom: "-2rem",
+    // position: "relative",
   },
 }))
