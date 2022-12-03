@@ -58,12 +58,8 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
     chief = new Chief();
-    chief.setTimelock(address(timelock));
+    timelock = TimelockController(payable(chief.timelock()));
 
     vault = new BorrowingVault(
       address(asset),
@@ -99,26 +95,26 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
     providers[0] = mockProvider;
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
     vault.setActiveProvider(mockProvider);
   }
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(
-    address contract_,
-    bytes memory encodedWithSelectorData
-  )
-    internal
-  {
-    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
+  function _callWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
+    timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
+  }
+
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
   }
 
   /// BaseVault parameter changing fuzz tests

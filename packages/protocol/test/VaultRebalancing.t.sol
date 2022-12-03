@@ -87,25 +87,20 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
 
-    // address[] memory admins = new address[](1);
-    // admins[0] = address(this);
-    // timelock = new TimelockController(1 days, admins, admins);
-
     chief = new Chief();
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
-    // chief.setTimelock(address(timelock));
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     yVaultFactory = new YieldVaultFactory(address(chief));
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     executionCall =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(yVaultFactory), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     address bvaultAddr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -119,16 +114,15 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     flasher = new MockFlasher();
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     rebalancer = new RebalancerManager(address(chief));
     executionCall =
       abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(rebalancer));
-    _utils_callWithTimelock(address(chief), executionCall);
-    // chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    _callWithTimelock(address(chief), executionCall);
 
     executionCall = abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
-    _utils_callWithTimelock(address(rebalancer), executionCall);
+    _callWithTimelock(address(rebalancer), executionCall);
 
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), alice);
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), bob);
@@ -157,22 +151,19 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address applicable roles.
-    // chief.grantRole(REBALANCER_ROLE, address(this));
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(this));
-    _utils_callWithTimelock(address(chief), encodedWithSelectorData);
+    _grantRoleChief(REBALANCER_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(
-    address contract_,
-    bytes memory encodedWithSelectorData
-  )
-    internal
-  {
-    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
+  function _callWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
+    timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
+  }
+
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
   }
 
   function _utils_setupVaultProviders(IVault vault_) internal {
@@ -181,7 +172,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     providers[1] = mockProviderB;
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
+    _callWithTimelock(address(vault_), encodedWithSelectorData);
     vault_.setActiveProvider(mockProviderA);
   }
 

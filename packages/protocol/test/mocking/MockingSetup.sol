@@ -53,11 +53,12 @@ contract MockingSetup is CoreRoles, Test {
     timelock = new TimelockController(1 days, admins, admins);
 
     chief = new Chief();
-    chief.setTimelock(address(timelock));
+    timelock = TimelockController(payable(chief.timelock()));
+
     // Grant this address all roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, address(this));
-    chief.grantRole(HOUSE_KEEPER_ROLE, address(this));
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+    _grantRoleChief(HOUSE_KEEPER_ROLE, address(this));
 
     vault = new BorrowingVault(
       collateralAsset,
@@ -73,16 +74,21 @@ contract MockingSetup is CoreRoles, Test {
     MockERC20(mockerc20).mint(to, amount);
   }
 
-  function _callWithTimelock(bytes memory sendData, IVault v) internal {
-    timelock.schedule(address(v), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _callWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(v), 0, sendData, 0x00, 0x00);
+    timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
+  }
+
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
   }
 
   function _setVaultProviders(IVault v, ILendingProvider[] memory providers) internal {
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
-    _callWithTimelock(sendData, v);
+    _callWithTimelock(address(v), sendData);
   }
 
   // plusNonce is necessary for compound operations,
