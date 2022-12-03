@@ -36,6 +36,8 @@ contract Chief is CoreRoles, AccessControl, IChief {
   error Chief__deployVault_missingRole(address account, bytes32 role);
   error Chief__onlyTimelock_callerIsNotTimelock();
 
+  bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
+
   address public timelock;
   address public addrMapper;
   bool public openVaultFactory;
@@ -53,7 +55,8 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   constructor() {
-    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _deployTimelockController();
+    _grantRole(DEPLOYER_ROLE, msg.sender);
     _grantRole(HOUSE_KEEPER_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
@@ -64,12 +67,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
     return _vaults;
   }
 
-  function setTimelock(address newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
+  function setTimelock(address newTimelock) external onlyTimelock {
     _checkInputIsNotZeroAddress(newTimelock);
+    // Revoke admin role from current timelock
+    _revokeRole(DEFAULT_ADMIN_ROLE, timelock);
+    // Assign `timelock` to new timelock address
     timelock = newTimelock;
-    // TODO update tests accordingly to grant timelock default admin role.
-    // _grantRole(DEFAULT_ADMIN_ROLE, timelock);
-    // renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    // grant admin role to new timelock address
+    _grantRole(DEFAULT_ADMIN_ROLE, timelock);
     emit TimelockUpdated(newTimelock);
   }
 
@@ -89,8 +94,8 @@ contract Chief is CoreRoles, AccessControl, IChief {
     if (!allowedVaultFactory[_factory]) {
       revert Chief__deployVault_factoryNotAllowed();
     }
-    if (!openVaultFactory && !hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
-      revert Chief__deployVault_missingRole(msg.sender, DEFAULT_ADMIN_ROLE);
+    if (!openVaultFactory && !hasRole(DEPLOYER_ROLE, msg.sender)) {
+      revert Chief__deployVault_missingRole(msg.sender, DEPLOYER_ROLE);
     }
     vault = IVaultFactory(_factory).deployVault(_deployData);
     vaultSafetyRating[vault] = rating;
@@ -172,6 +177,16 @@ contract Chief is CoreRoles, AccessControl, IChief {
   {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, uint8(action));
     _changePauseState(callData);
+  }
+
+  /**
+   * @dev Deploys 1 {TimelockController} contract during Chief deployment.
+   */
+  function _deployTimelockController() internal {
+    address[] memory admins = new address[](1);
+    admins[0] = msg.sender;
+    timelock = address(new TimelockController{salt: "0x00"}(1 days, admins, admins));
+    _grantRole(DEFAULT_ADMIN_ROLE, timelock);
   }
 
   /**

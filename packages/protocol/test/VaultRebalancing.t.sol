@@ -87,12 +87,14 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
+    // address[] memory admins = new address[](1);
+    // admins[0] = address(this);
+    // timelock = new TimelockController(1 days, admins, admins);
 
     chief = new Chief();
-    chief.setTimelock(address(timelock));
+    timelock = TimelockController(payable(chief.timelock()));
+    _utils_setupTestRoles();
+    // chief.setTimelock(address(timelock));
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     yVaultFactory = new YieldVaultFactory(address(chief));
@@ -120,7 +122,10 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     _utils_callWithTimelock(address(chief), executionCall);
 
     rebalancer = new RebalancerManager(address(chief));
-    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    executionCall =
+      abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(rebalancer));
+    _utils_callWithTimelock(address(chief), executionCall);
+    // chief.grantRole(REBALANCER_ROLE, address(rebalancer));
 
     executionCall = abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
     _utils_callWithTimelock(address(rebalancer), executionCall);
@@ -152,7 +157,10 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address applicable roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
+    // chief.grantRole(REBALANCER_ROLE, address(this));
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(this));
+    _utils_callWithTimelock(address(chief), encodedWithSelectorData);
   }
 
   function _utils_callWithTimelock(
@@ -168,7 +176,6 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   }
 
   function _utils_setupVaultProviders(IVault vault_) internal {
-    _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = mockProviderA;
     providers[1] = mockProviderB;
