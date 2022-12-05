@@ -29,7 +29,8 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant MAINNET_DOMAIN = 6648936;
   uint32 public constant OPTIMISM_DOMAIN = 22222222; // TODO: replace with the real one
   uint32 public constant ARBITRUM_DOMAIN = 33333333; // TODO: replace with the real one
-  uint32 public constant POLYGON_DOMAIN = 44444444; // TODO: replace with the real one
+  uint32 public constant POLYGON_DOMAIN = 1886350457;
+  //https://github.com/connext/chaindata/blob/main/crossChain.json
 
   uint256 public constant ALICE_PK = 0xA;
   address public ALICE = vm.addr(ALICE_PK);

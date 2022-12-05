@@ -1,7 +1,9 @@
 import {
   Address,
+  BorrowingVault,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  LendingProviderDetails,
   RouterActionParams,
   Sdk,
   Token,
@@ -10,11 +12,13 @@ import { formatUnits, parseUnits } from "ethers/lib/utils"
 import produce, { setAutoFreeze } from "immer"
 import { StateCreator } from "zustand"
 import { debounce } from "debounce"
+
 import { useStore } from "."
 import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
+
 setAutoFreeze(false)
 
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
@@ -24,6 +28,9 @@ type TransactionState = {
   showTransactionAbstract: boolean
 
   position: Position
+  availableVaults: BorrowingVault[]
+  // Providers are mapped with their vault address
+  allProviders: Record<string, LendingProviderDetails[]>
 
   collateralTokens: Token[]
   collateralBalances: Record<string, number>
@@ -53,7 +60,15 @@ type TransactionState = {
   actions?: RouterActionParams[]
 
   isBorrowing: boolean
+  // history: TransactionHistory[] // State normalization ? (all id / by id ?)
 }
+
+// type TransactionHistory = {
+//   id: string // TX hash
+//   type: "borrow"
+//   position: Position
+//   status: "ongoing" | "error" | "done"
+// }
 
 type TransactionActions = {
   setTransactionStatus: (newStatus: boolean) => void
@@ -65,16 +80,21 @@ type TransactionActions = {
   changeCollateralChain: (chainId: ChainId) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
+  changeActiveVault: (v: BorrowingVault) => void
 
+  updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
   updateVault: () => void
   updateTransactionMeta: () => void
+  updateLtv: () => void
+  updateLiquidation: () => void
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
   borrow: () => void
+  signAndBorrow: () => void
 }
 type ChainId = string // hex value as string
 
@@ -88,6 +108,8 @@ const initialState: TransactionState = {
   transactionStatus: false,
   showTransactionAbstract: false,
 
+  availableVaults: [],
+  allProviders: {},
   position: {
     collateral: {
       amount: 0,
@@ -100,6 +122,8 @@ const initialState: TransactionState = {
       usdValue: 0,
     },
     ltv: 0,
+    liquidationDiff: 0,
+    liquidationPrice: 0,
     ltvMax: DEFAULT_LTV_MAX,
     ltvThreshold: DEFAULT_LTV_TRESHOLD,
   },
@@ -129,6 +153,7 @@ const initialState: TransactionState = {
   needPermit: true,
   isSigning: false,
   isBorrowing: false,
+  // history: [],
 }
 
 export const createTransactionSlice: TransactionSlice = (set, get) => ({
@@ -208,6 +233,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateTransactionMeta()
+    get().updateLtv()
+    get().updateLiquidation()
   },
 
   changeCollateralValue(value) {
@@ -218,6 +245,35 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateTransactionMeta()
+    get().updateLtv()
+    get().updateLiquidation()
+  },
+
+  async changeActiveVault(vault) {
+    const address = useStore.getState().address
+    if (!address) {
+      return
+    }
+    const providers = await vault.getProviders()
+    await vault.preLoad(address ? new Address(address) : undefined)
+
+    const ltvMax = vault.maxLtv
+      ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
+      : DEFAULT_LTV_MAX
+    const ltvThreshold = vault.liqRatio
+      ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
+      : DEFAULT_LTV_TRESHOLD
+
+    set(
+      produce((s: TransactionState) => {
+        s.position.vault = vault
+        s.position.vault = vault
+        s.position.ltvMax = ltvMax
+        s.position.ltvThreshold = ltvThreshold
+        s.position.providers = providers
+        s.position.activeProvider = providers[0]
+      })
+    )
   },
 
   async updateBalances(type) {
@@ -263,13 +319,14 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       // TODO: remove (fix bc value on testnet is too low)
       tokenValue = 1242.42
     }
-    console.log(token.symbol, "=>", tokenValue, "USD")
 
     set(
       produce((state: TransactionState) => {
         state.position[type].usdValue = tokenValue
       })
     )
+    get().updateLtv()
+    get().updateLiquidation()
   },
 
   async updateAllowance() {
@@ -307,32 +364,29 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
     const collateral = get().position.collateral.token
     const debt = get().position.debt.token
-
-    const [vault] = await sdk.getBorrowingVaultsFor(collateral, debt)
+    const availableVaults = await sdk.getBorrowingVaultsFor(collateral, debt)
+    const [vault] = availableVaults
     if (!vault) {
       // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
       return
     }
 
-    const providers = await vault.getProviders()
-    await vault.preLoad(address ? new Address(address) : undefined)
+    set({ availableVaults })
+    get().changeActiveVault(vault)
+    get().updateAllProviders()
+  },
 
-    const ltvMax = vault.maxLtv
-      ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
-      : DEFAULT_LTV_MAX
-    const ltvThreshold = vault.liqRatio
-      ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
-      : DEFAULT_LTV_TRESHOLD
+  async updateAllProviders() {
+    const { availableVaults } = get()
 
-    set(
-      produce((state: TransactionState) => {
-        state.position.vault = vault
-        state.position.ltvMax = ltvMax
-        state.position.ltvThreshold = ltvThreshold
-        state.position.providers = providers
-        state.position.activeProvider = providers[0]
-      })
-    )
+    const allProviders: Record<string, LendingProviderDetails[]> = {}
+    for (const v of availableVaults) {
+      const providers = await v.getProviders()
+      allProviders[v.address.value] = providers
+    }
+
+    // TODO: status fetching ?
+    set({ allProviders })
   },
 
   updateTransactionMeta: debounce(async () => {
@@ -404,6 +458,52 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       console.error("sdk error", e)
     }
   }, 500),
+
+  updateLtv() {
+    const collateralValue = parseFloat(get().collateralInput)
+    const collateralUsdValue = get().position.collateral.usdValue
+    const collateral = collateralValue * collateralUsdValue
+
+    const debtValue = parseFloat(get().debtInput)
+    const debtUsdValue = get().position.debt.usdValue
+    const debt = debtValue * debtUsdValue
+
+    const ltv = collateral && debt ? Math.round((debt / collateral) * 100) : 0
+
+    set(
+      produce((s: TransactionState) => {
+        s.position.ltv = ltv
+      })
+    )
+  },
+
+  updateLiquidation() {
+    const collateralAmount = parseFloat(get().collateralInput)
+    const collateralUsdValue = get().position.collateral.usdValue
+
+    const debtValue = parseFloat(get().debtInput)
+    const debtUsdValue = get().position.debt.usdValue
+    const debt = debtValue * debtUsdValue
+
+    if (!debt || !collateralAmount) {
+      return { liquidationPrice: 0, liquidationDiff: 0 }
+    }
+
+    const liquidationTreshold = get().position.ltvThreshold
+
+    const liquidationPrice =
+      debt / (collateralAmount * (liquidationTreshold / 100))
+    const liquidationDiff = Math.round(
+      (1 - liquidationPrice / collateralUsdValue) * 100
+    )
+
+    set(
+      produce((s: TransactionState) => {
+        s.position.liquidationPrice = liquidationPrice
+        s.position.liquidationDiff = liquidationDiff
+      })
+    )
+  },
 
   /**
    * Allow fuji contract to spend on behalf of the user an amount
@@ -493,8 +593,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const signer = provider.getSigner()
       t = await signer.sendTransaction(txRequest)
     } catch (e) {
-      console.log(e)
       // TODO: handle borrow error, if error refuse in metamask or the tx fail for some reason
+      console.error(e)
       return set({ isBorrowing: false })
     }
     set({ transactionStatus: true, showTransactionAbstract: true }) // TODO: Tx successfully sent
@@ -509,49 +609,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateAllowance()
     get().updateBalances("collateral")
   },
+
+  async signAndBorrow() {
+    await get().signPermit()
+    get().borrow()
+  },
 })
-
-// Workaround to compute property. See https://github.com/pmndrs/zustand/discussions/1341
-// Better refacto using zustand-middleware-computed-state but it creates typing probleme idk how to solve
-export function useLtv(): number {
-  const collateralValue = useStore((state) => parseFloat(state.collateralInput))
-  const collateralUsdValue = useStore(
-    (state) => state.position.collateral.usdValue
-  )
-  const collateral = collateralValue * collateralUsdValue
-
-  const debtValue = useStore((state) => parseFloat(state.debtInput))
-  const debtUsdValue = useStore((state) => state.position.debt.usdValue)
-  const debt = debtValue * debtUsdValue
-
-  if (!collateral || !debt) {
-    return 0
-  }
-  return Math.round((debt / collateral) * 100)
-}
-
-export function useLiquidationPrice(liquidationTreshold: number): {
-  liquidationPrice: number
-  liquidationDiff: number
-} {
-  const collateralAmount = useStore((state) => state.position.collateral.amount)
-  const collateralUsdValue = useStore(
-    (state) => state.position.collateral.usdValue
-  )
-
-  const debtValue = useStore((state) => parseFloat(state.debtInput))
-  const debtUsdValue = useStore((state) => state.position.debt.usdValue)
-  const debt = debtValue * debtUsdValue
-
-  if (!debt || !collateralAmount) {
-    return { liquidationPrice: 0, liquidationDiff: 0 }
-  }
-
-  const liquidationPrice =
-    debt / (collateralAmount * (liquidationTreshold / 100))
-  const liquidationDiff = Math.round(
-    (1 - liquidationPrice / collateralUsdValue) * 100
-  )
-
-  return { liquidationPrice, liquidationDiff }
-}

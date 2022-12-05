@@ -88,7 +88,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           abi.decode(args[i], (IVault, uint256, address, address));
 
         address token = vault.asset();
-        _safePullTokenFrom(token, sender, amount);
+        _safePullTokenFrom(token, sender, receiver, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.deposit(amount, receiver);
@@ -116,7 +116,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           abi.decode(args[i], (IVault, uint256, address, address));
 
         address token = vault.debtAsset();
-        _safePullTokenFrom(token, sender, amount);
+        _safePullTokenFrom(token, sender, receiver, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.payback(amount, receiver);
@@ -239,11 +239,18 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
   }
 
-  function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
+  function _safePullTokenFrom(
+    address token,
+    address sender,
+    address owner,
+    uint256 amount
+  )
+    internal
+  {
     // this check is needed because when we bundle mulptiple actions
     // it can happen the router already holds the assets in question;
     // for. example when we withdraw from a vault and deposit to another one
-    if (sender != address(this)) {
+    if (sender != address(this) && sender == owner) {
       ERC20(token).safeTransferFrom(sender, address(this), amount);
     }
   }

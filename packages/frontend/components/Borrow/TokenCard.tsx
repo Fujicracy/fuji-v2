@@ -20,7 +20,6 @@ import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
 import Balance from "../Balance"
 import { useStore } from "../../store"
-import { useLtv } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import TokenIcon from "../TokenIcon"
 
@@ -49,7 +48,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   const value = useStore((state) =>
     type === "debt" ? state.debtInput : state.collateralInput
   )
-  const ltv = useLtv()
+  const ltv = useStore((state) => state.position.ltv)
   const ltvMax = useStore((state) => state.position.ltvMax)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)

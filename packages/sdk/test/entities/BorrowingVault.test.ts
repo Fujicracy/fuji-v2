@@ -38,7 +38,7 @@ describe('BorrowingVault', () => {
         action: RouterAction.PERMIT_BORROW,
         vault: Address.from(AddressZero),
         amount: BigNumber.from(1),
-        spender: ADDRESS_TWO,
+        receiver: ADDRESS_TWO,
         owner: ADDRESS_ONE,
         deadline: 24 * 60 * 60,
       };
@@ -51,7 +51,7 @@ describe('BorrowingVault', () => {
 
       const { digest } = await vault.signPermitFor(params);
       expect(digest).toEqual(
-        '0x2120b4dc81bb0eff221969b4f2a7d469e6c6cd1be06535ba542d49899a7596c8'
+        '0xb4fafa4b87e1f8fdfae888fb531c450f5e53242d141373ec5518998445bfa035'
       );
     });
 
@@ -60,7 +60,7 @@ describe('BorrowingVault', () => {
         action: RouterAction.PERMIT_WITHDRAW,
         vault: Address.from(AddressZero),
         amount: BigNumber.from(1),
-        spender: ADDRESS_TWO,
+        receiver: ADDRESS_TWO,
         owner: ADDRESS_ONE,
         deadline: 24 * 60 * 60,
       };
@@ -73,7 +73,7 @@ describe('BorrowingVault', () => {
 
       const { digest } = await vault.signPermitFor(params);
       expect(digest).toEqual(
-        '0xe07600445792f6b44159b3d34362cbb7d746d1bc1e470095eed760589bcf377a'
+        '0x7d1251df98cf427d302af373c5830e4376c37c6f66ee36a988a41c652a118973'
       );
     });
 
@@ -82,7 +82,7 @@ describe('BorrowingVault', () => {
         action: RouterAction.PERMIT_BORROW,
         vault: Address.from(AddressZero),
         amount: BigNumber.from(1),
-        spender: ADDRESS_TWO,
+        receiver: ADDRESS_TWO,
         owner: ADDRESS_ONE,
         deadline: 24 * 60 * 60,
       };
@@ -90,7 +90,7 @@ describe('BorrowingVault', () => {
         action: RouterAction.PERMIT_WITHDRAW,
         vault: Address.from(AddressZero),
         amount: BigNumber.from(1),
-        spender: ADDRESS_TWO,
+        receiver: ADDRESS_TWO,
         owner: ADDRESS_ONE,
         deadline: 24 * 60 * 60,
       };
@@ -103,14 +103,14 @@ describe('BorrowingVault', () => {
 
       const { digest: digestBorrow } = await vault.signPermitFor(borrowParams);
       expect(digestBorrow).toEqual(
-        '0x2120b4dc81bb0eff221969b4f2a7d469e6c6cd1be06535ba542d49899a7596c8'
+        '0xb4fafa4b87e1f8fdfae888fb531c450f5e53242d141373ec5518998445bfa035'
       );
 
       const { digest: digestWithdraw } = await vault.signPermitFor(
         withdrawParams
       );
       expect(digestWithdraw).toEqual(
-        '0xdfa6d72f08e2e156d9cb6c785b010f5126878f5adcc6aaf3fa596c5d182e9d3e'
+        '0x7d1251df98cf427d302af373c5830e4376c37c6f66ee36a988a41c652a118973'
       );
     });
   });

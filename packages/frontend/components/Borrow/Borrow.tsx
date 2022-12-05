@@ -14,7 +14,6 @@ import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
-import { useLtv } from "../../store/transaction.slice"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
@@ -29,10 +28,11 @@ export default function Borrow() {
   useEffect(() => {
     if (address) {
       updateBalance("collateral")
+      updateBalance("debt")
       updateAllowance()
       updateVault()
     }
-  }, [address, updateBalance])
+  }, [address, updateBalance, updateAllowance, updateVault])
 
   const login = useStore((state) => state.login)
 
@@ -43,7 +43,6 @@ export default function Borrow() {
   const debtChainId = useStore((state) => state.debtChainId)
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
-  // const debt = useStore((state) => state.position.debt)
 
   const setShowTransactionAbstract = useStore(
     (state) => state.setShowTransactionAbstract
@@ -54,7 +53,7 @@ export default function Borrow() {
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   // TODO: refacto with a "status" ?
 
-  const value = useStore((state) => parseFloat(state.collateralInput))
+  const value = useStore((state) => state.position.collateral.amount)
   const balance = useStore(
     (state) => state.collateralBalances[state.position.collateral.token.symbol]
   )
@@ -65,14 +64,14 @@ export default function Borrow() {
     updateTokenPrice("debt")
   }, [updateTokenPrice])
 
-  const ltv = useLtv()
+  const ltv = useStore((state) => state.position.ltv)
   const ltvMax = useStore((state) => state.position.ltvMax)
 
-  const signature = useStore((state) => state.signature)
+  const signAndBorrow = useStore((state) => state.signAndBorrow)
   const isSigning = useStore((state) => state.isSigning)
-  const signPermit = useStore((state) => state.signPermit)
-  const borrow = useStore((state) => state.borrow)
   const isBorrowing = useStore((state) => state.isBorrowing)
+
+  const metaStatus = useStore((state) => state.transactionMeta.status)
 
   let button: ReactNode
   if (!address) {
@@ -123,33 +122,22 @@ export default function Borrow() {
     )
   } else {
     button = (
-      <>
-        <LoadingButton
-          variant="primary"
-          disabled={
-            collateral.amount <= 0 || debt.amount <= 0 || Boolean(signature)
-          }
-          loading={isSigning}
-          onClick={signPermit}
-          fullWidth
-        >
-          {signature ? "Signed" : "Sign"}
-        </LoadingButton>
-
-        <br />
-        <br />
-
-        <LoadingButton
-          variant="gradient"
-          onClick={borrow}
-          fullWidth
-          className={styles.btn}
-          disabled={collateral.amount <= 0 || debt.amount <= 0 || !signature}
-          loading={isBorrowing}
-        >
-          Borrow
-        </LoadingButton>
-      </>
+      <LoadingButton
+        variant="gradient"
+        onClick={signAndBorrow}
+        fullWidth
+        className={styles.btn}
+        disabled={
+          collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
+        }
+        loading={isSigning || isBorrowing}
+        loadingPosition="start"
+        startIcon={<></>}
+      >
+        {(isSigning && "(1/2) Signing...") ||
+          (isBorrowing && "(2/2) Borrowing...") ||
+          "Sign & Borrow"}
+      </LoadingButton>
     )
   }
 
@@ -164,7 +152,9 @@ export default function Borrow() {
         }}
       >
         <CardContent>
-          <Typography variant="body2">Borrow</Typography>
+          <Typography variant="body2" height="40px" lineHeight="40px">
+            Borrow
+          </Typography>
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 

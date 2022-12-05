@@ -2,36 +2,43 @@ import React from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box,
+  Button,
   Card,
   CardContent,
+  Chip,
   Divider,
+  Fade,
   Grid,
+  Menu,
+  MenuItem,
+  Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import CheckIcon from "@mui/icons-material/Check"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import TokenIcon from "../TokenIcon"
 import ClickableTooltip from "../Layout/ClickableTooltip"
 import { useStore } from "../../store"
-import { useLiquidationPrice, useLtv } from "../../store/transaction.slice"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
-
-// TODO: create helper to get these images and throw / warn us if 404 ?
-const ethIconPath = "/assets/images/protocol-icons/networks/Ethereum.svg"
+import { BorrowingVault } from "@x-fuji/sdk"
+import ProviderIcon from "../ProviderIcon"
 
 export default function Overview() {
   const { palette } = useTheme()
-  const ltv = useLtv()
-  const { ltvMax, ltvThreshold } = useStore((state) => state.position)
-  const { liquidationPrice, liquidationDiff } =
-    useLiquidationPrice(ltvThreshold)
+  const ltv = useStore((state) => state.position.ltv)
+  const ltvMax = useStore((state) => state.position.ltvMax)
+  const ltvThreshold = useStore((state) => state.position.ltvThreshold)
+  const liquidationPrice = useStore((state) => state.position.liquidationPrice)
+  const liquidationDiff = useStore((state) => state.position.liquidationDiff)
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
   const providers = useStore((state) => state.position.providers)
+  const vault = useStore((state) => state.position.vault)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -44,7 +51,44 @@ export default function Overview() {
         }}
       >
         <CardContent sx={{ padding: 0, gap: "1rem" }}>
-          <Typography variant="body2">Overview</Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            height="40px"
+          >
+            <Typography variant="body2">Overview</Typography>
+            {vault && (
+              <Stack direction="row" alignItems="center">
+                <Tooltip
+                  arrow
+                  title={
+                    <span>
+                      We take into account variables such as liquidity, audits
+                      and team behind each protocol, you can read more on our
+                      risk framework{" "}
+                      <a
+                        href="https://docs.fujidao.org/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <u> here</u>
+                      </a>
+                    </span>
+                  }
+                  placement="top"
+                >
+                  <InfoOutlinedIcon
+                    sx={{ fontSize: "1rem", color: palette.info.main }}
+                  />
+                </Tooltip>
+                <Typography variant="smallDark" ml={0.5} mr={1}>
+                  Safety rating:
+                </Typography>
+                <VaultsMenu />
+              </Stack>
+            )}
+          </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
           <Grid container columnSpacing="1rem">
@@ -158,8 +202,11 @@ export default function Overview() {
             <Grid item>
               {providers?.length ? (
                 <Grid container alignItems="center">
-                  {/* TODO[design]: what logo should i put here ? */}
-                  <TokenIcon token={collateral.token} height={18} width={18} />
+                  <ProviderIcon
+                    providerName={providers[0].name}
+                    height={18}
+                    width={18}
+                  />
 
                   <Typography ml="0.375rem" variant="small">
                     {providers[0].name}
@@ -218,5 +265,122 @@ export default function Overview() {
         </CardContent>
       </Card>
     </Grid>
+  )
+}
+
+function VaultsMenu() {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  // TODO: use vaults instead of provider.
+  // use provider only to display pictures
+  const providers = useStore((state) => state.position.providers)
+  const vault = useStore((state) => state.position.vault)
+  const vaults = useStore((state) => state.availableVaults)
+  const changeVault = useStore((state) => state.changeActiveVault)
+
+  const open = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const select = (v: BorrowingVault) => {
+    changeVault(v)
+    setAnchorEl(null)
+  }
+
+  if (!vaults || !vault) {
+    return <></>
+  }
+
+  if (vaults.length < 2) {
+    return (
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Box display="flex" alignItems="center">
+          {providers?.map((p) => (
+            <ProviderIcon
+              key={p.name}
+              providerName={p.name}
+              height={16}
+              width={16}
+            />
+          ))}
+        </Box>
+        <Chip variant="success" label="A+" />
+      </Stack>
+    )
+  }
+
+  return (
+    <>
+      <Button
+        id="button-vaults-menu"
+        variant="secondary"
+        onClick={open}
+        style={{ position: "relative" }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Box display="flex" alignItems="center">
+            {providers?.map((p) => (
+              <ProviderIcon
+                key={p.name}
+                providerName={p.name}
+                height={16}
+                width={16}
+              />
+            ))}
+          </Box>
+          {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
+          <Chip variant="success" label="A+" />
+          <KeyboardArrowDownIcon width={16} height={16} />
+        </Stack>
+      </Button>
+      <Menu
+        id="vaults-menu"
+        anchorEl={anchorEl}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        MenuListProps={{ "aria-labelledby": "button-vaults-menu" }}
+        TransitionComponent={Fade}
+      >
+        {vaults.map((v: BorrowingVault) => (
+          <VaultMenuItem
+            key={v.address.value}
+            selected={v.address.value === vault.address.value}
+            vault={v}
+            onClick={() => select(v)}
+          />
+        ))}
+      </Menu>
+    </>
+  )
+}
+
+type VaultMenuItemProps = {
+  vault: BorrowingVault
+  selected: boolean
+  onClick: (p: BorrowingVault) => void
+}
+const VaultMenuItem = ({ vault, selected, onClick }: VaultMenuItemProps) => {
+  const providers = useStore((state) => state.allProviders[vault.address.value])
+
+  return (
+    <MenuItem onClick={() => onClick(vault)}>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Box display="flex" alignItems="center">
+          {providers.map((p, i) => (
+            <Box
+              display="flex"
+              alignItems="center"
+              key={p.name}
+              sx={{ right: `${i * 4}px`, position: "relative" }}
+            >
+              <ProviderIcon providerName={p.name} height={16} width={16} />
+            </Box>
+          ))}
+        </Box>
+        {/* TODO: safety rating? */}
+        {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
+        <Chip variant="success" label="A+" />
+        {selected && <CheckIcon />}
+      </Stack>
+    </MenuItem>
   )
 }
