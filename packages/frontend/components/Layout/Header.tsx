@@ -238,7 +238,11 @@ type BalanceAddressProps = {
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
-  const [showAccountModal, setShowAccountModal] = useState(false)
+  // const [showAccountModal, setShowAccountModal] = useState(false)
+  const [accountModalEl, setAccountModalEl] = useState<
+    HTMLElement | undefined
+  >()
+  const showAccountModal = Boolean(accountModalEl)
   const { balance, address, ens, transactionStatus } = props
 
   const inNotification = useHistory((state) => state.inNotification)
@@ -263,7 +267,10 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   const pending = active && (
     <Grid container alignItems="center">
       <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
-      <Typography variant="small" onClick={() => setShowAccountModal(true)}>
+      <Typography
+        variant="small"
+        onClick={(e) => setAccountModalEl(e.currentTarget)}
+      >
         {active} pending
       </Typography>
     </Grid>
@@ -276,7 +283,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
       <Chip
-        onClick={() => setShowAccountModal(true)}
+        onClick={(e) => setAccountModalEl(e.currentTarget)}
+        onMouseEnter={(e) => setAccountModalEl(e.currentTarget)}
         label={pending || ens || formattedAddress}
         sx={{
           background: palette.secondary.light,
@@ -297,7 +305,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       />
       <AccountModal
         isOpen={showAccountModal}
-        closeAccountModal={() => setShowAccountModal(false)}
+        anchorEl={accountModalEl as HTMLElement}
+        closeAccountModal={() => setAccountModalEl(undefined)}
         address={address}
       />
     </Box>
