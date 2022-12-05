@@ -11,7 +11,6 @@ import {
 import Image from "next/image"
 
 import { useStore } from "../../store"
-import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"

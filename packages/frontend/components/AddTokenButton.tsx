@@ -3,7 +3,7 @@ import { useState } from "react"
 import { SeriazableToken } from "../store/history.store"
 import { getTokenImage } from "./TokenIcon"
 
-declare const ethereum: any
+declare const ethereum: any // eslint-disable-line
 
 type ButtonAddTokenProps = {
   token: SeriazableToken

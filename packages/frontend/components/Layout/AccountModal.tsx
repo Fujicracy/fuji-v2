@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useState } from "react"
+import { SyntheticEvent, useState } from "react"
 import {
   Alert,
   Box,

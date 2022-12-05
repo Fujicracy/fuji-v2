@@ -1,6 +1,5 @@
 import React, { MouseEvent, ReactElement, useState } from "react"
 import {
-  Box,
   Card,
   Fade,
   ListItemIcon,

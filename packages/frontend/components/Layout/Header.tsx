@@ -12,10 +12,8 @@ import {
   MenuList,
   Grid,
   Fade,
-  Snackbar,
   Button,
   Chip,
-  SnackbarContent,
   CircularProgress,
 } from "@mui/material"
 import Image from "next/image"
@@ -23,8 +21,6 @@ import { useRouter } from "next/router"
 import shallow from "zustand/shallow"
 
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
-import CloseIcon from "@mui/icons-material/Close"
-import SyncIcon from "@mui/icons-material/Sync"
 import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
@@ -239,10 +235,10 @@ type BalanceAddressProps = {
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
   const [showAccountModal, setShowAccountModal] = useState(false)
-  const { balance, address, ens, transactionStatus } = props
+  const { balance, address, ens } = props
 
-  const inNotification = useHistory((state) => state.inNotification)
-  const closeNotification = useHistory((state) => state.closeNotification)
+  // const inNotification = useHistory((state) => state.inNotification)
+  // const closeNotification = useHistory((state) => state.closeNotification)
   const active = useHistory((state) => state.activeHash.length)
 
   if (!balance) {
@@ -306,65 +302,65 @@ const BalanceAddress = (props: BalanceAddressProps) => {
 
 export default Header
 
-const Notification = () => {
-  const { palette } = useTheme()
-  const inNotification = false
-  const closeNotification = () => 0
+// const Notification = () => {
+//   const { palette } = useTheme()
+//   const inNotification = false
+//   const closeNotification = () => 0
 
-  return (
-    <Snackbar
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      open={Boolean(inNotification)}
-      sx={{ mt: "2.5rem" }}
-      autoHideDuration={10000 * 60 * 60}
-    >
-      <SnackbarContent
-        message={
-          <Box>
-            <CloseIcon
-              sx={{
-                cursor: "pointer",
-                position: "absolute",
-                right: "1rem",
-              }}
-              onClick={closeNotification}
-              fontSize="small"
-            />
-            <Grid container>
-              <Grid item>
-                <SyncIcon sx={{ mr: "0.563rem" }} />
-              </Grid>
-              <Grid item>
-                <Box mr="3rem" maxWidth="230px">
-                  <Typography variant="small">
-                    Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
-                  </Typography>
-                  <br />
+//   return (
+//     <Snackbar
+//       anchorOrigin={{ vertical: "top", horizontal: "right" }}
+//       open={Boolean(inNotification)}
+//       sx={{ mt: "2.5rem" }}
+//       autoHideDuration={10000 * 60 * 60}
+//     >
+//       <SnackbarContent
+//         message={
+//           <Box>
+//             <CloseIcon
+//               sx={{
+//                 cursor: "pointer",
+//                 position: "absolute",
+//                 right: "1rem",
+//               }}
+//               onClick={closeNotification}
+//               fontSize="small"
+//             />
+//             <Grid container>
+//               <Grid item>
+//                 <SyncIcon sx={{ mr: "0.563rem" }} />
+//               </Grid>
+//               <Grid item>
+//                 <Box mr="3rem" maxWidth="230px">
+//                   <Typography variant="small">
+//                     Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on Polygon
+//                   </Typography>
+//                   <br />
 
-                  <Typography variant="xsmallDark">
-                    {/* TODO */}
-                    Estimated time:{" "}
-                    <span style={{ color: palette.success.main }}>2m 15s</span>
-                  </Typography>
-                  {/* TODO */}
-                  {/* <LinearProgress
-                  sx={{
-                    background: palette.text.primary,
-                    height: "0.125rem",
-                    mt: "1rem",
-                    ".css-uu0lzf-MuiLinearProgress-bar1": {
-                      background: palette.success.main,
-                    },
-                  }}
-                  value={25}
-                  variant="determinate"
-                /> */}
-                </Box>
-              </Grid>
-            </Grid>
-          </Box>
-        }
-      />
-    </Snackbar>
-  )
-}
+//                   <Typography variant="xsmallDark">
+//                     {/* TODO */}
+//                     Estimated time:{" "}
+//                     <span style={{ color: palette.success.main }}>2m 15s</span>
+//                   </Typography>
+//                   {/* TODO */}
+//                   {/* <LinearProgress
+//                   sx={{
+//                     background: palette.text.primary,
+//                     height: "0.125rem",
+//                     mt: "1rem",
+//                     ".css-uu0lzf-MuiLinearProgress-bar1": {
+//                       background: palette.success.main,
+//                     },
+//                   }}
+//                   value={25}
+//                   variant="determinate"
+//                 /> */}
+//                 </Box>
+//               </Grid>
+//             </Grid>
+//           </Box>
+//         }
+//       />
+//     </Snackbar>
+//   )
+// }
