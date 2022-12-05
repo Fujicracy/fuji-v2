@@ -34,6 +34,7 @@ import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"
 import { transactionLink } from "../../helpers/transactionLink"
 import { AddTokenButton } from "../AddTokenButton"
+import { useStore } from "../../store"
 
 type InvalidStep = {
   label: "Invalid"
@@ -60,8 +61,10 @@ export default function TransactionProcessingModal({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
   const entry = useHistory((state) => state.byHash[hash || ""])
+  const activeChainId = useStore((state) => parseInt(state.chain?.id || ""))
 
-  const chainId = entry?.position.vault?.chainId
+  const borrow = entry?.steps.find((s) => s.step === RoutingStep.BORROW)
+  const chainId = borrow?.chainId
   const networkName = chainId ? chainName(chainId) : ""
 
   if (!entry) {
@@ -218,15 +221,20 @@ export default function TransactionProcessingModal({
           </Card>
         )}
         {entry.status === "done" && (
-          <DialogActions sx={{ mt: 3 }}>
+          <Stack sx={{ mt: "2rem" }} spacing={1}>
             {/* This check is to fix the problem that address is a class and thus cannot be rehydrated. See `addTokenToMetamask` */}
-            {entry.position.debt.token.address.value && (
-              <AddTokenButton token={entry.position.debt.token} />
+            {borrow?.token && borrow?.token.chainId === activeChainId && (
+              <Box mb="2rem" textAlign="center">
+                <AddTokenButton token={borrow.token} />
+              </Box>
             )}
-            <Button fullWidth variant="gradient">
+            <Button fullWidth variant="gradient" size="large">
               View Position
             </Button>
-          </DialogActions>
+            <Button fullWidth variant="ghost">
+              Transaction details
+            </Button>
+          </Stack>
         )}
         {/* TODO: in case of error ??? */}
       </Paper>

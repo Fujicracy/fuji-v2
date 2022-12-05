@@ -1,12 +1,12 @@
 import LoadingButton from "@mui/lab/LoadingButton"
-import { Token } from "@x-fuji/sdk"
 import { useState } from "react"
+import { SeriazableToken } from "../store/history.store"
 import { getTokenImage } from "./TokenIcon"
 
 declare const ethereum: any
 
 type ButtonAddTokenProps = {
-  token: Token
+  token: SeriazableToken
 }
 
 export function AddTokenButton({ token }: ButtonAddTokenProps) {
@@ -28,26 +28,22 @@ export function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   return (
     <LoadingButton
-      fullWidth
-      variant="secondary"
+      variant="rounded"
       onClick={handleClick}
       loading={status === "loading"}
       disabled={status === "success"}
     >
-      {(status === "initial" || status === "error") && `Add ${token.symbol}`}
-      {status === "success" && <>Done sir ✅</>}
+      {status === "success" ? <>Done sir ✅</> : `Add ${token.symbol}`}
     </LoadingButton>
   )
 }
 
-async function addTokenToMetamask(token: Token) {
+async function addTokenToMetamask(token: SeriazableToken) {
   if (!ethereum) {
     console.error("var ethereum is undefined, user may not have mmask")
     return
   }
-  const { symbol, decimals } = token
-  const address = token.address.value // TODO: sdk problem, value is a getter so it cannot be stringified
-  console.log({ symbol, decimals, address })
+  const { symbol, decimals, address } = token
   const { protocol, host } = window.location
   const image = `${protocol}${host}${getTokenImage(token.symbol)}`
 
