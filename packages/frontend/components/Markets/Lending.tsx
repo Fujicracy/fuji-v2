@@ -18,8 +18,15 @@ export default function Lending() {
           borderRadius: "100%",
         }}
       />
-      <Typography variant="h4">Himalaya Lend</Typography>
-      <Typography color={palette.info.main} variant="small">
+      <Typography variant="h4" mt="1.375rem">
+        Himalaya Lend
+      </Typography>
+      <Typography
+        color={palette.info.main}
+        variant="small"
+        m="1rem"
+        sx={{ width: { xs: "100%", sm: "22.5rem" } }}
+      >
         Retail and insituition lending interest rate optimization. Be the first
         to use our beta platform
       </Typography>
@@ -31,6 +38,7 @@ export default function Lending() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         fullWidth
+        sx={{ mb: "1rem" }}
       />
 
       <Button variant="gradient" fullWidth>

@@ -32,9 +32,7 @@ export default function Markets() {
 
   return (
     <Box m={{ xs: "1rem", sm: "" }}>
-      <Typography variant="h4">
-        {currentTab === 0 || onMobile ? "X-Fuji Markets" : "Lend"}
-      </Typography>
+      <Typography variant="h4">X-Fuji Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile ? (
           "Fuji aggregates the best borrowing interest rates available across the markets"
