@@ -26,6 +26,7 @@ export type Row = {
   availableLiquidity: number
   children?: Row[]
   isChild: boolean
+  isGrandChild: boolean
 }
 
 const rows: Row[] = [
@@ -39,6 +40,7 @@ const rows: Row[] = [
     safetyRating: "A+",
     availableLiquidity: 164800,
     isChild: false,
+    isGrandChild: false,
   },
   {
     borrow: "USDC",
@@ -50,6 +52,7 @@ const rows: Row[] = [
     safetyRating: "A+",
     availableLiquidity: 164800,
     isChild: false,
+    isGrandChild: false,
     children: [
       {
         borrow: null,
@@ -61,6 +64,7 @@ const rows: Row[] = [
         safetyRating: "A+",
         availableLiquidity: 24800,
         isChild: true,
+        isGrandChild: false,
       },
       {
         borrow: null,
@@ -72,6 +76,7 @@ const rows: Row[] = [
         safetyRating: "A+",
         availableLiquidity: 124800,
         isChild: true,
+        isGrandChild: false,
       },
       {
         borrow: null,
@@ -83,6 +88,7 @@ const rows: Row[] = [
         safetyRating: "A+",
         availableLiquidity: 24800,
         isChild: true,
+        isGrandChild: false,
       },
       {
         borrow: null,
@@ -94,6 +100,7 @@ const rows: Row[] = [
         safetyRating: "A+",
         availableLiquidity: 88000,
         isChild: true,
+        isGrandChild: false,
       },
       {
         borrow: null,
@@ -105,6 +112,7 @@ const rows: Row[] = [
         safetyRating: "A+",
         availableLiquidity: 100000,
         isChild: true,
+        isGrandChild: false,
         children: [
           {
             borrow: null,
@@ -116,6 +124,7 @@ const rows: Row[] = [
             safetyRating: "A+",
             availableLiquidity: 100000,
             isChild: true,
+            isGrandChild: true,
           },
           {
             borrow: null,
@@ -127,6 +136,7 @@ const rows: Row[] = [
             safetyRating: "B+",
             availableLiquidity: 100000,
             isChild: true,
+            isGrandChild: true,
           },
         ],
       },
@@ -142,6 +152,7 @@ const rows: Row[] = [
     safetyRating: "A+",
     availableLiquidity: 24800,
     isChild: false,
+    isGrandChild: false,
   },
   {
     borrow: "USDT",
@@ -153,6 +164,7 @@ const rows: Row[] = [
     safetyRating: "B+",
     availableLiquidity: 164800,
     isChild: false,
+    isGrandChild: false,
   },
 ]
 
