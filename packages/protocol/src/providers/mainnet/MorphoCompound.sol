@@ -68,7 +68,8 @@ contract MorphoCompound is ILendingProvider {
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     (uint256 ratePerBlock,,) = ILens(LENS).getAverageSupplyRatePerBlock(_getCToken(vault.asset()));
     //no. of blocks per year
-    rate = ratePerBlock * 2102400;
+    //convert from 1e18 to 1e27
+    rate = ratePerBlock * 2102400 * 10 ** 9;
   }
 
   /// inheritdoc ILendingProvider
@@ -76,7 +77,8 @@ contract MorphoCompound is ILendingProvider {
     (uint256 ratePerBlock,,) =
       ILens(LENS).getAverageBorrowRatePerBlock(_getCToken(vault.debtAsset()));
     //no. of blocks per year
-    rate = ratePerBlock * 2102400;
+    //convert from 1e18 to 1e27
+    rate = ratePerBlock * 2102400 * 10 ** 9;
   }
 
   /// inheritdoc ILendingProvider
