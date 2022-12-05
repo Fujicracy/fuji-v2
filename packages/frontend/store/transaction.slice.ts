@@ -169,7 +169,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
     get().updateTokenPrice("collateral")
-    get().updateAllowance()
     get().updateVault()
     get().updateTransactionMeta()
     get().updateAllowance()
@@ -574,6 +573,14 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         steps: toHistoryRoutingStep(transactionMeta.steps),
         status: "ongoing",
       })
+      set(
+        produce((s: TransactionState) => {
+          if (s.collateralAllowance.value) {
+            // optimistic: we assume transaction will success and update allowance according to that
+            s.collateralAllowance.value -= s.position.collateral.amount
+          }
+        })
+      )
     } catch (e) {
       // TODO: user cancel tx
       throw e
