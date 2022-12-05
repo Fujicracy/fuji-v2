@@ -1,14 +1,8 @@
 import { useState } from "react"
-import {
-  Card,
-  CardContent,
-  Dialog,
-  DialogContent,
-  Grid,
-  Typography,
-} from "@mui/material"
+import { Dialog, DialogContent, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
+import RouteCard from "./RouteCard"
 
 type RoutingModalProps = {
   open: boolean
@@ -18,7 +12,8 @@ type RoutingModalProps = {
 export default function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
-  const [routes, setRoutes] = useState([
+
+  const routes = [
     {
       cost: 3.9,
       time: 2,
@@ -34,7 +29,7 @@ export default function RoutingModal(props: RoutingModalProps) {
       time: 4,
       steps: [],
     },
-  ])
+  ]
 
   return (
     <Dialog onClose={() => props.handleClose()} open={props.open}>
@@ -57,19 +52,12 @@ export default function RoutingModal(props: RoutingModalProps) {
         <Typography variant="body2">Best Route</Typography>
 
         {routes.map((route, i) => (
-          <Card
-            sx={{
-              border: `0.063rem solid ${palette.secondary.light}`,
-              mt: "1.5rem",
-            }}
+          <RouteCard
             key={i}
-          >
-            <CardContent>
-              <Grid container alignItems="center">
-                Route {i + 1}
-              </Grid>
-            </CardContent>
-          </Card>
+            onChange={() => setSelectedRoute(i)}
+            route={route}
+            selected={i === selectedRoute}
+          />
         ))}
       </DialogContent>
     </Dialog>

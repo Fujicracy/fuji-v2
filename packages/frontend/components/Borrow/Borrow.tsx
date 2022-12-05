@@ -7,6 +7,8 @@ import {
   Card,
   Grid,
   Stack,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material"
 import Image from "next/image"
 
@@ -21,6 +23,7 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import RoutingModal from "./RoutingModal"
 
 export default function Borrow() {
+  const theme = useTheme()
   const address = useStore((state) => state.address)
   const walletChain = useStore((state) => state.chain)
   const changeChain = useStore((state) => state.changeChain)
@@ -76,6 +79,7 @@ export default function Borrow() {
   const metaStatus = useStore((state) => state.transactionMeta.status)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
   let button: ReactNode
   if (!address) {
@@ -184,7 +188,9 @@ export default function Borrow() {
             direction="row"
             justifyContent="space-between"
             mt="1rem"
-            onClick={() => setShowRoutingModal(true)}
+            onClick={() => {
+              !onMobile ? setShowRoutingModal(true) : null
+            }}
             sx={{ cursor: "pointer" }}
           >
             <Typography variant="small">Route</Typography>
