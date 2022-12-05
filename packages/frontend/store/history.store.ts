@@ -1,4 +1,11 @@
-import { ChainConnection, RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
+import {
+  Address,
+  ChainConnection,
+  ChainId,
+  RoutingStep,
+  RoutingStepDetails,
+  Token,
+} from "@x-fuji/sdk"
 import produce from "immer"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
@@ -19,16 +26,69 @@ type HistoryState = {
   inNotification?: string
 }
 
+/**
+ * ⚠️ DO NOT STORE CLASSE INSTANCE because they are persisted in localstorage
+ * and all methods will be lost. Also POO can be heavy to stringify because
+ * of inheriting other classes
+ */
 export type HistoryEntry = {
   hash: string
   type: "borrow" // || withdraw || flashclose...
-  position: Position
   steps: HistoryRoutingStep[]
   status: "ongoing" | "error" | "done"
 }
 
-type HistoryRoutingStep = Omit<RoutingStepDetails, "txHash"> & {
+export type HistoryRoutingStep = Omit<
+  RoutingStepDetails,
+  "txHash" | "token"
+> & {
   txHash?: string
+  token: SeriazableToken
+}
+
+export function toRoutingStepDetails(
+  s: HistoryRoutingStep[]
+): RoutingStepDetails[] {
+  return s.map((s) => ({
+    ...s,
+    txHash: undefined,
+    token: new Token(
+      s.token.chainId,
+      Address.from(s.token.address),
+      s.token.decimals,
+      s.token.symbol,
+      s.token.name
+    ),
+  }))
+}
+
+export function toHistoryRoutingStep(
+  s: RoutingStepDetails[]
+): HistoryRoutingStep[] {
+  return s.map((s: RoutingStepDetails) => {
+    return {
+      ...s,
+      txHash: undefined,
+      token: {
+        chainId: s.token.chainId,
+        address: s.token.address.value,
+        decimals: s.token.decimals,
+        symbol: s.token.symbol,
+        name: s.token.name,
+      },
+    }
+  })
+}
+
+/**
+ * Contains all we need to instanciate a token with new Token()
+ */
+export type SeriazableToken = {
+  chainId: ChainId
+  address: string
+  decimals: number
+  symbol: string
+  name?: string
 }
 
 type HistoryActions = {
@@ -89,9 +149,11 @@ export const useHistory = create<HistoryStore>()(
             return console.error("No provider found in position.vault")
           }
 
-          const debtToken = entry.position.debt.token
-          const collToken = entry.position.collateral.token
-          if (debtToken.chainId === collToken.chainId) {
+          const borrow = entry.steps.find((s) => s.step === RoutingStep.BORROW)
+          const deposit = entry.steps.find(
+            (s) => s.step === RoutingStep.DEPOSIT
+          )
+          if (borrow?.chainId === deposit?.chainId) {
             set(
               produce((s: HistoryState) => {
                 const steps = s.byHash[hash].steps
@@ -102,15 +164,15 @@ export const useHistory = create<HistoryStore>()(
               })
             )
           } else {
-            const convertedSteps = entry.steps.map((s) => ({
-              ...s,
-              txHash: undefined,
-            }))
-            const stepsWithHash = await sdk.watchTxStatus(hash, convertedSteps)
+            const stepsWithHash = await sdk.watchTxStatus(
+              hash,
+              toRoutingStepDetails(entry.steps)
+            )
 
             for (let i = 0; i < stepsWithHash.length; i++) {
               const step = stepsWithHash[i]
               console.debug("waiting", step.step, "...")
+              // TODO: can txHash fail ?
               const txHash = await step.txHash
               set(
                 produce((s: HistoryState) => {

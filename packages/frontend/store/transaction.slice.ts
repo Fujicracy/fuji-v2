@@ -19,7 +19,7 @@ import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
-import { HistoryEntry, useHistory } from "./history.store"
+import { HistoryEntry, toHistoryRoutingStep, useHistory } from "./history.store"
 
 setAutoFreeze(false)
 
@@ -558,7 +558,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const srcChainId = position.collateral.token.chainId
 
     try {
-      // TODO: freeze inputs / store
       set({ isBorrowing: true })
 
       const txRequest = sdk.getTxDetails(
@@ -572,8 +571,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       useHistory.getState().add({
         hash: t.hash,
         type: "borrow",
-        position,
-        steps: transactionMeta.steps as HistoryEntry["steps"],
+        steps: toHistoryRoutingStep(transactionMeta.steps),
         status: "ongoing",
       })
     } catch (e) {

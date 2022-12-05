@@ -22,9 +22,15 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CircleIcon from "@mui/icons-material/Circle"
 import CheckIcon from "@mui/icons-material/Check"
+import { formatUnits } from "ethers/lib/utils"
+import { RoutingStep } from "@x-fuji/sdk"
 
 import { useStore } from "../../store"
-import { HistoryEntry, useHistory } from "../../store/history.store"
+import {
+  HistoryEntry,
+  useHistory,
+  HistoryRoutingStep,
+} from "../../store/history.store"
 import { chainName } from "../../helpers/chainName"
 
 type AccountModalProps = {
@@ -208,9 +214,15 @@ type BorrowEntryProps = {
   onClick: () => void
 }
 function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
-  const { collateral, debt, vault } = entry.position
+  const collateral = entry.steps.find(
+    (s) => s.step === RoutingStep.DEPOSIT
+  ) as HistoryRoutingStep
+  const chainId = collateral?.chainId
+  const debt = entry.steps.find(
+    (s) => s.step === RoutingStep.BORROW
+  ) as HistoryRoutingStep
+
   const { palette } = useTheme()
-  const chainId = entry.position.vault?.chainId
   const networkName = chainName(chainId)
 
   const listAction =
@@ -232,8 +244,10 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
       <ListItem secondaryAction={listAction}>
         <ListItemText>
           <Typography variant="small">
-            Deposit {collateral.amount} {collateral.token.symbol} on Ethereum
-            and Borrow {debt.amount} {debt.token.symbol} on {networkName}.
+            Deposit {formatUnits(collateral.amount, collateral.token.decimals)}{" "}
+            {collateral.token.symbol} on Ethereum and Borrow{" "}
+            {formatUnits(debt.amount, debt.token.decimals)} {debt.token.symbol}{" "}
+            on {networkName}.
           </Typography>
         </ListItemText>
       </ListItem>

@@ -8,6 +8,7 @@ declare module "@mui/material/Button" {
     ghost: true
     gradient: true
     small: true
+    rounded: true
   }
 }
 
@@ -283,6 +284,15 @@ const theme = createTheme(colorTheme, {
         {
           props: { size: "large" },
           style: { padding: ".7rem", fontSize: "1rem" },
+        },
+        {
+          props: { variant: "rounded" },
+          style: {
+            borderRadius: "50rem",
+            // backgroundColor: colorTheme.palette.background.paper,
+            color: colorTheme.palette.primary.light,
+            border: `1px solid ${colorTheme.palette.primary.light}`,
+          },
         },
       ],
     },
