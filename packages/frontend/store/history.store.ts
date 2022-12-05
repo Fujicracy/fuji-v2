@@ -149,11 +149,14 @@ export const useHistory = create<HistoryStore>()(
             return console.error("No provider found in position.vault")
           }
 
-          const borrow = entry.steps.find((s) => s.step === RoutingStep.BORROW)
-          const deposit = entry.steps.find(
-            (s) => s.step === RoutingStep.DEPOSIT
-          )
-          if (borrow?.chainId === deposit?.chainId) {
+          const startChainId = entry.steps.find(
+            (s) => s.step === RoutingStep.START
+          )?.chainId
+          const endChainId = entry.steps.find(
+            (s) => s.step === RoutingStep.END
+          )?.chainId
+          console.debug({ startChainId, endChainId })
+          if (startChainId === endChainId) {
             set(
               produce((s: HistoryState) => {
                 const steps = s.byHash[hash].steps
@@ -174,6 +177,7 @@ export const useHistory = create<HistoryStore>()(
               console.debug("waiting", step.step, "...")
               // TODO: can txHash fail ?
               const txHash = await step.txHash
+              console.debug("success", step.step, txHash)
               set(
                 produce((s: HistoryState) => {
                   s.byHash[hash].steps[i].txHash = txHash
