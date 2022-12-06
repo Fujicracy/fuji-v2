@@ -138,10 +138,7 @@ export const useHistory = create<HistoryStore>()(
 
           let receipt: ethers.providers.TransactionReceipt
           // TODO: refacto: as long as we cannot store class methods in storage we should not use it (i.e vault.provider.getSmth)
-          const { rpcProvider } = ChainConnection.from(
-            sdkInitOptions,
-            entry.steps[0].chainId
-          )
+          const { rpcProvider } = sdk.getConnectionFor(entry.steps[0].chainId)
           if (rpcProvider) {
             console.debug("waitForTransaction", hash)
             receipt = await rpcProvider.waitForTransaction(hash)
