@@ -17,6 +17,7 @@ declare module "@mui/material/Chip" {
     success: true
     warning: true
     number: true
+    routing: true
   }
 }
 
@@ -39,12 +40,6 @@ declare module "@mui/material/Typography" {
     xsmallDark: true
     label: true
     regularH4: true
-  }
-}
-
-declare module "@mui/material/Chip" {
-  interface ChipPropsVariantOverrides {
-    gradient: true
   }
 }
 
@@ -482,6 +477,15 @@ const theme = createTheme(colorTheme, {
             background: colorTheme.palette.secondary.light,
             position: "relative",
             right: `${3 * 0.25}rem`,
+          },
+        },
+        {
+          props: {
+            variant: "routing",
+          },
+          style: {
+            background: colorTheme.palette.secondary.main,
+            height: "22px",
           },
         },
       ],

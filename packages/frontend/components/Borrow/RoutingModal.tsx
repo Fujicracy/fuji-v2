@@ -18,27 +18,38 @@ export default function RoutingModal(props: RoutingModalProps) {
       cost: 3.9,
       time: 2,
       steps: [],
+      recommended: true,
+      info: "Collateral deposit Aave V2",
     },
     {
       cost: 4.6,
       time: 2,
       steps: [],
+      recommended: false,
+      info: "",
     },
     {
       cost: 11.2,
       time: 4,
       steps: [],
+      recommended: false,
+      info: "",
     },
   ]
 
   return (
-    <Dialog onClose={() => props.handleClose()} open={props.open}>
+    <Dialog
+      fullWidth
+      maxWidth="md"
+      onClose={() => props.handleClose()}
+      open={props.open}
+    >
       <DialogContent
         sx={{
           p: "1.5rem",
           background: palette.secondary.contrastText,
           borderRadius: "1.125rem",
-          border: `0.063rem solid ${palette.secondary.light}`,
+          border: `1px solid ${palette.secondary.light}`,
         }}
       >
         <CloseIcon

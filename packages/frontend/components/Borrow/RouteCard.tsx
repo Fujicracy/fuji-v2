@@ -1,4 +1,4 @@
-import { Card, CardContent, Chip, Grid } from "@mui/material"
+import { Chip, Paper } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 
@@ -6,31 +6,72 @@ type Route = {
   cost: number
   time: number
   steps: object[]
+  recommended: boolean
+  info: string
 }
 
 type RouteCardProps = {
   route: Route
   selected: boolean
-  onChange: (routeId: number) => void
+  onChange: () => void
 }
 
 export default function RouteCard(props: RouteCardProps) {
   const { palette } = useTheme()
 
   return (
-    <Card
+    <Paper
       sx={{
-        border: `0.063rem solid ${palette.secondary.light}`,
-        mt: "1.5rem",
+        border: `2px solid ${
+          props.selected ? palette.primary.main : palette.secondary.light
+        }`,
+        mt: "1rem",
+        p: "1.5rem",
+        background: palette.secondary.dark,
       }}
     >
-      <CardContent>
+      <Stack direction="row" justifyContent="space-between">
         <Stack direction="row" gap="0.5rem">
-          <Chip label={`Est Cost ~$${props.route.cost.toFixed(2)}`} />
-          <Chip label={`Est Processing Time ~${props.route.time} Mins`} />
-          {props.selected && <Chip label="Collateral deposit Aave V2" />}
+          <Chip
+            variant="routing"
+            label={`Est Cost ~$${props.route.cost.toFixed(2)}`}
+          />
+          <Chip
+            variant="routing"
+            label={`Est Processing Time ~${props.route.time} Mins`}
+          />
+          {props.route.info && (
+            <Chip variant="routing" label={props.route.info} />
+          )}
         </Stack>
-      </CardContent>
-    </Card>
+
+        <Stack direction="row" gap="0.5rem">
+          {props.route.recommended && (
+            <Chip
+              variant="routing"
+              label="Recommended"
+              sx={{ color: palette.primary.main }}
+            />
+          )}
+
+          {props.selected ? (
+            <Chip
+              variant="routing"
+              label="Selected"
+              sx={{
+                color: palette.primary.main,
+                border: `1px solid ${palette.primary.main}`,
+              }}
+            />
+          ) : (
+            <Chip
+              onClick={props.onChange}
+              variant="routing"
+              label="Click To Select"
+            />
+          )}
+        </Stack>
+      </Stack>
+    </Paper>
   )
 }
