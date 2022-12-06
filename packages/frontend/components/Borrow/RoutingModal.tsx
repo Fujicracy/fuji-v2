@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Dialog, DialogContent, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
+
 import RouteCard from "./RouteCard"
 
 type RoutingModalProps = {
@@ -17,21 +18,25 @@ export default function RoutingModal(props: RoutingModalProps) {
     {
       cost: 3.9,
       time: 2,
-      steps: [],
+      steps: [
+        "Deposit 1.00 ETH to Aave V2",
+        "Borrow 675 USDC from Aave V2",
+        "Bridge to Polygon via Connext",
+      ],
       recommended: true,
       info: "Collateral deposit Aave V2",
     },
     {
       cost: 4.6,
       time: 2,
-      steps: [],
+      steps: ["Bridge to Polygon via Connext"],
       recommended: false,
       info: "",
     },
     {
       cost: 11.2,
       time: 4,
-      steps: [],
+      steps: ["Bridge to Polygon via Connext"],
       recommended: false,
       info: "",
     },

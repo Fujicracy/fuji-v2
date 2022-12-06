@@ -189,7 +189,7 @@ export default function Borrow() {
             justifyContent="space-between"
             mt="1rem"
             onClick={() => {
-              !onMobile ? setShowRoutingModal(true) : null
+              !onMobile && setShowRoutingModal(true)
             }}
             sx={{ cursor: "pointer" }}
           >
