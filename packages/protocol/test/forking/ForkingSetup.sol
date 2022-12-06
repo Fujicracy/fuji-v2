@@ -218,7 +218,7 @@ contract ForkingSetup is CoreRoles, Test {
     internal
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
-    bytes32 structHash = LibSigUtils.getStructHashAsset(permit);
+    bytes32 structHash = LibSigUtils.getStructHashWithdraw(permit);
     bytes32 digest =
       LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
     (v, r, s) = vm.sign(ownerPrivateKey, digest);

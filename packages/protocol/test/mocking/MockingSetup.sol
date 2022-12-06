@@ -118,7 +118,7 @@ contract MockingSetup is CoreRoles, Test {
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       // This domain should be obtained from the chain on which state will change.
       IVaultPermissions(vault_).DOMAIN_SEPARATOR(),
-      LibSigUtils.getStructHashAsset(permit)
+      LibSigUtils.getStructHashWithdraw(permit)
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
     deadline = permit.deadline;
