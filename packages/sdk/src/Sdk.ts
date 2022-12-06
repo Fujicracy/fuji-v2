@@ -6,17 +6,20 @@ import axios from 'axios';
 import invariant from 'tiny-invariant';
 
 import {
+  CHAIN,
   COLLATERAL_LIST,
   CONNEXT_DOMAIN,
   CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
   VAULT_LIST,
 } from './constants';
+import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
 import { Address, ChainConnection, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { encodeActionArgs } from './functions';
 import {
+  BorrowingVaultWithFinancials,
   ChainConfig,
   ChainConnectionDetails,
   PermitParams,
@@ -26,6 +29,12 @@ import {
   XTransferWithCallParams,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
+import {
+  GetLlamaAssetPoolsResponse,
+  GetLlamaBorrowPoolsResponse,
+  LlamaAssetPool,
+  LlamaBorrowPool,
+} from './types/LlamaResponses';
 
 export class Sdk {
   /**
@@ -170,6 +179,13 @@ export class Sdk {
   }
 
   /**
+   * Retruns all vaults.
+   */
+  getAllBorrowingVaults(): BorrowingVault[] {
+    return this._getAllVaults();
+  }
+
+  /**
    * Retruns all vaults for a given combination of tokens and sets a connection for each of them.
    *
    * @remarks
@@ -206,6 +222,52 @@ export class Sdk {
     }
 
     return sorted;
+  }
+
+  /**
+   * Retruns all vaults with financial data such as deposit APYs and
+   * borrow APYs.
+   *
+   * @remarks
+   * This data is fetched from DefiLlama API and it can take
+   * longer than expected to get loaded. Their API is considered being in a
+   * "experimental" mode and might be unstable. This method can return `void`
+   * which indicates a problem with DefiLlama API. In that case, client should
+   * fetch for each vault borrow and deposit APY manually.
+   */
+  async getAllVaultsWithFinancials(): Promise<
+    BorrowingVaultWithFinancials[] | void
+  > {
+    const vaults = this._getAllVaults();
+
+    // TODO: inefficient when there will be many vaults
+    await Promise.all(vaults.map((v) => v.preLoad()));
+
+    const providers = vaults.map((v) => v.activeProvider) as string[];
+
+    // fetch from DefiLlama
+    try {
+      const [borrows, pools] = await Promise.all([
+        axios
+          .get<GetLlamaBorrowPoolsResponse>(
+            'https://yields.llama.fi/lendBorrow'
+          )
+          .then(({ data }) => data),
+        axios
+          .get<GetLlamaAssetPoolsResponse>('https://yields.llama.fi/pools')
+          .then(({ data }) => data.data),
+      ]);
+
+      return vaults.map((vault, i) =>
+        this._getFinancialsFor(vault, providers[i], pools, borrows)
+      );
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        console.error(`DefiLlama API call failed with a message: ${e.message}`);
+      } else {
+        console.error('DefiLlama API call failed with an unexpected error!');
+      }
+    }
   }
 
   /**
@@ -592,5 +654,57 @@ export class Sdk {
           );
         return [...acc, ...vaults];
       }, []);
+  }
+
+  private _getAllVaults(): BorrowingVault[] {
+    const vaults = [];
+    for (const id of Object.keys(CHAIN)) {
+      vaults.push(...VAULT_LIST[parseInt(id) as ChainId]);
+    }
+
+    return vaults.map((v) => v.setConnection(this._configParams));
+  }
+
+  private _getFinancialsFor(
+    v: BorrowingVault,
+    providerAddr: string,
+    pools: LlamaAssetPool[],
+    borrows: LlamaBorrowPool[]
+  ): BorrowingVaultWithFinancials {
+    const chain = CHAIN[v.chainId].llama;
+    const project = LENDING_PROVIDERS_LIST[v.chainId][providerAddr];
+    const collateralSym = v.collateral.symbol;
+    const debtSym = v.debt.symbol;
+
+    const borrowPool = pools.find(
+      (p: LlamaAssetPool) =>
+        p.chain === chain && p.project === project && p.symbol === debtSym
+    );
+
+    let borrowData;
+    if (borrowPool) {
+      borrowData = borrows.find(
+        (b: LlamaBorrowPool) => b.pool === borrowPool.pool
+      );
+    }
+
+    const depositData = pools.find(
+      (p: LlamaAssetPool) =>
+        p.chain === chain && p.project === project && p.symbol === collateralSym
+    );
+
+    return {
+      vault: v,
+      depositApyBase: depositData?.apyBase ?? 0,
+      depositApyReward: depositData?.apyReward ?? 0,
+      depositApy: depositData?.apy ?? 0,
+      depositRewardTokens: depositData?.rewardTokens ?? [],
+      borrowApyBase: borrowData?.apyBaseBorrow ?? 0,
+      borrowApyReward: borrowData?.apyRewardBorrow ?? 0,
+      borrowRewardTokens: borrowData?.rewardTokens ?? [],
+      availableToBorrowUSD: borrowData
+        ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
+        : 0,
+    };
   }
 }
