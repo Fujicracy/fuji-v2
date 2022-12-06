@@ -69,6 +69,7 @@ export default function Borrow() {
   const currentTxHash = useHistory((state) => state.inModal)
   const closeModal = useHistory((state) => state.closeModal)
   const metaStatus = useStore((state) => state.transactionMeta.status)
+  const availableVaultStatus = useStore((state) => state.availableVaultsStatus)
 
   let button: ReactNode
   if (!address) {
@@ -127,10 +128,10 @@ export default function Borrow() {
         onClick={signAndBorrow}
         size="large"
         fullWidth
-        disabled={
-          collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
+        disabled={collateral.amount <= 0 || debt.amount <= 0}
+        loading={
+          isSigning || isBorrowing || availableVaultStatus === "fetching"
         }
-        loading={isSigning || isBorrowing}
         loadingPosition="start"
         startIcon={<></>}
       >

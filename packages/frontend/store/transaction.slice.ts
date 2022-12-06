@@ -28,6 +28,7 @@ export type TransactionStore = TransactionState & TransactionActions
 type TransactionState = {
   position: Position
   availableVaults: BorrowingVault[]
+  availableVaultsStatus: FetchStatus
   // Providers are mapped with their vault address
   allProviders: Record<string, LendingProviderDetails[]>
 
@@ -47,7 +48,7 @@ type TransactionState = {
   debtChainId: ChainId
 
   transactionMeta: {
-    status: "initial" | "fetching" | "ready" | "error" // TODO: What if error ?
+    status: FetchStatus
     gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
     bridgeFees: number
     estimateTime: number
@@ -61,6 +62,7 @@ type TransactionState = {
 
   isBorrowing: boolean
 }
+type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type TransactionActions = {
   changeBorrowChain: (chainId: ChainId) => void
@@ -77,6 +79,7 @@ type TransactionActions = {
   updateAllowance: () => void
   updateVault: () => void
   updateTransactionMeta: () => void
+  updateTransactionMetaDebounced: () => void
   updateLtv: () => void
   updateLiquidation: () => void
 
@@ -95,6 +98,7 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 
 const initialState: TransactionState = {
   availableVaults: [],
+  availableVaultsStatus: "initial",
   allProviders: {},
   position: {
     collateral: {
@@ -158,7 +162,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTokenPrice("collateral")
     get().updateBalances("collateral")
     get().updateVault()
-    get().updateTransactionMeta()
     get().updateAllowance()
   },
 
@@ -170,8 +173,19 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
     get().updateTokenPrice("collateral")
     get().updateVault()
-    get().updateTransactionMeta()
     get().updateAllowance()
+  },
+
+  changeCollateralValue(value) {
+    set(
+      produce((state: TransactionState) => {
+        state.collateralInput = value
+        state.position.collateral.amount = value ? parseFloat(value) : 0
+      })
+    )
+    get().updateTransactionMetaDebounced()
+    get().updateLtv()
+    get().updateLiquidation()
   },
 
   async changeBorrowChain(chainId) {
@@ -188,7 +202,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     get().updateTokenPrice("debt")
     get().updateBalances("debt")
     get().updateVault()
-    get().updateTransactionMeta()
   },
 
   changeBorrowToken(token) {
@@ -209,19 +222,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         state.position.debt.amount = value ? parseFloat(value) : 0
       })
     )
-    get().updateTransactionMeta()
-    get().updateLtv()
-    get().updateLiquidation()
-  },
-
-  changeCollateralValue(value) {
-    set(
-      produce((state: TransactionState) => {
-        state.collateralInput = value
-        state.position.collateral.amount = value ? parseFloat(value) : 0
-      })
-    )
-    get().updateTransactionMeta()
+    get().updateTransactionMetaDebounced()
     get().updateLtv()
     get().updateLiquidation()
   },
@@ -239,7 +240,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     set(
       produce((s: TransactionState) => {
-        s.position.vault = vault
         s.position.vault = vault
         s.position.ltvMax = ltvMax
         s.position.ltvThreshold = ltvThreshold
@@ -331,22 +331,23 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async updateVault() {
-    const address = useStore.getState().address
-    if (!address) {
-      return
-    }
+    set({ availableVaultsStatus: "fetching" })
+
     const collateral = get().position.collateral.token
     const debt = get().position.debt.token
     const availableVaults = await sdk.getBorrowingVaultsFor(collateral, debt)
     const [vault] = availableVaults
     if (!vault) {
       // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
+      console.error("No available vault")
+      set({ availableVaultsStatus: "error" })
       return
     }
 
-    set({ availableVaults })
-    get().changeActiveVault(vault)
-    get().updateAllProviders()
+    await get().changeActiveVault(vault)
+    await get().updateAllProviders()
+    await get().updateTransactionMeta()
+    set({ availableVaults, availableVaultsStatus: "ready" })
   },
 
   async updateAllProviders() {
@@ -362,10 +363,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ allProviders })
   },
 
-  updateTransactionMeta: debounce(async () => {
+  async updateTransactionMeta() {
     const address = useStore.getState().address
-    const provider = useStore.getState().provider
-    if (!address || !provider) {
+    if (!address) {
       return
     }
 
@@ -397,21 +397,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           debt.token,
           new Address(address)
         )
-
-      // TODO (see in TxState for more details)
-      // const tx = sdk.getTxDetails(
-      //   withoutPermits(actions),
-      //   collateral.token.chainId,
-      //   new Address(address)
-      // )
-      // const signer = provider.getSigner()
-      // // https://github.com/ethers-io/ethers.js/discussions/2439#discussioncomment-1857403
-      // const gasLimit = await signer.estimateGas(tx)
-      // const gasPrice = (await provider.getFeeData()).maxFeePerGas?.mul(gasLimit)
-      // if (gasPrice) {
-      //   console.debug({ gasPrice: ethers.utils.formatUnits(gasPrice, "gwei") })
-      // }
-
+      if (!actions.length) {
+        throw `empty action array returned by sdk.previewDepositAndBorrow with params`
+      }
       set(
         produce((state: TransactionState) => {
           state.transactionMeta.status = "ready"
@@ -429,9 +417,14 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           state.transactionMeta.status = "error"
         })
       )
-      console.error("sdk error", e)
+      console.error("Sdk error while attempting to set meta:", e)
     }
-  }, 500),
+  },
+
+  updateTransactionMetaDebounced: debounce(
+    () => get().updateTransactionMeta(),
+    500
+  ),
 
   updateLtv() {
     const collateralValue = parseFloat(get().collateralInput)
