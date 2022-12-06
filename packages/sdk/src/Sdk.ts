@@ -18,6 +18,7 @@ import { ChainId, RouterAction, RoutingStep } from './enums';
 import { encodeActionArgs } from './functions';
 import {
   ChainConfig,
+  ChainConnectionDetails,
   PermitParams,
   RouterActionParams,
   RoutingStepDetails,
@@ -91,10 +92,19 @@ export class Sdk {
   }
 
   /**
+   * Retruns rpc providers as connection details.
+   *
+   * @param chainId - ID of the chain
+   */
+  getConnectionFor(chainId: ChainId): ChainConnectionDetails {
+    return ChainConnection.from(this._configParams, chainId);
+  }
+
+  /**
    * Retruns tokens that can be borrowed on a specific chain.
    * Sets the connection of each token instance so that they are ready
-   *
    * to be used.
+   *
    * @param chainId - ID of the chain
    */
   getDebtForChain(chainId: ChainId): Token[] {

@@ -10,17 +10,11 @@ import {
   INFURA_WSS_URL,
 } from '../constants/rpcs';
 import { ChainId } from '../enums';
-import { ChainConfig } from '../types';
-
-type ChainConnectionParams = {
-  rpcProvider: StaticJsonRpcProvider;
-  multicallRpcProvider: IMulticallProvider;
-  wssProvider?: WebSocketProvider;
-};
+import { ChainConfig, ChainConnectionDetails } from '../types';
 
 export class ChainConnection {
   private static _config: {
-    [chainId in ChainId]?: ChainConnectionParams;
+    [chainId in ChainId]?: ChainConnectionDetails;
   } = {};
 
   /**
@@ -34,7 +28,7 @@ export class ChainConnection {
    *
    * Defaults to Infura but for missing web socket endpoints, uses Alchemy.
    */
-  static from(params: ChainConfig, chainId: ChainId): ChainConnectionParams {
+  static from(params: ChainConfig, chainId: ChainId): ChainConnectionDetails {
     if (!this._config[chainId]) {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
@@ -56,6 +50,6 @@ export class ChainConnection {
       };
     }
 
-    return this._config[chainId] as ChainConnectionParams;
+    return this._config[chainId] as ChainConnectionDetails;
   }
 }
