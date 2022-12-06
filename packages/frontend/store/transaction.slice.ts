@@ -85,7 +85,7 @@ type TransactionActions = {
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
-  borrow: () => void
+  borrow: () => Promise<ethers.providers.TransactionResponse>
   signAndBorrow: () => void
 }
 type ChainId = string // hex value as string

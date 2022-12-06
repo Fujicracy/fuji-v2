@@ -128,7 +128,9 @@ export default function Borrow() {
         onClick={signAndBorrow}
         size="large"
         fullWidth
-        disabled={collateral.amount <= 0 || debt.amount <= 0}
+        disabled={
+          collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
+        }
         loading={
           isSigning || isBorrowing || availableVaultStatus === "fetching"
         }

@@ -218,7 +218,6 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const collateral = entry.steps.find(
     (s) => s.step === RoutingStep.DEPOSIT
   ) as HistoryRoutingStep
-  const chainId = collateral?.chainId
   const debt = entry.steps.find(
     (s) => s.step === RoutingStep.BORROW
   ) as HistoryRoutingStep
