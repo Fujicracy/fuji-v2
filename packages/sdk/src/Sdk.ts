@@ -665,19 +665,19 @@ export class Sdk {
     const debtSym = v.debt.symbol;
 
     const borrowPool = pools.find(
-      (p: { chain: string; project: string; symbol: string }) =>
+      (p: LlamaAssetPool) =>
         p.chain === chain && p.project === project && p.symbol === debtSym
     );
 
     let borrowData;
     if (borrowPool) {
       borrowData = borrows.find(
-        (b: { pool: string }) => b.pool === borrowPool.pool
+        (b: LlamaBorrowPool) => b.pool === borrowPool.pool
       );
     }
 
     const depositData = pools.find(
-      (p: { chain: string; project: string; symbol: string }) =>
+      (p: LlamaAssetPool) =>
         p.chain === chain && p.project === project && p.symbol === collateralSym
     );
 
