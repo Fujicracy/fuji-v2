@@ -177,7 +177,11 @@ export default function TransactionProcessingModal({
                       <Typography variant="body">{step.label}</Typography>
                       <br />
                       {step.txHash && (
-                        <Link href={step.link} variant="smallDark">
+                        <Link
+                          href={step.link}
+                          target="_blank"
+                          variant="smallDark"
+                        >
                           {step.description}
                           <LaunchIcon
                             sx={{
