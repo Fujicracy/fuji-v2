@@ -224,7 +224,6 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   ) as HistoryRoutingStep
 
   const { palette } = useTheme()
-  const networkName = chainName(chainId)
 
   const listAction =
     entry.status === "ongoing" ? (
@@ -246,9 +245,9 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
         <ListItemText>
           <Typography variant="small">
             Deposit {formatUnits(collateral.amount, collateral.token.decimals)}{" "}
-            {collateral.token.symbol} on Ethereum and Borrow{" "}
-            {formatUnits(debt.amount, debt.token.decimals)} {debt.token.symbol}{" "}
-            on {networkName}.
+            {collateral.token.symbol} on {chainName(collateral.token.chainId)}{" "}
+            and Borrow {formatUnits(debt.amount, debt.token.decimals)}{" "}
+            {debt.token.symbol} on {chainName(debt.token.chainId)}.
           </Typography>
         </ListItemText>
       </ListItem>
