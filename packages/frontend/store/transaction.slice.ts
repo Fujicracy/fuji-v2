@@ -19,7 +19,7 @@ import { sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
-import { HistoryEntry, toHistoryRoutingStep, useHistory } from "./history.store"
+import { toHistoryRoutingStep, useHistory } from "./history.store"
 
 setAutoFreeze(false)
 
@@ -345,9 +345,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
 
     await get().changeActiveVault(vault)
+    set({ availableVaults })
     await get().updateAllProviders()
     await get().updateTransactionMeta()
-    set({ availableVaults, availableVaultsStatus: "ready" })
+    set({ availableVaultsStatus: "ready" })
   },
 
   async updateAllProviders() {
@@ -534,7 +535,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const s = await signer._signTypedData(domain, types, value)
       signature = ethers.utils.splitSignature(s)
     } catch (e) {
-      console.error(e)
+      console.debug(permitAction)
+      throw e
     }
 
     set({ signature, isSigning: false })
@@ -560,12 +562,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       )
       const signer = provider.getSigner()
       const t = await signer.sendTransaction(txRequest)
-      useHistory.getState().add({
-        hash: t.hash,
-        type: "borrow",
-        steps: toHistoryRoutingStep(transactionMeta.steps),
-        status: "ongoing",
-      })
       set(
         produce((s: TransactionState) => {
           if (s.collateralAllowance.value) {
@@ -574,6 +570,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
           }
         })
       )
+      return t
     } catch (e) {
       // TODO: user cancel tx
       throw e
@@ -583,8 +580,18 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async signAndBorrow() {
-    await get().signPermit()
-    await get().borrow()
+    try {
+      await get().signPermit()
+      const t = await get().borrow()
+      useHistory.getState().add({
+        hash: t.hash,
+        type: "borrow",
+        steps: toHistoryRoutingStep(get().transactionMeta.steps),
+        status: "ongoing",
+      })
+    } catch (e) {
+      console.error(e)
+    }
     get().changeCollateralValue("")
     get().changeBorrowValue("")
   },
