@@ -328,7 +328,11 @@ function VaultsMenu() {
             ))}
           </Box>
           {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
-          <Chip variant="success" label="A+" />
+          <Chip
+            variant="success"
+            label="A+"
+            sx={{ ".MuiChip-label": { textOverflow: "clip" } }}
+          />
           <KeyboardArrowDownIcon width={16} height={16} />
         </Stack>
       </Button>
