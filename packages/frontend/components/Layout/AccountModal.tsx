@@ -34,10 +34,11 @@ export default function AccountModal(props: AccountModalProps) {
   const [showSnackbar, setShowSnackbar] = useState(false)
 
   const addr = props.address
-  const formattedAddress = `${addr.substring(0, 5)}...${addr.substring(-4, 4)}`
+  const formattedAddress =
+    addr.substring(0, 5) + "..." + addr.substring(addr.length - 4)
 
   const copy = () => {
-    navigator.clipboard.writeText(props.address)
+    navigator.clipboard.writeText(addr)
     setShowSnackbar(true)
   }
 

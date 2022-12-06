@@ -255,10 +255,9 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     return <></>
   }
 
-  const formattedAddress = `${address.substring(0, 5)}...${address.substring(
-    -4,
-    4
-  )}`
+  const formattedAddress =
+    address.substring(0, 5) + "..." + address.substring(address.length - 4)
+
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
   const formattedBalance =
