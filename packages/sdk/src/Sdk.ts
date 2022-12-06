@@ -284,6 +284,8 @@ export class Sdk {
           innerActions
         ),
       ];
+    } else {
+      invariant(true, '3-chain transfers are not enabled yet!');
     }
 
     const steps = await this._getRoutingStepsFor(
