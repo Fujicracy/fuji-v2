@@ -8,7 +8,7 @@ import {IERC20Metadata} from
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IWETH9} from "../../../src/helpers/PeripheryPayments.sol";
+import {IWETH} from "../../../src/interfaces/IWETH.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
@@ -34,7 +34,7 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
   Chief public chief;
   TimelockController public timelock;
 
-  IWETH9 public weth;
+  IWETH public weth;
   IERC20 public usdc;
 
   MockOracle mockOracle;
@@ -45,7 +45,7 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
   function setUp() public {
     mainnetFork = vm.createSelectFork("mainnet");
 
-    weth = IWETH9(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    weth = IWETH(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
     vm.label(address(alice), "alice");
@@ -55,8 +55,8 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
 
     mockOracle = new MockOracle();
 
-    mockOracle.setPriceOf(address(weth), address(usdc), 62500);
-    mockOracle.setPriceOf(address(usdc), address(weth), 160000000000);
+    mockOracle.setUSDPriceOf(address(usdc), 100000000);
+    mockOracle.setUSDPriceOf(address(weth), 160000000000);
 
     address[] memory admins = new address[](1);
     admins[0] = address(this);
@@ -143,9 +143,8 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
 
-    address cTokenAddr = compoundV2.getMapper().getAddressMapping(
-      compoundV2.providerName(), 
-      address(weth));
+    address cTokenAddr =
+      compoundV2.getMapper().getAddressMapping(compoundV2.providerName(), address(weth));
     ICToken cToken = ICToken(cTokenAddr);
 
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
