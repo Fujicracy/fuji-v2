@@ -189,9 +189,9 @@ export default function Borrow() {
             justifyContent="space-between"
             mt="1rem"
             onClick={() => {
-              !onMobile && setShowRoutingModal(true)
+              !onMobile && address && setShowRoutingModal(true)
             }}
-            sx={{ cursor: "pointer" }}
+            sx={{ cursor: address && "pointer" }}
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
