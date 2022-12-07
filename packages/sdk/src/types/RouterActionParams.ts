@@ -5,42 +5,64 @@ import { RouterAction } from '../enums';
 
 export type BaseRouterActionParams = {
   action: RouterAction;
-  vault: Address;
   amount: BigNumber;
 };
 
 export type DepositParams = BaseRouterActionParams & {
   action: RouterAction.DEPOSIT;
+  vault: Address;
   sender: Address;
   receiver: Address;
 };
 
 export type BorrowParams = BaseRouterActionParams & {
   action: RouterAction.BORROW;
+  vault: Address;
   owner: Address;
   receiver: Address;
 };
 
 export type PaybackParams = BaseRouterActionParams & {
   action: RouterAction.PAYBACK;
+  vault: Address;
   sender: Address;
   receiver: Address;
 };
 
 export type WithdrawParams = BaseRouterActionParams & {
   action: RouterAction.WITHDRAW;
+  vault: Address;
   owner: Address;
   receiver: Address;
 };
 
 export type PermitParams = BaseRouterActionParams & {
   action: RouterAction.PERMIT_BORROW | RouterAction.PERMIT_WITHDRAW;
+  vault: Address;
   owner: Address;
-  spender: Address;
+  receiver: Address;
   deadline?: number;
   v?: number;
-  r?: Address;
-  s?: Address;
+  r?: string;
+  s?: string;
+};
+
+//(uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver)
+export type XTransferParams = BaseRouterActionParams & {
+  action: RouterAction.X_TRANSFER;
+  destDomain: number;
+  asset: Address;
+  receiver: Address;
+  slippage: number;
+};
+
+//(uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData)
+export type XTransferWithCallParams = BaseRouterActionParams & {
+  action: RouterAction.X_TRANSFER_WITH_CALL;
+  destDomain: number;
+  asset: Address;
+  slippage: number;
+  innerActions: RouterActionParams[];
 };
 
 export type RouterActionParams =
@@ -48,4 +70,6 @@ export type RouterActionParams =
   | BorrowParams
   | PaybackParams
   | WithdrawParams
-  | PermitParams;
+  | PermitParams
+  | XTransferParams
+  | XTransferWithCallParams;

@@ -2,7 +2,7 @@ import React from "react"
 import { ListItemIcon, ListItemText, MenuItem, Typography } from "@mui/material"
 
 import { chains } from "../../store/auth.slice"
-import Image from "next/image"
+import NetworkIcon from "../NetworkIcon"
 
 type Chain = typeof chains[0]
 
@@ -16,12 +16,7 @@ export default function CollateralDropdown(props: CollateralDropdownProps) {
       {props.chains.map((chain: Chain) => (
         <MenuItem key={chain.id} value={chain.id}>
           <ListItemIcon>
-            <Image
-              src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-              height={20}
-              width={20}
-              alt={chain.label}
-            />
+            <NetworkIcon networkName={chain.label} height={20} width={20} />
           </ListItemIcon>
           <ListItemText>
             <Typography variant="body">{chain.label}</Typography>

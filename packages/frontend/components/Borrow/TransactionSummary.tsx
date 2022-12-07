@@ -13,16 +13,26 @@ import {
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import AddCircleIcon from "@mui/icons-material/AddCircle"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import Image from "next/image"
 
 import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Layout/ClickableTooltip"
+import { useStore } from "../../store"
+import { formatUnits } from "ethers/lib/utils"
+import ProviderIcon from "../ProviderIcon"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
+
+  const ltv = useStore((state) => state.position.ltv)
+  const ltvMax = useStore((state) => state.position.ltvMax)
+  const liquidationPrice = useStore((state) => state.position.liquidationPrice)
+  const liquidationDiff = useStore((state) => state.position.liquidationDiff)
+  const collateral = useStore((state) => state.position.collateral)
+  const debt = useStore((state) => state.position.debt)
+  const providers = useStore((state) => state.position.providers)
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 
@@ -127,7 +137,12 @@ export default function TransactionSummary() {
                   <Typography variant="smallDark">
                     Collateral Provided
                   </Typography>
-                  <Typography variant="small">1ETH (~1800.00)</Typography>
+                  <Typography variant="small" sx={{ width: "100%" }}>
+                    {collateral.amount.toLocaleString()}{" "}
+                    {collateral.token.symbol} (~
+                    {(collateral.amount * collateral.usdValue).toLocaleString()}
+                    )
+                  </Typography>
                 </Grid>
 
                 <Grid
@@ -135,7 +150,10 @@ export default function TransactionSummary() {
                   sx={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
-                  <Typography variant="small">$675.00 (675 USDC)</Typography>
+                  <Typography variant="small" sx={{ width: "100%" }}>
+                    ${(debt.amount * debt.usdValue).toLocaleString()} (
+                    {debt.amount.toLocaleString()} {debt.token.symbol})
+                  </Typography>
                 </Grid>
 
                 <Grid
@@ -144,32 +162,39 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Liquidation Price</Typography>
                   <Typography variant="small">
-                    $1500.00 (
+                    ${liquidationPrice} (
                     <span
                       style={{
-                        color: palette.success.main,
+                        color:
+                          liquidationDiff >= 0
+                            ? palette.success.main
+                            : palette.error.main,
                       }}
                     >
-                      ~25%
+                      ~{Math.abs(liquidationDiff)}%
                     </span>{" "}
-                    below)
+                    {liquidationDiff >= 0 ? "below" : "above"})
                   </Typography>
                 </Grid>
 
-                <Grid
-                  item
-                  sx={{ display: "flex", justifyContent: "space-between" }}
-                >
+                <Grid item display="flex" justifyContent="space-between">
                   <Typography variant="smallDark">
-                    Current Price (ETH)
+                    Current Price ({collateral.token.symbol})
                   </Typography>
-                  <Typography variant="small">$2000.00</Typography>
+                  <Typography variant="small" sx={{ width: "100%" }}>
+                    ${collateral.usdValue.toLocaleString()}
+                  </Typography>
                 </Grid>
               </Grid>
 
               <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
-              <LTVProgressBar borrowLimit={0} value={40} />
+              <LTVProgressBar
+                borrowLimit={0}
+                value={ltv > ltvMax ? ltvMax : ltv}
+                maxLTV={ltvMax}
+                recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
+              />
 
               <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
@@ -205,17 +230,20 @@ export default function TransactionSummary() {
                   </Typography>
 
                   <Grid item>
-                    <Grid container alignItems="center">
-                      <Image
-                        src={`/assets/images/protocol-icons/networks/Ethereum.svg`}
-                        height={18}
-                        width={18}
-                        alt="Ethereum icon"
-                      />
-                      <Typography ml="0.375rem" variant="small">
-                        Aave V2
-                      </Typography>
-                    </Grid>
+                    {providers?.length ? (
+                      <Grid container alignItems="center">
+                        <ProviderIcon
+                          providerName={providers[0].name}
+                          height={18}
+                          width={18}
+                        />
+                        <Typography ml="0.375rem" variant="small">
+                          {providers[0].name}
+                        </Typography>
+                      </Grid>
+                    ) : (
+                      "n/a"
+                    )}
                   </Grid>
                 </Grid>
 
@@ -226,7 +254,10 @@ export default function TransactionSummary() {
                         Borrow Interest (APR)
                       </Typography>
 
-                      <Tooltip title="APR, or annual percentage rate, represents the price you pay to borrow money.">
+                      <Tooltip
+                        arrow
+                        title="APR, or annual percentage rate, represents the price you pay to borrow money."
+                      >
                         <InfoOutlinedIcon
                           sx={{
                             ml: "0.4rem",
@@ -251,33 +282,16 @@ export default function TransactionSummary() {
                     </div>
                     <Box>
                       <Box sx={{ alignItems: "center", cursor: "pointer" }}>
-                        <Typography variant="small">
-                          Aave:{" "}
-                          <span
-                            style={{
-                              color: palette.success.main,
-                            }}
-                          >
-                            1.83%
-                          </span>
-                          <Divider
-                            sx={{
-                              marginLeft: "0.531rem",
-                              marginRight: "0.25rem",
-                              borderRight: `0.063rem solid ${palette.text.secondary}`,
-                              borderBottom: 0,
-                              display: "inline",
-                            }}
-                          />
-                        </Typography>
-
-                        <AddCircleIcon
-                          sx={{
-                            marginLeft: "0.25rem",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                          }}
-                        />
+                        {providers?.length ? (
+                          <Typography variant="small">
+                            {providers[0].name}:{" "}
+                            <span style={{ color: palette.success.main }}>
+                              {formatUnits(providers[0].borrowRate, 27)}%
+                            </span>
+                          </Typography>
+                        ) : (
+                          "n/a"
+                        )}
                       </Box>
                     </Box>
                   </Grid>

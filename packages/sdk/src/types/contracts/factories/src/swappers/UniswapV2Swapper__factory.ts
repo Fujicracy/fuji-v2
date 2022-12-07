@@ -23,14 +23,14 @@ const _abi = [
         name: "_uniswapRouter",
         type: "address",
       },
-      {
-        internalType: "contract IFujiOracle",
-        name: "_oracle",
-        type: "address",
-      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "UniswapV2Swapper__swap_slippageTooHigh",
+    type: "error",
   },
   {
     inputs: [],
@@ -48,100 +48,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "approve",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "oracle",
-    outputs: [
-      {
-        internalType: "contract IFujiOracle",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "pullToken",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-    ],
-    name: "pullTokenFrom",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "refundETH",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "assetIn",
         type: "address",
@@ -150,6 +56,11 @@ const _abi = [
         internalType: "address",
         name: "assetOut",
         type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
       },
       {
         internalType: "uint256",
@@ -162,37 +73,19 @@ const _abi = [
         type: "address",
       },
       {
+        internalType: "address",
+        name: "sweeper",
+        type: "address",
+      },
+      {
         internalType: "uint256",
-        name: "slippage",
+        name: "minSweepOut",
         type: "uint256",
       },
     ],
     name: "swap",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amountMinimum",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "sweepToken",
-    outputs: [],
-    stateMutability: "payable",
     type: "function",
   },
   {
@@ -207,35 +100,6 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amountMinimum",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "unwrapWETH9",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "wrapWETH9",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    stateMutability: "payable",
-    type: "receive",
   },
 ];
 export class UniswapV2Swapper__factory {

@@ -9,18 +9,18 @@ pragma solidity 0.8.15;
 
 interface IVaultPermissions {
   /**
-   * @dev Emitted when the asset allowance of a `spender` for an `owner` is set by
+   * @dev Emitted when the asset allowance of a `operator` for an `owner` is set by
    * a call to {approveAsset}. `amount` is the new allowance.
-   * Allows `spender` to withdraw/transfer collateral from owner.
+   * Allows `operator` to withdraw/transfer collateral from owner.
    */
-  event WithdrawApproval(address indexed owner, address spender, uint256 amount);
+  event WithdrawApproval(address indexed owner, address operator, address receiver, uint256 amount);
 
   /**
-   * @dev Emitted when the borrow allowance of a `spender` for an `owner` is set by
+   * @dev Emitted when the borrow allowance of a `operator` for an `owner` is set by
    * a call to {approveBorrow}. `amount` is the new allowance.
-   * Allows `spender` to incur debt on behalf `owner`.
+   * Allows `operator` to incur debt on behalf `owner`.
    */
-  event BorrowApproval(address indexed owner, address spender, uint256 amount);
+  event BorrowApproval(address indexed owner, address operator, address receiver, uint256 amount);
 
   /**
    * @dev Based on {IERC20Permit-DOMAIN_SEPARATOR}.
@@ -34,55 +34,93 @@ interface IVaultPermissions {
    * Requirements:
    * - By convention this SHOULD be used over {IERC4626-allowance}.
    */
-  function withdrawAllowance(address owner, address spender) external view returns (uint256);
+  function withdrawAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    external
+    view
+    returns (uint256);
 
   /**
    * @dev Based on {IERC20-allowance} for debt.
    */
-  function borrowAllowance(address owner, address spender) external view returns (uint256);
+  function borrowAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    external
+    view
+    returns (uint256);
 
   /**
-   * @dev Atomically increases the `withdrawAllowance` granted to `spender` by the caller.
+   * @dev Atomically increases the `withdrawAllowance` granted to `operator` by the caller.
    * Based on OZ {ERC20-increaseAllowance} for assets.
    * Emits an {WithdrawApproval} event indicating the updated asset allowance.
    *
    * Requirements:
-   * - `spender` cannot be the zero address.
+   * - `operator` cannot be the zero address.
    */
-  function increaseWithdrawAllowance(address spender, uint256 byAmount) external returns (bool);
+  function increaseWithdrawAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
-   * @dev Atomically decrease the `withdrawAllowance` granted to `spender` by the caller.
+   * @dev Atomically decrease the `withdrawAllowance` granted to `operator` by the caller.
    * Based on OZ {ERC20-decreaseAllowance} for assets.
    * Emits an {WithdrawApproval} event indicating the updated asset allowance.
    *
    * Requirements:
-   * - `spender` cannot be the zero address.
-   * - `spender` must have `withdrawAllowance` for the caller of at least `byAmount`
+   * - `operator` cannot be the zero address.
+   * - `operator` must have `withdrawAllowance` for the caller of at least `byAmount`
    */
-  function decreaseWithdrawAllowance(address spender, uint256 byAmount) external returns (bool);
+  function decreaseWithdrawAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
-   * @dev Atomically increases the `borrowAllowance` granted to `spender` by the caller.
+   * @dev Atomically increases the `borrowAllowance` granted to `operator` by the caller.
    * Based on OZ {ERC20-increaseAllowance} for assets.
    * Emits an {BorrowApproval} event indicating the updated borrow allowance.
    *
    * Requirements:
-   * - `spender` cannot be the zero address.
+   * - `operator` cannot be the zero address.
    */
-  function increaseBorrowAllowance(address spender, uint256 byAmount) external returns (bool);
+  function increaseBorrowAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
-   * @dev Atomically decrease the `borrowAllowance` granted to `spender` by the caller.
+   * @dev Atomically decrease the `borrowAllowance` granted to `operator` by the caller.
    * Based on OZ {ERC20-decreaseAllowance} for assets, and
    * inspired on credit delegation by Aave.
    * Emits an {BorrowApproval} event indicating the updated borrow allowance.
    *
    * Requirements:
-   * - `spender` cannot be the zero address.
-   * - `spender` must have `borrowAllowance` for the caller of at least `byAmount`
+   * - `operator` cannot be the zero address.
+   * - `operator` must have `borrowAllowance` for the caller of at least `byAmount`
    */
-  function decreaseBorrowAllowance(address spender, uint256 byAmount) external returns (bool);
+  function decreaseBorrowAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    external
+    returns (bool);
 
   /**
    * @dev Based on OZ {IERC20Permit-nonces}.
@@ -91,7 +129,7 @@ interface IVaultPermissions {
 
   /**
    * @dev Inspired by {IERC20Permit-permit} for assets.
-   * Sets `amount` as the `withdrawAllowance` of `spender` over ``owner``'s tokens,
+   * Sets `amount` as the `withdrawAllowance` of `operator` over ``owner``'s tokens,
    * given ``owner``'s signed approval.
    * IMPORTANT: The same issues {IERC20-approve} related to transaction
    * ordering also apply here.
@@ -99,7 +137,7 @@ interface IVaultPermissions {
    * Emits an {AssetsApproval} event.
    *
    * Requirements:
-   * - `spender` cannot be the zero address.
+   * - `operator` cannot be the zero address.
    * - `deadline` must be a timestamp in the future.
    * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
    * over the EIP712-formatted function arguments.
@@ -107,7 +145,7 @@ interface IVaultPermissions {
    */
   function permitWithdraw(
     address owner,
-    address spender,
+    address receiver,
     uint256 amount,
     uint256 deadline,
     uint8 v,
@@ -118,7 +156,7 @@ interface IVaultPermissions {
 
   /**
    * @dev Inspired by {IERC20Permit-permit} for debt.
-   * Sets `amount` as the `borrowAllowance` of `spender` over ``owner``'s borrowing powwer,
+   * Sets `amount` as the `borrowAllowance` of `operator` over ``owner``'s borrowing powwer,
    * given ``owner``'s signed approval.
    * IMPORTANT: The same issues {IERC20-approve} has related to transaction
    * ordering also apply here.
@@ -127,7 +165,7 @@ interface IVaultPermissions {
    *
    * Requirements:
    * - must be implemented in a BorrowingVault.
-   * - `spender` cannot be the zero address.
+   * - `operator` cannot be the zero address.
    * - `deadline` must be a timestamp in the future.
    * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
    * over the EIP712-formatted function arguments.
@@ -135,7 +173,7 @@ interface IVaultPermissions {
    */
   function permitBorrow(
     address owner,
-    address spender,
+    address receiver,
     uint256 amount,
     uint256 deadline,
     uint8 v,

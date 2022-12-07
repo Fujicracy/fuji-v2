@@ -14,7 +14,12 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { Call } from "@hovoh/ethcall";
 import type {
@@ -26,60 +31,75 @@ import type {
 
 export interface ConnextRouterInterface extends utils.Interface {
   functions: {
+    "HARVESTER_ROLE()": FunctionFragment;
+    "HOUSE_KEEPER_ROLE()": FunctionFragment;
+    "LIQUIDATOR_ROLE()": FunctionFragment;
+    "PAUSER_ROLE()": FunctionFragment;
+    "REBALANCER_ROLE()": FunctionFragment;
+    "UNPAUSER_ROLE()": FunctionFragment;
     "WETH9()": FunctionFragment;
-    "approve(address,address,uint256)": FunctionFragment;
+    "bumpTransfer(bytes32)": FunctionFragment;
+    "chief()": FunctionFragment;
     "connext()": FunctionFragment;
-    "executor()": FunctionFragment;
-    "inboundXCall(bytes)": FunctionFragment;
-    "pullToken(address,uint256,address)": FunctionFragment;
-    "pullTokenFrom(address,uint256,address,address)": FunctionFragment;
-    "refundETH()": FunctionFragment;
     "routerByDomain(uint256)": FunctionFragment;
     "setRouter(uint256,address)": FunctionFragment;
-    "sweepToken(address,uint256,address)": FunctionFragment;
-    "unwrapWETH9(uint256,address)": FunctionFragment;
-    "wrapWETH9()": FunctionFragment;
+    "sweepETH(address)": FunctionFragment;
+    "sweepToken(address,address)": FunctionFragment;
     "xBundle(uint8[],bytes[])": FunctionFragment;
+    "xReceive(bytes32,uint256,address,address,uint32,bytes)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "HARVESTER_ROLE"
+      | "HOUSE_KEEPER_ROLE"
+      | "LIQUIDATOR_ROLE"
+      | "PAUSER_ROLE"
+      | "REBALANCER_ROLE"
+      | "UNPAUSER_ROLE"
       | "WETH9"
-      | "approve"
+      | "bumpTransfer"
+      | "chief"
       | "connext"
-      | "executor"
-      | "inboundXCall"
-      | "pullToken"
-      | "pullTokenFrom"
-      | "refundETH"
       | "routerByDomain"
       | "setRouter"
+      | "sweepETH"
       | "sweepToken"
-      | "unwrapWETH9"
-      | "wrapWETH9"
       | "xBundle"
+      | "xReceive"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "HARVESTER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LIQUIDATOR_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REBALANCER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UNPAUSER_ROLE",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "approve",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "connext", values?: undefined): string;
-  encodeFunctionData(functionFragment: "executor", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "inboundXCall",
+    functionFragment: "bumpTransfer",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "pullToken",
-    values: [string, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "pullTokenFrom",
-    values: [string, BigNumberish, string, string]
-  ): string;
-  encodeFunctionData(functionFragment: "refundETH", values?: undefined): string;
+  encodeFunctionData(functionFragment: "chief", values?: undefined): string;
+  encodeFunctionData(functionFragment: "connext", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "routerByDomain",
     values: [BigNumberish]
@@ -88,49 +108,113 @@ export interface ConnextRouterInterface extends utils.Interface {
     functionFragment: "setRouter",
     values: [BigNumberish, string]
   ): string;
+  encodeFunctionData(functionFragment: "sweepETH", values: [string]): string;
   encodeFunctionData(
     functionFragment: "sweepToken",
-    values: [string, BigNumberish, string]
+    values: [string, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "unwrapWETH9",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(functionFragment: "wrapWETH9", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "xBundle",
     values: [BigNumberish[], BytesLike[]]
   ): string;
+  encodeFunctionData(
+    functionFragment: "xReceive",
+    values: [BytesLike, BigNumberish, string, string, BigNumberish, BytesLike]
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "HARVESTER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "LIQUIDATOR_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "REBALANCER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UNPAUSER_ROLE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "bumpTransfer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "connext", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "executor", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "inboundXCall",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "pullToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "pullTokenFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "refundETH", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "routerByDomain",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setRouter", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrapWETH9",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "wrapWETH9", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "xReceive", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "NewRouterAdded(address,uint256)": EventFragment;
+    "XCalled(bytes32,address,address,uint256,address,uint256,bytes)": EventFragment;
+    "XReceived(bytes32,uint256,bool,address,uint256,bytes)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "NewRouterAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "XCalled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "XReceived"): EventFragment;
 }
+
+export interface NewRouterAddedEventObject {
+  router: string;
+  domain: BigNumber;
+}
+export type NewRouterAddedEvent = TypedEvent<
+  [string, BigNumber],
+  NewRouterAddedEventObject
+>;
+
+export type NewRouterAddedEventFilter = TypedEventFilter<NewRouterAddedEvent>;
+
+export interface XCalledEventObject {
+  transferId: string;
+  caller: string;
+  receiver: string;
+  destDomain: BigNumber;
+  asset: string;
+  amount: BigNumber;
+  callData: string;
+}
+export type XCalledEvent = TypedEvent<
+  [string, string, string, BigNumber, string, BigNumber, string],
+  XCalledEventObject
+>;
+
+export type XCalledEventFilter = TypedEventFilter<XCalledEvent>;
+
+export interface XReceivedEventObject {
+  transferId: string;
+  originDomain: BigNumber;
+  success: boolean;
+  asset: string;
+  amount: BigNumber;
+  callData: string;
+}
+export type XReceivedEvent = TypedEvent<
+  [string, BigNumber, boolean, string, BigNumber, string],
+  XReceivedEventObject
+>;
+
+export type XReceivedEventFilter = TypedEventFilter<XReceivedEvent>;
 
 export interface ConnextRouter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -159,42 +243,28 @@ export interface ConnextRouter extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
     WETH9(overrides?: CallOverrides): Promise<[string]>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
+    bumpTransfer(
+      transferId: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    chief(overrides?: CallOverrides): Promise<[string]>;
 
     connext(overrides?: CallOverrides): Promise<[string]>;
-
-    executor(overrides?: CallOverrides): Promise<[string]>;
-
-    inboundXCall(
-      params: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     routerByDomain(
       arg0: BigNumberish,
@@ -207,66 +277,56 @@ export interface ConnextRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    xReceive(
+      transferId: BytesLike,
+      amount: BigNumberish,
+      asset: string,
+      arg3: string,
+      originDomain: BigNumberish,
+      callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
+  HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
   WETH9(overrides?: CallOverrides): Promise<string>;
 
-  approve(
-    token: string,
-    to: string,
-    amount: BigNumberish,
+  bumpTransfer(
+    transferId: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  chief(overrides?: CallOverrides): Promise<string>;
 
   connext(overrides?: CallOverrides): Promise<string>;
-
-  executor(overrides?: CallOverrides): Promise<string>;
-
-  inboundXCall(
-    params: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  pullToken(
-    token: string,
-    amount: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  pullTokenFrom(
-    token: string,
-    amount: BigNumberish,
-    recipient: string,
-    sender: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  refundETH(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   routerByDomain(
     arg0: BigNumberish,
@@ -279,61 +339,56 @@ export interface ConnextRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  sweepETH(
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   sweepToken(
     token: string,
-    amountMinimum: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  unwrapWETH9(
-    amountMinimum: BigNumberish,
-    recipient: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  wrapWETH9(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   xBundle(
     actions: BigNumberish[],
     args: BytesLike[],
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  xReceive(
+    transferId: BytesLike,
+    amount: BigNumberish,
+    asset: string,
+    arg3: string,
+    originDomain: BigNumberish,
+    callData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
     WETH9(overrides?: CallOverrides): Promise<string>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
+    bumpTransfer(
+      transferId: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    chief(overrides?: CallOverrides): Promise<string>;
 
     connext(overrides?: CallOverrides): Promise<string>;
-
-    executor(overrides?: CallOverrides): Promise<string>;
-
-    inboundXCall(params: BytesLike, overrides?: CallOverrides): Promise<void>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    refundETH(overrides?: CallOverrides): Promise<void>;
 
     routerByDomain(
       arg0: BigNumberish,
@@ -346,67 +401,101 @@ export interface ConnextRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    sweepETH(receiver: string, overrides?: CallOverrides): Promise<void>;
+
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
+      receiver: string,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    wrapWETH9(overrides?: CallOverrides): Promise<void>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
+
+    xReceive(
+      transferId: BytesLike,
+      amount: BigNumberish,
+      asset: string,
+      arg3: string,
+      originDomain: BigNumberish,
+      callData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    "NewRouterAdded(address,uint256)"(
+      router?: string | null,
+      domain?: BigNumberish | null
+    ): NewRouterAddedEventFilter;
+    NewRouterAdded(
+      router?: string | null,
+      domain?: BigNumberish | null
+    ): NewRouterAddedEventFilter;
+
+    "XCalled(bytes32,address,address,uint256,address,uint256,bytes)"(
+      transferId?: BytesLike | null,
+      caller?: string | null,
+      receiver?: string | null,
+      destDomain?: null,
+      asset?: null,
+      amount?: null,
+      callData?: null
+    ): XCalledEventFilter;
+    XCalled(
+      transferId?: BytesLike | null,
+      caller?: string | null,
+      receiver?: string | null,
+      destDomain?: null,
+      asset?: null,
+      amount?: null,
+      callData?: null
+    ): XCalledEventFilter;
+
+    "XReceived(bytes32,uint256,bool,address,uint256,bytes)"(
+      transferId?: BytesLike | null,
+      originDomain?: BigNumberish | null,
+      success?: null,
+      asset?: null,
+      amount?: null,
+      callData?: null
+    ): XReceivedEventFilter;
+    XReceived(
+      transferId?: BytesLike | null,
+      originDomain?: BigNumberish | null,
+      success?: null,
+      asset?: null,
+      amount?: null,
+      callData?: null
+    ): XReceivedEventFilter;
+  };
 
   estimateGas: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
     WETH9(overrides?: CallOverrides): Promise<BigNumber>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
+    bumpTransfer(
+      transferId: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     connext(overrides?: CallOverrides): Promise<BigNumber>;
-
-    executor(overrides?: CallOverrides): Promise<BigNumber>;
-
-    inboundXCall(
-      params: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     routerByDomain(
       arg0: BigNumberish,
@@ -419,67 +508,57 @@ export interface ConnextRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    xReceive(
+      transferId: BytesLike,
+      amount: BigNumberish,
+      asset: string,
+      arg3: string,
+      originDomain: BigNumberish,
+      callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    approve(
-      token: string,
-      to: string,
-      amount: BigNumberish,
+    bumpTransfer(
+      transferId: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     connext(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    executor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    inboundXCall(
-      params: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    pullToken(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    pullTokenFrom(
-      token: string,
-      amount: BigNumberish,
-      recipient: string,
-      sender: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    refundETH(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     routerByDomain(
       arg0: BigNumberish,
@@ -492,26 +571,30 @@ export interface ConnextRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    sweepETH(
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     sweepToken(
       token: string,
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    unwrapWETH9(
-      amountMinimum: BigNumberish,
-      recipient: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    wrapWETH9(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    xReceive(
+      transferId: BytesLike,
+      amount: BigNumberish,
+      asset: string,
+      arg3: string,
+      originDomain: BigNumberish,
+      callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
@@ -522,11 +605,23 @@ export interface ConnextRouterMulticall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
+  HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Call<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
   WETH9(overrides?: CallOverrides): Call<string>;
 
-  connext(overrides?: CallOverrides): Call<string>;
+  chief(overrides?: CallOverrides): Call<string>;
 
-  executor(overrides?: CallOverrides): Call<string>;
+  connext(overrides?: CallOverrides): Call<string>;
 
   routerByDomain(arg0: BigNumberish, overrides?: CallOverrides): Call<string>;
 }

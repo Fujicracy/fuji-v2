@@ -19,8 +19,13 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "contract IConnextHandler",
+        internalType: "contract IConnext",
         name: "connext_",
+        type: "address",
+      },
+      {
+        internalType: "contract IChief",
+        name: "chief",
         type: "address",
       },
     ],
@@ -29,8 +34,272 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BaseRouter__bundleInternal_wrongInput",
+    name: "BaseRouter__bundleInternal_flashloanInvalidRequestor",
     type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_insufficientETH",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_noRemnantBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_paramsMismatch",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_withdrawETHReceiverNotOwner",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_withdrawETHWrongOrder",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__fallback_notAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__receive_senderNotWETH",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__safeTransferETH_transferFailed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ConnextRouter__setRouter_invalidInput",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+    ],
+    name: "SystemAccessControl__hasRole_missingRole",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyHouseKeeper_notHouseKeeper",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "router",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "domain",
+        type: "uint256",
+      },
+    ],
+    name: "NewRouterAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "transferId",
+        type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "destDomain",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes",
+      },
+    ],
+    name: "XCalled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "transferId",
+        type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "originDomain",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes",
+      },
+    ],
+    name: "XReceived",
+    type: "event",
+  },
+  {
+    stateMutability: "payable",
+    type: "fallback",
+  },
+  {
+    inputs: [],
+    name: "HARVESTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "LIQUIDATOR_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "PAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "REBALANCER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "UNPAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
@@ -48,24 +317,27 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
+        internalType: "bytes32",
+        name: "transferId",
+        type: "bytes32",
       },
     ],
-    name: "approve",
+    name: "bumpTransfer",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "chief",
+    outputs: [
+      {
+        internalType: "contract IChief",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -73,96 +345,12 @@ const _abi = [
     name: "connext",
     outputs: [
       {
-        internalType: "contract IConnextHandler",
+        internalType: "contract IConnext",
         name: "",
         type: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "executor",
-    outputs: [
-      {
-        internalType: "contract IExecutor",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "params",
-        type: "bytes",
-      },
-    ],
-    name: "inboundXCall",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "pullToken",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-    ],
-    name: "pullTokenFrom",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "refundETH",
-    outputs: [],
-    stateMutability: "payable",
     type: "function",
   },
   {
@@ -205,49 +393,32 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amountMinimum",
-        type: "uint256",
-      },
-      {
         internalType: "address",
-        name: "recipient",
+        name: "receiver",
         type: "address",
       },
     ],
-    name: "sweepToken",
+    name: "sweepETH",
     outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "amountMinimum",
-        type: "uint256",
+        internalType: "contract ERC20",
+        name: "token",
+        type: "address",
       },
       {
         internalType: "address",
-        name: "recipient",
+        name: "receiver",
         type: "address",
       },
     ],
-    name: "unwrapWETH9",
+    name: "sweepToken",
     outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "wrapWETH9",
-    outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -265,6 +436,50 @@ const _abi = [
     ],
     name: "xBundle",
     outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "transferId",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "originDomain",
+        type: "uint32",
+      },
+      {
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes",
+      },
+    ],
+    name: "xReceive",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },

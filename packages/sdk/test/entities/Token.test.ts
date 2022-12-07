@@ -1,4 +1,5 @@
-import { Address, Token } from '../../src/entities';
+import { Address } from '../../src/entities/Address';
+import { Token } from '../../src/entities/Token';
 
 describe('Token', () => {
   const ADDRESS_ONE = Address.from(

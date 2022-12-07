@@ -9,5 +9,4 @@ export enum RouterAction {
   PERMIT_BORROW,
   X_TRANSFER,
   X_TRANSFER_WITH_CALL,
-  X_CALL,
 }

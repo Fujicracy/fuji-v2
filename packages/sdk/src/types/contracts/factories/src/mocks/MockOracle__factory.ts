@@ -66,11 +66,6 @@ const _abi = [
         name: "",
         type: "address",
       },
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
     ],
     name: "prices",
     outputs: [
@@ -87,12 +82,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "currencyAsset",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "commodityAsset",
+        name: "asset",
         type: "address",
       },
       {
@@ -101,7 +91,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "setPriceOf",
+    name: "setUSDPriceOf",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

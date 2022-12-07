@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as abstracts from "./abstracts";
+export * as access from "./access";
 export * as flashloans from "./flashloans";
 export * as helpers from "./helpers";
 export * as interfaces from "./interfaces";
@@ -13,3 +14,4 @@ export * as swappers from "./swappers";
 export * as vaults from "./vaults";
 export { Chief__factory } from "./Chief__factory";
 export { FujiOracle__factory } from "./FujiOracle__factory";
+export { RebalancerManager__factory } from "./RebalancerManager__factory";

@@ -10,7 +10,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material"
-import Image from "next/image"
+
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
@@ -18,6 +18,7 @@ import Fade from "@mui/material/Fade"
 
 import { useStore } from "../../store"
 import { chains, Chain } from "../../store/auth.slice"
+import NetworkIcon from "../NetworkIcon"
 
 export default function ChainSelect() {
   const theme = useTheme()
@@ -51,7 +52,7 @@ export default function ChainSelect() {
                 onMobile={onMobile}
               />
               {!onMobile && (
-                <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+                <KeyboardArrowDownIcon sx={{ ml: "0px !important" }} />
               )}
             </Stack>
           }
@@ -63,7 +64,7 @@ export default function ChainSelect() {
             <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" />
               <Typography fontSize="inherit">Switch network</Typography>
-              <KeyboardArrowDownIcon sx={{ marginLeft: "0px !important" }} />
+              <KeyboardArrowDownIcon sx={{ ml: "0px !important" }} />
             </Stack>
           }
           onClick={openMenu}
@@ -102,12 +103,7 @@ const ListItem = (props: ListItemProps) => {
   return (
     <>
       <ListItemIcon sx={{ minWidth: "inherit" }}>
-        <Image
-          src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-          height={20}
-          width={20}
-          alt={chain.label}
-        />
+        <NetworkIcon networkName={`${chain.label}`} height={20} width={20} />
       </ListItemIcon>
       {!onMobile && <ListItemText>{chain.label}</ListItemText>}
 

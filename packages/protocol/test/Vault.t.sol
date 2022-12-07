@@ -505,4 +505,69 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOf(bob), amountGivenToLiquidator);
     assertEq(vault.balanceOfDebt(bob), 0);
   }
+
+  //error BorrowingVault__borrow_invalidInput();
+  function test_borrowInvalidInput() public {
+    uint256 borrowAmount = 1000e18;
+    uint256 invalidBorrowAmount = 0;
+    address invalidAddress = address(0);
+
+    //invalid debt
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
+    vault.borrow(invalidBorrowAmount, alice, bob);
+
+    //invalid receiver
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
+    vault.borrow(borrowAmount, invalidAddress, bob);
+
+    //invalid owner
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
+    vault.borrow(borrowAmount, alice, invalidAddress);
+  }
+
+  //error BorrowingVault__borrow_moreThanAllowed();
+  function test_borrowMoreThanAllowed(uint96 invalidBorrowAmount) public {
+    uint96 amount = 1 ether;
+    vm.assume(invalidBorrowAmount > 0 && !_utils_checkMaxLTV(amount, invalidBorrowAmount));
+
+    _utils_doDeposit(amount, vault, alice);
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
+    vault.borrow(invalidBorrowAmount, alice, alice);
+  }
+
+  //error BorrowingVault__payback_invalidInput();
+  function test_paybackInvalidInput() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+    uint256 invalidDebt = 0;
+
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    //invalid debt
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
+    vault.payback(invalidDebt, alice);
+
+    //invalid owner
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
+    vault.payback(borrowAmount, address(0));
+  }
+
+  //error BorrowingVault__payback_moreThanMax();
+  function test_paybackMoreThanMax(uint256 amountPayback) public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+    vm.assume(amountPayback > borrowAmount);
+
+    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_moreThanMax.selector);
+    vault.payback(amountPayback, alice);
+  }
+
+  //error BorrowingVault__liquidate_invalidInput();
+  function test_liquidateInvalidInput() public {
+    vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
+    vault.liquidate(alice, address(0));
+  }
 }

@@ -23,6 +23,11 @@ const _abi = [
         name: "_priceFeeds",
         type: "address[]",
       },
+      {
+        internalType: "address",
+        name: "chief_",
+        type: "address",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -40,6 +45,32 @@ const _abi = [
   {
     inputs: [],
     name: "FujiOracle__noZeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+    ],
+    name: "SystemAccessControl__hasRole_missingRole",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyHouseKeeper_notHouseKeeper",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
     type: "error",
   },
   {
@@ -62,23 +93,95 @@ const _abi = [
     type: "event",
   },
   {
-    anonymous: false,
-    inputs: [
+    inputs: [],
+    name: "HARVESTER_ROLE",
+    outputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
       },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
+    outputs: [
       {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "LIQUIDATOR_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "PAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "REBALANCER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "UNPAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "chief",
+    outputs: [
+      {
+        internalType: "contract IChief",
+        name: "",
         type: "address",
       },
     ],
-    name: "OwnershipTransferred",
-    type: "event",
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
@@ -110,26 +213,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "address",
@@ -143,19 +226,6 @@ const _abi = [
       },
     ],
     name: "setPriceFeed",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

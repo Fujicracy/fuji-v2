@@ -9,6 +9,7 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -33,18 +34,24 @@ export interface MockERC20Interface extends utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "balanceOfDebt(address)": FunctionFragment;
+    "balanceOfDebt(address,string)": FunctionFragment;
+    "balanceOfDeposit(address,string)": FunctionFragment;
     "burn(address,uint256)": FunctionFragment;
+    "burnDebt(address,uint256,string)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
+    "deposit()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "makeDeposit(address,uint256,string)": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
-    "mintDebt(address,uint256)": FunctionFragment;
+    "mintDebt(address,uint256,string)": FunctionFragment;
     "name()": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "withdraw(uint256)": FunctionFragment;
+    "withdrawDeposit(address,uint256,string)": FunctionFragment;
   };
 
   getFunction(
@@ -53,10 +60,14 @@ export interface MockERC20Interface extends utils.Interface {
       | "approve"
       | "balanceOf"
       | "balanceOfDebt"
+      | "balanceOfDeposit"
       | "burn"
+      | "burnDebt"
       | "decimals"
       | "decreaseAllowance"
+      | "deposit"
       | "increaseAllowance"
+      | "makeDeposit"
       | "mint"
       | "mintDebt"
       | "name"
@@ -64,6 +75,8 @@ export interface MockERC20Interface extends utils.Interface {
       | "totalSupply"
       | "transfer"
       | "transferFrom"
+      | "withdraw"
+      | "withdrawDeposit"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -77,20 +90,33 @@ export interface MockERC20Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "balanceOfDebt",
-    values: [string]
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfDeposit",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "burn",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnDebt",
+    values: [string, BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "deposit", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "makeDeposit",
+    values: [string, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
@@ -98,7 +124,7 @@ export interface MockERC20Interface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintDebt",
-    values: [string, BigNumberish]
+    values: [string, BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -114,6 +140,14 @@ export interface MockERC20Interface extends utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawDeposit",
+    values: [string, BigNumberish, string]
+  ): string;
 
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -122,14 +156,24 @@ export interface MockERC20Interface extends utils.Interface {
     functionFragment: "balanceOfDebt",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfDeposit",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burnDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "decreaseAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "makeDeposit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
@@ -145,14 +189,27 @@ export interface MockERC20Interface extends utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawDeposit",
+    data: BytesLike
+  ): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
+    "BorrowRecorded(string,address,uint256)": EventFragment;
+    "DepositRecorded(string,address,uint256)": EventFragment;
+    "PaybackRecorded(string,address,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "WithdrawRecorded(string,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BorrowRecorded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DepositRecorded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PaybackRecorded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WithdrawRecorded"): EventFragment;
 }
 
 export interface ApprovalEventObject {
@@ -167,6 +224,42 @@ export type ApprovalEvent = TypedEvent<
 
 export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
+export interface BorrowRecordedEventObject {
+  provider: string;
+  from: string;
+  value: BigNumber;
+}
+export type BorrowRecordedEvent = TypedEvent<
+  [string, string, BigNumber],
+  BorrowRecordedEventObject
+>;
+
+export type BorrowRecordedEventFilter = TypedEventFilter<BorrowRecordedEvent>;
+
+export interface DepositRecordedEventObject {
+  provider: string;
+  from: string;
+  value: BigNumber;
+}
+export type DepositRecordedEvent = TypedEvent<
+  [string, string, BigNumber],
+  DepositRecordedEventObject
+>;
+
+export type DepositRecordedEventFilter = TypedEventFilter<DepositRecordedEvent>;
+
+export interface PaybackRecordedEventObject {
+  provider: string;
+  from: string;
+  value: BigNumber;
+}
+export type PaybackRecordedEvent = TypedEvent<
+  [string, string, BigNumber],
+  PaybackRecordedEventObject
+>;
+
+export type PaybackRecordedEventFilter = TypedEventFilter<PaybackRecordedEvent>;
+
 export interface TransferEventObject {
   from: string;
   to: string;
@@ -178,6 +271,19 @@ export type TransferEvent = TypedEvent<
 >;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
+
+export interface WithdrawRecordedEventObject {
+  provider: string;
+  from: string;
+  value: BigNumber;
+}
+export type WithdrawRecordedEvent = TypedEvent<
+  [string, string, BigNumber],
+  WithdrawRecordedEventObject
+>;
+
+export type WithdrawRecordedEventFilter =
+  TypedEventFilter<WithdrawRecordedEvent>;
 
 export interface MockERC20 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -220,11 +326,28 @@ export interface MockERC20 extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    balanceOfDebt(who: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    balanceOfDebt(
+      who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    balanceOfDeposit(
+      who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     burn(
       from: string,
       value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    burnDebt(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -236,9 +359,20 @@ export interface MockERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    deposit(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    makeDeposit(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -251,6 +385,7 @@ export interface MockERC20 extends BaseContract {
     mintDebt(
       to: string,
       value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -272,6 +407,18 @@ export interface MockERC20 extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    withdraw(
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawDeposit(
+      to: string,
+      value: BigNumberish,
+      provider: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   allowance(
@@ -288,11 +435,28 @@ export interface MockERC20 extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  balanceOfDebt(who: string, overrides?: CallOverrides): Promise<BigNumber>;
+  balanceOfDebt(
+    who: string,
+    provider: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  balanceOfDeposit(
+    who: string,
+    provider: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   burn(
     from: string,
     value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  burnDebt(
+    from: string,
+    value: BigNumberish,
+    provider: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -304,9 +468,20 @@ export interface MockERC20 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  deposit(
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   increaseAllowance(
     spender: string,
     addedValue: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  makeDeposit(
+    from: string,
+    value: BigNumberish,
+    provider: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -319,6 +494,7 @@ export interface MockERC20 extends BaseContract {
   mintDebt(
     to: string,
     value: BigNumberish,
+    provider: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -341,6 +517,18 @@ export interface MockERC20 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  withdraw(
+    value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawDeposit(
+    to: string,
+    value: BigNumberish,
+    provider: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     allowance(
       owner: string,
@@ -356,13 +544,30 @@ export interface MockERC20 extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOfDebt(who: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOfDebt(
+      who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfDeposit(
+      who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     burn(
       from: string,
       value: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    burnDebt(
+      from: string,
+      value: BigNumberish,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
@@ -372,9 +577,18 @@ export interface MockERC20 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    deposit(overrides?: CallOverrides): Promise<void>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    makeDeposit(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -387,8 +601,9 @@ export interface MockERC20 extends BaseContract {
     mintDebt(
       to: string,
       value: BigNumberish,
+      provider: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<boolean>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -408,6 +623,15 @@ export interface MockERC20 extends BaseContract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    withdraw(value: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    withdrawDeposit(
+      to: string,
+      value: BigNumberish,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
   };
 
   filters: {
@@ -422,6 +646,39 @@ export interface MockERC20 extends BaseContract {
       value?: null
     ): ApprovalEventFilter;
 
+    "BorrowRecorded(string,address,uint256)"(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): BorrowRecordedEventFilter;
+    BorrowRecorded(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): BorrowRecordedEventFilter;
+
+    "DepositRecorded(string,address,uint256)"(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): DepositRecordedEventFilter;
+    DepositRecorded(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): DepositRecordedEventFilter;
+
+    "PaybackRecorded(string,address,uint256)"(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): PaybackRecordedEventFilter;
+    PaybackRecorded(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): PaybackRecordedEventFilter;
+
     "Transfer(address,address,uint256)"(
       from?: string | null,
       to?: string | null,
@@ -432,6 +689,17 @@ export interface MockERC20 extends BaseContract {
       to?: string | null,
       value?: null
     ): TransferEventFilter;
+
+    "WithdrawRecorded(string,address,uint256)"(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): WithdrawRecordedEventFilter;
+    WithdrawRecorded(
+      provider?: null,
+      from?: null,
+      value?: null
+    ): WithdrawRecordedEventFilter;
   };
 
   estimateGas: {
@@ -449,11 +717,28 @@ export interface MockERC20 extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOfDebt(who: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOfDebt(
+      who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfDeposit(
+      who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     burn(
       from: string,
       value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    burnDebt(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -465,9 +750,20 @@ export interface MockERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    deposit(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    makeDeposit(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -480,6 +776,7 @@ export interface MockERC20 extends BaseContract {
     mintDebt(
       to: string,
       value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -499,6 +796,18 @@ export interface MockERC20 extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdraw(
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdrawDeposit(
+      to: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -523,12 +832,26 @@ export interface MockERC20 extends BaseContract {
 
     balanceOfDebt(
       who: string,
+      provider: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfDeposit(
+      who: string,
+      provider: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     burn(
       from: string,
       value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    burnDebt(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -540,9 +863,20 @@ export interface MockERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    deposit(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    makeDeposit(
+      from: string,
+      value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -555,6 +889,7 @@ export interface MockERC20 extends BaseContract {
     mintDebt(
       to: string,
       value: BigNumberish,
+      provider: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -576,6 +911,18 @@ export interface MockERC20 extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    withdraw(
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawDeposit(
+      to: string,
+      value: BigNumberish,
+      provider: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }
 
@@ -592,7 +939,17 @@ export interface MockERC20Multicall {
 
   balanceOf(account: string, overrides?: CallOverrides): Call<BigNumber>;
 
-  balanceOfDebt(who: string, overrides?: CallOverrides): Call<BigNumber>;
+  balanceOfDebt(
+    who: string,
+    provider: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  balanceOfDeposit(
+    who: string,
+    provider: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 
   decimals(overrides?: CallOverrides): Call<number>;
 

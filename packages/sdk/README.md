@@ -56,25 +56,32 @@
 ```
 
 ### Vault data
+
 _Vault is an instance on a single chain, i.e. its collateral and debt token are from the same chain._
 
-1. Get an instance of a "Vault"
-```
-  const vault = await sdk.getBorrowingVaultFor(token1, token2);
+1. Get all "Vault" for a given combo of tokens
 
-  // if vault is undefined, display error
+```
+  const vaults = await sdk.getBorrowingVaultsFor(token1, token2);
+
+  // vaults are sorted, starting by this with the lowest borrow rate
+  // or if token1 and token2 are on the same chain, the first vault will
+  // be on that chain
+  const vault = vaults[0];
 ```
 
 2. Pre-load some data for the vault so that it's available for a later use
+
 ```
-  await vault.preLoad(user);
+  await vault.preLoad();
 
   // pre-load makes available vault.maxLtv and vault.liqRatio
-  // that can be used to calculate health ratio and 
+  // that can be used to calculate health ratio and
   // liquidation price based on the amounts inputs below
 ```
 
 3. Get user deposit and borrow balances for this Vault
+
 ```
   const { deposit, borrow } = await vault.getBalances(user);
 
@@ -83,12 +90,14 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ```
 
 4. Get prices of collateral and debt token in $
+
 ```
   const collateralPrice = await token1.getPriceUSD();
   const debtPrice = await token2.getPriceUSD();
 ```
 
 5. fetch providers for this vault and their rates
+
 ```
   const providers = await vault.getProviders();
 ```
@@ -109,20 +118,27 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 ### Transation
 
 ```
-  const srcChainId = token1.chainId
-  // TODO for cost
-  const { actions, cost } = await vault.previewDepositAndBorrow(amount1, amount2, srcChainId);
+  // TODO: cost and estimateTime are hardcoded
+  const { steps, actions, bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, token1, token2, user);
 
   // verify if user needs to sign a permit
-  if (sdk.needPermit(actions)) {
-    const permitAction = actions.find(PERMIT_BORROW || PERMIT_WITHDRAW)
-    const digest = await vault.signPermitFor(permitAction)
+  if (Sdk.needPermit(actions)) {
+    const permitAction = Sdk.findPermitAction(actions)
 
-    const signature = await ethers.signMessage(digest)
+    // signing the permit action has to be done through the vault
+    const { domain, types, value } = await vault.signPermitFor(permitAction)
+
+    const signature = await signer.signMessage(domain, types, value)
   }
 
-  // TODO
-  const txData = await vault.getTXDataFor(actions, signature?)
+  const txRequest = await vault.getTxDetails(actions, srcChainId, user, signature?)
+  const tx = await signer.sendTransaction(txRequest);
+  const receipt = await tx.wait();
+  const stepsWithStatus = await sdk.watchTxStatus(receipt.transactionHash, steps);
+
+  // 'step.txHash' is a Promise returning the transactionHash when the tx gets validated
+  // use step.chainId and step.txHash to construct the etherscan links
+  stepsWithStatus.forEach((step) => step.txHash.then(console.log));
 ```
 
 ### Misc

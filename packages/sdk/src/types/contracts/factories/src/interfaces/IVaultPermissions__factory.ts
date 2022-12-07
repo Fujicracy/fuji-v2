@@ -23,7 +23,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -48,7 +54,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -83,7 +95,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],
@@ -102,7 +119,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -126,7 +148,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -150,7 +177,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -174,7 +206,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -222,7 +259,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -265,7 +302,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -308,7 +345,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],

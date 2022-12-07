@@ -15,10 +15,11 @@ import {TimelockController} from
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
+import {IChief} from "./interfaces/IChief.sol";
 import {AddrMapper} from "./helpers/AddrMapper.sol";
 import {CoreRoles} from "./access/CoreRoles.sol";
 
-contract Chief is CoreRoles, AccessControl {
+contract Chief is CoreRoles, AccessControl, IChief {
   using Address for address;
 
   event OpenVaultFactory(bool state);
@@ -53,6 +54,7 @@ contract Chief is CoreRoles, AccessControl {
 
   constructor() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _grantRole(HOUSE_KEEPER_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
     _deployAddrMapper();

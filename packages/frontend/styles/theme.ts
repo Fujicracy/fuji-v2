@@ -11,9 +11,19 @@ declare module "@mui/material/Button" {
   }
 }
 
+declare module "@mui/material/Chip" {
+  interface ChipPropsVariantOverrides {
+    gradient: true
+    success: true
+    warning: true
+    number: true
+  }
+}
+
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
     currency: true
+    lending: true
   }
 }
 
@@ -29,6 +39,12 @@ declare module "@mui/material/Typography" {
     xsmallDark: true
     label: true
     regularH4: true
+  }
+}
+
+declare module "@mui/material/Chip" {
+  interface ChipPropsVariantOverrides {
+    gradient: true
   }
 }
 
@@ -65,6 +81,7 @@ const colorTheme = createTheme({
     },
     error: {
       main: "#FD4040",
+      dark: "#FC0A54",
     },
     background: {
       paper: "black",
@@ -111,6 +128,8 @@ const theme = createTheme(colorTheme, {
       fontWeight: 600,
       fontSize: "1.5rem",
       lineHeight: "120%",
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     h5: {
       fontWeight: 600,
@@ -136,17 +155,20 @@ const theme = createTheme(colorTheme, {
       fontWeight: 400,
       fontSize: "0.875rem",
       lineHeight: "160%",
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     smallDark: {
       fontWeight: 400,
       fontSize: "0.875rem",
       lineHeight: "160%",
       color: colorTheme.palette.info.dark,
+      textOverflow: "ellipsis",
+      overflow: "hidden",
     },
     xsmall: {
       fontWeight: 400,
       fontSize: "0.75rem",
-      lineHeight: "160%",
     },
     xsmallDark: {
       fontWeight: 400,
@@ -167,7 +189,6 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: "border-box",
           borderRadius: "0.5rem",
-          color: colorTheme.palette.text.primary,
           "&.Mui-disabled": {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
@@ -273,7 +294,6 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: "0.75rem",
-          gap: "2rem",
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-start",
@@ -291,7 +311,6 @@ const theme = createTheme(colorTheme, {
             flexDirection: "column",
             borderRadius: "0.5rem",
             padding: "1rem",
-            gap: "1.5rem",
             flex: "none",
             order: 1,
             flexGrow: 0,
@@ -310,6 +329,21 @@ const theme = createTheme(colorTheme, {
             marginBottom: "1rem",
           },
         },
+        {
+          props: {
+            variant: "lending",
+          },
+          style: {
+            borderRadius: "0.75rem",
+            backgroundColor: colorTheme.palette.secondary.contrastText,
+            border: `1px solid ${colorTheme.palette.secondary.light}`,
+            alignItems: "center",
+            flexDirection: "column",
+            textAlign: "center",
+
+            paddingBottom: "12.5rem",
+          },
+        },
       ],
     },
     MuiSelect: {
@@ -318,6 +352,8 @@ const theme = createTheme(colorTheme, {
           fontWeight: 400,
           fontSize: "0.875rem",
           lineHeight: "160%",
+          borderRadius: "2rem",
+          padding: ".25rem .5rem",
           color: colorTheme.palette.text.secondary,
         },
       },
@@ -334,43 +370,23 @@ const theme = createTheme(colorTheme, {
             fontWeight: 400,
             fontSize: "0.875rem",
             lineHeight: "160%",
-            ".MuiOutlinedInput-notchedOutline": {
-              border: 0,
-            },
           },
         },
       ],
     },
-    MuiInputBase: {
-      styleOverrides: {
-        root: {
-          padding: 0,
-          fontSize: "1.125rem",
-          height: "1.813rem",
-          fontWeight: 400,
-          lineHeight: "160%",
-          display: "flex",
-          alignItems: "center",
-          flex: "none",
-          order: 0,
-          flexGrow: 0,
-        },
-      },
-    },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        input: {
-          paddingLeft: "0.25rem",
-        },
-      },
-    },
     MuiTooltip: {
       styleOverrides: {
+        cursor: "help",
         tooltip: {
-          border: `1px solid ${colorTheme.palette.primary.main}`,
-          padding: "0.875rem 0.5rem",
-          fontSize: "0.75rem",
-          backgroundColor: "rgba(18, 18, 21, 0.5)",
+          padding: "0.75rem 1rem",
+          fontSize: "0.875rem",
+          borderRadius: "0.5rem",
+          background: colorTheme.palette.secondary.dark,
+          textAlign: "center",
+          boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
+        },
+        arrow: {
+          color: colorTheme.palette.secondary.dark,
         },
       },
     },
@@ -416,11 +432,59 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.dark,
           height: "2.25rem",
+          fontSize: "0.75rem",
+          borderRadius: "6.25rem",
           "& .MuiChip-deleteIcon": {
             color: colorTheme.palette.text.primary,
           },
         },
       },
+      variants: [
+        {
+          props: { variant: "gradient" },
+          style: {
+            background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
+            border: `1px solid ${colorTheme.palette.primary.light}`,
+            padding: "0.125rem 0",
+            height: "100%",
+            lineHeight: "160%",
+          },
+        },
+        {
+          props: {
+            variant: "success",
+          },
+          style: {
+            background: `${colorTheme.palette.success.main}33`,
+            color: colorTheme.palette.success.main,
+            width: "2.47rem",
+            height: "1.438rem",
+          },
+        },
+        {
+          props: {
+            variant: "warning",
+          },
+          style: {
+            background: `${colorTheme.palette.warning.main}33`,
+            color: colorTheme.palette.warning.main,
+            width: "2.47rem",
+            height: "1.438rem",
+          },
+        },
+        {
+          props: {
+            variant: "number",
+          },
+          style: {
+            width: "1.5rem",
+            height: "1.5rem",
+            background: colorTheme.palette.secondary.light,
+            position: "relative",
+            right: `${3 * 0.25}rem`,
+          },
+        },
+      ],
     },
     MuiCardContent: {
       styleOverrides: {
@@ -451,6 +515,87 @@ const theme = createTheme(colorTheme, {
           background: colorTheme.palette.background.paper,
           border: `1px solid ${colorTheme.palette.grey[800]}`,
           borderRadius: "12px !important",
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          color: colorTheme.palette.info.dark,
+          textTransform: "capitalize",
+          fontWeigt: 500,
+          fontSize: "0.875rem",
+          textAlign: "center !important",
+        },
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          borderRadius: "0.5rem !important",
+          alignItems: "center",
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          borderRadius: "0.5rem",
+        },
+      },
+      variants: [
+        {
+          props: {
+            variant: "outlined",
+          },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            color: colorTheme.palette.info.dark,
+          },
+        },
+      ],
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          textAlign: "center",
+          borderRadius: "0.75rem",
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
+          background: colorTheme.palette.secondary.contrastText,
+          fontSize: "0.75rem",
+          borderBottom: "none",
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          ".MuiTableCell-head": {
+            color: colorTheme.palette.info.main,
+            fontSize: "0.75rem",
+          },
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          paddingTop: 0,
+          paddingBottom: 0,
+          whiteSpace: "nowrap",
+        },
+      },
+    },
+    MuiSnackbarContent: {
+      styleOverrides: {
+        root: {
+          background: colorTheme.palette.secondary.contrastText,
+          border: `2px solid ${colorTheme.palette.secondary.light}`,
+          borderRadius: "1.125rem",
+          p: "1rem",
+          color: colorTheme.palette.text.primary,
         },
       },
     },

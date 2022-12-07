@@ -39,10 +39,8 @@ export class ChainConnection {
       const url: string = INFURA_RPC_URL[chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
 
-      const multicallRpcProvider: IMulticallProvider = initSyncMulticallProvider(
-        rpcProvider,
-        chainId
-      );
+      const multicallRpcProvider: IMulticallProvider =
+        initSyncMulticallProvider(rpcProvider, chainId);
 
       let wss: string | null = INFURA_WSS_URL[chainId](params.infuraId);
       if (!wss) {

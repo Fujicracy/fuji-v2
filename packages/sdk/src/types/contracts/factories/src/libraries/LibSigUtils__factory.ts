@@ -14,6 +14,87 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "plusNonce",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "vault_",
+        type: "address",
+      },
+    ],
+    name: "buildPermitStruct",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "chainid",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "owner",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "operator",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "receiver",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct LibSigUtils.Permit",
+        name: "permit",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "domainSeperator",
         type: "bytes32",
@@ -40,13 +121,23 @@ const _abi = [
       {
         components: [
           {
+            internalType: "uint256",
+            name: "chainid",
+            type: "uint256",
+          },
+          {
             internalType: "address",
             name: "owner",
             type: "address",
           },
           {
             internalType: "address",
-            name: "spender",
+            name: "operator",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "receiver",
             type: "address",
           },
           {
@@ -86,13 +177,23 @@ const _abi = [
       {
         components: [
           {
+            internalType: "uint256",
+            name: "chainid",
+            type: "uint256",
+          },
+          {
             internalType: "address",
             name: "owner",
             type: "address",
           },
           {
             internalType: "address",
-            name: "spender",
+            name: "operator",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "receiver",
             type: "address",
           },
           {

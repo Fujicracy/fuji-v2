@@ -1,4 +1,4 @@
-import create, { StateCreator, StoreApi } from "zustand"
+import { StateCreator, StoreApi } from "zustand"
 import Onboard, { ConnectOptions } from "@web3-onboard/core"
 import { Chain as IChain } from "@web3-onboard/common"
 import injectedModule from "@web3-onboard/injected-wallets"
@@ -8,6 +8,8 @@ import {
   ConnectedChain,
   WalletState,
 } from "@web3-onboard/core/dist/types"
+import { Sdk } from "@x-fuji/sdk"
+import { ethers, utils } from "ethers"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -37,46 +39,67 @@ const walletConnect = walletConnectModule({
   },
 })
 
+export const sdk = new Sdk({
+  infuraId: `${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+  alchemy: {},
+})
+
 export type Chain = IChain
 export const chains: Chain[] = [
-  {
-    id: "0x1",
-    token: "ETH",
-    label: "Ethereum",
-    rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
-  },
-  {
-    id: "0x89",
-    token: "MATIC",
-    label: "Polygon",
-    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-  },
-  {
-    id: "0xfa",
-    token: "FTM",
-    label: "Fantom",
-    rpcUrl: "https://rpc.ftm.tools/",
-  },
-  {
-    id: "0xa",
-    token: "ETH",
-    label: "Optimism",
-    rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
-  },
+  // {
+  //   id: "0x1",
+  //   token: "ETH",
+  //   label: "Ethereum",
+  //   rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+  // },
+  // {
+  //   id: "0x89",
+  //   token: "MATIC",
+  //   label: "Polygon",
+  //   rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+  // },
+  // {
+  //   id: "0xfa",
+  //   token: "FTM",
+  //   label: "Fantom",
+  //   rpcUrl: "https://rpc.ftm.tools/",
+  // },
+  // {
+  //   id: "0xa4b1",
+  //   token: "AETH",
+  //   label: "Arbitrum",
+  //   rpcUrl: "https://arb1.arbitrum.io/rpc",
+  // },
+  // {
+  //   id: "0xa",
+  //   token: "ETH",
+  //   label: "Optimism",
+  //   rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
+  // },
 ]
 
-// TODO: if testnet  chains.push({
-//   id: "0x3",
-//   token: "tROP",
-//   label: "Ethereum Ropsten Testnet",
-//   rpcUrl: ETH_ROPSTEN_RPC,
-// },
-// {
-//   id: "0x4",
-//   token: "rETH",
-//   label: "Ethereum Rinkeby Testnet",
-//   rpcUrl: ETH_RINKEBY_RPC,
-// })
+if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
+  chains.push(
+    {
+      id: "0x13881",
+      token: "MATIC",
+      label: "Mumbai",
+      rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+    },
+    {
+      id: "0x5",
+      token: "GTH",
+      label: "Goerli",
+      rpcUrl: `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+    },
+    {
+      id: "0x1a4",
+      token: "ETH",
+      label: "Optimism Goerli",
+      rpcUrl: "https://goerli.optimism.io/",
+    }
+  )
+}
 
 const onboard = Onboard({
   chains,
@@ -99,23 +122,26 @@ const onboard = Onboard({
 type StateConnected = {
   status: "connected"
   address: string
-  ens: string | null
+  ens: string | undefined
   balance: Balances
   chain: ConnectedChain
+  provider: ethers.providers.Web3Provider
 }
 type StateInitial = {
   status: "initial"
-  address: null
-  ens: null
-  balance: null
-  chain: null
+  address: undefined
+  ens: undefined
+  balance: undefined
+  chain: undefined
+  provider: undefined
 }
 type StateDisconnected = {
   status: "disconnected"
-  address: null
-  ens: null
-  balance: null
-  chain: null
+  address: undefined
+  ens: undefined
+  balance: undefined
+  chain: undefined
+  provider: undefined
 }
 type State = StateInitial | StateConnected | StateDisconnected
 
@@ -123,17 +149,18 @@ type Action = {
   login: (options?: ConnectOptions) => void
   init: () => void
   logout: () => void
-  changeChain: (chainId: string) => void
+  changeChain: (chainId: string | number) => void
 }
 
 export type AuthStore = State & Action
 
 const initialState: StateInitial = {
   status: "initial",
-  address: null,
-  ens: null,
-  balance: null,
-  chain: null,
+  address: undefined,
+  ens: undefined,
+  balance: undefined,
+  chain: undefined,
+  provider: undefined,
 }
 
 type AuthSlice = StateCreator<AuthStore, [], [], AuthStore>
@@ -158,10 +185,11 @@ export const createAuthSlice: AuthSlice = (set, get) => ({
     localStorage.setItem("connectedWallets", json)
 
     const balance = wallets[0].accounts[0].balance
-    const address = wallets[0].accounts[0].address
+    const address = utils.getAddress(wallets[0].accounts[0].address)
     const chain = wallets[0].chains[0]
+    const provider = new ethers.providers.Web3Provider(wallets[0].provider)
 
-    set({ status: "connected", address, balance, chain })
+    set({ status: "connected", address, balance, chain, provider })
   },
 
   logout: async () => {
@@ -200,6 +228,8 @@ function onOnboardChange(
   get: StoreApi<State & Action>["getState"]
 ) {
   onboard.state.select("wallets").subscribe((w: WalletState[]) => {
+    const updates: Partial<StateConnected> = {}
+
     if (!w[0] && get().status === "disconnected") {
       return
     } else if (!w[0]) {
@@ -209,22 +239,32 @@ function onOnboardChange(
 
     const chain = w[0].chains[0]
     if (chain.id !== get().chain?.id) {
-      set({ chain })
+      updates.chain = chain
     }
 
     const balance = w[0].accounts[0].balance
     if (balance && balance !== get().balance) {
-      set({ balance })
+      updates.balance = balance
     }
 
     const address = w[0].accounts[0].address
     if (address && address !== get().address) {
-      set({ address })
+      updates.address = utils.getAddress(address)
+    }
+
+    // TODO: how to !== new provider from old ?
+    const provider = new ethers.providers.Web3Provider(w[0].provider)
+    if (provider) {
+      updates.provider = provider
     }
 
     const ens = w[0].accounts[0].ens?.name
     if (ens !== get().ens) {
-      set({ ens })
+      updates.ens = ens
+    }
+
+    if (Object.entries(updates).length > 0) {
+      set(updates)
     }
   })
 }

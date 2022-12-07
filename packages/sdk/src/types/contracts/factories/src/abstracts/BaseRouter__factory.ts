@@ -13,8 +13,156 @@ import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
-    name: "BaseRouter__bundleInternal_wrongInput",
+    name: "BaseRouter__bundleInternal_flashloanInvalidRequestor",
     type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_insufficientETH",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_noRemnantBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_paramsMismatch",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_withdrawETHReceiverNotOwner",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_withdrawETHWrongOrder",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__fallback_notAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__receive_senderNotWETH",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__safeTransferETH_transferFailed",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+    ],
+    name: "SystemAccessControl__hasRole_missingRole",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyHouseKeeper_notHouseKeeper",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
+    type: "error",
+  },
+  {
+    stateMutability: "payable",
+    type: "fallback",
+  },
+  {
+    inputs: [],
+    name: "HARVESTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "LIQUIDATOR_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "PAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "REBALANCER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "UNPAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
@@ -30,37 +178,27 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "chief",
+    outputs: [
       {
-        internalType: "contract ERC20",
-        name: "token",
+        internalType: "contract IChief",
+        name: "",
         type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
       },
     ],
-    name: "approve",
-    outputs: [],
-    stateMutability: "payable",
+    stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
       {
-        internalType: "bytes",
-        name: "params",
-        type: "bytes",
+        internalType: "address",
+        name: "receiver",
+        type: "address",
       },
     ],
-    name: "inboundXCall",
+    name: "sweepETH",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -73,102 +211,14 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
         internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "pullToken",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-    ],
-    name: "pullTokenFrom",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "refundETH",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ERC20",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amountMinimum",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
+        name: "receiver",
         type: "address",
       },
     ],
     name: "sweepToken",
     outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amountMinimum",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-    ],
-    name: "unwrapWETH9",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "wrapWETH9",
-    outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -186,7 +236,7 @@ const _abi = [
     ],
     name: "xBundle",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {

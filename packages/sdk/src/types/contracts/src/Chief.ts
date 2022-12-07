@@ -4,6 +4,7 @@
 import type {
   BaseContract,
   BigNumber,
+  BigNumberish,
   BytesLike,
   CallOverrides,
   ContractTransaction,
@@ -29,101 +30,320 @@ import type {
 
 export interface ChiefInterface extends utils.Interface {
   functions: {
-    "addToAllowed(address)": FunctionFragment;
-    "allowedFactories(address)": FunctionFragment;
-    "deployVault(address,bytes)": FunctionFragment;
-    "owner()": FunctionFragment;
-    "removeFromAllowed(address)": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "vaults(address)": FunctionFragment;
+    "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "HARVESTER_ROLE()": FunctionFragment;
+    "HOUSE_KEEPER_ROLE()": FunctionFragment;
+    "LIQUIDATOR_ROLE()": FunctionFragment;
+    "PAUSER_ROLE()": FunctionFragment;
+    "REBALANCER_ROLE()": FunctionFragment;
+    "UNPAUSER_ROLE()": FunctionFragment;
+    "addrMapper()": FunctionFragment;
+    "allowFlasher(address,bool)": FunctionFragment;
+    "allowVaultFactory(address,bool)": FunctionFragment;
+    "allowedFlasher(address)": FunctionFragment;
+    "allowedVaultFactory(address)": FunctionFragment;
+    "deployVault(address,bytes,string)": FunctionFragment;
+    "getRoleAdmin(bytes32)": FunctionFragment;
+    "getVaults()": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
+    "openVaultFactory()": FunctionFragment;
+    "pauseActionInAllVaults(uint8)": FunctionFragment;
+    "pauseForceAllVaults()": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
+    "setOpenVaultFactory(bool)": FunctionFragment;
+    "setTimelock(address)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
+    "timelock()": FunctionFragment;
+    "unpauseForceAllVaults()": FunctionFragment;
+    "upauseActionInAllVaults(uint8)": FunctionFragment;
+    "vaultSafetyRating(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "addToAllowed"
-      | "allowedFactories"
+      | "DEFAULT_ADMIN_ROLE"
+      | "HARVESTER_ROLE"
+      | "HOUSE_KEEPER_ROLE"
+      | "LIQUIDATOR_ROLE"
+      | "PAUSER_ROLE"
+      | "REBALANCER_ROLE"
+      | "UNPAUSER_ROLE"
+      | "addrMapper"
+      | "allowFlasher"
+      | "allowVaultFactory"
+      | "allowedFlasher"
+      | "allowedVaultFactory"
       | "deployVault"
-      | "owner"
-      | "removeFromAllowed"
-      | "renounceOwnership"
-      | "transferOwnership"
-      | "vaults"
+      | "getRoleAdmin"
+      | "getVaults"
+      | "grantRole"
+      | "hasRole"
+      | "openVaultFactory"
+      | "pauseActionInAllVaults"
+      | "pauseForceAllVaults"
+      | "renounceRole"
+      | "revokeRole"
+      | "setOpenVaultFactory"
+      | "setTimelock"
+      | "supportsInterface"
+      | "timelock"
+      | "unpauseForceAllVaults"
+      | "upauseActionInAllVaults"
+      | "vaultSafetyRating"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "addToAllowed",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allowedFactories",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "deployVault",
-    values: [string, BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "removeFromAllowed",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
+    functionFragment: "HARVESTER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "LIQUIDATOR_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REBALANCER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UNPAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addrMapper",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowFlasher",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowVaultFactory",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowedFlasher",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "vaults", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "allowedVaultFactory",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deployVault",
+    values: [string, BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "getVaults", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "openVaultFactory",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "pauseActionInAllVaults",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "pauseForceAllVaults",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setOpenVaultFactory",
+    values: [boolean]
+  ): string;
+  encodeFunctionData(functionFragment: "setTimelock", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "unpauseForceAllVaults",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "upauseActionInAllVaults",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "vaultSafetyRating",
+    values: [string]
+  ): string;
 
   decodeFunctionResult(
-    functionFragment: "addToAllowed",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "allowedFactories",
+    functionFragment: "HARVESTER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "HOUSE_KEEPER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "LIQUIDATOR_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "REBALANCER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UNPAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "addrMapper", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "allowFlasher",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowVaultFactory",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedFlasher",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedVaultFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "deployVault",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "removeFromAllowed",
+    functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "openVaultFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "pauseActionInAllVaults",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: "pauseForceAllVaults",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "vaults", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setOpenVaultFactory",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setTimelock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "timelock", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "unpauseForceAllVaults",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "upauseActionInAllVaults",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "vaultSafetyRating",
+    data: BytesLike
+  ): Result;
 
   events: {
-    "AddToAllowed(address)": EventFragment;
+    "AllowFlasher(address,bool)": EventFragment;
+    "AllowVaultFactory(address,bool)": EventFragment;
     "DeployVault(address,address,bytes)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
-    "RemoveFromAllowed(address)": EventFragment;
+    "OpenVaultFactory(bool)": EventFragment;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "RoleGranted(bytes32,address,address)": EventFragment;
+    "RoleRevoked(bytes32,address,address)": EventFragment;
+    "TimelockUpdated(address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "AddToAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AllowFlasher"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AllowVaultFactory"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DeployVault"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RemoveFromAllowed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OpenVaultFactory"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TimelockUpdated"): EventFragment;
 }
 
-export interface AddToAllowedEventObject {
+export interface AllowFlasherEventObject {
+  flasher: string;
+  allowed: boolean;
+}
+export type AllowFlasherEvent = TypedEvent<
+  [string, boolean],
+  AllowFlasherEventObject
+>;
+
+export type AllowFlasherEventFilter = TypedEventFilter<AllowFlasherEvent>;
+
+export interface AllowVaultFactoryEventObject {
   factory: string;
+  allowed: boolean;
 }
-export type AddToAllowedEvent = TypedEvent<[string], AddToAllowedEventObject>;
+export type AllowVaultFactoryEvent = TypedEvent<
+  [string, boolean],
+  AllowVaultFactoryEventObject
+>;
 
-export type AddToAllowedEventFilter = TypedEventFilter<AddToAllowedEvent>;
+export type AllowVaultFactoryEventFilter =
+  TypedEventFilter<AllowVaultFactoryEvent>;
 
 export interface DeployVaultEventObject {
   factory: string;
@@ -137,28 +357,63 @@ export type DeployVaultEvent = TypedEvent<
 
 export type DeployVaultEventFilter = TypedEventFilter<DeployVaultEvent>;
 
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
+export interface OpenVaultFactoryEventObject {
+  state: boolean;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
+export type OpenVaultFactoryEvent = TypedEvent<
+  [boolean],
+  OpenVaultFactoryEventObject
 >;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OpenVaultFactoryEventFilter =
+  TypedEventFilter<OpenVaultFactoryEvent>;
 
-export interface RemoveFromAllowedEventObject {
-  factory: string;
+export interface RoleAdminChangedEventObject {
+  role: string;
+  previousAdminRole: string;
+  newAdminRole: string;
 }
-export type RemoveFromAllowedEvent = TypedEvent<
+export type RoleAdminChangedEvent = TypedEvent<
+  [string, string, string],
+  RoleAdminChangedEventObject
+>;
+
+export type RoleAdminChangedEventFilter =
+  TypedEventFilter<RoleAdminChangedEvent>;
+
+export interface RoleGrantedEventObject {
+  role: string;
+  account: string;
+  sender: string;
+}
+export type RoleGrantedEvent = TypedEvent<
+  [string, string, string],
+  RoleGrantedEventObject
+>;
+
+export type RoleGrantedEventFilter = TypedEventFilter<RoleGrantedEvent>;
+
+export interface RoleRevokedEventObject {
+  role: string;
+  account: string;
+  sender: string;
+}
+export type RoleRevokedEvent = TypedEvent<
+  [string, string, string],
+  RoleRevokedEventObject
+>;
+
+export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
+
+export interface TimelockUpdatedEventObject {
+  timelock: string;
+}
+export type TimelockUpdatedEvent = TypedEvent<
   [string],
-  RemoveFromAllowedEventObject
+  TimelockUpdatedEventObject
 >;
 
-export type RemoveFromAllowedEventFilter =
-  TypedEventFilter<RemoveFromAllowedEvent>;
+export type TimelockUpdatedEventFilter = TypedEventFilter<TimelockUpdatedEvent>;
 
 export interface Chief extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -187,12 +442,37 @@ export interface Chief extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    addToAllowed(
-      _factory: string,
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    addrMapper(overrides?: CallOverrides): Promise<[string]>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    allowedFactories(
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    allowedVaultFactory(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -200,90 +480,312 @@ export interface Chief extends BaseContract {
     deployVault(
       _factory: string,
       _deployData: BytesLike,
+      rating: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
+    getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
-    removeFromAllowed(
-      _factory: string,
+    getVaults(overrides?: CallOverrides): Promise<[string[]]>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    renounceOwnership(
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    openVaultFactory(overrides?: CallOverrides): Promise<[boolean]>;
+
+    pauseActionInAllVaults(
+      action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    transferOwnership(
-      newOwner: string,
+    pauseForceAllVaults(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    vaults(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setOpenVaultFactory(
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setTimelock(
+      newTimelock: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    timelock(overrides?: CallOverrides): Promise<[string]>;
+
+    unpauseForceAllVaults(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    upauseActionInAllVaults(
+      action: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    vaultSafetyRating(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
   };
 
-  addToAllowed(
-    _factory: string,
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  addrMapper(overrides?: CallOverrides): Promise<string>;
+
+  allowFlasher(
+    flasher: string,
+    allowed: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  allowedFactories(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+  allowVaultFactory(
+    _factory: string,
+    allowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  allowedVaultFactory(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   deployVault(
     _factory: string,
     _deployData: BytesLike,
+    rating: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
+  getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  removeFromAllowed(
-    _factory: string,
+  getVaults(overrides?: CallOverrides): Promise<string[]>;
+
+  grantRole(
+    role: BytesLike,
+    account: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  renounceOwnership(
+  hasRole(
+    role: BytesLike,
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  openVaultFactory(overrides?: CallOverrides): Promise<boolean>;
+
+  pauseActionInAllVaults(
+    action: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  transferOwnership(
-    newOwner: string,
+  pauseForceAllVaults(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  vaults(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+  renounceRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  revokeRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setOpenVaultFactory(
+    state: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setTimelock(
+    newTimelock: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  timelock(overrides?: CallOverrides): Promise<string>;
+
+  unpauseForceAllVaults(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  upauseActionInAllVaults(
+    action: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  vaultSafetyRating(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    addToAllowed(_factory: string, overrides?: CallOverrides): Promise<void>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    allowedFactories(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    addrMapper(overrides?: CallOverrides): Promise<string>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    allowedVaultFactory(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     deployVault(
       _factory: string,
       _deployData: BytesLike,
+      rating: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
+    getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-    removeFromAllowed(
-      _factory: string,
+    getVaults(overrides?: CallOverrides): Promise<string[]>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-    transferOwnership(
-      newOwner: string,
+    openVaultFactory(overrides?: CallOverrides): Promise<boolean>;
+
+    pauseActionInAllVaults(
+      action: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    vaults(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+    pauseForceAllVaults(overrides?: CallOverrides): Promise<void>;
+
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setOpenVaultFactory(
+      state: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setTimelock(newTimelock: string, overrides?: CallOverrides): Promise<void>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    timelock(overrides?: CallOverrides): Promise<string>;
+
+    unpauseForceAllVaults(overrides?: CallOverrides): Promise<void>;
+
+    upauseActionInAllVaults(
+      action: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    vaultSafetyRating(arg0: string, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
-    "AddToAllowed(address)"(factory?: string | null): AddToAllowedEventFilter;
-    AddToAllowed(factory?: string | null): AddToAllowedEventFilter;
+    "AllowFlasher(address,bool)"(
+      flasher?: string | null,
+      allowed?: null
+    ): AllowFlasherEventFilter;
+    AllowFlasher(
+      flasher?: string | null,
+      allowed?: null
+    ): AllowFlasherEventFilter;
+
+    "AllowVaultFactory(address,bool)"(
+      factory?: string | null,
+      allowed?: null
+    ): AllowVaultFactoryEventFilter;
+    AllowVaultFactory(
+      factory?: string | null,
+      allowed?: null
+    ): AllowVaultFactoryEventFilter;
 
     "DeployVault(address,address,bytes)"(
       factory?: string | null,
@@ -296,28 +798,80 @@ export interface Chief extends BaseContract {
       deployData?: null
     ): DeployVaultEventFilter;
 
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
+    "OpenVaultFactory(bool)"(state?: null): OpenVaultFactoryEventFilter;
+    OpenVaultFactory(state?: null): OpenVaultFactoryEventFilter;
 
-    "RemoveFromAllowed(address)"(
-      factory?: string | null
-    ): RemoveFromAllowedEventFilter;
-    RemoveFromAllowed(factory?: string | null): RemoveFromAllowedEventFilter;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)"(
+      role?: BytesLike | null,
+      previousAdminRole?: BytesLike | null,
+      newAdminRole?: BytesLike | null
+    ): RoleAdminChangedEventFilter;
+    RoleAdminChanged(
+      role?: BytesLike | null,
+      previousAdminRole?: BytesLike | null,
+      newAdminRole?: BytesLike | null
+    ): RoleAdminChangedEventFilter;
+
+    "RoleGranted(bytes32,address,address)"(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleGrantedEventFilter;
+    RoleGranted(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleGrantedEventFilter;
+
+    "RoleRevoked(bytes32,address,address)"(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleRevokedEventFilter;
+    RoleRevoked(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleRevokedEventFilter;
+
+    "TimelockUpdated(address)"(
+      timelock?: string | null
+    ): TimelockUpdatedEventFilter;
+    TimelockUpdated(timelock?: string | null): TimelockUpdatedEventFilter;
   };
 
   estimateGas: {
-    addToAllowed(
-      _factory: string,
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    addrMapper(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    allowedFactories(
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowedVaultFactory(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -325,35 +879,121 @@ export interface Chief extends BaseContract {
     deployVault(
       _factory: string,
       _deployData: BytesLike,
+      rating: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
+    getRoleAdmin(
+      role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    removeFromAllowed(
-      _factory: string,
+    getVaults(overrides?: CallOverrides): Promise<BigNumber>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    renounceOwnership(
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    openVaultFactory(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pauseActionInAllVaults(
+      action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: string,
+    pauseForceAllVaults(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    vaults(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setOpenVaultFactory(
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setTimelock(
+      newTimelock: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    timelock(overrides?: CallOverrides): Promise<BigNumber>;
+
+    unpauseForceAllVaults(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    upauseActionInAllVaults(
+      action: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    vaultSafetyRating(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    addToAllowed(
-      _factory: string,
+    DEFAULT_ADMIN_ROLE(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    LIQUIDATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    REBALANCER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    addrMapper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowFlasher(
+      flasher: string,
+      allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    allowedFactories(
+    allowVaultFactory(
+      _factory: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    allowedFlasher(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    allowedVaultFactory(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -361,26 +1001,79 @@ export interface Chief extends BaseContract {
     deployVault(
       _factory: string,
       _deployData: BytesLike,
+      rating: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getRoleAdmin(
+      role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-    removeFromAllowed(
-      _factory: string,
+    getVaults(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    openVaultFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pauseActionInAllVaults(
+      action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    transferOwnership(
-      newOwner: string,
+    pauseForceAllVaults(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    vaults(
+    renounceRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setOpenVaultFactory(
+      state: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setTimelock(
+      newTimelock: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    timelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    unpauseForceAllVaults(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    upauseActionInAllVaults(
+      action: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    vaultSafetyRating(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -392,9 +1085,44 @@ export interface ChiefMulticall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
-  allowedFactories(arg0: string, overrides?: CallOverrides): Call<boolean>;
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Call<string>;
 
-  owner(overrides?: CallOverrides): Call<string>;
+  HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
 
-  vaults(arg0: string, overrides?: CallOverrides): Call<boolean>;
+  HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  LIQUIDATOR_ROLE(overrides?: CallOverrides): Call<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  REBALANCER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  UNPAUSER_ROLE(overrides?: CallOverrides): Call<string>;
+
+  addrMapper(overrides?: CallOverrides): Call<string>;
+
+  allowedFlasher(arg0: string, overrides?: CallOverrides): Call<boolean>;
+
+  allowedVaultFactory(arg0: string, overrides?: CallOverrides): Call<boolean>;
+
+  getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Call<string>;
+
+  getVaults(overrides?: CallOverrides): Call<string[]>;
+
+  hasRole(
+    role: BytesLike,
+    account: string,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  openVaultFactory(overrides?: CallOverrides): Call<boolean>;
+
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Call<boolean>;
+
+  timelock(overrides?: CallOverrides): Call<string>;
+
+  vaultSafetyRating(arg0: string, overrides?: CallOverrides): Call<string>;
 }

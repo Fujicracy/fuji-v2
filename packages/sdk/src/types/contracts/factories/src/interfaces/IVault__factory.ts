@@ -255,6 +255,37 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "VaultRebalance",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "sender",
@@ -298,7 +329,7 @@ const _abi = [
         type: "address",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -385,7 +416,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "account",
+        name: "owner",
         type: "address",
       },
     ],
@@ -562,6 +593,81 @@ const _abi = [
       {
         internalType: "uint256",
         name: "shares",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getHealthFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "healthFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getLiquidationFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "liquidationFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getProviders",
+    outputs: [
+      {
+        internalType: "contract ILendingProvider[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "liquidate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "gainedShares",
         type: "uint256",
       },
     ],
@@ -804,6 +910,45 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        internalType: "contract ILendingProvider",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "contract ILendingProvider",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
+      },
+    ],
+    name: "rebalance",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "shares",
         type: "uint256",
       },
@@ -864,6 +1009,19 @@ const _abi = [
       },
     ],
     name: "setMinDepositAmount",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract ILendingProvider[]",
+        name: "providers",
+        type: "address[]",
+      },
+    ],
+    name: "setProviders",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

@@ -23,7 +23,7 @@ a {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
@@ -42,10 +42,12 @@ input::-webkit-inner-spin-button {
   filter: blur(1.75rem);
 }
 
-/* @media (prefers-color-scheme: dark) { */
-
 body {
   color: white;
   background: black;
 }
 /* } */
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}

@@ -25,15 +25,16 @@ import type {
 
 export interface MockProviderInterface extends utils.Interface {
   functions: {
-    "approvedOperator(address)": FunctionFragment;
-    "borrow(address,uint256)": FunctionFragment;
-    "deposit(address,uint256)": FunctionFragment;
+    "approvedOperator(address,address)": FunctionFragment;
+    "borrow(uint256,address)": FunctionFragment;
+    "deposit(uint256,address)": FunctionFragment;
     "getBorrowBalance(address,address)": FunctionFragment;
     "getBorrowRateFor(address)": FunctionFragment;
     "getDepositBalance(address,address)": FunctionFragment;
     "getDepositRateFor(address)": FunctionFragment;
-    "payback(address,uint256)": FunctionFragment;
-    "withdraw(address,uint256)": FunctionFragment;
+    "payback(uint256,address)": FunctionFragment;
+    "providerName()": FunctionFragment;
+    "withdraw(uint256,address)": FunctionFragment;
   };
 
   getFunction(
@@ -46,20 +47,21 @@ export interface MockProviderInterface extends utils.Interface {
       | "getDepositBalance"
       | "getDepositRateFor"
       | "payback"
+      | "providerName"
       | "withdraw"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "approvedOperator",
-    values: [string]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
-    values: [string, BigNumberish]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [string, BigNumberish]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getBorrowBalance",
@@ -79,11 +81,15 @@ export interface MockProviderInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "payback",
-    values: [string, BigNumberish]
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "providerName",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [string, BigNumberish]
+    values: [BigNumberish, string]
   ): string;
 
   decodeFunctionResult(
@@ -109,6 +115,10 @@ export interface MockProviderInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "payback", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "providerName",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {};
@@ -142,151 +152,163 @@ export interface MockProvider extends BaseContract {
 
   functions: {
     approvedOperator(
-      arg0: string,
+      asset: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
 
     borrow(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     deposit(
-      asset: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { success: boolean }>;
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getBorrowBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     getBorrowRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { rate: BigNumber }>;
 
     getDepositBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     getDepositRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { rate: BigNumber }>;
 
     payback(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    providerName(overrides?: CallOverrides): Promise<[string]>;
+
     withdraw(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  approvedOperator(arg0: string, overrides?: CallOverrides): Promise<string>;
+  approvedOperator(
+    asset: string,
+    arg1: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   borrow(
-    asset: string,
     amount: BigNumberish,
+    vault: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   deposit(
-    asset: string,
     amount: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+    vault: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getBorrowBalance(
-    asset: string,
     user: string,
+    vault: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getBorrowRateFor(
-    asset: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getBorrowRateFor(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   getDepositBalance(
-    asset: string,
     user: string,
+    vault: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getDepositRateFor(
-    asset: string,
+    arg0: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   payback(
-    asset: string,
     amount: BigNumberish,
+    vault: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  providerName(overrides?: CallOverrides): Promise<string>;
+
   withdraw(
-    asset: string,
     amount: BigNumberish,
+    vault: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    approvedOperator(arg0: string, overrides?: CallOverrides): Promise<string>;
+    approvedOperator(
+      asset: string,
+      arg1: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     borrow(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     deposit(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     getBorrowBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getBorrowRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     payback(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    providerName(overrides?: CallOverrides): Promise<string>;
+
     withdraw(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -295,106 +317,112 @@ export interface MockProvider extends BaseContract {
 
   estimateGas: {
     approvedOperator(
-      arg0: string,
+      asset: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     borrow(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     deposit(
-      asset: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getBorrowBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getBorrowRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDepositRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     payback(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    providerName(overrides?: CallOverrides): Promise<BigNumber>;
+
     withdraw(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     approvedOperator(
-      arg0: string,
+      asset: string,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     borrow(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     deposit(
-      asset: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      vault: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getBorrowBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getBorrowRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDepositBalance(
-      asset: string,
       user: string,
+      vault: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDepositRateFor(
-      asset: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     payback(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    providerName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     withdraw(
-      asset: string,
       amount: BigNumberish,
+      vault: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
@@ -405,27 +433,27 @@ export interface MockProviderMulticall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
-  approvedOperator(arg0: string, overrides?: CallOverrides): Call<string>;
-
-  deposit(
+  approvedOperator(
     asset: string,
-    amount: BigNumberish,
+    arg1: string,
     overrides?: CallOverrides
-  ): Call<boolean>;
+  ): Call<string>;
 
   getBorrowBalance(
-    asset: string,
     user: string,
+    vault: string,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
-  getBorrowRateFor(asset: string, overrides?: CallOverrides): Call<BigNumber>;
+  getBorrowRateFor(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
 
   getDepositBalance(
-    asset: string,
     user: string,
+    vault: string,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
-  getDepositRateFor(asset: string, overrides?: CallOverrides): Call<BigNumber>;
+  getDepositRateFor(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  providerName(overrides?: CallOverrides): Call<string>;
 }

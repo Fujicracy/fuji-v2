@@ -56,6 +56,81 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "BorrowRecorded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "DepositRecorded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "PaybackRecorded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "from",
@@ -75,6 +150,31 @@ const _abi = [
       },
     ],
     name: "Transfer",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "WithdrawRecorded",
     type: "event",
   },
   {
@@ -151,8 +251,37 @@ const _abi = [
         name: "who",
         type: "address",
       },
+      {
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
     ],
     name: "balanceOfDebt",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "who",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+    ],
+    name: "balanceOfDeposit",
     outputs: [
       {
         internalType: "uint256",
@@ -178,6 +307,35 @@ const _abi = [
     ],
     name: "burn",
     outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+    ],
+    name: "burnDebt",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -219,6 +377,13 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "deposit",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -236,6 +401,35 @@ const _abi = [
       {
         internalType: "bool",
         name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+    ],
+    name: "makeDeposit",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "success",
         type: "bool",
       },
     ],
@@ -272,9 +466,20 @@ const _abi = [
         name: "value",
         type: "uint256",
       },
+      {
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
     ],
     name: "mintDebt",
-    outputs: [],
+    outputs: [
+      {
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -364,6 +569,48 @@ const _abi = [
       {
         internalType: "bool",
         name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "provider",
+        type: "string",
+      },
+    ],
+    name: "withdrawDeposit",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "success",
         type: "bool",
       },
     ],

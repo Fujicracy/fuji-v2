@@ -11,7 +11,6 @@ import {
   MenuItem,
   MenuList,
   Grid,
-  LinearProgress,
   Fade,
   Snackbar,
   Button,
@@ -34,7 +33,7 @@ import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
-if (process.env.NODE_ENV === "development") {
+if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
   pages.push("Theming") // TODO: "Theming" page is to test design system
 }
 
@@ -59,6 +58,10 @@ const Header = () => {
     setAnchorElNav(event.currentTarget)
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
+
+  // Auto select metamask and connect, used as workaround for e2e testing
+  const e2eConnect = () =>
+    login({ autoSelect: { label: "MetaMask", disableModals: true } })
 
   return (
     <>
@@ -92,7 +95,24 @@ const Header = () => {
                     alignItems: "center",
                   }}
                 >
-                  <ChainSelect />
+                  {status === "disconnected" && (
+                    <>
+                      <Chip
+                        label="Connect wallet"
+                        variant="gradient"
+                        sx={{ fontSize: "1rem" }}
+                        onClick={() => login()}
+                      />
+                      <Button
+                        data-cy="login"
+                        onClick={e2eConnect}
+                        sx={{ position: "absolute", visibility: "hidden" }}
+                      >
+                        e2e
+                      </Button>
+                    </>
+                  )}
+                  {status === "connected" && <ChainSelect />}
 
                   <IconButton
                     size="large"
@@ -165,12 +185,25 @@ const Header = () => {
               columnGap="0.5rem"
               justifyContent="flex-end"
               alignItems="center"
-              sx={{ display: { xs: "none", md: "flex" }, mt: "1rem" }}
+              mt="1rem"
+              sx={{ display: { xs: "none", md: "flex" } }}
             >
               {status === "disconnected" && (
-                <Button variant="gradient" onClick={() => login()}>
-                  Connect wallet
-                </Button>
+                <>
+                  <Chip
+                    label="Connect wallet"
+                    variant="gradient"
+                    sx={{ fontSize: "1rem" }}
+                    onClick={() => login()}
+                  />
+                  <Button
+                    data-cy="login"
+                    onClick={e2eConnect}
+                    sx={{ position: "absolute", visibility: "hidden" }}
+                  >
+                    e2e
+                  </Button>
+                </>
               )}
               {status === "connected" && (
                 <>
@@ -199,9 +232,9 @@ const Header = () => {
 }
 
 type BalanceAddressProps = {
-  balance?: Balances
   address: string
-  ens: string | null
+  balance?: Balances
+  ens?: string
   transactionStatus: boolean
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
@@ -222,10 +255,9 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     return <></>
   }
 
-  const formattedAddress = `${address.substring(0, 5)}...${address.substring(
-    -4,
-    4
-  )}`
+  const formattedAddress =
+    address.substring(0, 5) + "..." + address.substring(address.length - 4)
+
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
   const formattedBalance =
@@ -233,29 +265,36 @@ const BalanceAddress = (props: BalanceAddressProps) => {
       ? `${bal.substring(0, 5)} ${token}`
       : `${bal.substring(0, 4)} ${token}`
 
+  const pending = showTransactionAbstract && (
+    <Grid container alignItems="center">
+      <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
+      <Typography variant="small" onClick={() => setShowAccountModal(true)}>
+        1 pending
+      </Typography>
+    </Grid>
+  )
+
   return (
     <Box mr="-2rem">
       <Chip
         label={formattedBalance}
         sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
       />
+      {/* TODO: remove this button */}
+      <button
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          border: "2px solid red",
+        }}
+        onClick={() => setShowTransactionAbstract(true)}
+      >
+        toggle
+      </button>
       <Chip
         onClick={() => setShowAccountModal(true)}
-        label={
-          props.transactionStatus ? (
-            <Grid container alignItems="center">
-              <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
-              <Typography
-                variant="small"
-                onClick={() => setShowAccountModal(true)}
-              >
-                1 pending
-              </Typography>
-            </Grid>
-          ) : (
-            ens || formattedAddress
-          )
-        }
+        label={pending || ens || formattedAddress}
         sx={{
           background: palette.secondary.light,
           borderRadius: "4rem",
@@ -266,70 +305,52 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           lineHeight: ".9rem",
           position: "relative",
           left: "-2rem",
-          ":hover": {
-            background: palette.secondary.main,
+          backgroundColor: palette.secondary.light,
+          border: `1px solid ${palette.secondary.light}`,
+          "&:hover": {
+            backgroundColor: palette.secondary.main,
           },
         }}
       />
-      {props.transactionStatus && showTransactionAbstract && (
-        <Snackbar
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          sx={{ mr: "2rem" }}
-          open={showTransactionAbstract}
-          onClose={closeTransactionProcessing}
-        >
-          <SnackbarContent
-            sx={{
-              background: "transparent",
-              boxShadow: "none",
-              mt: "1.5rem",
-            }}
-            message={
-              <Box
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={showTransactionAbstract}
+        sx={{ mt: "2.5rem" }}
+        autoHideDuration={1000 * 60 * 60}
+      >
+        <SnackbarContent
+          message={
+            <Box>
+              <CloseIcon
                 sx={{
-                  background: palette.secondary.contrastText,
-                  border: `1px solid ${palette.secondary.light}`,
-                  borderRadius: "1.125rem",
-                  p: "1rem",
-                  color: palette.text.primary,
+                  cursor: "pointer",
+                  position: "absolute",
+                  right: "1rem",
                 }}
-              >
-                <CloseIcon
-                  sx={{
-                    cursor: "pointer",
-                    position: "absolute",
-                    right: "2rem",
-                  }}
-                  onClick={closeTransactionProcessing}
-                  fontSize="small"
-                />
-                <Grid container>
-                  <Grid item>
-                    <SyncIcon sx={{ mr: "0.563rem" }} />
-                  </Grid>
-                  <Grid item>
-                    <Box
-                      sx={{
-                        maxWidth: "14.25rem",
-                        mr: "3rem",
-                      }}
-                    >
-                      <Typography variant="small">
-                        Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on
-                        Polygon
-                      </Typography>
-                      <br />
+                onClick={closeTransactionProcessing}
+                fontSize="small"
+              />
+              <Grid container>
+                <Grid item>
+                  <SyncIcon sx={{ mr: "0.563rem" }} />
+                </Grid>
+                <Grid item>
+                  <Box mr="3rem" maxWidth="230px">
+                    <Typography variant="small">
+                      Deposit 1.00 ETH on Ethereum and Borrow 675 USDC on
+                      Polygon
+                    </Typography>
+                    <br />
 
-                      <Typography variant="xsmallDark">
-                        Estimated time:{" "}
-                        <span style={{ color: palette.success.main }}>
-                          2m 15s
-                        </span>
-                      </Typography>
-                      <LinearProgress
+                    <Typography variant="xsmallDark">
+                      {/* TODO */}
+                      Estimated time:{" "}
+                      <span style={{ color: palette.success.main }}>
+                        2m 15s
+                      </span>
+                    </Typography>
+                    {/* TODO */}
+                    {/* <LinearProgress
                         sx={{
                           background: palette.text.primary,
                           height: "0.125rem",
@@ -340,15 +361,14 @@ const BalanceAddress = (props: BalanceAddressProps) => {
                         }}
                         value={25}
                         variant="determinate"
-                      />
-                    </Box>
-                  </Grid>
+                      /> */}
+                  </Box>
                 </Grid>
-              </Box>
-            }
-          />
-        </Snackbar>
-      )}
+              </Grid>
+            </Box>
+          }
+        />
+      </Snackbar>
       <AccountModal
         isOpen={showAccountModal}
         closeAccountModal={() => setShowAccountModal(false)}

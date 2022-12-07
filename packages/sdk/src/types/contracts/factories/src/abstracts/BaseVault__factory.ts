@@ -13,7 +13,22 @@ import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
+    name: "BaseVault__checkRebalanceFee_excessFee",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseVault__deposit_lessThanMin",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__deposit_moreThanMax",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseVault__mint_lessThanMin",
     type: "error",
   },
   {
@@ -23,12 +38,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BaseVault__redeem_moreThanMax",
+    name: "BaseVault__redeem_invalidInput",
     type: "error",
   },
   {
     inputs: [],
-    name: "BaseVault__redeem_wrongInput",
+    name: "BaseVault__redeem_moreThanMax",
     type: "error",
   },
   {
@@ -38,12 +53,78 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseVault__withdraw_invalidInput",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__withdraw_moreThanMax",
     type: "error",
   },
   {
     inputs: [],
-    name: "BaseVault__withdraw_wrongInput",
+    name: "PausableVault__requiredNotPaused_actionPaused",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "PausableVault__requiredPaused_actionNotPaused",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32",
+      },
+    ],
+    name: "SystemAccessControl__hasRole_missingRole",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyHouseKeeper_notHouseKeeper",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__allowanceBelowZero",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__expiredDeadline",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__insufficientBorrowAllowance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__insufficientWithdrawAllowance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__invalidSignature",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__zeroAddress",
     type: "error",
   },
   {
@@ -133,7 +214,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -246,6 +333,38 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "enum IPausableVault.VaultActions",
+        name: "actions",
+        type: "uint8",
+      },
+    ],
+    name: "Paused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "PausedForceAll",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "sender",
@@ -315,6 +434,69 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "enum IPausableVault.VaultActions",
+        name: "actions",
+        type: "uint8",
+      },
+    ],
+    name: "Unpaused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "UnpausedForceAll",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "VaultRebalance",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "sender",
@@ -360,7 +542,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -376,6 +564,84 @@ const _abi = [
   {
     inputs: [],
     name: "DOMAIN_SEPARATOR",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HARVESTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "HOUSE_KEEPER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "LIQUIDATOR_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "PAUSER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "REBALANCER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "UNPAUSER_ROLE",
     outputs: [
       {
         internalType: "bytes32",
@@ -408,7 +674,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
     ],
@@ -427,7 +693,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -536,7 +802,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],
@@ -556,7 +827,7 @@ const _abi = [
     name: "chief",
     outputs: [
       {
-        internalType: "address",
+        internalType: "contract IChief",
         name: "",
         type: "address",
       },
@@ -668,19 +939,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "debtSharesSupply",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "decimals",
     outputs: [
       {
@@ -696,7 +954,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -720,7 +978,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -744,7 +1007,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -802,6 +1070,44 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getHealthFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "healthFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "getLiquidationFactor",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "liquidationFactor",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getProviders",
     outputs: [
@@ -818,7 +1124,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -842,7 +1148,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -866,7 +1177,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -887,16 +1203,27 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "liqRatio",
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "liquidate",
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "gainedShares",
         type: "uint256",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -927,19 +1254,6 @@ const _abi = [
       },
     ],
     name: "maxDeposit",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "maxLtv",
     outputs: [
       {
         internalType: "uint256",
@@ -1077,13 +1391,39 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "enum IPausableVault.VaultActions",
+        name: "action",
+        type: "uint8",
+      },
+    ],
+    name: "pause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
-    name: "oracle",
+    name: "pauseForceAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum IPausableVault.VaultActions",
+        name: "action",
+        type: "uint8",
+      },
+    ],
+    name: "paused",
     outputs: [
       {
-        internalType: "contract IFujiOracle",
+        internalType: "bool",
         name: "",
-        type: "address",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -1122,7 +1462,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1165,7 +1505,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -1279,6 +1619,45 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        internalType: "contract ILendingProvider",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "contract ILendingProvider",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
+      },
+    ],
+    name: "rebalance",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "shares",
         type: "uint256",
       },
@@ -1334,50 +1713,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "liqRatio_",
-        type: "uint256",
-      },
-    ],
-    name: "setLiqRatio",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "maxLtv_",
-        type: "uint256",
-      },
-    ],
-    name: "setMaxLtv",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "amount",
         type: "uint256",
       },
     ],
     name: "setMinDepositAmount",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract IFujiOracle",
-        name: "newOracle",
-        type: "address",
-      },
-    ],
-    name: "setOracle",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1414,7 +1754,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "assets",
         type: "uint256",
       },
     ],
@@ -1503,6 +1843,26 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "enum IPausableVault.VaultActions",
+        name: "action",
+        type: "uint8",
+      },
+    ],
+    name: "unpause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "unpauseForceAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "assets",
         type: "uint256",
@@ -1538,7 +1898,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],

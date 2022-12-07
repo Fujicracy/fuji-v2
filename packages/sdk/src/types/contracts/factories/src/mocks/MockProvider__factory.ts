@@ -15,6 +15,11 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        internalType: "address",
         name: "",
         type: "address",
       },
@@ -33,14 +38,14 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "asset",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+      {
+        internalType: "contract IVault",
+        name: "vault",
+        type: "address",
       },
     ],
     name: "borrow",
@@ -57,14 +62,14 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "asset",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+      {
+        internalType: "contract IVault",
+        name: "vault",
+        type: "address",
       },
     ],
     name: "deposit",
@@ -75,19 +80,19 @@ const _abi = [
         type: "bool",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
-        name: "asset",
+        name: "user",
         type: "address",
       },
       {
-        internalType: "address",
-        name: "user",
+        internalType: "contract IVault",
+        name: "vault",
         type: "address",
       },
     ],
@@ -105,8 +110,8 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "asset",
+        internalType: "contract IVault",
+        name: "",
         type: "address",
       },
     ],
@@ -125,12 +130,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "asset",
+        name: "user",
         type: "address",
       },
       {
-        internalType: "address",
-        name: "user",
+        internalType: "contract IVault",
+        name: "vault",
         type: "address",
       },
     ],
@@ -148,8 +153,8 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "asset",
+        internalType: "contract IVault",
+        name: "",
         type: "address",
       },
     ],
@@ -167,14 +172,14 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "asset",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+      {
+        internalType: "contract IVault",
+        name: "vault",
+        type: "address",
       },
     ],
     name: "payback",
@@ -189,16 +194,29 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "providerName",
+    outputs: [
       {
-        internalType: "address",
-        name: "asset",
-        type: "address",
+        internalType: "string",
+        name: "",
+        type: "string",
       },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
       {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
+      },
+      {
+        internalType: "contract IVault",
+        name: "vault",
+        type: "address",
       },
     ],
     name: "withdraw",

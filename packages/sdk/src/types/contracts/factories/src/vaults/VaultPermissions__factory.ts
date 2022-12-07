@@ -23,6 +23,36 @@ const _abi = [
     type: "constructor",
   },
   {
+    inputs: [],
+    name: "VaultPermissions__allowanceBelowZero",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__expiredDeadline",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__insufficientBorrowAllowance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__insufficientWithdrawAllowance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__invalidSignature",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultPermissions__zeroAddress",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -34,7 +64,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -59,7 +95,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -94,7 +136,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],
@@ -113,7 +160,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -137,7 +189,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -161,7 +218,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -185,7 +247,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
       {
@@ -233,7 +300,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -276,7 +343,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "receiver",
         type: "address",
       },
       {
@@ -319,7 +386,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
         type: "address",
       },
     ],
