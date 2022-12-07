@@ -122,7 +122,7 @@ export default function TransactionProcessingModal({
             icon: () => (
               <Box sx={style}>
                 <Image
-                  src={`/assets/images/logo/Connext.svg`}
+                  src="/assets/images/logo/connext.svg"
                   height={32}
                   width={32}
                   alt="Connext"
