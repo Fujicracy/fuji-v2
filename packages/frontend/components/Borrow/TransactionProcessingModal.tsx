@@ -135,11 +135,9 @@ export default function TransactionProcessingModal({
       }
     })
     .filter((s) => s.label !== "Invalid") as ValidStep[]
-
-  // Commented till we use it cause it make the linter fail
-  // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
-  // const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1)
-  // const handleReset = () => setActiveStep(0)
+  const transactionDetailsLink = steps.find((s) =>
+    s.label.includes("Deposit")
+  )?.link
 
   return (
     <Dialog
@@ -232,9 +230,15 @@ export default function TransactionProcessingModal({
             <Button fullWidth variant="gradient" size="large">
               View Position
             </Button>
-            <Button fullWidth variant="ghost">
-              Transaction details
-            </Button>
+            <Link
+              href={transactionDetailsLink}
+              target="_blank"
+              variant="inherit"
+            >
+              <Button fullWidth variant="ghost">
+                Transaction details
+              </Button>
+            </Link>
           </Stack>
         )}
         {/* TODO: in case of error ??? */}
