@@ -51,8 +51,8 @@ library LibSigUtils {
     permit.deadline = block.timestamp + 1 days;
   }
 
-  // computes the hash of a permit-asset
-  function getStructHashAsset(Permit memory permit) public pure returns (bytes32) {
+  // computes the hash of a permit-withdraw
+  function getStructHashWithdraw(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
         PERMIT_WITHDRAW_TYPEHASH,

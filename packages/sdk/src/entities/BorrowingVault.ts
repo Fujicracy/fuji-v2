@@ -72,6 +72,16 @@ export class BorrowingVault extends StreamManager {
   private name: string;
 
   /**
+   * Address of the lending provider from which the vault is currently sourcing liquidity.
+   */
+  activeProvider?: string;
+
+  /**
+   * Addresses of the lending provider from which the vault can source liquidity.
+   */
+  allProviders?: string[];
+
+  /**
    * A factor that defines the maximum Loan-To-Value a user can take.
    *
    * @remarks
@@ -164,7 +174,7 @@ export class BorrowingVault extends StreamManager {
   }
 
   /**
-   * Loads and sets name, maxLtv and liqRatio.
+   * Loads and sets name, maxLtv, liqRatio, activeProvider and allProviders.
    *
    * @throws if {@link setConnection} was not called beforehand
    */
@@ -173,15 +183,20 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    const [maxLtv, liqRatio, name] = await this.multicallRpcProvider.all([
-      this.multicallContract.maxLtv(),
-      this.multicallContract.liqRatio(),
-      this.multicallContract.name(),
-    ]);
+    const [maxLtv, liqRatio, name, activeProvider, allProviders] =
+      await this.multicallRpcProvider.all([
+        this.multicallContract.maxLtv(),
+        this.multicallContract.liqRatio(),
+        this.multicallContract.name(),
+        this.multicallContract.activeProvider(),
+        this.multicallContract.getProviders(),
+      ]);
 
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
     this.name = name;
+    this.activeProvider = activeProvider;
+    this.allProviders = allProviders;
   }
 
   /**
@@ -192,7 +207,8 @@ export class BorrowingVault extends StreamManager {
   async getBorrowRate(): Promise<BigNumber> {
     invariant(this.contract && this.rpcProvider, 'Connection not set!');
 
-    const activeProvider: string = await this.contract.activeProvider();
+    const activeProvider: string =
+      this.activeProvider ?? (await this.contract.activeProvider());
     const borrowRate: BigNumber = await ILendingProvider__factory.connect(
       activeProvider,
       this.rpcProvider
@@ -210,23 +226,25 @@ export class BorrowingVault extends StreamManager {
   async getProviders(): Promise<LendingProviderDetails[]> {
     invariant(
       this.contract && this.multicallRpcProvider,
-      'Connection not set?'
+      'Connection not set!'
     );
-    // TODO: move this to preLoad and load them only if they are not init
-    const allProvidersAddrs: string[] = await this.contract.getProviders();
-    const activeProviderAddr: string = await this.contract.activeProvider();
+    if (!this.activeProvider || !this.allProviders) {
+      await this.preLoad();
+    }
 
-    const depositCalls = allProvidersAddrs.map((addr) =>
+    invariant(this.allProviders, 'Providers are not loaded yet!');
+
+    const depositCalls = this.allProviders.map((addr) =>
       ILendingProvider__factory.multicall(addr).getDepositRateFor(
         this.address.value
       )
     );
-    const borrowCalls = allProvidersAddrs.map((addr) =>
+    const borrowCalls = this.allProviders.map((addr) =>
       ILendingProvider__factory.multicall(addr).getBorrowRateFor(
         this.address.value
       )
     );
-    const nameCalls = allProvidersAddrs.map((addr) =>
+    const nameCalls = this.allProviders.map((addr) =>
       ILendingProvider__factory.multicall(addr).providerName()
     );
 
@@ -235,14 +253,16 @@ export class BorrowingVault extends StreamManager {
       ...depositCalls,
       ...borrowCalls,
     ]);
+
+    // TODO: use LENDING_PROVIDERS_LIST when ready instead of fetching name
     const names: string[] = await this.multicallRpcProvider.all(nameCalls);
 
     const splitIndex = rates.length / 2;
-    return allProvidersAddrs.map((addr: string, i: number) => ({
+    return this.allProviders.map((addr: string, i: number) => ({
       name: names[i].split('_').join(' '),
       depositRate: rates[i],
       borrowRate: rates[i + splitIndex],
-      active: addr === activeProviderAddr,
+      active: addr === this.activeProvider,
     }));
   }
 
@@ -307,6 +327,10 @@ export class BorrowingVault extends StreamManager {
   }> {
     invariant(this.contract, 'Connection not set!');
     const { owner } = params;
+
+    if (this.name === '') {
+      await this.preLoad();
+    }
 
     const nonce: BigNumber = await this.contract.nonces(owner.value);
 
