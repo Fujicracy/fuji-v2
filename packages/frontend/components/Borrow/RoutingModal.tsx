@@ -4,6 +4,10 @@ import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 
 import RouteCard from "./RouteCard"
+import { useStore } from "../../store"
+import { chainName } from "../../helpers/chainName"
+import NetworkIcon from "../NetworkIcon"
+import TokenIcon from "../TokenIcon"
 
 type RoutingModalProps = {
   open: boolean
@@ -13,30 +17,82 @@ type RoutingModalProps = {
 export default function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
+  const collateral = useStore((state) => state.position.collateral)
+  const debt = useStore((state) => state.position.debt)
+  const providers = useStore((state) => state.position.providers)
 
   const routes = [
     {
       cost: 3.9,
       time: 2,
       steps: [
-        "Deposit 1.00 ETH to Aave V2",
-        "Borrow 675 USDC from Aave V2",
-        "Bridge to Polygon via Connext",
+        {
+          icon: (
+            <NetworkIcon
+              networkName={chainName(collateral.token.chainId)}
+              height={18}
+              width={18}
+            />
+          ),
+          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${
+            providers?.length ? providers[0].name : "n/a"
+          }`,
+        },
+        {
+          icon: <TokenIcon token={debt.token} height={18} width={18} />,
+          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${
+            providers?.length ? providers[0].name : "n/a"
+          }`,
+        },
+        {
+          icon: (
+            <NetworkIcon
+              networkName={chainName(debt.token.chainId)}
+              height={18}
+              width={18}
+            />
+          ),
+          label: `Bridge to ${chainName(collateral.token.chainId)} via Connext`,
+        },
       ],
       recommended: true,
-      info: "Collateral deposit Aave V2",
+      info: `Collateral deposit ${
+        providers?.length ? providers[0].name : "n/a"
+      }`,
     },
     {
       cost: 4.6,
       time: 2,
-      steps: ["Bridge to Polygon via Connext"],
+      steps: [
+        {
+          icon: (
+            <NetworkIcon
+              networkName={chainName(debt.token.chainId)}
+              height={18}
+              width={18}
+            />
+          ),
+          label: `Bridge to ${chainName(collateral.token.chainId)} via Connext`,
+        },
+      ],
       recommended: false,
       info: "",
     },
     {
       cost: 11.2,
       time: 4,
-      steps: ["Bridge to Polygon via Connext"],
+      steps: [
+        {
+          icon: (
+            <NetworkIcon
+              networkName={chainName(debt.token.chainId)}
+              height={18}
+              width={18}
+            />
+          ),
+          label: `Bridge to ${chainName(collateral.token.chainId)} via Connext`,
+        },
+      ],
       recommended: false,
       info: "",
     },
