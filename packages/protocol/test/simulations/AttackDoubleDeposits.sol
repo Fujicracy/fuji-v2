@@ -118,14 +118,14 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     v.deposit(amount, who);
     vm.stopPrank();
 
-    assertEq(v.balanceOf(who), amount);
+    assertGe(v.balanceOf(who), amount);
   }
 
   function _utils_doBorrow(address who, uint256 amount, IVault v) internal {
     vm.prank(who);
     v.borrow(amount, who, who);
 
-    assertEq(IERC20(v.debtAsset()).balanceOf(who), amount);
+    assertGe(IERC20(v.debtAsset()).balanceOf(who), amount);
   }
 
   function _utils_doPayback(address who, uint256 amount, IVault v) internal {

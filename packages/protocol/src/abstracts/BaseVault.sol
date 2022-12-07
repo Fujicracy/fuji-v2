@@ -56,7 +56,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {
     _asset = IERC20Metadata(asset_);
     _decimals = _asset.decimals();
-    depositCap = type(uint256).max;
+    depositCap = type(uint128).max;
   }
 
   /*////////////////////////////////////////////////////
@@ -166,12 +166,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return depositCap;
+    return depositCap - totalAssets();
   }
 
   /// @inheritdoc IERC4626
   function maxMint(address) public view virtual override returns (uint256) {
-    return _convertToShares(depositCap, Math.Rounding.Down);
+    return _convertToShares(maxDeposit(address(0)), Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
@@ -311,7 +311,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets(), rounding);
+    uint256 totalAssets_ = totalAssets();
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets_, rounding);
   }
 
   /**
