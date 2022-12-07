@@ -109,10 +109,30 @@ contract ReentrantFlasher is IFlasher {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  IFlasher helperFlasher;
+  RebalancerManager rebalancer;
+  IVault bvault;
+  uint256 assets;
+  uint256 debt;
+  IFlasher flasher;
+  ILendingProvider mockProviderA;
+  ILendingProvider mockProviderB;
 
-  constructor(IFlasher helperFlasher_) {
-    helperFlasher = helperFlasher_;
+  constructor(
+    RebalancerManager rebalancer_,
+    IVault bvault_,
+    uint256 assets_,
+    uint256 debt_,
+    IFlasher flasher_,
+    ILendingProvider mockProviderA_,
+    ILendingProvider mockProviderB_
+  ) {
+    rebalancer = rebalancer_;
+    bvault = bvault_;
+    assets = assets_;
+    debt = debt_;
+    flasher = flasher_;
+    mockProviderA = mockProviderA_;
+    mockProviderB = mockProviderB_;
   }
 
   function initiateFlashloan(
@@ -126,34 +146,9 @@ contract ReentrantFlasher is IFlasher {
   {
     MockERC20(asset).mint(address(this), amount);
     IERC20(asset).safeTransfer(requestor, amount);
+
     //this call should fail in the check entry inside the RebalacerManager
-    helperFlasher.initiateFlashloan(address(0), 0, requestor, requestorCalldata);
-    requestor.functionCall(requestorCalldata);
-  }
-
-  function getFlashloanSourceAddr(address) external view override returns (address) {
-    return address(this);
-  }
-
-  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
-    fee = 0;
-  }
-}
-
-contract ReentrantFlasherHelper is IFlasher {
-  using SafeERC20 for IERC20;
-  using Address for address;
-
-  function initiateFlashloan(
-    address asset,
-    uint256 amount,
-    address requestor,
-    bytes memory requestorCalldata
-  )
-    external
-    override
-  {
-    requestor.functionCall(requestorCalldata);
+    rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
   }
 
   function getFlashloanSourceAddr(address) external view override returns (address) {
@@ -500,12 +495,17 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     uint256 assets = 4 * DEPOSIT_AMOUNT;
     uint256 debt = 4 * BORROW_AMOUNT;
 
-    IFlasher reentrantHelper = new ReentrantFlasherHelper();
-    IFlasher reentrant = new ReentrantFlasher(reentrantHelper);
+    // IFlasher reentrantHelper = new ReentrantFlasherHelper();
+    IFlasher reentrant =
+      new ReentrantFlasher(rebalancer, bvault, assets, debt,flasher, mockProviderA, mockProviderB);
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(reentrant), true);
     _utils_callWithTimelock(address(chief), executionCall);
+
+    executionCall =
+      abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(reentrant), true);
+    _utils_callWithTimelock(address(rebalancer), executionCall);
 
     vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_notEmptyEntryPoint.selector);
     rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, reentrant, true);
