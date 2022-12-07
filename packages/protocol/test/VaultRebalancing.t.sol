@@ -74,7 +74,7 @@ contract MaliciousFlasher is IFlasher {
     address asset,
     uint256 amount,
     address requestor,
-    bytes memory requestorCalldata
+    bytes memory /*requestorCalldata*/
   )
     external
     override
@@ -139,7 +139,7 @@ contract ReentrantFlasher is IFlasher {
     address asset,
     uint256 amount,
     address requestor,
-    bytes memory requestorCalldata
+    bytes memory /*requestorCalldata*/
   )
     external
     override
