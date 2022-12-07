@@ -79,7 +79,7 @@ export default function Borrow() {
   const metaStatus = useStore((state) => state.transactionMeta.status)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
   let button: ReactNode
   if (!address) {
