@@ -21,3 +21,14 @@ export enum ChainAnkrKey {
   OPTIMISM = 'optimism',
   OPTIMISM_GOERLI = 'optimism_testnet',
 }
+
+export enum ChainLlamaKey {
+  ARBITRUM = 'Arbitrum',
+  ETHEREUM = 'Ethereum',
+  FANTOM = 'Fantom',
+  GOERLI = 'Ethereum',
+  MATIC = 'Polygon',
+  MATIC_MUMBAI = 'Polygon',
+  OPTIMISM = 'Optimism',
+  OPTIMISM_GOERLI = 'Optimism',
+}
