@@ -43,11 +43,23 @@ export default function RouteCard(props: RouteCardProps) {
         }`,
         mt: "1rem",
         p: "1.5rem",
+        pt: props.route.recommended ? "0" : "",
         cursor: "pointer",
         background: palette.secondary.dark,
       }}
       onClick={props.onChange}
     >
+      {props.route.recommended && (
+        <Chip
+          variant="routing"
+          label="Recommended"
+          sx={{
+            background: palette.primary.main,
+            position: "relative",
+            bottom: ".7rem",
+          }}
+        />
+      )}
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
           <Chip
@@ -64,14 +76,6 @@ export default function RouteCard(props: RouteCardProps) {
         </Stack>
 
         <Stack direction="row" gap="0.5rem">
-          {props.route.recommended && (
-            <Chip
-              variant="routing"
-              label="Recommended"
-              sx={{ color: palette.primary.main }}
-            />
-          )}
-
           {props.selected ? (
             <Chip
               variant="routing"
