@@ -8,6 +8,7 @@ declare module "@mui/material/Button" {
     ghost: true
     gradient: true
     small: true
+    rounded: true
   }
 }
 
@@ -184,6 +185,8 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: "border-box",
           borderRadius: "0.5rem",
+          textTransform: "none",
+          fontSize: "1rem",
           "&.Mui-disabled": {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
@@ -204,7 +207,6 @@ const theme = createTheme(colorTheme, {
               "linear-gradient(92.29deg, rgba(254, 52, 119, 0.8) 0%, rgba(240, 1, 79, 0.8) 100%)",
             boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
             padding: "0.75rem 1.25rem",
-            textTransform: "none",
             fontSize: "1rem",
           },
         },
@@ -244,8 +246,7 @@ const theme = createTheme(colorTheme, {
           },
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
-            border: `0.063rem solid ${colorTheme.palette.primary.light}`,
-            padding: "0.75rem 1.25rem",
+            border: `1px solid ${colorTheme.palette.primary.light}`,
             textTransform: "none",
             fontSize: "1rem",
           },
@@ -273,6 +274,19 @@ const theme = createTheme(colorTheme, {
             padding: "0 .6rem",
             fontSize: "0.75rem",
             borderRadius: "1rem",
+          },
+        },
+        {
+          props: { size: "large" },
+          style: { padding: ".7rem", fontSize: "1rem" },
+        },
+        {
+          props: { variant: "rounded" },
+          style: {
+            borderRadius: "50rem",
+            // backgroundColor: colorTheme.palette.background.paper,
+            color: colorTheme.palette.primary.light,
+            border: `1px solid ${colorTheme.palette.primary.light}`,
           },
         },
       ],

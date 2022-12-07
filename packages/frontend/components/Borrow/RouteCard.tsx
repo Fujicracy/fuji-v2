@@ -90,7 +90,7 @@ export default function RouteCard(props: RouteCardProps) {
         <Stack direction="row" alignItems="center">
           <TokenIcon token={collateral.token} height={32} width={32} />
           <NetworkIcon
-            networkName={chainName(collateral.token.chainId)}
+            network={chainName(collateral.token.chainId)}
             height={16}
             width={16}
             sx={{
@@ -147,7 +147,7 @@ export default function RouteCard(props: RouteCardProps) {
             >
               <Stack direction="column">
                 <NetworkIcon
-                  networkName={chainName(debt.token.chainId)}
+                  network={chainName(debt.token.chainId)}
                   height={18}
                   width={18}
                 />
@@ -171,7 +171,7 @@ export default function RouteCard(props: RouteCardProps) {
           </Box>
           <TokenIcon token={debt.token} height={32} width={32} />
           <NetworkIcon
-            networkName={chainName(debt.token.chainId)}
+            network={chainName(debt.token.chainId)}
             height={16}
             width={16}
             sx={{

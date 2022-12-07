@@ -1,219 +1,198 @@
-import { MouseEvent, useEffect, useState } from "react"
+import { MouseEvent, useState } from "react"
 import {
   Box,
   Button,
   Card,
-  CardContent,
   CircularProgress,
   Dialog,
   DialogContent,
-  Grid,
+  Link,
   Paper,
+  Stack,
   Step,
   StepLabel,
   Stepper,
   Typography,
   useMediaQuery,
 } from "@mui/material"
-import { useTheme, styled, alpha } from "@mui/material/styles"
+import { useTheme, styled } from "@mui/material/styles"
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector"
-import { StepIconProps } from "@mui/material/StepIcon"
 import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
-import shallow from "zustand/shallow"
+import { RoutingStep } from "@x-fuji/sdk"
 
-import styles from "../../styles/components/Borrow.module.css"
-import { useStore } from "../../store"
 import NetworkIcon from "../NetworkIcon"
+import { useHistory } from "../../store/history.store"
+import { formatUnits } from "ethers/lib/utils"
+import { chainName } from "../../helpers/chainName"
+import { transactionLink } from "../../helpers/transactionLink"
+import { AddTokenButton } from "../AddTokenButton"
+import { useStore } from "../../store"
 
-type Step = {
+type InvalidStep = {
+  label: "Invalid"
+}
+type ValidStep = {
   label: string
   description: string
-  link: string | undefined
+  chainId: number
+  txHash?: string
+  link?: string
+  icon: () => JSX.Element
 }
+type TransactionStep = InvalidStep | ValidStep
 
 type TransactionProcessingModalProps = {
-  open: boolean
+  hash?: string
   handleClose: (e: MouseEvent) => void
 }
-
-const steps: Step[] = [
-  {
-    label: "Deposit 1 ETH on Aave",
-    description: "Ethereum Network",
-    link: "https://ethereum.org/fr/",
-  },
-  {
-    label: "Validate Transaction",
-    description: "Connext bridge",
-    link: "https://www.connext.network/",
-  },
-  {
-    label: "Borrow 900 USDC from Aave",
-    description: "Polygon Network",
-    link: undefined,
-  },
-]
-
-export default function TransactionProcessingModal(
-  props: TransactionProcessingModalProps
-) {
+export default function TransactionProcessingModal({
+  hash,
+  handleClose,
+}: TransactionProcessingModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
+  const entry = useHistory((state) => state.byHash[hash || ""])
+  const activeChainId = useStore((state) => parseInt(state.chain?.id || ""))
 
-  const { transactionStatus, setTransactionStatus } = useStore(
-    (state) => ({
-      transactionStatus: state.transactionStatus,
-      setTransactionStatus: state.setTransactionStatus,
-    }),
-    shallow
-  )
+  const borrow = entry?.steps.find((s) => s.step === RoutingStep.BORROW)
+  const chainId = borrow?.chainId
+  const networkName = chainId ? chainName(chainId) : ""
 
-  useEffect(() => {
-    const sleep = setTimeout(() => setTransactionStatus(false), 10000) // TODO: change this sleeping process
-    return () => {
-      clearTimeout(sleep)
-    }
-  })
+  if (!entry) {
+    return <></>
+  }
 
-  // Commented till we use it cause it make the linter fail
-  // const handleNext = () => setActiveStep((prevActiveStep) => prevActiveStep + 1)
-  // const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1)
-  // const handleReset = () => setActiveStep(0)
+  const steps = entry.steps
+    .map((s): TransactionStep => {
+      const token = s.token
+      const amount = formatUnits(s.amount, token.decimals)
+      const provider = s.lendingProvider?.name
+      const chain = chainName(s.chainId)
+      const link = s.txHash && transactionLink(s.chainId, s.txHash)
+      const { txHash, chainId } = s
+
+      const style = {
+        background: theme.palette.secondary.light,
+        mr: "0.5rem",
+        p: "0.5rem 0.5rem 0.3rem 0.5rem",
+        borderRadius: "100%",
+        zIndex: 1,
+      }
+
+      switch (s.step) {
+        case RoutingStep.DEPOSIT:
+          return {
+            label: `Deposit ${amount} ${token.symbol} on ${provider}`,
+            description: `${chain} Network`,
+            chainId,
+            txHash,
+            link,
+            icon: () => (
+              <Box sx={style}>
+                <NetworkIcon network={chain} height={32} width={32} />
+              </Box>
+            ),
+          }
+        case RoutingStep.BORROW:
+          return {
+            label: `Borrow ${amount} ${token.symbol} from ${provider}`,
+            description: `${chain} Network`,
+            chainId,
+            txHash,
+            link,
+            icon: () => (
+              <Box sx={style}>
+                <NetworkIcon network={chain} height={32} width={32} />
+              </Box>
+            ),
+          }
+        case RoutingStep.X_TRANSFER:
+          return {
+            label: `Bridge ${amount} ${token.symbol} to ${chain}`,
+            description: "Connext bridge",
+            chainId,
+            txHash,
+            link,
+            icon: () => (
+              <Box sx={style}>
+                <Image
+                  src="/assets/images/logo/connext.svg"
+                  height={32}
+                  width={32}
+                  alt="Connext"
+                />
+              </Box>
+            ),
+          }
+        default:
+          return { label: "Invalid" }
+      }
+    })
+    .filter((s) => s.label !== "Invalid") as ValidStep[]
+  const transactionDetailsLink = steps.find((s) =>
+    s.label.includes("Deposit")
+  )?.link
 
   return (
     <Dialog
-      open={props.open}
-      onClose={props.handleClose}
+      open={Boolean(hash)}
+      onClose={handleClose}
       sx={{
-        ".MuiPaper-root": {
-          width: isMobile ? "100%" : "auto",
-        },
+        ".MuiPaper-root": { width: isMobile ? "100%" : "430px" },
         backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
       }}
     >
-      <Paper
-        variant="outlined"
-        sx={{
-          p: { xs: "1rem", sm: "1.5rem" },
-          maxHeight: {
-            xs: !transactionStatus ? "28rem" : "",
-            sm: !transactionStatus ? "24.688rem" : "",
-          },
-        }}
-      >
+      <Paper variant="outlined" sx={{ p: { xs: "1rem", sm: "1.5rem" } }}>
         <CloseIcon
-          sx={{
-            cursor: "pointer",
-            float: "right",
-          }}
-          onClick={props.handleClose}
+          sx={{ cursor: "pointer", float: "right" }}
+          onClick={handleClose}
           fontSize="small"
         />
-
-        <Box textAlign="center" mt="1.625rem" mb="2.688rem">
-          {!transactionStatus ? (
-            <>
-              <CheckIcon
-                sx={{
-                  backgroundColor: alpha(theme.palette.success.dark, 0.1),
-                  color: theme.palette.success.dark,
-                  borderRadius: "100%",
-                  padding: "0.4rem",
-                  width: "3.75rem",
-                  height: "3.75rem",
-                  mb: "2.5rem",
-                }}
-              />
-              <Typography variant="h5">Transaction successful!</Typography>
-              <Typography variant="body">
-                You have borrowed 900.00 USDC
-              </Typography>
-              <Grid container justifyContent="center">
-                <Button
-                  className={styles.btn}
-                  variant="text"
-                  sx={{ mt: "1.5rem", mb: "2rem" }}
-                >
-                  Add USDC
-                </Button>
-              </Grid>
-              <Grid
-                container
-                columnGap="1rem"
-                rowGap="1rem"
-                justifyContent="center"
-                sx={{ flexDirection: { xs: "column-reverse", sm: "row" } }}
-              >
-                <Button
-                  sx={{ minWidth: "13rem" }}
-                  variant={isMobile ? "ghost" : "secondary"}
-                  className={styles.btn}
-                >
-                  Transaction Details
-                </Button>
-                <Button
-                  sx={{ minWidth: "13rem" }}
-                  variant="gradient"
-                  className={styles.btn}
-                >
-                  View Position
-                </Button>
-              </Grid>
-            </>
-          ) : (
-            <>
-              <Typography variant="h6">Transaction processing</Typography>
-              <Typography variant="body">
-                Borrowing on Polygon Network
-              </Typography>
-            </>
-          )}
+        <Box textAlign="center" mt="1.625rem" mb="2.5rem">
+          <Typography variant="h6">
+            Transaction {entry.status === "ongoing" && "processing..."}
+            {entry.status === "done" && "success"}
+          </Typography>
+          <Typography variant="body">Borrowing on {networkName}</Typography>
         </Box>
-        {transactionStatus && (
-          <DialogContent>
-            <Stepper
-              activeStep={activeStep}
-              orientation="vertical"
-              connector={<CustomConnector />}
-            >
-              {steps.map((step, index) => (
-                <Step key={step.label}>
-                  <Grid
-                    container
-                    justifyContent="space-between"
-                    wrap="nowrap"
-                    alignItems="center"
-                  >
-                    <Grid item>
-                      <StepLabel StepIconComponent={CustomStepIcon}>
-                        <Typography variant="body">{step.label}</Typography>
-                        <br />
-                        <a href={step.link} target="_blank" rel="noreferrer">
-                          <Typography variant="smallDark">
-                            {step.description}
-                          </Typography>
-                          {step.link && (
-                            <LaunchIcon
-                              sx={{
-                                ml: "0.3rem",
-                                fontSize: "0.6rem",
-                                color: theme.palette.info.dark,
-                              }}
-                            />
-                          )}
-                        </a>
-                      </StepLabel>
-                    </Grid>
-                    <Grid item>
-                      {activeStep === index ? (
-                        <CircularProgress size={32} />
-                      ) : (
+        <DialogContent>
+          <Stepper
+            activeStep={activeStep}
+            orientation="vertical"
+            connector={<CustomConnector />}
+          >
+            {steps.map((step) => (
+              <Step key={step.label}>
+                <StepLabel StepIconComponent={step.icon}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Box>
+                      <Typography variant="body">{step.label}</Typography>
+                      <br />
+                      {step.txHash && (
+                        <Link
+                          href={step.link}
+                          target="_blank"
+                          variant="smallDark"
+                        >
+                          {step.description}
+                          <LaunchIcon
+                            sx={{
+                              ml: "0.3rem",
+                              fontSize: "0.6rem",
+                              color: theme.palette.info.dark,
+                            }}
+                          />
+                        </Link>
+                      )}
+                    </Box>
+                    <Box>
+                      {step.txHash || entry.status === "done" ? (
                         <CheckIcon
                           sx={{
                             backgroundColor: theme.palette.success.dark,
@@ -222,72 +201,61 @@ export default function TransactionProcessingModal(
                           }}
                           fontSize="large"
                         />
+                      ) : (
+                        <CircularProgress size={32} />
                       )}
-                    </Grid>
-                  </Grid>
-                </Step>
-              ))}
-            </Stepper>
-            <Card
-              variant="outlined"
-              sx={{
-                p: 0,
-                textAlign: "center",
-                mt: "2.5rem",
-                maxWidth: "27rem",
-              }}
-            >
-              <CardContent>
-                <Typography variant="small">
-                  This step takes a few minutes to process. If you close this
-                  window, your transaction will still be processed.
-                </Typography>
-              </CardContent>
-            </Card>
-          </DialogContent>
+                    </Box>
+                  </Stack>
+                </StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </DialogContent>
+        {entry.status === "ongoing" && (
+          <Card variant="outlined" sx={{ mt: 3, maxWidth: "100%" }}>
+            <Typography variant="small" textAlign="center">
+              This step takes a few minutes to process. If you close this
+              window, your transaction will still be processed.
+            </Typography>
+          </Card>
         )}
+        {entry.status === "done" && (
+          <Stack sx={{ mt: "2rem" }} spacing={1}>
+            {/* This check is to fix the problem that address is a class and thus cannot be rehydrated. See `addTokenToMetamask` */}
+            {borrow?.token && borrow?.token.chainId === activeChainId && (
+              <Box mb="2rem" textAlign="center">
+                <AddTokenButton token={borrow.token} />
+              </Box>
+            )}
+            <Button fullWidth variant="gradient" size="large">
+              View Position
+            </Button>
+            <Link
+              href={transactionDetailsLink}
+              target="_blank"
+              variant="inherit"
+            >
+              <Button fullWidth variant="ghost">
+                Transaction details
+              </Button>
+            </Link>
+          </Stack>
+        )}
+        {/* TODO: in case of error ??? */}
       </Paper>
     </Dialog>
   )
 }
 
-function CustomStepIcon(props: StepIconProps) {
-  const { palette } = useTheme()
-
-  const icons: Record<string, React.ReactElement> = {
-    1: <NetworkIcon networkName="Ethereum" height={32} width={32} />,
-    2: (
-      <Image
-        src={`/assets/images/logo/Connext.svg`}
-        height={32}
-        width={32}
-        alt="Connext"
-      />
-    ),
-    3: <NetworkIcon networkName="Polygon" height={32} width={32} />,
-  }
-
-  return (
-    <Box
-      sx={{
-        background: palette.secondary.light,
-        mr: "0.5rem",
-        p: "0.5rem",
-        borderRadius: "100%",
-        paddingBottom: "0.3rem",
-      }}
-    >
-      {icons[String(props.icon)]}
-    </Box>
-  )
-}
-
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {
+    borderColor: theme.palette.secondary.light,
     borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
-    ml: "0.7rem",
-    mt: "-0.5rem",
-    mb: "-0.5rem",
-    height: "3rem",
+    left: "12px",
+    position: "relative",
+    marginTop: "-2rem",
+    height: "6rem",
+    marginBottom: "-2rem",
+    width: "fit-content",
   },
 }))

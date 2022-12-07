@@ -29,7 +29,7 @@ export default function RoutingModal(props: RoutingModalProps) {
         {
           icon: (
             <NetworkIcon
-              networkName={chainName(collateral.token.chainId)}
+              network={chainName(collateral.token.chainId)}
               height={18}
               width={18}
             />
@@ -47,7 +47,7 @@ export default function RoutingModal(props: RoutingModalProps) {
         {
           icon: (
             <NetworkIcon
-              networkName={chainName(debt.token.chainId)}
+              network={chainName(debt.token.chainId)}
               height={18}
               width={18}
             />
@@ -67,7 +67,7 @@ export default function RoutingModal(props: RoutingModalProps) {
         {
           icon: (
             <NetworkIcon
-              networkName={chainName(debt.token.chainId)}
+              network={chainName(debt.token.chainId)}
               height={18}
               width={18}
             />
@@ -85,7 +85,7 @@ export default function RoutingModal(props: RoutingModalProps) {
         {
           icon: (
             <NetworkIcon
-              networkName={chainName(debt.token.chainId)}
+              network={chainName(debt.token.chainId)}
               height={18}
               width={18}
             />
