@@ -58,7 +58,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
-    chief = new Chief();
+    chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
     vault = new BorrowingVault(

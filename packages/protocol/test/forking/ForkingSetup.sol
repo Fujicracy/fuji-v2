@@ -167,7 +167,7 @@ contract ForkingSetup is CoreRoles, Test {
     admins[0] = address(this);
     timelock = new TimelockController(1 days, admins, admins);
 
-    chief = new Chief();
+    chief = new Chief(true, true);
     chief.setTimelock(address(timelock));
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));

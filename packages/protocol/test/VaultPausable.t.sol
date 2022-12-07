@@ -68,7 +68,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
-    chief = new Chief();
+    chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
 

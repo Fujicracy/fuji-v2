@@ -54,13 +54,13 @@ contract Chief is CoreRoles, AccessControl, IChief {
     _;
   }
 
-  constructor() {
-    _deployTimelockController();
+  constructor(bool deployTimelock, bool deployAddrMapper) {
     _grantRole(DEPLOYER_ROLE, msg.sender);
     _grantRole(HOUSE_KEEPER_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
-    _deployAddrMapper();
+    if (deployTimelock) _deployTimelockController();
+    if (deployAddrMapper) _deployAddrMapper();
   }
 
   function getVaults() external view returns (address[] memory) {

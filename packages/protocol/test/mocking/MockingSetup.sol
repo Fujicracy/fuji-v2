@@ -52,7 +52,7 @@ contract MockingSetup is CoreRoles, Test {
     admins[0] = address(this);
     timelock = new TimelockController(1 days, admins, admins);
 
-    chief = new Chief();
+    chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
     // Grant this address all roles.

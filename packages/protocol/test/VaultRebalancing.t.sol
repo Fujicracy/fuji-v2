@@ -87,7 +87,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
 
-    chief = new Chief();
+    chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
 
