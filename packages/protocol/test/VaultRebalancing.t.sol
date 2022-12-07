@@ -19,6 +19,10 @@ import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockProvider} from "../src/mocks/MockProvider.sol";
 import {MockOracle} from "../src/mocks/MockOracle.sol";
 import {MockFlasher} from "../src/mocks/MockFlasher.sol";
+import {IFlasher} from "../src/interfaces/IFlasher.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 contract MockProviderIdA is MockProvider {
   function providerName() public pure override returns (string memory) {
@@ -35,6 +39,129 @@ contract MockProviderIdB is MockProvider {
 contract ThiefProvider is MockProvider {
   function providerName() public pure override returns (string memory) {
     return "ThiefProvider";
+  }
+}
+
+contract GreedyFlasher is IFlasher {
+  using Address for address;
+
+  function initiateFlashloan(
+    address, /* asset */
+    uint256, /* amount */
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+    override
+  {
+    requestor.functionCall(requestorCalldata);
+  }
+
+  function getFlashloanSourceAddr(address) external view override returns (address) {
+    return address(this);
+  }
+
+  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
+    fee = 0;
+  }
+}
+
+contract MaliciousFlasher is IFlasher {
+  using SafeERC20 for IERC20;
+  using Address for address;
+
+  function initiateFlashloan(
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+    override
+  {
+    MockERC20(asset).mint(address(this), amount);
+    IERC20(asset).safeTransfer(requestor, amount);
+    //changes the calldata
+    bytes memory requestorCall = abi.encodeWithSelector(
+      RebalancerManager.completeRebalance.selector,
+      IVault(address(0)),
+      0,
+      amount,
+      address(0),
+      address(0),
+      this,
+      true
+    );
+
+    requestor.functionCall(requestorCall);
+  }
+
+  function getFlashloanSourceAddr(address) external view override returns (address) {
+    return address(this);
+  }
+
+  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
+    fee = 0;
+  }
+}
+
+contract ReentrantFlasher is IFlasher {
+  using SafeERC20 for IERC20;
+  using Address for address;
+
+  IFlasher helperFlasher;
+
+  constructor(IFlasher helperFlasher_) {
+    helperFlasher = helperFlasher_;
+  }
+
+  function initiateFlashloan(
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+    override
+  {
+    MockERC20(asset).mint(address(this), amount);
+    IERC20(asset).safeTransfer(requestor, amount);
+    //this call should fail in the check entry inside the RebalacerManager
+    helperFlasher.initiateFlashloan(address(0), 0, requestor, requestorCalldata);
+    requestor.functionCall(requestorCalldata);
+  }
+
+  function getFlashloanSourceAddr(address) external view override returns (address) {
+    return address(this);
+  }
+
+  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
+    fee = 0;
+  }
+}
+
+contract ReentrantFlasherHelper is IFlasher {
+  using SafeERC20 for IERC20;
+  using Address for address;
+
+  function initiateFlashloan(
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+    override
+  {
+    requestor.functionCall(requestorCalldata);
+  }
+
+  function getFlashloanSourceAddr(address) external view override returns (address) {
+    return address(this);
+  }
+
+  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
+    fee = 0;
   }
 }
 
@@ -322,7 +449,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     //rebalance with invalid flasher should fail
     vm.expectRevert(RebalancerManager.RebalancerManager__rebalanceVault_notValidFlasher.selector);
-    rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
+    rebalancer.rebalanceVault(bvault, assets, 0, mockProviderA, mockProviderB, invalidFlasher, true);
   }
 
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
@@ -335,8 +462,8 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     rebalancer.rebalanceVault(yvault, invalidAmount, 0, mockProviderA, mockProviderB, flasher, true);
   }
-  // error RebalancerManager__checkDebtAmount_invalidAmount();
 
+  // error RebalancerManager__checkDebtAmount_invalidAmount();
   function test_checkDebtAmountInvalidAmount(uint256 invalidAmount) public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
     uint256 debt = 4 * BORROW_AMOUNT;
@@ -349,24 +476,75 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
       bvault, assets, invalidAmount, mockProviderA, mockProviderB, flasher, true
     );
   }
-  // // error RebalancerManager__getFlashloan_flashloanFailed();
-  // function test_flashLoanFailed() public {
-  //
-  // }
-  // // error RebalancerManager__getFlashloan_notEmptyEntryPoint();
-  // function test_notEmptyEntryPoint() public {
-  //
-  // }
-  // // error RebalancerManager__completeRebalance_invalidEntryPoint();
-  // function test_invalidEntryPoint() public {
-  //
-  // }
-  // // error RebalancerManager__allowExecutor_noAllowChange();
-  // function test_noAllowChange() public {
-  //
-  // }
-  // // error RebalancerManager__zeroAddress();
-  // function test_zeroAddress() public {
-  //
-  // }
+
+  // error RebalancerManager__getFlashloan_flashloanFailed();
+  function test_flashLoanFailed() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT;
+    uint256 debt = 4 * BORROW_AMOUNT;
+
+    //flasher that doesnt give all the amount requested
+    IFlasher greedyFlasher = new GreedyFlasher();
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(greedyFlasher), true);
+    _utils_callWithTimelock(address(chief), executionCall);
+
+    vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_flashloanFailed.selector);
+    rebalancer.rebalanceVault(
+      bvault, assets, debt, mockProviderA, mockProviderB, greedyFlasher, true
+    );
+  }
+
+  // error RebalancerManager__getFlashloan_notEmptyEntryPoint();
+  function test_notEmptyEntryPoint() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT;
+    uint256 debt = 4 * BORROW_AMOUNT;
+
+    IFlasher reentrantHelper = new ReentrantFlasherHelper();
+    IFlasher reentrant = new ReentrantFlasher(reentrantHelper);
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(reentrant), true);
+    _utils_callWithTimelock(address(chief), executionCall);
+
+    vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_notEmptyEntryPoint.selector);
+    rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, reentrant, true);
+  }
+
+  // error RebalancerManager__completeRebalance_invalidEntryPoint();
+  function test_invalidEntryPoint() public {
+    uint256 assets = 4 * DEPOSIT_AMOUNT;
+    uint256 debt = 4 * BORROW_AMOUNT;
+
+    IFlasher maliciousFlasher = new MaliciousFlasher();
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(maliciousFlasher), true);
+    _utils_callWithTimelock(address(chief), executionCall);
+
+    vm.expectRevert(
+      RebalancerManager.RebalancerManager__completeRebalance_invalidEntryPoint.selector
+    );
+    rebalancer.rebalanceVault(
+      bvault, assets, debt, mockProviderA, mockProviderB, maliciousFlasher, true
+    );
+  }
+
+  // error RebalancerManager__allowExecutor_noAllowChange();
+  function testFail_noAllowChange() public {
+    //The TimelockController scheules calls to be made.
+    //When we try to allow the same executor twice, the calls reverts in the TimelockController because the call has already been scheduled
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _utils_callWithTimelock(address(chief), executionCall);
+  }
+
+  // error RebalancerManager__zeroAddress();
+  function testFail_zeroAddress() public {
+    //The error returned is not the one from RebalancerManager. TimelockController has a verification to see if the underlying call failed,
+    //thats the one being returned
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(0), true);
+    _utils_callWithTimelock(address(chief), executionCall);
+  }
 }
