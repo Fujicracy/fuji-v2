@@ -4,6 +4,7 @@ import { SyntheticEvent, useEffect, useState } from "react"
 
 interface Props extends Omit<ImageProps, "src"> {
   token: Token
+  sx?: object
 }
 export default function TokenIcon(props: Props) {
   const path = `/assets/images/protocol-icons/tokens/${props.token.symbol}.svg`
@@ -18,14 +19,27 @@ export default function TokenIcon(props: Props) {
   }, [error, token.symbol, path])
 
   if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything ?
+    return <></> // TODO: Is it fine to fallback to not displaying anything?
   }
   return (
-    <Image
-      {...rest}
-      src={path}
-      alt={`${token.name} icon`}
-      onError={(e) => setError(e)}
-    />
+    <>
+      {props.sx ? (
+        <div style={props.sx}>
+          <Image
+            {...rest}
+            src={path}
+            alt={`${token.name} icon`}
+            onError={(e) => setError(e)}
+          />
+        </div>
+      ) : (
+        <Image
+          {...rest}
+          src={path}
+          alt={`${token.name} icon`}
+          onError={(e) => setError(e)}
+        />
+      )}
+    </>
   )
 }

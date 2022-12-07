@@ -3,6 +3,7 @@ import { SyntheticEvent, useEffect, useState } from "react"
 
 interface Props extends Omit<ImageProps, "src"> {
   networkName: string
+  sx?: object
 }
 export default function NetworkIcon(props: Props) {
   const path = `/assets/images/protocol-icons/networks/${props.networkName}.svg`
@@ -17,14 +18,27 @@ export default function NetworkIcon(props: Props) {
   }, [error, networkName, path])
 
   if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything ?
+    return <></> // TODO: Is it fine to fallback to not displaying anything?
   }
   return (
-    <Image
-      {...rest}
-      src={path}
-      alt={`${networkName} icon`}
-      onError={(e) => setError(e)}
-    />
+    <>
+      {props.sx ? (
+        <div style={props.sx}>
+          <Image
+            {...rest}
+            src={path}
+            alt={`${networkName} icon`}
+            onError={(e) => setError(e)}
+          />
+        </div>
+      ) : (
+        <Image
+          {...rest}
+          src={path}
+          alt={`${networkName} icon`}
+          onError={(e) => setError(e)}
+        />
+      )}
+    </>
   )
 }
