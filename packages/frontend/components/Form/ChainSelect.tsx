@@ -17,8 +17,9 @@ import CheckIcon from "@mui/icons-material/Check"
 import Fade from "@mui/material/Fade"
 
 import { useStore } from "../../store"
-import { chains, Chain } from "../../store/auth.slice"
+import { chains } from "../../store/auth.slice"
 import NetworkIcon from "../NetworkIcon"
+import { chainName } from "../../helpers/chainName"
 
 export default function ChainSelect() {
   const theme = useTheme()
@@ -27,7 +28,7 @@ export default function ChainSelect() {
     state.chain?.id,
     state.changeChain,
   ])
-  const currentChain = chains.find((c) => c.id === chainId) as Chain | null
+  const networkName = chainName(chainId)
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -42,12 +43,12 @@ export default function ChainSelect() {
 
   return (
     <>
-      {currentChain ? (
+      {networkName ? (
         <Chip
           label={
             <Stack direction="row" spacing={1}>
               <ListItem
-                chain={currentChain}
+                chainName={networkName}
                 selected={false}
                 onMobile={onMobile}
               />
@@ -83,8 +84,8 @@ export default function ChainSelect() {
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
             <ListItem
-              chain={chain}
-              selected={currentChain?.id === chain.id}
+              chainName={chainName(chain.id)}
+              selected={chainId === chain.id}
               onMobile={false}
             />
           </MenuItem>
@@ -94,18 +95,18 @@ export default function ChainSelect() {
   )
 }
 
-type ListItemProps = { chain: Chain; selected: boolean; onMobile: boolean }
+type ListItemProps = { chainName: string; selected: boolean; onMobile: boolean }
 
 const ListItem = (props: ListItemProps) => {
-  const { chain, selected, onMobile } = props
+  const { chainName, selected, onMobile } = props
   const { palette } = useTheme()
 
   return (
     <>
       <ListItemIcon sx={{ minWidth: "inherit" }}>
-        <NetworkIcon networkName={`${chain.label}`} height={20} width={20} />
+        <NetworkIcon network={chainName} height={20} width={20} />
       </ListItemIcon>
-      {!onMobile && <ListItemText>{chain.label}</ListItemText>}
+      {!onMobile && <ListItemText>{chainName}</ListItemText>}
 
       {selected && (
         <CheckIcon sx={{ color: palette.primary.main, ml: "2rem" }} />

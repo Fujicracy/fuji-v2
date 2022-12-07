@@ -1,6 +1,5 @@
 import React, { MouseEvent, ReactElement, useState } from "react"
 import {
-  Box,
   Card,
   Fade,
   ListItemIcon,
@@ -13,6 +12,7 @@ import {
   Typography,
   useTheme,
   Theme,
+  ButtonBase,
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
@@ -50,6 +50,8 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   )
   const ltv = useStore((state) => state.position.ltv)
   const ltvMax = useStore((state) => state.position.ltvMax)
+
+  const isBorrowing = useStore((state) => state.isBorrowing)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -95,17 +97,17 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
           type="number"
           placeholder="0"
           value={value}
+          disabled={isBorrowing}
           onChange={(e) => handleInput(e.target.value)}
           variant="standard"
           InputProps={{
             disableUnderline: true,
           }}
         />
-        <Box
+        <ButtonBase
           id={`select-${type}-button`}
+          disabled={isBorrowing}
           onClick={open}
-          display="flex"
-          alignItems="center"
         >
           {token && (
             <TokenItem
@@ -114,7 +116,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
               sx={{ borderRadius: "2rem" }}
             />
           )}
-        </Box>
+        </ButtonBase>
         <Menu
           id={`${type}-token`}
           anchorEl={anchorEl}

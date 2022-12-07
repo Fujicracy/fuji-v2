@@ -16,7 +16,7 @@ export default function CollateralDropdown(props: CollateralDropdownProps) {
       {props.chains.map((chain: Chain) => (
         <MenuItem key={chain.id} value={chain.id}>
           <ListItemIcon>
-            <NetworkIcon networkName={chain.label} height={20} width={20} />
+            <NetworkIcon network={chain.label} height={20} width={20} />
           </ListItemIcon>
           <ListItemText>
             <Typography variant="body">{chain.label}</Typography>
