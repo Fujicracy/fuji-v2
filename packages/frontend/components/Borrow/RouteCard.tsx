@@ -1,5 +1,5 @@
 import { ReactElement } from "react"
-import { Box, Chip, Paper, Typography } from "@mui/material"
+import { Box, Chip, Collapse, Paper, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 import CircleIcon from "@mui/icons-material/Circle"
@@ -115,7 +115,7 @@ export default function RouteCard(props: RouteCardProps) {
           </Box>
         </Stack>
 
-        {props.route.steps.length === 1 && (
+        <Collapse in={!props.selected}>
           <Stack
             direction="row"
             alignItems="center"
@@ -156,12 +156,12 @@ export default function RouteCard(props: RouteCardProps) {
                   width={18}
                 />
                 <Typography m="6px" variant="xsmall">
-                  {props.route.steps[0].label}
+                  {props.route.steps[2].label} {/* TODO: Ask for logic here */}
                 </Typography>
               </Stack>
             </Box>
           </Stack>
-        )}
+        </Collapse>
 
         <Stack direction="row">
           <Box sx={{ textAlign: "right", mr: "0.5rem" }}>
@@ -187,7 +187,7 @@ export default function RouteCard(props: RouteCardProps) {
         </Stack>
       </Stack>
 
-      {props.route.steps.length > 1 && (
+      <Collapse in={props.selected}>
         <Box
           m="0.5rem 2rem 1.5rem 1rem"
           sx={{
@@ -231,7 +231,7 @@ export default function RouteCard(props: RouteCardProps) {
             </Stack>
           </Box>
         </Box>
-      )}
+      </Collapse>
     </Paper>
   )
 }

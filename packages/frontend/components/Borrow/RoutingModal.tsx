@@ -56,9 +56,7 @@ export default function RoutingModal(props: RoutingModalProps) {
         },
       ],
       recommended: true,
-      info: `Collateral deposit ${
-        providers?.length ? providers[0].name : "n/a"
-      }`,
+      info: `Deposited in ${providers?.length ? providers[0].name : "n/a"}`,
     },
     {
       cost: 4.6,
@@ -67,21 +65,21 @@ export default function RoutingModal(props: RoutingModalProps) {
         {
           icon: (
             <NetworkIcon
-              network={chainName(debt.token.chainId)}
+              network={chainName(collateral.token.chainId)}
               height={18}
               width={18}
             />
           ),
-          label: `Bridge to ${chainName(collateral.token.chainId)} via Connext`,
+          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${
+            providers?.length ? providers[0].name : "n/a"
+          }`,
         },
-      ],
-      recommended: false,
-      info: "",
-    },
-    {
-      cost: 11.2,
-      time: 4,
-      steps: [
+        {
+          icon: <TokenIcon token={debt.token} height={18} width={18} />,
+          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${
+            providers?.length ? providers[0].name : "n/a"
+          }`,
+        },
         {
           icon: (
             <NetworkIcon
@@ -94,7 +92,7 @@ export default function RoutingModal(props: RoutingModalProps) {
         },
       ],
       recommended: false,
-      info: "",
+      info: `Deposited in ${providers?.length ? providers[0].name : "n/a"}`,
     },
   ]
 
