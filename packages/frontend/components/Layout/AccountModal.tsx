@@ -1,13 +1,10 @@
 import { SyntheticEvent, useState } from "react"
 import {
   Alert,
-  Box,
   Button,
   Card,
   CardContent,
   CircularProgress,
-  Dialog,
-  DialogContent,
   Grid,
   List,
   ListItem,
@@ -15,10 +12,10 @@ import {
   ListItemText,
   Popover,
   Snackbar,
+  Stack,
   Typography,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
-import CloseIcon from "@mui/icons-material/Close"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CircleIcon from "@mui/icons-material/Circle"
@@ -44,6 +41,7 @@ type AccountModalProps = {
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
   const logout = useStore((state) => state.logout)
+  const walletName = useStore((state) => state.walletName)
   const [showSnackbar, setShowSnackbar] = useState(false)
 
   const historyEntries = useHistory((state) =>
@@ -72,12 +70,13 @@ export default function AccountModal(props: AccountModalProps) {
 
   return (
     <Popover
-      id=""
       open={props.isOpen}
       onClose={() => props.closeAccountModal()}
       anchorEl={props.anchorEl}
       anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-      PaperProps={{ sx: { mt: 2, maxWidth: "400px " } }}
+      PaperProps={{
+        sx: { maxWidth: "340px", background: "transparent" },
+      }}
     >
       <Card
         sx={{
@@ -86,17 +85,18 @@ export default function AccountModal(props: AccountModalProps) {
         }}
       >
         <CardContent sx={{ position: "relative", width: "100%" }}>
-          <Typography variant="xsmall">Connected with MetaMask</Typography>
-          <Button
-            sx={{ position: "absolute", right: "1rem", top: "1rem" }}
-            variant="small"
-            onClick={() => logout()}
-          >
-            Disconnect
-          </Button>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="xsmall">
+              Connected with {walletName}
+            </Typography>
+            <Button variant="small" onClick={logout}>
+              Disconnect
+            </Button>
+          </Stack>
+
           <Grid container alignItems="center">
             <CircleIcon />
-            <Typography variant="h5" ml="0.5rem" mt="0.625rem" mb="0.625rem">
+            <Typography variant="h5" m="0.625rem 0 0.625rem 0.5rem">
               {formattedAddress}
             </Typography>
           </Grid>
@@ -155,42 +155,33 @@ export default function AccountModal(props: AccountModalProps) {
               </a>
             </Grid>
           </Grid>
+          <Grid
+            container
+            justifyContent="space-between"
+            p="1.5rem 1.5rem 0 1.5rem"
+          >
+            <Typography variant="body">Recent Transactions</Typography>
+            <Typography variant="small">clear all</Typography>
+          </Grid>
+          <List>
+            {historyEntries?.length ? (
+              historyEntries.map((e) => (
+                <BorrowEntry
+                  key={e.hash}
+                  entry={e}
+                  onClick={() => openModal(e.hash)}
+                />
+              ))
+            ) : (
+              <ListItem sx={{ p: "0 1.5rem 1rem" }}>
+                <Typography variant="small">
+                  Nothing here... What are you waiting for ?
+                </Typography>
+              </ListItem>
+            )}
+          </List>
         </CardContent>
       </Card>
-      <Box
-        sx={{
-          background: palette.secondary.dark,
-          borderBottomLeftRadius: "1.125rem",
-          borderBottomRightRadius: "1.125rem",
-        }}
-      >
-        <Grid
-          container
-          justifyContent="space-between"
-          p="1.5rem 1.5rem 0 1.5rem"
-        >
-          <Typography variant="body">Recent Transactions</Typography>
-          {/* TODO */}
-          <Typography variant="small">clear all</Typography>
-        </Grid>
-        <List>
-          {historyEntries?.length ? (
-            historyEntries.map((e) => (
-              <BorrowEntry
-                key={e.hash}
-                entry={e}
-                onClick={() => openModal(e.hash)}
-              />
-            ))
-          ) : (
-            <ListItem sx={{ p: "0 1.5rem 1rem" }}>
-              <Typography variant="small">
-                Nothing here... What are you waiting for ?
-              </Typography>
-            </ListItem>
-          )}
-        </List>
-      </Box>
     </Popover>
   )
 }
@@ -215,10 +206,10 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
     ) : (
       <CheckIcon
         sx={{
-          backgroundColor: "rgba(66, 255, 0, 0.1)",
+          background: `${palette.success.main}1A`,
           color: palette.success.dark,
           borderRadius: "100%",
-          padding: "0.25rem",
+          p: "0.25rem",
         }}
       />
     )
