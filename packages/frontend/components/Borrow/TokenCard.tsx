@@ -168,11 +168,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                   +value > balance ? palette.error.dark : palette.text.primary
                 }
               >
-                <Balance
-                  balance={balance}
-                  token={token}
-                  dataCy="balance-amount"
-                />
+                <Balance balance={balance} dataCy="balance-amount" />
               </Typography>
             </div>
           </>
@@ -237,7 +233,7 @@ const TokenItem = (props: TokenItem) => {
       </ListItemText>
       {typeof balance === "number" && (
         <Typography variant="smallDark" ml="3rem">
-          <Balance balance={balance} token={token} />
+          <Balance balance={balance} />
         </Typography>
       )}
       {prepend}

@@ -28,6 +28,7 @@ import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 import { useHistory } from "../../store/history.store"
+import Balance from "../Balance"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
@@ -250,11 +251,8 @@ const BalanceAddress = (props: BalanceAddressProps) => {
 
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
-  const formattedBalance =
-    token === "ETH"
-      ? `${bal.substring(0, 5)} ${token}`
-      : `${bal.substring(0, 4)} ${token}`
 
+  const formattedBalance = <Balance balance={+bal} symbol={token} rounding />
   const pending = active && (
     <Grid container alignItems="center">
       <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
