@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {LibSSTORE2} from "../../libraries/LibSSTORE2.sol";
+import {LibBytes} from "../../libraries/LibBytes.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -20,7 +21,8 @@ contract BorrowingVaultFactory is VaultDeployer {
 
   uint256 public nonce;
 
-  address public creationAddress;
+  address private _creationAddress1;
+  address private _creationAddress2;
 
   constructor(address _chief) VaultDeployer(_chief) {}
 
@@ -44,9 +46,11 @@ contract BorrowingVaultFactory is VaultDeployer {
     bytes32 salt = keccak256(abi.encode(deployData, nonce));
     nonce++;
 
-    bytes memory bytecode = abi.encodePacked(
-      LibSSTORE2.read(creationAddress), abi.encode(asset, debtAsset, oracle, chief, name, symbol)
-    );
+    bytes memory creationCode =
+      LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
+
+    bytes memory bytecode =
+      abi.encodePacked(creationCode, abi.encode(asset, debtAsset, oracle, chief, name, symbol));
 
     assembly {
       vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
@@ -63,6 +67,11 @@ contract BorrowingVaultFactory is VaultDeployer {
    * @param creationCode The creationCode for the vault contract.
    */
   function setContractCode(bytes calldata creationCode) external onlyTimelock {
-    creationAddress = LibSSTORE2.write(creationCode);
+    bytes memory firstHalf = LibBytes.slice(creationCode, 0, 13000);
+    _creationAddress1 = LibSSTORE2.write(firstHalf);
+    if (creationCode.length > 13000) {
+      bytes memory secondHalf = LibBytes.slice(creationCode, 13000, creationCode.length - 13000);
+      _creationAddress2 = LibSSTORE2.write(secondHalf);
+    }
   }
 }
