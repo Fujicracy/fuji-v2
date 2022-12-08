@@ -1,3 +1,4 @@
+import { Box, useTheme } from "@mui/material"
 import { Token } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
@@ -11,6 +12,7 @@ export const getTokenImage = (symbol: string) =>
   `/assets/images/protocol-icons/tokens/${symbol}.svg`
 
 export default function TokenIcon(props: Props) {
+  const { palette } = useTheme()
   const path = getTokenImage(props.token.symbol)
   const { token, ...rest } = props
 
@@ -23,7 +25,16 @@ export default function TokenIcon(props: Props) {
   }, [error, token.symbol, path])
 
   if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything?
+    return (
+      <Box
+        {...rest}
+        {...props.sx}
+        sx={{
+          background: palette.secondary.main,
+          borderRadius: "100%",
+        }}
+      ></Box>
+    )
   }
   return (
     <>

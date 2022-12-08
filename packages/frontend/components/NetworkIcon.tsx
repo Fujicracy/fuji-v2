@@ -1,3 +1,4 @@
+import { Box, useTheme } from "@mui/material"
 import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
@@ -8,6 +9,7 @@ interface Props extends Omit<ImageProps, "src"> {
   sx?: object
 }
 export default function NetworkIcon(props: Props) {
+  const { palette } = useTheme()
   const { network, ...rest } = props
 
   const name = typeof network === "string" ? network : chainName(network)
@@ -22,7 +24,16 @@ export default function NetworkIcon(props: Props) {
   }, [error, network, path, name])
 
   if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything?
+    return (
+      <Box
+        {...rest}
+        {...props.sx}
+        sx={{
+          background: palette.secondary.main,
+          borderRadius: "100%",
+        }}
+      ></Box>
+    )
   }
   return (
     <>
