@@ -1,18 +1,14 @@
-import { ReactElement } from "react"
 import { Box, Chip, Collapse, Paper, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
-import CircleIcon from "@mui/icons-material/Circle"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 
-import { chainName } from "../../helpers/chainName"
 import { useStore } from "../../store"
+import { chainName } from "../../helpers/chainName"
 import NetworkIcon from "../NetworkIcon"
 import TokenIcon from "../TokenIcon"
 
 type Step = {
-  icon: ReactElement
+  icon: React.ReactElement
   label: string
 }
 
@@ -35,31 +31,27 @@ export default function RouteCard(props: RouteCardProps) {
   const collateral = useStore((state) => state.position.collateral)
   const debt = useStore((state) => state.position.debt)
 
+  const bridgeStep = props.route.steps.filter((step) =>
+    step.label.toLowerCase().includes("bridge")
+  )
+
   return (
     <Paper
       sx={{
         border: `2px solid ${
           props.selected ? palette.primary.main : palette.secondary.light
         }`,
-        mt: "1rem",
-        p: "1.5rem",
-        pt: props.route.recommended ? "0" : "",
+        p: `${props.route.recommended ? "0" : "1.5rem"} 1.5rem 0 1.5rem`,
+        marginTop: "1rem",
         cursor: "pointer",
         background: palette.secondary.dark,
       }}
       onClick={props.onChange}
     >
       {props.route.recommended && (
-        <Chip
-          variant="routing"
-          label="Recommended"
-          sx={{
-            background: palette.primary.main,
-            position: "relative",
-            bottom: ".7rem",
-          }}
-        />
+        <Chip variant="recommended" label="Recommended" />
       )}
+
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
           <Chip
@@ -75,23 +67,14 @@ export default function RouteCard(props: RouteCardProps) {
           )}
         </Stack>
 
-        <Stack direction="row" gap="0.5rem">
-          {props.selected ? (
-            <Chip
-              variant="routing"
-              label="Selected"
-              sx={{
-                color: palette.primary.main,
-                border: `1px solid ${palette.primary.main}`,
-              }}
-            />
-          ) : (
-            <Chip variant="routing" label="Click To Select" />
-          )}
-        </Stack>
+        <Chip
+          variant={props.selected ? "selected" : "routing"}
+          label={props.selected ? "Selected" : "Click To Select"}
+        />
       </Stack>
+
       <Stack mt="1rem" direction="row" justifyContent="space-between">
-        <Stack direction="row" alignItems="center">
+        <Stack direction="row">
           <TokenIcon token={collateral.token} height={32} width={32} />
           <NetworkIcon
             network={chainName(collateral.token.chainId)}
@@ -100,7 +83,11 @@ export default function RouteCard(props: RouteCardProps) {
             sx={{
               position: "relative",
               right: "0.75rem",
-              top: "0.8rem",
+              top: "1.5rem",
+              border: "0.5px solid white",
+              borderRadius: "100%",
+              height: "17px",
+              width: "17px",
             }}
           />
 
@@ -115,56 +102,8 @@ export default function RouteCard(props: RouteCardProps) {
           </Box>
         </Stack>
 
-        <Collapse in={!props.selected}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="center"
-            sx={{
-              width: "24.5rem",
-              position: "relative",
-              top: "1.25rem",
-              borderTop: `1px dashed ${palette.info.main}`,
-            }}
-          >
-            <CircleIcon
-              sx={{
-                fontSize: "0.5rem",
-                position: "absolute",
-                right: "24.5rem",
-                bottom: "2.55rem",
-              }}
-            />
-            <KeyboardArrowRightIcon
-              sx={{
-                fontSize: "1.2rem",
-                position: "absolute",
-                left: "24rem",
-                bottom: "2.22rem",
-              }}
-            />
-            <Box
-              sx={{
-                position: "relative",
-                bottom: "0.5rem",
-              }}
-            >
-              <Stack direction="column">
-                <NetworkIcon
-                  network={chainName(debt.token.chainId)}
-                  height={18}
-                  width={18}
-                />
-                <Typography m="6px" variant="xsmall">
-                  {props.route.steps[2].label} {/* TODO: Ask for logic here */}
-                </Typography>
-              </Stack>
-            </Box>
-          </Stack>
-        </Collapse>
-
         <Stack direction="row">
-          <Box sx={{ textAlign: "right", mr: "0.5rem" }}>
+          <Box sx={{ textAlign: "right", mr: "0.75rem" }}>
             <Typography variant="body">
               {debt.amount} {debt.token.symbol}
             </Typography>
@@ -173,6 +112,7 @@ export default function RouteCard(props: RouteCardProps) {
               on {chainName(debt.token.chainId)}
             </Typography>
           </Box>
+
           <TokenIcon token={debt.token} height={32} width={32} />
           <NetworkIcon
             network={chainName(debt.token.chainId)}
@@ -182,48 +122,95 @@ export default function RouteCard(props: RouteCardProps) {
               position: "relative",
               right: "0.75rem",
               top: "1.5rem",
+              border: "0.5px solid white",
+              borderRadius: "100%",
+              height: "17px",
+              width: "17px",
             }}
           />
         </Stack>
       </Stack>
 
-      <Collapse in={props.selected}>
-        <Box
-          m="0.5rem 2rem 1.5rem 1rem"
-          sx={{
-            position: "relative",
-            height: "2.5rem",
-            border: `1px dashed ${palette.info.main}`,
-            borderTop: 0,
-          }}
-        >
-          <CircleIcon
-            sx={{
-              fontSize: "0.5rem",
-              position: "absolute",
-              left: "-.28rem",
-              bottom: "2rem",
-            }}
-          />
-          <KeyboardArrowUpIcon
-            sx={{
-              fontSize: "1.2rem",
-              position: "absolute",
-              right: "-.64rem",
-              bottom: "1.7rem",
-            }}
-          />
+      {!props.selected && (
+        <Collapse sx={{ maxHeight: "2.5rem" }} in={!props.selected}>
           <Box
             sx={{
               position: "relative",
-              top: "2rem",
+              width: "50%",
+              bottom: "1.8rem",
+              left: "25%",
+              backgroundImage: 'url("./assets/images/utils/single-route.svg")',
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "contain",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                bottom: ".3rem",
+              }}
+            >
+              {bridgeStep.length > 0 ? (
+                <Stack direction="column" alignItems="center">
+                  <>
+                    {bridgeStep[0].icon}
+                    <Typography
+                      m="0.375rem"
+                      variant="xsmall"
+                      align="center"
+                      sx={{ maxWidth: "9rem" }}
+                    >
+                      {bridgeStep[0].label}
+                    </Typography>
+                  </>
+                </Stack>
+              ) : (
+                <Stack direction="row" justifyContent="space-around">
+                  {props.route.steps.map((step, i) => (
+                    <Stack key={i} direction="column">
+                      {step.icon}
+                      <Typography
+                        m="0.375rem"
+                        align="center"
+                        variant="xsmall"
+                        sx={{ maxWidth: "6.5rem" }}
+                      >
+                        {step.label}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          </Box>
+        </Collapse>
+      )}
+
+      <Collapse in={props.selected}>
+        <Box
+          m="0.5rem 1.7rem 1.5rem 0.8rem"
+          sx={{
+            backgroundImage: "url('./assets/images/utils/multiple-routes.svg')",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "contain",
+          }}
+        >
+          <Box
+            sx={{
+              position: "relative",
+              top: "1.3rem",
             }}
           >
             <Stack direction="row" justifyContent="space-around">
               {props.route.steps.map((step, i) => (
                 <Stack key={i} direction="column">
                   {step.icon}
-                  <Typography m="6px" variant="xsmall">
+                  <Typography
+                    m="0.375rem"
+                    align="center"
+                    variant="xsmall"
+                    sx={{ maxWidth: "6.5rem" }}
+                  >
                     {step.label}
                   </Typography>
                 </Stack>
