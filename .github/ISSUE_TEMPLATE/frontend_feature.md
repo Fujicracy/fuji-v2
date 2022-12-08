@@ -1,6 +1,6 @@
 ---
 name: "Feature frontend"
-about: ""
+about: "Wesh le sang"
 title: "{scope}: {feature}"
 labels: "Front End"
 assignees: "yome"
