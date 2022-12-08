@@ -233,7 +233,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     return c;
   }
 
-  function test_deposit(uint256 amount) public {
+  function test_deposit(uint128 amount) public {
     _utils_doDeposit(amount, vault, alice);
     assertEq(vault.balanceOf(alice), amount);
   }
@@ -300,7 +300,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _utils_callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
-  function test_tryLessThanMinDeposit(uint256 min, uint256 amount) public {
+  function test_tryLessThanMinDeposit(uint128 min, uint128 amount) public {
     vm.assume(amount < min);
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
