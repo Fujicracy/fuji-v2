@@ -153,12 +153,6 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     // Two deposits are reverting because of overflow in maxMin function
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
-
-    // address cTokenAddr = compoundV2.getMapper().getAddressMapping(
-    //   compoundV2.providerName(),
-    //   address(weth));
-    // ICToken cToken = ICToken(cTokenAddr);
-
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
@@ -168,7 +162,6 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     // Two deposits are reverting because of overflow in maxMin function
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
-
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }

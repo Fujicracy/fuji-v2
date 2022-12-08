@@ -1,7 +1,7 @@
 import { BorrowingVault, LendingProviderDetails, Token } from "@x-fuji/sdk"
 
 // reprensent an open position on fuji
-export interface Position {
+export class Position {
   vault?: BorrowingVault // Contain chainId
 
   collateral: {
