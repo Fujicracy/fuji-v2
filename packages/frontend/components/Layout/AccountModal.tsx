@@ -13,6 +13,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Popover,
   Snackbar,
   Typography,
 } from "@mui/material"
@@ -35,6 +36,7 @@ import { chainName } from "../../helpers/chainName"
 
 type AccountModalProps = {
   isOpen: boolean
+  anchorEl: HTMLElement
   address: string
   closeAccountModal: () => void
 }
@@ -69,109 +71,92 @@ export default function AccountModal(props: AccountModalProps) {
   }
 
   return (
-    <Dialog
-      onClose={() => props.closeAccountModal()}
+    <Popover
+      id=""
       open={props.isOpen}
-      maxWidth="xs"
+      onClose={() => props.closeAccountModal()}
+      anchorEl={props.anchorEl}
+      anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+      PaperProps={{ sx: { mt: 2, maxWidth: "400px " } }}
     >
-      <DialogContent
+      <Card
         sx={{
-          p: "1.5rem",
-          background: palette.secondary.contrastText,
-          borderTopLeftRadius: "1.125rem",
-          borderTopRightRadius: "1.125rem",
           border: `1px solid ${palette.secondary.light}`,
-          borderBottom: "none",
+          mt: "1.5rem",
         }}
       >
-        <CloseIcon
-          sx={{
-            cursor: "pointer",
-            position: "absolute",
-            right: "2rem",
-          }}
-          onClick={props.closeAccountModal}
-        />
-        <Typography variant="body2">Account</Typography>
-        <Card
-          sx={{
-            border: `1px solid ${palette.secondary.light}`,
-            mt: "1.5rem",
-          }}
-        >
-          <CardContent sx={{ position: "relative", width: "100%" }}>
-            <Typography variant="xsmall">Connected with MetaMask</Typography>
-            <Button
-              sx={{ position: "absolute", right: "1rem", top: "1rem" }}
-              variant="small"
-              onClick={() => logout()}
-            >
-              Disconnect
-            </Button>
-            <Grid container alignItems="center">
-              <CircleIcon />
-              <Typography variant="h5" ml="0.5rem" mt="0.625rem" mb="0.625rem">
-                {formattedAddress}
-              </Typography>
-            </Grid>
+        <CardContent sx={{ position: "relative", width: "100%" }}>
+          <Typography variant="xsmall">Connected with MetaMask</Typography>
+          <Button
+            sx={{ position: "absolute", right: "1rem", top: "1rem" }}
+            variant="small"
+            onClick={() => logout()}
+          >
+            Disconnect
+          </Button>
+          <Grid container alignItems="center">
+            <CircleIcon />
+            <Typography variant="h5" ml="0.5rem" mt="0.625rem" mb="0.625rem">
+              {formattedAddress}
+            </Typography>
+          </Grid>
 
-            <Grid container alignItems="center">
-              <Grid item>
-                <Grid
-                  container
-                  alignItems="center"
-                  sx={{ cursor: "pointer" }}
-                  onClick={copy}
+          <Grid container alignItems="center">
+            <Grid item>
+              <Grid
+                container
+                alignItems="center"
+                sx={{ cursor: "pointer" }}
+                onClick={copy}
+              >
+                <ContentCopyIcon
+                  fontSize="small"
+                  sx={{ color: palette.primary.main, mr: "0.438rem" }}
+                />
+                <Typography variant="small" color={palette.primary.main}>
+                  Copy Address
+                </Typography>
+                <Snackbar
+                  open={showSnackbar}
+                  autoHideDuration={2000}
+                  onClose={handleClose}
                 >
-                  <ContentCopyIcon
-                    fontSize="small"
-                    sx={{ color: palette.primary.main, mr: "0.438rem" }}
-                  />
-                  <Typography variant="small" color={palette.primary.main}>
-                    Copy Address
-                  </Typography>
-                  <Snackbar
-                    open={showSnackbar}
-                    autoHideDuration={2000}
+                  <Alert
                     onClose={handleClose}
+                    severity="success"
+                    sx={{ color: palette.success.main }}
                   >
-                    <Alert
-                      onClose={handleClose}
-                      severity="success"
-                      sx={{ color: palette.success.main }}
-                    >
-                      Address copied!
-                    </Alert>
-                  </Snackbar>
-                </Grid>
-              </Grid>
-              <Grid item>
-                <a
-                  href={"https://etherscan.io/address/" + props.address} // TODO: This link only work on mainnet. Make it work with any scanner
-                  target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
-                  rel="noreferrer"
-                >
-                  <Grid container alignItems="center">
-                    <>
-                      <LaunchIcon
-                        fontSize="small"
-                        sx={{
-                          color: palette.info.dark,
-                          ml: "1.188rem",
-                          mr: "0.438rem",
-                        }}
-                      />
-                      <Typography variant="small" color={palette.info.dark}>
-                        View on Explorer
-                      </Typography>
-                    </>
-                  </Grid>
-                </a>
+                    Address copied!
+                  </Alert>
+                </Snackbar>
               </Grid>
             </Grid>
-          </CardContent>
-        </Card>
-      </DialogContent>
+            <Grid item>
+              <a
+                href={"https://etherscan.io/address/" + props.address} // TODO: This link only work on mainnet. Make it work with any scanner
+                target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                rel="noreferrer"
+              >
+                <Grid container alignItems="center">
+                  <>
+                    <LaunchIcon
+                      fontSize="small"
+                      sx={{
+                        color: palette.info.dark,
+                        ml: "1.188rem",
+                        mr: "0.438rem",
+                      }}
+                    />
+                    <Typography variant="small" color={palette.info.dark}>
+                      View on Explorer
+                    </Typography>
+                  </>
+                </Grid>
+              </a>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
       <Box
         sx={{
           background: palette.secondary.dark,
@@ -206,7 +191,7 @@ export default function AccountModal(props: AccountModalProps) {
           )}
         </List>
       </Box>
-    </Dialog>
+    </Popover>
   )
 }
 
