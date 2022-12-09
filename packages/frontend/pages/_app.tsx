@@ -6,6 +6,7 @@ import { ThemeProvider } from "@mui/material"
 
 import { theme } from "../styles/theme"
 import { useStore } from "../store"
+import { Notifications } from "../components/Notifications"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const init = useStore((state) => state.init)
@@ -21,6 +22,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ThemeProvider theme={theme}>
       <div className="backdrop"></div>
       <Component {...pageProps} />
+      <Notifications />
     </ThemeProvider>
   )
 }

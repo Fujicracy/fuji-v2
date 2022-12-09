@@ -535,7 +535,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const s = await signer._signTypedData(domain, types, value)
       signature = ethers.utils.splitSignature(s)
     } catch (e) {
-      console.debug(permitAction)
+      set({ isSigning: false })
       throw e
     }
 
@@ -589,10 +589,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         steps: toHistoryRoutingStep(get().transactionMeta.steps),
         status: "ongoing",
       })
+      get().changeCollateralValue("")
+      get().changeBorrowValue("")
     } catch (e) {
       console.error(e)
     }
-    get().changeCollateralValue("")
-    get().changeBorrowValue("")
   },
 })
