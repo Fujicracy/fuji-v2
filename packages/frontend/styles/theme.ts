@@ -38,6 +38,7 @@ declare module "@mui/material/Typography" {
     smallDark: true
     xsmall: true
     xsmallDark: true
+    xsmallLink: true
     label: true
     regularH4: true
   }
@@ -176,6 +177,12 @@ const theme = createTheme(colorTheme, {
       fontSize: "0.75rem",
       lineHeight: "160%",
       color: colorTheme.palette.info.dark,
+    },
+    xsmallLink: {
+      fontWeight: 400,
+      fontSize: "0.75rem",
+      cursor: "pointer",
+      ":hover": { color: colorTheme.palette.primary.main },
     },
     label: {
       fontWeight: 700,
