@@ -142,7 +142,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
             flexWrap="nowrap"
           >
             {extra && <DropletIcon />}
-            {row.borrowABR.toFixed(2)}%
+            {row.borrowAPR.toFixed(2)}%
           </Stack>
         </TableCell>
         <TableCell align="right">
