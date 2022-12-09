@@ -5,8 +5,12 @@ import { SyntheticEvent, useEffect, useState } from "react"
 interface Props extends Omit<ImageProps, "src"> {
   token: Token
 }
+
+export const getTokenImage = (symbol: string) =>
+  `/assets/images/protocol-icons/tokens/${symbol}.svg`
+
 export default function TokenIcon(props: Props) {
-  const path = `/assets/images/protocol-icons/tokens/${props.token.symbol}.svg`
+  const path = getTokenImage(props.token.symbol)
   const { token, ...rest } = props
 
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()

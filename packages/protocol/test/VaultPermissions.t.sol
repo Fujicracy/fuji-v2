@@ -14,6 +14,7 @@ import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {Chief} from "../src/Chief.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
+import {VaultPermissions} from "../src/vaults/VaultPermissions.sol";
 
 contract VaultPermissionsUnitTests is Routines, CoreRoles {
   BorrowingVault public vault;
@@ -33,9 +34,7 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
   uint256 receiverPKey = 0xC;
   address receiver = vm.addr(receiverPKey);
 
-  uint256 public depositAmount = 10 * 1e18;
-  uint256 public withdrawDelegated = 3 * 1e18;
-  uint256 public borrowDelegated = 200 * 1e6;
+  uint256 public BORROW_LIMIT = 500 * 1e18;
 
   // WETH and DAI prices: 2000 DAI/WETH
   uint256 public constant TEST_USD_PER_ETH_PRICE = 2000e18;
@@ -112,45 +111,136 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault_.setActiveProvider(mockProvider);
   }
 
-  function _utils_doDeposit(uint256 amount, BorrowingVault v) internal {
-    deal(address(asset), owner, amount);
+  function test_increaseWithdrawAllowance(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), 0);
+
+    vm.prank(owner);
+    vault.increaseWithdrawAllowance(operator, receiver, amount);
+
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), amount);
+  }
+
+  function test_decreaseWithdrawAllowance(uint256 decreaseAmount_) public {
+    vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
+
+    uint256 difference = 1 ether - decreaseAmount_;
 
     vm.startPrank(owner);
-    SafeERC20.safeApprove(asset, address(v), amount);
-    v.deposit(amount, owner);
+    vault.increaseWithdrawAllowance(operator, receiver, 1 ether);
+    vault.decreaseWithdrawAllowance(operator, receiver, decreaseAmount_);
     vm.stopPrank();
+
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), difference);
   }
 
-  function testFail_operatorTriesWithdraw() public {
-    do_deposit(depositAmount, vault, owner);
+  function test_increaseBorrowAllowance(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.borrowAllowance(owner, operator, receiver), 0);
+
+    vm.prank(owner);
+    vault.increaseBorrowAllowance(operator, receiver, amount);
+
+    assertEq(vault.borrowAllowance(owner, operator, receiver), amount);
+  }
+
+  function test_decreaseBorrowAllowance(uint256 decreaseAmount_) public {
+    vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
+
+    uint256 difference = 1 ether - decreaseAmount_;
+
+    vm.startPrank(owner);
+    vault.increaseBorrowAllowance(operator, receiver, 1 ether);
+    vault.decreaseBorrowAllowance(operator, receiver, decreaseAmount_);
+
+    assertEq(vault.borrowAllowance(owner, operator, receiver), difference);
+  }
+
+  function test_checkAllowanceSetViaERC4626Approve(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.allowance(owner, receiver), 0);
+
+    vm.prank(owner);
+    // BaseVault should override ERC20-approve function and assign `operator` and `receiver` as
+    // the same address when calling an "approve".
+    vault.approve(receiver, amount);
+
+    assertEq(vault.allowance(owner, receiver), amount);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), amount);
+  }
+
+  function test_checkAllowanceIncreaseViaERC4626IncreaseAllowance(uint256 amount) public {
+    vm.assume(amount > 0);
+
+    assertEq(vault.allowance(owner, receiver), 0);
+
+    vm.prank(owner);
+    // BaseVault should override ERC20-approve function and assign `operator` and `receiver` as
+    // the same address when calling an "approve".
+    vault.increaseAllowance(receiver, amount);
+
+    assertEq(vault.allowance(owner, receiver), amount);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), amount);
+  }
+
+  function test_checkAllowanceDecreaseViaERC4626DecreaseAllowance(uint256 decreaseAmount_) public {
+    vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
+
+    uint256 difference = 1 ether - decreaseAmount_;
+    vm.startPrank(owner);
+    vault.approve(receiver, 1 ether);
+    vault.decreaseAllowance(receiver, decreaseAmount_);
+
+    assertEq(vault.allowance(owner, receiver), difference);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), difference);
+  }
+
+  function testFail_operatorTriesWithdraw(
+    uint256 depositAmount_,
+    uint256 withdrawDelegated_
+  )
+    public
+  {
+    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(operator);
-    vault.withdraw(withdrawDelegated, receiver, owner);
+    vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function testFail_receiverTriesWithdraw() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_receiverTriesWithdraw(
+    uint256 depositAmount_,
+    uint256 withdrawDelegated_
+  )
+    public
+  {
+    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(receiver);
-    vault.withdraw(withdrawDelegated, receiver, owner);
+    vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function test_withdrawWithPermit() public {
-    do_deposit(depositAmount, vault, owner);
+  function test_withdrawWithPermit(uint256 depositAmount_, uint256 withdrawDelegated_) public {
+    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    do_deposit(depositAmount_, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
       owner: owner,
       operator: operator,
       receiver: receiver,
-      amount: withdrawDelegated,
+      amount: withdrawDelegated_,
       nonce: vault.nonces(owner),
       deadline: block.timestamp + 1 days
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
-      LibSigUtils.getStructHashAsset(permit)
+      LibSigUtils.getStructHashWithdraw(permit)
     );
 
     // This message signing is supposed to be off-chain
@@ -158,37 +248,40 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vm.prank(operator);
     vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated);
+    assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated_);
 
     vm.prank(operator);
-    vault.withdraw(withdrawDelegated, receiver, owner);
+    vault.withdraw(withdrawDelegated_, receiver, owner);
 
-    assertEq(asset.balanceOf(receiver), withdrawDelegated);
+    assertEq(asset.balanceOf(receiver), withdrawDelegated_);
   }
 
-  function testFail_operatorTriesBorrow() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_operatorTriesBorrow(uint256 depositAmount_, uint256 borrowDelegated_) public {
+    vm.assume(depositAmount_ > 0 && borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(operator);
-    vault.borrow(borrowDelegated, receiver, owner);
+    vault.borrow(borrowDelegated_, receiver, owner);
   }
 
-  function testFail_receiverTriesBorrow() public {
-    do_deposit(depositAmount, vault, owner);
+  function testFail_receiverTriesBorrow(uint256 depositAmount_, uint256 borrowDelegated_) public {
+    vm.assume(depositAmount_ > 0 && borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    do_deposit(depositAmount_, vault, owner);
 
     vm.prank(receiver);
-    vault.borrow(borrowDelegated, receiver, owner);
+    vault.borrow(borrowDelegated_, receiver, owner);
   }
 
-  function test_borrowWithPermit() public {
-    do_deposit(depositAmount, vault, owner);
+  function test_borrowWithPermit(uint256 borrowDelegated_) public {
+    vm.assume(borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    do_deposit(10 ether, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
       owner: owner,
       operator: operator,
       receiver: receiver,
-      amount: borrowDelegated,
+      amount: borrowDelegated_,
       nonce: vault.nonces(owner),
       deadline: block.timestamp + 1 days
     });
@@ -204,11 +297,269 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vm.prank(operator);
     vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
 
-    assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated);
+    assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated_);
 
     vm.prank(operator);
-    vault.borrow(borrowDelegated, receiver, owner);
+    vault.borrow(borrowDelegated_, receiver, owner);
 
-    assertEq(debtAsset.balanceOf(receiver), borrowDelegated);
+    assertEq(debtAsset.balanceOf(receiver), borrowDelegated_);
+  }
+
+  function test_errorZeroAddress() public {
+    vm.startPrank(owner);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__zeroAddress.selector);
+    vault.increaseWithdrawAllowance(address(0), receiver, 1 ether);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__zeroAddress.selector);
+    vault.increaseWithdrawAllowance(operator, address(0), 1 ether);
+
+    vault.increaseWithdrawAllowance(operator, receiver, 1 ether);
+
+    vm.expectRevert();
+    vault.decreaseWithdrawAllowance(address(0), receiver, 1 ether);
+
+    vm.expectRevert();
+    vault.decreaseWithdrawAllowance(operator, address(0), 1 ether);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__zeroAddress.selector);
+    vault.increaseBorrowAllowance(address(0), receiver, 1 ether);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__zeroAddress.selector);
+    vault.increaseBorrowAllowance(operator, address(0), 1 ether);
+
+    vault.increaseBorrowAllowance(operator, receiver, 1 ether);
+
+    vm.expectRevert();
+    vault.decreaseBorrowAllowance(address(0), receiver, 1 ether);
+
+    vm.expectRevert();
+    vault.decreaseBorrowAllowance(operator, address(0), 1 ether);
+
+    vm.stopPrank();
+  }
+
+  function test_errorAllowanceBelowZero() public {
+    vm.startPrank(owner);
+
+    vault.increaseWithdrawAllowance(operator, receiver, 1 ether);
+    vm.expectRevert(VaultPermissions.VaultPermissions__allowanceBelowZero.selector);
+    vault.decreaseWithdrawAllowance(operator, receiver, 1 ether + 1);
+
+    vault.increaseBorrowAllowance(operator, receiver, 1 ether);
+    vm.expectRevert(VaultPermissions.VaultPermissions__allowanceBelowZero.selector);
+    vault.decreaseBorrowAllowance(operator, receiver, 1 ether + 1);
+
+    vm.stopPrank();
+  }
+
+  function test_errorInsufficientWithdrawAllowance() public {
+    do_deposit(2 ether, vault, owner);
+
+    vm.prank(owner);
+    vault.increaseWithdrawAllowance(operator, receiver, 1 ether);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__insufficientWithdrawAllowance.selector);
+    vm.prank(operator);
+    vault.withdraw(1 ether + 1, receiver, owner);
+  }
+
+  function test_errorInsufficientBorrowAllowance() public {
+    do_deposit(2 ether, vault, owner);
+
+    vm.prank(owner);
+    vault.increaseBorrowAllowance(operator, receiver, BORROW_LIMIT);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__insufficientBorrowAllowance.selector);
+    vm.prank(operator);
+    vault.borrow(BORROW_LIMIT + 1, receiver, owner);
+  }
+
+  function test_errorExpiredDeadlineWithdrawPermit() public {
+    do_deposit(1 ether, vault, owner);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
+      owner: owner,
+      operator: operator,
+      receiver: receiver,
+      amount: 1 ether,
+      nonce: vault.nonces(owner),
+      deadline: block.timestamp + 1 days
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
+      LibSigUtils.getStructHashWithdraw(permit)
+    );
+
+    // This message signing is supposed to be off-chain
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+
+    // warp to a timestamp that is expired
+    uint256 expiredDeadlineTimestamp = block.timestamp + 1 days + 1;
+    vm.warp(expiredDeadlineTimestamp);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__expiredDeadline.selector);
+    vm.prank(operator);
+    vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
+  }
+
+  function test_errorExpiredDeadlineBorrowPermit() public {
+    do_deposit(1 ether, vault, owner);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
+      owner: owner,
+      operator: operator,
+      receiver: receiver,
+      amount: BORROW_LIMIT,
+      nonce: vault.nonces(owner),
+      deadline: block.timestamp + 1 days
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
+      LibSigUtils.getStructHashBorrow(permit)
+    );
+
+    // This message signing is supposed to be off-chain
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+
+    // warp to a timestamp that is expired
+    uint256 expiredDeadlineTimestamp = block.timestamp + 1 days + 1;
+    vm.warp(expiredDeadlineTimestamp);
+
+    vm.expectRevert(VaultPermissions.VaultPermissions__expiredDeadline.selector);
+    vm.prank(operator);
+    vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
+  }
+
+  function test_errorVaultPermissions__invalidSignatureWithdrawPermit() public {
+    do_deposit(1 ether, vault, owner);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
+      owner: owner,
+      operator: operator,
+      receiver: receiver,
+      amount: 1 ether,
+      nonce: vault.nonces(owner),
+      deadline: block.timestamp + 1 days
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
+      LibSigUtils.getStructHashWithdraw(permit)
+    );
+
+    // This message signing is supposed to be off-chain
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+
+    LibSigUtils.Permit memory wrongPermit = permit;
+
+    // Change owner
+    wrongPermit.owner = receiver;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitWithdraw(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change operator
+    wrongPermit.operator = receiver;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitWithdraw(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change receiver
+    wrongPermit.receiver = operator;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitWithdraw(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change amount
+    wrongPermit.amount = 1 ether + 1;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitWithdraw(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change deadline
+    wrongPermit.deadline = block.timestamp + 1 days + 1;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitWithdraw(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+  }
+
+  function test_errorVaultPermissions__invalidSignatureBorrowPermit() public {
+    do_deposit(1 ether, vault, owner);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
+      owner: owner,
+      operator: operator,
+      receiver: receiver,
+      amount: 1 ether,
+      nonce: vault.nonces(owner),
+      deadline: block.timestamp + 1 days
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      vault.DOMAIN_SEPARATOR(), // This domain should be obtained from the chain on which state will change.
+      LibSigUtils.getStructHashBorrow(permit)
+    );
+
+    // This message signing is supposed to be off-chain
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
+
+    LibSigUtils.Permit memory wrongPermit = permit;
+
+    // Change owner
+    wrongPermit.owner = receiver;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitBorrow(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change operator
+    wrongPermit.operator = receiver;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitBorrow(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change receiver
+    wrongPermit.receiver = operator;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitBorrow(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change amount
+    wrongPermit.amount = 1 ether + 1;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitBorrow(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
+
+    // Change deadline
+    wrongPermit.deadline = block.timestamp + 1 days + 1;
+    vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
+    vm.prank(operator);
+    vault.permitBorrow(
+      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+    );
   }
 }

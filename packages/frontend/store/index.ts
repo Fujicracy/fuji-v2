@@ -1,7 +1,7 @@
 import create from "zustand"
 import { createAuthSlice, AuthStore } from "./auth.slice"
 import { createTransactionSlice, TransactionStore } from "./transaction.slice"
-// import { devtools } from "zustand/middleware"
+import { devtools } from "zustand/middleware"
 
 export const useStore = create<AuthStore & TransactionStore>()(
   // devtools(
@@ -12,5 +12,5 @@ export const useStore = create<AuthStore & TransactionStore>()(
   // {
   // enabled: process.env.NODE_ENV === "development",
   // }
+  // )
 )
-// )
