@@ -1,6 +1,5 @@
 import {
   Address,
-  ChainConnection,
   ChainId,
   RoutingStep,
   RoutingStepDetails,
@@ -10,10 +9,10 @@ import produce from "immer"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { useStore } from "."
-import { sdk, sdkInitOptions } from "./auth.slice"
+import { sdk } from "./auth.slice"
 import ethers from "ethers"
-
-import { Position } from "./Position"
+import { useSnack } from "./notification.store"
+import { formatUnits } from "ethers/lib/utils"
 
 export type HistoryStore = HistoryState & HistoryActions
 
@@ -23,7 +22,6 @@ type HistoryState = {
   byHash: Record<string, HistoryEntry>
 
   inModal?: string // The tx hash displayed in modal
-  inNotification?: string
 }
 
 /**
@@ -98,8 +96,6 @@ type HistoryActions = {
 
   openModal: (hash: string) => void
   closeModal: () => void
-
-  closeNotification: () => void
 }
 
 const initialState: HistoryState = {
@@ -113,8 +109,6 @@ export const useHistory = create<HistoryStore>()(
     devtools(
       (set, get) => ({
         ...initialState,
-
-        // TODO: onboot / start, should we rewatch for all active tx ?
 
         // Add active transaction
         async add(e) {
@@ -191,11 +185,24 @@ export const useHistory = create<HistoryStore>()(
               // TODO: can we have error ? if yes mark the tx as failed. Design ? Retry ?
             }
           }
-          get().update(hash, { status: "done" })
-          set({
-            activeHash: get().activeHash.filter((h) => h !== hash),
-            inNotification: hash,
+
+          const { steps } = get().byHash[hash]
+          const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
+          const dAmount = d && formatUnits(d.amount, d.token.decimals)
+          const b = steps.find((s) => s.step === RoutingStep.BORROW)
+          const bAmount = b && formatUnits(b.amount, b.token.decimals)
+          useSnack.getState().display({
+            icon: "success",
+            title: `Deposit ${dAmount} ${d?.token.symbol} and borrow ${bAmount} ${b?.token.symbol}`,
+            transactionLink: {
+              hash: b?.txHash,
+              chainId: b?.chainId,
+            },
           })
+
+          get().update(hash, { status: "done" })
+          const activeHash = get().activeHash.filter((h) => h !== hash)
+          set({ activeHash })
         },
 
         update(hash, patch) {
@@ -219,18 +226,7 @@ export const useHistory = create<HistoryStore>()(
         },
 
         closeModal() {
-          const inModal = get().inModal
-          if (!inModal) {
-            return
-          }
-          if (get().byHash[inModal].status === "ongoing") {
-            set({ inNotification: inModal })
-          }
           set({ inModal: "" })
-        },
-
-        closeNotification() {
-          set({ inNotification: "" })
         },
       }),
       {
@@ -256,5 +252,3 @@ export const useHistory = create<HistoryStore>()(
     }
   )
 )
-
-console.log("watch: ", useHistory.getState().watch)
