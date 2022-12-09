@@ -17,7 +17,7 @@ import {IEulerDToken} from "../../../src/interfaces/euler/IEulerDToken.sol";
 import {IFlashloan} from "../../../src/interfaces/euler/IFlashloan.sol";
 import {IEulerMarkets} from "../../../src/interfaces/euler/IEulerMarkets.sol";
 
-contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
+contract FlasherEulerForkingTest is Routines, ForkingSetup, IFlashloan {
   ILendingProvider public providerAave;
   ILendingProvider public providerCompound;
 

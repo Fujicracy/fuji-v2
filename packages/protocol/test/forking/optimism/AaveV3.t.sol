@@ -8,7 +8,7 @@ import {AaveV3Optimism} from "../../../src/providers/optimism/AaveV3Optimism.sol
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 
-contract AaveV3OptimismTest is Routines, ForkingSetup {
+contract AaveV3OptimismForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -60,5 +60,10 @@ contract AaveV3OptimismTest is Routines, ForkingSetup {
 
     uint256 borrowRate = aaveV3.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

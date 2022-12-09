@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {MorphoCompound} from "../../../src/providers/mainnet/MorphoCompound.sol";
 
-contract MorphoCompoundTest is Routines, ForkingSetup {
+contract MorphoCompoundForkingTest is Routines, ForkingSetup {
   ILendingProvider public morphoCompound;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -65,5 +65,10 @@ contract MorphoCompoundTest is Routines, ForkingSetup {
 
     uint256 borrowRate = morphoCompound.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

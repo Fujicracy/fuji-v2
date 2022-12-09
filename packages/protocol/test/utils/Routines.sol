@@ -28,7 +28,7 @@ contract Routines is Test {
     v.deposit(amount, from);
     vm.stopPrank();
 
-    assertEq(v.balanceOf(from), amount);
+    assertGe(v.balanceOf(from), amount);
   }
 
   function do_withdraw(uint256 amount, IVault v, address from) internal {

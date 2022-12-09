@@ -9,7 +9,7 @@ import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 
-contract CompoundV3Test is Routines, ForkingSetup {
+contract CompoundV3ForkingTest is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -91,5 +91,10 @@ contract CompoundV3Test is Routines, ForkingSetup {
     );
 
     compoundV3.getDepositRateFor(v);
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

@@ -7,7 +7,7 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {CompoundV2} from "../../../src/providers/mainnet/CompoundV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 
-contract CompoundV2Test is Routines, ForkingSetup {
+contract CompoundV2ForkingTest is Routines, ForkingSetup {
   ILendingProvider public compoundV2;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -40,5 +40,10 @@ contract CompoundV2Test is Routines, ForkingSetup {
 
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

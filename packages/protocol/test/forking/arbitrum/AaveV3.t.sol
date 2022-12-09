@@ -8,7 +8,7 @@ import {AaveV3Arbitrum} from "../../../src/providers/arbitrum/AaveV3Arbitrum.sol
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 
-contract AaveV3ArbitrumTest is Routines, ForkingSetup {
+contract AaveV3ArbitrumForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -60,5 +60,10 @@ contract AaveV3ArbitrumTest is Routines, ForkingSetup {
 
     uint256 borrowRate = aaveV3.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

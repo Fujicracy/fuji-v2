@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {MorphoAaveV2} from "../../../src/providers/mainnet/MorphoAaveV2.sol";
 
-contract MorphoAaveV2Test is Routines, ForkingSetup {
+contract MorphoAaveV2ForkingTest is Routines, ForkingSetup {
   ILendingProvider public morphoAaveV2;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -61,5 +61,10 @@ contract MorphoAaveV2Test is Routines, ForkingSetup {
 
     uint256 borrowRate = morphoAaveV2.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

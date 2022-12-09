@@ -16,7 +16,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV3Pool} from "../../../src/interfaces/aaveV3/IV3Pool.sol";
 import {IFlashLoanSimpleReceiver} from "../../../src/interfaces/aaveV3/IFlashLoanSimpleReceiver.sol";
 
-contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
+contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
   ILendingProvider public providerAaveV3;
   ILendingProvider public providerAaveV2;
 
