@@ -85,6 +85,7 @@ export default function AccountModal(props: AccountModalProps) {
         sx={{
           border: `1px solid ${palette.secondary.light}`,
           mt: ".75rem",
+          mr: ".4rem",
         }}
       >
         <CardContent sx={{ width: "340px", pb: ".6rem !important" }}>
