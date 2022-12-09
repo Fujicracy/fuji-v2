@@ -181,7 +181,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxRedeem(address owner) public view override returns (uint256) {
-    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Up);
+    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
@@ -191,12 +191,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function previewMint(uint256 shares) public view virtual override returns (uint256) {
-    return _convertToAssets(shares, Math.Rounding.Up);
+    return _convertToAssets(shares, Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
   function previewWithdraw(uint256 assets) public view virtual override returns (uint256) {
-    return _convertToShares(assets, Math.Rounding.Up);
+    return _convertToShares(assets, Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
