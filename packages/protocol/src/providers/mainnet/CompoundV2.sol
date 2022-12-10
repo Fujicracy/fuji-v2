@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
@@ -180,11 +181,8 @@ contract CompoundV2 is ILendingProvider {
    */
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.asset();
-    address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
-    uint256 cTokenBal = ICToken(cTokenAddr).balanceOf(user);
-    uint256 exRate = ICToken(cTokenAddr).exchangeRateStored();
-
-    balance = (exRate * cTokenBal) / 1e18;
+    ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
+    balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
   /**
