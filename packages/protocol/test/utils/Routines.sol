@@ -32,12 +32,13 @@ contract Routines is Test {
   }
 
   function do_withdraw(uint256 amount, IVault v, address from) internal {
-    uint256 prevAssets = v.convertToAssets(v.balanceOf(from));
+    IERC20 asset_ = IERC20(v.asset());
+    uint256 prevBalance = asset_.balanceOf(from);
     vm.prank(from);
     v.withdraw(amount, from, from);
 
-    uint256 diff = prevAssets - amount;
-    assertEq(v.convertToAssets(v.balanceOf(from)), diff);
+    uint256 newBalance = prevBalance + amount;
+    assertEq(asset_.balanceOf(from), newBalance);
   }
 
   function do_borrow(uint256 amount, IVault v, address from) internal {
