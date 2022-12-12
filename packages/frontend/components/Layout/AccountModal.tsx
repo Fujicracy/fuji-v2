@@ -174,9 +174,13 @@ export default function AccountModal(props: AccountModalProps) {
 
           <Grid container justifyContent="space-between" mb=".5rem">
             <Typography variant="xsmall">Recent Transactions</Typography>
-            <Typography variant="xsmallLink" onClick={clearAll}>
-              clear all
-            </Typography>
+            {historyEntries.length > 0 &&
+              historyEntries.filter((entry) => entry.status === "ongoing")
+                .length !== historyEntries.length && (
+                <Typography variant="xsmallLink" onClick={clearAll}>
+                  clear all
+                </Typography>
+              )}
           </Grid>
 
           <List>
