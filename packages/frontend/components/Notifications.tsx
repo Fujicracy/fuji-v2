@@ -33,7 +33,7 @@ export function Notifications() {
       TransitionComponent={TransitionLeft}
     >
       <SnackbarContent
-        message={<SnacbarBody snack={snack} onClose={close} />}
+        message={<SnackbarBody snack={snack} onClose={close} />}
       />
     </Snackbar>
   )
@@ -44,7 +44,7 @@ function TransitionLeft(props: any) {
 }
 
 type SnackBodyProps = { snack: Snack; onClose: (s: Snack) => void }
-function SnacbarBody({ snack, onClose }: SnackBodyProps) {
+function SnackbarBody({ snack, onClose }: SnackBodyProps) {
   let icon
   if (snack.icon === "success") {
     icon = <CheckIcon color="success" />
@@ -55,7 +55,7 @@ function SnacbarBody({ snack, onClose }: SnackBodyProps) {
   return (
     <Stack direction="row" width="350px">
       {icon && <Box mr={1}>{icon}</Box>}
-      <Box>
+      <Box pr={3}>
         <Typography variant="body1">{snack.title}</Typography>
         {snack.body && (
           <Typography variant="xsmallDark">{snack.body}</Typography>
