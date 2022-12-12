@@ -400,13 +400,6 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiSvgIcon: {
-      styleOverrides: {
-        root: {
-          color: colorTheme.palette.text.secondary,
-        },
-      },
-    },
     MuiLink: {
       styleOverrides: {
         root: {
