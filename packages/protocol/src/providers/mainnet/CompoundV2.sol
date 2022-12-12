@@ -10,6 +10,9 @@ import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+
+import "forge-std/console.sol";
 
 /**
  * @title Compound V2 Lending Provider.
@@ -18,6 +21,8 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @dev The IAddrMapper needs to be properly configured for CompoundV2
  */
 contract CompoundV2 is ILendingProvider {
+  using Address for address;
+
   error CompoundV2__deposit_failed(uint256 status);
   error CompoundV2__borrow_failed(uint256 status);
   error CompoundV2__withdraw_failed(uint256 status);
@@ -183,6 +188,7 @@ contract CompoundV2 is ILendingProvider {
     address asset = vault.asset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
+    console.log("insideProvider@getDepositBalance-balance", balance);
   }
 
   /**
@@ -192,6 +198,10 @@ contract CompoundV2 is ILendingProvider {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
 
-    balance = ICToken(cTokenAddr).borrowBalanceStored(user);
+    bytes memory callData = abi.encodeWithSelector(ICToken.borrowBalanceCurrent.selector, user);
+    bytes memory returnedBytes =
+      cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
+    balance = uint256(bytes32(returnedBytes));
+    // balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 }

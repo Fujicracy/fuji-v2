@@ -118,7 +118,9 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     v.deposit(amount, who);
     vm.stopPrank();
 
-    assertGe(v.balanceOf(who), amount);
+    uint256 shares = v.balanceOf(who);
+    uint256 assetBalance = v.convertToAssets(shares);
+    assertGe(assetBalance, amount);
   }
 
   function _utils_doBorrow(address who, uint256 amount, IVault v) internal {
@@ -152,9 +154,17 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
 
   function test_twoDepositsInCompoundV2() public {
     // Two deposits are reverting because of overflow in maxMin function
+    uint256 initialTimestamp = block.timestamp;
+    uint256 initialBlock = block.number;
+
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
+
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+
+    vm.warp(initialTimestamp + 15 seconds);
+    vm.roll(initialBlock + 1);
+
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
 
