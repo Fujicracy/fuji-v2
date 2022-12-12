@@ -12,7 +12,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import CheckIcon from "@mui/icons-material/Check"
 import ErrorIcon from "@mui/icons-material/Error"
 import LaunchIcon from "@mui/icons-material/Launch"
-import { useSnack, Snack } from "../store/notification.store"
+import { useSnack, Snack } from "../store/snackbar.store"
 import { transactionLink } from "../helpers/transactionLink"
 
 export function Notifications() {
