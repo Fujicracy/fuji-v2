@@ -188,7 +188,7 @@ contract CompoundV2 is ILendingProvider {
     address asset = vault.asset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
-    console.log("insideProvider@getDepositBalance-balance", balance);
+    console.log("insideCompoundV2Provider@getDepositBalance-balance", balance);
   }
 
   /**
