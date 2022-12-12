@@ -1,17 +1,24 @@
 import { SvgIcon, useTheme } from "@mui/material"
 
-export const DiscordIcon = () => {
+type DiscordIconProps = {
+  size?: number
+  color?: string
+}
+
+export const DiscordIcon = (props: DiscordIconProps) => {
   const { palette } = useTheme()
+  console.log(props.color)
 
   return (
     <SvgIcon
       role="img"
       viewBox="0 0 24 24"
       sx={{
-        fontSize: 22,
+        fontSize: props.size ? props.size : 22,
+        color: props.color ? props.color : "",
         ml: "0.25rem",
         "&:hover": {
-          color: palette.primary.main,
+          color: props.color ? "" : palette.primary.main,
           textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
         },
       }}

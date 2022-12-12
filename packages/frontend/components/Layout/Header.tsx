@@ -63,9 +63,9 @@ export default function Header() {
     <>
       <AppBar position="static">
         <Box
+          p="0 1.25rem"
           sx={{
             background: palette.background.paper,
-            padding: "0 1.25rem",
           }}
         >
           <Toolbar disableGutters>
