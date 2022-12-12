@@ -1,4 +1,5 @@
 import {
+  Link,
   Stack,
   Table,
   TableBody,
@@ -267,13 +268,13 @@ export default function MarketsTable() {
                       We take into account variables such as liquidity, audits
                       and team behind each protocol, you can read more on our
                       risk framework{" "}
-                      <a
+                      <Link
                         href="https://docs.fujidao.org/"
                         target="_blank"
                         rel="noreferrer"
                       >
                         <u> here</u>
-                      </a>
+                      </Link>
                     </span>
                   }
                   placement="top"

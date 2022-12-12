@@ -1,4 +1,3 @@
-import { Box, useTheme } from "@mui/material"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
 
@@ -9,7 +8,6 @@ interface Props extends Omit<ImageProps, "src"> {
 const defaultImage = "/assets/images/protocol-icons/providers/Aave V3.svg"
 
 export default function ProviderIcon(props: Props) {
-  const { palette } = useTheme()
   const { providerName, ...rest } = props
   const path = `/assets/images/protocol-icons/providers/${providerName}.svg`
 
@@ -21,18 +19,6 @@ export default function ProviderIcon(props: Props) {
       )
   }, [error, path, providerName])
 
-  if (error) {
-    return (
-      <Box
-        {...rest}
-        {...props.sx}
-        sx={{
-          background: palette.secondary.main,
-          borderRadius: "100%",
-        }}
-      ></Box>
-    )
-  }
   return (
     <>
       {props.sx ? (

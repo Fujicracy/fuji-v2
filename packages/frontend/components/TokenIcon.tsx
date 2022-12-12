@@ -1,4 +1,3 @@
-import { Box, useTheme } from "@mui/material"
 import { Token } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
@@ -8,11 +7,13 @@ interface Props extends Omit<ImageProps, "src"> {
   sx?: object
 }
 
+// TODO: Don't know which image put as default
+const defaultImage = "/assets/images/protocol-icons/tokens/AAVE.svg"
+
 export const getTokenImage = (symbol: string) =>
   `/assets/images/protocol-icons/tokens/${symbol}.svg`
 
 export default function TokenIcon(props: Props) {
-  const { palette } = useTheme()
   const path = getTokenImage(props.token.symbol)
   const { token, ...rest } = props
 
@@ -24,25 +25,13 @@ export default function TokenIcon(props: Props) {
       )
   }, [error, token.symbol, path])
 
-  if (error) {
-    return (
-      <Box
-        {...rest}
-        {...props.sx}
-        sx={{
-          background: palette.secondary.main,
-          borderRadius: "100%",
-        }}
-      ></Box>
-    )
-  }
   return (
     <>
       {props.sx ? (
         <div style={props.sx}>
           <Image
             {...rest}
-            src={path}
+            src={error ? defaultImage : path}
             alt={`${token.name} icon`}
             onError={(e) => setError(e)}
           />
@@ -50,7 +39,7 @@ export default function TokenIcon(props: Props) {
       ) : (
         <Image
           {...rest}
-          src={path}
+          src={error ? defaultImage : path}
           alt={`${token.name} icon`}
           onError={(e) => setError(e)}
         />

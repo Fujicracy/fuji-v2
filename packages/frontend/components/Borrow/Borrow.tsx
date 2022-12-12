@@ -10,6 +10,7 @@ import {
   useMediaQuery,
   useTheme,
   Box,
+  Link,
 } from "@mui/material"
 import Image from "next/image"
 
@@ -22,6 +23,7 @@ import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
 import RoutingModal from "./RoutingModal"
 import { useHistory } from "../../store/history.store"
+import { chainName } from "../../helpers/chainName"
 
 export default function Borrow() {
   const theme = useTheme()
@@ -195,7 +197,11 @@ export default function Borrow() {
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
-              <u>{"ETH > Polygon"}</u>
+              <u>
+                {`${collateral.token.symbol} > ${chainName(
+                  debt.token.chainId
+                )}`}
+              </u>
             </Typography>
           </Stack>
           <Box mb="1rem">
@@ -204,7 +210,7 @@ export default function Borrow() {
 
           {button}
 
-          <a
+          <Link
             href="https://www.connext.network/"
             target="_blank"
             rel="noreferrer"
@@ -223,7 +229,7 @@ export default function Borrow() {
                 alt="Connext logo"
               />
             </Grid>
-          </a>
+          </Link>
         </CardContent>
       </Card>
       {/* TODO: Move txprocessing outside of borrow */}

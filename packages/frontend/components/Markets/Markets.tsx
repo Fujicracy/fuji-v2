@@ -3,21 +3,15 @@ import {
   Box,
   Chip,
   Grid,
-  /*InputAdornment,
-  Stack, */
+  Link,
   Tab,
   Tabs,
-  /*TextField,
-  Tooltip, */
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
 import Lending from "./Lending"
-/* import { Chain, chains } from "../../store/auth.slice"
-import Image from "next/image"
-import SearchIcon from "@mui/icons-material/Search" */
 import { theme } from "../../styles/theme"
 
 export default function Markets() {
@@ -39,11 +33,11 @@ export default function Markets() {
         ) : (
           <span>
             Optimize your lending vaults for better yield
-            <a href="#">
+            <Link href="#">
               {" "}
               {/* TODO: Asked to Ivan the link but waiting answer */}
               <u>learn more</u>
-            </a>
+            </Link>
           </span>
         )}
       </Typography>

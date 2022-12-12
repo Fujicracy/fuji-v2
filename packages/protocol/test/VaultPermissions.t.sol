@@ -93,7 +93,10 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     chief.grantRole(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(address contract_, bytes memory encodedWithSelectorData)
+  function _utils_callWithTimelock(
+    address contract_,
+    bytes memory encodedWithSelectorData
+  )
     internal
   {
     timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
@@ -199,7 +202,10 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     assertEq(vault.withdrawAllowance(owner, receiver, receiver), difference);
   }
 
-  function testFail_operatorTriesWithdraw(uint256 depositAmount_, uint256 withdrawDelegated_)
+  function testFail_operatorTriesWithdraw(
+    uint256 depositAmount_,
+    uint256 withdrawDelegated_
+  )
     public
   {
     vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
@@ -209,7 +215,10 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function testFail_receiverTriesWithdraw(uint256 depositAmount_, uint256 withdrawDelegated_)
+  function testFail_receiverTriesWithdraw(
+    uint256 depositAmount_,
+    uint256 withdrawDelegated_
+  )
     public
   {
     vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);

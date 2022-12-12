@@ -21,6 +21,10 @@ export default function RoutingModal(props: RoutingModalProps) {
   const debt = useStore((state) => state.position.debt)
   const providers = useStore((state) => state.position.providers)
 
+  const collateralChain = chainName(collateral.token.chainId)
+  const debtChain = chainName(debt.token.chainId)
+  const providerName = providers?.length ? providers[0].name : "n/a"
+
   const routes = [
     {
       cost: 3.9,
@@ -28,35 +32,21 @@ export default function RoutingModal(props: RoutingModalProps) {
       steps: [
         {
           icon: (
-            <NetworkIcon
-              network={chainName(collateral.token.chainId)}
-              height={18}
-              width={18}
-            />
+            <NetworkIcon network={collateralChain} height={18} width={18} />
           ),
-          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${
-            providers?.length ? providers[0].name : "n/a"
-          }`,
+          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${providerName}`,
         },
         {
           icon: <TokenIcon token={debt.token} height={18} width={18} />,
-          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${
-            providers?.length ? providers[0].name : "n/a"
-          }`,
+          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${providerName}`,
         },
         {
-          icon: (
-            <NetworkIcon
-              network={chainName(debt.token.chainId)}
-              height={18}
-              width={18}
-            />
-          ),
-          label: `Bridge to ${chainName(collateral.token.chainId)} via Connext`,
+          icon: <NetworkIcon network={debtChain} height={18} width={18} />,
+          label: `Bridge to ${collateralChain} via Connext`,
         },
       ],
       recommended: true,
-      info: `Deposited in ${providers?.length ? providers[0].name : "n/a"}`,
+      info: `Deposited in ${providerName}`,
     },
     {
       cost: 4.6,
@@ -64,35 +54,21 @@ export default function RoutingModal(props: RoutingModalProps) {
       steps: [
         {
           icon: (
-            <NetworkIcon
-              network={chainName(collateral.token.chainId)}
-              height={18}
-              width={18}
-            />
+            <NetworkIcon network={collateralChain} height={18} width={18} />
           ),
-          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${
-            providers?.length ? providers[0].name : "n/a"
-          }`,
+          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${providerName}`,
         },
         {
           icon: <TokenIcon token={debt.token} height={18} width={18} />,
-          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${
-            providers?.length ? providers[0].name : "n/a"
-          }`,
+          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${providerName}`,
         },
         {
-          icon: (
-            <NetworkIcon
-              network={chainName(debt.token.chainId)}
-              height={18}
-              width={18}
-            />
-          ),
-          label: `Bridge to ${chainName(collateral.token.chainId)} via Connext`,
+          icon: <NetworkIcon network={debtChain} height={18} width={18} />,
+          label: `Bridge to ${collateralChain} via Connext`,
         },
       ],
       recommended: false,
-      info: `Deposited in ${providers?.length ? providers[0].name : "n/a"}`,
+      info: `Deposited in ${providerName}`,
     },
   ]
 

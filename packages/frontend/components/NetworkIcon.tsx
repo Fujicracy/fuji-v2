@@ -1,4 +1,3 @@
-import { Box, useTheme } from "@mui/material"
 import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
@@ -8,8 +7,11 @@ interface Props extends Omit<ImageProps, "src"> {
   network: string | ChainId
   sx?: object
 }
+
+// TODO: Don't know which image put as default
+const defaultImage = "/assets/images/protocol-icons/networks/Arbitrum.svg"
+
 export default function NetworkIcon(props: Props) {
-  const { palette } = useTheme()
   const { network, ...rest } = props
 
   const name = typeof network === "string" ? network : chainName(network)
@@ -23,25 +25,13 @@ export default function NetworkIcon(props: Props) {
       )
   }, [error, network, path, name])
 
-  if (error) {
-    return (
-      <Box
-        {...rest}
-        {...props.sx}
-        sx={{
-          background: palette.secondary.main,
-          borderRadius: "100%",
-        }}
-      ></Box>
-    )
-  }
   return (
     <>
       {props.sx ? (
         <div style={props.sx}>
           <Image
             {...rest}
-            src={path}
+            src={error ? defaultImage : path}
             alt={`${name} icon`}
             onError={(e) => setError(e)}
           />
@@ -49,7 +39,7 @@ export default function NetworkIcon(props: Props) {
       ) : (
         <Image
           {...rest}
-          src={path}
+          src={error ? defaultImage : path}
           alt={`${name} icon`}
           onError={(e) => setError(e)}
         />

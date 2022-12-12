@@ -1,5 +1,12 @@
 import { useState } from "react"
-import { Button, Card, TextField, Typography, useTheme } from "@mui/material"
+import {
+  Button,
+  Card,
+  Link,
+  TextField,
+  Typography,
+  useTheme,
+} from "@mui/material"
 import Image from "next/image"
 import { useStore } from "../../store"
 
@@ -59,12 +66,7 @@ export default function Lending() {
       </Typography>
 
       {!address ? (
-        <Button
-          variant="gradient"
-          onClick={() => login()}
-          fullWidth
-          data-cy="borrow-login"
-        >
+        <Button variant="gradient" onClick={() => login()} fullWidth>
           Connect wallet
         </Button>
       ) : (
@@ -95,14 +97,18 @@ export default function Lending() {
               </Button>
             </>
           ) : (
-            <a href="https://www.typeform.com" target="_blank" rel="noreferrer">
+            <Link
+              href="https://www.typeform.com"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Button
                 variant="gradient"
                 sx={{ width: "7.2rem", mt: "0.75rem" }}
               >
                 Start
               </Button>
-            </a>
+            </Link>
           )}
         </>
       )}

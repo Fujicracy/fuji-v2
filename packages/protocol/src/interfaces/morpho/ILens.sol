@@ -2,12 +2,18 @@
 pragma solidity 0.8.15;
 
 interface ILens {
-  function getCurrentSupplyBalanceInOf(address _poolToken, address _user)
+  function getCurrentSupplyBalanceInOf(
+    address _poolToken,
+    address _user
+  )
     external
     view
     returns (uint256 balanceOnPool, uint256 balanceInP2P, uint256 totalBalance);
 
-  function getCurrentBorrowBalanceInOf(address _poolToken, address _user)
+  function getCurrentBorrowBalanceInOf(
+    address _poolToken,
+    address _user
+  )
     external
     view
     returns (uint256 balanceOnPool, uint256 balanceInP2P, uint256 totalBalance);
