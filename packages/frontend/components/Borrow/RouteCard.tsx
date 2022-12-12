@@ -103,7 +103,7 @@ export default function RouteCard(props: RouteCardProps) {
         </Stack>
 
         <Stack direction="row">
-          <Box sx={{ textAlign: "right", mr: "0.75rem" }}>
+          <Box textAlign="right" mr="0.75rem">
             <Typography variant="body">
               {debt.amount} {debt.token.symbol}
             </Typography>
