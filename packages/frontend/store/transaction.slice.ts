@@ -20,6 +20,7 @@ import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
+import { useSnack } from "./notification.store"
 
 setAutoFreeze(false)
 
@@ -536,6 +537,16 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       signature = ethers.utils.splitSignature(s)
     } catch (e) {
       set({ isSigning: false })
+      console.debug(JSON.stringify(e, null, 2))
+      if (e.code === "ACTION_REJECTED") {
+        // IDEA: can be moved into some const for refacto
+        // IDEA: add a link "why do I need to sign ?"
+        useSnack.getState().display({
+          icon: "error",
+          title: "Error: Fuji cannot borrow without your signature",
+          // body: "Please retry and ",
+        })
+      }
       throw e
     }
 
