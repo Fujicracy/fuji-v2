@@ -9,12 +9,17 @@ type SnackState = {
 }
 
 export type Snack = {
-  title: string
-  body?: string | React.ReactNode
   /**
+   * Icon displayed on the left of the notification
    * @default undefined (hidden)
    */
   icon?: "success" | "error"
+  title: string
+  body?: string | React.ReactNode
+  /**
+   * If you want to display a link to the transaction at the bottom of the notification
+   */
+  transactionLink?: { hash?: string; chainId?: number }
   /**
    * @default 8000 (in milliseconds)
    */

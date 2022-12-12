@@ -2,17 +2,18 @@ import {
   Snackbar,
   Box,
   SnackbarContent,
-  Grid,
   Typography,
   Slide,
-  useTheme,
   Stack,
   IconButton,
+  Link,
 } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close"
 import CheckIcon from "@mui/icons-material/Check"
 import ErrorIcon from "@mui/icons-material/Error"
+import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../store/notification.store"
+import { transactionLink } from "../helpers/transactionLink"
 
 export function Notifications() {
   const [snack] = useSnack((s) => s.notifications)
@@ -27,7 +28,7 @@ export function Notifications() {
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       open={Boolean(snack)}
       sx={{ mt: "2.5rem" }}
-      autoHideDuration={snack.autoHideDuration || 6000}
+      autoHideDuration={snack.autoHideDuration}
       onClose={() => close(snack)}
       TransitionComponent={TransitionLeft}
     >
@@ -58,6 +59,22 @@ function SnacbarBody({ snack, onClose }: SnackBodyProps) {
         <Typography variant="body1">{snack.title}</Typography>
         {snack.body && (
           <Typography variant="xsmallDark">{snack.body}</Typography>
+        )}
+        {snack.transactionLink?.chainId && snack.transactionLink.hash && (
+          <Link
+            href={transactionLink(
+              snack.transactionLink.chainId,
+              snack.transactionLink.hash
+            )}
+            target="_blank"
+            variant="smallDark"
+          >
+            View transaction{" "}
+            <LaunchIcon
+              sx={{ top: "1px", position: "relative" }}
+              fontSize="inherit"
+            />
+          </Link>
         )}
       </Box>
       <IconButton
