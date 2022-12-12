@@ -1,6 +1,5 @@
-import { SyntheticEvent, useState } from "react"
+import { useState } from "react"
 import {
-  Alert,
   Button,
   Card,
   CardContent,
@@ -12,7 +11,6 @@ import {
   ListItemButton,
   ListItemText,
   Popover,
-  Snackbar,
   Stack,
   Typography,
   Box,
@@ -42,9 +40,11 @@ type AccountModalProps = {
 
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
+  const [copied, setCopied] = useState(false)
+  const [copyAddressHovered, setCopyAddressHovered] = useState(false)
+  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false)
   const logout = useStore((state) => state.logout)
   const walletName = useStore((state) => state.walletName)
-  const [showSnackbar, setShowSnackbar] = useState(false)
   const historyEntries = useHistory((state) =>
     state.allHash.map((hash) => state.byHash[hash]).slice(0, 3)
   )
@@ -58,17 +58,10 @@ export default function AccountModal(props: AccountModalProps) {
 
   const copy = () => {
     navigator.clipboard.writeText(props.address)
-    setShowSnackbar(true)
-  }
-
-  const handleClose = (
-    _: Event | SyntheticEvent<Element, Event>,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return
-    }
-    setShowSnackbar(false)
+    setCopied(true)
+    setTimeout(() => {
+      setCopied(false)
+    }, 5000)
   }
 
   return (
@@ -115,31 +108,27 @@ export default function AccountModal(props: AccountModalProps) {
               alignItems="center"
               sx={{ cursor: "pointer" }}
               onClick={copy}
+              onMouseEnter={() => setCopyAddressHovered(true)}
+              onMouseLeave={() => setCopyAddressHovered(false)}
             >
               <ContentCopyIcon
                 fontSize="small"
                 sx={{
-                  color: palette.primary.main,
+                  color: !copyAddressHovered
+                    ? palette.info.main
+                    : palette.text.primary,
                   mr: ".2rem",
                   fontSize: "1rem",
                 }}
               />
-              <Typography variant="xsmall" color={palette.primary.main}>
-                Copy Address
-              </Typography>
-              <Snackbar
-                open={showSnackbar}
-                autoHideDuration={2000}
-                onClose={handleClose}
+              <Typography
+                variant="xsmall"
+                color={
+                  !copyAddressHovered ? palette.info.main : palette.text.primary
+                }
               >
-                <Alert
-                  onClose={handleClose}
-                  severity="success"
-                  sx={{ color: palette.success.main }}
-                >
-                  Address copied!
-                </Alert>
-              </Snackbar>
+                {!copied ? "Copy Address" : "Copied!"}
+              </Typography>
             </Stack>
 
             <Box>
@@ -148,15 +137,29 @@ export default function AccountModal(props: AccountModalProps) {
                 target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
                 rel="noreferrer"
               >
-                <Stack direction="row" alignItems="center">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  onMouseEnter={() => setViewOnExplorerHovered(true)}
+                  onMouseLeave={() => setViewOnExplorerHovered(false)}
+                >
                   <LaunchIcon
                     sx={{
-                      color: palette.info.dark,
+                      color: viewOnExplorerHovered
+                        ? palette.text.primary
+                        : palette.info.main,
                       mr: ".2rem",
                       fontSize: "1rem",
                     }}
                   />
-                  <Typography variant="xsmall" color={palette.info.dark}>
+                  <Typography
+                    variant="xsmall"
+                    color={
+                      viewOnExplorerHovered
+                        ? palette.text.primary
+                        : palette.info.main
+                    }
+                  >
                     View on Explorer
                   </Typography>
                 </Stack>
