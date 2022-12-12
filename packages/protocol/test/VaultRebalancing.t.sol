@@ -480,7 +480,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(greedyFlasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_flashloanFailed.selector);
     rebalancer.rebalanceVault(
@@ -499,11 +499,11 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(reentrant), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     executionCall =
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(reentrant), true);
-    _utils_callWithTimelock(address(rebalancer), executionCall);
+    _callWithTimelock(address(rebalancer), executionCall);
 
     vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_notEmptyEntryPoint.selector);
     rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, reentrant, true);
@@ -518,7 +518,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(maliciousFlasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     vm.expectRevert(
       RebalancerManager.RebalancerManager__completeRebalance_invalidEntryPoint.selector
@@ -534,7 +534,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     //When we try to allow the same executor twice, the calls reverts in the TimelockController because the call has already been scheduled
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   // error RebalancerManager__zeroAddress();
@@ -543,6 +543,6 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     //thats the one being returned
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(0), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
   }
 }
