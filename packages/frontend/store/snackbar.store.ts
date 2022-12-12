@@ -44,7 +44,7 @@ export const useSnack = create<SnackStore>()(
         set(
           produce((s: SnackState) => {
             if (!n.autoHideDuration) {
-              n.autoHideDuration = 8000
+              // n.autoHideDuration = 8000
             }
             s.notifications.push(n)
           })
@@ -52,9 +52,8 @@ export const useSnack = create<SnackStore>()(
       },
 
       close(n) {
-        set({
-          notifications: get().notifications.filter((notif) => notif !== n),
-        })
+        const notifications = get().notifications.filter((notif) => notif !== n)
+        set({ notifications })
       },
     }),
     {

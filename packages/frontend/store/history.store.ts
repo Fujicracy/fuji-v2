@@ -11,7 +11,7 @@ import { devtools, persist } from "zustand/middleware"
 import { useStore } from "."
 import { sdk } from "./auth.slice"
 import ethers from "ethers"
-import { useSnack } from "./notification.store"
+import { useSnack } from "./snackbar.store"
 import { formatUnits } from "ethers/lib/utils"
 
 export type HistoryStore = HistoryState & HistoryActions

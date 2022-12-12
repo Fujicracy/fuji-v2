@@ -20,7 +20,7 @@ import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
-import { useSnack } from "./notification.store"
+import { useSnack } from "./snackbar.store"
 
 setAutoFreeze(false)
 
@@ -535,9 +535,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const signer = provider.getSigner()
       const s = await signer._signTypedData(domain, types, value)
       signature = ethers.utils.splitSignature(s)
-    } catch (e) {
+    } catch (e: any) {
       set({ isSigning: false })
-      console.debug(JSON.stringify(e, null, 2))
       if (e.code === "ACTION_REJECTED") {
         // IDEA: can be moved into some const for refacto
         // IDEA: add a link "why do I need to sign ?"
