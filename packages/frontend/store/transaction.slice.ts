@@ -20,7 +20,7 @@ import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
-import { useSnack } from "./notification.store"
+import { useSnack } from "./snackbar.store"
 
 setAutoFreeze(false)
 
