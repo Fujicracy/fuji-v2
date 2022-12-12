@@ -27,8 +27,8 @@ export default function NetworkIcon(props: Props) {
     return (
       <Box
         {...rest}
-        {...props.sx}
         sx={{
+          ...props.sx,
           background: palette.secondary.main,
           borderRadius: "100%",
         }}
