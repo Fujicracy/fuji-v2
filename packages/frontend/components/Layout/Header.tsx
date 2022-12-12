@@ -15,7 +15,11 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Stack,
+  Divider,
+  ListItemText,
 } from "@mui/material"
+import CloseIcon from "@mui/icons-material/Close"
 import Image from "next/image"
 import { useRouter } from "next/router"
 import shallow from "zustand/shallow"
@@ -29,6 +33,7 @@ import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 import { useHistory } from "../../store/history.store"
 import Balance from "../Balance"
+import ParameterLinks from "./ParameterLinks"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
@@ -55,179 +60,219 @@ export default function Header() {
     setAnchorElNav(event.currentTarget)
 
   const handleCloseNavMenu = () => setAnchorElNav(null)
+  const isNavMenuOpen = Boolean(anchorElNav)
 
   const e2eConnect = () =>
     login({ autoSelect: { label: "MetaMask", disableModals: true } })
 
-  return (
-    <>
-      <AppBar position="static">
-        <Box
-          p="0 1.25rem"
-          sx={{
-            background: palette.background.paper,
-          }}
-        >
-          <Toolbar disableGutters>
-            <Grid container justifyContent="space-between" alignItems="center">
-              <Grid item>
-                <Link href="/">
-                  <a className={styles.logoTitle}>
-                    <Image
-                      src="/assets/images/logo/logo-title.svg"
-                      alt="Logo Fuji"
-                      width={120}
-                      height={50}
-                      layout="fixed"
-                    />
-                  </a>
-                </Link>
-              </Grid>
-              <Grid item>
-                <Box
-                  sx={{
-                    flexGrow: 1,
-                    display: { xs: "flex", md: "none" },
-                    alignItems: "center",
-                  }}
-                >
-                  {status === "disconnected" && (
-                    <>
-                      <Chip
-                        label="Connect wallet"
-                        variant="gradient"
-                        sx={{ fontSize: "1rem" }}
-                        onClick={() => login()}
-                      />
-                      <Button
-                        data-cy="login"
-                        onClick={e2eConnect}
-                        sx={{ position: "absolute", visibility: "hidden" }}
-                      >
-                        e2e
-                      </Button>
-                    </>
-                  )}
-                  {status === "connected" && <ChainSelect />}
+  const formattedAddress =
+    address?.substring(0, 5) + "..." + address?.substring(address?.length - 4)
 
-                  <IconButton
-                    size="large"
-                    aria-label="account of current user"
-                    aria-controls="menu-appbar"
-                    aria-haspopup="true"
-                    color="inherit"
-                    onClick={handleOpenNavMenu}
-                    sx={{ pr: 0 }}
-                  >
+  return (
+    <AppBar position="static">
+      <Box
+        p="0 1.25rem"
+        sx={{
+          background: palette.background.paper,
+        }}
+      >
+        <Toolbar disableGutters>
+          <Grid container justifyContent="space-between" alignItems="center">
+            <Grid item>
+              <Link href="/">
+                <a className={styles.logoTitle}>
+                  <Image
+                    src="/assets/images/logo/logo-title.svg"
+                    alt="Logo Fuji"
+                    width={120}
+                    height={50}
+                    layout="fixed"
+                  />
+                </a>
+              </Link>
+            </Grid>
+            <Grid item>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  display: { xs: "flex", md: "none" },
+                  alignItems: "center",
+                }}
+              >
+                {status === "disconnected" && (
+                  <>
+                    <Chip
+                      label="Connect wallet"
+                      variant="gradient"
+                      sx={{ fontSize: "1rem" }}
+                      onClick={() => login()}
+                    />
+                    <Button
+                      data-cy="login"
+                      onClick={e2eConnect}
+                      sx={{ position: "absolute", visibility: "hidden" }}
+                    >
+                      e2e
+                    </Button>
+                  </>
+                )}
+                {status === "connected" && <ChainSelect />}
+
+                <IconButton
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  color="inherit"
+                  onClick={handleOpenNavMenu}
+                >
+                  {isNavMenuOpen ? (
+                    <CloseIcon
+                      sx={{
+                        background: palette.secondary.dark,
+                        borderRadius: "100%",
+                        fontSize: "10.5px",
+                        padding: "8px",
+                        width: "34px",
+                        height: "34px",
+                      }}
+                    />
+                  ) : (
                     <BurgerMenuIcon />
-                  </IconButton>
-                  <Menu
-                    id="menu-appbar"
-                    anchorEl={anchorElNav}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                    transformOrigin={{ vertical: "top", horizontal: "left" }}
-                    keepMounted
-                    open={Boolean(anchorElNav)}
-                    onClose={handleCloseNavMenu}
-                    sx={{ display: { xs: "block", lg: "none" } }}
-                    TransitionComponent={Fade}
-                  >
+                  )}
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorElNav}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                  transformOrigin={{ vertical: "top", horizontal: "left" }}
+                  keepMounted
+                  open={Boolean(anchorElNav)}
+                  onClose={handleCloseNavMenu}
+                  sx={{ display: { xs: "block", lg: "none" } }}
+                  TransitionComponent={Fade}
+                >
+                  <MenuList>
                     {pages.map((page) => (
                       <MenuItem key={page} onClick={handleCloseNavMenu}>
-                        <Link href={`/${page.toLowerCase()}`}>
-                          <Typography align="center">{page}</Typography>
-                        </Link>
+                        <ListItemText>
+                          <Link href={`/${page.toLowerCase()}`}>
+                            <Typography variant="small">{page}</Typography>
+                          </Link>
+                        </ListItemText>
                       </MenuItem>
                     ))}
-                  </Menu>
-                </Box>
-              </Grid>
+                    <MenuItem onClick={handleCloseNavMenu}>
+                      <ListItemText>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography variant="small">Wallet</Typography>
+                          <Typography variant="small">
+                            {formattedAddress}
+                          </Typography>
+                        </Stack>
+                      </ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={handleCloseNavMenu}>
+                      <ListItemText>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography variant="small">
+                            Transaction History
+                          </Typography>
+                        </Stack>
+                      </ListItemText>
+                    </MenuItem>
+                    <Divider />
+                    <ParameterLinks />
+                  </MenuList>
+                </Menu>
+              </Box>
             </Grid>
+          </Grid>
 
-            <MenuList
-              sx={{
-                flexGrow: 1,
-                display: { xs: "none", lg: "flex" },
-                justifyContent: "center",
-              }}
-            >
-              {pages.map((page: string) => (
-                <MenuItem
-                  key={page}
-                  sx={{
-                    color:
-                      page.toLowerCase() === currentPage
-                        ? "primary.main"
-                        : "text.primary",
-                    textShadow:
-                      page.toLowerCase() === currentPage
-                        ? `${palette.primary.main} 0rem 0rem 0.125rem`
-                        : "",
-                    "&:hover": {
-                      color: "primary.main",
-                      background: "transparent",
-                      textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
-                    },
-                  }}
+          <MenuList
+            sx={{
+              flexGrow: 1,
+              display: { xs: "none", lg: "flex" },
+              justifyContent: "center",
+            }}
+          >
+            {pages.map((page: string) => (
+              <MenuItem
+                key={page}
+                sx={{
+                  color:
+                    page.toLowerCase() === currentPage
+                      ? "primary.main"
+                      : "text.primary",
+                  textShadow:
+                    page.toLowerCase() === currentPage
+                      ? `${palette.primary.main} 0rem 0rem 0.125rem`
+                      : "",
+                  "&:hover": {
+                    color: "primary.main",
+                    background: "transparent",
+                    textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
+                  },
+                }}
+              >
+                <Link href={`/${page.toLowerCase()}`}>{page}</Link>
+              </MenuItem>
+            ))}
+          </MenuList>
+
+          <Grid
+            container
+            columnGap="0.5rem"
+            justifyContent="flex-end"
+            alignItems="center"
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
+            {status === "disconnected" && (
+              <>
+                <Chip
+                  label="Connect wallet"
+                  variant="gradient"
+                  sx={{ fontSize: "1rem" }}
+                  onClick={() => login()}
+                />
+                <Button
+                  data-cy="login"
+                  onClick={e2eConnect}
+                  sx={{ position: "absolute", visibility: "hidden" }}
                 >
-                  <Link href={`/${page.toLowerCase()}`}>{page}</Link>
-                </MenuItem>
-              ))}
-            </MenuList>
-
-            <Grid
-              container
-              columnGap="0.5rem"
-              justifyContent="flex-end"
-              alignItems="center"
-              sx={{ display: { xs: "none", md: "flex" } }}
-            >
-              {status === "disconnected" && (
-                <>
-                  <Chip
-                    label="Connect wallet"
-                    variant="gradient"
-                    sx={{ fontSize: "1rem" }}
-                    onClick={() => login()}
+                  e2e
+                </Button>
+              </>
+            )}
+            {status === "connected" && (
+              <>
+                <Grid item>
+                  <ChainSelect />
+                </Grid>
+                <Grid item>
+                  <BalanceAddress
+                    balance={balance}
+                    address={address as string}
+                    formattedAddress={formattedAddress as string}
+                    ens={ens}
+                    // TODO: should be coming from store
+                    transactionStatus={false}
                   />
-                  <Button
-                    data-cy="login"
-                    onClick={e2eConnect}
-                    sx={{ position: "absolute", visibility: "hidden" }}
-                  >
-                    e2e
-                  </Button>
-                </>
-              )}
-              {status === "connected" && (
-                <>
-                  <Grid item>
-                    <ChainSelect />
-                  </Grid>
-                  <Grid item>
-                    <BalanceAddress
-                      balance={balance}
-                      address={address as string}
-                      ens={ens}
-                      // TODO: should be coming from store
-                      transactionStatus={false}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <Parameters />
-                  </Grid>
-                </>
-              )}
-            </Grid>
-          </Toolbar>
-        </Box>
-      </AppBar>
-    </>
+                </Grid>
+                <Grid item>
+                  <Parameters />
+                </Grid>
+              </>
+            )}
+          </Grid>
+        </Toolbar>
+      </Box>
+    </AppBar>
   )
 }
 
 type BalanceAddressProps = {
   address: string
+  formattedAddress: string
   balance?: Balances
   ens?: string
   transactionStatus: boolean
@@ -238,16 +283,13 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     HTMLElement | undefined
   >()
   const showAccountModal = Boolean(accountModalEl)
-  const { balance, address, ens } = props
+  const { balance, address, formattedAddress, ens } = props
 
   const active = useHistory((state) => state.activeHash.length)
 
   if (!balance) {
     return <></>
   }
-
-  const formattedAddress =
-    address.substring(0, 5) + "..." + address.substring(address.length - 4)
 
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
