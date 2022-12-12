@@ -1,5 +1,5 @@
 import {
-  Snackbar,
+  Snackbar as MuiSnackbar,
   Box,
   SnackbarContent,
   Typography,
@@ -15,7 +15,7 @@ import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../store/snackbar.store"
 import { transactionLink } from "../helpers/transactionLink"
 
-export function Notifications() {
+export function Snackbar() {
   const [snack] = useSnack((s) => s.notifications)
   const close = useSnack((s) => s.close)
 
@@ -24,7 +24,7 @@ export function Notifications() {
   }
 
   return (
-    <Snackbar
+    <MuiSnackbar
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       open={Boolean(snack)}
       sx={{ mt: "2.5rem" }}
@@ -35,7 +35,7 @@ export function Notifications() {
       <SnackbarContent
         message={<SnackbarBody snack={snack} onClose={close} />}
       />
-    </Snackbar>
+    </MuiSnackbar>
   )
 }
 
