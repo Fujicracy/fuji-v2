@@ -28,7 +28,16 @@ contract Routines is Test {
     v.deposit(amount, from);
     vm.stopPrank();
 
-    assertGe(v.balanceOf(from), amount);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
+    uint256 mintedShares = v.balanceOf(from);
+    uint256 assetBalance = v.convertToAssets(mintedShares);
+
+    assertGe(assetBalance, amount);
+
+    vm.warp(block.timestamp - 13 seconds);
+    vm.roll(block.number - 1);
   }
 
   function do_withdraw(uint256 amount, IVault v, address from) internal {

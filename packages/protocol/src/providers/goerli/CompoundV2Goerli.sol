@@ -12,15 +12,13 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
-import "forge-std/console.sol";
-
 /**
  * @title Compound V2 Lending Provider.
  * @author Fujidao Labs
  * @notice This contract allows interaction with CompoundV2.
  * @dev The IAddrMapper needs to be properly configured for CompoundV2
  */
-contract CompoundV2 is ILendingProvider {
+contract CompoundV2Goerli is ILendingProvider {
   using Address for address;
 
   error CompoundV2__deposit_failed(uint256 status);
@@ -32,8 +30,7 @@ contract CompoundV2 is ILendingProvider {
    * @notice Returns the {AddrMapper} contract applicable to this provider.
    */
   function getMapper() public pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
+    return IAddrMapper(0x98215391359e0cedb6D24baB9823C3E2Ac1D691a);
   }
 
   /// inheritdoc ILendingProvider
@@ -46,7 +43,7 @@ contract CompoundV2 is ILendingProvider {
    * @param asset: asset to be approved as collateral.
    */
   function _enterCollatMarket(address asset) internal {
-    IComptroller comptroller = IComptroller(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B);
+    IComptroller comptroller = IComptroller(0x05Df6C772A563FfB37fD3E04C1A279Fb30228621);
 
     address[] memory markets = new address[](1);
     markets[0] = asset;
@@ -54,7 +51,7 @@ contract CompoundV2 is ILendingProvider {
   }
 
   function _isWETH(address asset) internal pure returns (bool) {
-    return asset == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    return asset == 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
   }
 
   /**
@@ -188,7 +185,6 @@ contract CompoundV2 is ILendingProvider {
     address asset = vault.asset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
-    console.log("insideCompoundV2Provider@getDepositBalance-balance", balance);
   }
 
   /**
@@ -196,7 +192,52 @@ contract CompoundV2 is ILendingProvider {
    */
   function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.debtAsset();
-    ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
-    balance = LibCompoundV2.viewBorrowingBalanceOf(cToken, user);
+    address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
+
+    bytes memory callData = abi.encodeWithSelector(ICToken.borrowBalanceCurrent.selector, user);
+    bytes memory returnedBytes =
+      cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
+    balance = uint256(bytes32(returnedBytes));
+    // balance = ICToken(cTokenAddr).borrowBalanceStored(user);
+  }
+
+  /**
+   * @notice Refer to {ILendingProvider-getBorrowBalance}.
+   */
+  function getBorrowBalanceTest_1(
+    address user,
+    address asset
+  )
+    external
+    view
+    returns (uint256 balance)
+  {
+    address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
+
+    bytes memory callData = abi.encodeWithSelector(ICToken.borrowBalanceCurrent.selector, user);
+    bytes memory returnedBytes =
+      cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
+    balance = uint256(bytes32(returnedBytes));
+    // balance = ICToken(cTokenAddr).borrowBalanceStored(user);
+  }
+
+  /**
+   * @notice Refer to {ILendingProvider-getBorrowBalance}.
+   */
+  function getBorrowBalanceTest_2(
+    address user,
+    address asset
+  )
+    external
+    view
+    returns (uint256 balance)
+  {
+    address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
+
+    // bytes memory callData = abi.encodeWithSelector(ICToken.borrowBalanceCurrent.selector, user);
+    // bytes memory returnedBytes =
+    //   cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
+    // balance = uint256(bytes32(returnedBytes));
+    balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 }
