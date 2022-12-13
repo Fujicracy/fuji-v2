@@ -25,10 +25,10 @@ contract PrintGoerliBorrows is ScriptPlus {
 
   function run() public {
     address weth = getAddress("WETH");
-    address dai = getAddress("MockDAI");
-    address vault = getAddress("BorrowingVault-TESTDAI");
+    /*address dai = getAddress("MockDAI");*/
+    /*address vault = getAddress("BorrowingVault-TESTDAI");*/
 
-    address connextRouter = getAddress("ConnextRouter");
+    /*address connextRouter = getAddress("ConnextRouter");*/
 
     uint256 optGoerliDomain = 1735356532;
 

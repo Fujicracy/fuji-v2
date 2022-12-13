@@ -94,7 +94,7 @@ contract DeploySystem is ScriptPlus {
     address vault = chief.deployVault(
       address(factory), abi.encode(collateral, debtAsset, address(mockOracle)), "A+"
     );
-    /*saveAddress(name, vault);*/
+    saveAddress(name, vault);
 
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
