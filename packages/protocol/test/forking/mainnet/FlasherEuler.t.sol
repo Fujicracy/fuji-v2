@@ -42,15 +42,15 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     vault.setActiveProvider(providerAave);
 
     rebalancer = new RebalancerManager(address(chief));
-    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    _grantRoleChief(REBALANCER_ROLE, address(rebalancer));
 
     bytes memory executionCall =
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
-    _callWithTimelock(executionCall, address(rebalancer));
+    _callWithTimelock(address(rebalancer), executionCall);
 
     flasher = new FlasherEuler(0x27182842E098f60e3D576794A5bFFb0777E025d3);
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _callWithTimelock(executionCall, address(chief));
+    _callWithTimelock(address(chief), executionCall);
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
   }

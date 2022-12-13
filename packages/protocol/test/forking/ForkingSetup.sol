@@ -169,11 +169,11 @@ contract ForkingSetup is CoreRoles, Test {
     admins[0] = address(this);
     timelock = new TimelockController(1 days, admins, admins);
 
-    chief = new Chief();
+    chief = new Chief(true, true);
     chief.setTimelock(address(timelock));
     // Grant this address all roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
     vault = new BorrowingVault(
       collateralAsset,
@@ -185,16 +185,21 @@ contract ForkingSetup is CoreRoles, Test {
     );
   }
 
-  function _callWithTimelock(bytes memory callData, address target) internal {
+  function _callWithTimelock(address target, bytes memory callData) internal {
     timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
     timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
   }
 
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
+  }
+
   function _setVaultProviders(IVault v, ILendingProvider[] memory providers) internal {
     bytes memory callData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
-    _callWithTimelock(callData, address(v));
+    _callWithTimelock(address(v), callData);
   }
 
   function _getPermitBorrowArgs(
