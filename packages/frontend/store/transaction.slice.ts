@@ -15,7 +15,7 @@ import { StateCreator } from "zustand"
 import { debounce } from "debounce"
 
 import { useStore } from "."
-import { sdk } from "./auth.slice"
+import { sdk, testChains } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
@@ -224,8 +224,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   async changeActiveVault(vault) {
-    const providers = await vault.getProviders()
-    await vault.preLoad()
+    const [providers] = await Promise.all([
+      vault.getProviders(),
+      vault.preLoad(),
+    ])
 
     const ltvMax = vault.maxLtv
       ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
@@ -243,20 +245,19 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         s.position.activeProvider = providers[0]
       })
     )
+
+    await get().updateVaultBalance()
   },
 
   async updateBalances(type) {
     const address = useStore.getState().address
-    const tokens = type === "debt" ? get().debtTokens : get().collateralTokens
-    const token =
-      type === "debt"
-        ? get().position.debt.token
-        : get().position.collateral.token
-    const chainId = token.chainId
-
     if (!address) {
       return
     }
+
+    const tokens = type === "debt" ? get().debtTokens : get().collateralTokens
+    const token = get().position[type].token
+    const chainId = token.chainId
 
     const rawBalances = await sdk.getTokenBalancesFor(
       tokens,
@@ -284,9 +285,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const token = get().position[type].token
 
     let tokenValue = await token.getPriceUSD()
-    if (token.symbol === "WETH") {
-      // TODO: remove (fix bc value on testnet is too low)
-      tokenValue = 1242.42
+    const isTestNet = testChains.find((c) => parseInt(c.id) === token.chainId)
+    if (token.symbol === "WETH" && isTestNet) {
+      tokenValue = 1242.42 // fix bc weth have no value on testnet
     }
 
     set(
@@ -300,7 +301,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
   async updateAllowance() {
     const token = get().position.collateral.token
-    const address = useStore.getState().address as string
+    const address = useStore.getState().address
 
     if (!address) {
       return
@@ -342,9 +343,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     set({ availableVaults })
 
     await get().changeActiveVault(vault)
-    await get().updateVaultBalance()
-    await get().updateAllProviders()
-    await get().updateTransactionMeta()
+    await Promise.all([
+      get().updateAllProviders(),
+      get().updateTransactionMeta(),
+    ])
     set({ availableVaultsStatus: "ready" })
   },
 
@@ -451,7 +453,12 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const debt = debtValue * debtUsdValue
 
     if (!debt || !collateralAmount) {
-      return { liquidationPrice: 0, liquidationDiff: 0 }
+      return set(
+        produce((s: TransactionState) => {
+          s.position.liquidationPrice = 0
+          s.position.liquidationDiff = 0
+        })
+      )
     }
 
     const liquidationTreshold = get().position.ltvThreshold
@@ -504,7 +511,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value
 
     if (!provider || !userAddress) {
-      throw "Missing params"
+      throw "Missing provider (check auth slice) or missing user address"
     }
 
     set(

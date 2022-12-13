@@ -79,8 +79,10 @@ export const chains: Chain[] = [
   // },
 ]
 
+export const testChains: Chain[] = []
+
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
-  chains.push(
+  testChains.push(
     {
       id: "0x13881",
       token: "MATIC",
@@ -103,6 +105,7 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
       blockExplorerUrl: "https://goerli-optimism.etherscan.io/",
     }
   )
+  chains.push(...testChains)
 }
 
 const onboard = Onboard({
