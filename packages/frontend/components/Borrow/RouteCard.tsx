@@ -29,7 +29,9 @@ type RouteCardProps = {
 export default function RouteCard(props: RouteCardProps) {
   const { palette } = useTheme()
   const collateral = useStore((state) => state.position.collateral)
+  const collateralInput = useStore((state) => state.collateralInput)
   const debt = useStore((state) => state.position.debt)
+  const debtInput = useStore((state) => state.debtInput)
 
   const bridgeStep = props.route.steps.filter((step) =>
     step.label.toLowerCase().includes("bridge")
@@ -93,7 +95,7 @@ export default function RouteCard(props: RouteCardProps) {
 
           <Box>
             <Typography variant="body">
-              {collateral.amount} {collateral.token.symbol}
+              {collateralInput} {collateral.token.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">
@@ -105,7 +107,7 @@ export default function RouteCard(props: RouteCardProps) {
         <Stack direction="row">
           <Box textAlign="right" mr="0.75rem">
             <Typography variant="body">
-              {debt.amount} {debt.token.symbol}
+              {debtInput} {debt.token.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">

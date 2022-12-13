@@ -58,11 +58,11 @@ export default function RoutingModal(props: RoutingModalProps) {
           icon: (
             <NetworkIcon network={collateralChain} height={18} width={18} />
           ),
-          label: `Deposit ${collateral.amount} ${collateral.token.symbol} to ${providerName}`,
+          label: `Deposit ${collateralInput} ${collateral.token.symbol} to ${providerName}`,
         },
         {
           icon: <TokenIcon token={debt.token} height={18} width={18} />,
-          label: `Borrow ${debt.amount} ${debt.token.symbol} from ${providerName}`,
+          label: `Borrow ${debtInput} ${debt.token.symbol} from ${providerName}`,
         },
         {
           icon: <NetworkIcon network={debtChain} height={18} width={18} />,
