@@ -215,23 +215,20 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
-    chief = new Chief();
-    chief.setTimelock(address(timelock));
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
+    _utils_setupTestRoles();
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
     yVaultFactory = new YieldVaultFactory(address(chief));
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     executionCall =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(yVaultFactory), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     address bvaultAddr = chief.deployVault(
       address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
@@ -245,13 +242,15 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     flasher = new MockFlasher();
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     rebalancer = new RebalancerManager(address(chief));
-    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    executionCall =
+      abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(rebalancer));
+    _callWithTimelock(address(chief), executionCall);
 
     executionCall = abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
-    _utils_callWithTimelock(address(rebalancer), executionCall);
+    _callWithTimelock(address(rebalancer), executionCall);
 
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), alice);
     _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), bob);
@@ -280,29 +279,28 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address applicable roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
+    _grantRoleChief(REBALANCER_ROLE, address(this));
   }
 
-  function _utils_callWithTimelock(
-    address contract_,
-    bytes memory encodedWithSelectorData
-  )
-    internal
-  {
-    timelock.schedule(contract_, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
+  function _callWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(contract_, 0, encodedWithSelectorData, 0x00, 0x00);
+    timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
   }
 
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
+  }
+
   function _utils_setupVaultProviders(IVault vault_) internal {
-    _utils_setupTestRoles();
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = mockProviderA;
     providers[1] = mockProviderB;
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _utils_callWithTimelock(address(vault_), encodedWithSelectorData);
+    _callWithTimelock(address(vault_), encodedWithSelectorData);
     vault_.setActiveProvider(mockProviderA);
   }
 
@@ -482,7 +480,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(greedyFlasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_flashloanFailed.selector);
     rebalancer.rebalanceVault(
@@ -501,11 +499,11 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(reentrant), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     executionCall =
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(reentrant), true);
-    _utils_callWithTimelock(address(rebalancer), executionCall);
+    _callWithTimelock(address(rebalancer), executionCall);
 
     vm.expectRevert(RebalancerManager.RebalancerManager__getFlashloan_notEmptyEntryPoint.selector);
     rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, reentrant, true);
@@ -520,7 +518,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(maliciousFlasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
 
     vm.expectRevert(
       RebalancerManager.RebalancerManager__completeRebalance_invalidEntryPoint.selector
@@ -536,7 +534,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     //When we try to allow the same executor twice, the calls reverts in the TimelockController because the call has already been scheduled
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   // error RebalancerManager__zeroAddress();
@@ -545,6 +543,6 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     //thats the one being returned
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(0), true);
-    _utils_callWithTimelock(address(chief), executionCall);
+    _callWithTimelock(address(chief), executionCall);
   }
 }

@@ -58,12 +58,8 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     mockOracle.setUSDPriceOf(address(usdc), 100000000);
     mockOracle.setUSDPriceOf(address(weth), 160000000000);
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
-    chief = new Chief();
-    chief.setTimelock(address(timelock));
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
 
     vault = new BorrowingVault(
       address(weth),
@@ -84,21 +80,26 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, address(this));
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
   }
 
-  function _utils_callWithTimeLock(bytes memory sendData, IVault vault_) internal {
-    timelock.schedule(address(vault_), 0, sendData, 0x00, 0x00, 1.5 days);
+  function _callWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(address(vault_), 0, sendData, 0x00, 0x00);
+    timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
+  }
+
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
   }
 
   function _utils_setupVaultProvider(IVault vault_, ILendingProvider[] memory providers_) internal {
     _utils_setupTestRoles();
     bytes memory sendData = abi.encodeWithSelector(IVault.setProviders.selector, providers_);
-    _utils_callWithTimeLock(sendData, vault_);
+    _callWithTimelock(address(vault_), sendData);
   }
 
   function _utils_doDeposit(address who, uint256 amount, IVault v) internal {
@@ -143,9 +144,9 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
 
-    address cTokenAddr =
-      compoundV2.getMapper().getAddressMapping(compoundV2.providerName(), address(weth));
-    ICToken cToken = ICToken(cTokenAddr);
+    // address cTokenAddr =
+    //   compoundV2.getMapper().getAddressMapping(compoundV2.providerName(), address(weth));
+    // ICToken cToken = ICToken(cTokenAddr);
 
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
