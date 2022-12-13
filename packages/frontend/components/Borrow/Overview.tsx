@@ -9,6 +9,7 @@ import {
   Divider,
   Fade,
   Grid,
+  Link,
   Menu,
   MenuItem,
   Stack,
@@ -27,6 +28,7 @@ import { useStore } from "../../store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import { BorrowingVault } from "@x-fuji/sdk"
 import ProviderIcon from "../ProviderIcon"
+import NetworkIcon from "../NetworkIcon"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -67,13 +69,13 @@ export default function Overview() {
                       We take into account variables such as liquidity, audits
                       and team behind each protocol, you can read more on our
                       risk framework{" "}
-                      <a
+                      <Link
                         href="https://docs.fujidao.org/"
                         target="_blank"
                         rel="noreferrer"
                       >
                         <u> here</u>
-                      </a>
+                      </Link>
                     </span>
                   }
                   placement="top"
@@ -202,8 +204,8 @@ export default function Overview() {
             <Grid item>
               {providers?.length ? (
                 <Grid container alignItems="center">
-                  <ProviderIcon
-                    providerName={providers[0].name}
+                  <NetworkIcon
+                    network={vault?.chainId || ""}
                     height={18}
                     width={18}
                   />
@@ -327,7 +329,11 @@ function VaultsMenu() {
             ))}
           </Box>
           {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
-          <Chip variant="success" label="A+" />
+          <Chip
+            variant="success"
+            label="A+"
+            sx={{ ".MuiChip-label": { textOverflow: "clip" } }}
+          />
           <KeyboardArrowDownIcon width={16} height={16} />
         </Stack>
       </Button>

@@ -8,6 +8,7 @@ declare module "@mui/material/Button" {
     ghost: true
     gradient: true
     small: true
+    rounded: true
   }
 }
 
@@ -17,6 +18,9 @@ declare module "@mui/material/Chip" {
     success: true
     warning: true
     number: true
+    routing: true
+    recommended: true
+    selected: true
   }
 }
 
@@ -39,12 +43,6 @@ declare module "@mui/material/Typography" {
     xsmallDark: true
     label: true
     regularH4: true
-  }
-}
-
-declare module "@mui/material/Chip" {
-  interface ChipPropsVariantOverrides {
-    gradient: true
   }
 }
 
@@ -189,6 +187,8 @@ const theme = createTheme(colorTheme, {
         root: {
           boxSizing: "border-box",
           borderRadius: "0.5rem",
+          textTransform: "none",
+          fontSize: "1rem",
           "&.Mui-disabled": {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
@@ -209,7 +209,6 @@ const theme = createTheme(colorTheme, {
               "linear-gradient(92.29deg, rgba(254, 52, 119, 0.8) 0%, rgba(240, 1, 79, 0.8) 100%)",
             boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
             padding: "0.75rem 1.25rem",
-            textTransform: "none",
             fontSize: "1rem",
           },
         },
@@ -249,8 +248,7 @@ const theme = createTheme(colorTheme, {
           },
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
-            border: `0.063rem solid ${colorTheme.palette.primary.light}`,
-            padding: "0.75rem 1.25rem",
+            border: `1px solid ${colorTheme.palette.primary.light}`,
             textTransform: "none",
             fontSize: "1rem",
           },
@@ -278,6 +276,18 @@ const theme = createTheme(colorTheme, {
             padding: "0 .6rem",
             fontSize: "0.75rem",
             borderRadius: "1rem",
+          },
+        },
+        {
+          props: { size: "large" },
+          style: { padding: ".7rem", fontSize: "1rem" },
+        },
+        {
+          props: { variant: "rounded" },
+          style: {
+            borderRadius: "50rem",
+            color: colorTheme.palette.primary.light,
+            border: `1px solid ${colorTheme.palette.primary.light}`,
           },
         },
       ],
@@ -390,13 +400,6 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiSvgIcon: {
-      styleOverrides: {
-        root: {
-          color: colorTheme.palette.text.secondary,
-        },
-      },
-    },
     MuiLink: {
       styleOverrides: {
         root: {
@@ -482,6 +485,36 @@ const theme = createTheme(colorTheme, {
             background: colorTheme.palette.secondary.light,
             position: "relative",
             right: `${3 * 0.25}rem`,
+          },
+        },
+        {
+          props: {
+            variant: "routing",
+          },
+          style: {
+            background: colorTheme.palette.secondary.main,
+            height: "22px",
+          },
+        },
+        {
+          props: {
+            variant: "recommended",
+          },
+          style: {
+            background: colorTheme.palette.primary.main,
+            position: "relative",
+            bottom: ".7rem",
+            height: "22px",
+          },
+        },
+        {
+          props: {
+            variant: "selected",
+          },
+          style: {
+            height: "22px",
+            color: colorTheme.palette.primary.main,
+            border: `1px solid ${colorTheme.palette.primary.main}`,
           },
         },
       ],

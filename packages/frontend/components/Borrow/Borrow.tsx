@@ -6,19 +6,27 @@ import {
   CardContent,
   Card,
   Grid,
+  Stack,
+  useMediaQuery,
+  useTheme,
+  Box,
+  Link,
 } from "@mui/material"
 import Image from "next/image"
 
 import { useStore } from "../../store"
-import styles from "../../styles/components/Borrow.module.css"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
+import RoutingModal from "./RoutingModal"
+import { useHistory } from "../../store/history.store"
+import { chainName } from "../../helpers/chainName"
 
 export default function Borrow() {
+  const theme = useTheme()
   const address = useStore((state) => state.address)
   const walletChain = useStore((state) => state.chain)
   const changeChain = useStore((state) => state.changeChain)
@@ -44,14 +52,8 @@ export default function Borrow() {
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
 
-  const setShowTransactionAbstract = useStore(
-    (state) => state.setShowTransactionAbstract
-  )
-
-  const [showTransactionProcessingModal, setShowTransactionProcessingModal] =
-    useState(false)
+  // TODO: refacto with a "status" in store (i.e status = "editing, approving, signing, borrowing...") ?
   const [showApprovalModal, setShowApprovalModal] = useState(false)
-  // TODO: refacto with a "status" ?
 
   const value = useStore((state) => state.position.collateral.amount)
   const balance = useStore(
@@ -71,13 +73,20 @@ export default function Borrow() {
   const isSigning = useStore((state) => state.isSigning)
   const isBorrowing = useStore((state) => state.isBorrowing)
 
+  const currentTxHash = useHistory((state) => state.inModal)
+  const closeModal = useHistory((state) => state.closeModal)
   const metaStatus = useStore((state) => state.transactionMeta.status)
+  const availableVaultStatus = useStore((state) => state.availableVaultsStatus)
+
+  const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
   let button: ReactNode
   if (!address) {
     button = (
       <Button
         variant="gradient"
+        size="large"
         onClick={() => login()}
         fullWidth
         data-cy="borrow-login"
@@ -89,6 +98,7 @@ export default function Borrow() {
     button = (
       <Button
         variant="gradient"
+        size="large"
         fullWidth
         onClick={() => changeChain(collateral.token.chainId)}
       >
@@ -97,13 +107,13 @@ export default function Borrow() {
     )
   } else if (value > 0 && value > balance) {
     button = (
-      <Button variant="gradient" disabled fullWidth>
+      <Button variant="gradient" size="large" disabled fullWidth>
         Insufficient {collateral.token.symbol} balance
       </Button>
     )
   } else if (ltv > ltvMax) {
     button = (
-      <Button variant="gradient" disabled fullWidth>
+      <Button variant="gradient" size="large" disabled fullWidth>
         Not enough collateral
       </Button>
     )
@@ -115,6 +125,7 @@ export default function Borrow() {
       <Button
         variant="gradient"
         fullWidth
+        size="large"
         onClick={() => setShowApprovalModal(true)}
       >
         Allow
@@ -125,12 +136,14 @@ export default function Borrow() {
       <LoadingButton
         variant="gradient"
         onClick={signAndBorrow}
+        size="large"
         fullWidth
-        className={styles.btn}
         disabled={
           collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
         }
-        loading={isSigning || isBorrowing}
+        loading={
+          isSigning || isBorrowing || availableVaultStatus === "fetching"
+        }
         loadingPosition="start"
         startIcon={<></>}
       >
@@ -143,55 +156,71 @@ export default function Borrow() {
 
   return (
     <>
-      <Card
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          p: "0.5rem 0",
-        }}
-      >
-        <CardContent>
+      <Card sx={{ maxWidth: "500px", margin: "auto" }}>
+        <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <Typography variant="body2" height="40px" lineHeight="40px">
             Borrow
           </Typography>
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
 
-          <ChainSelect
-            label="Collateral from"
-            type="collateral"
-            value={collateralChainId}
-            onChange={(chainId) => changeCollateralChain(chainId)}
-          />
-          <TokenCard type="collateral" />
+          <Box mb="1rem">
+            <ChainSelect
+              label="Collateral from"
+              type="collateral"
+              value={collateralChainId}
+              disabled={isBorrowing}
+              onChange={(chainId) => changeCollateralChain(chainId)}
+            />
+            <TokenCard type="collateral" />
+          </Box>
 
-          <br />
+          <Box>
+            <ChainSelect
+              label="Borrow to"
+              type="borrow"
+              value={debtChainId}
+              disabled={isBorrowing}
+              onChange={(chainId) => changeBorrowChain(chainId)}
+            />
+            <TokenCard type="debt" />
+          </Box>
 
-          <ChainSelect
-            label="Borrow to"
-            type="borrow"
-            value={debtChainId}
-            onChange={(chainId) => changeBorrowChain(chainId)}
-          />
-          <TokenCard type="debt" />
-
-          <br />
-
-          <Fees />
-          <br />
+          <Stack
+            direction="row"
+            m="1rem 0"
+            justifyContent="space-between"
+            onClick={() => {
+              !onMobile && address && setShowRoutingModal(true)
+            }}
+            sx={{ cursor: address && "pointer" }}
+          >
+            <Typography variant="small">Route</Typography>
+            <Typography variant="small">
+              <u>
+                {`${collateral.token.symbol} > ${chainName(
+                  debt.token.chainId
+                )}`}
+              </u>
+            </Typography>
+          </Stack>
+          <Box mb="1rem">
+            <Fees />
+          </Box>
 
           {button}
 
-          <br />
-          <br />
-
-          <a
+          <Link
             href="https://www.connext.network/"
             target="_blank"
             rel="noreferrer"
           >
-            <Grid container justifyContent="center" alignItems="center">
+            <Grid
+              container
+              justifyContent="center"
+              alignItems="center"
+              mt="2rem"
+            >
               <Typography variant="small">Powered by</Typography>
               <Image
                 src="/assets/images/logo/connext-title.svg"
@@ -200,19 +229,22 @@ export default function Borrow() {
                 alt="Connext logo"
               />
             </Grid>
-          </a>
+          </Link>
         </CardContent>
       </Card>
+      {/* TODO: Move txprocessing outside of borrow */}
       <TransactionProcessingModal
-        open={showTransactionProcessingModal}
-        handleClose={() => {
-          setShowTransactionProcessingModal(false)
-          setShowTransactionAbstract(true)
-        }}
+        hash={currentTxHash}
+        handleClose={closeModal}
       />
       {showApprovalModal && (
         <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
       )}
+
+      <RoutingModal
+        open={showRoutingModal}
+        handleClose={() => setShowRoutingModal(false)}
+      />
     </>
   )
 }

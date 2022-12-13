@@ -33,9 +33,11 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           sx={{
             position: "sticky",
             left: 0,
-            zIndex: 1,
+            zIndex: 5,
             background: row.isChild
-              ? row.children && palette.secondary.main
+              ? row.isGrandChild
+                ? palette.secondary.light
+                : palette.secondary.main
               : palette.secondary.contrastText,
           }}
         >
@@ -152,7 +154,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
                 sx={{
                   position: "relative",
                   right: `${i * 0.25}rem`,
-                  zIndex: row.integratedProtocols.length - i,
+                  zIndex: 4 - i,
                 }}
                 key={vault}
               >

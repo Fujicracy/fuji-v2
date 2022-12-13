@@ -1,30 +1,61 @@
+import { Box, useTheme } from "@mui/material"
+import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
+import { chainName } from "../helpers/chainName"
 
 interface Props extends Omit<ImageProps, "src"> {
-  networkName: string
+  network: string | ChainId
+  sx?: object
 }
+
 export default function NetworkIcon(props: Props) {
-  const path = `/assets/images/protocol-icons/networks/${props.networkName}.svg`
-  const { networkName, ...rest } = props
+  const { palette } = useTheme()
+  const { network, ...rest } = props
+
+  const name = typeof network === "string" ? network : chainName(network)
+  const path = `/assets/images/protocol-icons/networks/${name}.svg`
 
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
   useEffect(() => {
     if (error)
       console.error(
-        `404 Not found. No image found for network ${networkName}. Searched in ${path}`
+        `404 Not found. No image found for network ${name}. Searched in ${path}`
       )
-  }, [error, networkName, path])
+  }, [error, network, path, name])
 
   if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything ?
+    return (
+      <Box
+        {...rest}
+        sx={{
+          ...props.sx,
+          background: palette.secondary.main,
+          borderRadius: "100%",
+        }}
+      ></Box>
+    )
   }
+
   return (
-    <Image
-      {...rest}
-      src={path}
-      alt={`${networkName} icon`}
-      onError={(e) => setError(e)}
-    />
+    <>
+      {props.sx ? (
+        <div style={props.sx}>
+          <Image
+            {...rest}
+            src={path}
+            alt={`${name} icon`}
+            onError={(e) => setError(e)}
+          />
+        </div>
+      ) : (
+        <Image
+          {...rest}
+          src={path}
+          alt={`${name} icon`}
+          onError={(e) => setError(e)}
+        />
+      )}
+    </>
   )
 }
