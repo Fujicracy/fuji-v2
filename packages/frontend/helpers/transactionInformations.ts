@@ -16,3 +16,14 @@ export function transactionLink(id: string | number, hash: string) {
   }
   return link + "tx/" + hash
 }
+
+export function transactionAddress(id: string | undefined, address: string) {
+  const link = chainsMap.get(id)
+  if (!link) {
+    console.error(`No blockExplorerUrl found for chainId ${id}.
+    - Make sure id is valid (hex string or base 10 number) and the chain is setup in web3-onboard config
+    - Make sure blockExplorerUrl is set for chain ${id} in web3-onboard config`)
+    return
+  }
+  return link + "address/" + address
+}

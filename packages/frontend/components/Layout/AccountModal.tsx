@@ -29,6 +29,7 @@ import {
   HistoryRoutingStep,
 } from "../../store/history.store"
 import { chainName } from "../../helpers/chainName"
+import { transactionAddress } from "../../helpers/transactionInformations"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -49,6 +50,8 @@ export default function AccountModal(props: AccountModalProps) {
   )
   const openModal = useHistory((state) => state.openModal)
   const clearAll = useHistory((state) => state.clearAll)
+
+  const chainId = useStore((state) => state.chain?.id)
 
   const formattedAddress =
     props.address.substring(0, 8) +
@@ -137,7 +140,7 @@ export default function AccountModal(props: AccountModalProps) {
 
             <Box>
               <a
-                href={"https://etherscan.io/address/" + props.address} // TODO: This link only works on mainnet. Make it work with any scanner
+                href={transactionAddress(chainId, props.address)}
                 target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
                 rel="noreferrer"
               >
