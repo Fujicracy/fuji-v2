@@ -181,12 +181,7 @@ export default function AccountModal(props: AccountModalProps) {
             }}
           />
 
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            mx="1.25rem"
-            mb=".5rem"
-          >
+          <Stack direction="row" justifyContent="space-between" mx="1.25rem">
             <Typography variant="xsmall">Recent Transactions</Typography>
             {historyEntries.length > 0 &&
               historyEntries.filter((entry) => entry.status === "ongoing")
