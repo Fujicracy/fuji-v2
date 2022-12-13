@@ -118,12 +118,16 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     v.deposit(amount, who);
     vm.stopPrank();
 
-    // vm.warp(block.timestamp + 15 seconds);
-    // vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
 
     uint256 shares = v.balanceOf(who);
     uint256 assetBalance = v.convertToAssets(shares);
-    // assertGe(assetBalance, amount);
+
+    assertGe(assetBalance, amount);
+
+    vm.warp(block.timestamp - 13 seconds);
+    vm.roll(block.number - 1);
   }
 
   function _utils_doBorrow(address who, uint256 amount, IVault v) internal {

@@ -53,8 +53,8 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
   }
 
   function executeOperation(

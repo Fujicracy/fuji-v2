@@ -36,8 +36,8 @@ contract MorphoCompoundForkingTest is Routines, ForkingSetup {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
     //wait for block to be mined
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
 
     uint256 aliceDebt = vault.balanceOfDebt(ALICE);
     do_payback(aliceDebt, vault, ALICE);
@@ -50,8 +50,8 @@ contract MorphoCompoundForkingTest is Routines, ForkingSetup {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
     //wait for block to be mined
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
 
     uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();

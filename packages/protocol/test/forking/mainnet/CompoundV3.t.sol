@@ -39,6 +39,9 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
     uint256 aliceDebt = vault.balanceOfDebt(ALICE);
     do_payback(aliceDebt, vault, ALICE);
 
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
   }
