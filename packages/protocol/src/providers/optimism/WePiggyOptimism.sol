@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -11,20 +12,54 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IGenCToken} from "../../interfaces/compoundV2/IGenCToken.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
+import {IWETH9} from "../../abstracts/WETH9.sol";
 
-contract HelperFunct {
-  function _isNative(address token) internal pure returns (bool) {
-    return (token == address(0) || token == address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE));
+//WePiggy -> TOKEN -> pTOKEN
+/*
+1)eth done
+	0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
+  0x4200000000000000000000000000000000000006
+  0x8e1e582879Cb8baC6283368e8ede458B63F499a5
+2)usdc done
+  0x7F5c764cBc14f9669B88837ca1490cCa17c31607
+	0x811Cd5CB4cC43F44600Cfa5eE3F37a402C82aec2
+3)dai done
+  0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1
+  0xc12B9D620bFCB48be3e0CCbf0ea80C717333b46F
+4)wbtc
+  0x68f180fcCe6836688e9084f035309E29Bf0A2095
+  0x48a5322c3021d5eD5CE4293112141045d12c7EFC*/
+
+/**
+ * @title WePiggy Lending Provider.
+ * @author fujidao Labs
+ * @notice This contract allows interaction with WePiggy.
+ */
+contract WePiggyOptimism is ILendingProvider {
+  error WePiggy__deposit_failed(uint256 status);
+
+  // function _isNative(address token) internal pure returns (bool) {
+  //   return (token == address(0) || token == address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE));
+  // }
+
+  function _isWETH(address token) internal pure returns (bool) {
+    return token == 0x4200000000000000000000000000000000000006;
   }
 
-  //TODO define mappings
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
+    return IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA);
   }
 
   function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("Compound", underlying);
+    console.log("@getctoken = ", underlying);
+    // if (_isWETH(underlying)) {
+    //   console.log("@getctoken inside if");
+    //   underlying = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    //   cToken = _getAddrmapper().getAddressMapping("WePiggy", underlying);
+    // } else {
+    cToken = _getAddrmapper().getAddressMapping("WePiggy", underlying);
+    // }
   }
 
   function _getComptrollerAddress() internal pure returns (address) {
@@ -56,23 +91,8 @@ contract HelperFunct {
 
     comptroller.exitMarket(_cTokenAddress);
   }
-}
-
-/**
- * @title WePiggy Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with WePiggy.
- */
-contract WePiggyOptimism is ILendingProvider, HelperFunct {
-  //TODO use addrmapper
-  //check the addresses are right for this chain
-  address public pETH = 0x27A94869341838D5783368a8503FdA5fbCd7987c;
-  address public pDAI = 0x85166b72c87697a6acfF24101B43Fd54fE28a179;
-  address public pUSDT = 0x5cFad792C4Df1323188180778AeC58E00eAcE32a;
-  address public pUSDC = 0xf8E5b9738BF63ADFFf36a849F9b9C9617c8D8c1f;
-  address public pWBTC = 0xc12B9D620bFCB48be3e0CCbf0ea80C717333b46F;
-
   /// inheritdoc ILendingProvider
+
   function providerName() public pure override returns (string memory) {
     return "WePiggy_Optimism";
   }
@@ -84,62 +104,69 @@ contract WePiggyOptimism is ILendingProvider, HelperFunct {
 
   /// inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
-    // function deposit(address _asset, uint256 _amount) external payable override {
+    console.log("@wepiggy @deposit");
+    console.log("@wepiggy @deposit asset = ", vault.asset());
+    address asset = vault.asset();
+    address cTokenAddr = _getCToken(asset);
+    console.log("@wepiggy @deposit cTokenAddr = ", cTokenAddr);
 
-    // Get cToken address from mapping
-    address cTokenAddr = _getCToken(vault.asset());
-
-    // Enter and/or ensure collateral market is enacted
     _enterCollatMarket(cTokenAddr);
 
-    if (_isNative(vault.asset())) {
-      // Create a reference to the cToken contract
+    if (_isWETH(asset)) {
+      //unwrap WETH to ETH
+      IWETH9(asset).withdraw(amount);
+
       ICETH cToken = ICETH(cTokenAddr);
+
+      console.log("@wepiggy @deposit weth before mint");
 
       // Compound protocol Mints cTokens, ETH method
       cToken.mint{value: amount}();
     } else {
-      // Create reference to the ERC20 contract
-      IERC20 erc20token = IERC20(vault.asset());
-
-      // Create a reference to the cToken contract
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      // Checks, Vault balance of ERC20 to make deposit
-      require(erc20token.balanceOf(address(this)) >= amount, "Not enough Balance");
-
-      // Approve to move ERC20tokens
-      // erc20token.univApprove(address(cTokenAddr), amount);
-
-      // Compound Protocol mints cTokens, trhow error if not
-      require(cToken.mint(amount) == 0, "Deposit-failed");
+      console.log("@wepiggy @deposit before mint");
+      uint256 status = cToken.mint(amount);
+      if (status != 0) {
+        revert WePiggy__deposit_failed(status);
+      }
     }
     success = true;
   }
 
   /// inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
-    // Get cToken address from mapping
-    address cTokenAddr = _getCToken(vault.asset());
+    address asset = vault.debtAsset();
+    address cTokenAddr = _getCToken(asset);
 
-    // Create a reference to the corresponding cToken contract
     IGenCToken cToken = IGenCToken(cTokenAddr);
 
     // Compound Protocol Borrow Process, throw errow if not.
     require(cToken.borrow(amount) == 0, "borrow-failed");
+
+    // wrap ETH to WETH
+    if (_isWETH(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
   /// inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
+    address asset = vault.asset();
     // Get cToken address from mapping
-    address cTokenAddr = _getCToken(vault.asset());
+    address cTokenAddr = _getCToken(asset);
 
     // Create a reference to the corresponding cToken contract
     IGenCToken cToken = IGenCToken(cTokenAddr);
 
     // Compound Protocol Redeem Process, throw errow if not.
     require(cToken.redeemUnderlying(amount) == 0, "Withdraw-failed");
+
+    // wrap ETH to WETH
+    if (_isWETH(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
