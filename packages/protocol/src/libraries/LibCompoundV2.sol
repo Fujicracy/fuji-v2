@@ -85,11 +85,11 @@ library LibCompoundV2 {
       _mul_ScalarTruncateAddUInt(simpleInterestFactor, borrowIndexPrior, borrowIndexPrior);
   }
 
-  function _mul_(Exp memory a, uint256 b) internal pure returns (Exp memory) {
+  function _mul_(Exp memory a, uint256 b) private pure returns (Exp memory) {
     return Exp({mantissa: a.mantissa * b});
   }
 
-  function _truncate(Exp memory exp) internal pure returns (uint256) {
+  function _truncate(Exp memory exp) private pure returns (uint256) {
     // Note: We are not using careful math here as we're performing a division that cannot fail
     return exp.mantissa / 1e18;
   }
@@ -99,7 +99,7 @@ library LibCompoundV2 {
     uint256 scalar,
     uint256 addend
   )
-    internal
+    private
     pure
     returns (uint256)
   {
