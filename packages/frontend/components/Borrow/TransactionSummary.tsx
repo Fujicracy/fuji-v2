@@ -29,8 +29,15 @@ export default function TransactionSummary() {
   const ltvMax = useStore((state) => state.position.ltvMax)
   const liquidationPrice = useStore((state) => state.position.liquidationPrice)
   const liquidationDiff = useStore((state) => state.position.liquidationDiff)
+
   const collateral = useStore((state) => state.position.collateral)
+  const collateralInput = useStore((state) => state.collateralInput)
+  const collateralAmount = parseFloat(collateralInput)
+
   const debt = useStore((state) => state.position.debt)
+  const debtInput = useStore((state) => state.debtInput)
+  const debtAmount = parseFloat(debtInput)
+
   const providers = useStore((state) => state.position.providers)
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
@@ -138,10 +145,9 @@ export default function TransactionSummary() {
                     Collateral Provided
                   </Typography>
                   <Typography variant="small" sx={{ width: "100%" }}>
-                    {collateral.amount.toLocaleString()}{" "}
+                    {collateralAmount.toLocaleString()}{" "}
                     {collateral.token.symbol} (~
-                    {(collateral.amount * collateral.usdValue).toLocaleString()}
-                    )
+                    {(collateralAmount * collateral.usdValue).toLocaleString()})
                   </Typography>
                 </Grid>
 
@@ -151,8 +157,8 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
                   <Typography variant="small" sx={{ width: "100%" }}>
-                    ${(debt.amount * debt.usdValue).toLocaleString()} (
-                    {debt.amount.toLocaleString()} {debt.token.symbol})
+                    ${(debtAmount * debt.usdValue).toLocaleString()} (
+                    {debtAmount.toLocaleString()} {debt.token.symbol})
                   </Typography>
                 </Grid>
 

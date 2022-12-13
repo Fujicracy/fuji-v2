@@ -38,17 +38,21 @@ export default function Borrow() {
   const login = useStore((state) => state.login)
 
   const collateral = useStore((state) => state.position.collateral)
+  const collateralInput = useStore((state) => state.collateralInput)
+  const collateralAmount = parseFloat(collateralInput)
   const collateralChainId = useStore((state) => state.collateralChainId)
   const collateralAllowance = useStore((state) => state.collateralAllowance)
-  const debt = useStore((state) => state.position.debt)
+
+  const debtInput = useStore((state) => state.debtInput)
+  const debtAmount = parseFloat(debtInput)
   const debtChainId = useStore((state) => state.debtChainId)
+
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
 
   // TODO: refacto with a "status" in store (i.e status = "editing, approving, signing, borrowing...") ?
   const [showApprovalModal, setShowApprovalModal] = useState(false)
 
-  const value = useStore((state) => state.position.collateral.amount)
   const balance = useStore(
     (state) => state.collateralBalances[state.position.collateral.token.symbol]
   )
@@ -95,7 +99,7 @@ export default function Borrow() {
         Switch network
       </Button>
     )
-  } else if (value > 0 && value > balance) {
+  } else if (collateralAmount > 0 && collateralAmount > balance) {
     button = (
       <Button variant="gradient" size="large" disabled fullWidth>
         Insufficient {collateral.token.symbol} balance
@@ -109,7 +113,7 @@ export default function Borrow() {
     )
   } else if (
     collateralAllowance?.value !== undefined &&
-    collateralAllowance.value < collateral.amount
+    collateralAllowance.value < collateralAmount
   ) {
     button = (
       <Button
@@ -129,7 +133,7 @@ export default function Borrow() {
         size="large"
         fullWidth
         disabled={
-          collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
+          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
         }
         loading={
           isSigning || isBorrowing || availableVaultStatus === "fetching"

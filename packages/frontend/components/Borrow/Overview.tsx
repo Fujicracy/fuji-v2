@@ -37,7 +37,11 @@ export default function Overview() {
   const liquidationPrice = useStore((state) => state.position.liquidationPrice)
   const liquidationDiff = useStore((state) => state.position.liquidationDiff)
   const collateral = useStore((state) => state.position.collateral)
+  const collateralInput = useStore((state) => state.collateralInput)
+  const collateralAmount = parseFloat(collateralInput)
   const debt = useStore((state) => state.position.debt)
+  const debtInput = useStore((state) => state.debtInput)
+  const debtAmount = parseFloat(debtInput)
   const providers = useStore((state) => state.position.providers)
   const vault = useStore((state) => state.position.vault)
 
@@ -97,11 +101,11 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: `${collateral.amount.toLocaleString("en-US", {
+                  amount: `${collateralAmount.toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })} ${collateral.token.symbol}`,
                   footer: (
-                    collateral.amount * collateral.usdValue
+                    collateralAmount * collateral.usdValue
                   ).toLocaleString("en-US", {
                     style: "currency",
                     currency: "usd",
@@ -113,14 +117,11 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Borrowed Value",
-                  amount: (debt.amount * debt.usdValue).toLocaleString(
-                    "en-US",
-                    {
-                      style: "currency",
-                      currency: "usd",
-                    }
-                  ),
-                  footer: `${debt.amount.toLocaleString("en-US", {
+                  amount: (debtAmount * debt.usdValue).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "usd",
+                  }),
+                  footer: `${debtAmount.toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })} ${debt.token.symbol}`,
                 }}
@@ -389,3 +390,4 @@ const VaultMenuItem = ({ vault, selected, onClick }: VaultMenuItemProps) => {
     </MenuItem>
   )
 }
+parseFloat

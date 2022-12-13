@@ -27,6 +27,8 @@ setAutoFreeze(false)
 type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
 export type TransactionStore = TransactionState & TransactionActions
 type TransactionState = {
+  formType: "create" | "edit"
+
   position: Position
   availableVaults: BorrowingVault[]
   availableVaultsStatus: FetchStatus
@@ -83,6 +85,7 @@ type TransactionActions = {
   updateTransactionMetaDebounced: () => void
   updateLtv: () => void
   updateLiquidation: () => void
+  updateVaultBalance: () => void
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
@@ -98,6 +101,8 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: TransactionState = {
+  formType: "create",
+
   availableVaults: [],
   availableVaultsStatus: "initial",
   allProviders: {},
@@ -178,12 +183,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   changeCollateralValue(value) {
-    set(
-      produce((state: TransactionState) => {
-        state.collateralInput = value
-        state.position.collateral.amount = value ? parseFloat(value) : 0
-      })
-    )
+    set({ collateralInput: value })
     get().updateTransactionMetaDebounced()
     get().updateLtv()
     get().updateLiquidation()
@@ -217,12 +217,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
   },
 
   changeBorrowValue(value) {
-    set(
-      produce((state: TransactionState) => {
-        state.debtInput = value
-        state.position.debt.amount = value ? parseFloat(value) : 0
-      })
-    )
+    set({ debtInput: value })
     get().updateTransactionMetaDebounced()
     get().updateLtv()
     get().updateLiquidation()
@@ -344,9 +339,10 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       set({ availableVaultsStatus: "error" })
       return
     }
+    set({ availableVaults })
 
     await get().changeActiveVault(vault)
-    set({ availableVaults })
+    await get().updateVaultBalance()
     await get().updateAllProviders()
     await get().updateTransactionMeta()
     set({ availableVaultsStatus: "ready" })
@@ -371,9 +367,9 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       return
     }
 
-    const position = get().position
-    const { collateral, debt, vault } = position
-    if (!vault || !collateral.amount || !debt.amount) {
+    const { vault, collateral, debt } = get().position
+    const { collateralInput, debtInput } = get()
+    if (!vault || !collateralInput || !debtInput) {
       return set(
         produce((state: TransactionState) => {
           state.transactionMeta.status = "error"
@@ -393,8 +389,8 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const { bridgeFee, estimateTime, actions, steps } =
         await sdk.previewDepositAndBorrow(
           vault,
-          parseUnits(collateral.amount.toString(), collateral.token.decimals),
-          parseUnits(debt.amount.toString(), debt.token.decimals),
+          parseUnits(collateralInput, collateral.token.decimals),
+          parseUnits(debtInput, debt.token.decimals),
           collateral.token,
           debt.token,
           new Address(address)
@@ -470,6 +466,27 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       produce((s: TransactionState) => {
         s.position.liquidationPrice = liquidationPrice
         s.position.liquidationDiff = liquidationDiff
+      })
+    )
+  },
+
+  async updateVaultBalance() {
+    const vault = get().position.vault
+    const address = useStore.getState().address
+    if (!vault || !address) {
+      return
+    }
+
+    const { deposit, borrow } = await vault.getBalances(new Address(address))
+    set(
+      produce((s: TransactionState) => {
+        s.formType = deposit.gt(0) || borrow.gt(0) ? "edit" : "create"
+
+        const dec = s.position.collateral.token.decimals
+        s.position.collateral.amount = parseFloat(formatUnits(deposit, dec))
+
+        const dec2 = s.position.debt.token.decimals
+        s.position.debt.amount = parseFloat(formatUnits(borrow, dec2))
       })
     )
   },
@@ -576,7 +593,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         produce((s: TransactionState) => {
           if (s.collateralAllowance.value) {
             // optimistic: we assume transaction will success and update allowance according to that
-            s.collateralAllowance.value -= s.position.collateral.amount
+            s.collateralAllowance.value -= parseFloat(s.collateralInput)
           }
         })
       )

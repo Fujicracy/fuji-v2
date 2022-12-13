@@ -114,7 +114,7 @@ export default function TransactionProcessingModal({
           }
         case RoutingStep.X_TRANSFER:
           return {
-            label: `Bridge ${amount} ${token.symbol} to ${chain}`,
+            label: `Bridge ${amount} ${token.symbol} from ${chain}`,
             description: "Connext bridge",
             chainId,
             txHash,

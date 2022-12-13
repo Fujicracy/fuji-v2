@@ -40,6 +40,10 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
   )
   const debtOrCollateral = useStore((state) => state.position[type])
   const { token } = debtOrCollateral
+  const input = useStore((state) =>
+    type === "debt" ? state.debtInput : state.collateralInput
+  )
+  const amount = parseFloat(input)
   const tokenValue = debtOrCollateral.usdValue
   const balances = useStore((state) =>
     type === "debt" ? state.debtBalances : state.collateralBalances
@@ -86,7 +90,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
       variant="outlined"
       sx={{
         borderColor:
-          type === "collateral" && debtOrCollateral.amount > balance
+          type === "collateral" && amount > balance
             ? palette.error.dark
             : palette.secondary.light,
       }}

@@ -24,6 +24,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const collateralAllowance = useStore((state) => state.collateralAllowance)
   const collateral = useStore((state) => state.position.collateral)
+  const collateralInput = useStore((state) => state.collateralInput)
   const meta = useStore((state) => state.transactionMeta)
 
   const [infiniteApproval, setInfiniteApproval] = useState(false)
@@ -33,7 +34,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
 
   const amount = infiniteApproval
     ? Number.MAX_SAFE_INTEGER
-    : collateral.amount +
+    : parseFloat(collateralInput) +
       meta.bridgeFees / collateral.usdValue +
       meta.gasFees / collateral.usdValue
 
