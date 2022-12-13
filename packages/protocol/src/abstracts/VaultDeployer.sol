@@ -19,6 +19,7 @@ abstract contract VaultDeployer {
 
   address public immutable chief;
 
+  address[] public allVaults;
   mapping(address => address[]) public vaultsByAsset;
   mapping(bytes32 => address) public configAddress;
 
@@ -47,6 +48,7 @@ abstract contract VaultDeployer {
     // Store the address of the deployed contract.
     configAddress[salt] = vault;
     vaultsByAsset[asset].push(vault);
+    allVaults.push(vault);
     emit VaultRegistered(vault, asset, salt);
   }
 
