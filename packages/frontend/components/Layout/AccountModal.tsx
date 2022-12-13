@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogContent,
   Grid,
+  Link,
   List,
   ListItem,
   ListItemButton,
@@ -146,9 +147,9 @@ export default function AccountModal(props: AccountModalProps) {
                 </Grid>
               </Grid>
               <Grid item>
-                <a
+                <Link
                   href={"https://etherscan.io/address/" + props.address} // TODO: This link only work on mainnet. Make it work with any scanner
-                  target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                  target="_blank"
                   rel="noreferrer"
                 >
                   <Grid container alignItems="center">
@@ -166,7 +167,7 @@ export default function AccountModal(props: AccountModalProps) {
                       </Typography>
                     </>
                   </Grid>
-                </a>
+                </Link>
               </Grid>
             </Grid>
           </CardContent>

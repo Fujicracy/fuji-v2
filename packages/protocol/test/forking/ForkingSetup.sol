@@ -140,7 +140,9 @@ contract ForkingSetup is CoreRoles, Test {
 
     originDomain = domain;
 
-    if (reg.connext != address(0)) vm.label(reg.connext, "Connext");
+    if (reg.connext != address(0)) {
+      vm.label(reg.connext, "Connext");
+    }
 
     collateralAsset = reg.weth;
     vm.label(reg.weth, "ConnextWETH");
