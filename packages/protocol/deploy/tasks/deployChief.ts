@@ -1,6 +1,10 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-const deployChief = async (hre: HardhatRuntimeEnvironment) => {
+const deployChief = async (
+  hre: HardhatRuntimeEnvironment,
+  deployTimelock: boolean,
+  deployAddrMapper: boolean
+ ) => {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
 
@@ -8,7 +12,7 @@ const deployChief = async (hre: HardhatRuntimeEnvironment) => {
 
   await deploy('Chief', {
     from: deployer,
-    args: [],
+    args: [deployTimelock, deployAddrMapper],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
     skipIfAlreadyDeployed: true,

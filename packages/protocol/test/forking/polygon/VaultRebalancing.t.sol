@@ -38,14 +38,14 @@ contract VaultRebalancingTest is Routines, ForkingSetup {
     router = new SimpleRouter(IWETH9(collateralAsset), chief);
     flasher = new FlasherAaveV3(aaveV3Pool);
     rebalancer = new RebalancerManager(address(chief));
-    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    _grantRoleChief(REBALANCER_ROLE, address(rebalancer));
 
     bytes memory executionCall =
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
-    _callWithTimelock(executionCall, address(rebalancer));
+    _callWithTimelock(address(rebalancer), executionCall);
 
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _callWithTimelock(executionCall, address(chief));
+    _callWithTimelock(address(chief), executionCall);
 
     aaveV2 = new AaveV2Polygon();
     aaveV3 = new AaveV3Polygon();
