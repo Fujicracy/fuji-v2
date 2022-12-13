@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -13,17 +12,7 @@ import {IGenCToken} from "../../interfaces/compoundV2/IGenCToken.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
-
-//WePiggy -> TOKEN -> pTOKEN
-/*
-1)weth done
-	0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
-  0x17933112E9780aBd0F27f2B7d9ddA9E840D43159
-2)usdc done
-  0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8
-  0x2Bf852e22C92Fd790f4AE54A76536c8C4217786b
-3)dai 
-4)wbtc
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title WePiggy Lending Provider.
@@ -31,8 +20,12 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @notice This contract allows interaction with WePiggy.
  */
 contract WePiggyArbitrum is ILendingProvider {
+  using SafeERC20 for IERC20;
+
   error WePiggy__deposit_failed(uint256 status);
   error WePiggy__payback_failed(uint256 status);
+  error WePiggy__withdraw_failed(uint256 status);
+  error WePiggy__borrow_failed(uint256 status);
 
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -51,8 +44,6 @@ contract WePiggyArbitrum is ILendingProvider {
     return 0xaa87715E858b482931eB2f6f92E504571588390b; // WePiggy Arbitrum
   }
 
-  // WePiggy functions
-
   /**
    * @dev Approves vault's assets as collateral for Compound Protocol.
    * @param _cTokenAddress: asset type to be approved as collateral.
@@ -66,18 +57,7 @@ contract WePiggyArbitrum is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /**
-   * @dev Removes vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be removed as collateral.
-   */
-  function _exitCollatMarket(address _cTokenAddress) internal {
-    // Create a reference to the corresponding network Comptroller
-    IComptroller comptroller = IComptroller(_getComptrollerAddress());
-
-    comptroller.exitMarket(_cTokenAddress);
-  }
   /// inheritdoc ILendingProvider
-
   function providerName() public pure override returns (string memory) {
     return "WePiggy_Optimism";
   }
@@ -89,11 +69,8 @@ contract WePiggyArbitrum is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
-    console.log("@wepiggy @deposit");
-    console.log("@wepiggy @deposit asset = ", vault.asset());
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
-    console.log("@wepiggy @deposit cTokenAddr = ", cTokenAddr);
 
     _enterCollatMarket(cTokenAddr);
 
@@ -103,14 +80,13 @@ contract WePiggyArbitrum is ILendingProvider {
 
       ICETH cToken = ICETH(cTokenAddr);
 
-      console.log("@wepiggy @deposit weth before mint");
-
       // Compound protocol Mints cTokens, ETH method
       cToken.mint{value: amount}();
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      console.log("@wepiggy @deposit before mint");
+      IERC20(asset).safeApprove(cTokenAddr, amount);
+
       uint256 status = cToken.mint(amount);
       if (status != 0) {
         revert WePiggy__deposit_failed(status);
@@ -126,11 +102,14 @@ contract WePiggyArbitrum is ILendingProvider {
 
     IGenCToken cToken = IGenCToken(cTokenAddr);
 
-    // Compound Protocol Borrow Process, throw errow if not.
-    require(cToken.borrow(amount) == 0, "borrow-failed");
+    uint256 status = cToken.borrow(amount);
 
-    // wrap ETH to WETH
+    if (status != 0) {
+      revert WePiggy__borrow_failed(status);
+    }
+
     if (_isWETH(asset)) {
+      // wrap ETH to WETH
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -139,17 +118,18 @@ contract WePiggyArbitrum is ILendingProvider {
   /// inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
-    // Get cToken address from mapping
     address cTokenAddr = _getCToken(asset);
 
-    // Create a reference to the corresponding cToken contract
     IGenCToken cToken = IGenCToken(cTokenAddr);
 
-    // Compound Protocol Redeem Process, throw errow if not.
-    require(cToken.redeemUnderlying(amount) == 0, "Withdraw-failed");
+    uint256 status = cToken.redeemUnderlying(amount);
 
-    // wrap ETH to WETH
+    if (status != 0) {
+      revert WePiggy__withdraw_failed(status);
+    }
+
     if (_isWETH(asset)) {
+      // wrap ETH to WETH
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -161,7 +141,6 @@ contract WePiggyArbitrum is ILendingProvider {
     address cTokenAddr = _getCToken(asset);
 
     if (_isWETH(asset)) {
-      // Create a reference to the corresponding cToken contract
       ICETH cToken = ICETH(cTokenAddr);
       //unwrap WETH to ETH
       IWETH9(asset).withdraw(amount);
@@ -170,7 +149,9 @@ contract WePiggyArbitrum is ILendingProvider {
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
+      IERC20(asset).safeApprove(cTokenAddr, amount);
       uint256 status = cToken.repayBorrow(amount);
+
       if (status != 0) {
         revert WePiggy__payback_failed(status);
       }
