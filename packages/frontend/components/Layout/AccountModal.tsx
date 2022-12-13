@@ -5,7 +5,6 @@ import {
   CardContent,
   CircularProgress,
   Divider,
-  Grid,
   List,
   ListItem,
   ListItemButton,
@@ -81,11 +80,12 @@ export default function AccountModal(props: AccountModalProps) {
           mr: ".4rem",
         }}
       >
-        <CardContent sx={{ width: "340px", pb: ".6rem !important" }}>
+        <CardContent sx={{ width: "340px", p: 0, pb: "0 !important" }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
+            p="1.5rem 1.25rem 0.625rem 1.25rem"
           >
             <Typography variant="xsmall">
               Connected with {walletName}
@@ -95,14 +95,18 @@ export default function AccountModal(props: AccountModalProps) {
             </Button>
           </Stack>
 
-          <Stack direction="row" alignItems="center" mt=".5rem" mb=".75rem">
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap=".5rem"
+            ml="1.25rem"
+            mb=".8rem"
+          >
             <CircleIcon sx={{ fontSize: "20px" }} />
-            <Typography variant="body" ml=".5rem">
-              {formattedAddress}
-            </Typography>
+            <Typography variant="body">{formattedAddress}</Typography>
           </Stack>
 
-          <Stack direction="row" alignItems="center" gap="1.125rem">
+          <Stack direction="row" alignItems="center" gap="1.125rem" ml="1.4rem">
             <Stack
               direction="row"
               alignItems="center"
@@ -169,13 +173,17 @@ export default function AccountModal(props: AccountModalProps) {
 
           <Divider
             sx={{
-              mt: "1rem",
-              mb: ".75rem",
+              m: "1rem 1.25rem .75rem 1.25rem",
               background: palette.secondary.light,
             }}
           />
 
-          <Grid container justifyContent="space-between" mb=".5rem">
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            mx="1.25rem"
+            mb=".5rem"
+          >
             <Typography variant="xsmall">Recent Transactions</Typography>
             {historyEntries.length > 0 &&
               historyEntries.filter((entry) => entry.status === "ongoing")
@@ -184,9 +192,9 @@ export default function AccountModal(props: AccountModalProps) {
                   clear all
                 </Typography>
               )}
-          </Grid>
+          </Stack>
 
-          <List>
+          <List sx={{ pb: ".75rem" }}>
             {historyEntries?.length ? (
               historyEntries.map((e) => (
                 <BorrowEntry
@@ -196,7 +204,7 @@ export default function AccountModal(props: AccountModalProps) {
                 />
               ))
             ) : (
-              <ListItem sx={{ p: 0 }}>
+              <ListItem sx={{ px: "1.25rem" }}>
                 <Typography variant="xsmallDark">
                   Your recent transaction history will appear here.
                 </Typography>
@@ -240,7 +248,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
     )
 
   return (
-    <ListItemButton sx={{ p: 0, mb: ".2rem" }} onClick={onClick}>
+    <ListItemButton sx={{ px: "1.25rem", py: ".25rem" }} onClick={onClick}>
       <ListItem secondaryAction={listAction} sx={{ p: 0, pr: "3rem" }}>
         <ListItemText sx={{ m: 0 }}>
           <Typography variant="xsmall">
