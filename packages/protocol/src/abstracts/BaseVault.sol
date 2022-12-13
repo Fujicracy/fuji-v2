@@ -311,8 +311,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    uint256 totalAssets_ = totalAssets();
-    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets_, rounding);
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets(), rounding);
   }
 
   /**
