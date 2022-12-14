@@ -161,16 +161,13 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
 
   function test_twoDepositsInCompoundV2() public {
     // Two deposits are reverting because of overflow in maxMin function
-    uint256 initialTimestamp = block.timestamp;
-    uint256 initialBlock = block.number;
-
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
 
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
 
-    vm.warp(initialTimestamp + 15 seconds);
-    vm.roll(initialBlock + 1);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
 
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
@@ -186,8 +183,6 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
 
   function test_maxWithdraw() public {
     // vault.setActiveProvider(aaveV2);
-    uint256 initialTimestamp = block.timestamp;
-    uint256 initialBlock = block.number;
 
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
@@ -196,8 +191,8 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
 
     console.log("Time warp and block roll");
 
-    vm.warp(initialTimestamp + 15 seconds);
-    vm.roll(initialBlock + 1);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
 
     console.log("test@maxWithdraw");
 
@@ -209,8 +204,8 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
       "maxWithdraw-Bob", theoreticalBobMaxWithdraw, "maxWithdraw-Alice", theoreticalAliceMaxWithdraw
     );
 
-    _utils_doWithdraw(alice, theoreticalAliceMaxWithdraw, vault);
     _utils_doWithdraw(bob, theoreticalBobMaxWithdraw, vault);
+    _utils_doWithdraw(alice, theoreticalAliceMaxWithdraw, vault);
 
     assertGe(weth.balanceOf(alice), DEPOSIT_AMOUNT);
     assertGe(weth.balanceOf(bob), DEPOSIT_AMOUNT);

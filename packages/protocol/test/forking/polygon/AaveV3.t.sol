@@ -7,6 +7,7 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract AaveV3PolygonForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV3;
@@ -41,8 +42,12 @@ contract AaveV3PolygonForkingTest is Routines, ForkingSetup {
     uint256 aliceDebt = vault.balanceOfDebt(ALICE);
     do_payback(aliceDebt, vault, ALICE);
 
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
+
+    assertGe(IERC20(vault.asset()).balanceOf(ALICE), DEPOSIT_AMOUNT);
   }
 
   function test_getBalances() public {

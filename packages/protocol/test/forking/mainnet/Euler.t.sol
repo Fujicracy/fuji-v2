@@ -7,6 +7,7 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {Euler} from "../../../src/providers/mainnet/Euler.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract EulerForkingTest is Routines, ForkingSetup {
   ILendingProvider public euler;
@@ -35,14 +36,18 @@ contract EulerForkingTest is Routines, ForkingSetup {
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    uint256 aliceDebt = vault.balanceOfDebt(ALICE);
-    do_payback(aliceDebt, vault, ALICE);
-
     vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
 
+    uint256 aliceDebt = vault.balanceOfDebt(ALICE);
+    do_payback(aliceDebt, vault, ALICE);
+
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
+
+    assertGe(IERC20(vault.asset()).balanceOf(ALICE), DEPOSIT_AMOUNT);
   }
 
   function test_getBalances() public {
