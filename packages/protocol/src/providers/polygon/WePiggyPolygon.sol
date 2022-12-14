@@ -20,6 +20,9 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
  * @notice This contract allows interaction with WePiggy.
  */
 
+//wmatic
+// 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270
+// 0xC1B02E52e9512519EDF99671931772E452fb4399
 contract WePiggyPolygon is ILendingProvider {
   using SafeERC20 for IERC20;
 
@@ -27,6 +30,10 @@ contract WePiggyPolygon is ILendingProvider {
   error WePiggy__payback_failed(uint256 status);
   error WePiggy__withdraw_failed(uint256 status);
   error WePiggy__borrow_failed(uint256 status);
+
+  function _isWMATIC(address token) internal pure returns (bool) {
+    return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+  }
 
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -71,13 +78,24 @@ contract WePiggyPolygon is ILendingProvider {
 
     _enterCollatMarket(cTokenAddr);
 
-    ICERC20 cToken = ICERC20(cTokenAddr);
+    if (_isWMATIC(asset)) {
+      //unwrap WMATIC to ETH
+      //TODO unwrap matic instead of weth eth
+      IWETH9(asset).withdraw(amount);
 
-    IERC20(asset).safeApprove(cTokenAddr, amount);
+      ICETH cToken = ICETH(cTokenAddr);
 
-    uint256 status = cToken.mint(amount);
-    if (status != 0) {
-      revert WePiggy__deposit_failed(status);
+      // Compound protocol Mints cTokens, ETH method
+      cToken.mint{value: amount}();
+    } else {
+      ICERC20 cToken = ICERC20(cTokenAddr);
+
+      IERC20(asset).safeApprove(cTokenAddr, amount);
+
+      uint256 status = cToken.mint(amount);
+      if (status != 0) {
+        revert WePiggy__deposit_failed(status);
+      }
     }
     success = true;
   }
@@ -93,6 +111,12 @@ contract WePiggyPolygon is ILendingProvider {
 
     if (status != 0) {
       revert WePiggy__borrow_failed(status);
+    }
+
+    if (_isWMATIC(asset)) {
+      // wrap ETH to WETH
+      //TODO unwrap matic instead of weth eth
+      IWETH9(asset).deposit{value: amount}();
     }
     success = true;
   }
@@ -110,6 +134,11 @@ contract WePiggyPolygon is ILendingProvider {
       revert WePiggy__withdraw_failed(status);
     }
 
+    if (_isWMATIC(asset)) {
+      // wrap ETH to WETH
+      //TODO unwrap matic instead of weth eth
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
@@ -118,13 +147,22 @@ contract WePiggyPolygon is ILendingProvider {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
 
-    ICERC20 cToken = ICERC20(cTokenAddr);
+    if (_isWMATIC(asset)) {
+      ICETH cToken = ICETH(cTokenAddr);
+      //unwrap WETH to ETH
+      //TODO unwrap matic instead of weth eth
+      IWETH9(asset).withdraw(amount);
 
-    IERC20(asset).safeApprove(cTokenAddr, amount);
-    uint256 status = cToken.repayBorrow(amount);
+      cToken.repayBorrow{value: amount}();
+    } else {
+      ICERC20 cToken = ICERC20(cTokenAddr);
 
-    if (status != 0) {
-      revert WePiggy__payback_failed(status);
+      IERC20(asset).safeApprove(cTokenAddr, amount);
+      uint256 status = cToken.repayBorrow(amount);
+
+      if (status != 0) {
+        revert WePiggy__payback_failed(status);
+      }
     }
     success = true;
   }
