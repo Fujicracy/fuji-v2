@@ -97,72 +97,58 @@ const theme = createTheme(colorTheme, {
     display1: {
       fontWeight: 700,
       fontSize: "3rem",
-      lineHeight: "120%",
     },
     display2: {
       fontWeight: 700,
       fontSize: "2.75rem",
-      lineHeight: "120%",
     },
     h1: {
       fontWeight: 700,
       fontSize: "2.5rem",
-      lineHeight: "120%",
     },
     h2: {
       fontWeight: 700,
       fontSize: "2.25rem",
-      lineHeight: "150%",
     },
     h3: {
       fontWeight: 700,
       fontSize: "1.875rem",
-      lineHeight: "150%",
     },
     h4: {
       fontWeight: 700,
       fontSize: "1.5rem",
-      lineHeight: "150%",
     },
     regularH4: {
-      display: "block",
       fontWeight: 600,
       fontSize: "1.5rem",
-      lineHeight: "120%",
       textOverflow: "ellipsis",
       overflow: "hidden",
     },
     h5: {
       fontWeight: 600,
       fontSize: "1.25rem",
-      lineHeight: "150%",
     },
     h6: {
       fontWeight: 400,
       fontSize: "1.125rem",
-      lineHeight: "160%",
     },
     body: {
       fontWeight: 400,
       fontSize: "1rem",
-      lineHeight: "160%",
     },
     body2: {
       fontWeight: 700,
       fontSize: "1rem",
-      lineHeight: "160%",
     },
     small: {
       fontWeight: 400,
       fontSize: "0.875rem",
-      lineHeight: "160%",
       textOverflow: "ellipsis",
       overflow: "hidden",
     },
     smallDark: {
       fontWeight: 400,
       fontSize: "0.875rem",
-      lineHeight: "160%",
       color: colorTheme.palette.info.dark,
       textOverflow: "ellipsis",
       overflow: "hidden",
@@ -174,13 +160,11 @@ const theme = createTheme(colorTheme, {
     xsmallDark: {
       fontWeight: 400,
       fontSize: "0.75rem",
-      lineHeight: "160%",
       color: colorTheme.palette.info.dark,
     },
     label: {
       fontWeight: 700,
       fontSize: "0.875rem",
-      lineHeight: "100%",
       letterSpacing: "2%",
     },
   },
