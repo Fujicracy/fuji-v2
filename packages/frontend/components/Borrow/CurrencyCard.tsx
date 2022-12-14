@@ -1,22 +1,45 @@
 import React from "react"
-import { Card, Typography } from "@mui/material"
+import { Card, Stack, Typography } from "@mui/material"
 
 type CurrencyCardProps = {
-  informations: { title: string; amount: string; footer: string }
+  title: string
+  amount: string
+  amountAfter?: string
+  footer: string
 }
 
 export default function CurrencyCard(props: CurrencyCardProps) {
+  const { title, amount, amountAfter, footer } = props
+
   return (
     <Card variant="currency">
-      <Typography variant="smallDark">{props.informations.title}</Typography>
+      <Typography variant="smallDark">{title}</Typography>
 
-      <Typography variant="regularH4" mb="0.5rem" sx={{ width: "16rem" }}>
-        {props.informations.amount}
-      </Typography>
+      <Stack direction="row" alignItems="center" mb={0.5} mt={0.5} spacing={1}>
+        <Typography variant="regularH4" display="inline">
+          {amount}
+        </Typography>
+        {amountAfter && (
+          <RoundedTypography>{amountAfter} after</RoundedTypography>
+        )}
+      </Stack>
 
       <Typography variant="smallDark" mb="1rem">
-        {props.informations.footer}
+        {footer}
       </Typography>
     </Card>
+  )
+}
+
+const RoundedTypography = (props: any) => {
+  return (
+    <Typography
+      bgcolor="rgba(208, 218, 255, 0.25)"
+      variant="small"
+      p=".25rem .5rem"
+      borderRadius="6.25rem"
+    >
+      {props.children}
+    </Typography>
   )
 }

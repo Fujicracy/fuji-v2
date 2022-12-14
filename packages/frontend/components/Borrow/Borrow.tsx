@@ -7,6 +7,9 @@ import {
   Card,
   Grid,
   Box,
+  Stack,
+  Tooltip,
+  Chip,
 } from "@mui/material"
 import Image from "next/image"
 
@@ -18,6 +21,8 @@ import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { useHistory } from "../../store/history.store"
+import NetworkIcon from "../NetworkIcon"
+import { chainName } from "../../helpers/chainName"
 
 export default function Borrow() {
   const address = useStore((state) => state.address)
@@ -36,6 +41,7 @@ export default function Borrow() {
   }, [address, updateBalance, updateAllowance, updateVault])
 
   const login = useStore((state) => state.login)
+  const formType = useStore((state) => state.formType)
 
   const collateral = useStore((state) => state.position.collateral)
   const collateralInput = useStore((state) => state.collateralInput)
@@ -46,6 +52,8 @@ export default function Borrow() {
   const debtInput = useStore((state) => state.debtInput)
   const debtAmount = parseFloat(debtInput)
   const debtChainId = useStore((state) => state.debtChainId)
+
+  const vaultChainId = useStore((state) => state.position.vault?.chainId)
 
   const changeBorrowChain = useStore((state) => state.changeBorrowChain)
   const changeCollateralChain = useStore((state) => state.changeCollateralChain)
@@ -152,11 +160,47 @@ export default function Borrow() {
     <>
       <Card sx={{ maxWidth: "500px", margin: "auto" }}>
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
-          <Typography variant="body2" height="40px" lineHeight="40px">
-            Borrow
-          </Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="body2" height="40px" lineHeight="40px">
+              {formType === "create" && "Borrow"}
+              {formType === "edit" && "Manage your position"}
+            </Typography>
+
+            {formType === "edit" && vaultChainId && (
+              <Tooltip
+                title={`Your position is currently on ${chainName(
+                  vaultChainId
+                )} network`}
+                placement="top"
+                arrow
+              >
+                <Box>
+                  <NetworkIcon network={vaultChainId} height={18} width={18} />
+                </Box>
+              </Tooltip>
+            )}
+          </Stack>
 
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
+
+          {formType === "edit" && vaultChainId && (
+            <Stack mt={3} mb={3} spacing={1} direction="row">
+              <Chip
+                label="Add position"
+                variant="outlined"
+                color="primary"
+                onClick={() => alert("not implemented")}
+              />
+              <Chip
+                label="Remove position"
+                onClick={() => alert("not implemented")}
+              />
+            </Stack>
+          )}
 
           <Box mb="1rem">
             <ChainSelect

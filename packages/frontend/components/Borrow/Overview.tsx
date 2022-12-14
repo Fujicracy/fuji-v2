@@ -28,6 +28,7 @@ import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import { BorrowingVault } from "@x-fuji/sdk"
 import ProviderIcon from "../ProviderIcon"
 import NetworkIcon from "../NetworkIcon"
+import { formatBalance, formatUsd } from "../../helpers/format"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -44,6 +45,7 @@ export default function Overview() {
   const debtAmount = parseFloat(debtInput)
   const providers = useStore((state) => state.position.providers)
   const vault = useStore((state) => state.position.vault)
+  const formType = useStore((state) => state.formType)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -96,69 +98,93 @@ export default function Overview() {
           </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
-          <Grid container columnSpacing="1rem">
-            <Grid item xs={6}>
-              <CurrencyCard
-                informations={{
-                  title: "Collateral Provided",
-                  amount: `${collateralAmount.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })} ${collateral.token.symbol}`,
-                  footer: (
-                    collateralAmount * collateral.usdValue
-                  ).toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "usd",
-                  }),
-                }}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <CurrencyCard
-                informations={{
-                  title: "Borrowed Value",
-                  amount: (debtAmount * debt.usdValue).toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "usd",
-                  }),
-                  footer: `${debtAmount.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })} ${debt.token.symbol}`,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={6}>
-              <CurrencyCard
-                informations={{
-                  title: "Liquidation Price",
-                  amount:
-                    liquidationDiff >= 0
-                      ? liquidationPrice.toLocaleString("en-US", {
-                          style: "currency",
-                          currency: "usd",
-                        })
-                      : "$0",
-                  footer:
+          {formType === "create" ? (
+            <Grid container columnSpacing="1rem">
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Collateral Provided"
+                  amount={`${formatBalance(collateralAmount)} ${
+                    collateral.token.symbol
+                  }`}
+                  footer={formatUsd(collateralAmount * collateral.usdValue)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Borrowed Value"
+                  amount={formatUsd(debtAmount * debt.usdValue)}
+                  footer={formatBalance(debtAmount) + " " + debt.token.symbol}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Liquidation Price"
+                  amount={formatUsd(liquidationPrice)}
+                  footer={
                     liquidationDiff >= 0
                       ? `~${liquidationDiff}% below current price`
-                      : `n/a`,
-                }}
-              />
+                      : `n/a`
+                  }
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Current Price"
+                  amount={formatUsd(collateral.usdValue)}
+                  footer={collateral.token.symbol}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={6}>
-              <CurrencyCard
-                informations={{
-                  title: "Current Price",
-                  amount: collateral.usdValue.toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "usd",
-                  }),
-                  footer: collateral.token.symbol,
-                }}
-              />
+          ) : (
+            <Grid container columnSpacing="1rem">
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Collateral Provided"
+                  amount={`${formatBalance(collateral.amount)} ${
+                    collateral.token.symbol
+                  }`}
+                  amountAfter={
+                    collateralAmount > 0
+                      ? formatBalance(collateral.amount + collateralAmount)
+                      : undefined
+                  }
+                  footer={formatUsd(collateralAmount * collateral.usdValue)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Borrowed Value"
+                  amount={`${formatBalance(debt.amount)} ${debt.token.symbol}`}
+                  amountAfter={
+                    debtAmount > 0
+                      ? formatBalance(debt.amount + debtAmount)
+                      : undefined
+                  }
+                  footer={formatUsd(debtAmount * collateral.usdValue)}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Liquidation Price"
+                  amount={formatUsd(liquidationPrice)}
+                  amountAfter={"// TODO"}
+                  footer={
+                    liquidationDiff >= 0
+                      ? `~${liquidationDiff}% below current price`
+                      : `n/a`
+                  }
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <CurrencyCard
+                  title="Current Price"
+                  amount={formatUsd(collateral.usdValue)}
+                  footer={collateral.token.symbol}
+                />
+              </Grid>
             </Grid>
-          </Grid>
+          )}
 
           <Divider sx={{ mb: 1.5 }} />
 
