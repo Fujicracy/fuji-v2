@@ -12,8 +12,6 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
-import "forge-std/console.sol";
-
 /**
  * @title Compound V2 Lending Provider.
  * @author Fujidao Labs
@@ -188,7 +186,6 @@ contract CompoundV2 is ILendingProvider {
     address asset = vault.asset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
-    console.log("insideCompoundV2Provider@getDepositBalance-balance", balance);
   }
 
   /**

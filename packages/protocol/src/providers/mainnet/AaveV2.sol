@@ -6,8 +6,6 @@ import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
-import "forge-std/console.sol";
-
 /**
  * @title AaveV2 Lending Provider.
  * @author fujidao Labs
@@ -84,7 +82,6 @@ contract AaveV2 is ILendingProvider {
     IV2Pool aaveData = _getPool();
     IV2Pool.ReserveData memory rdata = aaveData.getReserveData(vault.asset());
     balance = IERC20(rdata.aTokenAddress).balanceOf(user);
-    console.log("insideAaveV2Provider@getDepositBalance-balance", balance);
   }
 
   /// inheritdoc ILendingProvider

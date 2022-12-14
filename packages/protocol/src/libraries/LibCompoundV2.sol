@@ -4,8 +4,6 @@ pragma solidity 0.8.15;
 import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
 import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
 
-import "forge-std/console.sol";
-
 /**
  * @title CompoundV2 latest ICToken data.
  * @author Fujidao Labs
@@ -26,13 +24,7 @@ library LibCompoundV2 {
     uint256 borrowIndexPrior = cToken.borrowIndex();
     uint256 borrowIndex = viewNewBorrowIndex(cToken);
     uint256 storedBorrowBalance = cToken.borrowBalanceStored(user);
-    uint256 latestBorrowBalance = ((storedBorrowBalance * borrowIndex) / borrowIndexPrior);
-    console.log("libCompoundV2@viewBorrowingBalanceOf");
-    console.log("borrowIndexPrior", borrowIndexPrior, "borrowIndex", borrowIndex);
-    console.log(
-      "storedBorrowBalance", storedBorrowBalance, "latestBorrowBalance", latestBorrowBalance
-    );
-    return latestBorrowBalance;
+    return ((storedBorrowBalance * borrowIndex) / borrowIndexPrior);
   }
 
   function viewExchangeRate(ICToken cToken) internal view returns (uint256) {

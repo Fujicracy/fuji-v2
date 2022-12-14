@@ -20,8 +20,6 @@ import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PausableVault} from "./PausableVault.sol";
 
-import "forge-std/console.sol";
-
 abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
@@ -208,7 +206,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    console.log("@deposit");
     uint256 shares = previewDeposit(assets);
 
     // use shares because it's cheaper to get totalSupply compared to totalAssets
@@ -254,12 +251,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__withdraw_invalidInput();
     }
 
-    uint256 maxWitdhraw_ = maxWithdraw(owner);
-
-    console.log("inside@withdraw");
-    console.log("maxWitdhraw_", maxWitdhraw_);
-
-    if (assets > maxWitdhraw_) {
+    if (assets > maxWithdraw(owner)) {
       revert BaseVault__withdraw_moreThanMax();
     }
 
@@ -319,9 +311,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    uint256 totalAssets_ = totalAssets();
-    console.log("inside@_convertToShares-totalAssets_", totalAssets_);
-    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets_, rounding);
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets(), rounding);
   }
 
   /**
@@ -337,9 +327,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    uint256 totalAssets_ = totalAssets();
-    console.log("inside@_convertToAssets-totalAssets_", totalAssets_);
-    return (supply == 0) ? shares : shares.mulDiv(totalAssets_, supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalAssets(), supply, rounding);
   }
 
   /**

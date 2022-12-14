@@ -181,28 +181,38 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
 
-  function test_maxWithdraw() public {
-    // vault.setActiveProvider(aaveV2);
+  function test_maxWithdrawCompoundV2() public {
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
+    _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
+    uint256 theoreticalBobMaxWithdraw = vault.maxWithdraw(bob);
+    uint256 theoreticalAliceMaxWithdraw = vault.maxWithdraw(alice);
+
+    _utils_doWithdraw(bob, theoreticalBobMaxWithdraw, vault);
+    _utils_doWithdraw(alice, theoreticalAliceMaxWithdraw, vault);
+
+    assertGe(weth.balanceOf(alice), DEPOSIT_AMOUNT);
+    assertGe(weth.balanceOf(bob), DEPOSIT_AMOUNT);
+  }
+
+  function test_maxWithdrawAaveV2() public {
+    vault.setActiveProvider(aaveV2);
 
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
 
-    console.log("Time warp and block roll");
-
     vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
 
-    console.log("test@maxWithdraw");
-
     uint256 theoreticalBobMaxWithdraw = vault.maxWithdraw(bob);
     uint256 theoreticalAliceMaxWithdraw = vault.maxWithdraw(alice);
-
-    console.log("theoretical maxWithdraw values");
-    console.log(
-      "maxWithdraw-Bob", theoreticalBobMaxWithdraw, "maxWithdraw-Alice", theoreticalAliceMaxWithdraw
-    );
 
     _utils_doWithdraw(bob, theoreticalBobMaxWithdraw, vault);
     _utils_doWithdraw(alice, theoreticalAliceMaxWithdraw, vault);
