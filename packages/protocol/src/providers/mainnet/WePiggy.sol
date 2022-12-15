@@ -27,13 +27,6 @@ contract WePiggy is ILendingProvider {
   error WePiggy__withdraw_failed(uint256 status);
   error WePiggy__borrow_failed(uint256 status);
 
-  //weth done
-  // 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
-  // 0x27A94869341838D5783368a8503FdA5fbCd7987c
-  //usdc done
-  // 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
-  // 0xf8E5b9738BF63ADFFf36a849F9b9C9617c8D8c1f
-
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   }
