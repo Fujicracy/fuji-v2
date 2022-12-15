@@ -31,6 +31,7 @@ export default function CurrencyCard(props: CurrencyCardProps) {
   )
 }
 
+// TODO: check react impl
 const RoundedTypography = (props: any) => {
   return (
     <Typography

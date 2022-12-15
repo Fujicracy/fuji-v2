@@ -25,13 +25,13 @@ import CheckIcon from "@mui/icons-material/Check"
 import { formatUnits } from "ethers/lib/utils"
 import { RoutingStep } from "@x-fuji/sdk"
 
-import { useStore } from "../../store"
 import {
   HistoryEntry,
   useHistory,
   HistoryRoutingStep,
 } from "../../store/history.store"
 import { chainName } from "../../helpers/chainName"
+import { useAuth } from "../../store/auth.store"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -41,7 +41,7 @@ type AccountModalProps = {
 
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
-  const logout = useStore((state) => state.logout)
+  const logout = useAuth((state) => state.logout)
   const [showSnackbar, setShowSnackbar] = useState(false)
 
   const historyEntries = useHistory((state) =>

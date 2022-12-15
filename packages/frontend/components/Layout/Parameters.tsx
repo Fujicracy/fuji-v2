@@ -17,10 +17,10 @@ import LightModeIcon from "@mui/icons-material/LightMode"
 import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import { DiscordIcon } from "./DiscordIcon"
-import { useStore } from "../../store"
+import { useAuth } from "../../store/auth.store"
 
 export default function Parameters() {
-  const logout = useStore((state) => state.logout)
+  const logout = useAuth((state) => state.logout)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
 

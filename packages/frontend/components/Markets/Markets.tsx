@@ -15,7 +15,7 @@ import {
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
 import Lending from "./Lending"
-import { Chain, chains } from "../../store/auth.slice"
+import { Chain, chains } from "../../store/auth.store"
 import Image from "next/image"
 import SearchIcon from "@mui/icons-material/Search"
 import { theme } from "../../styles/theme"

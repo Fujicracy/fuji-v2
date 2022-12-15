@@ -31,7 +31,7 @@ import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"
 import { transactionLink } from "../../helpers/transactionLink"
 import { AddTokenButton } from "../AddTokenButton"
-import { useStore } from "../../store"
+import { useAuth } from "../../store/auth.store"
 
 type InvalidStep = {
   label: "Invalid"
@@ -58,7 +58,7 @@ export default function TransactionProcessingModal({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
   const entry = useHistory((state) => state.byHash[hash || ""])
-  const activeChainId = useStore((state) => parseInt(state.chain?.id || ""))
+  const activeChainId = useAuth((state) => parseInt(state.chain?.id || ""))
 
   const borrow = entry?.steps.find((s) => s.step === RoutingStep.BORROW)
   const chainId = borrow?.chainId

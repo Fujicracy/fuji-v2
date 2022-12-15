@@ -24,11 +24,11 @@ import { BurgerMenuIcon } from "./BurgerMenuIcon"
 import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
-import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 import { useHistory } from "../../store/history.store"
 import Balance from "../Balance"
+import { useAuth } from "../../store/auth.store"
 
 const pages = ["Markets", "Borrow", "Lend", "My positions"]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
@@ -36,7 +36,7 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
 }
 
 const Header = () => {
-  const { address, ens, status, balance, login } = useStore(
+  const { address, ens, status, balance, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,

@@ -11,11 +11,10 @@ import {
 } from "@x-fuji/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import produce, { setAutoFreeze } from "immer"
-import create, { StateCreator } from "zustand"
+import create from "zustand"
 import { debounce } from "debounce"
 
-import { useStore } from "."
-import { sdk, testChains } from "./auth.slice"
+import { sdk, testChains, useAuth } from "./auth.store"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
@@ -252,7 +251,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async updateBalances(type) {
-        const address = useStore.getState().address
+        const address = useAuth.getState().address
         if (!address) {
           return
         }
@@ -306,7 +305,7 @@ export const useBorrow = create<BorrowStore>()(
 
       async updateAllowance() {
         const token = get().position.collateral.token
-        const address = useStore.getState().address
+        const address = useAuth.getState().address
 
         if (!address) {
           return
@@ -374,7 +373,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async updateTransactionMeta() {
-        const address = useStore.getState().address
+        const address = useAuth.getState().address
         if (!address) {
           return
         }
@@ -490,7 +489,7 @@ export const useBorrow = create<BorrowStore>()(
 
       async updateVaultBalance() {
         const vault = get().position.vault
-        const address = useStore.getState().address
+        const address = useAuth.getState().address
         if (!vault || !address) {
           return
         }
@@ -519,8 +518,8 @@ export const useBorrow = create<BorrowStore>()(
        */
       async allow(amount, afterSuccess?) {
         const token = get().position.collateral.token
-        const userAddress = useStore.getState().address
-        const provider = useStore.getState().provider
+        const userAddress = useAuth.getState().address
+        const provider = useAuth.getState().provider
         const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value
 
         if (!provider || !userAddress) {
@@ -553,7 +552,7 @@ export const useBorrow = create<BorrowStore>()(
       async signPermit() {
         const actions = get().actions
         const vault = get().position.vault
-        const provider = useStore.getState().provider
+        const provider = useAuth.getState().provider
         if (!actions || !vault || !provider) {
           throw "Unexpected undefined value"
         }
@@ -592,9 +591,9 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async borrow() {
-        const address = useStore.getState().address
-        const provider = useStore.getState().provider
-        const { actions, signature, position, transactionMeta } = get()
+        const address = useAuth.getState().address
+        const provider = useAuth.getState().provider
+        const { actions, signature, position } = get()
         if (!actions || !address || !signature || !provider) {
           throw "Unexpected undefined param"
         }
