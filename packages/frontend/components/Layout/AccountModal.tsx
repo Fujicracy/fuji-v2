@@ -22,13 +22,13 @@ import CheckIcon from "@mui/icons-material/Check"
 import { formatUnits } from "ethers/lib/utils"
 import { RoutingStep } from "@x-fuji/sdk"
 
-import { useStore } from "../../store"
 import {
   HistoryEntry,
   useHistory,
   HistoryRoutingStep,
 } from "../../store/history.store"
 import { chainName } from "../../helpers/chainName"
+import { useAuth } from "../../store/auth.store"
 import { transactionAddress } from "../../helpers/transactionInformations"
 
 type AccountModalProps = {
@@ -43,15 +43,15 @@ export default function AccountModal(props: AccountModalProps) {
   const [copied, setCopied] = useState(false)
   const [copyAddressHovered, setCopyAddressHovered] = useState(false)
   const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false)
-  const logout = useStore((state) => state.logout)
-  const walletName = useStore((state) => state.walletName)
+  const logout = useAuth((state) => state.logout)
+  const chainId = useAuth((state) => state.chain?.id)
+  const walletName = useAuth((state) => state.walletName)
+
   const historyEntries = useHistory((state) =>
     state.allHash.map((hash) => state.byHash[hash]).slice(0, 3)
   )
   const openModal = useHistory((state) => state.openModal)
   const clearAll = useHistory((state) => state.clearAll)
-
-  const chainId = useStore((state) => state.chain?.id)
 
   const formattedAddress =
     props.address.substring(0, 8) +

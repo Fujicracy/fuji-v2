@@ -14,7 +14,6 @@ import {
 } from "@mui/material"
 import Image from "next/image"
 
-import { useStore } from "../../store"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
@@ -25,12 +24,12 @@ import RoutingModal from "./RoutingModal"
 import { useHistory } from "../../store/history.store"
 import { chainName } from "../../helpers/chainName"
 import { useBorrow } from "../../store/borrow.store"
+import { useAuth } from "../../store/auth.store"
 
 export default function Borrow() {
-  const theme = useTheme()
-  const address = useStore((state) => state.address)
-  const walletChain = useStore((state) => state.chain)
-  const changeChain = useStore((state) => state.changeChain)
+  const address = useAuth((state) => state.address)
+  const walletChain = useAuth((state) => state.chain)
+  const changeChain = useAuth((state) => state.changeChain)
   const updateBalance = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)
   const updateAllowance = useBorrow((state) => state.updateAllowance)
@@ -43,8 +42,11 @@ export default function Borrow() {
     }
   }, [address, updateBalance, updateAllowance, updateVault])
 
-  const login = useStore((state) => state.login)
-  // const formType = useBorrow((state) => state.formType)
+  const login = useAuth((state) => state.login)
+  const theme = useTheme()
+  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
+
+  const formType = useBorrow((state) => state.formType)
 
   const collateral = useBorrow((state) => state.position.collateral)
   const collateralInput = useBorrow((state) => state.collateralInput)
@@ -89,7 +91,6 @@ export default function Borrow() {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
   let button: ReactNode
   if (!address) {

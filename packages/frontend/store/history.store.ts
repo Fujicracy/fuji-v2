@@ -8,7 +8,7 @@ import {
 import produce from "immer"
 import create from "zustand"
 import { devtools, persist } from "zustand/middleware"
-import { sdk } from "./auth.slice"
+import { sdk } from "./auth.store"
 import ethers from "ethers"
 import { useSnack } from "./snackbar.store"
 import { formatUnits } from "ethers/lib/utils"

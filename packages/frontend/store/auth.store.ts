@@ -1,4 +1,4 @@
-import { StateCreator, StoreApi } from "zustand"
+import create, { StateCreator, StoreApi } from "zustand"
 import Onboard, { ConnectOptions } from "@web3-onboard/core"
 import { Chain as IChain } from "@web3-onboard/common"
 import injectedModule from "@web3-onboard/injected-wallets"
@@ -10,6 +10,7 @@ import {
 } from "@web3-onboard/core/dist/types"
 import { Sdk } from "@x-fuji/sdk"
 import { ethers, utils } from "ethers"
+import { devtools } from "zustand/middleware"
 
 const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
@@ -124,7 +125,7 @@ const onboard = Onboard({
   },
 })
 
-type StateConnected = {
+type ConnectedState = {
   status: "connected"
   address: string
   ens: string | undefined
@@ -133,7 +134,7 @@ type StateConnected = {
   provider: ethers.providers.Web3Provider
   walletName: string
 }
-type StateInitial = {
+type InitialState = {
   status: "initial"
   address: undefined
   ens: undefined
@@ -142,7 +143,7 @@ type StateInitial = {
   provider: undefined
   walletName: undefined
 }
-type StateDisconnected = {
+type DisconnectedState = {
   status: "disconnected"
   address: undefined
   ens: undefined
@@ -151,7 +152,7 @@ type StateDisconnected = {
   provider: undefined
   walletName: undefined
 }
-type State = StateInitial | StateConnected | StateDisconnected
+type State = InitialState | ConnectedState | DisconnectedState
 
 type Action = {
   login: (options?: ConnectOptions) => void
@@ -160,9 +161,9 @@ type Action = {
   changeChain: (chainId: string | number) => void
 }
 
-export type AuthStore = State & Action
+type AuthStore = State & Action
 
-const initialState: StateInitial = {
+const initialState: InitialState = {
   status: "initial",
   address: undefined,
   ens: undefined,
@@ -172,50 +173,56 @@ const initialState: StateInitial = {
   walletName: undefined,
 }
 
-type AuthSlice = StateCreator<AuthStore, [], [], AuthStore>
+export const useAuth = create<AuthStore>()(
+  devtools(
+    (set, get) => ({
+      ...initialState,
 
-export const createAuthSlice: AuthSlice = (set, get) => ({
-  ...initialState,
+      init: async () => {
+        reconnect(set, get)
+        onOnboardChange(set, get)
+      },
 
-  init: async () => {
-    reconnect(set, get)
-    onOnboardChange(set, get)
-  },
+      login: async (options?) => {
+        const wallets = await onboard.connectWallet(options)
 
-  login: async (options?) => {
-    const wallets = await onboard.connectWallet(options)
+        if (!wallets[0]) {
+          set({ status: "disconnected" })
+          throw "Cannot login"
+        }
 
-    if (!wallets[0]) {
-      set({ status: "disconnected" })
-      throw "Cannot login"
+        const json = JSON.stringify(wallets.map(({ label }) => label))
+        localStorage.setItem("connectedWallets", json)
+
+        const balance = wallets[0].accounts[0].balance
+        const address = utils.getAddress(wallets[0].accounts[0].address)
+        const chain = wallets[0].chains[0]
+        const provider = new ethers.providers.Web3Provider(wallets[0].provider)
+
+        set({ status: "connected", address, balance, chain, provider })
+      },
+
+      logout: async () => {
+        const wallets = onboard.state.get().wallets
+        for (const { label } of wallets) {
+          await onboard.disconnectWallet({ label })
+        }
+
+        localStorage.removeItem("connectedWallets")
+
+        set({ ...initialState, status: "disconnected" })
+      },
+
+      changeChain: async (chainId) => {
+        await onboard.setChain({ chainId })
+      },
+    }),
+    {
+      enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
+      name: "xFuji/auth",
     }
-
-    const json = JSON.stringify(wallets.map(({ label }) => label))
-    localStorage.setItem("connectedWallets", json)
-
-    const balance = wallets[0].accounts[0].balance
-    const address = utils.getAddress(wallets[0].accounts[0].address)
-    const chain = wallets[0].chains[0]
-    const provider = new ethers.providers.Web3Provider(wallets[0].provider)
-
-    set({ status: "connected", address, balance, chain, provider })
-  },
-
-  logout: async () => {
-    const wallets = onboard.state.get().wallets
-    for (const { label } of wallets) {
-      await onboard.disconnectWallet({ label })
-    }
-
-    localStorage.removeItem("connectedWallets")
-
-    set({ ...initialState, status: "disconnected" })
-  },
-
-  changeChain: async (chainId) => {
-    await onboard.setChain({ chainId })
-  },
-})
+  )
+)
 
 async function reconnect(
   set: StoreApi<State & Action>["setState"],
@@ -237,7 +244,7 @@ function onOnboardChange(
   get: StoreApi<State & Action>["getState"]
 ) {
   onboard.state.select("wallets").subscribe((w: WalletState[]) => {
-    const updates: Partial<StateConnected> = {}
+    const updates: Partial<ConnectedState> = {}
 
     if (!w[0] && get().status === "disconnected") {
       return
