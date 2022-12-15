@@ -1,9 +1,9 @@
 import create from "zustand"
 import { createAuthSlice, AuthStore } from "./auth.slice"
-import { createTransactionSlice, TransactionStore } from "./transaction.slice"
+import { createTransactionSlice, BorrowStore } from "./borrow.slice"
 import { devtools } from "zustand/middleware"
 
-export const useStore = create<AuthStore & TransactionStore>()(
+export const useStore = create<AuthStore & BorrowStore>()(
   // devtools(
   (...a) => ({
     ...createAuthSlice(...a),
