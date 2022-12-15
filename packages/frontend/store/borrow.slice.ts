@@ -24,9 +24,9 @@ import { useSnack } from "./snackbar.store"
 
 setAutoFreeze(false)
 
-type TransactionSlice = StateCreator<TransactionStore, [], [], TransactionStore>
-export type TransactionStore = TransactionState & TransactionActions
-type TransactionState = {
+type BorrowSlice = StateCreator<BorrowStore, [], [], BorrowStore>
+export type BorrowStore = BorrowState & BorrowActions
+type BorrowState = {
   formType: "create" | "edit"
 
   position: Position
@@ -67,7 +67,7 @@ type TransactionState = {
 }
 type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
-type TransactionActions = {
+type BorrowActions = {
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
@@ -100,7 +100,7 @@ const initialCollateralTokens = sdk.getCollateralForChain(
   parseInt(initialChainId, 16)
 )
 
-const initialState: TransactionState = {
+const initialState: BorrowState = {
   formType: "create",
 
   availableVaults: [],
@@ -152,14 +152,14 @@ const initialState: TransactionState = {
   isBorrowing: false,
 }
 
-export const createTransactionSlice: TransactionSlice = (set, get) => ({
+export const createTransactionSlice: BorrowSlice = (set, get) => ({
   ...initialState,
 
   async changeCollateralChain(chainId) {
     const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         state.collateralChainId = chainId
         state.collateralTokens = tokens
         state.position.collateral.token = tokens[0]
@@ -173,7 +173,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
   changeCollateralToken(token) {
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         state.position.collateral.token = token
       })
     )
@@ -193,7 +193,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
 
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         state.debtChainId = chainId
         state.debtTokens = tokens
         state.position.debt.token = tokens[0]
@@ -207,7 +207,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
   changeBorrowToken(token) {
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         state.position.debt.token = token
       })
     )
@@ -237,7 +237,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       : DEFAULT_LTV_TRESHOLD
 
     set(
-      produce((s: TransactionState) => {
+      produce((s: BorrowState) => {
         s.position.vault = vault
         s.position.ltvMax = ltvMax
         s.position.ltvThreshold = ltvThreshold
@@ -271,7 +271,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     })
 
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         if (type === "debt") {
           state.debtBalances = balances
         } else if (type === "collateral") {
@@ -291,7 +291,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
 
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         state.position[type].usdValue = tokenValue
       })
     )
@@ -308,7 +308,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
 
     set(
-      produce((s: TransactionState) => {
+      produce((s: BorrowState) => {
         s.collateralAllowance.status = "fetching"
       })
     )
@@ -320,7 +320,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       // TODO: how to handle the case where we can't fetch allowance ?
       console.error(e)
       set(
-        produce((s: TransactionState) => {
+        produce((s: BorrowState) => {
           s.collateralAllowance.status = "error"
         })
       )
@@ -373,14 +373,14 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const { collateralInput, debtInput } = get()
     if (!vault || !collateralInput || !debtInput) {
       return set(
-        produce((state: TransactionState) => {
+        produce((state: BorrowState) => {
           state.transactionMeta.status = "error"
         })
       )
     }
 
     set(
-      produce((state: TransactionState) => {
+      produce((state: BorrowState) => {
         state.transactionMeta.status = "fetching"
         state.signature = undefined
         state.actions = undefined
@@ -401,7 +401,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         throw `empty action array returned by sdk.previewDepositAndBorrow with params`
       }
       set(
-        produce((state: TransactionState) => {
+        produce((state: BorrowState) => {
           state.transactionMeta.status = "ready"
           state.transactionMeta.bridgeFees = bridgeFee.toNumber()
           state.transactionMeta.estimateTime = estimateTime
@@ -413,7 +413,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       )
     } catch (e) {
       set(
-        produce((state: TransactionState) => {
+        produce((state: BorrowState) => {
           state.transactionMeta.status = "error"
         })
       )
@@ -438,7 +438,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     const ltv = collateral && debt ? Math.round((debt / collateral) * 100) : 0
 
     set(
-      produce((s: TransactionState) => {
+      produce((s: BorrowState) => {
         s.position.ltv = ltv
       })
     )
@@ -454,7 +454,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     if (!debt || !collateralAmount) {
       return set(
-        produce((s: TransactionState) => {
+        produce((s: BorrowState) => {
           s.position.liquidationPrice = 0
           s.position.liquidationDiff = 0
         })
@@ -470,7 +470,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
 
     set(
-      produce((s: TransactionState) => {
+      produce((s: BorrowState) => {
         s.position.liquidationPrice = liquidationPrice
         s.position.liquidationDiff = liquidationDiff
       })
@@ -486,7 +486,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     const { deposit, borrow } = await vault.getBalances(new Address(address))
     set(
-      produce((s: TransactionState) => {
+      produce((s: BorrowState) => {
         s.formType = deposit.gt(0) || borrow.gt(0) ? "edit" : "create"
 
         const dec = s.position.collateral.token.decimals
@@ -515,7 +515,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     }
 
     set(
-      produce((s: TransactionState) => {
+      produce((s: BorrowState) => {
         s.collateralAllowance.status = "allowing"
       })
     )
@@ -530,7 +530,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       afterSuccess && afterSuccess()
     } catch (e) {
       set(
-        produce((s: TransactionState) => {
+        produce((s: BorrowState) => {
           s.collateralAllowance.status = "error"
         })
       )
@@ -597,7 +597,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       const signer = provider.getSigner()
       const t = await signer.sendTransaction(txRequest)
       set(
-        produce((s: TransactionState) => {
+        produce((s: BorrowState) => {
           if (s.collateralAllowance.value) {
             // optimistic: we assume transaction will success and update allowance according to that
             s.collateralAllowance.value -= parseFloat(s.collateralInput)
