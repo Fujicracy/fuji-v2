@@ -8,10 +8,10 @@ import {
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import { useStore } from "../../store"
+import { useBorrow } from "../../store/borrow.store"
 
 export const Fees = () => {
-  const transactionMeta = useStore((state) => state.transactionMeta)
+  const transactionMeta = useBorrow((state) => state.transactionMeta)
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
   const show = showTransactionDetails && transactionMeta.status === "ready"
 

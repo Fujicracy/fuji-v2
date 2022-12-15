@@ -22,6 +22,7 @@ import Balance from "../Balance"
 import { useStore } from "../../store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import TokenIcon from "../TokenIcon"
+import { useBorrow } from "../../store/borrow.store"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
@@ -30,32 +31,36 @@ type SelectTokenCardProps = {
 export default function TokenCard({ type }: SelectTokenCardProps) {
   const { palette } = useTheme()
 
-  const changeCollateralToken = useStore((state) => state.changeCollateralToken)
-  const changeBorrowToken = useStore((state) => state.changeBorrowToken)
-  const changeBorrowValue = useStore((state) => state.changeBorrowValue)
-  const changeCollateralValue = useStore((state) => state.changeCollateralValue)
+  const changeCollateralToken = useBorrow(
+    (state) => state.changeCollateralToken
+  )
+  const changeBorrowToken = useBorrow((state) => state.changeBorrowToken)
+  const changeBorrowValue = useBorrow((state) => state.changeBorrowValue)
+  const changeCollateralValue = useBorrow(
+    (state) => state.changeCollateralValue
+  )
 
-  const tokens = useStore((state) =>
+  const tokens = useBorrow((state) =>
     type === "debt" ? state.debtTokens : state.collateralTokens
   )
-  const debtOrCollateral = useStore((state) => state.position[type])
+  const debtOrCollateral = useBorrow((state) => state.position[type])
   const { token } = debtOrCollateral
-  const input = useStore((state) =>
+  const input = useBorrow((state) =>
     type === "debt" ? state.debtInput : state.collateralInput
   )
   const amount = parseFloat(input)
   const tokenValue = debtOrCollateral.usdValue
-  const balances = useStore((state) =>
+  const balances = useBorrow((state) =>
     type === "debt" ? state.debtBalances : state.collateralBalances
   )
   const balance = balances[token.symbol]
-  const value = useStore((state) =>
+  const value = useBorrow((state) =>
     type === "debt" ? state.debtInput : state.collateralInput
   )
-  const ltv = useStore((state) => state.position.ltv)
-  const ltvMax = useStore((state) => state.position.ltvMax)
+  const ltv = useBorrow((state) => state.position.ltv)
+  const ltvMax = useBorrow((state) => state.position.ltvMax)
 
-  const isBorrowing = useStore((state) => state.isBorrowing)
+  const isBorrowing = useBorrow((state) => state.isBorrowing)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)

@@ -13,7 +13,8 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 import Image from "next/image"
-import { useStore } from "../../store"
+
+import { useBorrow } from "../../store/borrow.store"
 
 type ApprovalModalProps = {
   handleClose: () => void
@@ -22,10 +23,10 @@ type ApprovalModalProps = {
 export default function ApprovalModal(props: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const collateralAllowance = useStore((state) => state.collateralAllowance)
-  const collateral = useStore((state) => state.position.collateral)
-  const collateralInput = useStore((state) => state.collateralInput)
-  const meta = useStore((state) => state.transactionMeta)
+  const collateralAllowance = useBorrow((state) => state.collateralAllowance)
+  const collateral = useBorrow((state) => state.position.collateral)
+  const collateralInput = useBorrow((state) => state.collateralInput)
+  const meta = useBorrow((state) => state.transactionMeta)
 
   const [infiniteApproval, setInfiniteApproval] = useState(false)
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +39,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
       meta.bridgeFees / collateral.usdValue +
       meta.gasFees / collateral.usdValue
 
-  const allow = useStore((state) => state.allow)
+  const allow = useBorrow((state) => state.allow)
   const handleAllow = () => allow(amount, props.handleClose)
 
   return (
