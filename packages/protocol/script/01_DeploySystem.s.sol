@@ -66,7 +66,7 @@ contract DeploySystem is ScriptPlus {
     providers[0] = mockProvider;
 
     chief = Chief(getAddress("Chief"));
-    /*chief = new Chief();*/
+    /*chief = new Chief(true, true);*/
     /*saveAddress("Chief", address(chief));*/
     /*bytes32 REBALANCER_ROLE = keccak256("REBALANCER_ROLE");*/
     /*chief.grantRole(REBALANCER_ROLE, msg.sender);*/

@@ -6,7 +6,11 @@ import {
   CardContent,
   Card,
   Grid,
+  Stack,
+  useMediaQuery,
+  useTheme,
   Box,
+  Link,
 } from "@mui/material"
 import Image from "next/image"
 
@@ -17,9 +21,12 @@ import TokenCard from "./TokenCard"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
+import RoutingModal from "./RoutingModal"
 import { useHistory } from "../../store/history.store"
+import { chainName } from "../../helpers/chainName"
 
 export default function Borrow() {
+  const theme = useTheme()
   const address = useStore((state) => state.address)
   const walletChain = useStore((state) => state.chain)
   const changeChain = useStore((state) => state.changeChain)
@@ -70,6 +77,9 @@ export default function Borrow() {
   const closeModal = useHistory((state) => state.closeModal)
   const metaStatus = useStore((state) => state.transactionMeta.status)
   const availableVaultStatus = useStore((state) => state.availableVaultsStatus)
+
+  const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
   let button: ReactNode
   if (!address) {
@@ -165,7 +175,7 @@ export default function Borrow() {
             <TokenCard type="collateral" />
           </Box>
 
-          <Box mb="2rem">
+          <Box>
             <ChainSelect
               label="Borrow to"
               type="borrow"
@@ -176,13 +186,31 @@ export default function Borrow() {
             <TokenCard type="debt" />
           </Box>
 
+          <Stack
+            direction="row"
+            m="1rem 0"
+            justifyContent="space-between"
+            onClick={() => {
+              !onMobile && address && setShowRoutingModal(true)
+            }}
+            sx={{ cursor: address && "pointer" }}
+          >
+            <Typography variant="small">Route</Typography>
+            <Typography variant="small">
+              <u>
+                {`${collateral.token.symbol} > ${chainName(
+                  debt.token.chainId
+                )}`}
+              </u>
+            </Typography>
+          </Stack>
           <Box mb="1rem">
             <Fees />
           </Box>
 
           {button}
 
-          <a
+          <Link
             href="https://www.connext.network/"
             target="_blank"
             rel="noreferrer"
@@ -201,7 +229,7 @@ export default function Borrow() {
                 alt="Connext logo"
               />
             </Grid>
-          </a>
+          </Link>
         </CardContent>
       </Card>
       {/* TODO: Move txprocessing outside of borrow */}
@@ -212,6 +240,11 @@ export default function Borrow() {
       {showApprovalModal && (
         <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
       )}
+
+      <RoutingModal
+        open={showRoutingModal}
+        handleClose={() => setShowRoutingModal(false)}
+      />
     </>
   )
 }

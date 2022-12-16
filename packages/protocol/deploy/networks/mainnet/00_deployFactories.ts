@@ -8,7 +8,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
   const { deployer } = await getNamedAccounts();
 
-  await deployChief(hre);
+  await deployChief(hre, true, true);
 
   const chief: Deployment = await deployments.get('Chief');
   await deployBorrowingVaultFactory(hre, chief.address);

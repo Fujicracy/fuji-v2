@@ -58,12 +58,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
-    chief = new Chief();
-    chief.setTimelock(address(timelock));
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
 
     vault = new BorrowingVault(
       address(asset),
@@ -93,21 +89,21 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
-    chief.grantRole(REBALANCER_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, address(this));
-    chief.grantRole(LIQUIDATOR_ROLE, bob);
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, bob);
   }
 
-  function _utils_callWithTimelock(
-    address contractToCall,
-    bytes memory encodedWithSelectorData
-  )
-    internal
-  {
-    timelock.schedule(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00, 1.5 days);
+  function _callWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
     vm.warp(block.timestamp + 2 days);
-    timelock.execute(contractToCall, 0, encodedWithSelectorData, 0x00, 0x00);
+    timelock.execute(target, 0, callData, 0x00, 0x00);
     rewind(2 days);
+  }
+
+  function _grantRoleChief(bytes32 role, address account) internal {
+    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
+    _callWithTimelock(address(chief), sendData);
   }
 
   function _utils_setupVaultProvider() internal {
@@ -116,7 +112,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     providers[0] = mockProvider;
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
     vault.setActiveProvider(mockProvider);
   }
 
@@ -297,14 +293,14 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     emit MinDepositAmountChanged(min);
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
-    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
   function test_tryLessThanMinDeposit(uint128 min, uint128 amount) public {
     vm.assume(amount < min);
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
-    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(alice);
@@ -317,7 +313,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     emit DepositCapChanged(maxCap);
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
   function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
@@ -327,7 +323,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     );
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _utils_callWithTimelock(address(vault), encodedWithSelectorData);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.prank(address(timelock));
     vault.setDepositCap(maxCap);

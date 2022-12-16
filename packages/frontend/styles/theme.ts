@@ -18,6 +18,9 @@ declare module "@mui/material/Chip" {
     success: true
     warning: true
     number: true
+    routing: true
+    recommended: true
+    selected: true
   }
 }
 
@@ -40,12 +43,6 @@ declare module "@mui/material/Typography" {
     xsmallDark: true
     label: true
     regularH4: true
-  }
-}
-
-declare module "@mui/material/Chip" {
-  interface ChipPropsVariantOverrides {
-    gradient: true
   }
 }
 
@@ -289,7 +286,6 @@ const theme = createTheme(colorTheme, {
           props: { variant: "rounded" },
           style: {
             borderRadius: "50rem",
-            // backgroundColor: colorTheme.palette.background.paper,
             color: colorTheme.palette.primary.light,
             border: `1px solid ${colorTheme.palette.primary.light}`,
           },
@@ -404,13 +400,6 @@ const theme = createTheme(colorTheme, {
         },
       },
     },
-    MuiSvgIcon: {
-      styleOverrides: {
-        root: {
-          color: colorTheme.palette.text.secondary,
-        },
-      },
-    },
     MuiLink: {
       styleOverrides: {
         root: {
@@ -496,6 +485,36 @@ const theme = createTheme(colorTheme, {
             background: colorTheme.palette.secondary.light,
             position: "relative",
             right: `${3 * 0.25}rem`,
+          },
+        },
+        {
+          props: {
+            variant: "routing",
+          },
+          style: {
+            background: colorTheme.palette.secondary.main,
+            height: "22px",
+          },
+        },
+        {
+          props: {
+            variant: "recommended",
+          },
+          style: {
+            background: colorTheme.palette.primary.main,
+            position: "relative",
+            bottom: ".7rem",
+            height: "22px",
+          },
+        },
+        {
+          props: {
+            variant: "selected",
+          },
+          style: {
+            height: "22px",
+            color: colorTheme.palette.primary.main,
+            border: `1px solid ${colorTheme.palette.primary.main}`,
           },
         },
       ],
