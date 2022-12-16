@@ -8,22 +8,22 @@ import {IERC20Metadata} from
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IWETH} from "../../../src/interfaces/IWETH.sol";
-import {IVault} from "../../../src/interfaces/IVault.sol";
-import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
-import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {CompoundV2} from "../../../src/providers/mainnet/CompoundV2.sol";
-import {IComptroller} from "../../../src/interfaces/compoundV2/IComptroller.sol";
-import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
-import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {MockOracle} from "../../../src/mocks/MockOracle.sol";
-import {Chief} from "../../../src/Chief.sol";
-import {CoreRoles} from "../../../src/access/CoreRoles.sol";
-import {DSTestPlus} from "../../utils/DSTestPlus.sol";
+import {IWETH} from "../../src/interfaces/IWETH.sol";
+import {IVault} from "../../src/interfaces/IVault.sol";
+import {ICToken} from "../../src/interfaces/compoundV2/ICToken.sol";
+import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {CompoundV2} from "../../src/providers/mainnet/CompoundV2.sol";
+import {IComptroller} from "../../src/interfaces/compoundV2/IComptroller.sol";
+import {AaveV2} from "../../src/providers/mainnet/AaveV2.sol";
+import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
+import {MockOracle} from "../../src/mocks/MockOracle.sol";
+import {Chief} from "../../src/Chief.sol";
+import {CoreRoles} from "../../src/access/CoreRoles.sol";
+import {DSTestPlus} from "../utils/DSTestPlus.sol";
 
 bool constant DEBUG = false;
 
-contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
+contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
   address alice = address(0xA);
   address bob = address(0xB);
 
@@ -31,6 +31,7 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
 
   IVault public vault;
   CompoundV2 public compoundV2;
+  AaveV2 public aaveV2;
   Chief public chief;
   TimelockController public timelock;
 
@@ -55,8 +56,8 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
 
     mockOracle = new MockOracle();
 
-    mockOracle.setUSDPriceOf(address(usdc), 100000000);
-    mockOracle.setUSDPriceOf(address(weth), 160000000000);
+    _utils_setPrice(address(weth), address(usdc), 62500);
+    _utils_setPrice(address(usdc), address(weth), 160000000000);
 
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
@@ -71,11 +72,21 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     );
 
     compoundV2 = new CompoundV2();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    aaveV2 = new AaveV2();
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = compoundV2;
+    providers[1] = aaveV2;
 
     _utils_setupVaultProvider(vault, providers);
     vault.setActiveProvider(compoundV2);
+  }
+
+  function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
+    vm.mockCall(
+      address(mockOracle),
+      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
+      abi.encode(price)
+    );
   }
 
   function _utils_setupTestRoles() internal {
@@ -108,14 +119,14 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     v.deposit(amount, who);
     vm.stopPrank();
 
-    assertEq(v.balanceOf(who), amount);
+    assertGe(v.balanceOf(who), amount);
   }
 
   function _utils_doBorrow(address who, uint256 amount, IVault v) internal {
     vm.prank(who);
     v.borrow(amount, who, who);
 
-    assertEq(IERC20(v.debtAsset()).balanceOf(who), amount);
+    assertGe(IERC20(v.debtAsset()).balanceOf(who), amount);
   }
 
   function _utils_doPayback(address who, uint256 amount, IVault v) internal {
@@ -139,15 +150,19 @@ contract CompoundV2AttackTest is DSTestPlus, CoreRoles {
     assertEq(v.convertToAssets(v.balanceOf(who)), diff);
   }
 
-  function test_twoDeposits() public {
+  function test_twoDepositsInCompoundV2() public {
     // Two deposits are reverting because of overflow in maxMin function
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
+    _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+  }
 
-    // address cTokenAddr =
-    //   compoundV2.getMapper().getAddressMapping(compoundV2.providerName(), address(weth));
-    // ICToken cToken = ICToken(cTokenAddr);
-
+  function test_twoDepositsInAaveV2() public {
+    vault.setActiveProvider(aaveV2);
+    // Two deposits are reverting because of overflow in maxMin function
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
