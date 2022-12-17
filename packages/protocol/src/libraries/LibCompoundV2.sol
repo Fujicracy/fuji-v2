@@ -12,10 +12,6 @@ import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
 library LibCompoundV2 {
   using LibSolmateFixedPointMath for uint256;
 
-  struct Exp {
-    uint256 mantissa;
-  }
-
   function viewUnderlyingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     return cToken.balanceOf(user).mulWadDown(viewExchangeRate(cToken));
   }
@@ -72,30 +68,7 @@ library LibCompoundV2 {
     /* Calculate the number of blocks elapsed since the last accrual */
     uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;
 
-    Exp memory simpleInterestFactor = _mul_(Exp({mantissa: borrowRateMantissa}), blockDelta);
-    newBorrowIndex =
-      _mul_ScalarTruncateAddUInt(simpleInterestFactor, borrowIndexPrior, borrowIndexPrior);
-  }
-
-  function _mul_(Exp memory a, uint256 b) private pure returns (Exp memory) {
-    return Exp({mantissa: a.mantissa * b});
-  }
-
-  function _truncate(Exp memory exp) private pure returns (uint256) {
-    // Note: We are not using careful math here as we're performing a division that cannot fail
-    return exp.mantissa / 1e18;
-  }
-
-  function _mul_ScalarTruncateAddUInt(
-    Exp memory a,
-    uint256 scalar,
-    uint256 addend
-  )
-    private
-    pure
-    returns (uint256)
-  {
-    Exp memory product = _mul_(a, scalar);
-    return (_truncate(product) + addend);
+    uint256 simpleInterestFactor = borrowRateMantissa * blockDelta;
+    newBorrowIndex = (simpleInterestFactor * borrowIndexPrior) / 1e18 + borrowIndexPrior;
   }
 }
