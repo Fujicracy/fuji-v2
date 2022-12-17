@@ -119,7 +119,16 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     v.deposit(amount, who);
     vm.stopPrank();
 
-    assertGe(v.balanceOf(who), amount);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
+    uint256 shares = v.balanceOf(who);
+    uint256 assetBalance = v.convertToAssets(shares);
+
+    assertGe(assetBalance, amount);
+
+    vm.warp(block.timestamp - 13 seconds);
+    vm.roll(block.number - 1);
   }
 
   function _utils_doBorrow(address who, uint256 amount, IVault v) internal {
@@ -142,19 +151,25 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
   }
 
   function _utils_doWithdraw(address who, uint256 amount, IVault v) internal {
-    uint256 prevAssets = v.convertToAssets(v.balanceOf(who));
+    IERC20 asset_ = IERC20(v.asset());
+    uint256 prevBalance = asset_.balanceOf(who);
     vm.prank(who);
     v.withdraw(amount, who, who);
 
-    uint256 diff = prevAssets - amount;
-    assertEq(v.convertToAssets(v.balanceOf(who)), diff);
+    uint256 newBalance = prevBalance + amount;
+    assertEq(asset_.balanceOf(who), newBalance);
   }
 
   function test_twoDepositsInCompoundV2() public {
     // Two deposits are reverting because of overflow in maxMin function
     deal(address(weth), alice, DEPOSIT_AMOUNT);
     deal(address(weth), bob, DEPOSIT_AMOUNT);
+
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
   }
 
@@ -165,5 +180,45 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     deal(address(weth), bob, DEPOSIT_AMOUNT);
     _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
     _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+  }
+
+  function test_maxWithdrawCompoundV2() public {
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
+    _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
+    uint256 theoreticalBobMaxWithdraw = vault.maxWithdraw(bob);
+    uint256 theoreticalAliceMaxWithdraw = vault.maxWithdraw(alice);
+
+    _utils_doWithdraw(bob, theoreticalBobMaxWithdraw, vault);
+    _utils_doWithdraw(alice, theoreticalAliceMaxWithdraw, vault);
+
+    assertGe(weth.balanceOf(alice), DEPOSIT_AMOUNT);
+    assertGe(weth.balanceOf(bob), DEPOSIT_AMOUNT);
+  }
+
+  function test_maxWithdrawAaveV2() public {
+    vault.setActiveProvider(aaveV2);
+
+    deal(address(weth), alice, DEPOSIT_AMOUNT);
+    deal(address(weth), bob, DEPOSIT_AMOUNT);
+    _utils_doDeposit(bob, DEPOSIT_AMOUNT, vault);
+    _utils_doDeposit(alice, DEPOSIT_AMOUNT, vault);
+
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
+    uint256 theoreticalBobMaxWithdraw = vault.maxWithdraw(bob);
+    uint256 theoreticalAliceMaxWithdraw = vault.maxWithdraw(alice);
+
+    _utils_doWithdraw(bob, theoreticalBobMaxWithdraw, vault);
+    _utils_doWithdraw(alice, theoreticalAliceMaxWithdraw, vault);
+
+    assertGe(weth.balanceOf(alice), DEPOSIT_AMOUNT);
+    assertGe(weth.balanceOf(bob), DEPOSIT_AMOUNT);
   }
 }

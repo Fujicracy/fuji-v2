@@ -145,7 +145,7 @@ contract ForkingSetup is CoreRoles, Test {
     }
 
     collateralAsset = reg.weth;
-    vm.label(reg.weth, "ConnextWETH");
+    vm.label(reg.weth, "WETH");
 
     if (reg.usdc == address(0)) {
       // mostly for testnets
