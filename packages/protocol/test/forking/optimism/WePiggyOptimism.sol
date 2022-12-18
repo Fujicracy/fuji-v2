@@ -15,7 +15,6 @@ contract WePiggyOptimismTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200;
 
   function setUp() public {
-    // deploy(MAINNET_DOMAIN);
     deploy(OPTIMISM_DOMAIN);
 
     wePiggy = new WePiggyOptimism();
@@ -36,9 +35,6 @@ contract WePiggyOptimismTest is Routines, ForkingSetup {
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
-
     uint256 aliceDebt = vault.balanceOfDebt(ALICE);
     do_payback(aliceDebt, vault, ALICE);
 
@@ -51,8 +47,10 @@ contract WePiggyOptimismTest is Routines, ForkingSetup {
 
     uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();
-    assertGe(depositBalance, DEPOSIT_AMOUNT);
-    assertGe(borrowBalance, BORROW_AMOUNT);
+
+    //account for rounding issue
+    assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
+    assertApproxEqAbs(borrowBalance, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
   }
 
   function test_getInterestRates() public {
