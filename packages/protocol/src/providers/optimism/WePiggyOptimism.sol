@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -13,22 +12,7 @@ import {IGenCToken} from "../../interfaces/compoundV2/IGenCToken.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
-
-//WePiggy -> TOKEN -> pTOKEN
-/*
-1)eth done
-	0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
-  0x4200000000000000000000000000000000000006
-  0x8e1e582879Cb8baC6283368e8ede458B63F499a5
-2)usdc done
-  0x7F5c764cBc14f9669B88837ca1490cCa17c31607
-	0x811Cd5CB4cC43F44600Cfa5eE3F37a402C82aec2
-3)dai done
-  0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1
-  0xc12B9D620bFCB48be3e0CCbf0ea80C717333b46F
-4)wbtc
-  0x68f180fcCe6836688e9084f035309E29Bf0A2095
-  0x48a5322c3021d5eD5CE4293112141045d12c7EFC*/
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title WePiggy Lending Provider.
@@ -36,11 +20,12 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @notice This contract allows interaction with WePiggy.
  */
 contract WePiggyOptimism is ILendingProvider {
-  error WePiggy__deposit_failed(uint256 status);
+  using SafeERC20 for IERC20;
 
-  // function _isNative(address token) internal pure returns (bool) {
-  //   return (token == address(0) || token == address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE));
-  // }
+  error WePiggy__deposit_failed(uint256 status);
+  error WePiggy__payback_failed(uint256 status);
+  error WePiggy__withdraw_failed(uint256 status);
+  error WePiggy__borrow_failed(uint256 status);
 
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x4200000000000000000000000000000000000006;
@@ -52,21 +37,12 @@ contract WePiggyOptimism is ILendingProvider {
   }
 
   function _getCToken(address underlying) internal view returns (address cToken) {
-    console.log("@getctoken = ", underlying);
-    // if (_isWETH(underlying)) {
-    //   console.log("@getctoken inside if");
-    //   underlying = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
-    //   cToken = _getAddrmapper().getAddressMapping("WePiggy", underlying);
-    // } else {
     cToken = _getAddrmapper().getAddressMapping("WePiggy", underlying);
-    // }
   }
 
   function _getComptrollerAddress() internal pure returns (address) {
     return 0x896aecb9E73Bf21C50855B7874729596d0e511CB; // WePiggy Optimism
   }
-
-  // WePiggy functions
 
   /**
    * @dev Approves vault's assets as collateral for Compound Protocol.
@@ -81,20 +57,9 @@ contract WePiggyOptimism is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /**
-   * @dev Removes vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be removed as collateral.
-   */
-  function _exitCollatMarket(address _cTokenAddress) internal {
-    // Create a reference to the corresponding network Comptroller
-    IComptroller comptroller = IComptroller(_getComptrollerAddress());
-
-    comptroller.exitMarket(_cTokenAddress);
-  }
   /// inheritdoc ILendingProvider
-
   function providerName() public pure override returns (string memory) {
-    return "WePiggy_Optimism";
+    return "WePiggy";
   }
 
   /// inheritdoc ILendingProvider
@@ -104,11 +69,8 @@ contract WePiggyOptimism is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
-    console.log("@wepiggy @deposit");
-    console.log("@wepiggy @deposit asset = ", vault.asset());
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
-    console.log("@wepiggy @deposit cTokenAddr = ", cTokenAddr);
 
     _enterCollatMarket(cTokenAddr);
 
@@ -118,14 +80,13 @@ contract WePiggyOptimism is ILendingProvider {
 
       ICETH cToken = ICETH(cTokenAddr);
 
-      console.log("@wepiggy @deposit weth before mint");
-
       // Compound protocol Mints cTokens, ETH method
       cToken.mint{value: amount}();
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      console.log("@wepiggy @deposit before mint");
+      IERC20(asset).safeApprove(cTokenAddr, amount);
+
       uint256 status = cToken.mint(amount);
       if (status != 0) {
         revert WePiggy__deposit_failed(status);
@@ -141,11 +102,14 @@ contract WePiggyOptimism is ILendingProvider {
 
     IGenCToken cToken = IGenCToken(cTokenAddr);
 
-    // Compound Protocol Borrow Process, throw errow if not.
-    require(cToken.borrow(amount) == 0, "borrow-failed");
+    uint256 status = cToken.borrow(amount);
 
-    // wrap ETH to WETH
+    if (status != 0) {
+      revert WePiggy__borrow_failed(status);
+    }
+
     if (_isWETH(asset)) {
+      // wrap ETH to WETH
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -154,17 +118,18 @@ contract WePiggyOptimism is ILendingProvider {
   /// inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
-    // Get cToken address from mapping
     address cTokenAddr = _getCToken(asset);
 
-    // Create a reference to the corresponding cToken contract
     IGenCToken cToken = IGenCToken(cTokenAddr);
 
-    // Compound Protocol Redeem Process, throw errow if not.
-    require(cToken.redeemUnderlying(amount) == 0, "Withdraw-failed");
+    uint256 status = cToken.redeemUnderlying(amount);
 
-    // wrap ETH to WETH
+    if (status != 0) {
+      revert WePiggy__withdraw_failed(status);
+    }
+
     if (_isWETH(asset)) {
+      // wrap ETH to WETH
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -172,26 +137,25 @@ contract WePiggyOptimism is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
-    // // Get cToken address from mapping
-    // address cTokenAddr = _getCToken(vault.debtAsset());
-    //
-    // if (_isNative(vault.asset())) {
-    //   // Create a reference to the corresponding cToken contract
-    //   ICETH cToken = ICETH(cTokenAddr);
-    //
-    //   cToken.repayBorrow{ value: msg.value }();
-    // } else {
-    //   // Create reference to the ERC20 contract
-    //   IERC20 erc20token = IERC20(vault.asset());
-    //
-    //   // Create a reference to the corresponding cToken contract
-    //   ICERC20 cToken = ICERC20(cTokenAddr);
-    //
-    //   // Check there is enough balance to pay
-    //   require(erc20token.balanceOf(address(this)) >= amount, "Not-enough-token");
-    //   // erc20token.univApprove(address(cTokenAddr), amount);
-    //   cToken.repayBorrow(amount);
-    // }
+    address asset = vault.debtAsset();
+    address cTokenAddr = _getCToken(asset);
+
+    if (_isWETH(asset)) {
+      ICETH cToken = ICETH(cTokenAddr);
+      //unwrap WETH to ETH
+      IWETH9(asset).withdraw(amount);
+
+      cToken.repayBorrow{value: amount}();
+    } else {
+      ICERC20 cToken = ICERC20(cTokenAddr);
+
+      IERC20(asset).safeApprove(cTokenAddr, amount);
+      uint256 status = cToken.repayBorrow(amount);
+
+      if (status != 0) {
+        revert WePiggy__payback_failed(status);
+      }
+    }
     success = true;
   }
 
@@ -229,8 +193,8 @@ contract WePiggyOptimism is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address cTokenAddr = _getCToken(vault.debtAsset());
-    uint256 cTokenBal = IGenCToken(cTokenAddr).balanceOf(msg.sender);
+    address cTokenAddr = _getCToken(vault.asset());
+    uint256 cTokenBal = IGenCToken(cTokenAddr).balanceOf(user);
     uint256 exRate = IGenCToken(cTokenAddr).exchangeRateStored();
 
     balance = (exRate * cTokenBal) / 1e18;
@@ -248,6 +212,6 @@ contract WePiggyOptimism is ILendingProvider {
   {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
-    balance = IGenCToken(cTokenAddr).borrowBalanceStored(msg.sender);
+    balance = IGenCToken(cTokenAddr).borrowBalanceStored(user);
   }
 }
