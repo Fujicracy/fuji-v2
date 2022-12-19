@@ -18,10 +18,11 @@ import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
 import { sdk } from "../../store/auth.slice"
 import { BorrowingVaultWithFinancials } from "@x-fuji/sdk"
+import { chainName } from "../../helpers/chainName"
 
 export type Row = {
-  borrow?: string | null
-  collateral?: string | null
+  borrow: string
+  collateral: string
   bestRateChain: string
   supplyAPI: number
   borrowAPR: number
@@ -56,9 +57,7 @@ export default function MarketsTable() {
     fetchVaults()
   }, [])
 
-  const rows: Row[] = vaults
-    ? vaults.map(vaultToRow).sort(sortBy[appSorting])
-    : []
+  const rows: Row[] = vaults ? groupByPair(vaults.map(vaultToRow)) : []
   console.log({ vaults, rows })
 
   if (loading) {
@@ -102,27 +101,21 @@ export default function MarketsTable() {
                 spacing="0.25rem"
                 alignItems="center"
                 justifyContent="right"
-                sx={{ cursor: "pointer" }}
-                onClick={() =>
-                  setAppSorting(
-                    appSorting === "ascending" ? "descending" : "ascending"
-                  )
-                }
+                // sx={{ cursor: "pointer" }}
+                // onClick={() =>
+                //   setAppSorting(
+                //     appSorting === "ascending" ? "descending" : "ascending"
+                //   )
+                // }
               >
                 <span>Borrow APR</span>
                 {appSorting === "descending" ? (
                   <KeyboardArrowUpIcon
-                    sx={{
-                      color: palette.info.main,
-                      fontSize: "0.875rem",
-                    }}
+                    sx={{ color: palette.info.main, fontSize: "0.875rem" }}
                   />
                 ) : (
                   <KeyboardArrowDownIcon
-                    sx={{
-                      color: palette.info.main,
-                      fontSize: "0.875rem",
-                    }}
+                    sx={{ color: palette.info.main, fontSize: "0.875rem" }}
                   />
                 )}
               </Stack>
@@ -140,10 +133,7 @@ export default function MarketsTable() {
                   placement="top"
                 >
                   <InfoOutlinedIcon
-                    sx={{
-                      fontSize: "0.875rem",
-                      color: palette.info.main,
-                    }}
+                    sx={{ fontSize: "0.875rem", color: palette.info.main }}
                   />
                 </Tooltip>
                 <span>Protocols</span>
@@ -198,7 +188,7 @@ function vaultToRow(vault: BorrowingVaultWithFinancials): Row {
   return {
     borrow: vault.vault.debt.symbol,
     collateral: vault.vault.collateral.symbol,
-    bestRateChain: "Ethereum",
+    bestRateChain: chainName(vault.vault.chainId),
     supplyAPI: vault.depositApyBase,
     borrowAPR: vault.borrowApyBase,
     integratedProtocols: ["AAVE", "COMP"],
@@ -206,6 +196,54 @@ function vaultToRow(vault: BorrowingVaultWithFinancials): Row {
     availableLiquidity: vault.availableToBorrowUSD,
     isChild: false,
   }
+}
+
+function groupByPair(rows: Row[]): Row[] {
+  const done = new Set<string>() // Pair is symbol/symbol i.e WETH/USDC
+  const grouped: Row[] = []
+
+  for (const row of rows) {
+    const key = `${row.borrow}/${row.collateral}`
+    if (done.has(key)) continue
+    done.add(key)
+
+    const entries = rows.filter(
+      (r) => r.borrow === row.borrow && r.collateral === row.collateral
+    )
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending)
+      const children = groupByChain(
+        sorted.map((r) => ({ ...r, isChild: true }))
+      )
+      grouped.push({ ...sorted[0], children })
+    } else {
+      grouped.push(entries[0])
+    }
+  }
+
+  return grouped
+}
+
+function groupByChain(rows: Row[]): Row[] {
+  const done = new Set<string>() // Pair is symbol/symbol i.e WETH/USDC
+  const grouped: Row[] = []
+
+  for (const row of rows) {
+    const key = row.bestRateChain
+    if (done.has(key)) continue
+    done.add(key)
+
+    const entries = rows.filter((r) => r.bestRateChain === row.bestRateChain)
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending)
+      const children = sorted.map((r) => ({ ...r, isChild: true }))
+      grouped.push({ ...sorted[0], children })
+    } else {
+      grouped.push(entries[0])
+    }
+  }
+
+  return grouped
 }
 
 type CompareFn = (r1: Row, r2: Row) => 1 | -1

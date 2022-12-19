@@ -40,7 +40,12 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           }}
         >
           {row.borrow && (
-            <Stack direction="row" gap="0.5rem" alignItems="center">
+            <Stack
+              direction="row"
+              gap="0.5rem"
+              alignItems="center"
+              sx={{ opacity: row.isChild ? 0 : 1 }}
+            >
               {expandRow ? (
                 <KeyboardArrowDownIcon
                   onClick={() => setExpandRow(false)}
@@ -81,7 +86,12 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
         </TableCell>
         <TableCell>
           {row.collateral && (
-            <Stack direction="row" alignItems="center" flexWrap="nowrap">
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="nowrap"
+              sx={{ opacity: row.isChild ? 0 : 1 }}
+            >
               <Image
                 src={`/assets/images/protocol-icons/tokens/${row.collateral}.svg`}
                 height={32}
