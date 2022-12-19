@@ -11,12 +11,9 @@ import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol"
 contract WePiggyPolygonTest is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
-  //testing with wmatic/usdc
-  uint256 public constant DEPOSIT_AMOUNT = 1e20;
-  uint256 public constant BORROW_AMOUNT = 1e6;
-
   function setUp() public {
     deploy(POLYGON_DOMAIN);
+    deployVault(registry[POLYGON_DOMAIN].wmatic, registry[POLYGON_DOMAIN].usdc, "WMATIC", "USDC");
 
     wePiggy = new WePiggyPolygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);

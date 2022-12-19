@@ -30,9 +30,6 @@ contract SimpleRouterTest is Routines, ForkingSetup {
   ISwapper public swapper;
   IFlasher public flasher;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   address public debtAsset2;
 
   function setUp() public {

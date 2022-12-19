@@ -11,9 +11,6 @@ import {MorphoAaveV2} from "../../../src/providers/mainnet/MorphoAaveV2.sol";
 contract MorphoAaveV2Test is Routines, ForkingSetup {
   ILendingProvider public morphoAaveV2;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   function setUp() public {
     deploy(MAINNET_DOMAIN);
 

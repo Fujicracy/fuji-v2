@@ -11,9 +11,6 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 contract AaveV2Test is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   function setUp() public {
     deploy(POLYGON_DOMAIN);
 

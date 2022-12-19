@@ -10,9 +10,6 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 contract CompoundV2Test is Routines, ForkingSetup {
   ILendingProvider public compoundV2;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   function setUp() public {
     deploy(MAINNET_DOMAIN);
 

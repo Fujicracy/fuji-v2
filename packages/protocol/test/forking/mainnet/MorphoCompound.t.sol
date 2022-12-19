@@ -11,9 +11,6 @@ import {MorphoCompound} from "../../../src/providers/mainnet/MorphoCompound.sol"
 contract MorphoCompoundTest is Routines, ForkingSetup {
   ILendingProvider public morphoCompound;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   function setUp() public {
     deploy(MAINNET_DOMAIN);
 

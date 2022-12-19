@@ -11,9 +11,6 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 contract AaveV3ArbitrumTest is Routines, ForkingSetup {
   ILendingProvider public aaveV3;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   function setUp() public {
     deploy(ARBITRUM_DOMAIN);
 

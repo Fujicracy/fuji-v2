@@ -24,11 +24,11 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
 
   RebalancerManager public rebalancer;
 
-  uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-  uint256 public constant BORROW_AMOUNT = 100;
-
   function setUp() public {
     deploy(POLYGON_DOMAIN);
+
+    DEPOSIT_AMOUNT = 1 ether;
+    BORROW_AMOUNT = 900;
 
     providerAaveV3 = new AaveV3Polygon();
     providerAaveV2 = new AaveV2Polygon();
@@ -50,11 +50,6 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
     flasher = new FlasherAaveV3(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _callWithTimelock(executionCall, address(chief));
-
-    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
-
-    vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
   }
 
   function executeOperation(
@@ -88,6 +83,11 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
 
   // test rebalance a full position to another provider
   function test_rebalanceWithRebalancer() public {
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
+
+    vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 1 minutes);
+
     uint256 assets = DEPOSIT_AMOUNT;
     uint256 debt = BORROW_AMOUNT;
 
