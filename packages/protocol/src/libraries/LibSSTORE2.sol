@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.15;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
 
 /// @notice Read and write to persistent storage at a fraction of the cost.
 /// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/SSTORE2.sol)

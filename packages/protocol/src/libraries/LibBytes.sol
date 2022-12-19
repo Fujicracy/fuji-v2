@@ -1,4 +1,6 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.15;
+
 /*
  * @title Solidity Bytes Arrays Utils
  * @author Gonçalo Sá <goncalo.sa@consensys.net>
@@ -7,8 +9,6 @@
  *      The library lets you concatenate, slice and type cast bytes arrays both in memory and storage.
  *      https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol
  */
-pragma solidity >=0.8.0 <0.9.0;
-
 library LibBytes {
   function concat(
     bytes memory _preBytes,
