@@ -4,7 +4,6 @@ import {
   Stack,
   Table,
   TableBody,
-  TableCell,
   TableContainer,
   TableHead,
   TableRow,
@@ -19,6 +18,7 @@ import { useEffect, useState } from "react"
 import { sdk } from "../../store/auth.slice"
 import { BorrowingVaultWithFinancials } from "@x-fuji/sdk"
 import { chainName } from "../../helpers/chainName"
+import { SizableTableCell } from "../SizableTableCell"
 
 export type Row = {
   borrow: string
@@ -81,26 +81,35 @@ export default function MarketsTable() {
       >
         <TableHead>
           <TableRow sx={{ height: "2.625rem" }}>
-            <TableCell
+            <SizableTableCell
+              width="160px"
               sx={{
                 position: "sticky",
                 left: 0,
                 zIndex: 1,
                 background: palette.secondary.contrastText,
+                pl: "48px",
               }}
-              align="center"
+              align="left"
             >
               Borrow
-            </TableCell>
-            <TableCell align="center">Collateral</TableCell>
-            <TableCell align="center">Chain with the best rate</TableCell>
-            <TableCell align="right">Supply APY</TableCell>
-            <TableCell align="right">
+            </SizableTableCell>
+            <SizableTableCell align="left" width="120px">
+              Collateral
+            </SizableTableCell>
+            <SizableTableCell width="200px" align="left" sx={{ pl: "48px" }}>
+              Chain with the best rate
+            </SizableTableCell>
+            <SizableTableCell width="140px" align="right">
+              Supply APY
+            </SizableTableCell>
+            <SizableTableCell width="140px" align="right">
               <Stack
                 direction="row"
                 spacing="0.25rem"
                 alignItems="center"
                 justifyContent="right"
+                // Disabling app sorting for 1st iteration
                 // sx={{ cursor: "pointer" }}
                 // onClick={() =>
                 //   setAppSorting(
@@ -119,8 +128,8 @@ export default function MarketsTable() {
                   />
                 )}
               </Stack>
-            </TableCell>
-            <TableCell align="right">
+            </SizableTableCell>
+            <SizableTableCell align="right" width="140px">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -138,8 +147,8 @@ export default function MarketsTable() {
                 </Tooltip>
                 <span>Protocols</span>
               </Stack>
-            </TableCell>
-            <TableCell>
+            </SizableTableCell>
+            <SizableTableCell width="140px">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -170,8 +179,10 @@ export default function MarketsTable() {
                 </Tooltip>
                 <span>Safety Rating</span>
               </Stack>
-            </TableCell>
-            <TableCell align="right">Liquidity</TableCell>
+            </SizableTableCell>
+            <SizableTableCell width="140px" align="right">
+              Liquidity
+            </SizableTableCell>
           </TableRow>
         </TableHead>
         <TableBody>

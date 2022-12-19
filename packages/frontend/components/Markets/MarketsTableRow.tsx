@@ -4,7 +4,6 @@ import {
   Collapse,
   Stack,
   Table,
-  TableCell,
   TableRow,
   Typography,
   useTheme,
@@ -16,6 +15,9 @@ import Image from "next/image"
 
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
+import NetworkIcon from "../NetworkIcon"
+import TokenIcon from "../TokenIcon"
+import { SizableTableCell } from "../SizableTableCell"
 
 type MarketsTableRowProps = {
   row: Row
@@ -29,7 +31,8 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
   return (
     <>
       <TableRow sx={{ height: "3.438rem" }}>
-        <TableCell
+        <SizableTableCell
+          width="160px"
           sx={{
             position: "sticky",
             left: 0,
@@ -70,21 +73,15 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
                 />
               )}
               <Stack direction="row" alignItems="center" flexWrap="nowrap">
-                <Image
-                  src={`/assets/images/protocol-icons/tokens/${row.borrow}.svg`}
-                  height={32}
-                  width={32}
-                  layout="fixed"
-                  alt={row.borrow}
-                />
+                <TokenIcon token={row.borrow} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
                   {row.borrow}
                 </Typography>
               </Stack>
             </Stack>
           )}
-        </TableCell>
-        <TableCell>
+        </SizableTableCell>
+        <SizableTableCell width="120px">
           {row.collateral && (
             <Stack
               direction="row"
@@ -92,21 +89,15 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
               flexWrap="nowrap"
               sx={{ opacity: row.isChild ? 0 : 1 }}
             >
-              <Image
-                src={`/assets/images/protocol-icons/tokens/${row.collateral}.svg`}
-                height={32}
-                width={32}
-                layout="fixed"
-                alt={row.collateral}
-              />
+              <TokenIcon token={row.collateral} height={32} width={32} />
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}
               </Typography>
             </Stack>
           )}
-        </TableCell>
-        <TableCell>
-          <Stack direction="row" gap="0.5rem" alignItems="center">
+        </SizableTableCell>
+        <SizableTableCell width="200px">
+          <Stack direction="row" gap="0.5rem" alignItems="start">
             {expandRow ? (
               <KeyboardArrowDownIcon
                 onClick={() => setExpandRow(false)}
@@ -127,24 +118,25 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
               />
             )}
             <Stack direction="row" alignItems="center" flexWrap="nowrap">
-              {/* TODO after merge: use NetworkIcon component */}
-              <Image
-                src={`/assets/images/protocol-icons/networks/${row.bestRateChain}.svg`}
-                height={24}
-                width={24}
-                layout="fixed"
-                alt={row.bestRateChain}
-              />
+              <NetworkIcon network={row.bestRateChain} width={24} height={24} />
               <Typography ml="0.5rem" variant="small">
                 {row.bestRateChain}
               </Typography>
             </Stack>
           </Stack>
-        </TableCell>
-        <TableCell align="right" sx={{ color: palette.success.main }}>
+        </SizableTableCell>
+        <SizableTableCell
+          align="right"
+          width="140px"
+          sx={{ color: palette.success.main }}
+        >
           {row.supplyAPI.toFixed(2)} %
-        </TableCell>
-        <TableCell align="right" sx={{ color: palette.warning.main }}>
+        </SizableTableCell>
+        <SizableTableCell
+          align="right"
+          width="140px"
+          sx={{ color: palette.warning.main }}
+        >
           <Stack
             direction="row"
             alignItems="center"
@@ -154,8 +146,8 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
             {extra && <DropletIcon />}
             {row.borrowAPR.toFixed(2)}%
           </Stack>
-        </TableCell>
-        <TableCell align="right">
+        </SizableTableCell>
+        <SizableTableCell align="right" width="140px">
           <Stack direction="row" justifyContent="right" flexWrap="nowrap">
             {row.integratedProtocols.map((vault, i) => (
               <Box
@@ -167,6 +159,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
                 key={vault}
               >
                 {i <= 2 && (
+                  // TODO use protocolIcon or providerIcon instead
                   <Image
                     src={`/assets/images/protocol-icons/tokens/${vault}.svg`}
                     height={24}
@@ -188,27 +181,24 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
               />
             )}
           </Stack>
-        </TableCell>
-        <TableCell align="right">
+        </SizableTableCell>
+        <SizableTableCell align="right" width="140px">
           <Chip
             variant={row.safetyRating === "A+" ? "success" : "warning"}
             label={row.safetyRating}
           />
-        </TableCell>
-        <TableCell align="right">
+        </SizableTableCell>
+        <SizableTableCell align="right" width="140px">
           $
           {row.availableLiquidity
             .toString()
             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-        </TableCell>
+        </SizableTableCell>
       </TableRow>
 
       <TableRow>
-        <TableCell
-          sx={{
-            p: 0,
-            borderBottom: "none !important",
-          }}
+        <SizableTableCell
+          sx={{ p: 0, borderBottom: "none !important" }}
           colSpan={8}
         >
           <Collapse
@@ -227,7 +217,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
               </Table>
             ))}
           </Collapse>
-        </TableCell>
+        </SizableTableCell>
       </TableRow>
     </>
   )
