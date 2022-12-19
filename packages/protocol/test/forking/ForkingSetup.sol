@@ -170,7 +170,7 @@ contract ForkingSetup is CoreRoles, Test {
     timelock = new TimelockController(1 days, admins, admins);
 
     chief = new Chief(true, true);
-    chief.setTimelock(address(timelock));
+    timelock = TimelockController(payable(chief.timelock()));
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
