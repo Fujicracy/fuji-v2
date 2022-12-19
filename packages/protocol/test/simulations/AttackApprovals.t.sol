@@ -43,8 +43,6 @@ contract AttackApprovals is ForkingSetup, Routines {
     vm.prank(ALICE);
     IERC20(collateralAsset).approve(address(simpleRouter), DEPOSIT_AMOUNT);
 
-    /*console.log(IERC20(collateralAsset).allowance(ALICE, address(simpleRouter)));*/
-
     // Attacker "somehow" gets hold of this signed message and calls simpleRouter.
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
