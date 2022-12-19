@@ -14,4 +14,9 @@ export type ChainConfig = {
   alchemy: {
     [chainId in ChainId]?: string;
   };
+  /**
+   * Defillama api does not return accept *\/* on some routes
+   * You can use a proxy url to avoid this problem.
+   */
+  defillamaproxy: string;
 };
