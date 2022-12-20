@@ -397,10 +397,11 @@ const theme = createTheme(colorTheme, {
           borderRadius: "0.5rem",
           background: colorTheme.palette.secondary.dark,
           textAlign: "center",
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
           boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
         },
         arrow: {
-          color: colorTheme.palette.secondary.dark,
+          color: colorTheme.palette.secondary,
         },
       },
     },
