@@ -20,6 +20,7 @@ import { Row } from "./MarketsTable"
 import NetworkIcon from "../NetworkIcon"
 import TokenIcon from "../TokenIcon"
 import { SizableTableCell } from "../SizableTableCell"
+import ProviderIcon from "../ProviderIcon"
 
 type MarketsTableRowProps = {
   row: Row
@@ -171,24 +172,17 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           <Stack direction="row" justifyContent="right" flexWrap="nowrap">
-            {row.integratedProtocols.map((vault, i) => (
+            {row.integratedProtocols.map((name, i) => (
               <Box
                 sx={{
                   position: "relative",
                   right: `${i * 0.25}rem`,
                   zIndex: row.integratedProtocols.length - i,
                 }}
-                key={vault}
+                key={name}
               >
                 {i <= 2 && (
-                  // TODO use protocolIcon or providerIcon instead
-                  <Image
-                    src={`/assets/images/protocol-icons/tokens/${vault}.svg`}
-                    height={24}
-                    width={24}
-                    layout="fixed"
-                    alt={vault}
-                  />
+                  <ProviderIcon providerName={name} height={24} width={24} />
                 )}
               </Box>
             ))}

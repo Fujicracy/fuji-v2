@@ -16,7 +16,10 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
 import { sdk } from "../../store/auth.slice"
-import { BorrowingVaultWithFinancials } from "@x-fuji/sdk"
+import {
+  BorrowingVaultWithFinancials,
+  LendingProviderDetails,
+} from "@x-fuji/sdk"
 import { chainName } from "../../helpers/chainName"
 import { SizableTableCell } from "../SizableTableCell"
 
@@ -42,20 +45,34 @@ export type Row = {
 }
 
 type SortBy = "descending" | "ascending"
+// Map a vault address to its providers
+type ProvidersMap = Record<string, LendingProviderDetails[]>
 
 export default function MarketsTable() {
   const { palette } = useTheme()
   const [appSorting] = useState<SortBy>("descending")
-  const [vaults, setVaults] = useState<void | BorrowingVaultWithFinancials[]>(
-    []
-  )
+  const [vaults, setVaults] = useState<BorrowingVaultWithFinancials[]>([])
+  const [providers, setProviders] = useState<ProvidersMap>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchVaults() {
       try {
         const vaults = await sdk.getAllVaultsWithFinancials()
+        if (!vaults) throw "error on sdk: empty resoponse"
+
+        console.time("getProviders")
+        const allProviders = await Promise.all(
+          vaults.map((v) => v.vault.getProviders())
+        )
+        const providers: ProvidersMap = {}
+        for (let i = 0; i < allProviders.length; i++) {
+          const address = vaults[i].vault.address.value
+          providers[address] = allProviders[i]
+        }
+        console.timeEnd("getProviders")
         setVaults(vaults)
+        setProviders(providers)
         setLoading(false)
       } catch (e) {
         // TODO: What if error
@@ -65,7 +82,10 @@ export default function MarketsTable() {
     fetchVaults()
   }, [])
 
-  const rows: Row[] = vaults ? groupByPair(vaults.map(vaultToRow)) : []
+  const rawRows = vaults.map((v) =>
+    vaultToRow(v, providers[v.vault.address.value])
+  )
+  const rows: Row[] = groupByPair(rawRows)
   console.log({ vaults, rows })
 
   if (loading) {
@@ -203,7 +223,10 @@ export default function MarketsTable() {
   )
 }
 
-function vaultToRow(vault: BorrowingVaultWithFinancials): Row {
+function vaultToRow(
+  vault: BorrowingVaultWithFinancials,
+  providers: LendingProviderDetails[]
+): Row {
   // TODO: here only to test on dev mode, we need to mock this cuz we don't have any rewards on testnets
   if (
     vault.vault.address.value === "0xDdd86428204f12f296954c9CdFC73F3275f0D8a0"
@@ -211,7 +234,7 @@ function vaultToRow(vault: BorrowingVaultWithFinancials): Row {
     vault.borrowApyReward = 0.42
     vault.depositApyReward = 0.42
     vault.depositApy = vault.depositApyReward + vault.depositApyBase
-    console.debug(vault)
+    console.warn("Adding fake reward into vault", vault)
   }
 
   return {
@@ -223,11 +246,11 @@ function vaultToRow(vault: BorrowingVaultWithFinancials): Row {
     supplyApyBase: vault.depositApyBase,
     supplyApyReward: vault.depositApyReward,
 
-    borrowApr: vault.borrowApyBase - vault.borrowApyReward, // TODO: is is a sub here ?
+    borrowApr: vault.borrowApyBase - vault.borrowApyReward,
     borrowAprBase: vault.borrowApyBase,
     borrowAprReward: vault.borrowApyReward,
 
-    integratedProtocols: ["AAVE", "COMP"],
+    integratedProtocols: providers.map((p) => p.name),
     safetyRating: "A+",
     availableLiquidity: vault.availableToBorrowUSD,
     isChild: false,
@@ -247,6 +270,7 @@ function groupByPair(rows: Row[]): Row[] {
       (r) => r.borrow === row.borrow && r.collateral === row.collateral
     )
     if (entries.length > 1) {
+      // TODO: array should be sorted before being grouped
       const sorted = entries.sort(sortBy.descending)
       const children = groupByChain(
         sorted.map((r) => ({ ...r, isChild: true }))
@@ -271,6 +295,7 @@ function groupByChain(rows: Row[]): Row[] {
 
     const entries = rows.filter((r) => r.chain === row.chain)
     if (entries.length > 1) {
+      // TODO: array should be sorted before being grouped
       const sorted = entries.sort(sortBy.descending)
       const children = sorted.map((r) => ({ ...r, isChild: true }))
       grouped.push({ ...sorted[0], children })
