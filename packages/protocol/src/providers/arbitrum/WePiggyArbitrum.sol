@@ -59,7 +59,7 @@ contract WePiggyArbitrum is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "WePiggy_Optimism";
+    return "WePiggy_Arbitrum";
   }
 
   /// inheritdoc ILendingProvider
