@@ -2,9 +2,11 @@ import { useState } from "react"
 import {
   Chip,
   Collapse,
+  IconButton,
   Stack,
   Table,
   TableRow,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material"
@@ -118,9 +120,9 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
               />
             )}
             <Stack direction="row" alignItems="center" flexWrap="nowrap">
-              <NetworkIcon network={row.bestRateChain} width={24} height={24} />
+              <NetworkIcon network={row.chain} width={24} height={24} />
               <Typography ml="0.5rem" variant="small">
-                {row.bestRateChain}
+                {row.chain}
               </Typography>
             </Stack>
           </Stack>
@@ -130,21 +132,41 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           width="140px"
           sx={{ color: palette.success.main }}
         >
-          {row.supplyAPI.toFixed(2)} %
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            {row.supplyApyReward > 0 && (
+              <Tooltip
+                title={`${row.supplyApyBase.toFixed(
+                  2
+                )}% (base) + ${row.supplyApyReward.toFixed(2)}% (reward)`}
+                arrow
+              >
+                <IconButton>
+                  <DropletIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {row.supplyApy.toFixed(2)} %
+          </Stack>
         </SizableTableCell>
         <SizableTableCell
           align="right"
           width="140px"
           sx={{ color: palette.warning.main }}
         >
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="right"
-            flexWrap="nowrap"
-          >
-            {extra && <DropletIcon />}
-            {row.borrowAPR.toFixed(2)}%
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            {row.borrowAprReward > 0 && (
+              <Tooltip
+                title={`${row.borrowAprBase.toFixed(
+                  2
+                )}% (base) - ${row.borrowAprReward.toFixed(2)}% (reward)`}
+                arrow
+              >
+                <IconButton>
+                  <DropletIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {row.borrowApr.toFixed(2)}%
           </Stack>
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">

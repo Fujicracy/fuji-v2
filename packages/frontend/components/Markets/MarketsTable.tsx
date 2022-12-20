@@ -23,9 +23,17 @@ import { SizableTableCell } from "../SizableTableCell"
 export type Row = {
   borrow: string
   collateral: string
-  bestRateChain: string
-  supplyAPI: number
-  borrowAPR: number
+
+  chain: string
+
+  supplyApy: number
+  supplyApyBase: number
+  supplyApyReward: number
+
+  borrowApr: number
+  borrowAprBase: number
+  borrowAprReward: number
+
   integratedProtocols: string[]
   safetyRating: string
   availableLiquidity: number
@@ -37,7 +45,7 @@ type SortBy = "descending" | "ascending"
 
 export default function MarketsTable() {
   const { palette } = useTheme()
-  const [appSorting, setAppSorting] = useState<SortBy>("descending")
+  const [appSorting] = useState<SortBy>("descending")
   const [vaults, setVaults] = useState<void | BorrowingVaultWithFinancials[]>(
     []
   )
@@ -46,8 +54,8 @@ export default function MarketsTable() {
   useEffect(() => {
     async function fetchVaults() {
       try {
-        const v = await sdk.getAllVaultsWithFinancials()
-        setVaults(v)
+        const vaults = await sdk.getAllVaultsWithFinancials()
+        setVaults(vaults)
         setLoading(false)
       } catch (e) {
         // TODO: What if error
@@ -196,12 +204,29 @@ export default function MarketsTable() {
 }
 
 function vaultToRow(vault: BorrowingVaultWithFinancials): Row {
+  // TODO: here only to test on dev mode, we need to mock this cuz we don't have any rewards on testnets
+  if (
+    vault.vault.address.value === "0xDdd86428204f12f296954c9CdFC73F3275f0D8a0"
+  ) {
+    vault.borrowApyReward = 0.42
+    vault.depositApyReward = 0.42
+    vault.depositApy = vault.depositApyReward + vault.depositApyBase
+    console.debug(vault)
+  }
+
   return {
     borrow: vault.vault.debt.symbol,
     collateral: vault.vault.collateral.symbol,
-    bestRateChain: chainName(vault.vault.chainId),
-    supplyAPI: vault.depositApyBase,
-    borrowAPR: vault.borrowApyBase,
+    chain: chainName(vault.vault.chainId),
+
+    supplyApy: vault.depositApy,
+    supplyApyBase: vault.depositApyBase,
+    supplyApyReward: vault.depositApyReward,
+
+    borrowApr: vault.borrowApyBase - vault.borrowApyReward, // TODO: is is a sub here ?
+    borrowAprBase: vault.borrowApyBase,
+    borrowAprReward: vault.borrowApyReward,
+
     integratedProtocols: ["AAVE", "COMP"],
     safetyRating: "A+",
     availableLiquidity: vault.availableToBorrowUSD,
@@ -240,11 +265,11 @@ function groupByChain(rows: Row[]): Row[] {
   const grouped: Row[] = []
 
   for (const row of rows) {
-    const key = row.bestRateChain
+    const key = row.chain
     if (done.has(key)) continue
     done.add(key)
 
-    const entries = rows.filter((r) => r.bestRateChain === row.bestRateChain)
+    const entries = rows.filter((r) => r.chain === row.chain)
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending)
       const children = sorted.map((r) => ({ ...r, isChild: true }))
@@ -260,6 +285,6 @@ function groupByChain(rows: Row[]): Row[] {
 type CompareFn = (r1: Row, r2: Row) => 1 | -1
 
 const sortBy: Record<SortBy, CompareFn> = {
-  ascending: (a, b) => (a.borrowAPR < b.borrowAPR ? 1 : -1),
-  descending: (a, b) => (a.borrowAPR > b.borrowAPR ? 1 : -1),
+  ascending: (a, b) => (a.borrowApr < b.borrowApr ? 1 : -1),
+  descending: (a, b) => (a.borrowApr > b.borrowApr ? 1 : -1),
 }
