@@ -394,6 +394,7 @@ const theme = createTheme(colorTheme, {
         tooltip: {
           padding: "0.75rem 1rem",
           fontSize: "0.875rem",
+          lineHeight: "1rem",
           borderRadius: "0.5rem",
           background: colorTheme.palette.secondary.dark,
           textAlign: "center",
@@ -401,7 +402,7 @@ const theme = createTheme(colorTheme, {
           boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
         },
         arrow: {
-          color: colorTheme.palette.secondary,
+          color: colorTheme.palette.secondary.light,
         },
       },
     },
