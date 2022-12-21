@@ -1,6 +1,7 @@
 import { MouseEvent, useState } from "react"
 import {
   Chip,
+  CircularProgress,
   Collapse,
   IconButton,
   Stack,
@@ -13,6 +14,7 @@ import {
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
+import { useRouter } from "next/router"
 
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
@@ -20,6 +22,7 @@ import NetworkIcon from "../NetworkIcon"
 import TokenIcon from "../TokenIcon"
 import { SizableTableCell } from "../SizableTableCell"
 import ProviderIcon from "../ProviderIcon"
+import { useStore } from "../../store"
 
 type MarketsTableRowProps = {
   row: Row
@@ -30,14 +33,27 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
   const handleExpand = (evt: MouseEvent) => {
-    console.debug("click on expand")
     evt.stopPropagation()
     setExpandRow(!expandRow)
   }
 
+  const router = useRouter()
+  const change = useStore((s) => s.change)
+  const handleClick = async (evt: MouseEvent) => {
+    // TODO: Missing: should also select the vault
+    change(
+      { chain: row.chain, token: row.collateral },
+      { chain: row.chain, token: row.borrow }
+    )
+    router.push("/borrow")
+  }
+
   return (
     <>
-      <TableRow sx={{ height: "3.438rem" }}>
+      <TableRow
+        onClick={handleClick}
+        sx={{ height: "3.438rem", cursor: "pointer" }}
+      >
         <SizableTableCell
           width="160px"
           sx={{

@@ -66,18 +66,18 @@ type TransactionState = {
 type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type TransactionActions = {
-  changeBorrowChain: (chainId: ChainId) => void
+  changeBorrowChain: (chainId: ChainId) => Promise<any>
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
-  changeCollateralChain: (chainId: ChainId) => void
+  changeCollateralChain: (chainId: ChainId) => Promise<any>
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   changeActiveVault: (v: BorrowingVault) => void
 
   change: (
-    borrow: { chain: string; token: string },
-    debt: { chain: string; token: string }
-  ) => void
+    collateral: { chain: string; token: string },
+    borrow: { chain: string; token: string }
+  ) => Promise<any>
 
   updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
@@ -165,10 +165,12 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         state.position.collateral.token = tokens[0]
       })
     )
-    get().updateTokenPrice("collateral")
-    get().updateBalances("collateral")
-    get().updateVault()
-    get().updateAllowance()
+    return Promise.all([
+      get().updateTokenPrice("collateral"),
+      get().updateBalances("collateral"),
+      get().updateVault(),
+      get().updateAllowance(),
+    ])
   },
 
   changeCollateralToken(token) {
@@ -205,9 +207,11 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
 
-    get().updateTokenPrice("debt")
-    get().updateBalances("debt")
-    get().updateVault()
+    return Promise.all([
+      get().updateTokenPrice("debt"),
+      get().updateBalances("debt"),
+      get().updateVault(),
+    ])
   },
 
   changeBorrowToken(token) {
@@ -255,6 +259,36 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
     )
   },
 
+  async change(collateral, borrow) {
+    const p: Promise<any>[] = []
+
+    const borrowChainId = chains.find((c) => c.label === borrow.chain)?.id
+    borrowChainId
+      ? p.push(get().changeBorrowChain(borrowChainId))
+      : console.error(`Error: chain with name ${borrow.chain} not found`)
+
+    const collateralChainId = chains.find(
+      (c) => c.label === collateral.chain
+    )?.id
+    collateralChainId
+      ? p.push(get().changeCollateralChain(collateralChainId))
+      : console.error(`Error: chain with name ${collateral.chain} not found`)
+
+    await Promise.all(p)
+
+    const borrowToken = get().debtTokens.find((t) => t.symbol === borrow.token)
+    borrowToken
+      ? get().changeBorrowToken(borrowToken)
+      : console.error(`Error: token with name ${borrow.token} not found`)
+
+    const collateralToken = get().collateralTokens.find(
+      (t) => t.symbol === collateral.token
+    )
+    collateralToken
+      ? get().changeCollateralToken(collateralToken)
+      : console.error(`Error: token with name ${collateral.token} not found`)
+  },
+
   async updateBalances(type) {
     const address = useStore.getState().address
     const tokens = type === "debt" ? get().debtTokens : get().collateralTokens
@@ -288,40 +322,6 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         }
       })
     )
-  },
-
-  change(borrow, debt) {
-    const borrowChainId = chains.find((c) => c.label === borrow.chain)?.id
-    if (borrowChainId) {
-      get().changeBorrowChain(borrowChainId)
-    } else {
-      console.warn(`Error: chain with name ${borrow.chain} not found`)
-    }
-    // TODO: should be async and after we changeBorrowChain (update tokens)
-    const borrowToken = get().collateralTokens.find(
-      (t) => t.symbol === borrow.token
-    )
-    if (borrowToken) {
-      get().changeBorrowToken(borrowToken)
-    } else {
-      console.warn(`Error: token with name ${borrow.token} not found`)
-    }
-
-    const debtChainId = chains.find((c) => c.label === debt.chain)?.id
-    if (debtChainId) {
-      get().changeCollateralChain(debtChainId)
-    } else {
-      console.warn(`Error: chain with name ${debt.chain} not found`)
-    }
-    // TODO: should be async and after we updated changeCollateralChain (update tokens)
-    const debtTokens = get().collateralTokens.find(
-      (t) => t.symbol === debt.token
-    )
-    if (debtTokens) {
-      get().changeCollateralToken(debtTokens)
-    } else {
-      console.warn(`Error: token with name ${debt.token} not found`)
-    }
   },
 
   async updateTokenPrice(type) {
