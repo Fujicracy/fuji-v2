@@ -296,4 +296,87 @@ contract SimpleRouterUnitTests is MockingSetup {
     vm.prank(foe);
     simpleRouter.sweepToken(ERC20(collateralAsset), foe);
   }
+
+  function test_depositApprovalAttack() public {
+    _dealMockERC20(collateralAsset, ALICE, amount);
+
+    // alice has approved for some reason the router
+    vm.prank(ALICE);
+    IERC20(collateralAsset).approve(address(simpleRouter), amount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    // attacker sets themself as `receiver`.
+    args[0] = abi.encode(address(vault), amount, BOB, ALICE);
+
+    vm.expectRevert();
+    vm.prank(BOB);
+    simpleRouter.xBundle(actions, args);
+
+    // Assert attacker received no shares from attack attempt.
+    assertEq(vault.balanceOf(BOB), 0);
+  }
+
+  function test_withdrawalApprovalAttack() public {
+    _dealMockERC20(collateralAsset, ALICE, amount);
+
+    vm.startPrank(ALICE);
+    IERC20(collateralAsset).approve(address(simpleRouter), amount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
+
+    simpleRouter.xBundle(actions, args);
+    assertGt(vault.balanceOf(ALICE), 0);
+
+    // alice approves withdrawal allowance for the router for some reason
+    uint256 allowance = vault.previewRedeem(vault.balanceOf(ALICE));
+    IVaultPermissions(address(vault)).increaseWithdrawAllowance(
+      address(simpleRouter), address(simpleRouter), allowance
+    );
+    vm.stopPrank();
+
+    // attacker front-runs and calls withdraw
+    // using Alice `withdrawAllowance` and attempts to deposits,
+    // with themselves as receiver
+    IRouter.Action[] memory attackerActions = new IRouter.Action[](2);
+    bytes[] memory attackerArgs = new bytes[](2);
+
+    attackerActions[0] = IRouter.Action.Withdraw;
+    attackerArgs[0] = abi.encode(address(vault), amount, address(simpleRouter), ALICE);
+
+    attackerActions[1] = IRouter.Action.Deposit;
+    attackerArgs[1] = abi.encode(address(vault), amount, BOB, address(simpleRouter));
+
+    vm.expectRevert();
+    vm.prank(BOB);
+    simpleRouter.xBundle(attackerActions, attackerArgs);
+
+    // Assert attacker received no shares from attack attempt.
+    assertEq(vault.balanceOf(BOB), 0);
+  }
+
+  function test_depositStuckFundsExploit() public {
+    // Funds are stuck at the router.
+    _dealMockERC20(collateralAsset, address(simpleRouter), amount);
+
+    // attacker attempts to deposit the stuck funds to themselves.
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(vault), amount, ALICE, address(simpleRouter));
+
+    vm.expectRevert();
+    vm.prank(ALICE);
+    simpleRouter.xBundle(actions, args);
+
+    // Assert attacker received no funds.
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), 0);
+  }
 }
