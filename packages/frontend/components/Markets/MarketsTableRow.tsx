@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { MouseEvent, useState } from "react"
 import {
   Chip,
   Collapse,
@@ -13,7 +13,6 @@ import {
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
-import Image from "next/image"
 
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
@@ -30,6 +29,11 @@ type MarketsTableRowProps = {
 export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
+  const handleExpand = (evt: MouseEvent) => {
+    console.debug("click on expand")
+    evt.stopPropagation()
+    setExpandRow(!expandRow)
+  }
 
   return (
     <>
@@ -48,33 +52,15 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           {row.borrow && (
             <Stack
               direction="row"
-              gap="0.5rem"
+              gap={0.5}
               alignItems="center"
               sx={{ opacity: row.isChild ? 0 : 1 }}
             >
-              {expandRow ? (
-                <KeyboardArrowDownIcon
-                  onClick={() => setExpandRow(false)}
-                  sx={{
-                    cursor: "pointer",
-                    visibility:
-                      row.children && row.children.length > 0
-                        ? "visible"
-                        : "hidden",
-                  }}
-                />
-              ) : (
-                <KeyboardArrowRightIcon
-                  onClick={() => setExpandRow(true)}
-                  sx={{
-                    cursor: "pointer",
-                    visibility:
-                      row.children && row.children.length > 0
-                        ? "visible"
-                        : "hidden",
-                  }}
-                />
-              )}
+              <Toggle
+                expandRow={expandRow}
+                isVisible={Boolean(row.children && row.children.length > 0)}
+                onClick={handleExpand}
+              />
               <Stack direction="row" alignItems="center" flexWrap="nowrap">
                 <TokenIcon token={row.borrow} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
@@ -100,26 +86,12 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell width="200px">
-          <Stack direction="row" gap="0.5rem" alignItems="start">
-            {expandRow ? (
-              <KeyboardArrowDownIcon
-                onClick={() => setExpandRow(false)}
-                sx={{
-                  cursor: "pointer",
-                  visibility:
-                    row.isChild && row.children ? "visible" : "hidden",
-                }}
-              />
-            ) : (
-              <KeyboardArrowRightIcon
-                onClick={() => setExpandRow(true)}
-                sx={{
-                  cursor: "pointer",
-                  visibility:
-                    row.isChild && row.children ? "visible" : "hidden",
-                }}
-              />
-            )}
+          <Stack direction="row" gap={0.5} alignItems="center">
+            <Toggle
+              expandRow={expandRow}
+              isVisible={Boolean(row.isChild && row.children)}
+              onClick={handleExpand}
+            />
             <Stack direction="row" alignItems="center" flexWrap="nowrap">
               <NetworkIcon network={row.chain} width={24} height={24} />
               <Typography ml="0.5rem" variant="small">
@@ -236,5 +208,21 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
         </SizableTableCell>
       </TableRow>
     </>
+  )
+}
+type ToggleProps = {
+  expandRow: boolean
+  isVisible: boolean
+  onClick: (e: MouseEvent) => void
+}
+function Toggle(props: ToggleProps) {
+  const { expandRow, isVisible, onClick } = props
+
+  const visibility = isVisible ? "visible" : "hidden"
+
+  return (
+    <IconButton onClick={onClick} size="small" sx={{ visibility }}>
+      {expandRow ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
+    </IconButton>
   )
 }

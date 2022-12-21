@@ -15,7 +15,7 @@ import { StateCreator } from "zustand"
 import { debounce } from "debounce"
 
 import { useStore } from "."
-import { sdk } from "./auth.slice"
+import { chains, sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
@@ -73,6 +73,11 @@ type TransactionActions = {
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   changeActiveVault: (v: BorrowingVault) => void
+
+  change: (
+    borrow: { chain: string; token: string },
+    debt: { chain: string; token: string }
+  ) => void
 
   updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
@@ -283,6 +288,40 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         }
       })
     )
+  },
+
+  change(borrow, debt) {
+    const borrowChainId = chains.find((c) => c.label === borrow.chain)?.id
+    if (borrowChainId) {
+      get().changeBorrowChain(borrowChainId)
+    } else {
+      console.warn(`Error: chain with name ${borrow.chain} not found`)
+    }
+    // TODO: should be async and after we changeBorrowChain (update tokens)
+    const borrowToken = get().collateralTokens.find(
+      (t) => t.symbol === borrow.token
+    )
+    if (borrowToken) {
+      get().changeBorrowToken(borrowToken)
+    } else {
+      console.warn(`Error: token with name ${borrow.token} not found`)
+    }
+
+    const debtChainId = chains.find((c) => c.label === debt.chain)?.id
+    if (debtChainId) {
+      get().changeCollateralChain(debtChainId)
+    } else {
+      console.warn(`Error: chain with name ${debt.chain} not found`)
+    }
+    // TODO: should be async and after we updated changeCollateralChain (update tokens)
+    const debtTokens = get().collateralTokens.find(
+      (t) => t.symbol === debt.token
+    )
+    if (debtTokens) {
+      get().changeCollateralToken(debtTokens)
+    } else {
+      console.warn(`Error: token with name ${debt.token} not found`)
+    }
   },
 
   async updateTokenPrice(type) {
