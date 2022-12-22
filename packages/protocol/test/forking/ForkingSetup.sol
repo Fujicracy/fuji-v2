@@ -39,9 +39,6 @@ contract ForkingSetup is CoreRoles, Test {
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
 
-  uint256 public DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public BORROW_AMOUNT = 200 * 1e6;
-
   uint32 originDomain;
 
   struct Registry {
@@ -200,6 +197,8 @@ contract ForkingSetup is CoreRoles, Test {
   function deployVault(
     address collateralAsset_,
     address debtAsset_,
+    uint256 collateralAssetUSDPrice,
+    uint256 debtAssetUSDPrice,
     string memory collateralAssetName,
     string memory debtAssetName
   )
@@ -214,12 +213,12 @@ contract ForkingSetup is CoreRoles, Test {
     /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
 
     //TODO only being used for wmatic and usdc, the following lines will be unecessary once real oracle is used
-    mockOracle.setUSDPriceOf(collateralAsset, 90000000);
-    mockOracle.setUSDPriceOf(debtAsset, 100000000);
+    mockOracle.setUSDPriceOf(collateralAsset, collateralAssetUSDPrice);
+    mockOracle.setUSDPriceOf(debtAsset, debtAssetUSDPrice);
 
     //testing with wmatic/usdc
-    DEPOSIT_AMOUNT = 1e20;
-    BORROW_AMOUNT = 1e6;
+    // DEPOSIT_AMOUNT = 1e20;
+    // BORROW_AMOUNT = 1e6;
 
     string memory nameVault =
       string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");

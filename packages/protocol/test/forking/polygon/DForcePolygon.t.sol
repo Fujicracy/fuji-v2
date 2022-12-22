@@ -11,9 +11,19 @@ import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 contract DForcePolygonTest is Routines, ForkingSetup {
   ILendingProvider public dForce;
 
+  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
+  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+
   function setUp() public {
     deploy(POLYGON_DOMAIN);
-    deployVault(registry[POLYGON_DOMAIN].wmatic, registry[POLYGON_DOMAIN].usdc, "WMATIC", "USDC");
+    deployVault(
+      registry[POLYGON_DOMAIN].wmatic,
+      registry[POLYGON_DOMAIN].usdc,
+      90000000,
+      100000000,
+      "WMATIC",
+      "USDC"
+    );
 
     dForce = new DForcePolygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);

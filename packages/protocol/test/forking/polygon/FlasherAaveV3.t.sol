@@ -24,11 +24,11 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
 
   RebalancerManager public rebalancer;
 
+  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
+  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+
   function setUp() public {
     deploy(POLYGON_DOMAIN);
-
-    DEPOSIT_AMOUNT = 1 ether;
-    BORROW_AMOUNT = 1000;
 
     providerAaveV3 = new AaveV3Polygon();
     providerAaveV2 = new AaveV2Polygon();

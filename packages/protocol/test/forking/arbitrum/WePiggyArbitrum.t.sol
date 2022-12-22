@@ -11,6 +11,9 @@ import {WePiggyArbitrum} from "../../../src/providers/arbitrum/WePiggyArbitrum.s
 contract WePiggyArbitrumTest is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
+  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
+  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+
   function setUp() public {
     deploy(ARBITRUM_DOMAIN);
 

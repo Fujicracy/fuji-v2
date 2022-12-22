@@ -11,6 +11,8 @@ import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 contract BeefyVelodromesETHETHForkingTest is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
+  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
+
   function setUp() public {
     deploy(OPTIMISM_DOMAIN);
 
