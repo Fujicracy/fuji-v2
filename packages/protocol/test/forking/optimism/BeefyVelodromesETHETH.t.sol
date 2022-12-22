@@ -8,7 +8,7 @@ import {BeefyVelodromesETHETH} from "../../../src/providers/optimism/BeefyVelodr
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 
-contract BeefyVelodromesETHETHTest is Routines, ForkingSetup {
+contract BeefyVelodromesETHETHForkingTest is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

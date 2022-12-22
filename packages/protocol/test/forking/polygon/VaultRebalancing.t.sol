@@ -18,7 +18,7 @@ import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 
-contract VaultRebalancingTest is Routines, ForkingSetup {
+contract VaultRebalancingForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
   IRouter public router;
@@ -61,8 +61,8 @@ contract VaultRebalancingTest is Routines, ForkingSetup {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, BOB);
 
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
 
     uint256 assets = aaveV3.getDepositBalance(address(vault), IVault(vault));
     uint256 debt = aaveV3.getBorrowBalance(address(vault), IVault(vault));
@@ -84,8 +84,8 @@ contract VaultRebalancingTest is Routines, ForkingSetup {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, BOB);
 
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
 
     uint256 assets = aaveV3.getDepositBalance(address(vault), IVault(vault));
     uint256 debt = aaveV3.getBorrowBalance(address(vault), IVault(vault));
