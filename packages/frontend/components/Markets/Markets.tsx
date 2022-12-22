@@ -97,7 +97,7 @@ export default function Markets() {
           />
         </Tabs>
 
-        {currentTab === 0 && (
+        {/* {currentTab === 0 && (
           <Stack
             direction="row"
             gap="0.5rem"
@@ -159,7 +159,7 @@ export default function Markets() {
               }}
             />
           </Stack>
-        )}
+        )} */}
       </Grid>
 
       {currentTab === 0 && <MarketsTable />}
