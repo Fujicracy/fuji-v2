@@ -61,7 +61,7 @@ contract SimpleRouterUnitTests is MockingSetup {
   uint256 borrowAmount = 1000e18;
 
   MockERC20 public debtAsset2;
-  IVault public newVault;
+  BorrowingVault public newVault;
 
   function setUp() public {
     oracle = new MockOracle();
@@ -415,6 +415,63 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     // Assert attacker received ETH balance from attack attempt.
     assertEq(BOB.balance, 0);
+  }
+
+  function test_borrowWithPermitAttack() public {
+    // Create an inverted "asset-debtAsset" vault.
+    newVault = new BorrowingVault(
+      debtAsset, // Debt asset as collateral
+      collateralAsset, // Collateral asset as debt
+      address(oracle),
+      address(chief),
+      "Fuji-V2 DAI Vault Shares",
+      "fv2DAI"
+    );
+
+    _dealMockERC20(collateralAsset, ALICE, amount);
+
+    vm.startPrank(ALICE);
+    IERC20(collateralAsset).approve(address(simpleRouter), amount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
+
+    simpleRouter.xBundle(actions, args);
+    vm.stopPrank();
+
+    assertGt(vault.balanceOf(ALICE), 0);
+
+    // alice signs a permit borrow for the router for some reason
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), borrowAmount, 0, address(vault)
+    );
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    // attacker front-runs get hold of signed permit
+    // and bundles PermitBorrow-Borrow-Deposit-in-newVault
+    IRouter.Action[] memory attackerActions = new IRouter.Action[](3);
+    bytes[] memory attackerArgs = new bytes[](3);
+
+    attackerActions[0] = IRouter.Action.PermitBorrow;
+    attackerArgs[0] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), borrowAmount, deadline, v, r, s);
+
+    attackerActions[1] = IRouter.Action.Borrow;
+    attackerArgs[1] = abi.encode(address(vault), borrowAmount, address(simpleRouter), ALICE);
+
+    attackerActions[2] = IRouter.Action.Deposit;
+    attackerArgs[2] = abi.encode(address(newVault), borrowAmount, BOB, address(simpleRouter));
+
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    vm.prank(BOB);
+    simpleRouter.xBundle(attackerActions, attackerArgs);
+
+    // Assert attacker received no balance from attack attempt.
+    assertEq(newVault.balanceOf(BOB), 0);
   }
 
   function test_depositStuckFundsExploit() public {
