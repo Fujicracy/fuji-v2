@@ -42,6 +42,7 @@ export type Row = {
   availableLiquidity: number
   children?: Row[]
   isChild: boolean
+  isGrandChild: boolean // TODO: Not handled
 }
 
 type SortBy = "descending" | "ascending"
@@ -86,7 +87,6 @@ export default function MarketsTable() {
     vaultToRow(v, providers[v.vault.address.value])
   )
   const rows: Row[] = groupByPair(rawRows)
-  console.log({ vaults, rows })
 
   if (loading) {
     return (
@@ -249,6 +249,7 @@ function vaultToRow(
     safetyRating: "A+",
     availableLiquidity: vault.availableToBorrowUSD,
     isChild: false,
+    isGrandChild: false,
   }
 }
 

@@ -7,8 +7,9 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Arbitrum} from "../../../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract AaveV3ArbitrumTest is Routines, ForkingSetup {
+contract AaveV3ArbitrumForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -35,14 +36,18 @@ contract AaveV3ArbitrumTest is Routines, ForkingSetup {
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
 
     uint256 aliceDebt = vault.balanceOfDebt(ALICE);
     do_payback(aliceDebt, vault, ALICE);
 
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
+
+    assertGe(IERC20(vault.asset()).balanceOf(ALICE), DEPOSIT_AMOUNT);
   }
 
   function test_getBalances() public {
@@ -60,5 +65,10 @@ contract AaveV3ArbitrumTest is Routines, ForkingSetup {
 
     uint256 borrowRate = aaveV3.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

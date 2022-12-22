@@ -1,3 +1,4 @@
+import { Box, useTheme } from "@mui/material"
 import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
@@ -5,8 +6,11 @@ import { chainName } from "../helpers/chainName"
 
 interface Props extends Omit<ImageProps, "src"> {
   network: string | ChainId
+  sx?: object
 }
+
 export default function NetworkIcon(props: Props) {
+  const { palette } = useTheme()
   const { network, ...rest } = props
 
   const name = typeof network === "string" ? network : chainName(network)
@@ -21,14 +25,37 @@ export default function NetworkIcon(props: Props) {
   }, [error, network, path, name])
 
   if (error) {
-    return <></> // TODO: Is it fine to fallback to not displaying anything ?
+    return (
+      <Box
+        {...rest}
+        sx={{
+          ...props.sx,
+          background: palette.secondary.main,
+          borderRadius: "100%",
+        }}
+      ></Box>
+    )
   }
+
   return (
-    <Image
-      {...rest}
-      src={path}
-      alt={`${name} icon`}
-      onError={(e) => setError(e)}
-    />
+    <>
+      {props.sx ? (
+        <div style={props.sx}>
+          <Image
+            {...rest}
+            src={path}
+            alt={`${name} icon`}
+            onError={(e) => setError(e)}
+          />
+        </div>
+      ) : (
+        <Image
+          {...rest}
+          src={path}
+          alt={`${name} icon`}
+          onError={(e) => setError(e)}
+        />
+      )}
+    </>
   )
 }
