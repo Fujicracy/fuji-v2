@@ -39,7 +39,7 @@ export const ChainSelect = ({
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} value={chain.id}>
-            <Grid container>
+            <Grid container alignItems="center">
               <NetworkIcon network={chain.label} height={18} width={18} />
               <span style={{ marginLeft: "0.5rem" }}>
                 <Typography variant="small">{chain.label}</Typography>

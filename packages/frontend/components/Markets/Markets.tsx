@@ -3,49 +3,41 @@ import {
   Box,
   Chip,
   Grid,
-  InputAdornment,
-  Stack,
+  Link,
   Tab,
   Tabs,
-  TextField,
-  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
 import Lending from "./Lending"
-import { Chain, chains } from "../../store/auth.slice"
-import Image from "next/image"
-import SearchIcon from "@mui/icons-material/Search"
 import { theme } from "../../styles/theme"
 
 export default function Markets() {
   const { palette } = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [currentTab, setCurrentTab] = useState(0)
-  const [filterValue, setFilterValue] = useState("")
-  const [chainFilters, setChainFilters] = useState<Chain[]>([])
+  /* const [filterValue, setFilterValue] = useState("") */
+  /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
   return (
     <Box m={{ xs: "1rem", sm: "" }}>
-      <Typography variant="h4">
-        {currentTab === 0 || onMobile ? "X-Fuji Markets" : "Lend"}
-      </Typography>
+      <Typography variant="h4">X-Fuji Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile ? (
           "Fuji aggregates the best borrowing interest rates available across the markets"
         ) : (
           <span>
             Optimize your lending vaults for better yield
-            <a href="#">
+            <Link href="#">
               {" "}
               {/* TODO: Asked to Ivan the link but waiting answer */}
               <u>learn more</u>
-            </a>
+            </Link>
           </span>
         )}
       </Typography>
@@ -97,7 +89,7 @@ export default function Markets() {
           />
         </Tabs>
 
-        {currentTab === 0 && (
+        {/* {currentTab === 0 && (
           <Stack
             direction="row"
             gap="0.5rem"
@@ -159,7 +151,7 @@ export default function Markets() {
               }}
             />
           </Stack>
-        )}
+        )} */}
       </Grid>
 
       {currentTab === 0 && <MarketsTable />}

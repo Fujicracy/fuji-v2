@@ -17,7 +17,7 @@ import {IEulerDToken} from "../../../src/interfaces/euler/IEulerDToken.sol";
 import {IFlashloan} from "../../../src/interfaces/euler/IFlashloan.sol";
 import {IEulerMarkets} from "../../../src/interfaces/euler/IEulerMarkets.sol";
 
-contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
+contract FlasherEulerForkingTest is Routines, ForkingSetup, IFlashloan {
   ILendingProvider public providerAave;
   ILendingProvider public providerCompound;
 
@@ -39,17 +39,20 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
     vault.setActiveProvider(providerAave);
 
     rebalancer = new RebalancerManager(address(chief));
-    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    _grantRoleChief(REBALANCER_ROLE, address(rebalancer));
 
     bytes memory executionCall =
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
-    _callWithTimelock(executionCall, address(rebalancer));
+    _callWithTimelock(address(rebalancer), executionCall);
 
     flasher = new FlasherEuler(0x27182842E098f60e3D576794A5bFFb0777E025d3);
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _callWithTimelock(executionCall, address(chief));
+    _callWithTimelock(address(chief), executionCall);
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
+
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
   }
 
   function onFlashLoan(bytes memory data) external {
@@ -71,15 +74,15 @@ contract FlasherEulerTest is Routines, ForkingSetup, IFlashloan {
 
   // test rebalance a full position to another provider
   function test_rebalanceWithRebalancer() public {
-    uint256 assets = DEPOSIT_AMOUNT;
-    uint256 debt = BORROW_AMOUNT;
+    uint256 assets = vault.totalAssets();
+    uint256 debt = vault.totalDebt();
 
     rebalancer.rebalanceVault(vault, assets, debt, providerAave, providerCompound, flasher, true);
 
     assertEq(providerAave.getDepositBalance(address(vault), IVault(address(vault))), 0);
     assertEq(providerAave.getBorrowBalance(address(vault), IVault(address(vault))), 0);
 
-    //issue with rounding
+    // issue with CompoundV2 minor deposit balance querying from same block
     assertApproxEqAbs(
       providerCompound.getDepositBalance(address(vault), IVault(address(vault))),
       assets,

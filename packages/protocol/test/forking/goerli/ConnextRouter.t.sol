@@ -19,7 +19,7 @@ import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
-contract ConnextRouterTest is Routines, ForkingSetup {
+contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Borrow(
@@ -49,13 +49,13 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     bytes memory callData = abi.encodeWithSelector(
       ConnextRouter.setRouter.selector, OPTIMISM_GOERLI_DOMAIN, address(connextRouter)
     );
-    _callWithTimelock(callData, address(connextRouter));
+    _callWithTimelock(address(connextRouter), callData);
 
     /*connextRouter.setRouter(MUMBAI_DOMAIN, address(connextRouter));*/
     callData = abi.encodeWithSelector(
       ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
     );
-    _callWithTimelock(callData, address(connextRouter));
+    _callWithTimelock(address(connextRouter), callData);
 
     // test with a mock provider because Connext's and Aave's WETH mismatch
     MockProviderV0 mockProvider = new MockProviderV0();
