@@ -119,6 +119,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
+    _checkBeneficiary(receiver);
+
     _safePullTokenFrom(asset, sender, receiver, amount);
     _safeApprove(asset, address(connext), amount);
 
@@ -144,6 +146,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   function _crossTransferWithCalldata(bytes memory params) internal override {
+    /// TODO this action requires beneficiary check, though implementation from BaseRouter
+    /// is not feasible.
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 

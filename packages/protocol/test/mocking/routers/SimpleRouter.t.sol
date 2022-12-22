@@ -10,6 +10,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {BaseRouter} from "../../../src/abstracts/BaseRouter.sol";
 import {SimpleRouter} from "../../../src/routers/SimpleRouter.sol";
 import {SystemAccessControl} from "../../../src/access/SystemAccessControl.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
@@ -281,6 +282,14 @@ contract SimpleRouterUnitTests is MockingSetup {
     simpleRouter.sweepETH(foe);
   }
 
+  function test_tryFoeSendingETHDirectly(address foe, uint256 amount_) public {
+    vm.assume(foe != collateralAsset && amount_ > 0);
+    vm.deal(foe, amount_);
+    vm.expectRevert(BaseRouter.BaseRouter__receive_senderNotWETH.selector);
+    vm.prank(foe);
+    payable(address(simpleRouter)).transfer(amount_);
+  }
+
   function test_sweepToken(uint256 amount_) public {
     _dealMockERC20(collateralAsset, address(simpleRouter), amount_);
 
@@ -353,12 +362,59 @@ contract SimpleRouterUnitTests is MockingSetup {
     attackerActions[1] = IRouter.Action.Deposit;
     attackerArgs[1] = abi.encode(address(vault), amount, BOB, address(simpleRouter));
 
-    vm.expectRevert();
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
     vm.prank(BOB);
     simpleRouter.xBundle(attackerActions, attackerArgs);
 
     // Assert attacker received no shares from attack attempt.
     assertEq(vault.balanceOf(BOB), 0);
+  }
+
+  function test_withdrawalWithPermitAttack() public {
+    _dealMockERC20(collateralAsset, ALICE, amount);
+
+    vm.startPrank(ALICE);
+    IERC20(collateralAsset).approve(address(simpleRouter), amount);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
+
+    simpleRouter.xBundle(actions, args);
+    vm.stopPrank();
+
+    assertGt(vault.balanceOf(ALICE), 0);
+
+    // alice signs a permit withdrawal for the router for some reason
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+    );
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+    // attacker front-runs get hold of signed permit
+    // and bundles PermitWithdraw-WithdrawETH
+    IRouter.Action[] memory attackerActions = new IRouter.Action[](3);
+    bytes[] memory attackerArgs = new bytes[](3);
+
+    attackerActions[0] = IRouter.Action.PermitWithdraw;
+    attackerArgs[0] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
+
+    attackerActions[1] = IRouter.Action.Withdraw;
+    attackerArgs[1] = abi.encode(address(vault), amount, address(simpleRouter), ALICE);
+
+    attackerActions[2] = IRouter.Action.WithdrawETH;
+    attackerArgs[2] = abi.encode(address(vault), amount, BOB);
+
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    vm.prank(BOB);
+    simpleRouter.xBundle(attackerActions, attackerArgs);
+
+    // Assert attacker received ETH balance from attack attempt.
+    assertEq(BOB.balance, 0);
   }
 
   function test_depositStuckFundsExploit() public {
@@ -372,7 +428,7 @@ contract SimpleRouterUnitTests is MockingSetup {
     actions[0] = IRouter.Action.Deposit;
     args[0] = abi.encode(address(vault), amount, ALICE, address(simpleRouter));
 
-    vm.expectRevert();
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_noBalanceChange.selector);
     vm.prank(ALICE);
     simpleRouter.xBundle(actions, args);
 

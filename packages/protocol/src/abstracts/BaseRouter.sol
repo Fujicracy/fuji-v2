@@ -77,6 +77,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    *
    * Requirements:
    * - MUST not leave any balance in this contract after all actions.
+   * - MUST call `_getTokenListFromBundle()` before `actions` are executed.
+   * - MUST call `_checkNoBalanceChange()` after all `actions` are executed.
+   * - MUST clear `_beneficiary` from storage after all `actions` are executed.
    */
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     if (actions.length != args.length) {
@@ -85,7 +88,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
     // Check balance of all intended token transactions
     _getTokenListFromBundle(actions, args);
-    _checkInitialBalances();
 
     uint256 len = actions.length;
     for (uint256 i = 0; i < len;) {
@@ -223,6 +225,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
     _checkNoBalanceChange(_tokensToCheck);
     _checkNoNativeBalance();
+    _beneficiary = address(0);
   }
 
   function _safeTransferETH(address receiver, uint256 amount) internal {
@@ -256,6 +259,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   function _crossTransferWithCalldata(bytes memory) internal virtual;
 
+  /**
+   * @dev Populates `_tokenList` with the erc20-tokens that will be transacted
+   * in the `actions` of `_bundleInternal()`.
+   * Requirements:
+   * - MUST call `_checkInitialBalances()` after completing `_tokenList`.
+   */
   function _getTokenListFromBundle(Action[] memory actions, bytes[] memory args) internal {
     uint256 len = actions.length;
     for (uint256 i = 0; i < len;) {
@@ -295,8 +304,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ++i;
       }
     }
+    _checkInitialBalances();
   }
 
+  /**
+   * @dev Returns true if token has already been added to `_tokenList`.
+   */
   function _isInTokenList(address token) private view returns (bool value) {
     uint256 len = _tokenList.length;
     for (uint256 i = 0; i < len;) {
@@ -309,12 +322,22 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
   }
 
+  /**
+   * @dev Adds a token to `_tokenList`.
+   * Requirements:
+   * - MUST check if token has already been added.
+   */
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
       _tokenList.push(token);
     }
   }
 
+  /**
+   * @dev Checks the initial `erc20-balanceOf` of `_tokenList` of this address.
+   * Requirements:
+   * - MUST be called in `_getTokenListFromBundle()` after .`_tokenList` is populated.
+   */
   function _checkInitialBalances() private {
     uint256 len = _tokenList.length;
     for (uint256 i = 0; i < len; i++) {
@@ -325,6 +348,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     delete _tokenList;
   }
 
+  /**
+   * @dev Checks that `erc20-balanceOf` of `_tokenList` haven't change for this address.
+   * Requirements:
+   * - MUST be called in `_bundleInternal()` at the end of all executed `actions`.
+   * - MUST clear `_tokenList` from storage at the end of checks.
+   * - MUST clear `_tokensToCheck` from storage at the end of checks.
+   */
   function _checkNoBalanceChange(BalanceChecker[] memory tokensToCheck) private {
     uint256 tlenght = tokensToCheck.length;
     for (uint256 i = 0; i < tlenght;) {
@@ -339,8 +369,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ++i;
       }
     }
+    delete _tokenList;
     delete _tokensToCheck;
-    _beneficiary = address(0);
   }
 
   function _checkNoNativeBalance() private view {
@@ -349,7 +379,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
   }
 
-  function _checkBeneficiary(address user) private {
+  function _checkBeneficiary(address user) internal {
     // when bundling multiple actions assure that we act for a single beneficiary;
     // receivers on DEPOSIT and PAYBACK and owners on WITHDRAW and BORROW
     // must be the same user
