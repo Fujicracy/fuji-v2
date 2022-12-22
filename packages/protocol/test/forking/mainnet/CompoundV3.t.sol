@@ -8,8 +8,9 @@ import {CompoundV3} from "../../../src/providers/mainnet/CompoundV3.sol";
 import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract CompoundV3Test is Routines, ForkingSetup {
+contract CompoundV3ForkingTest is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -36,11 +37,18 @@ contract CompoundV3Test is Routines, ForkingSetup {
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
     uint256 aliceDebt = vault.balanceOfDebt(ALICE);
     do_payback(aliceDebt, vault, ALICE);
 
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
+
+    assertGe(IERC20(vault.asset()).balanceOf(ALICE), DEPOSIT_AMOUNT);
   }
 
   function test_getBalances() public {
@@ -91,5 +99,10 @@ contract CompoundV3Test is Routines, ForkingSetup {
     );
 
     compoundV3.getDepositRateFor(v);
+  }
+
+  function test_twoDeposits() public {
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
   }
 }

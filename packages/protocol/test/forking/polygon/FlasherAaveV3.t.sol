@@ -16,7 +16,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV3Pool} from "../../../src/interfaces/aaveV3/IV3Pool.sol";
 import {IFlashLoanSimpleReceiver} from "../../../src/interfaces/aaveV3/IFlashLoanSimpleReceiver.sol";
 
-contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
+contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
   ILendingProvider public providerAaveV3;
   ILendingProvider public providerAaveV2;
 
@@ -41,20 +41,20 @@ contract FlasherAaveV3Test is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
     vault.setActiveProvider(providerAaveV3);
 
     rebalancer = new RebalancerManager(address(chief));
-    chief.grantRole(REBALANCER_ROLE, address(rebalancer));
+    _grantRoleChief(REBALANCER_ROLE, address(rebalancer));
 
     bytes memory executionCall =
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
-    _callWithTimelock(executionCall, address(rebalancer));
+    _callWithTimelock(address(rebalancer), executionCall);
 
     flasher = new FlasherAaveV3(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    _callWithTimelock(executionCall, address(chief));
+    _callWithTimelock(address(chief), executionCall);
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
+    vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
   }
 
   function executeOperation(
