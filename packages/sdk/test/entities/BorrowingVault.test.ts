@@ -13,6 +13,7 @@ const config: ChainConfig = {
   alchemy: {
     420: process.env.ALCHEMY_ID_CHAIN_420,
   },
+  defillamaproxy: '',
 };
 
 describe('BorrowingVault', () => {
