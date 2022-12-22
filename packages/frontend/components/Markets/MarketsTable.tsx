@@ -99,13 +99,8 @@ export default function MarketsTable() {
     <TableContainer>
       <Table
         aria-label="Markets table"
-        sx={{
-          // border-collapse fix bug on borders on firefox with sticky column
-          borderCollapse: "initial",
-          ".MuiTableCell-root": {
-            minWidth: "160px",
-          },
-        }}
+        // border-collapse fix bug on borders on firefox with sticky column
+        sx={{ borderCollapse: "initial" }}
       >
         <TableHead>
           <TableRow sx={{ height: "2.625rem" }}>
