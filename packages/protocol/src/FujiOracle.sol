@@ -13,6 +13,7 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
   error FujiOracle__lengthMismatch();
   error FujiOracle__noZeroAddress();
   error FujiOracle__noPriceFeed();
+  error FujiOracle_invalidPriceFeedDecimals(address priceFeed);
 
   // mapping from asset address to its price feed oracle in USD - decimals: 8
   mapping(address => address) public usdPriceFeeds;
@@ -21,18 +22,19 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
    * @dev Initializes the contract setting '_priceFeeds' addresses for '_assets'
    */
   constructor(
-    address[] memory _assets,
-    address[] memory _priceFeeds,
+    address[] memory assets,
+    address[] memory priceFeeds,
     address chief_
   )
     SystemAccessControl(chief_)
   {
-    if (_assets.length != _priceFeeds.length) {
+    if (assets.length != priceFeeds.length) {
       revert FujiOracle__lengthMismatch();
     }
 
-    for (uint256 i = 0; i < _assets.length; i++) {
-      usdPriceFeeds[_assets[i]] = _priceFeeds[i];
+    for (uint256 i = 0; i < assets.length; i++) {
+      _validatePriceFeedDecimals(priceFeeds[i]);
+      usdPriceFeeds[assets[i]] = priceFeeds[i];
     }
   }
 
@@ -41,13 +43,15 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
    * Can only be called by the contract TIMELOCK_ADMIN_ROLE in {Chief}.
    * Emits a {AssetPriceFeedChanged} event.
    */
-  function setPriceFeed(address _asset, address _priceFeed) public onlyTimelock {
-    if (_priceFeed == address(0)) {
+  function setPriceFeed(address asset, address priceFeed) public onlyTimelock {
+    if (priceFeed == address(0)) {
       revert FujiOracle__noZeroAddress();
     }
 
-    usdPriceFeeds[_asset] = _priceFeed;
-    emit AssetPriceFeedChanged(_asset, _priceFeed);
+    _validatePriceFeedDecimals(priceFeed);
+
+    usdPriceFeeds[asset] = priceFeed;
+    emit AssetPriceFeedChanged(asset, priceFeed);
   }
 
   /**
@@ -96,5 +100,11 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
     (, int256 latestPrice,,,) = IAggregatorV3(usdPriceFeeds[_asset]).latestRoundData();
 
     price = uint256(latestPrice);
+  }
+
+  function _validatePriceFeedDecimals(address priceFeed) internal view {
+    if (IAggregatorV3(priceFeed).decimals() != 8) {
+      revert FujiOracle_invalidPriceFeedDecimals(priceFeed);
+    }
   }
 }
