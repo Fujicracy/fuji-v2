@@ -12,9 +12,6 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 contract AaveV2ForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
-
   function setUp() public {
     deploy(MAINNET_DOMAIN);
 

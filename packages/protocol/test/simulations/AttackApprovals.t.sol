@@ -19,11 +19,11 @@ contract AttackApprovals is ForkingSetup, Routines {
   ILendingProvider public aaveV2;
   IRouter public simpleRouter;
 
-  uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-  uint256 public constant BORROW_AMOUNT = 200e18;
-
   function setUp() public {
     deploy(MAINNET_DOMAIN);
+
+    DEPOSIT_AMOUNT = 1 ether;
+    BORROW_AMOUNT = 200e18;
 
     vm.label(CHARLIE, "attacker");
     attacker = CHARLIE;

@@ -24,11 +24,11 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
 
   RebalancerManager public rebalancer;
 
-  uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-  uint256 public constant BORROW_AMOUNT = 100;
-
   function setUp() public {
     deploy(POLYGON_DOMAIN);
+
+    DEPOSIT_AMOUNT = 1 ether;
+    BORROW_AMOUNT = 1000;
 
     providerAaveV3 = new AaveV3Polygon();
     providerAaveV2 = new AaveV2Polygon();
@@ -60,7 +60,7 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
   function executeOperation(
     address, /*asset*/
     uint256, /*amount*/
-    uint256, /*premium*/
+    uint256 premium,
     address, /*initiator*/
     bytes calldata data
   )
@@ -70,14 +70,17 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
   {
     (address debtAsset_, uint256 amount_) = abi.decode(data, (address, uint256));
 
-    assertEq(IERC20(debtAsset_).balanceOf(address(this)), amount_);
+    assertEq(IERC20(debtAsset_).balanceOf(address(this)), amount_ + premium);
 
-    IERC20(debtAsset_).approve(msg.sender, amount_);
+    IERC20(debtAsset_).approve(msg.sender, amount_ + premium);
     success = true;
   }
 
   function test_flashloan() public {
     bytes memory data = abi.encode(debtAsset, BORROW_AMOUNT);
+
+    //deal premium
+    deal(address(debtAsset), address(this), 1);
 
     IV3Pool(flasher.getFlashloanSourceAddr(debtAsset)).flashLoanSimple(
       address(this), debtAsset, BORROW_AMOUNT, data, 0
@@ -88,8 +91,17 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
 
   // test rebalance a full position to another provider
   function test_rebalanceWithRebalancer() public {
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
+
+    //deal premium 0.05%
+    uint256 debt = providerAaveV3.getBorrowBalance(address(vault), IVault(vault));
+    deal(address(debtAsset), address(flasher), flasher.computeFlashloanFee(debtAsset, debt));
+
+    vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 1 minutes);
+
     uint256 assets = DEPOSIT_AMOUNT;
-    uint256 debt = BORROW_AMOUNT;
+    debt = BORROW_AMOUNT;
 
     rebalancer.rebalanceVault(vault, assets, debt, providerAaveV3, providerAaveV2, flasher, true);
 

@@ -39,6 +39,9 @@ contract ForkingSetup is CoreRoles, Test {
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
 
+  uint256 public DEPOSIT_AMOUNT = 0.5 ether;
+  uint256 public BORROW_AMOUNT = 200 * 1e6;
+
   uint32 originDomain;
 
   struct Registry {
@@ -155,11 +158,6 @@ contract ForkingSetup is CoreRoles, Test {
     collateralAsset = reg.weth;
     vm.label(reg.weth, "WETH");
 
-    if (domain == POLYGON_DOMAIN) {
-      collateralAsset = reg.wmatic;
-      vm.label(reg.wmatic, "ConnextWMATIC");
-    }
-
     if (reg.usdc == address(0)) {
       // mostly for testnets
       MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
@@ -175,12 +173,8 @@ contract ForkingSetup is CoreRoles, Test {
     /*address[] memory empty = new address[](0);*/
     /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
 
-    if (domain == POLYGON_DOMAIN) {
-      mockOracle.setUSDPriceOf(collateralAsset, 90000000);
-    } else {
-      // WETH and DAI prices by Nov 11h 2022
-      mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
-    }
+    // WETH and DAI prices by Nov 11h 2022
+    mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
     mockOracle.setUSDPriceOf(debtAsset, 100000000);
 
     address[] memory admins = new address[](1);
@@ -188,7 +182,7 @@ contract ForkingSetup is CoreRoles, Test {
     timelock = new TimelockController(1 days, admins, admins);
 
     chief = new Chief(true, true);
-    chief.setTimelock(address(timelock));
+    timelock = TimelockController(payable(chief.timelock()));
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
@@ -200,6 +194,44 @@ contract ForkingSetup is CoreRoles, Test {
       address(chief),
       "Fuji-V2 WETH-USDC Vault Shares",
       "fv2WETHUSDC"
+    );
+  }
+
+  function deployVault(
+    address collateralAsset_,
+    address debtAsset_,
+    string memory collateralAssetName,
+    string memory debtAssetName
+  )
+    internal
+  {
+    collateralAsset = collateralAsset_;
+    debtAsset = debtAsset_;
+
+    // TODO: replace with real oracle
+    mockOracle = new MockOracle();
+    /*address[] memory empty = new address[](0);*/
+    /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
+
+    //TODO only being used for wmatic and usdc, the following lines will be unecessary once real oracle is used
+    mockOracle.setUSDPriceOf(collateralAsset, 90000000);
+    mockOracle.setUSDPriceOf(debtAsset, 100000000);
+
+    //testing with wmatic/usdc
+    DEPOSIT_AMOUNT = 1e20;
+    BORROW_AMOUNT = 1e6;
+
+    string memory nameVault =
+      string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
+    string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
+
+    vault = new BorrowingVault(
+      collateralAsset,
+      debtAsset,
+      address(mockOracle),
+      address(chief),
+      nameVault,
+      symbolVault
     );
   }
 
