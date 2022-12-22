@@ -18,5 +18,5 @@ export type ChainConfig = {
    * Defillama api does not return accept *\/* on some routes
    * You can use a proxy url to avoid this problem.
    */
-  defillamaproxy: string;
+  defillamaproxy?: string;
 };
