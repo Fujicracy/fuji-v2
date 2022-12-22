@@ -562,10 +562,21 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           color: colorTheme.palette.info.dark,
-          textTransform: "capitalize",
-          fontWeigt: 500,
+          textTransform: "none",
           fontSize: "0.875rem",
-          textAlign: "center !important",
+          borderBottom: `1px solid ${colorTheme.palette.info.dark}`,
+          "&.Mui-selected": {
+            color: colorTheme.palette.text.primary,
+          },
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          ".MuiTabs-indicator": {
+            backgroundColor: colorTheme.palette.text.primary,
+          },
         },
       },
     },
