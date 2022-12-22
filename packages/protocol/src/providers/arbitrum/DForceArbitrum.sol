@@ -12,15 +12,6 @@ import {IIETH} from "../../interfaces/dforce/IIETH.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 
-//addrmapper
-//weth
-//0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
-//0xEe338313f022caee84034253174FA562495dcC15
-
-//usdc
-//0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8
-//0x8dc3312c68125a94916d62B97bb5D925f84d4aE0
-
 /**
  * @title DForce Lending Provider.
  * @author fujidao Labs
