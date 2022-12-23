@@ -65,7 +65,7 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       address(mockOracle),
       address(chief),
       "Fuji-V2 WETH-USDT Vault Shares",
-      "fv2WETHDAI"
+      "fv2WETHUSDT"
     );
     vm.label(address(vault2), "Vault2");
 
@@ -204,6 +204,8 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     router.xBundle(actions, args);
 
     assertEq(vault.balanceOf(ALICE), 0);
-    assertEq(vault2.balanceOf(ALICE), amount);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertGt(vault2.balanceOf(ALICE), 0);
+    assertGe(vault2.balanceOfDebt(ALICE), borrowAmount);
   }
 }

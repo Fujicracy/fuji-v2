@@ -123,11 +123,15 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
 
-    assertEq(vault.balanceOf(ALICE), amount);
+    // Assert ALICE has received shares
+    assertGt(vault.balanceOf(ALICE), 0);
+    // Assert ALICE received borrowAmount
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    // Assert router does not have collateral.
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
   }
 
-  function test_bridgeInboundXBundleFails() public {
+  function test_failsbridgeInboundXBundle() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 

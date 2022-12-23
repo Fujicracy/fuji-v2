@@ -19,8 +19,6 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 
-import "forge-std/console.sol";
-
 abstract contract BaseRouter is SystemAccessControl, IRouter {
   using SafeERC20 for ERC20;
 
@@ -263,7 +261,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @dev Populates `_tokenList` with the erc20-tokens that will be transacted
    * in the `actions` of `_bundleInternal()`.
    * Requirements:
-   * - MUST call `_checkInitialBalances()` after completing `_tokenList`.
+   * - MUST call `_addTokenToList()` in `actions` that involve tokens.
    */
   function _getTokenListFromBundle(Action[] memory actions, bytes[] memory args) internal {
     uint256 len = actions.length;
@@ -304,7 +302,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ++i;
       }
     }
-    _checkInitialBalances();
   }
 
   /**
@@ -323,29 +320,17 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Adds a token to `_tokenList`.
+   * @dev Adds a token and balance to `_tokensToCheck`.
    * Requirements:
    * - MUST check if token has already been added.
    */
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
       _tokenList.push(token);
-    }
-  }
-
-  /**
-   * @dev Checks the initial `erc20-balanceOf` of `_tokenList` of this address.
-   * Requirements:
-   * - MUST be called in `_getTokenListFromBundle()` after .`_tokenList` is populated.
-   */
-  function _checkInitialBalances() private {
-    uint256 len = _tokenList.length;
-    for (uint256 i = 0; i < len; i++) {
       BalanceChecker memory checkedToken =
-        BalanceChecker(_tokenList[i], IERC20(_tokenList[i]).balanceOf(address(this)));
+        BalanceChecker(token, IERC20(token).balanceOf(address(this)));
       _tokensToCheck.push(checkedToken);
     }
-    delete _tokenList;
   }
 
   /**
@@ -358,10 +343,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _checkNoBalanceChange(BalanceChecker[] memory tokensToCheck) private {
     uint256 tlenght = tokensToCheck.length;
     for (uint256 i = 0; i < tlenght;) {
-      console.log("inside@_checkNoBalanceChange-checking token:", tokensToCheck[i].token);
       uint256 previousBalance = tokensToCheck[i].balance;
       uint256 currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
-      console.log("previousBalance", previousBalance, "currentBalance", currentBalance);
       if (currentBalance != previousBalance) {
         revert BaseRouter__bundleInternal_noBalanceChange();
       }
