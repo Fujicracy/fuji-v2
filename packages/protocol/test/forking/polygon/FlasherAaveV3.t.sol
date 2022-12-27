@@ -5,8 +5,6 @@ import "forge-std/console.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 
-import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
-import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
@@ -15,30 +13,43 @@ import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV3Pool} from "../../../src/interfaces/aaveV3/IV3Pool.sol";
 import {IFlashLoanSimpleReceiver} from "../../../src/interfaces/aaveV3/IFlashLoanSimpleReceiver.sol";
+import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol";
+import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 
 contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
-  ILendingProvider public providerAaveV3;
-  ILendingProvider public providerAaveV2;
+  ILendingProvider public dForce;
+  ILendingProvider public wePiggy;
 
   IFlasher public flasher;
 
   RebalancerManager public rebalancer;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+  uint256 public constant DEPOSIT_AMOUNT = 1000e18;
+  uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
     deploy(POLYGON_DOMAIN);
 
-    providerAaveV3 = new AaveV3Polygon();
-    providerAaveV2 = new AaveV2Polygon();
+    deployVault(
+      registry[POLYGON_DOMAIN].wmatic,
+      registry[POLYGON_DOMAIN].usdc,
+      1250000000000000000,
+      100000000,
+      "WMATIC",
+      "USDC"
+    );
+
+    dForce = new DForcePolygon();
+    wePiggy = new WePiggyPolygon();
+
+    flasher = new FlasherAaveV3(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
 
     ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = providerAaveV3;
-    providers[1] = providerAaveV2;
+    providers[0] = dForce;
+    providers[1] = wePiggy;
 
     _setVaultProviders(vault, providers);
-    vault.setActiveProvider(providerAaveV3);
+    vault.setActiveProvider(dForce);
 
     rebalancer = new RebalancerManager(address(chief));
     _grantRoleChief(REBALANCER_ROLE, address(rebalancer));
@@ -47,14 +58,8 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
       abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
     _callWithTimelock(address(rebalancer), executionCall);
 
-    flasher = new FlasherAaveV3(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _callWithTimelock(address(chief), executionCall);
-
-    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
-
-    vm.warp(block.timestamp + 13 seconds);
-    vm.roll(block.number + 1);
   }
 
   function executeOperation(
@@ -80,7 +85,7 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
     bytes memory data = abi.encode(debtAsset, BORROW_AMOUNT);
 
     //deal premium
-    deal(address(debtAsset), address(this), 1);
+    deal(address(debtAsset), address(this), flasher.computeFlashloanFee(debtAsset, BORROW_AMOUNT));
 
     IV3Pool(flasher.getFlashloanSourceAddr(debtAsset)).flashLoanSimple(
       address(this), debtAsset, BORROW_AMOUNT, data, 0
@@ -93,36 +98,33 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
   function test_rebalanceWithRebalancer() public {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
+    vm.warp(block.timestamp + 3 minutes);
+    vm.roll(block.number + 3);
+
     //deal premium 0.05%
-    uint256 debt = providerAaveV3.getBorrowBalance(address(vault), IVault(vault));
+    uint256 debt = dForce.getBorrowBalance(address(vault), IVault(vault));
     deal(address(debtAsset), address(flasher), flasher.computeFlashloanFee(debtAsset, debt));
 
-    vm.roll(block.number + 1);
-    vm.warp(block.timestamp + 1 minutes);
+    uint256 assets = dForce.getDepositBalance(address(vault), vault);
 
-    uint256 assets = DEPOSIT_AMOUNT;
-    debt = BORROW_AMOUNT;
-
-    rebalancer.rebalanceVault(vault, assets, debt, providerAaveV3, providerAaveV2, flasher, true);
+    rebalancer.rebalanceVault(vault, assets, debt, dForce, wePiggy, flasher, true);
 
     //issue with rounding
     assertApproxEqAbs(
-      providerAaveV3.getDepositBalance(address(vault), IVault(address(vault))),
-      0,
-      DEPOSIT_AMOUNT / 100
+      dForce.getDepositBalance(address(vault), IVault(address(vault))), 0, DEPOSIT_AMOUNT / 1000
     );
-    assertEq(providerAaveV3.getBorrowBalance(address(vault), IVault(address(vault))), 0);
+    assertApproxEqAbs(
+      dForce.getBorrowBalance(address(vault), IVault(address(vault))), 0, DEPOSIT_AMOUNT / 1000
+    );
 
     //issue with rounding
     assertApproxEqAbs(
-      providerAaveV2.getDepositBalance(address(vault), IVault(address(vault))),
+      wePiggy.getDepositBalance(address(vault), IVault(address(vault))),
       assets,
-      DEPOSIT_AMOUNT / 100
+      DEPOSIT_AMOUNT / 1000
     );
     assertApproxEqAbs(
-      providerAaveV2.getBorrowBalance(address(vault), IVault(address(vault))),
-      debt,
-      BORROW_AMOUNT / 100
+      wePiggy.getBorrowBalance(address(vault), IVault(address(vault))), debt, BORROW_AMOUNT / 1000
     );
   }
 }
