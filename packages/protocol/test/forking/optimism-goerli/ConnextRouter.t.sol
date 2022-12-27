@@ -129,7 +129,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
   }
 
-  function test_bridgeInboundXBundleFails() public {
+  function test_failsbridgeInboundXBundle() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
