@@ -33,9 +33,10 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
   ConnextRouter public connextRouter;
+  uint32 domain;
 
   function setUp() public {
-    uint32 domain = GOERLI_DOMAIN;
+    domain = GOERLI_DOMAIN;
     deploy(domain);
 
     connextRouter = new ConnextRouter(
@@ -121,7 +122,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // thus mocking Connext behavior
     deal(collateralAsset, address(connextRouter), amount);
 
-    connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
+    vm.startPrank(registry[domain].connext);
+    connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, callData);
+    vm.stopPrank();
 
     // Assert ALICE has received shares
     assertGt(vault.balanceOf(ALICE), 0);
@@ -143,7 +146,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // thus mocking Connext behavior
     deal(collateralAsset, address(connextRouter), amount);
 
-    connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
+    vm.startPrank(registry[domain].connext);
+    connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, callData);
+    vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), 0);
     // funds are kept at the Router

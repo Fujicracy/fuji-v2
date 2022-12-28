@@ -61,7 +61,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes callData
   );
 
+  /// @dev Custom Errors
   error ConnextRouter__setRouter_invalidInput();
+  error ConnextRouter__xReceive_notReceivedAssetBalance();
+  error ConnextRouter__xReceive_notAllowedCrossCaller();
 
   // The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -71,6 +74,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
+    _allowCrossCaller(address(connext_), true);
   }
 
   // Connext specific functions
@@ -98,6 +102,21 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
+
+    // Block callers except allowed cross callers.
+    if (!_isAllowedCrossCaller[msg.sender]) {
+      revert ConnextRouter__xReceive_notAllowedCrossCaller();
+    }
+
+    // Ensure that at this entry point expected `asset` `amount` is received.
+    if (IERC20(asset).balanceOf(address(this)) < amount) {
+      revert ConnextRouter__xReceive_notReceivedAssetBalance();
+    } else {
+      _tokenList.push(asset);
+      BalanceChecker memory checkedToken =
+        BalanceChecker(asset, IERC20(asset).balanceOf(address(this)) - amount);
+      _tokensToCheck.push(checkedToken);
+    }
 
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
