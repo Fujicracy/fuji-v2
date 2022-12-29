@@ -34,10 +34,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
   error BaseVault__checkRebalanceFee_excessFee();
-  error BaseVault__depositSlippageProtection();
-  error BaseVault__mintSlippageProtection();
-  error BaseVault__withdrawSlippageProtection();
-  error BaseVault__redeemSlippageProtection();
+  error BaseVault__deposit_slippageTooHigh();
+  error BaseVault__mint_slippageTooHigh();
+  error BaseVault__withdraw_slippageTooHigh();
+  error BaseVault__redeem_slippageTooHigh();
 
   IERC20Metadata internal immutable _asset;
   uint8 private immutable _decimals;
@@ -225,7 +225,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {
     uint256 receivedShares = deposit(assets, receiver);
     if (receivedShares < minShares) {
-      revert BaseVault__depositSlippageProtection();
+      revert BaseVault__deposit_slippageTooHigh();
     }
     return receivedShares;
   }
@@ -264,7 +264,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {
     uint256 pulledAssets = mint(shares, receiver);
     if (pulledAssets > maxAssets) {
-      revert BaseVault__mintSlippageProtection();
+      revert BaseVault__mint_slippageTooHigh();
     }
     return pulledAssets;
   }
@@ -304,7 +304,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 burnedShares = withdraw(assets, receiver, owner);
     // require(shares <= maxShares, "ERC5143: withdraw slippage protection");
     if (burnedShares > maxShares) {
-      revert BaseVault__withdrawSlippageProtection();
+      revert BaseVault__withdraw_slippageTooHigh();
     }
     return burnedShares;
   }
@@ -357,7 +357,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 receivedAssets = redeem(shares, receiver, owner);
     // require(assets >= minAssets, "ERC5143: redeem slippage protection");
     if (receivedAssets < minAssets) {
-      revert BaseVault__redeemSlippageProtection();
+      revert BaseVault__redeem_slippageTooHigh();
     }
     return receivedAssets;
   }

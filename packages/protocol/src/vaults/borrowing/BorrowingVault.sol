@@ -46,8 +46,8 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__rebalance_invalidProvider();
   error BorrowingVault__rebalance_invalidFlasher();
   error BorrowingVault__checkFee_excessFee();
-  error BorrowingVault__borrowSlippageProtection();
-  error BorrowingVault__paybackSlippageProtection();
+  error BorrowingVault__borrow_slippageTooHigh();
+  error BorrowingVault__payback_slippageTooHigh();
 
   /// Liquidation controls
 
@@ -164,7 +164,7 @@ contract BorrowingVault is BaseVault {
   {
     uint256 receivedDebtShares = borrow(debt, receiver, owner);
     if (receivedDebtShares > maxDebtShares) {
-      revert BorrowingVault__borrowSlippageProtection();
+      revert BorrowingVault__borrow_slippageTooHigh();
     }
     return receivedDebtShares;
   }
@@ -198,7 +198,7 @@ contract BorrowingVault is BaseVault {
   function payback(uint256 debt, address owner, uint256 minDebtShares) public returns (uint256) {
     uint256 burnedDebtShares = payback(debt, owner);
     if (burnedDebtShares < minDebtShares) {
-      revert BorrowingVault__paybackSlippageProtection();
+      revert BorrowingVault__payback_slippageTooHigh();
     }
     return burnedDebtShares;
   }
