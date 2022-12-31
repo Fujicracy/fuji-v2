@@ -8,7 +8,7 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
-import {IGenCToken} from "../../interfaces/compoundV2/IGenCToken.sol";
+import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
@@ -100,7 +100,7 @@ contract WePiggyArbitrum is ILendingProvider {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
 
-    IGenCToken cToken = IGenCToken(cTokenAddr);
+    ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.borrow(amount);
 
@@ -120,7 +120,7 @@ contract WePiggyArbitrum is ILendingProvider {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
 
-    IGenCToken cToken = IGenCToken(cTokenAddr);
+    ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.redeemUnderlying(amount);
 
@@ -164,7 +164,7 @@ contract WePiggyArbitrum is ILendingProvider {
     address cTokenAddr = _getCToken(vault.asset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: Compound uses base 1e18
-    uint256 bRateperBlock = IGenCToken(cTokenAddr).supplyRatePerBlock() * 10 ** 9;
+    uint256 bRateperBlock = ICToken(cTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the Compound interest rate model
     uint256 blocksperYear = 2102400;
@@ -176,7 +176,7 @@ contract WePiggyArbitrum is ILendingProvider {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: Compound uses base 1e18
-    uint256 bRateperBlock = IGenCToken(cTokenAddr).borrowRatePerBlock() * 10 ** 9;
+    uint256 bRateperBlock = ICToken(cTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the Compound interest rate model
     uint256 blocksperYear = 2102400;
@@ -194,8 +194,8 @@ contract WePiggyArbitrum is ILendingProvider {
     returns (uint256 balance)
   {
     address cTokenAddr = _getCToken(vault.asset());
-    uint256 cTokenBal = IGenCToken(cTokenAddr).balanceOf(user);
-    uint256 exRate = IGenCToken(cTokenAddr).exchangeRateStored();
+    uint256 cTokenBal = ICToken(cTokenAddr).balanceOf(user);
+    uint256 exRate = ICToken(cTokenAddr).exchangeRateStored();
 
     balance = (exRate * cTokenBal) / 1e18;
   }
@@ -212,6 +212,6 @@ contract WePiggyArbitrum is ILendingProvider {
   {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
-    balance = IGenCToken(cTokenAddr).borrowBalanceStored(user);
+    balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 }
