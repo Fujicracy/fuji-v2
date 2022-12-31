@@ -52,8 +52,8 @@ contract DForceOptimism is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
-    operator = _getControllerAddress();
+  function approvedOperator(address asset, address) external view returns (address operator) {
+    operator = _getAddrmapper().getAddressMapping("DForce", asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -77,9 +77,6 @@ contract DForceOptimism is ILendingProvider {
     } else {
       // Create a reference to the iToken contract
       IIERC20 iToken = IIERC20(iTokenAddr);
-
-      // Approve to move ERC20tokens
-      IERC20(asset).safeApprove(address(iTokenAddr), amount);
 
       // dForce Protocol mints iTokens
       iToken.mint(address(this), amount);
@@ -143,7 +140,6 @@ contract DForceOptimism is ILendingProvider {
       // Create a reference to the corresponding iToken contract
       IIERC20 iToken = IIERC20(iTokenAddr);
 
-      IERC20(asset).safeApprove(address(iTokenAddr), amount);
       iToken.repayBorrow(amount);
     }
     success = true;
