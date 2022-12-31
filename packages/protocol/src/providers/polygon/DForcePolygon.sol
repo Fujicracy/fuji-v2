@@ -5,7 +5,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
-import {IController} from "../../interfaces/dforce/IController.sol";
+import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IGenIToken} from "../../interfaces/dforce/IGenIToken.sol";
 import {IIERC20} from "../../interfaces/dforce/IIERC20.sol";
 import {IIETH} from "../../interfaces/dforce/IIETH.sol";
@@ -39,7 +39,7 @@ contract DForcePolygon is ILendingProvider {
    */
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
-    IController controller = IController(_getControllerAddress());
+    IComptroller controller = IComptroller(_getControllerAddress());
 
     address[] memory iTokenMarkets = new address[](1);
     iTokenMarkets[0] = _iTokenAddress;
