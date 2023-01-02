@@ -75,9 +75,7 @@ export default function AccountModal(props: AccountModalProps) {
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       PaperProps={{ sx: { background: "transparent", padding: 0 } }}
     >
-      <Card
-        sx={{ border: `1px solid ${palette.secondary.light}`, mt: ".75rem" }}
-      >
+      <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
         <CardContent sx={{ width: "340px", p: 0, pb: "0 !important" }}>
           <Stack
             direction="row"
