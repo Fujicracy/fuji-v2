@@ -1,7 +1,6 @@
 import { MouseEvent, useState } from "react"
 import {
   Chip,
-  CircularProgress,
   Collapse,
   IconButton,
   Stack,
@@ -26,10 +25,9 @@ import { useStore } from "../../store"
 
 type MarketsTableRowProps = {
   row: Row
-  extra?: boolean
 }
 
-export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
+export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
   const handleExpand = (evt: MouseEvent) => {
@@ -39,7 +37,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
 
   const router = useRouter()
   const change = useStore((s) => s.change)
-  const handleClick = async (evt: MouseEvent) => {
+  const handleClick = async () => {
     // TODO: Missing: should also select the vault
     change(
       { chain: row.chain, token: row.collateral },
@@ -161,20 +159,27 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           </Stack>
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          <Stack direction="row" justifyContent="right" flexWrap="nowrap">
+          <Stack
+            direction="row"
+            justifyContent="right"
+            alignItems="center"
+            flexWrap="nowrap"
+          >
             {row.integratedProtocols.map((name, i) => (
-              <Box
-                sx={{
-                  position: "relative",
-                  right: `${i * 0.25}rem`,
-                  zIndex: 4 - i,
-                }}
-                key={name}
-              >
-                {i <= 2 && (
-                  <ProviderIcon providerName={name} height={24} width={24} />
-                )}
-              </Box>
+              <Tooltip key={name} title={name} arrow>
+                <Box
+                  sx={{
+                    position: "relative",
+                    right: `${i * 0.25}rem`,
+                    zIndex: 4 - i,
+                    height: "24px",
+                  }}
+                >
+                  {i <= 2 && (
+                    <ProviderIcon providerName={name} height={24} width={24} />
+                  )}
+                </Box>
+              </Tooltip>
             ))}
             {row.integratedProtocols.length >= 4 && (
               <Chip
@@ -219,7 +224,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
           >
             {row.children?.map((collaspsedRow, i) => (
               <Table key={i} sx={{ borderCollapse: "initial" }}>
-                <MarketsTableRow row={collaspsedRow} extra={false} />
+                <MarketsTableRow row={collaspsedRow} />
               </Table>
             ))}
           </Collapse>
