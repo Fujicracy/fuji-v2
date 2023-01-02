@@ -224,7 +224,7 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function test_withdrawWithPermit(uint256 depositAmount_, uint256 withdrawDelegated_) public {
+  function test_withdrawWithPermit(uint128 depositAmount_, uint128 withdrawDelegated_) public {
     vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
     do_deposit(depositAmount_, vault, owner);
 

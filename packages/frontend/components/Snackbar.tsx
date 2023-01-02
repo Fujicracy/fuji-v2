@@ -13,7 +13,7 @@ import CheckIcon from "@mui/icons-material/Check"
 import ErrorIcon from "@mui/icons-material/Error"
 import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../store/snackbar.store"
-import { transactionLink } from "../helpers/transactionLink"
+import { transactionLink } from "../helpers/transactionInformations"
 
 export function Snackbar() {
   const [snack] = useSnack((s) => s.notifications)
