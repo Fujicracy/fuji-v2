@@ -71,17 +71,12 @@ export default function AccountModal(props: AccountModalProps) {
       open={props.isOpen}
       onClose={props.closeAccountModal}
       anchorEl={props.anchorEl}
-      anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-      PaperProps={{
-        sx: { background: "transparent" },
-      }}
+      anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
+      PaperProps={{ sx: { background: "transparent", padding: 0 } }}
     >
       <Card
-        sx={{
-          border: `1px solid ${palette.secondary.light}`,
-          mt: ".75rem",
-          mr: ".4rem",
-        }}
+        sx={{ border: `1px solid ${palette.secondary.light}`, mt: ".75rem" }}
       >
         <CardContent sx={{ width: "340px", p: 0, pb: "0 !important" }}>
           <Stack
