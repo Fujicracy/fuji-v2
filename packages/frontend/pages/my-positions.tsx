@@ -166,29 +166,47 @@ const MyPositionPage: NextPage = () => {
                     <TableCell>
                       <Box pt={2} pb={2}>
                         <Typography variant="small">
-                          ${row.collateral.amount * row.collateral.usdValue}
+                          {(
+                            row.collateral.amount * row.collateral.usdValue
+                          ).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "usd",
+                            maximumFractionDigits: 0,
+                          })}
                         </Typography>
                         <br />
                         <Typography variant="small" color={palette.info.main}>
-                          {row.collateral.amount} {row.collateral.sym}
+                          {row.collateral.amount.toLocaleString("en-US")}{" "}
+                          {row.collateral.sym}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box pt={2} pb={2}>
                         <Typography variant="small">
-                          ${row.borrow.amount * row.borrow.usdValue}
+                          {(
+                            row.borrow.amount * row.borrow.usdValue
+                          ).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "usd",
+                            minimumFractionDigits: 0,
+                          })}
                         </Typography>
                         <br />
                         <Typography variant="small" color={palette.info.main}>
-                          {row.borrow.amount} {row.borrow.sym}
+                          {row.borrow.amount.toLocaleString("en-US")}{" "}
+                          {row.borrow.sym}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Box pt={2} pb={2}>
                         <Typography variant="small">
-                          ${row.liquidationPrice}
+                          {row.liquidationPrice.toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "usd",
+                            minimumFractionDigits: 0,
+                          })}
                         </Typography>
                         <br />
                         <Typography
@@ -234,7 +252,11 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
       {/* TODO: use helper to format balance */}
       <Typography fontSize="1.5rem">
         {metric.valueSym === "$"
-          ? `$${metric.value.toLocaleString("en-US")}`
+          ? `${metric.value.toLocaleString("en-US", {
+              style: "currency",
+              currency: "usd",
+              maximumFractionDigits: 0,
+            })}`
           : metric.valueSym === "%"
           ? `${metric.value}%`
           : metric.value}{" "}
