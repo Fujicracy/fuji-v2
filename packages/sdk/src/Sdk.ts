@@ -350,7 +350,7 @@ export class Sdk {
       // transfer from chain A and deposit and borrow on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
-        vault.previewDeposit(amountIn, connextRouter, account),
+        vault.previewDeposit(amountIn, account, connextRouter),
         vault.previewPermitBorrow(amountOut, account, account, deadline),
         vault.previewBorrow(amountOut, account, account),
       ];

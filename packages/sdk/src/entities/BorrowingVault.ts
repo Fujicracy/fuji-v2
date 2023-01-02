@@ -14,7 +14,9 @@ import {
   ChainConfig,
   DepositParams,
   LendingProviderDetails,
+  PaybackParams,
   PermitParams,
+  WithdrawParams,
 } from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
@@ -342,15 +344,29 @@ export class BorrowingVault extends StreamManager {
 
   previewDeposit(
     amount: BigNumber,
-    sender: Address,
-    account: Address
+    receiver: Address,
+    sender: Address
   ): DepositParams {
     return {
       action: RouterAction.DEPOSIT,
       vault: this.address,
       amount,
-      receiver: account,
+      receiver,
       sender,
+    };
+  }
+
+  previewWithdraw(
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address
+  ): WithdrawParams {
+    return {
+      action: RouterAction.WITHDRAW,
+      vault: this.address,
+      amount,
+      receiver,
+      owner,
     };
   }
 
@@ -368,6 +384,20 @@ export class BorrowingVault extends StreamManager {
     };
   }
 
+  previewPayback(
+    amount: BigNumber,
+    receiver: Address,
+    sender: Address
+  ): PaybackParams {
+    return {
+      action: RouterAction.PAYBACK,
+      vault: this.address,
+      amount,
+      receiver,
+      sender,
+    };
+  }
+
   previewPermitBorrow(
     amount: BigNumber,
     receiver: Address,
@@ -378,6 +408,24 @@ export class BorrowingVault extends StreamManager {
     const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
     return {
       action: RouterAction.PERMIT_BORROW,
+      vault: this.address,
+      amount,
+      receiver,
+      owner,
+      deadline: deadline ?? oneDayLater,
+    };
+  }
+
+  previewPermitWithdraw(
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address,
+    deadline?: number
+  ): PermitParams {
+    // set deadline to approx. 24h
+    const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+    return {
+      action: RouterAction.PERMIT_WITHDRAW,
       vault: this.address,
       amount,
       receiver,
