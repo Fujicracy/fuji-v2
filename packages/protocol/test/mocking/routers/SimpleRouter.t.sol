@@ -30,6 +30,12 @@ import {CoreRoles} from "../../../src/access/CoreRoles.sol";
 import {IVaultPermissions} from "../../../src/interfaces/IVaultPermissions.sol";
 import {MockingSetup} from "../MockingSetup.sol";
 
+contract SelfDestructor {
+  function attack(address payable receiver) public payable {
+    selfdestruct(receiver);
+  }
+}
+
 contract SimpleRouterUnitTests is MockingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
@@ -491,5 +497,18 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     // Assert attacker received no funds.
     assertEq(IERC20(debtAsset).balanceOf(ALICE), 0);
+  }
+
+  function test_routerSelfDestructDOSAttack() public {
+    SelfDestructor destroyer = new SelfDestructor();
+
+    vm.deal(address(this), 1 wei);
+    destroyer.attack{value: 1 wei}(payable(address(simpleRouter)));
+
+    // Alice should be able to interact with router as normal
+    _depositAndBorrow(amount, borrowAmount, vault);
+
+    assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 }

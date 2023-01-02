@@ -44,6 +44,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__allowCrossCaller_zeroAddress();
   error BaseRouter__allowCrossCaller_noAllowChange();
 
+  address public constant NATIVE_ASSET = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
   IWETH9 public immutable WETH9;
 
   /// @dev Apply it on cross-bridge entry functions as required.
@@ -240,7 +242,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       }
     }
     _checkNoBalanceChange(_tokensToCheck);
-    _checkNoNativeBalance();
     _beneficiary = address(0);
   }
 
@@ -293,6 +294,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * - MUST call `_addTokenToList()` in `actions` that involve tokens.
    */
   function _getTokenListFromBundle(Action[] memory actions, bytes[] memory args) internal {
+    // Always check native balance changes.
+    _addTokenToList(NATIVE_ASSET);
     uint256 len = actions.length;
     for (uint256 i = 0; i < len;) {
       if (actions[i] == Action.Deposit) {
@@ -356,8 +359,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
       _tokenList.push(token);
-      BalanceChecker memory checkedToken =
-        BalanceChecker(token, IERC20(token).balanceOf(address(this)));
+      BalanceChecker memory checkedToken;
+      if (token == NATIVE_ASSET) {
+        checkedToken = BalanceChecker(token, address(this).balance - msg.value);
+      } else {
+        checkedToken = BalanceChecker(token, IERC20(token).balanceOf(address(this)));
+      }
       _tokensToCheck.push(checkedToken);
     }
   }
@@ -373,7 +380,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     uint256 tlenght = tokensToCheck.length;
     for (uint256 i = 0; i < tlenght;) {
       uint256 previousBalance = tokensToCheck[i].balance;
-      uint256 currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
+      uint256 currentBalance;
+
+      if (tokensToCheck[i].token == NATIVE_ASSET) {
+        currentBalance = address(this).balance;
+      } else {
+        currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
+      }
+
       if (currentBalance != previousBalance) {
         revert BaseRouter__bundleInternal_noBalanceChange();
       }
@@ -383,12 +397,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
     delete _tokenList;
     delete _tokensToCheck;
-  }
-
-  function _checkNoNativeBalance() private view {
-    if (address(this).balance > 0) {
-      revert BaseRouter__bundleInternal_noBalanceChange();
-    }
   }
 
   function _checkBeneficiary(address user) internal {
