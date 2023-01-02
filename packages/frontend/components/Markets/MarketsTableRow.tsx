@@ -63,7 +63,7 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
             background: row.isChild
               ? row.isGrandChild
                 ? palette.secondary.light
-                : palette.secondary.main
+                : palette.secondary.dark
               : palette.secondary.contrastText,
           }}
         >
@@ -214,11 +214,11 @@ export default function MarketsTableRow({ row, extra }: MarketsTableRowProps) {
             sx={{
               background: row.isChild
                 ? palette.secondary.light
-                : palette.secondary.main,
+                : palette.secondary.dark,
             }}
           >
             {row.children?.map((collaspsedRow, i) => (
-              <Table key={i}>
+              <Table key={i} sx={{ borderCollapse: "initial" }}>
                 <MarketsTableRow row={collaspsedRow} extra={false} />
               </Table>
             ))}
