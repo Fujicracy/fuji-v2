@@ -86,6 +86,9 @@ const colorTheme = createTheme({
       default: "#2D2F35",
     },
   },
+  typography: {
+    fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
+  },
 })
 
 const theme = createTheme(colorTheme, {
@@ -435,6 +438,7 @@ const theme = createTheme(colorTheme, {
     MuiChip: {
       styleOverrides: {
         root: {
+          fontFamily: "Inherit",
           background: colorTheme.palette.secondary.dark,
           height: "2.25rem",
           fontSize: "0.75rem",
