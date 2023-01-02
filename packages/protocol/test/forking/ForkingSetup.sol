@@ -232,7 +232,33 @@ contract ForkingSetup is CoreRoles, Test {
     deadline = permit.deadline;
   }
 
+  /**
+   * @dev this function was created to avoid stack to deep in `_getDepositAndBorrowCallData`.
+   */
+  function _buildPermitAsBytes(
+    address owner,
+    uint256 ownerPrivateKey,
+    address operator,
+    address receiver,
+    uint256 amount,
+    uint256 plusNonce,
+    address vault_
+  )
+    internal
+    returns (bytes memory arg)
+  {
+    LibSigUtils.Permit memory permit =
+      LibSigUtils.buildPermitStruct(owner, operator, owner, amount, plusNonce, vault_);
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ownerPrivateKey, vault_);
+
+    arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
+  }
+
   function _getDepositAndBorrowCallData(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
     uint256 amount,
     uint256 borrowAmount,
     address router,
@@ -247,17 +273,12 @@ contract ForkingSetup is CoreRoles, Test {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, ALICE, router);
+    args[0] = abi.encode(vault_, amount, beneficiary, router);
 
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(ALICE, router, ALICE, borrowAmount, 0, vault_);
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, vault_);
-
-    args[1] = abi.encode(vault_, ALICE, ALICE, borrowAmount, deadline, v, r, s);
-
-    args[2] = abi.encode(vault_, borrowAmount, ALICE, ALICE);
+    args[1] = _buildPermitAsBytes(
+      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+    );
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
 
     callData = abi.encode(actions, args);
   }

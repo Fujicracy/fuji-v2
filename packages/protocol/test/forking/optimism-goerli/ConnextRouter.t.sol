@@ -110,8 +110,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 0.2 ether;
     uint256 borrowAmount = 100e6;
 
-    bytes memory callData =
-      _getDepositAndBorrowCallData(amount, borrowAmount, address(connextRouter), address(vault));
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(connextRouter), address(vault)
+    );
 
     vm.expectEmit(true, true, true, false);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
@@ -131,13 +132,54 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
   }
 
+  function test_attackXReceive() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // This calldata has to fail and funds stay at the router.
+    bytes memory failingCallData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
+    );
+
+    // Send directly the bridged funds to our router thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    vm.startPrank(registry[domain].connext);
+    connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, failingCallData);
+    vm.stopPrank();
+
+    // Assert that funds are kept at the Router
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+
+    // Attacker attemps to take funds, BOB
+    address attacker = BOB;
+    bytes memory attackCallData = _getDepositAndBorrowCallData(
+      attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
+    );
+
+    vm.startPrank(attacker);
+    try connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, attackCallData)
+    {
+      console.log("attack succeeded");
+    } catch {
+      console.log("attack repelled");
+    }
+    vm.stopPrank();
+
+    // Assert attacker has no funds deposited in the vault
+    assertEq(vault.balanceOf(BOB), 0);
+    // Assert attacker was not able to borrow from the vault
+    assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
+  }
+
   function test_failsbridgeInboundXBundle() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
     // make the callData to fail
-    bytes memory callData =
-      _getDepositAndBorrowCallData(amount, borrowAmount, address(0), address(vault));
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
+    );
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
