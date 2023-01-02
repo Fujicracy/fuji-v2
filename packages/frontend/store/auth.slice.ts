@@ -130,6 +130,7 @@ type StateConnected = {
   balance: Balances
   chain: ConnectedChain
   provider: ethers.providers.Web3Provider
+  walletName: string
 }
 type StateInitial = {
   status: "initial"
@@ -138,6 +139,7 @@ type StateInitial = {
   balance: undefined
   chain: undefined
   provider: undefined
+  walletName: undefined
 }
 type StateDisconnected = {
   status: "disconnected"
@@ -146,6 +148,7 @@ type StateDisconnected = {
   balance: undefined
   chain: undefined
   provider: undefined
+  walletName: undefined
 }
 type State = StateInitial | StateConnected | StateDisconnected
 
@@ -165,6 +168,7 @@ const initialState: StateInitial = {
   balance: undefined,
   chain: undefined,
   provider: undefined,
+  walletName: undefined,
 }
 
 type AuthSlice = StateCreator<AuthStore, [], [], AuthStore>
@@ -265,6 +269,12 @@ function onOnboardChange(
     const ens = w[0].accounts[0].ens?.name
     if (ens !== get().ens) {
       updates.ens = ens
+    }
+
+    const walletName = w[0].label
+
+    if (walletName) {
+      updates.walletName = walletName
     }
 
     if (Object.entries(updates).length > 0) {
