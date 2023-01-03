@@ -279,13 +279,13 @@ type BalanceAddressProps = {
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
+  const active = useHistory((state) => state.activeHash.length)
+
   const [accountModalEl, setAccountModalEl] = useState<
     HTMLElement | undefined
   >()
   const showAccountModal = Boolean(accountModalEl)
   const { balance, address, formattedAddress, ens } = props
-
-  const active = useHistory((state) => state.activeHash.length)
 
   if (!balance) {
     return <></>
@@ -311,7 +311,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     <Box mr="-2rem">
       <Chip
         label={formattedBalance}
-        sx={{ paddingRight: "2rem", fontSize: ".9rem", lineHeight: ".9rem" }}
+        sx={{ paddingRight: "2rem", fontSize: "0.875rem" }}
       />
       <Chip
         onClick={(e) => setAccountModalEl(e.currentTarget)}
@@ -322,11 +322,10 @@ const BalanceAddress = (props: BalanceAddressProps) => {
           height: "2.25rem",
           padding: "0.438rem 0.75rem",
           cursor: "pointer",
-          fontSize: ".9rem",
-          lineHeight: ".9rem",
+          fontSize: "0.875rem",
           position: "relative",
           left: "-2rem",
-          backgroundColor: palette.secondary.light,
+          backgroundColor: "#3C3D41", // Not part of the design system, one time use
           border: `1px solid ${palette.secondary.light}`,
           "&:hover": {
             backgroundColor: palette.secondary.main,
