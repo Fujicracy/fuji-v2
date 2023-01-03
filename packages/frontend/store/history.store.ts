@@ -92,6 +92,7 @@ export type SeriazableToken = {
 type HistoryActions = {
   add: (e: HistoryEntry) => void
   update: (hash: string, patch: Partial<HistoryEntry>) => void
+  clearAll: () => void
   watch: (hash: string) => void
 
   openModal: (hash: string) => void
@@ -215,6 +216,11 @@ export const useHistory = create<HistoryStore>()(
               s.byHash[hash] = { ...s.byHash[hash], ...patch }
             })
           )
+        },
+
+        clearAll() {
+          useHistory.persist.clearStorage()
+          set({ allHash: [...get().activeHash] })
         },
 
         openModal(hash) {
