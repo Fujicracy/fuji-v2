@@ -378,6 +378,78 @@ export class Sdk {
     return { actions, bridgeFee, steps, estimateTime };
   }
 
+  async previewDeposit(
+    vault: BorrowingVault,
+    amountIn: BigNumber,
+    tokenIn: Token,
+    account: Address,
+    slippage?: number
+  ): Promise<{
+    actions: RouterActionParams[];
+    steps: RoutingStepDetails[];
+    bridgeFee: BigNumber;
+    estimateTime: number;
+  }> {
+    const srcChainId = tokenIn.chainId;
+
+    // TODO estimate bridge cost
+    const bridgeFee = BigNumber.from(1);
+    const estimateTime = 3 * 60;
+
+    const _slippage = slippage ?? 30;
+
+    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const steps: RoutingStepDetails[] = [
+      {
+        step: RoutingStep.START,
+        amount: amountIn,
+        chainId: srcChainId,
+        token: vault.collateral,
+      },
+      {
+        step: RoutingStep.DEPOSIT,
+        amount: amountIn,
+        chainId: srcChainId,
+        token: vault.collateral,
+        lendingProvider: activeProvider,
+      },
+    ];
+    let actions: RouterActionParams[] = [];
+    if (srcChainId == vault.chainId) {
+      // everything happens on the same chain
+      actions = [vault.previewDeposit(amountIn, account, account)];
+    } else {
+      // transfer from chain A and deposit on chain B
+      const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
+      const innerActions = [
+        vault.previewDeposit(amountIn, account, connextRouter),
+      ];
+      actions = [
+        this.previewXTransferWithCall(
+          vault.chainId,
+          tokenIn,
+          amountIn,
+          _slippage,
+          innerActions
+        ),
+      ];
+      steps.push({
+        step: RoutingStep.X_TRANSFER,
+        amount: amountIn,
+        chainId: vault.chainId,
+        token: vault.collateral,
+      });
+    }
+    steps.push({
+      step: RoutingStep.END,
+      amount: amountIn,
+      chainId: vault.chainId,
+      token: vault.collateral,
+    });
+
+    return { actions, bridgeFee, steps, estimateTime };
+  }
+
   /**
    * Prepares and returns the request to be passed to ethers.sendTransaction
    *
