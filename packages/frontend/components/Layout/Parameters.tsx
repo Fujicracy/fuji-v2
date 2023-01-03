@@ -30,11 +30,7 @@ export default function Parameters() {
         sx={{ mt: 1 }}
         PaperProps={{ sx: { background: palette.secondary.contrastText } }}
       >
-        <MenuList
-          sx={{
-            minWidth: "200px",
-          }}
-        >
+        <MenuList sx={{ minWidth: "200px" }} disablePadding>
           <ParameterLinks />
         </MenuList>
       </Menu>
