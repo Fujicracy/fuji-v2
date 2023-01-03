@@ -79,7 +79,7 @@ export default function ChainSelect() {
         onClose={() => setAnchorEl(null)}
         MenuListProps={{ "aria-labelledby": "basic-button" }}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        TransitionComponent={Fade}
+        sx={{ mt: 1 }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
