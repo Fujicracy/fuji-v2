@@ -75,7 +75,7 @@ const MyPositionPage: NextPage = () => {
 
   // We want to display only 4 metrics in mobile, so we leave positions at risk aside.
   const metrics = keyMetrics.filter((m) =>
-    isMobile ? m.name !== "Positions at risk" : true
+    isMobile ? m.name !== "Positions at Risk" : true
   )
 
   const [currentTab, setCurrentTab] = useState(0)
@@ -125,7 +125,11 @@ const MyPositionPage: NextPage = () => {
         </Box>
 
         <Box mt={2} mb={3}>
-          <Tabs value={currentTab} onChange={handleTabChange}>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant={isMobile ? "fullWidth" : "standard"}
+          >
             <Tab label="Borrowing" />
             <Tab
               disabled
@@ -294,7 +298,7 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
       {/* TODO: use helper to format balance */}
       <Typography
         fontSize="1.5rem"
-        color={metric.name === "Positions at risk" ? "error" : "inherit"}
+        color={metric.name === "Positions at Risk" ? "error" : "inherit"}
       >
         {metric.valueSym === "$"
           ? `${metric.value.toLocaleString("en-US", {
