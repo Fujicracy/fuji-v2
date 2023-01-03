@@ -32,16 +32,16 @@ type Metric = {
   action?: string
 }
 const keyMetrics: Metric[] = [
-  { name: "Total deposits", value: 120000, valueSym: "$" },
-  { name: "Total debt", value: 20000, valueSym: "$" },
+  { name: "Total Deposits", value: 120000, valueSym: "$" },
+  { name: "Total Debt", value: 20000, valueSym: "$" },
   { name: "Net APY", value: 1.93, valueSym: "%", action: "View" }, // TODO: tooltip & actions
   {
-    name: "Available to borrow",
+    name: "Available to Borrow",
     value: 60000,
     valueSym: "$",
     action: "Borrow",
   }, // TODO: tooltip & actions
-  { name: "At risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
+  { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
 ]
 
 type Row = {
@@ -49,6 +49,7 @@ type Row = {
   collateral: { sym: string; amount: number; usdValue: number }
   apy: number
   liquidationPrice: number
+  oraclePrice: number
 }
 const fakeRows: Row[] = [
   {
@@ -56,18 +57,26 @@ const fakeRows: Row[] = [
     collateral: { sym: "ETH", amount: 10, usdValue: 1242.42 },
     apy: 2.25,
     liquidationPrice: 1500,
+    oraclePrice: 2000,
   },
   {
     borrow: { sym: "USDT", amount: 80000, usdValue: 1 },
     collateral: { sym: "ETH", amount: 10, usdValue: 1242.42 },
     apy: 2.25,
-    liquidationPrice: 1500,
+    liquidationPrice: 1501,
+    oraclePrice: 2000,
   },
 ]
 
 const MyPositionPage: NextPage = () => {
   const { breakpoints, palette } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
+
+  // We want to display only 4 metrics in mobile, so we leave positions at risk aside.
+  const metrics = keyMetrics.filter((m) =>
+    isMobile ? m.name !== "Positions at risk" : true
+  )
+
   const [currentTab, setCurrentTab] = useState(0)
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
@@ -91,20 +100,23 @@ const MyPositionPage: NextPage = () => {
           minHeight: "75vh",
         }}
       >
-        <Typography variant="h4">My Positions</Typography>
+        <Typography variant="h4" mb={1}>
+          My Positions
+        </Typography>
         <Typography variant="body">
           The protocol manage your borrowing and lending position for maximum
           capital efficiency
         </Typography>
 
         <Box mt={4}>
-          <Card variant="outlined">
+          <Card
+            variant="outlined"
+            sx={{ background: palette.secondary.contrastText }}
+          >
             <Grid container>
-              {keyMetrics.map((m, i) => (
-                <Grid key={m.name} item xs>
-                  <Box>
-                    <Metric metric={m} borderLeft={i > 0} />
-                  </Box>
+              {metrics.map((m, i) => (
+                <Grid item padding={{ xs: 1, md: 0 }} key={m.name} xs={6} md>
+                  <Metric metric={m} borderLeft={!isMobile && i > 0} />
                 </Grid>
               ))}
             </Grid>
@@ -120,30 +132,28 @@ const MyPositionPage: NextPage = () => {
 
         {currentTab === 0 && (
           <TableContainer>
-            <Table aria-label="Positions table">
+            <Table aria-label="Positions table" size="small">
               <TableHead>
                 <TableRow sx={{ height: "2.625rem" }}>
                   <TableCell>Borrow</TableCell>
                   <TableCell>Collateral</TableCell>
-                  <TableCell>Variable APR</TableCell>
-                  <TableCell>Collateral value</TableCell>
-                  <TableCell>Borrowed</TableCell>
-                  <TableCell>Liquidation Price</TableCell>
+                  <TableCell align="right">Variable APR</TableCell>
+                  <TableCell align="right">Borrowed</TableCell>
+                  <TableCell align="right">Collateral value</TableCell>
+                  <TableCell align="right">Oracle price</TableCell>
+                  <TableCell align="right">Liquidation Price</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {fakeRows.map((row) => (
                   // TODO: key should  be smth else unique to a row, maybe the vault address ?
-                  <TableRow
-                    key={row.liquidationPrice}
-                    sx={{ height: "2.625rem" }}
-                  >
+                  <TableRow key={row.liquidationPrice}>
                     <TableCell>
                       <Stack direction="row" alignItems="center" gap={1}>
                         <TokenIcon
                           token={row.borrow.sym}
-                          width={24}
-                          height={24}
+                          width={32}
+                          height={32}
                         />
                         {row.borrow.sym}
                       </Stack>
@@ -152,37 +162,19 @@ const MyPositionPage: NextPage = () => {
                       <Stack direction="row" alignItems="center" gap={1}>
                         <TokenIcon
                           token={row.collateral.sym}
-                          width={24}
-                          height={24}
+                          width={32}
+                          height={32}
                         />
                         {row.collateral.sym}
                       </Stack>
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="right">
                       <Typography variant="small" color={palette.warning.main}>
                         {row.apy}%
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      <Box pt={2} pb={2}>
-                        <Typography variant="small">
-                          {(
-                            row.collateral.amount * row.collateral.usdValue
-                          ).toLocaleString("en-US", {
-                            style: "currency",
-                            currency: "usd",
-                            maximumFractionDigits: 0,
-                          })}
-                        </Typography>
-                        <br />
-                        <Typography variant="small" color={palette.info.main}>
-                          {row.collateral.amount.toLocaleString("en-US")}{" "}
-                          {row.collateral.sym}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box pt={2} pb={2}>
+                    <TableCell align="right">
+                      <Box pt={1} pb={1}>
                         <Typography variant="small">
                           {(
                             row.borrow.amount * row.borrow.usdValue
@@ -199,8 +191,33 @@ const MyPositionPage: NextPage = () => {
                         </Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>
-                      <Box pt={2} pb={2}>
+                    <TableCell align="right">
+                      <Box pt={1} pb={1}>
+                        <Typography variant="small">
+                          {(
+                            row.collateral.amount * row.collateral.usdValue
+                          ).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "usd",
+                            maximumFractionDigits: 0,
+                          })}
+                        </Typography>
+                        <br />
+                        <Typography variant="small" color={palette.info.main}>
+                          {row.collateral.amount.toLocaleString("en-US")}{" "}
+                          {row.collateral.sym}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="right">
+                      {row.oraclePrice.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "usd",
+                        minimumFractionDigits: 0,
+                      })}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Box pt={1} pb={1}>
                         <Typography variant="small">
                           {row.liquidationPrice.toLocaleString("en-US", {
                             style: "currency",
@@ -237,20 +254,33 @@ export default MyPositionPage
 
 type MetricProps = { metric: Metric; borderLeft: boolean }
 const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
-  const { palette } = useTheme()
+  const { palette, breakpoints } = useTheme()
+  const isMobile = useMediaQuery(breakpoints.down("sm"))
+
   const borderColor = palette.secondary.light // TODO: should use a palette border color instead
   const nameColor = palette.info.main
+  const buttonSx = {
+    padding: "6px 16px 5px",
+    lineHeight: "0.875rem",
+    fontSize: "0.875rem",
+    backgroundColor: palette.secondary.main,
+    border: "none",
+    color: palette.text.primary,
+  }
 
   return (
     <Box
       borderLeft={leftBorder ? `1px solid ${borderColor}` : ""}
       pl={leftBorder ? 4 : ""}
     >
-      <Typography color={nameColor} fontSize="0.75rem">
+      <Typography color={nameColor} fontSize="0.875rem">
         {metric.name}
       </Typography>
       {/* TODO: use helper to format balance */}
-      <Typography fontSize="1.5rem">
+      <Typography
+        fontSize="1.5rem"
+        color={metric.name === "Positions at risk" ? "error" : "inherit"}
+      >
         {metric.valueSym === "$"
           ? `${metric.value.toLocaleString("en-US", {
               style: "currency",
@@ -260,9 +290,12 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
           : metric.valueSym === "%"
           ? `${metric.value}%`
           : metric.value}{" "}
+        {isMobile && <br />}
         {metric.action && (
           // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
-          <Button variant="secondary">{metric.action}</Button>
+          <Button variant="secondary" sx={buttonSx}>
+            {metric.action}
+          </Button>
         )}
       </Typography>
     </Box>
