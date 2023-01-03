@@ -20,9 +20,6 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
  * @notice This contract allows interaction with WePiggy.
  */
 
-//wmatic
-// 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270
-// 0xC1B02E52e9512519EDF99671931772E452fb4399
 contract WePiggyPolygon is ILendingProvider {
   using SafeERC20 for IERC20;
 
