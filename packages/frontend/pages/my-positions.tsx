@@ -18,6 +18,7 @@ import {
   TableBody,
   Stack,
   Button,
+  Chip,
 } from "@mui/material"
 
 import Footer from "../components/Layout/Footer"
@@ -126,7 +127,21 @@ const MyPositionPage: NextPage = () => {
         <Box mt={2} mb={3}>
           <Tabs value={currentTab} onChange={handleTabChange}>
             <Tab label="Borrowing" />
-            <Tab label="Lending" />
+            <Tab
+              disabled
+              label={
+                <Stack direction="row" alignItems="center" gap={1}>
+                  Lending
+                  {!isMobile && (
+                    <Chip
+                      variant="gradient"
+                      label="Coming soon"
+                      sx={{ cursor: "pointer" }}
+                    />
+                  )}
+                </Stack>
+              }
+            />
           </Tabs>
         </Box>
 
