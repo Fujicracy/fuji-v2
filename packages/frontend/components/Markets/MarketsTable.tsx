@@ -210,7 +210,7 @@ export default function MarketsTable() {
         </TableHead>
         <TableBody>
           {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} extra={i === 0} />
+            <MarketsTableRow key={i} row={row} />
           ))}
         </TableBody>
       </Table>
