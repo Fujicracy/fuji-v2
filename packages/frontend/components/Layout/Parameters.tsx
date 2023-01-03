@@ -27,7 +27,6 @@ export default function Parameters() {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         sx={{ mt: 1 }}
-        TransitionComponent={Fade}
       >
         <MenuList
           sx={{
