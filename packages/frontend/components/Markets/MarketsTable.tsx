@@ -141,7 +141,7 @@ export default function MarketsTable() {
                 // }
               >
                 <span>Borrow APR</span>
-                {appSorting === "descending" ? (
+                {/* {appSorting === "descending" ? (
                   <KeyboardArrowUpIcon
                     sx={{ color: palette.info.main, fontSize: "0.875rem" }}
                   />
@@ -149,7 +149,7 @@ export default function MarketsTable() {
                   <KeyboardArrowDownIcon
                     sx={{ color: palette.info.main, fontSize: "0.875rem" }}
                   />
-                )}
+                )} */}
               </Stack>
             </SizableTableCell>
             <SizableTableCell align="right" width="140px">
