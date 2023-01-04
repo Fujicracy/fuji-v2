@@ -83,5 +83,9 @@ input[type="number"] {
   --onboard-wallet-button-background: var(--background-color);
   --onboard-wallet-button-border-color: var(--border-color);
   --onboard-wallet-app-icon-border-color: var(--border-color);
+
+  --onboard-font-family-normal: "Inter";
+  --onboard-font-family-semibold: "Inter";
+  --onboard-font-family-light: "Inter";
 }
 /* <<< Onboard theme */
