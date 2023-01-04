@@ -246,15 +246,22 @@ export class Sdk {
     const providers = vaults.map((v) => v.activeProvider) as string[];
 
     // fetch from DefiLlama
+    const { defillamaproxy } = this._configParams;
+    const uri = {
+      lendBorrow: defillamaproxy
+        ? defillamaproxy + 'lendBorrow'
+        : 'https://yields.llama.fi/lendBorrow',
+      pools: defillamaproxy
+        ? defillamaproxy + 'pools'
+        : 'https://yields.llama.fi/pools',
+    };
     try {
       const [borrows, pools] = await Promise.all([
         axios
-          .get<GetLlamaBorrowPoolsResponse>(
-            'https://yields.llama.fi/lendBorrow'
-          )
+          .get<GetLlamaBorrowPoolsResponse>(uri.lendBorrow)
           .then(({ data }) => data),
         axios
-          .get<GetLlamaAssetPoolsResponse>('https://yields.llama.fi/pools')
+          .get<GetLlamaAssetPoolsResponse>(uri.pools)
           .then(({ data }) => data.data),
       ]);
 
