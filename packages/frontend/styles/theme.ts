@@ -314,6 +314,7 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: "0.75rem",
+          // TODO: refacto and reomve, flex should not be part of card theming
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-start",
@@ -567,10 +568,21 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           color: colorTheme.palette.info.dark,
-          textTransform: "capitalize",
-          fontWeigt: 500,
+          textTransform: "none",
           fontSize: "0.875rem",
-          textAlign: "center !important",
+          borderBottom: `1px solid ${colorTheme.palette.info.dark}`,
+          "&.Mui-selected": {
+            color: colorTheme.palette.text.primary,
+          },
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          ".MuiTabs-indicator": {
+            backgroundColor: colorTheme.palette.text.primary,
+          },
         },
       },
     },

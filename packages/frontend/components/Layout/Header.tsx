@@ -35,9 +35,14 @@ import { useHistory } from "../../store/history.store"
 import Balance from "../Balance"
 import ParameterLinks from "./ParameterLinks"
 
-const pages = ["Markets", "Borrow", "Lend", "My positions"]
+const pages = [
+  { name: "Markets", path: "markets" },
+  { name: "Borrow", path: "borrow" },
+  { name: "Lend", path: "lend" },
+  { name: "My positions", path: "my-positions" },
+]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
-  pages.push("Theming") // TODO: "Theming" page is to test design system
+  pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" page is to test design system
 }
 
 export default function Header() {
@@ -55,6 +60,7 @@ export default function Header() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
   const currentPage = router.pathname.substring(1) // TODO: Maybe not the best way
+  console.debug({ currentPage })
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
@@ -153,10 +159,10 @@ export default function Header() {
                 >
                   <MenuList>
                     {pages.map((page) => (
-                      <MenuItem key={page} onClick={handleCloseNavMenu}>
+                      <MenuItem key={page.path} onClick={handleCloseNavMenu}>
                         <ListItemText>
-                          <Link href={`/${page.toLowerCase()}`}>
-                            <Typography variant="small">{page}</Typography>
+                          <Link href={page.path}>
+                            <Typography variant="small">{page.name}</Typography>
                           </Link>
                         </ListItemText>
                       </MenuItem>
@@ -195,16 +201,16 @@ export default function Header() {
               justifyContent: "center",
             }}
           >
-            {pages.map((page: string) => (
+            {pages.map((page) => (
               <MenuItem
-                key={page}
+                key={page.path}
                 sx={{
                   color:
-                    page.toLowerCase() === currentPage
+                    page.path.toLowerCase() === currentPage
                       ? "primary.main"
                       : "text.primary",
                   textShadow:
-                    page.toLowerCase() === currentPage
+                    page.path.toLowerCase() === currentPage
                       ? `${palette.primary.main} 0rem 0rem 0.125rem`
                       : "",
                   "&:hover": {
@@ -214,7 +220,7 @@ export default function Header() {
                   },
                 }}
               >
-                <Link href={`/${page.toLowerCase()}`}>{page}</Link>
+                <Link href={page.path}>{page.name}</Link>
               </MenuItem>
             ))}
           </MenuList>
