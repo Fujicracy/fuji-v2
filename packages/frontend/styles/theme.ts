@@ -87,6 +87,9 @@ const colorTheme = createTheme({
       default: "#2D2F35",
     },
   },
+  typography: {
+    fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
+  },
 })
 
 const theme = createTheme(colorTheme, {
@@ -398,13 +401,15 @@ const theme = createTheme(colorTheme, {
         tooltip: {
           padding: "0.75rem 1rem",
           fontSize: "0.875rem",
+          lineHeight: "1rem",
           borderRadius: "0.5rem",
           background: colorTheme.palette.secondary.dark,
           textAlign: "center",
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
           boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
         },
         arrow: {
-          color: colorTheme.palette.secondary.dark,
+          color: colorTheme.palette.secondary.light,
         },
       },
     },
@@ -441,6 +446,7 @@ const theme = createTheme(colorTheme, {
     MuiChip: {
       styleOverrides: {
         root: {
+          fontFamily: "Inherit",
           background: colorTheme.palette.secondary.dark,
           height: "2.25rem",
           fontSize: "0.75rem",

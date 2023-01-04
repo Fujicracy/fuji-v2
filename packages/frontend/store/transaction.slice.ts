@@ -15,7 +15,7 @@ import { StateCreator } from "zustand"
 import { debounce } from "debounce"
 
 import { useStore } from "."
-import { sdk } from "./auth.slice"
+import { chains, sdk } from "./auth.slice"
 import { Position } from "./Position"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../consts/borrow"
 import { ethers, Signature } from "ethers"
@@ -66,13 +66,18 @@ type TransactionState = {
 type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type TransactionActions = {
-  changeBorrowChain: (chainId: ChainId) => void
+  changeBorrowChain: (chainId: ChainId) => Promise<any>
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
-  changeCollateralChain: (chainId: ChainId) => void
+  changeCollateralChain: (chainId: ChainId) => Promise<any>
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   changeActiveVault: (v: BorrowingVault) => void
+
+  change: (
+    collateral: { chain: string; token: string },
+    borrow: { chain: string; token: string }
+  ) => Promise<any>
 
   updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
@@ -160,10 +165,12 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         state.position.collateral.token = tokens[0]
       })
     )
-    get().updateTokenPrice("collateral")
-    get().updateBalances("collateral")
-    get().updateVault()
-    get().updateAllowance()
+    return Promise.all([
+      get().updateTokenPrice("collateral"),
+      get().updateBalances("collateral"),
+      get().updateVault(),
+      get().updateAllowance(),
+    ])
   },
 
   changeCollateralToken(token) {
@@ -200,9 +207,11 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
       })
     )
 
-    get().updateTokenPrice("debt")
-    get().updateBalances("debt")
-    get().updateVault()
+    return Promise.all([
+      get().updateTokenPrice("debt"),
+      get().updateBalances("debt"),
+      get().updateVault(),
+    ])
   },
 
   changeBorrowToken(token) {
@@ -248,6 +257,36 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
         s.position.activeProvider = providers[0]
       })
     )
+  },
+
+  async change(collateral, borrow) {
+    const p: Promise<any>[] = []
+
+    const borrowChainId = chains.find((c) => c.label === borrow.chain)?.id
+    borrowChainId
+      ? p.push(get().changeBorrowChain(borrowChainId))
+      : console.error(`Error: chain with name ${borrow.chain} not found`)
+
+    const collateralChainId = chains.find(
+      (c) => c.label === collateral.chain
+    )?.id
+    collateralChainId
+      ? p.push(get().changeCollateralChain(collateralChainId))
+      : console.error(`Error: chain with name ${collateral.chain} not found`)
+
+    await Promise.all(p)
+
+    const borrowToken = get().debtTokens.find((t) => t.symbol === borrow.token)
+    borrowToken
+      ? get().changeBorrowToken(borrowToken)
+      : console.error(`Error: token with name ${borrow.token} not found`)
+
+    const collateralToken = get().collateralTokens.find(
+      (t) => t.symbol === collateral.token
+    )
+    collateralToken
+      ? get().changeCollateralToken(collateralToken)
+      : console.error(`Error: token with name ${collateral.token} not found`)
   },
 
   async updateBalances(type) {
