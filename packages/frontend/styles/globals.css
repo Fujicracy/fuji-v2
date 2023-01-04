@@ -51,3 +51,37 @@ body {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* >>> Onboard theme */
+:root {
+  --background-color: #191b1f;
+  --accent-background: #2d2f35;
+  --accent-color-hover: #2d2f35;
+
+  --text-color: #e8e8e8;
+  --secondary-text-color: #e8e8e8;
+
+  --border-color: #3b404a;
+
+  --onboard-close-button-color: var(--secondary-text-color);
+  --onboard-wallet-button-background-hover: var(--accent-background);
+  --onboard-wallet-button-color-hover: var(--text-color);
+
+  --accent-color: #f6145e;
+  --accent-color-hover: #f0014f;
+
+  --onboard-connect-sidebar-background: var(--accent-background);
+  --onboard-close-button-background: var(--accent-background);
+  --onboard-connect-sidebar-color: var(--text-color);
+  --onboard-connect-sidebar-progress-background: var(--secondary-text-color);
+  --onboard-connect-sidebar-progress-color: var(--accent-color);
+  --onboard-connect-header-background: var(--background-color);
+  --onboard-connect-header-color: var(--text-color);
+  --onboard-main-scroll-container-background: var(--background-color);
+  /* --onboard-link-color: var(--accent-color); */
+  --onboard-wallet-button-color: var(--text-color);
+  --onboard-wallet-button-background: var(--background-color);
+  --onboard-wallet-button-border-color: var(--border-color);
+  --onboard-wallet-app-icon-border-color: var(--border-color);
+}
+/* <<< Onboard theme */
