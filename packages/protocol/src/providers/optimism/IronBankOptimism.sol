@@ -27,7 +27,6 @@ contract IronBankOptimism is ILendingProvider {
     return token == 0x4200000000000000000000000000000000000006;
   }
 
-  //TODO do mappings
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA);

@@ -27,7 +27,6 @@ contract IronBank is ILendingProvider {
     return token == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   }
 
-  //TODO do mappings
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
