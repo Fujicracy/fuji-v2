@@ -225,7 +225,10 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
   }
 
   function test_withdrawWithPermit(uint128 depositAmount_, uint128 withdrawDelegated_) public {
-    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      depositAmount_ > minAmount && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_
+    );
     do_deposit(depositAmount_, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
@@ -273,7 +276,8 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
   }
 
   function test_borrowWithPermit(uint256 borrowDelegated_) public {
-    vm.assume(borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    uint256 minAmount = vault.minAmount();
+    vm.assume(borrowDelegated_ > minAmount && borrowDelegated_ <= BORROW_LIMIT);
     do_deposit(10 ether, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({

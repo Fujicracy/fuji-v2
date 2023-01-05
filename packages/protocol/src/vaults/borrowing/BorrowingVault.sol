@@ -173,7 +173,7 @@ contract BorrowingVault is BaseVault {
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
 
-    if (debt == 0 || receiver == address(0) || owner == address(0)) {
+    if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {

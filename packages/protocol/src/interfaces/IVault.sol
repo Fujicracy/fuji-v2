@@ -80,10 +80,10 @@ interface IVault is IERC4626 {
   event LiqRatioChanged(uint256 newLiqRatio);
 
   /**
-   * @dev Emitted when the minumum deposit amount is changed
-   * @param newMinDeposit the new minimum deposit amount
+   * @dev Emitted when the minumum amount is changed
+   * @param newMinAmount the new minimum amount
    */
-  event MinDepositAmountChanged(uint256 newMinDeposit);
+  event MinAmountChanged(uint256 newMinAmount);
 
   /**
    * @dev Emitted when the deposit cap is changed
@@ -281,9 +281,10 @@ interface IVault is IERC4626 {
   function setActiveProvider(ILendingProvider activeProvider) external;
 
   /**
-   * @dev Sets the minimum deposit amount.
+   * @dev Sets the minimum amount for:
+   * `deposit()`, `mint()` and borrow()`.
    */
-  function setMinDepositAmount(uint256 amount) external;
+  function setMinAmount(uint256 amount) external;
 
   /**
    * @dev Sets the deposit cap amount of this vault.

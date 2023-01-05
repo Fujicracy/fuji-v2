@@ -128,7 +128,7 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
       SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
     );
     vm.prank(foe);
-    vault.setMinDepositAmount(amount);
+    vault.setMinAmount(amount);
     vm.stopPrank();
   }
 
