@@ -34,6 +34,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
   error BaseVault__checkRebalanceFee_excessFee();
+  error BaseVault__deposit_slippageTooHigh();
+  error BaseVault__mint_slippageTooHigh();
+  error BaseVault__withdraw_slippageTooHigh();
+  error BaseVault__redeem_slippageTooHigh();
 
   IERC20Metadata internal immutable _asset;
   uint8 private immutable _decimals;
@@ -204,6 +208,28 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return _convertToAssets(shares, Math.Rounding.Down);
   }
 
+  /**
+   * @notice Slippage protected `deposit` per EIP5143.
+   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * Requirements:
+   * - MUST mint at least `minShares` when calling deposit().
+   */
+  function deposit(
+    uint256 assets,
+    address receiver,
+    uint256 minShares
+  )
+    public
+    virtual
+    returns (uint256)
+  {
+    uint256 receivedShares = deposit(assets, receiver);
+    if (receivedShares < minShares) {
+      revert BaseVault__deposit_slippageTooHigh();
+    }
+    return receivedShares;
+  }
+
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     uint256 shares = previewDeposit(assets);
@@ -221,6 +247,28 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return shares;
   }
 
+  /**
+   * @notice Slippage protected `mint` per EIP5143.
+   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * Requirements:
+   * - MUST not pull more than `maxAssets` when calling mint().
+   */
+  function mint(
+    uint256 shares,
+    address receiver,
+    uint256 maxAssets
+  )
+    public
+    virtual
+    returns (uint256)
+  {
+    uint256 pulledAssets = mint(shares, receiver);
+    if (pulledAssets > maxAssets) {
+      revert BaseVault__mint_slippageTooHigh();
+    }
+    return pulledAssets;
+  }
+
   /// @inheritdoc IERC4626
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
     uint256 assets = previewMint(shares);
@@ -235,6 +283,30 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _deposit(_msgSender(), receiver, assets, shares);
 
     return assets;
+  }
+
+  /**
+   * @notice Slippage protected `withdraw` per EIP5143.
+   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * Requirements:
+   * - MUST not burn more than `maxShares` when calling withdraw().
+   */
+  function withdraw(
+    uint256 assets,
+    address receiver,
+    address owner,
+    uint256 maxShares
+  )
+    public
+    virtual
+    returns (uint256)
+  {
+    uint256 burnedShares = withdraw(assets, receiver, owner);
+    // require(shares <= maxShares, "ERC5143: withdraw slippage protection");
+    if (burnedShares > maxShares) {
+      revert BaseVault__withdraw_slippageTooHigh();
+    }
+    return burnedShares;
   }
 
   /// @inheritdoc IERC4626
@@ -264,6 +336,30 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _withdraw(caller, receiver, owner, assets, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `redeem` per EIP5143.
+   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * Requirements:
+   * - MUST  receive at least `minAssets` when calling redeem().
+   */
+  function redeem(
+    uint256 shares,
+    address receiver,
+    address owner,
+    uint256 minAssets
+  )
+    public
+    virtual
+    returns (uint256)
+  {
+    uint256 receivedAssets = redeem(shares, receiver, owner);
+    // require(assets >= minAssets, "ERC5143: redeem slippage protection");
+    if (receivedAssets < minAssets) {
+      revert BaseVault__redeem_slippageTooHigh();
+    }
+    return receivedAssets;
   }
 
   /// @inheritdoc IERC4626

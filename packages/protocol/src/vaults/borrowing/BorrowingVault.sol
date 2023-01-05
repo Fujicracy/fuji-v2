@@ -46,6 +46,8 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__rebalance_invalidProvider();
   error BorrowingVault__rebalance_invalidFlasher();
   error BorrowingVault__checkFee_excessFee();
+  error BorrowingVault__borrow_slippageTooHigh();
+  error BorrowingVault__payback_slippageTooHigh();
 
   /// Liquidation controls
 
@@ -133,7 +135,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Up);
+    return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
   /// @inheritdoc BaseVault
@@ -144,6 +146,27 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function maxBorrow(address borrower) public view override returns (uint256) {
     return _computeMaxBorrow(borrower);
+  }
+
+  /**
+   * @notice Slippage protected `borrow` inspired by EIP5143.
+   * Requirements:
+   * - MUST mint maximum `maxDebtShares` when calling borrow().
+   */
+  function borrow(
+    uint256 debt,
+    address receiver,
+    address owner,
+    uint256 maxDebtShares
+  )
+    public
+    returns (uint256)
+  {
+    uint256 receivedDebtShares = borrow(debt, receiver, owner);
+    if (receivedDebtShares > maxDebtShares) {
+      revert BorrowingVault__borrow_slippageTooHigh();
+    }
+    return receivedDebtShares;
   }
 
   /// @inheritdoc BaseVault
@@ -165,6 +188,19 @@ contract BorrowingVault is BaseVault {
     _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `payback` inspired by EIP5143.
+   * Requirements:
+   * - MUST burn at least `minDebtShares` when calling payback().
+   */
+  function payback(uint256 debt, address owner, uint256 minDebtShares) public returns (uint256) {
+    uint256 burnedDebtShares = payback(debt, owner);
+    if (burnedDebtShares < minDebtShares) {
+      revert BorrowingVault__payback_slippageTooHigh();
+    }
+    return burnedDebtShares;
   }
 
   /// @inheritdoc BaseVault
