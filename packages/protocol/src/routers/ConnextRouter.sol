@@ -61,7 +61,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes callData
   );
 
+  /// @dev Custom Errors
   error ConnextRouter__setRouter_invalidInput();
+  error ConnextRouter__xReceive_notReceivedAssetBalance();
+  error ConnextRouter__xReceive_notAllowedCaller();
 
   // The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -71,6 +74,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
+    _allowCaller(address(connext_), true);
   }
 
   // Connext specific functions
@@ -99,10 +103,29 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
+    // Block callers except allowed cross callers.
+    if (!_isAllowedCaller[msg.sender]) {
+      revert ConnextRouter__xReceive_notAllowedCaller();
+    }
+
+    // Ensure that at this entry point expected `asset` `amount` is received.
+    if (IERC20(asset).balanceOf(address(this)) < amount) {
+      revert ConnextRouter__xReceive_notReceivedAssetBalance();
+    } else {
+      _tokenList.push(asset);
+      BalanceChecker memory checkedToken =
+        BalanceChecker(asset, IERC20(asset).balanceOf(address(this)) - amount);
+      _tokensToCheck.push(checkedToken);
+    }
+
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      // else keep funds in router and let them be handled by admin
+      // Else:
+      // ensure clear storage for token balance checks
+      delete _tokenList;
+      delete _tokensToCheck;
+      // keep funds in router and let them be handled by admin
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -118,6 +141,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address receiver,
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
+
+    _checkBeneficiary(receiver);
 
     _safePullTokenFrom(asset, sender, receiver, amount);
     _safeApprove(asset, address(connext), amount);
@@ -144,6 +169,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   function _crossTransferWithCalldata(bytes memory params) internal override {
+    /// TODO this action requires beneficiary check, though implementation from BaseRouter
+    /// is not feasible.
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 

@@ -48,10 +48,6 @@ contract MockingSetup is CoreRoles, Test {
     oracle.setUSDPriceOf(collateralAsset, 796341757142697);
     oracle.setUSDPriceOf(debtAsset, 100000000);
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
