@@ -12,7 +12,7 @@ import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
 /**
  * @title WePiggy Lending Provider.
@@ -20,8 +20,6 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
  * @notice This contract allows interaction with WePiggy.
  */
 contract WePiggy is ILendingProvider {
-  using SafeERC20 for IERC20;
-
   error WePiggy__deposit_failed(uint256 status);
   error WePiggy__payback_failed(uint256 status);
   error WePiggy__withdraw_failed(uint256 status);
@@ -63,8 +61,16 @@ contract WePiggy is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
-    operator = _getComptrollerAddress();
+  function approvedOperator(
+    address asset,
+    address
+  )
+    external
+    view
+    override
+    returns (address operator)
+  {
+    operator = _getCToken(asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -84,8 +90,6 @@ contract WePiggy is ILendingProvider {
       cToken.mint{value: amount}();
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
-
-      IERC20(asset).safeApprove(cTokenAddr, amount);
 
       uint256 status = cToken.mint(amount);
       if (status != 0) {
@@ -149,7 +153,6 @@ contract WePiggy is ILendingProvider {
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      IERC20(asset).safeApprove(cTokenAddr, amount);
       uint256 status = cToken.repayBorrow(amount);
 
       if (status != 0) {
@@ -193,11 +196,9 @@ contract WePiggy is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address cTokenAddr = _getCToken(vault.asset());
-    uint256 cTokenBal = ICToken(cTokenAddr).balanceOf(user);
-    uint256 exRate = ICToken(cTokenAddr).exchangeRateStored();
-
-    balance = (exRate * cTokenBal) / 1e18;
+    address asset = vault.asset();
+    ICToken cToken = ICToken(_getCToken(asset));
+    balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
   /// inheritdoc ILendingProvider
@@ -210,8 +211,8 @@ contract WePiggy is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address cTokenAddr = _getCToken(vault.debtAsset());
-
-    balance = ICToken(cTokenAddr).borrowBalanceStored(user);
+    address asset = vault.debtAsset();
+    ICToken cToken = ICToken(_getCToken(asset));
+    balance = LibCompoundV2.viewBorrowingBalanceOf(cToken, user);
   }
 }
