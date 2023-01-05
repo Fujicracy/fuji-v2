@@ -154,7 +154,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Assert that funds are kept at the Router
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
 
-    // Attacker attemps to take funds, BOB
+    // Attacker makes first attempt to take funds using xReceive, BOB
     address attacker = BOB;
     bytes memory attackCallData = _getDepositAndBorrowCallData(
       attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
@@ -163,9 +163,27 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.startPrank(attacker);
     try connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, attackCallData)
     {
-      console.log("attack succeeded");
+      console.log("xReceive-attack succeeded");
     } catch {
-      console.log("attack repelled");
+      console.log("xReceive-attack repelled");
+    }
+    vm.stopPrank();
+
+    // Assert attacker has no funds deposited in the vault
+    assertEq(vault.balanceOf(BOB), 0);
+    // Assert attacker was not able to borrow from the vault
+    assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
+
+    // Attacker makes second attempt to take funds using xBundle, BOB
+    (IRouter.Action[] memory attackActions, bytes[] memory attackArgs) = _getDepositAndBorrow(
+      attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
+    );
+
+    vm.startPrank(attacker);
+    try connextRouter.xBundle(attackActions, attackArgs) {
+      console.log("xBundle-attack succeeded");
+    } catch {
+      console.log("xBundle-attack repelled");
     }
     vm.stopPrank();
 

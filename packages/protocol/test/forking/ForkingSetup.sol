@@ -282,4 +282,31 @@ contract ForkingSetup is CoreRoles, Test {
 
     callData = abi.encode(actions, args);
   }
+
+  function _getDepositAndBorrow(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
+    uint256 amount,
+    uint256 borrowAmount,
+    address router,
+    address vault_
+  )
+    internal
+    returns (IRouter.Action[] memory, bytes[] memory)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(vault_, amount, beneficiary, router);
+
+    args[1] = _buildPermitAsBytes(
+      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+    );
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    return (actions, args);
+  }
 }

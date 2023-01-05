@@ -64,7 +64,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /// @dev Custom Errors
   error ConnextRouter__setRouter_invalidInput();
   error ConnextRouter__xReceive_notReceivedAssetBalance();
-  error ConnextRouter__xReceive_notAllowedCrossCaller();
+  error ConnextRouter__xReceive_notAllowedCaller();
 
   // The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -105,7 +105,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     // Block callers except allowed cross callers.
     if (!_isAllowedCaller[msg.sender]) {
-      revert ConnextRouter__xReceive_notAllowedCrossCaller();
+      revert ConnextRouter__xReceive_notAllowedCaller();
     }
 
     // Ensure that at this entry point expected `asset` `amount` is received.
@@ -121,7 +121,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      // else keep funds in router and let them be handled by admin
+      // Else:
+      // ensure clear storage for token balance checks
+      delete _tokenList;
+      delete _tokensToCheck;
+      // keep funds in router and let them be handled by admin
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
