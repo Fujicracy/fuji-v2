@@ -28,9 +28,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Emit when `crossCaller` is updated according to `allowed` boolean.
+   * @dev Emit when `caller` is updated according to `allowed` boolean to perform cross-chain calls.
    */
-  event AllowCrossCaller(address crossCaller, bool allowed);
+  event AllowCaller(address caller, bool allowed);
 
   /// @dev Custom Errors
   error BaseRouter__bundleInternal_paramsMismatch();
@@ -41,13 +41,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
-  error BaseRouter__allowCrossCaller_zeroAddress();
-  error BaseRouter__allowCrossCaller_noAllowChange();
+  error BaseRouter__allowCaller_zeroAddress();
+  error BaseRouter__allowCaller_noAllowChange();
 
   IWETH9 public immutable WETH9;
 
   /// @dev Apply it on cross-bridge entry functions as required.
-  mapping(address => bool) internal _isAllowedCrossCaller;
+  mapping(address => bool) internal _isAllowedCaller;
 
   address[] internal _tokenList;
   BalanceChecker[] internal _tokensToCheck;
@@ -62,10 +62,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @notice Allow `crossCaller` address to enter this router.
+   * @notice Allow cross-chain `caller` address to enter this router.
+   * @dev This function is implemented on bridge specific contracts.
    */
-  function allowCrossCaller(address crossCaller, bool allow) external onlyTimelock {
-    _allowCrossCaller(crossCaller, allow);
+  function allowCaller(address caller, bool allow) external onlyTimelock {
+    _allowCaller(caller, allow);
   }
 
   /**
@@ -271,15 +272,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     ERC20(token).safeApprove(to, amount);
   }
 
-  function _allowCrossCaller(address crossCaller, bool allow) internal {
-    if (crossCaller == address(0)) {
-      revert BaseRouter__allowCrossCaller_zeroAddress();
+  function _allowCaller(address caller, bool allow) internal {
+    if (caller == address(0)) {
+      revert BaseRouter__allowCaller_zeroAddress();
     }
-    if (_isAllowedCrossCaller[crossCaller] == allow) {
-      revert BaseRouter__allowCrossCaller_noAllowChange();
+    if (_isAllowedCaller[caller] == allow) {
+      revert BaseRouter__allowCaller_noAllowChange();
     }
-    _isAllowedCrossCaller[crossCaller] = allow;
-    emit AllowCrossCaller(crossCaller, allow);
+    _isAllowedCaller[caller] = allow;
+    emit AllowCaller(caller, allow);
   }
 
   function _crossTransfer(bytes memory) internal virtual;

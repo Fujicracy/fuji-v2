@@ -74,7 +74,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
-    _allowCrossCaller(address(connext_), true);
+    _allowCaller(address(connext_), true);
   }
 
   // Connext specific functions
@@ -104,7 +104,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     // Block callers except allowed cross callers.
-    if (!_isAllowedCrossCaller[msg.sender]) {
+    if (!_isAllowedCaller[msg.sender]) {
       revert ConnextRouter__xReceive_notAllowedCrossCaller();
     }
 
