@@ -9,8 +9,8 @@ import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IGenIToken} from "../../interfaces/dforce/IGenIToken.sol";
 import {IIERC20} from "../../interfaces/dforce/IIERC20.sol";
 import {IIETH} from "../../interfaces/dforce/IIETH.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
+import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
  * @title DForce Lending Provider.
@@ -18,8 +18,6 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @notice This contract allows interaction with DForce.
  */
 contract DForce is ILendingProvider {
-  using SafeERC20 for IERC20;
-
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   }
@@ -31,6 +29,10 @@ contract DForce is ILendingProvider {
 
   function _getControllerAddress() internal pure returns (address) {
     return 0x8B53Ab2c0Df3230EA327017C91Eb909f815Ad113; // dForce Mainnet
+  }
+
+  function _getiToken(address asset) internal view returns (address iToken) {
+    iToken = _getAddrmapper().getAddressMapping("DForce", asset);
   }
 
   /**
@@ -53,7 +55,7 @@ contract DForce is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function approvedOperator(address asset, address) external view returns (address operator) {
-    operator = _getAddrmapper().getAddressMapping("DForce", asset);
+    operator = _getiToken(asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -179,11 +181,9 @@ contract DForce is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.asset());
-    uint256 iTokenBal = IGenIToken(iTokenAddr).balanceOf(user);
-    uint256 exRate = IGenIToken(iTokenAddr).exchangeRateStored();
-
-    balance = (exRate * iTokenBal) / 1e18;
+    address asset = vault.asset();
+    IGenIToken iToken = IGenIToken(_getiToken(asset));
+    balance = LibDForce.viewUnderlyingBalanceOf(iToken, user);
   }
 
   /// inheritdoc ILendingProvider
@@ -196,8 +196,8 @@ contract DForce is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.debtAsset());
-
-    return IGenIToken(iTokenAddr).borrowBalanceStored(user);
+    address asset = vault.debtAsset();
+    IGenIToken iToken = IGenIToken(_getiToken(asset));
+    balance = LibDForce.viewBorrowingBalanceOf(iToken, user);
   }
 }

@@ -9,8 +9,8 @@ import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IGenIToken} from "../../interfaces/dforce/IGenIToken.sol";
 import {IIERC20} from "../../interfaces/dforce/IIERC20.sol";
 import {IIETH} from "../../interfaces/dforce/IIETH.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
+import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
  * @title DForce Lending Provider.
@@ -18,8 +18,6 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @notice This contract allows interaction with DForce.
  */
 contract DForceOptimism is ILendingProvider {
-  using SafeERC20 for IERC20;
-
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x4200000000000000000000000000000000000006;
   }
@@ -33,10 +31,14 @@ contract DForceOptimism is ILendingProvider {
     return 0xA300A84D8970718Dac32f54F61Bd568142d8BCF4; // dForce Optimism
   }
 
+  function _getiToken(address asset) internal view returns (address iToken) {
+    iToken = _getAddrmapper().getAddressMapping("DForce", asset);
+  }
   /**
    * @dev Approves vault's assets as collateral for dForce Protocol.
    * @param _iTokenAddress: asset type to be approved as collateral.
    */
+
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
     IComptroller controller = IComptroller(_getControllerAddress());
@@ -53,7 +55,7 @@ contract DForceOptimism is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function approvedOperator(address asset, address) external view returns (address operator) {
-    operator = _getAddrmapper().getAddressMapping("DForce", asset);
+    operator = _getiToken(asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -168,8 +170,8 @@ contract DForceOptimism is ILendingProvider {
     uint256 blocksperYear = 2102400;
     return bRateperBlock * blocksperYear;
   }
-
   /// inheritdoc ILendingProvider
+
   function getDepositBalance(
     address user,
     IVault vault
@@ -179,11 +181,9 @@ contract DForceOptimism is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.asset());
-    uint256 iTokenBal = IGenIToken(iTokenAddr).balanceOf(user);
-    uint256 exRate = IGenIToken(iTokenAddr).exchangeRateStored();
-
-    balance = (exRate * iTokenBal) / 1e18;
+    address asset = vault.asset();
+    IGenIToken iToken = IGenIToken(_getiToken(asset));
+    balance = LibDForce.viewUnderlyingBalanceOf(iToken, user);
   }
 
   /// inheritdoc ILendingProvider
@@ -196,8 +196,8 @@ contract DForceOptimism is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.debtAsset());
-
-    return IGenIToken(iTokenAddr).borrowBalanceStored(user);
+    address asset = vault.debtAsset();
+    IGenIToken iToken = IGenIToken(_getiToken(asset));
+    balance = LibDForce.viewBorrowingBalanceOf(iToken, user);
   }
 }

@@ -11,17 +11,23 @@ interface IGenIToken is IERC20 {
 
   function borrow(uint256 _borrowAmount) external;
 
-  function exchangeRateCurrent() external returns (uint256);
-
   function exchangeRateStored() external view returns (uint256);
 
   function borrowRatePerBlock() external view returns (uint256);
 
   function supplyRatePerBlock() external view returns (uint256);
 
-  function balanceOfUnderlying(address _account) external returns (uint256);
+  function borrowBalanceStored(address user) external view returns (uint256);
 
-  function borrowBalanceCurrent(address _user) external returns (uint256);
+  function totalBorrows() external view returns (uint256);
 
-  function borrowBalanceStored(address _user) external view returns (uint256);
+  function borrowIndex() external view returns (uint256);
+
+  function getCash() external view returns (uint256);
+
+  function accrualBlockNumber() external view returns (uint256);
+
+  function totalReserves() external view returns (uint256);
+
+  function reserveRatio() external view returns (uint256);
 }
