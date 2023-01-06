@@ -44,8 +44,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__allowCrossCaller_zeroAddress();
   error BaseRouter__allowCrossCaller_noAllowChange();
 
-  address public constant NATIVE_ASSET = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-
   IWETH9 public immutable WETH9;
 
   /// @dev Apply it on cross-bridge entry functions as required.
@@ -106,6 +104,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
     // Check balance of all intended token transactions
     _getTokenListFromBundle(actions, args);
+    uint256 nativeBalance = address(this).balance - msg.value;
 
     uint256 len = actions.length;
     for (uint256 i = 0; i < len;) {
@@ -241,7 +240,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ++i;
       }
     }
-    _checkNoBalanceChange(_tokensToCheck);
+    _checkNoBalanceChange(_tokensToCheck, nativeBalance);
     _beneficiary = address(0);
   }
 
@@ -294,8 +293,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * - MUST call `_addTokenToList()` in `actions` that involve tokens.
    */
   function _getTokenListFromBundle(Action[] memory actions, bytes[] memory args) internal {
-    // Always check native balance changes.
-    _addTokenToList(NATIVE_ASSET);
     uint256 len = actions.length;
     for (uint256 i = 0; i < len;) {
       if (actions[i] == Action.Deposit) {
@@ -359,12 +356,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
       _tokenList.push(token);
-      BalanceChecker memory checkedToken;
-      if (token == NATIVE_ASSET) {
-        checkedToken = BalanceChecker(token, address(this).balance - msg.value);
-      } else {
-        checkedToken = BalanceChecker(token, IERC20(token).balanceOf(address(this)));
-      }
+      BalanceChecker memory checkedToken =
+        BalanceChecker(token, IERC20(token).balanceOf(address(this)));
       _tokensToCheck.push(checkedToken);
     }
   }
@@ -376,17 +369,16 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * - MUST clear `_tokenList` from storage at the end of checks.
    * - MUST clear `_tokensToCheck` from storage at the end of checks.
    */
-  function _checkNoBalanceChange(BalanceChecker[] memory tokensToCheck) private {
-    uint256 tlenght = tokensToCheck.length;
-    for (uint256 i = 0; i < tlenght;) {
+  function _checkNoBalanceChange(
+    BalanceChecker[] memory tokensToCheck,
+    uint256 nativeBalance
+  )
+    private
+  {
+    uint256 len = tokensToCheck.length;
+    for (uint256 i = 0; i < len;) {
       uint256 previousBalance = tokensToCheck[i].balance;
-      uint256 currentBalance;
-
-      if (tokensToCheck[i].token == NATIVE_ASSET) {
-        currentBalance = address(this).balance;
-      } else {
-        currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
-      }
+      uint256 currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
 
       if (currentBalance != previousBalance) {
         revert BaseRouter__bundleInternal_noBalanceChange();
@@ -395,6 +387,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ++i;
       }
     }
+
+    // check at the end the native balnace
+    if (nativeBalance != address(this).balance) {
+      revert BaseRouter__bundleInternal_noBalanceChange();
+    }
+
     delete _tokenList;
     delete _tokensToCheck;
   }
