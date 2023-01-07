@@ -68,13 +68,13 @@ contract DForcePolygon is ILendingProvider {
     _enterCollatMarket(iTokenAddr);
 
     if (_isWMATIC(asset)) {
-      //unwrap WETH to ETH
+      //unwrap WMATIC to MATIC
       IWETH9(asset).withdraw(amount);
 
       // Create a reference to the iToken contract
       IIETH iToken = IIETH(iTokenAddr);
 
-      // dForce protocol Mints iTokens, ETH method
+      // dForce protocol Mints iTokens, MATIC method
       iToken.mint{value: amount}(address(this));
     } else {
       // Create a reference to the iToken contract
@@ -99,7 +99,7 @@ contract DForcePolygon is ILendingProvider {
     iToken.borrow(amount);
 
     if (_isWMATIC(asset)) {
-      // wrap ETH to WETH
+      // wrap MATIC to MATIC
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -118,7 +118,7 @@ contract DForcePolygon is ILendingProvider {
     iToken.redeemUnderlying(address(this), amount);
 
     if (_isWMATIC(asset)) {
-      // wrap ETH to WETH
+      // wrap MATIC to WMATIC
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;

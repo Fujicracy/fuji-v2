@@ -82,8 +82,7 @@ contract WePiggyPolygon is ILendingProvider {
     _enterCollatMarket(cTokenAddr);
 
     if (_isWMATIC(asset)) {
-      //unwrap WMATIC to MATIC
-      //TODO unwrap matic instead of weth eth
+      // unwrap WMATIC to MATIC
       IWETH9(asset).withdraw(amount);
 
       ICETH cToken = ICETH(cTokenAddr);
@@ -115,8 +114,7 @@ contract WePiggyPolygon is ILendingProvider {
     }
 
     if (_isWMATIC(asset)) {
-      // wrap ETH to WETH
-      //TODO unwrap matic instead of weth eth
+      // wrap MATIC to WMATIC
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -136,8 +134,7 @@ contract WePiggyPolygon is ILendingProvider {
     }
 
     if (_isWMATIC(asset)) {
-      // wrap ETH to WETH
-      //TODO unwrap matic instead of weth eth
+      // wrap MATIC to WMATIC
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -150,8 +147,7 @@ contract WePiggyPolygon is ILendingProvider {
 
     if (_isWMATIC(asset)) {
       ICETH cToken = ICETH(cTokenAddr);
-      //unwrap WETH to ETH
-      //TODO unwrap matic instead of weth eth
+      // unwrap WMATIC to MATIC
       IWETH9(asset).withdraw(amount);
 
       cToken.repayBorrow{value: amount}();
