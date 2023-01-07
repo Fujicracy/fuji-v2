@@ -82,7 +82,7 @@ contract WePiggyPolygon is ILendingProvider {
     _enterCollatMarket(cTokenAddr);
 
     if (_isWMATIC(asset)) {
-      //unwrap WMATIC to ETH
+      //unwrap WMATIC to MATIC
       //TODO unwrap matic instead of weth eth
       IWETH9(asset).withdraw(amount);
 

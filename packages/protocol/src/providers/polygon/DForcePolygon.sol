@@ -134,7 +134,7 @@ contract DForcePolygon is ILendingProvider {
       // Create a reference to the corresponding iToken contract
       IIETH iToken = IIETH(iTokenAddr);
 
-      //unwrap WETH to ETH
+      //unwrap WMATIC to MATIC
       IWETH9(asset).withdraw(amount);
 
       iToken.repayBorrow{value: amount}();
