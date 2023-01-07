@@ -357,7 +357,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previewDepositAndBorrow(
+      const { actions } = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1'),
         parseUnits('1'),
@@ -388,7 +388,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previewDepositAndBorrow(
+      const { actions } = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1'),
         parseUnits('1'),
@@ -420,7 +420,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previewDepositAndBorrow(
+      const { actions } = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1'),
         parseUnits('1'),
