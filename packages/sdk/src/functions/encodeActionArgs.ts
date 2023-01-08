@@ -6,7 +6,10 @@ import { RouterAction } from '../enums';
 import { RouterActionParams } from '../types';
 
 export function encodeActionArgs(params: RouterActionParams): string {
-  if (params.action === RouterAction.DEPOSIT) {
+  if (
+    params.action === RouterAction.DEPOSIT ||
+    params.action === RouterAction.PAYBACK
+  ) {
     return defaultAbiCoder.encode(
       ['address', 'uint256', 'address', 'address'],
       [
@@ -16,7 +19,23 @@ export function encodeActionArgs(params: RouterActionParams): string {
         params.sender.value,
       ]
     );
-  } else if (params.action === RouterAction.PERMIT_BORROW) {
+  } else if (
+    params.action === RouterAction.BORROW ||
+    params.action === RouterAction.WITHDRAW
+  ) {
+    return defaultAbiCoder.encode(
+      ['address', 'uint256', 'address', 'address'],
+      [
+        params.vault.value,
+        params.amount.toString(),
+        params.receiver.value,
+        params.owner.value,
+      ]
+    );
+  } else if (
+    params.action === RouterAction.PERMIT_BORROW ||
+    params.action === RouterAction.PERMIT_WITHDRAW
+  ) {
     invariant(
       params.deadline && params.v && params.r && params.s,
       'Missing args in PERMIT_BORROW!'
@@ -41,16 +60,6 @@ export function encodeActionArgs(params: RouterActionParams): string {
         params.v.toString(),
         params.r,
         params.s,
-      ]
-    );
-  } else if (params.action === RouterAction.BORROW) {
-    return defaultAbiCoder.encode(
-      ['address', 'uint256', 'address', 'address'],
-      [
-        params.vault.value,
-        params.amount.toString(),
-        params.receiver.value,
-        params.owner.value,
       ]
     );
   } else if (params.action === RouterAction.X_TRANSFER) {
@@ -83,7 +92,9 @@ export function encodeActionArgs(params: RouterActionParams): string {
         callData,
       ]
     );
+  } else {
+    invariant(true, 'Unsupported action!');
   }
-  // TODO other actions
+
   return '';
 }
