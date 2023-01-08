@@ -108,6 +108,7 @@ export class Previews {
           vault.debt,
           amountOut,
           account,
+          connextRouter,
           _slippage
         ),
       ];
@@ -243,6 +244,7 @@ export class Previews {
           vault.debt,
           amountOut,
           account,
+          connextRouter,
           _slippage
         ),
       ];
@@ -348,7 +350,14 @@ export class Previews {
         vault.previewDeposit(amountIn, account, account),
         vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
         vault.previewBorrow(amountOut, connextRouter, account),
-        this.xTransfer(destChainId, vault.debt, amountOut, account, _slippage),
+        this.xTransfer(
+          destChainId,
+          vault.debt,
+          amountOut,
+          account,
+          connextRouter,
+          _slippage
+        ),
       ];
     } else if (srcChainId !== destChainId && destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
@@ -426,7 +435,14 @@ export class Previews {
           deadline
         ),
         vault.previewWithdraw(amountOut, connextRouter, account),
-        this.xTransfer(destChainId, vault.debt, amountOut, account, _slippage),
+        this.xTransfer(
+          destChainId,
+          vault.debt,
+          amountOut,
+          account,
+          connextRouter,
+          _slippage
+        ),
       ];
     } else if (srcChainId !== destChainId && destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
@@ -467,6 +483,7 @@ export class Previews {
     asset: Token,
     amount: BigNumber,
     receiver: Address,
+    sender: Address,
     slippage: number
   ): XTransferParams {
     const destDomain = CONNEXT_DOMAIN[destChainId];
@@ -479,6 +496,7 @@ export class Previews {
       amount,
       asset: asset.address,
       receiver: receiver,
+      sender,
     };
   }
 

@@ -64,13 +64,14 @@ export function encodeActionArgs(params: RouterActionParams): string {
     );
   } else if (params.action === RouterAction.X_TRANSFER) {
     return defaultAbiCoder.encode(
-      ['uint256', 'uint256', 'address', 'uint256', 'address'],
+      ['uint256', 'uint256', 'address', 'uint256', 'address', 'address'],
       [
         params.destDomain,
         params.slippage,
         params.asset.value,
         params.amount.toString(),
         params.receiver.value,
+        params.sender.value,
       ]
     );
   } else if (params.action === RouterAction.X_TRANSFER_WITH_CALL) {
