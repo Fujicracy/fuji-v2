@@ -30,4 +30,6 @@ interface IGenIToken is IERC20 {
   function totalReserves() external view returns (uint256);
 
   function reserveRatio() external view returns (uint256);
+
+  function borrowBalanceCurrent(address user) external returns (uint256);
 }
