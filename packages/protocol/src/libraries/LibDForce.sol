@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-//TODO remove console
-import "forge-std/console.sol";
 import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
 import {IGenIToken} from "../interfaces/dforce/IGenIToken.sol";
 
@@ -15,9 +13,6 @@ library LibDForce {
   using LibSolmateFixedPointMath for uint256;
 
   function viewUnderlyingBalanceOf(IGenIToken iToken, address user) internal view returns (uint256) {
-    console.log(
-      "viewUnderlyingBalanceOf ", iToken.balanceOf(user).mulWadDown(viewExchangeRate(iToken))
-    );
     return iToken.balanceOf(user).mulWadDown(viewExchangeRate(iToken));
   }
 
@@ -26,8 +21,7 @@ library LibDForce {
     uint256 borrowIndex = viewNewBorrowIndex(iToken);
     uint256 storedBorrowBalance = iToken.borrowBalanceStored(user);
 
-    console.log("viewBorrowingBalanceOf ", ((storedBorrowBalance * borrowIndex) / borrowIndexPrior));
-    return ((storedBorrowBalance * borrowIndex) / borrowIndexPrior);
+    return ((storedBorrowBalance * borrowIndex).divWadUp(borrowIndexPrior)).divWadUp(1e36);
   }
 
   function viewExchangeRate(IGenIToken iToken) internal view returns (uint256) {
@@ -50,9 +44,6 @@ library LibDForce {
     uint256 totalBorrows = interestAccumulated + borrowsPrior;
     uint256 totalSupply = iToken.totalSupply();
 
-    console.log(
-      "viewExchangeRate ", (totalCash + totalBorrows - totalReserves).divWadDown(totalSupply)
-    );
     // Reverts if totalSupply == 0
     return (totalCash + totalBorrows - totalReserves).divWadDown(totalSupply);
   }
@@ -78,9 +69,6 @@ library LibDForce {
     uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;
 
     uint256 simpleInterestFactor = borrowRateMantissa * blockDelta;
-    console.log(
-      "viewNewBorrowIndex ", (simpleInterestFactor * borrowIndexPrior) / 1e18 + borrowIndexPrior
-    );
     newBorrowIndex = (simpleInterestFactor * borrowIndexPrior) / 1e18 + borrowIndexPrior;
   }
 }
