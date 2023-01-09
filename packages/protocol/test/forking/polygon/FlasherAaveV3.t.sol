@@ -101,9 +101,6 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
     vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
 
-    uint256 debtProvider = dForce.getBorrowBalance(address(vault), vault);
-    uint256 assetsProvider = dForce.getDepositBalance(address(vault), vault);
-
     uint256 debt = vault.totalDebt();
     uint256 assets = vault.totalAssets();
 

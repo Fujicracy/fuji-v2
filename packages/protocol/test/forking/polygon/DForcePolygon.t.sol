@@ -67,7 +67,6 @@ contract DForcePolygonTest is Routines, ForkingSetup {
     vm.assume(nBlocks > 0 && nBlocks < 100000000);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();
 
     uint256 borrowBalance1 = IGenIToken(
