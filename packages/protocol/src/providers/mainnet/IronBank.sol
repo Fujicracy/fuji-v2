@@ -36,7 +36,6 @@ contract IronBank is ILendingProvider {
     cToken = _getAddrmapper().getAddressMapping("IronBank", underlying);
   }
 
-  //TODO check if its being used
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xAB1c342C7bf5Ec5F02ADEA1c2270670bCa144CbB;
   }
