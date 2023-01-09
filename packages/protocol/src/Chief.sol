@@ -59,7 +59,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
     _grantRole(HOUSE_KEEPER_ROLE, msg.sender);
     _grantRole(PAUSER_ROLE, address(this));
     _grantRole(UNPAUSER_ROLE, address(this));
-    if (deployTimelock) _deployTimelockController();
+
+    if (deployTimelock) {
+      _deployTimelockController();
+    } else {
+      // set msg.sender as timelock to allow a quicker initial setup
+      timelock = msg.sender;
+      _grantRole(DEFAULT_ADMIN_ROLE, timelock);
+    }
+
     if (deployAddrMapper) _deployAddrMapper();
   }
 
