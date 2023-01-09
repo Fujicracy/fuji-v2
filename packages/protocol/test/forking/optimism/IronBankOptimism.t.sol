@@ -12,7 +12,7 @@ contract IronBankTest is Routines, ForkingSetup {
   ILendingProvider public ironBank;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+  uint256 public constant BORROW_AMOUNT = 200e6;
 
   function setUp() public {
     deploy(OPTIMISM_DOMAIN);
