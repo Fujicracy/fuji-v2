@@ -8,11 +8,11 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
-import {IGenCToken} from "../../interfaces/compoundV2/IGenCToken.sol";
+import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
 import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
 /**
  * @title WePiggy Lending Provider.
@@ -20,12 +20,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
  * @notice This contract allows interaction with WePiggy.
  */
 
-//wmatic
-// 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270
-// 0xC1B02E52e9512519EDF99671931772E452fb4399
 contract WePiggyPolygon is ILendingProvider {
-  using SafeERC20 for IERC20;
-
   error WePiggy__deposit_failed(uint256 status);
   error WePiggy__payback_failed(uint256 status);
   error WePiggy__withdraw_failed(uint256 status);
@@ -67,8 +62,16 @@ contract WePiggyPolygon is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
-    operator = _getComptrollerAddress();
+  function approvedOperator(
+    address asset,
+    address
+  )
+    external
+    view
+    override
+    returns (address operator)
+  {
+    operator = _getCToken(asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -79,8 +82,7 @@ contract WePiggyPolygon is ILendingProvider {
     _enterCollatMarket(cTokenAddr);
 
     if (_isWMATIC(asset)) {
-      //unwrap WMATIC to ETH
-      //TODO unwrap matic instead of weth eth
+      // unwrap WMATIC to MATIC
       IWETH9(asset).withdraw(amount);
 
       ICETH cToken = ICETH(cTokenAddr);
@@ -89,8 +91,6 @@ contract WePiggyPolygon is ILendingProvider {
       cToken.mint{value: amount}();
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
-
-      IERC20(asset).safeApprove(cTokenAddr, amount);
 
       uint256 status = cToken.mint(amount);
       if (status != 0) {
@@ -105,7 +105,7 @@ contract WePiggyPolygon is ILendingProvider {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
 
-    IGenCToken cToken = IGenCToken(cTokenAddr);
+    ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.borrow(amount);
 
@@ -114,8 +114,7 @@ contract WePiggyPolygon is ILendingProvider {
     }
 
     if (_isWMATIC(asset)) {
-      // wrap ETH to WETH
-      //TODO unwrap matic instead of weth eth
+      // wrap MATIC to WMATIC
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -126,7 +125,7 @@ contract WePiggyPolygon is ILendingProvider {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
 
-    IGenCToken cToken = IGenCToken(cTokenAddr);
+    ICToken cToken = ICToken(cTokenAddr);
 
     uint256 status = cToken.redeemUnderlying(amount);
 
@@ -135,8 +134,7 @@ contract WePiggyPolygon is ILendingProvider {
     }
 
     if (_isWMATIC(asset)) {
-      // wrap ETH to WETH
-      //TODO unwrap matic instead of weth eth
+      // wrap MATIC to WMATIC
       IWETH9(asset).deposit{value: amount}();
     }
     success = true;
@@ -149,15 +147,13 @@ contract WePiggyPolygon is ILendingProvider {
 
     if (_isWMATIC(asset)) {
       ICETH cToken = ICETH(cTokenAddr);
-      //unwrap WETH to ETH
-      //TODO unwrap matic instead of weth eth
+      // unwrap WMATIC to MATIC
       IWETH9(asset).withdraw(amount);
 
       cToken.repayBorrow{value: amount}();
     } else {
       ICERC20 cToken = ICERC20(cTokenAddr);
 
-      IERC20(asset).safeApprove(cTokenAddr, amount);
       uint256 status = cToken.repayBorrow(amount);
 
       if (status != 0) {
@@ -172,7 +168,7 @@ contract WePiggyPolygon is ILendingProvider {
     address cTokenAddr = _getCToken(vault.asset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: Compound uses base 1e18
-    uint256 bRateperBlock = IGenCToken(cTokenAddr).supplyRatePerBlock() * 10 ** 9;
+    uint256 bRateperBlock = ICToken(cTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the Compound interest rate model
     uint256 blocksperYear = 2102400;
@@ -184,14 +180,14 @@ contract WePiggyPolygon is ILendingProvider {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: Compound uses base 1e18
-    uint256 bRateperBlock = IGenCToken(cTokenAddr).borrowRatePerBlock() * 10 ** 9;
+    uint256 bRateperBlock = ICToken(cTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the Compound interest rate model
     uint256 blocksperYear = 2102400;
     rate = bRateperBlock * blocksperYear;
   }
-
   /// inheritdoc ILendingProvider
+
   function getDepositBalance(
     address user,
     IVault vault
@@ -201,11 +197,9 @@ contract WePiggyPolygon is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address cTokenAddr = _getCToken(vault.asset());
-    uint256 cTokenBal = IGenCToken(cTokenAddr).balanceOf(user);
-    uint256 exRate = IGenCToken(cTokenAddr).exchangeRateStored();
-
-    balance = (exRate * cTokenBal) / 1e18;
+    address asset = vault.asset();
+    ICToken cToken = ICToken(_getCToken(asset));
+    balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
   /// inheritdoc ILendingProvider
@@ -218,8 +212,8 @@ contract WePiggyPolygon is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address cTokenAddr = _getCToken(vault.debtAsset());
-
-    balance = IGenCToken(cTokenAddr).borrowBalanceStored(user);
+    address asset = vault.debtAsset();
+    ICToken cToken = ICToken(_getCToken(asset));
+    balance = LibCompoundV2.viewBorrowingBalanceOf(cToken, user);
   }
 }

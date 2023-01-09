@@ -5,12 +5,12 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
-import {IController} from "../../interfaces/dforce/IController.sol";
+import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IGenIToken} from "../../interfaces/dforce/IGenIToken.sol";
 import {IIERC20} from "../../interfaces/dforce/IIERC20.sol";
 import {IIETH} from "../../interfaces/dforce/IIETH.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
+import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
  * @title DForce Lending Provider.
@@ -18,8 +18,6 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @notice This contract allows interaction with DForce.
  */
 contract DForceArbitrum is ILendingProvider {
-  using SafeERC20 for IERC20;
-
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
   }
@@ -39,11 +37,15 @@ contract DForceArbitrum is ILendingProvider {
    */
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
-    IController controller = IController(_getControllerAddress());
+    IComptroller controller = IComptroller(_getControllerAddress());
 
     address[] memory iTokenMarkets = new address[](1);
     iTokenMarkets[0] = _iTokenAddress;
     controller.enterMarkets(iTokenMarkets);
+  }
+
+  function _getiToken(address asset) internal view returns (address iToken) {
+    iToken = _getAddrmapper().getAddressMapping("DForce", asset);
   }
 
   /// inheritdoc ILendingProvider
@@ -52,15 +54,15 @@ contract DForceArbitrum is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
-    operator = _getControllerAddress();
+  function approvedOperator(address asset, address) external view returns (address operator) {
+    operator = _getiToken(asset);
   }
 
   /// inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getiToken(asset);
 
     // Enter and/or ensure collateral market is enacted
     _enterCollatMarket(iTokenAddr);
@@ -78,9 +80,6 @@ contract DForceArbitrum is ILendingProvider {
       // Create a reference to the iToken contract
       IIERC20 iToken = IIERC20(iTokenAddr);
 
-      // Approve to move ERC20tokens
-      IERC20(asset).safeApprove(address(iTokenAddr), amount);
-
       // dForce Protocol mints iTokens
       iToken.mint(address(this), amount);
     }
@@ -91,7 +90,7 @@ contract DForceArbitrum is ILendingProvider {
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getiToken(asset);
 
     // Create a reference to the corresponding iToken contract
     IGenIToken iToken = IGenIToken(iTokenAddr);
@@ -110,7 +109,7 @@ contract DForceArbitrum is ILendingProvider {
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getiToken(asset);
 
     // Create a reference to the corresponding iToken contract
     IGenIToken iToken = IGenIToken(iTokenAddr);
@@ -129,7 +128,7 @@ contract DForceArbitrum is ILendingProvider {
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getiToken(asset);
 
     if (_isWETH(asset)) {
       // Create a reference to the corresponding iToken contract
@@ -143,7 +142,6 @@ contract DForceArbitrum is ILendingProvider {
       // Create a reference to the corresponding iToken contract
       IIERC20 iToken = IIERC20(iTokenAddr);
 
-      IERC20(asset).safeApprove(address(iTokenAddr), amount);
       iToken.repayBorrow(amount);
     }
     success = true;
@@ -151,26 +149,26 @@ contract DForceArbitrum is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.asset());
+    address iTokenAddr = _getiToken(vault.asset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: dForce uses base 1e18
     uint256 bRateperBlock = IGenIToken(iTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the dForce interest rate model
     uint256 blocksperYear = 2102400;
-    return bRateperBlock * blocksperYear;
+    rate = bRateperBlock * blocksperYear;
   }
 
   /// inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.debtAsset());
+    address iTokenAddr = _getiToken(vault.debtAsset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: dForce uses base 1e18
     uint256 bRateperBlock = IGenIToken(iTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the dForce interest rate model
     uint256 blocksperYear = 2102400;
-    return bRateperBlock * blocksperYear;
+    rate = bRateperBlock * blocksperYear;
   }
 
   /// inheritdoc ILendingProvider
@@ -183,11 +181,9 @@ contract DForceArbitrum is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.asset());
-    uint256 iTokenBal = IGenIToken(iTokenAddr).balanceOf(user);
-    uint256 exRate = IGenIToken(iTokenAddr).exchangeRateStored();
-
-    balance = (exRate * iTokenBal) / 1e18;
+    address asset = vault.asset();
+    IGenIToken iToken = IGenIToken(_getiToken(asset));
+    balance = LibDForce.viewUnderlyingBalanceOf(iToken, user);
   }
 
   /// inheritdoc ILendingProvider
@@ -200,8 +196,8 @@ contract DForceArbitrum is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.debtAsset());
-
-    return IGenIToken(iTokenAddr).borrowBalanceStored(user);
+    address asset = vault.debtAsset();
+    IGenIToken iToken = IGenIToken(_getiToken(asset));
+    balance = LibDForce.viewBorrowingBalanceOf(iToken, user);
   }
 }
