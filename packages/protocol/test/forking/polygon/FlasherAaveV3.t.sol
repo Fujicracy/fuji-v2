@@ -98,33 +98,25 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
   function test_rebalanceWithRebalancer() public {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    vm.warp(block.timestamp + 3 minutes);
-    vm.roll(block.number + 3);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
 
-    //deal premium 0.05%
-    uint256 debt = dForce.getBorrowBalance(address(vault), IVault(vault));
-    deal(address(debtAsset), address(flasher), flasher.computeFlashloanFee(debtAsset, debt));
+    uint256 debtProvider = dForce.getBorrowBalance(address(vault), vault);
+    uint256 assetsProvider = dForce.getDepositBalance(address(vault), vault);
 
-    uint256 assets = dForce.getDepositBalance(address(vault), vault);
+    uint256 debt = vault.totalDebt();
+    uint256 assets = vault.totalAssets();
 
     rebalancer.rebalanceVault(vault, assets, debt, dForce, wePiggy, flasher, true);
 
     //issue with rounding
-    assertApproxEqAbs(
-      dForce.getDepositBalance(address(vault), IVault(address(vault))), 0, DEPOSIT_AMOUNT / 1000
-    );
-    assertApproxEqAbs(
-      dForce.getBorrowBalance(address(vault), IVault(address(vault))), 0, DEPOSIT_AMOUNT / 1000
-    );
+    assertApproxEqAbs(dForce.getDepositBalance(address(vault), vault), 0, DEPOSIT_AMOUNT / 1000);
+    assertApproxEqAbs(dForce.getBorrowBalance(address(vault), vault), 0, DEPOSIT_AMOUNT / 1000);
 
     //issue with rounding
     assertApproxEqAbs(
-      wePiggy.getDepositBalance(address(vault), IVault(address(vault))),
-      assets,
-      DEPOSIT_AMOUNT / 1000
+      wePiggy.getDepositBalance(address(vault), vault), assets, DEPOSIT_AMOUNT / 1000
     );
-    assertApproxEqAbs(
-      wePiggy.getBorrowBalance(address(vault), IVault(address(vault))), debt, BORROW_AMOUNT / 1000
-    );
+    assertApproxEqAbs(wePiggy.getBorrowBalance(address(vault), vault), debt, BORROW_AMOUNT / 1000);
   }
 }
