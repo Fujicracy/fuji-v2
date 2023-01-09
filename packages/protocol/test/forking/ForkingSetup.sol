@@ -216,10 +216,6 @@ contract ForkingSetup is CoreRoles, Test {
     mockOracle.setUSDPriceOf(collateralAsset, collateralAssetUSDPrice);
     mockOracle.setUSDPriceOf(debtAsset, debtAssetUSDPrice);
 
-    //testing with wmatic/usdc
-    // DEPOSIT_AMOUNT = 1e20;
-    // BORROW_AMOUNT = 1e6;
-
     string memory nameVault =
       string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
     string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
