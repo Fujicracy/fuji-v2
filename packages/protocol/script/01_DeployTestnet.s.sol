@@ -17,7 +17,7 @@ import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract DeploySystem is ScriptPlus {
+contract DeployTestnet is ScriptPlus {
   IWETH9 WETH;
   Chief chief;
   BorrowingVaultFactory factory;
@@ -32,7 +32,7 @@ contract DeploySystem is ScriptPlus {
   MockERC20 USDT;
 
   function setUp() public {
-    chainName = "optimism-goerli";
+    chainName = "mumbai";
 
     WETH = IWETH9(getAddress("WETH"));
     connextHandler = IConnext(getAddress("ConnextHandler"));
