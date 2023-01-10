@@ -70,7 +70,7 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
     deal(debtAsset, address(this), debt);
 
     SafeERC20.safeApprove(IERC20(debtAsset), address(vault), debt);
-    vault.rebalance(assets, debt, aaveV3, aaveV2, 0);
+    vault.rebalance(assets, debt, aaveV3, aaveV2, 0, true);
 
     assertEq(aaveV3.getDepositBalance(address(vault), IVault(address(vault))), 0);
     assertEq(aaveV3.getBorrowBalance(address(vault), IVault(address(vault))), 0);

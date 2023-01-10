@@ -664,16 +664,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_)
-    external
-    override
-    hasRole(msg.sender, REBALANCER_ROLE)
-  {
-    if (!_isValidProvider(address(activeProvider_))) {
-      revert BaseVault__setter_invalidInput();
-    }
-    activeProvider = activeProvider_;
-    emit ActiveProviderChanged(activeProvider_);
+  function setActiveProvider(ILendingProvider activeProvider_) external override onlyTimelock {
+    _setActiveProvider(activeProvider_);
   }
 
   /// inheritdoc IVault
@@ -714,6 +706,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     hasRole(msg.sender, UNPAUSER_ROLE)
   {
     _unpause(action);
+  }
+
+  function _setActiveProvider(ILendingProvider activeProvider_) internal {
+    if (!_isValidProvider(address(activeProvider_))) {
+      revert BaseVault__setter_invalidInput();
+    }
+    activeProvider = activeProvider_;
+    emit ActiveProviderChanged(activeProvider_);
   }
 
   /**

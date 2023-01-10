@@ -148,7 +148,8 @@ contract YieldVault is BaseVault {
     uint256 debt,
     ILendingProvider from,
     ILendingProvider to,
-    uint256 fee
+    uint256 fee,
+    bool setToAsActiveProvider
   )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
@@ -166,6 +167,11 @@ contract YieldVault is BaseVault {
 
     _executeProviderAction(assets, "withdraw", from);
     _executeProviderAction(assets, "deposit", to);
+
+    if (setToAsActiveProvider) {
+      _setActiveProvider(to);
+    }
+
     emit VaultRebalance(assets, 0, address(from), address(to));
     return true;
   }

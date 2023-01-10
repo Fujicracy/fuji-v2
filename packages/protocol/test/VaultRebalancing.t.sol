@@ -357,7 +357,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     dealMockERC20(MockERC20(address(debtAsset)), address(this), debt);
 
     SafeERC20.safeApprove(debtAsset, address(bvault), debt);
-    bvault.rebalance(assets, debt, mockProviderA, mockProviderB, 0);
+    bvault.rebalance(assets, debt, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
     assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
@@ -369,7 +369,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   function test_fullRebalancingYieldVault() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
 
-    yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0);
+    yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
     assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
@@ -384,7 +384,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     dealMockERC20(MockERC20(address(debtAsset)), address(this), debt75);
 
     SafeERC20.safeApprove(debtAsset, address(bvault), debt75);
-    bvault.rebalance(assets75, debt75, mockProviderA, mockProviderB, 0);
+    bvault.rebalance(assets75, debt75, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), assets25);
     assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), debt25);
