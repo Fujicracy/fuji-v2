@@ -9,7 +9,7 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
 import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
-import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
+import {LibIronBankOptimism} from "../../libraries/LibIronBankOptimism.sol";
 
 /**
  * @title IronBank Lending Provider.
@@ -36,7 +36,7 @@ contract IronBankOptimism is ILendingProvider {
   }
 
   function _getComptrollerAddress() internal pure returns (address) {
-    return 0xAB1c342C7bf5Ec5F02ADEA1c2270670bCa144CbB;
+    return 0xE0B57FEEd45e7D908f2d0DaCd26F113Cf26715BF;
   }
 
   /**
@@ -185,7 +185,7 @@ contract IronBankOptimism is ILendingProvider {
   {
     address asset = vault.asset();
     ICToken cyToken = ICToken(_getCyToken(asset));
-    balance = LibCompoundV2.viewUnderlyingBalanceOf(cyToken, user);
+    balance = LibIronBankOptimism.viewUnderlyingBalanceOf(cyToken, user);
   }
 
   /// inheritdoc ILendingProvider
@@ -200,6 +200,6 @@ contract IronBankOptimism is ILendingProvider {
   {
     address asset = vault.debtAsset();
     ICToken cyToken = ICToken(_getCyToken(asset));
-    balance = LibCompoundV2.viewBorrowingBalanceOf(cyToken, user);
+    balance = LibIronBankOptimism.viewBorrowingBalanceOf(cyToken, user);
   }
 }
