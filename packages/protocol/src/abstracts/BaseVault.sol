@@ -40,6 +40,16 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
 
+  /**
+   * @dev `VERSION` of this vault.
+   * Software versioning rules are followed: v-0.0.0
+   *  v-MAJOR.MINOR.PATCH
+   *  MAJOR version when you make incompatible ABI changes
+   *  MINOR version when you add functionality in a backwards compatible manner.
+   *  PATCH version when you make backwards compatible fixes.
+   */
+  string public constant VERSION = "v-0.0.0";
+
   IERC20Metadata internal immutable _asset;
   uint8 private immutable _decimals;
 
