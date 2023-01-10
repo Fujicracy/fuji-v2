@@ -12,7 +12,13 @@ export const VAULT_LIST: ChainVaultList = {
       DAI[ChainId.GOERLI]
     ),
   ],
-  [ChainId.MATIC]: [],
+  [ChainId.MATIC]: [
+    new BorrowingVault(
+      Address.from('0x95A1b20d653dE7026321C8354f1f454a8e5204BB'),
+      WETH9[ChainId.MATIC],
+      USDC[ChainId.MATIC]
+    ),
+  ],
   [ChainId.MATIC_MUMBAI]: [
     new BorrowingVault(
       Address.from('0xDdd86428204f12f296954c9CdFC73F3275f0D8a0'),
