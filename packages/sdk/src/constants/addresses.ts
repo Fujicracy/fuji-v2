@@ -104,7 +104,9 @@ export const USDT_ADDRESS: AddressMap = {
 export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(AddressZero),
-  [ChainId.OPTIMISM]: Address.from(AddressZero),
+  [ChainId.OPTIMISM]: Address.from(
+    '0x190B9e10c3A02896386BE180767cf6E89Df5E798'
+  ),
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.MATIC]: Address.from('0xA8452Ec99ce0C64f20701dB7dD3abDb607c00496'),
   [ChainId.GOERLI]: Address.from('0x4f1A1C86849104c4d92810F7CdD127FbaCF98301'),
@@ -119,7 +121,9 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(AddressZero),
-  [ChainId.OPTIMISM]: Address.from(AddressZero),
+  [ChainId.OPTIMISM]: Address.from(
+    '0x4b62c0369A13B68F75BbbdA9FD91BA8270ca4862'
+  ),
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.MATIC]: Address.from('0x4b62c0369A13B68F75BbbdA9FD91BA8270ca4862'),
   [ChainId.GOERLI]: Address.from('0xa678C43f04ce286434E32731dD9Ab0721763f953'),

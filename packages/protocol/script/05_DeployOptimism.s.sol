@@ -10,14 +10,14 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
-import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
+import {AaveV3Optimism} from "../src/providers/optimism/AaveV3Optimism.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract DeployProduction is ScriptPlus {
+contract DeployOptimism is ScriptPlus {
   IWETH9 WETH;
   Chief chief;
   BorrowingVaultFactory factory;
@@ -25,22 +25,20 @@ contract DeployProduction is ScriptPlus {
 
   ConnextRouter connextRouter;
 
-  AaveV3Polygon aaveV3Polygon;
+  AaveV3Optimism aaveV3Optimism;
   FujiOracle oracle;
   ERC20 DAI;
   ERC20 USDC;
   ERC20 USDT;
 
   function setUp() public {
-    chainName = "polygon";
+    chainName = "optimism";
 
-    /*WETH = IWETH9(getAddress("WETH"));*/
-    WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
-    saveAddress("WETH", address(WETH));
+    WETH = IWETH9(getAddress("WETH"));
+    /*saveAddress("WETH", address(WETH));*/
 
-    /*connextHandler = IConnext(getAddress("ConnextHandler"));*/
-    connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
-    saveAddress("ConnextRouter", address(connextHandler));
+    connextHandler = IConnext(getAddress("ConnextHandler"));
+    /*saveAddress("ConnextHandler", address(connextHandler));*/
   }
 
   function run() public {
@@ -50,15 +48,14 @@ contract DeployProduction is ScriptPlus {
     /*saveAddress("DAI", address(DAI));*/
 
     USDC = ERC20(getAddress("USDC"));
-    /*USDC = ERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);*/
     /*saveAddress("USDC", address(USDC));*/
 
     /*USDT = ERC20(getAddress("USDT"));*/
     /*saveAddress("USDT", address(USDT));*/
 
-    aaveV3Polygon = AaveV3Polygon(getAddress("AaveV3Polygon"));
-    /*aaveV3Polygon = new AaveV3Polygon();*/
-    /*saveAddress("AaveV3Polygon", address(aaveV3Polygon));*/
+    aaveV3Optimism = AaveV3Optimism(getAddress("AaveV3Optimism"));
+    /*aaveV3Optimism = new AaveV3Optimism();*/
+    /*saveAddress("AaveV3Optimism", address(aaveV3Optimism));*/
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(false, false);*/
@@ -71,8 +68,8 @@ contract DeployProduction is ScriptPlus {
     /*assets[0] = address(WETH);*/
     /*assets[1] = address(USDC);*/
     /*address[] memory feeds = new address[](2);*/
-    /*feeds[0] = 0xF9680D99D6C9589e2a93a78A04A279e509205945;*/
-    /*feeds[1] = 0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7;*/
+    /*feeds[0] = 0x13e3Ee699D1909E989722E753853AE30b17e08c5;*/
+    /*feeds[1] = 0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3;*/
     /*oracle = new FujiOracle(assets, feeds, address(chief));*/
     /*saveAddress("FujiOracle", address(oracle));*/
 
@@ -86,7 +83,7 @@ contract DeployProduction is ScriptPlus {
     /*chief.allowVaultFactory(address(factory), true);*/
 
     /*_deployVault(address(WETH), address(DAI), "BorrowingVault-WETHDAI");*/
-    /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
+    _deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
     vm.stopBroadcast();
@@ -98,9 +95,9 @@ contract DeployProduction is ScriptPlus {
     saveAddress(name, vault);
 
     ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = aaveV3Polygon;
+    providers[0] = aaveV3Optimism;
     BorrowingVault(payable(vault)).setProviders(providers);
 
-    BorrowingVault(payable(vault)).setActiveProvider(aaveV3Polygon);
+    BorrowingVault(payable(vault)).setActiveProvider(aaveV3Optimism);
   }
 }

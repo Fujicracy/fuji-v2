@@ -18,7 +18,9 @@ export const LENDING_PROVIDERS_LIST: Record<
   },
   [ChainId.FANTOM]: {},
   [ChainId.ARBITRUM]: {},
-  [ChainId.OPTIMISM]: {},
+  [ChainId.OPTIMISM]: {
+    '0xddadB5dca827f8d59000d610E456630695928660': 'aave-v3',
+  },
   [ChainId.OPTIMISM_GOERLI]: {
     '0x03c9BA7110F17c080E1B05df507D9dcba8FB157e': 'aave-v3',
     '0xb08b4fc6b8b6cacd69d21f1c94d07fcd4753b5f1': 'aave-v2',
