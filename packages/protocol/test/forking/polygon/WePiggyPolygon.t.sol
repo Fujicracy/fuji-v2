@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol";
 
-contract WePiggyPolygonTest is Routines, ForkingSetup {
+contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
   uint256 public constant DEPOSIT_AMOUNT = 1000e18;
