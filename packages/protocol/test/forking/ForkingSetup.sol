@@ -30,6 +30,7 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant OPTIMISM_DOMAIN = 1869640809;
   uint32 public constant ARBITRUM_DOMAIN = 1634886255;
   uint32 public constant POLYGON_DOMAIN = 1886350457;
+  uint32 public constant GNOSIS_DOMAIN = 6778479;
   //https://github.com/connext/chaindata/blob/main/crossChain.json
 
   uint256 public constant ALICE_PK = 0xA;
@@ -74,6 +75,7 @@ contract ForkingSetup is CoreRoles, Test {
     forks[OPTIMISM_DOMAIN] = vm.createFork("optimism");
     forks[ARBITRUM_DOMAIN] = vm.createFork("arbitrum");
     forks[POLYGON_DOMAIN] = vm.createFork("polygon");
+    forks[GNOSIS_DOMAIN] = vm.createFork("gnosis");
 
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
@@ -137,6 +139,15 @@ contract ForkingSetup is CoreRoles, Test {
       connext: address(0)
     });
     registry[POLYGON_DOMAIN] = polygon;
+
+    Registry memory gnosis = Registry({
+      weth: 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1,
+      usdc: address(0),
+      dai: 0x6B175474E89094C44Da98b954EedeAC495271d0F,
+      wmatic: address(0),
+      connext: address(0)
+    });
+    registry[POLYGON_DOMAIN] = gnosis;
   }
 
   function deploy(uint32 domain) public {
