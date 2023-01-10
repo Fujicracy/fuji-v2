@@ -6,20 +6,20 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {HundredArbitrum} from "../../../src/providers/arbitrum/HundredArbitrum.sol";
+import {Hundred} from "../../../src/providers/mainnet/Hundred.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract HundredArbitrumForkingTest is Routines, ForkingSetup {
+contract HundredForkingTest is Routines, ForkingSetup {
   ILendingProvider public hundred;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
+    deploy(MAINNET_DOMAIN);
 
-    hundred = new HundredArbitrum();
+    hundred = new Hundred();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = hundred;
 

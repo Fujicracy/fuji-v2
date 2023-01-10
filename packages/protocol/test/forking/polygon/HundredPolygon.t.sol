@@ -6,20 +6,28 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {HundredArbitrum} from "../../../src/providers/arbitrum/HundredArbitrum.sol";
+import {HundredPolygon} from "../../../src/providers/polygon/HundredPolygon.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract HundredArbitrumForkingTest is Routines, ForkingSetup {
+contract HundredPolygonForkingTest is Routines, ForkingSetup {
   ILendingProvider public hundred;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+  uint256 public constant DEPOSIT_AMOUNT = 1000e18;
+  uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
+    deploy(POLYGON_DOMAIN);
+    deployVault(
+      registry[POLYGON_DOMAIN].wmatic,
+      registry[POLYGON_DOMAIN].usdc,
+      1250000000000000000,
+      100000000,
+      "WMATIC",
+      "USDC"
+    );
 
-    hundred = new HundredArbitrum();
+    hundred = new HundredPolygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = hundred;
 
