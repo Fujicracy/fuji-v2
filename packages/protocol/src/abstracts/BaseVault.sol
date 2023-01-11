@@ -74,7 +74,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   )
     public
     view
-    override (ERC20, IERC20)
+    override(ERC20, IERC20)
     returns (uint256)
   {
     address operator = receiver;
@@ -86,7 +86,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
    * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
    */
-  function approve(address receiver, uint256 shares) public override (ERC20, IERC20) returns (bool) {
+  function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
     address operator = receiver;
     _setWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
@@ -140,7 +140,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Asset management: overrides IERC4626 ///
   ////////////////////////////////////////////
 
-  function decimals() public view virtual override (IERC20Metadata, ERC20) returns (uint8) {
+  function decimals() public view virtual override(IERC20Metadata, ERC20) returns (uint8) {
     return _decimals;
   }
 
