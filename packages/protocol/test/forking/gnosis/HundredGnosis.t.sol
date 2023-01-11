@@ -65,7 +65,7 @@ contract HundredGnosisForkingTest is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     uint256 borrowBalance1 = ICToken(
-      IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5).getAddressMapping(
+      IAddrMapper(0x2B3A214b2218f1ce35E94eE3BA14D8aF1712AB04).getAddressMapping(
         "Hundred", debtAsset
       )
     ).borrowBalanceCurrent(address(vault));
@@ -79,7 +79,7 @@ contract HundredGnosisForkingTest is Routines, ForkingSetup {
     borrowBalance = vault.totalDebt();
 
     borrowBalance1 = ICToken(
-      IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5).getAddressMapping(
+      IAddrMapper(0x2B3A214b2218f1ce35E94eE3BA14D8aF1712AB04).getAddressMapping(
         "Hundred", debtAsset
       )
     ).borrowBalanceCurrent(address(vault));

@@ -32,7 +32,7 @@ contract HundredGnosis is ILendingProvider {
 
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(address(0));
+    return IAddrMapper(0x2B3A214b2218f1ce35E94eE3BA14D8aF1712AB04);
   }
 
   function _getCToken(address underlying) internal view returns (address cToken) {
@@ -44,7 +44,7 @@ contract HundredGnosis is ILendingProvider {
   }
 
   function _getProxyReceiver() internal pure returns (address) {
-    return address(0);
+    return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;
   }
 
   /**

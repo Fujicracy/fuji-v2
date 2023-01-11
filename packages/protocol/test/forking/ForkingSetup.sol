@@ -143,11 +143,11 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory gnosis = Registry({
       weth: 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1,
       usdc: address(0),
-      dai: 0x6B175474E89094C44Da98b954EedeAC495271d0F,
+      dai: 0x82CeB1faBFF9D4eD563710937c89689fc8b8275d,
       wmatic: address(0),
       connext: address(0)
     });
-    registry[POLYGON_DOMAIN] = gnosis;
+    registry[GNOSIS_DOMAIN] = gnosis;
   }
 
   function deploy(uint32 domain) public {

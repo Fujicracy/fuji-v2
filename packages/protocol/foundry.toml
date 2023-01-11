@@ -16,6 +16,7 @@ optimism = "${RPC_OPTIMISM}"
 mumbai = "${RPC_MUMBAI}"
 polygon = "${RPC_POLYGON}"
 arbitrum = "${RPC_ARBITRUM}"
+gnosis = "${RPC_GNOSIS}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_KEY}" }
