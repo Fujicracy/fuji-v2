@@ -223,6 +223,12 @@ contract ForkingSetup is CoreRoles, Test {
       string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
     string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
 
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
+    // Grant this address all roles.
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+
     vault = new BorrowingVault(
       collateralAsset,
       debtAsset,
@@ -248,6 +254,11 @@ contract ForkingSetup is CoreRoles, Test {
 
   function _setVaultProviders(IVault v, ILendingProvider[] memory providers) internal {
     bytes memory callData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
+    _callWithTimelock(address(v), callData);
+  }
+
+  function _setActiveProvider(IVault v, ILendingProvider provider) internal {
+    bytes memory callData = abi.encodeWithSelector(IVault.setActiveProvider.selector, provider);
     _callWithTimelock(address(v), callData);
   }
 

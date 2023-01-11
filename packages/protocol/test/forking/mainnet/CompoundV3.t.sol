@@ -17,7 +17,6 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    console.log("setUp-vault", address(vault));
     setUpFork(MAINNET_DOMAIN);
 
     compoundV3 = new CompoundV3();
@@ -70,7 +69,7 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    vault.setActiveProvider(aaveV2);
+    _setActiveProvider(vault, aaveV2);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, BOB);
 
     uint256 depositBalance = vault.totalAssets();

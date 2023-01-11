@@ -16,7 +16,7 @@ contract DForcePolygonForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
-    setUpFork(OPTIMISM_DOMAIN);
+    setUpFork(POLYGON_DOMAIN);
 
     dForce = new DForcePolygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
