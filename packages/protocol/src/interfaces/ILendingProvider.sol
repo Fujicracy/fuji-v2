@@ -14,11 +14,20 @@ import {IVault} from "./IVault.sol";
 interface ILendingProvider {
   function providerName() external view returns (string memory);
   /**
-   * @notice Returns the operator address that requires ERC20-approval for deposits.
-   * @param asset address.
-   * @param vault address required by some specific providers with multi-markets, otherwise pass address(0).
+   * @notice Returns the operator address that requires ERC20-approval for vault operations.
+   * @param keyAsset address to inquiry operator.
+   * @param asset address of the calling vault.
+   * @param debtAsset address of the calling vault. Note: if {YieldVault} this will be address(0).
+   * @dev Provider implementations may or not require all 3 inputs.
    */
-  function approvedOperator(address asset, address vault) external view returns (address operator);
+  function approvedOperator(
+    address keyAsset,
+    address asset,
+    address debtAsset
+  )
+    external
+    view
+    returns (address operator);
 
   /**
    * @notice Performs deposit operation at lending provider on behalf vault.

@@ -6,6 +6,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
@@ -58,6 +59,8 @@ contract ForkingSetup is CoreRoles, Test {
   Chief public chief;
   TimelockController public timelock;
   MockOracle mockOracle;
+
+  address public dummy;
 
   address public collateralAsset;
   address public debtAsset;
@@ -220,7 +223,7 @@ contract ForkingSetup is CoreRoles, Test {
       string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
     string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
 
-    BorrowingVault vault_ = new BorrowingVault(
+    vault = new BorrowingVault(
       collateralAsset,
       debtAsset,
       address(mockOracle),
@@ -229,7 +232,6 @@ contract ForkingSetup is CoreRoles, Test {
       symbolVault,
       providers
     );
-    vault = IVault(address(vault_));
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {
