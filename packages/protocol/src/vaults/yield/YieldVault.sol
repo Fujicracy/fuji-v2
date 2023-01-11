@@ -16,9 +16,10 @@ contract YieldVault is BaseVault {
     address asset_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    ILendingProvider[] memory providers_
   )
-    BaseVault(asset_, chief_, name_, symbol_)
+    BaseVault(asset_, chief_, name_, symbol_, providers_)
   {}
 
   receive() external payable {}

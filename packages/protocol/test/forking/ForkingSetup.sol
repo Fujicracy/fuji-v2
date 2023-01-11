@@ -131,7 +131,7 @@ contract ForkingSetup is CoreRoles, Test {
     registry[POLYGON_DOMAIN] = polygon;
   }
 
-  function deploy(uint32 domain) public {
+  function deploy(uint32 domain, ILendingProvider[] memory providers) public {
     Registry memory reg = registry[domain];
     if (reg.connext == address(0) && reg.weth == address(0) && reg.usdc == address(0)) {
       revert("No registry for this chain");
@@ -181,7 +181,8 @@ contract ForkingSetup is CoreRoles, Test {
       address(mockOracle),
       address(chief),
       "Fuji-V2 WETH-USDC Vault Shares",
-      "fv2WETHUSDC"
+      "fv2WETHUSDC",
+      providers
     );
   }
 

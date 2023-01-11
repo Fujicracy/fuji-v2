@@ -51,7 +51,6 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
-  ILendingProvider public mockProvider;
   IRouter public simpleRouter;
   ISwapper public swapper;
 
@@ -70,12 +69,8 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     flasher = new MockFlasher();
 
-    mockProvider = new MockProvider();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(mockProvider);
+    // _setVaultProviders(vault, providers);
+    // vault.setActiveProvider(mockProvider);
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
   }
@@ -419,13 +414,17 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   function test_borrowWithPermitAttack() public {
     // Create an inverted "asset-debtAsset" vault.
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     newVault = new BorrowingVault(
       debtAsset, // Debt asset as collateral
       collateralAsset, // Collateral asset as debt
       address(oracle),
       address(chief),
       "Fuji-V2 DAI Vault Shares",
-      "fv2DAI"
+      "fv2DAI",
+      providers
     );
 
     _dealMockERC20(collateralAsset, ALICE, amount);

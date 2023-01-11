@@ -16,14 +16,13 @@ contract AaveV3ArbitrumForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
-
     aaveV3 = new AaveV3Arbitrum();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV3;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(aaveV3);
+    deploy(ARBITRUM_DOMAIN, providers);
+    // _setVaultProviders(vault, providers);
+    // vault.setActiveProvider(aaveV3);
   }
 
   function test_depositAndBorrow() public {

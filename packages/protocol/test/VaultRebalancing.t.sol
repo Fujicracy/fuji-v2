@@ -214,6 +214,9 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     mockProviderB = new MockProviderIdB();
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
+    providers[0] = mockProviderA;
+    providers[1] = mockProviderB;
 
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
@@ -236,14 +239,17 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(chief), executionCall);
 
     address bvaultAddr = chief.deployVault(
-      address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
+      address(bVaultFactory),
+      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
+      "A+"
     );
     bvault = BorrowingVault(payable(bvaultAddr));
-    _utils_setupVaultProviders(IVault(bvaultAddr));
+    // _utils_setupVaultProviders(IVault(bvaultAddr));
 
-    address yvaultAddr = chief.deployVault(address(yVaultFactory), abi.encode(address(asset)), "A+");
+    address yvaultAddr =
+      chief.deployVault(address(yVaultFactory), abi.encode(address(asset), providers), "A+");
     yvault = YieldVault(payable(yvaultAddr));
-    _utils_setupVaultProviders(IVault(yvaultAddr));
+    // _utils_setupVaultProviders(IVault(yvaultAddr));
 
     flasher = new MockFlasher();
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);

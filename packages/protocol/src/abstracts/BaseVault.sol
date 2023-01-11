@@ -63,7 +63,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address asset_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    ILendingProvider[] memory providers_
   )
     ERC20(name_, symbol_)
     SystemAccessControl(chief_)
@@ -78,6 +79,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     // To reduce initial deposit shares manipulation, the minimum deposit can't be < than this number.
     // refer to https://rokinot.github.io/hatsfinance
     minAmount = 1e6;
+
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
   }
 
   /*////////////////////////////////////////////////////
@@ -641,26 +645,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   ///////////////////////////
 
   function setProviders(ILendingProvider[] memory providers) external onlyTimelock {
-    uint256 len = providers.length;
-    for (uint256 i = 0; i < len;) {
-      if (address(providers[i]) == address(0)) {
-        revert BaseVault__setter_invalidInput();
-      }
-      IERC20(asset()).approve(
-        providers[i].approvedOperator(asset(), address(this)), type(uint256).max
-      );
-      if (debtAsset() != address(0)) {
-        IERC20(debtAsset()).approve(
-          providers[i].approvedOperator(debtAsset(), address(this)), type(uint256).max
-        );
-      }
-      unchecked {
-        ++i;
-      }
-    }
-    _providers = providers;
-
-    emit ProvidersChanged(providers);
+    _setProviders(providers);
   }
 
   /// inheritdoc IVault
@@ -706,6 +691,29 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     hasRole(msg.sender, UNPAUSER_ROLE)
   {
     _unpause(action);
+  }
+
+  function _setProviders(ILendingProvider[] memory providers) private {
+    uint256 len = providers.length;
+    for (uint256 i = 0; i < len;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      IERC20(asset()).approve(
+        providers[i].approvedOperator(asset(), address(this)), type(uint256).max
+      );
+      if (debtAsset() != address(0)) {
+        IERC20(debtAsset()).approve(
+          providers[i].approvedOperator(debtAsset(), address(this)), type(uint256).max
+        );
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    _providers = providers;
+
+    emit ProvidersChanged(providers);
   }
 
   function _setActiveProvider(ILendingProvider activeProvider_) internal {

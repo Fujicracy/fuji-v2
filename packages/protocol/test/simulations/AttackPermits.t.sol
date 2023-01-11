@@ -15,7 +15,6 @@ import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 contract AttackPermits is MockingSetup, Routines {
   address attacker;
 
-  ILendingProvider public mockProvider;
   IRouter public simpleRouter;
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
@@ -31,13 +30,6 @@ contract AttackPermits is MockingSetup, Routines {
 
     oracle.setUSDPriceOf(collateralAsset, USD_PER_ETH_PRICE);
     oracle.setUSDPriceOf(debtAsset, ETH_PER_USD_PRICE);
-
-    mockProvider = new MockProvider();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(mockProvider);
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
 

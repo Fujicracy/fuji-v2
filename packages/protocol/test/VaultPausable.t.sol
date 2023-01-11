@@ -68,6 +68,9 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
@@ -83,17 +86,21 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(bVaultFactory), callData);
 
     address vault1Addr = chief.deployVault(
-      address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
+      address(bVaultFactory),
+      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
+      "A+"
     );
     vault1 = BorrowingVault(payable(vault1Addr));
-    _utils_setupVaultProvider(vault1);
+    // _utils_setupVaultProvider(vault1);
 
     address vault2Addr = chief.deployVault(
-      address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "B+"
+      address(bVaultFactory),
+      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
+      "B+"
     );
 
     vault2 = BorrowingVault(payable(vault2Addr));
-    _utils_setupVaultProvider(vault2);
+    // _utils_setupVaultProvider(vault2);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
@@ -128,14 +135,14 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(chief), sendData);
   }
 
-  function _utils_setupVaultProvider(BorrowingVault vault_) internal {
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _callWithTimelock(address(vault_), encodedWithSelectorData);
-    vault_.setActiveProvider(mockProvider);
-  }
+  // function _utils_setupVaultProvider(BorrowingVault vault_) internal {
+  //   ILendingProvider[] memory providers = new ILendingProvider[](1);
+  //   providers[0] = mockProvider;
+  //   bytes memory encodedWithSelectorData =
+  //     abi.encodeWithSelector(vault_.setProviders.selector, providers);
+  //   _callWithTimelock(address(vault_), encodedWithSelectorData);
+  //   vault_.setActiveProvider(mockProvider);
+  // }
 
   function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
     mockerc20.mint(to, amount);

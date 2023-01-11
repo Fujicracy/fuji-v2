@@ -16,14 +16,13 @@ contract MorphoAaveV2ForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(MAINNET_DOMAIN);
-
     morphoAaveV2 = new MorphoAaveV2();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = morphoAaveV2;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(morphoAaveV2);
+    deploy(MAINNET_DOMAIN, providers);
+    // _setVaultProviders(vault, providers);
+    // vault.setActiveProvider(morphoAaveV2);
   }
 
   function test_depositAndBorrow() public {

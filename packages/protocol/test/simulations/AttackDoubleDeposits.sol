@@ -62,23 +62,23 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
-    vault = new BorrowingVault(
-      address(weth),
-      address(usdc),
-      address(mockOracle),
-      address(chief),
-      "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
-    );
-
     compoundV2 = new CompoundV2();
     aaveV2 = new AaveV2();
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = compoundV2;
     providers[1] = aaveV2;
 
-    _utils_setupVaultProvider(vault, providers);
-    vault.setActiveProvider(compoundV2);
+    vault = new BorrowingVault(
+      address(weth),
+      address(usdc),
+      address(mockOracle),
+      address(chief),
+      "Fuji-V2 WETH Vault Shares",
+      "fv2WETH",
+      providers
+    );
+    // _utils_setupVaultProvider(vault, providers);
+    // vault.setActiveProvider(compoundV2);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {

@@ -58,6 +58,9 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
@@ -67,10 +70,13 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
       address(oracle),
       address(chief),
       "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+      "fv2WETH",
+      providers
     );
 
-    _utils_setupVaultProvider();
+    _utils_setupTestRoles();
+
+    // _utils_setupVaultProvider();
   }
 
   /// Utilities
@@ -89,15 +95,15 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
     );
   }
 
-  function _utils_setupVaultProvider() internal {
-    _utils_setupTestRoles();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-    vault.setActiveProvider(mockProvider);
-  }
+  // function _utils_setupVaultProvider() internal {
+  //   _utils_setupTestRoles();
+  //   ILendingProvider[] memory providers = new ILendingProvider[](1);
+  //   providers[0] = mockProvider;
+  //   bytes memory encodedWithSelectorData =
+  //     abi.encodeWithSelector(vault.setProviders.selector, providers);
+  //   _callWithTimelock(address(vault), encodedWithSelectorData);
+  //   vault.setActiveProvider(mockProvider);
+  // }
 
   function _utils_setupTestRoles() internal {
     // Grant this test address all roles.
@@ -167,7 +173,7 @@ contract VaultAccessControlUnitTests is DSTestPlus, CoreRoles {
     ILendingProvider maliciousProvider = new MockProvider();
     vm.expectRevert(
       abi.encodeWithSelector(
-        SystemAccessControl.SystemAccessControl__hasRole_missingRole.selector, foe, REBALANCER_ROLE
+        SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
       )
     );
     vm.prank(foe);

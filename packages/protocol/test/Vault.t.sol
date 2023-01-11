@@ -58,6 +58,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
@@ -67,10 +70,13 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
             address(oracle),
             address(chief),
             'Fuji-V2 WETH Vault Shares',
-            'fv2WETH'
+            'fv2WETH',
+            providers
         );
 
-    _utils_setupVaultProvider();
+    _utils_setupTestRoles();
+
+    // _utils_setupVaultProvider();
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
@@ -106,15 +112,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(chief), sendData);
   }
 
-  function _utils_setupVaultProvider() internal {
-    _utils_setupTestRoles();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-    vault.setActiveProvider(mockProvider);
-  }
+  // function _utils_setupVaultProvider() internal {
+  //   _utils_setupTestRoles();
+  //   ILendingProvider[] memory providers = new ILendingProvider[](1);
+  //   providers[0] = mockProvider;
+  //   bytes memory encodedWithSelectorData =
+  //     abi.encodeWithSelector(vault.setProviders.selector, providers);
+  //   _callWithTimelock(address(vault), encodedWithSelectorData);
+  //   vault.setActiveProvider(mockProvider);
+  // }
 
   function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
     mockerc20.mint(to, amount);

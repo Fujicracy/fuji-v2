@@ -63,7 +63,9 @@ contract BorrowingVault is BaseVault {
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  IERC20Metadata internal immutable _debtAsset;
+  // error[7733]: for `_debtAsset`
+  //TypeError: Immutable variables cannot be read before they are initialized.
+  IERC20Metadata private _debtAsset;
   uint8 private immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
@@ -96,9 +98,10 @@ contract BorrowingVault is BaseVault {
     address oracle_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    ILendingProvider[] memory providers_
   )
-    BaseVault(asset_, chief_, name_, symbol_)
+    BaseVault(asset_, chief_, name_, symbol_, providers_)
   {
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = _debtAsset.decimals();
