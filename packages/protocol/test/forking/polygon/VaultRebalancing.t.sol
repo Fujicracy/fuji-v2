@@ -35,8 +35,8 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
     aaveV2 = new AaveV2Polygon();
     aaveV3 = new AaveV3Polygon();
     ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = aaveV2;
-    providers[1] = aaveV3;
+    providers[0] = aaveV3; // activeProvider
+    providers[1] = aaveV2;
 
     deploy(providers);
 
