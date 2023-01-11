@@ -44,7 +44,7 @@ contract HundredOptimism is ILendingProvider {
   }
 
   function _getProxyReceiver() internal pure returns (address) {
-    return address(0);
+    return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;
   }
 
   /**

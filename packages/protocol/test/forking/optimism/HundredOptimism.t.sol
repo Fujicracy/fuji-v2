@@ -62,7 +62,7 @@ contract HundredOptimismForkingTest is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     uint256 borrowBalance1 = ICToken(
-      IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5).getAddressMapping(
+      IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA).getAddressMapping(
         "Hundred", debtAsset
       )
     ).borrowBalanceCurrent(address(vault));
@@ -76,7 +76,7 @@ contract HundredOptimismForkingTest is Routines, ForkingSetup {
     borrowBalance = vault.totalDebt();
 
     borrowBalance1 = ICToken(
-      IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5).getAddressMapping(
+      IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA).getAddressMapping(
         "Hundred", debtAsset
       )
     ).borrowBalanceCurrent(address(vault));

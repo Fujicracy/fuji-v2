@@ -70,7 +70,7 @@ contract HundredPolygonForkingTest is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     uint256 borrowBalance1 = ICToken(
-      IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5).getAddressMapping(
+      IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153).getAddressMapping(
         "Hundred", debtAsset
       )
     ).borrowBalanceCurrent(address(vault));
@@ -84,7 +84,7 @@ contract HundredPolygonForkingTest is Routines, ForkingSetup {
     borrowBalance = vault.totalDebt();
 
     borrowBalance1 = ICToken(
-      IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5).getAddressMapping(
+      IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153).getAddressMapping(
         "Hundred", debtAsset
       )
     ).borrowBalanceCurrent(address(vault));
