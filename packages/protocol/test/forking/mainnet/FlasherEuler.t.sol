@@ -25,8 +25,8 @@ contract FlasherEulerForkingTest is Routines, ForkingSetup, IFlashloan {
 
   RebalancerManager public rebalancer;
 
-  uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-  uint256 public constant BORROW_AMOUNT = 100e6; // 100 USDC
+  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
+  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
     setUpFork(MAINNET_DOMAIN);

@@ -27,8 +27,8 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant MUMBAI_DOMAIN = 9991;
 
   uint32 public constant MAINNET_DOMAIN = 6648936;
-  uint32 public constant OPTIMISM_DOMAIN = 22222222; // TODO: replace with the real one
-  uint32 public constant ARBITRUM_DOMAIN = 33333333; // TODO: replace with the real one
+  uint32 public constant OPTIMISM_DOMAIN = 1869640809;
+  uint32 public constant ARBITRUM_DOMAIN = 1634886255;
   uint32 public constant POLYGON_DOMAIN = 1886350457;
   //https://github.com/connext/chaindata/blob/main/crossChain.json
 
@@ -45,6 +45,7 @@ contract ForkingSetup is CoreRoles, Test {
     address weth;
     address usdc;
     address dai;
+    address wmatic;
     address connext;
   }
   // domain => addresses registry
@@ -78,6 +79,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
       usdc: address(0),
       dai: address(0),
+      wmatic: address(0),
       connext: 0x99A784d082476E551E5fc918ce3d849f2b8e89B6
     });
     registry[GOERLI_DOMAIN] = goerli;
@@ -86,6 +88,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0x74c6FD7D2Bc6a8F0Ebd7D78321A95471b8C2B806,
       usdc: address(0),
       dai: address(0),
+      wmatic: address(0),
       connext: 0x705791AD27229dd4CCf41b6720528AfE1bcC2910
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
@@ -94,6 +97,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0xFD2AB41e083c75085807c4A65C0A14FDD93d55A9,
       usdc: address(0),
       dai: address(0),
+      wmatic: address(0),
       connext: 0xfeBBcfe9a88aadefA6e305945F2d2011493B15b4
     });
     registry[MUMBAI_DOMAIN] = mumbai;
@@ -102,6 +106,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
       usdc: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,
       dai: address(0),
+      wmatic: address(0),
       connext: address(0)
     });
     registry[MAINNET_DOMAIN] = mainnet;
@@ -110,6 +115,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0x4200000000000000000000000000000000000006,
       usdc: 0x7F5c764cBc14f9669B88837ca1490cCa17c31607,
       dai: address(0),
+      wmatic: address(0),
       connext: address(0)
     });
     registry[OPTIMISM_DOMAIN] = optimism;
@@ -117,6 +123,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory arbitrum = Registry({
       weth: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,
       usdc: 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8,
+      wmatic: address(0),
       dai: address(0),
       connext: address(0)
     });
@@ -126,6 +133,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619,
       usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
       dai: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063,
+      wmatic: 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270,
       connext: address(0)
     });
     registry[POLYGON_DOMAIN] = polygon;
@@ -163,6 +171,7 @@ contract ForkingSetup is CoreRoles, Test {
     mockOracle = new MockOracle();
     /*address[] memory empty = new address[](0);*/
     /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
+
     // WETH and DAI prices by Nov 11h 2022
     mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
     mockOracle.setUSDPriceOf(debtAsset, 100000000);
@@ -182,6 +191,45 @@ contract ForkingSetup is CoreRoles, Test {
       "fv2WETHUSDC",
       providers
     );
+  }
+
+  function deployVault(
+    address collateralAsset_,
+    address debtAsset_,
+    uint256 collateralAssetUSDPrice,
+    uint256 debtAssetUSDPrice,
+    string memory collateralAssetName,
+    string memory debtAssetName,
+    ILendingProvider[] memory providers
+  )
+    internal
+  {
+    collateralAsset = collateralAsset_;
+    debtAsset = debtAsset_;
+
+    // TODO: replace with real oracle
+    mockOracle = new MockOracle();
+    /*address[] memory empty = new address[](0);*/
+    /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
+
+    //TODO only being used for wmatic and usdc, the following lines will be unecessary once real oracle is used
+    mockOracle.setUSDPriceOf(collateralAsset, collateralAssetUSDPrice);
+    mockOracle.setUSDPriceOf(debtAsset, debtAssetUSDPrice);
+
+    string memory nameVault =
+      string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
+    string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
+
+    BorrowingVault vault_ = new BorrowingVault(
+      collateralAsset,
+      debtAsset,
+      address(mockOracle),
+      address(chief),
+      nameVault,
+      symbolVault,
+      providers
+    );
+    vault = IVault(address(vault_));
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {

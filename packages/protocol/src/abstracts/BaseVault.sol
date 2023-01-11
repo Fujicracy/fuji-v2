@@ -50,8 +50,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   string public constant VERSION = "v-0.0.0";
 
-  IERC20Metadata internal immutable _asset;
-  IERC20Metadata internal immutable _debtAsset;
+  IERC20Metadata internal _asset;
+  IERC20Metadata internal _debtAsset;
 
   uint8 private immutable _decimals;
 

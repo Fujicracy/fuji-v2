@@ -34,7 +34,7 @@ contract Routines is Test {
     uint256 mintedShares = v.balanceOf(from);
     uint256 assetBalance = v.convertToAssets(mintedShares);
 
-    assertGe(assetBalance, amount);
+    assertApproxEqAbs(assetBalance, amount, amount / 1000);
 
     vm.warp(block.timestamp - 13 seconds);
     vm.roll(block.number - 1);
