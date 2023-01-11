@@ -77,8 +77,6 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
       "fv2WETH",
       providers
     );
-    // _utils_setupVaultProvider(vault, providers);
-    // vault.setActiveProvider(compoundV2);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {

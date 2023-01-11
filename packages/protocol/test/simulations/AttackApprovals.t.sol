@@ -23,13 +23,13 @@ contract AttackApprovals is ForkingSetup, Routines {
   uint256 public constant BORROW_AMOUNT = 200e18;
 
   function setUp() public {
+    setUpFork(MAINNET_DOMAIN);
+
     aaveV2 = new AaveV2();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV2;
 
-    deploy(MAINNET_DOMAIN, providers);
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(aaveV2);
+    deploy(providers);
 
     vm.label(CHARLIE, "attacker");
     attacker = CHARLIE;

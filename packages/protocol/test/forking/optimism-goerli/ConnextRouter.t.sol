@@ -34,13 +34,14 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
   function setUp() public {
     domain = OPTIMISM_GOERLI_DOMAIN;
+    setUpFork(domain);
 
     // test with a mock provider because Connext's and Aave's WETH mismatch
     MockProviderV0 mockProvider = new MockProviderV0();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
 
-    deploy(domain, providers);
+    deploy(providers);
 
     connextRouter = new ConnextRouter(
       IWETH9(collateralAsset),

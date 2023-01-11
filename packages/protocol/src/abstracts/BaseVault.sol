@@ -51,6 +51,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   string public constant VERSION = "v-0.0.0";
 
   IERC20Metadata internal immutable _asset;
+  IERC20Metadata internal immutable _debtAsset;
+
   uint8 private immutable _decimals;
 
   ILendingProvider[] internal _providers;
@@ -61,6 +63,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   constructor(
     address asset_,
+    address debtAsset_,
     address chief_,
     string memory name_,
     string memory symbol_,
@@ -74,6 +77,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__constructor_invalidInput();
     }
     _asset = IERC20Metadata(asset_);
+    _debtAsset = IERC20Metadata(debtAsset_);
     _decimals = _asset.decimals();
     depositCap = type(uint128).max;
     // To reduce initial deposit shares manipulation, the minimum deposit can't be < than this number.
@@ -99,7 +103,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   )
     public
     view
-    override (ERC20, IERC20)
+    override(ERC20, IERC20)
     returns (uint256)
   {
     address operator = receiver;
@@ -111,7 +115,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
    * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
    */
-  function approve(address receiver, uint256 shares) public override (ERC20, IERC20) returns (bool) {
+  function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
     address operator = receiver;
     _setWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
@@ -165,7 +169,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Asset management: overrides IERC4626 ///
   ////////////////////////////////////////////
 
-  function decimals() public view virtual override (IERC20Metadata, ERC20) returns (uint8) {
+  function decimals() public view virtual override(IERC20Metadata, ERC20) returns (uint8) {
     return _decimals;
   }
 
@@ -693,7 +697,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _unpause(action);
   }
 
-  function _setProviders(ILendingProvider[] memory providers) private {
+  function _setProviders(ILendingProvider[] memory providers) internal {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {

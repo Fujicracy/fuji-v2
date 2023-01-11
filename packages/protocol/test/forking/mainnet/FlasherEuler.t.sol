@@ -29,6 +29,8 @@ contract FlasherEulerForkingTest is Routines, ForkingSetup, IFlashloan {
   uint256 public constant BORROW_AMOUNT = 100e6; // 100 USDC
 
   function setUp() public {
+    setUpFork(MAINNET_DOMAIN);
+
     providerAave = new AaveV2();
     providerCompound = new CompoundV2();
 
@@ -36,10 +38,7 @@ contract FlasherEulerForkingTest is Routines, ForkingSetup, IFlashloan {
     providers[0] = providerAave;
     providers[1] = providerCompound;
 
-    deploy(MAINNET_DOMAIN, providers);
-
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(providerAave);
+    deploy(providers);
 
     rebalancer = new RebalancerManager(address(chief));
     _grantRoleChief(REBALANCER_ROLE, address(rebalancer));

@@ -36,11 +36,13 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
   address public debtAsset2;
 
   function setUp() public {
+    setUpFork(POLYGON_DOMAIN);
+
     aaveV2 = new AaveV2Polygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV2;
 
-    deploy(POLYGON_DOMAIN, providers);
+    deploy(providers);
 
     address aaveV3Pool = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
     vm.label(aaveV3Pool, "AaveV3Pool");
@@ -50,9 +52,6 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     router = new SimpleRouter(IWETH9(collateralAsset), chief);
     flasher = new FlasherAaveV3(aaveV3Pool);
     swapper = new UniswapV2Swapper(IWETH9(collateralAsset), IUniswapV2Router01(quickSwap));
-
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(aaveV2);
 
     // new BorrowingVault with USDT
     debtAsset2 = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
@@ -72,8 +71,6 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       providers
     );
     vm.label(address(vault2), "Vault2");
-    // _setVaultProviders(vault2, providers);
-    // vault2.setActiveProvider(aaveV3);
   }
 
   function test_closePositionWithFlashloan() public {

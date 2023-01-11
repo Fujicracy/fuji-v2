@@ -14,20 +14,19 @@ contract BeefyVelodromesETHETHForkingTest is Routines, ForkingSetup {
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
 
   function setUp() public {
+    setUpFork(OPTIMISM_DOMAIN);
+
     ILendingProvider beefy = new BeefyVelodromesETHETH();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = beefy;
 
-    deploy(OPTIMISM_DOMAIN, providers);
+    deploy(providers);
 
     vm.label(0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9, "UniswapV2Solidly");
     vm.label(0xf92129fE0923d766C2540796d4eA31Ff9FF65522, "BeefyVault");
 
     vault =
     new YieldVault(collateralAsset, address(chief), "Fuji-V2 WETH YieldVault Shares", "fyvWETH", providers);
-
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(beefy);
   }
 
   function test_depositAndWithdraw() public {

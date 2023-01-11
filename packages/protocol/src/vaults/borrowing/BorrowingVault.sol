@@ -63,10 +63,7 @@ contract BorrowingVault is BaseVault {
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  // error[7733]: for `_debtAsset`
-  //TypeError: Immutable variables cannot be read before they are initialized.
-  IERC20Metadata private _debtAsset;
-  uint8 private immutable _debtDecimals;
+  uint8 internal immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
 
@@ -79,7 +76,6 @@ contract BorrowingVault is BaseVault {
   Factors
   See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
   */
-
   /**
    * @dev A factor that defines
    * the maximum Loan-To-Value a user can take.
@@ -101,9 +97,8 @@ contract BorrowingVault is BaseVault {
     string memory symbol_,
     ILendingProvider[] memory providers_
   )
-    BaseVault(asset_, chief_, name_, symbol_, providers_)
+    BaseVault(asset_, debtAsset_, chief_, name_, symbol_, providers_)
   {
-    _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = _debtAsset.decimals();
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;

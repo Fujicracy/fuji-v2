@@ -30,15 +30,15 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
+    setUpFork(POLYGON_DOMAIN);
+
     aaveV2 = new AaveV2Polygon();
     aaveV3 = new AaveV3Polygon();
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = aaveV2;
     providers[1] = aaveV3;
 
-    deploy(POLYGON_DOMAIN, providers);
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(aaveV3);
+    deploy(providers);
 
     address aaveV3Pool = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
     vm.label(aaveV3Pool, "AaveV3Pool");

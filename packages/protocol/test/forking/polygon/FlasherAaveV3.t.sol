@@ -25,9 +25,11 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
   RebalancerManager public rebalancer;
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-  uint256 public constant BORROW_AMOUNT = 100;
+  uint256 public constant BORROW_AMOUNT = 10e6;
 
   function setUp() public {
+    setUpFork(POLYGON_DOMAIN);
+
     providerAaveV3 = new AaveV3Polygon();
     providerAaveV2 = new AaveV2Polygon();
 
@@ -35,9 +37,7 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
     providers[0] = providerAaveV3;
     providers[1] = providerAaveV2;
 
-    deploy(POLYGON_DOMAIN, providers);
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(providerAaveV3);
+    deploy(providers);
 
     rebalancer = new RebalancerManager(address(chief));
     _grantRoleChief(REBALANCER_ROLE, address(rebalancer));

@@ -131,7 +131,7 @@ contract ForkingSetup is CoreRoles, Test {
     registry[POLYGON_DOMAIN] = polygon;
   }
 
-  function deploy(uint32 domain, ILendingProvider[] memory providers) public {
+  function setUpFork(uint32 domain) public {
     Registry memory reg = registry[domain];
     if (reg.connext == address(0) && reg.weth == address(0) && reg.usdc == address(0)) {
       revert("No registry for this chain");
@@ -156,7 +156,9 @@ contract ForkingSetup is CoreRoles, Test {
       debtAsset = reg.usdc;
       vm.label(debtAsset, "USDC");
     }
+  }
 
+  function deploy(ILendingProvider[] memory providers) public {
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
     /*address[] memory empty = new address[](0);*/
@@ -164,10 +166,6 @@ contract ForkingSetup is CoreRoles, Test {
     // WETH and DAI prices by Nov 11h 2022
     mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
     mockOracle.setUSDPriceOf(debtAsset, 100000000);
-
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
 
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
