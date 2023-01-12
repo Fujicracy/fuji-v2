@@ -63,6 +63,7 @@ contract BorrowingVault is BaseVault {
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
+  IERC20Metadata internal _debtAsset;
   uint8 internal immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
@@ -97,12 +98,17 @@ contract BorrowingVault is BaseVault {
     string memory symbol_,
     ILendingProvider[] memory providers_
   )
-    BaseVault(asset_, debtAsset_, chief_, name_, symbol_, providers_)
+    BaseVault(asset_, chief_, name_, symbol_)
   {
+    _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = _debtAsset.decimals();
+
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;
     liqRatio = 80 * 1e16;
+
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
   }
 
   receive() external payable {}
@@ -582,5 +588,26 @@ contract BorrowingVault is BaseVault {
     }
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
+  }
+
+  function _setProviders(ILendingProvider[] memory providers) internal override {
+    uint256 len = providers.length;
+    for (uint256 i = 0; i < len;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      IERC20(asset()).approve(
+        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
+      );
+      IERC20(debtAsset()).approve(
+        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()), type(uint256).max
+      );
+      unchecked {
+        ++i;
+      }
+    }
+    _providers = providers;
+
+    emit ProvidersChanged(providers);
   }
 }
