@@ -24,9 +24,9 @@ library LibOvix {
   }
 
   function viewExchangeRate(ICToken cToken) internal view returns (uint256) {
-    uint256 accrualBlockNumberPrior = cToken.accrualBlockTimestamp();
+    uint256 accrualBlockTimestampPrior = cToken.accrualBlockTimestamp();
 
-    if (accrualBlockNumberPrior == block.timestamp) return cToken.exchangeRateStored();
+    if (accrualBlockTimestampPrior == block.timestamp) return cToken.exchangeRateStored();
 
     uint256 totalCash = cToken.getCash();
     uint256 borrowsPrior = cToken.totalBorrows();
@@ -37,7 +37,7 @@ library LibOvix {
     require(borrowRateMantissa <= 0.0005e16, "RATE_TOO_HIGH"); // Same as borrowRateMaxMantissa in ICTokenInterfaces.sol
 
     uint256 interestAccumulated =
-      (borrowRateMantissa * (block.timestamp - accrualBlockNumberPrior)).mulWadDown(borrowsPrior);
+      (borrowRateMantissa * (block.timestamp - accrualBlockTimestampPrior)).mulWadDown(borrowsPrior);
 
     uint256 totalReserves =
       cToken.reserveFactorMantissa().mulWadDown(interestAccumulated) + reservesPrior;
@@ -49,15 +49,15 @@ library LibOvix {
   }
 
   function viewNewBorrowIndex(ICToken cToken) internal view returns (uint256 newBorrowIndex) {
-    /* Remember the initial block number */
-    uint256 currentBlockNumber = block.timestamp;
-    uint256 accrualBlockNumberPrior = cToken.accrualBlockTimestamp();
+    /* Remember the initial block timestamp */
+    uint256 currentBlockTimestamp = block.timestamp;
+    uint256 accrualBlockTimestampPrior = cToken.accrualBlockTimestamp();
 
     /* Read the previous values out of storage */
     uint256 borrowIndexPrior = cToken.borrowIndex();
 
     /* Short-circuit accumulating 0 interest */
-    if (accrualBlockNumberPrior == currentBlockNumber) {
+    if (accrualBlockTimestampPrior == currentBlockTimestamp) {
       newBorrowIndex = borrowIndexPrior;
     }
 
@@ -65,8 +65,8 @@ library LibOvix {
     uint256 borrowRateMantissa = cToken.borrowRatePerTimestamp();
     require(borrowRateMantissa <= 0.0005e16, "RATE_TOO_HIGH"); // Same as borrowRateMaxMantissa in ICTokenInterfaces.sol
 
-    /* Calculate the number of blocks elapsed since the last accrual */
-    uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;
+    /* Calculate the number of timestamps elapsed since the last accrual */
+    uint256 blockDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 
     uint256 simpleInterestFactor = borrowRateMantissa * blockDelta;
     newBorrowIndex = (simpleInterestFactor * borrowIndexPrior) / 1e18 + borrowIndexPrior;

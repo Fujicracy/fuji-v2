@@ -168,11 +168,11 @@ contract OvixPolygon is ILendingProvider {
     address cTokenAddr = _getCToken(vault.asset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: Compound uses base 1e18
-    uint256 bRateperBlock = ICToken(cTokenAddr).supplyRatePerTimestamp() * 10 ** 9;
+    uint256 bRateperTimestamp = ICToken(cTokenAddr).supplyRatePerTimestamp() * 10 ** 9;
 
     // The approximate number of seconds per year
     uint256 secondsPerYear = 60 * 60 * 24 * 365;
-    rate = bRateperBlock * secondsPerYear;
+    rate = bRateperTimestamp * secondsPerYear;
   }
 
   /// inheritdoc ILendingProvider
@@ -180,11 +180,11 @@ contract OvixPolygon is ILendingProvider {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: Compound uses base 1e18
-    uint256 bRateperBlock = ICToken(cTokenAddr).borrowRatePerTimestamp() * 10 ** 9;
+    uint256 bRateperTimestamp = ICToken(cTokenAddr).borrowRatePerTimestamp() * 10 ** 9;
 
     // The approximate number of seconds per year
     uint256 secondsPerYear = 60 * 60 * 24 * 365;
-    rate = bRateperBlock * secondsPerYear;
+    rate = bRateperTimestamp * secondsPerYear;
   }
   /// inheritdoc ILendingProvider
 
