@@ -271,9 +271,13 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    const [deposit, borrow] = await this.multicallRpcProvider.all([
+    const [depositShares, borrowShares] = await this.multicallRpcProvider.all([
       this.multicallContract.balanceOf(account.value),
       this.multicallContract.balanceOfDebt(account.value),
+    ]);
+    const [deposit, borrow] = await this.multicallRpcProvider.all([
+      this.multicallContract.convertToAssets(depositShares),
+      this.multicallContract.convertToDebt(borrowShares),
     ]);
 
     return { deposit, borrow };
