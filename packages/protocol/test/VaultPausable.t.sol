@@ -88,7 +88,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     address vault1Addr = chief.deployVault(
       address(bVaultFactory),
       abi.encode(address(asset), address(debtAsset), address(oracle), providers),
-      "A+"
+      95
     );
     vault1 = BorrowingVault(payable(vault1Addr));
     // _utils_setupVaultProvider(vault1);
@@ -96,7 +96,7 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     address vault2Addr = chief.deployVault(
       address(bVaultFactory),
       abi.encode(address(asset), address(debtAsset), address(oracle), providers),
-      "B+"
+      85
     );
 
     vault2 = BorrowingVault(payable(vault2Addr));

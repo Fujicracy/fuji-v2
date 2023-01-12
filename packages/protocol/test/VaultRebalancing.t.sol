@@ -241,13 +241,13 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     address bvaultAddr = chief.deployVault(
       address(bVaultFactory),
       abi.encode(address(asset), address(debtAsset), address(oracle), providers),
-      "A+"
+      95
     );
     bvault = BorrowingVault(payable(bvaultAddr));
     // _utils_setupVaultProviders(IVault(bvaultAddr));
 
     address yvaultAddr =
-      chief.deployVault(address(yVaultFactory), abi.encode(address(asset), providers), "A+");
+      chief.deployVault(address(yVaultFactory), abi.encode(address(asset), providers), 95);
     yvault = YieldVault(payable(yvaultAddr));
     // _utils_setupVaultProviders(IVault(yvaultAddr));
 

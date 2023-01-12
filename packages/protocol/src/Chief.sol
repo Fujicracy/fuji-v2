@@ -27,6 +27,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   event AllowFlasher(address indexed flasher, bool allowed);
   event AllowVaultFactory(address indexed factory, bool allowed);
   event TimelockUpdated(address indexed timelock);
+  event SafetyRatingChange(address vault, uint256 newRating);
 
   /// @dev Custom Errors
   error Chief__checkInput_zeroAddress();
@@ -35,6 +36,8 @@ contract Chief is CoreRoles, AccessControl, IChief {
   error Chief__deployVault_factoryNotAllowed();
   error Chief__deployVault_missingRole(address account, bytes32 role);
   error Chief__onlyTimelock_callerIsNotTimelock();
+  error Chief__checkRatingValue_notInRange();
+  error Chief__checkValidVault_notValidVault();
 
   bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
 
@@ -43,7 +46,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   bool public openVaultFactory;
 
   address[] internal _vaults;
-  mapping(address => string) public vaultSafetyRating;
+  mapping(address => uint256) public vaultSafetyRating;
   mapping(address => bool) public allowedVaultFactory;
   mapping(address => bool) public allowedFlasher;
 
@@ -86,7 +89,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   function deployVault(
     address _factory,
     bytes calldata _deployData,
-    string calldata rating
+    uint256 rating
   )
     external
     returns (address vault)
@@ -97,10 +100,30 @@ contract Chief is CoreRoles, AccessControl, IChief {
     if (!openVaultFactory && !hasRole(DEPLOYER_ROLE, msg.sender)) {
       revert Chief__deployVault_missingRole(msg.sender, DEPLOYER_ROLE);
     }
+    _checkRatingValue(rating);
+
     vault = IVaultFactory(_factory).deployVault(_deployData);
     vaultSafetyRating[vault] = rating;
     _vaults.push(vault);
+
     emit DeployVault(_factory, vault, _deployData);
+  }
+
+  /**
+   * @notice Set `vaultSafetyRating` for `_vault`.
+   * Requirements:
+   *  - Emits a `SafetyRatingChange` event.
+   *  - Only timelock can change rating.
+   *  - `newRating` is in range [1=100].
+   *  - `vault_` is not zero address.
+   */
+  function setSafetyRating(address vault_, uint256 newRating) external onlyTimelock {
+    _checkValidVault(vault_);
+    _checkRatingValue(newRating);
+
+    vaultSafetyRating[vault_] = newRating;
+
+    emit SafetyRatingChange(vault_, newRating);
   }
 
   /**
@@ -215,6 +238,35 @@ contract Chief is CoreRoles, AccessControl, IChief {
   function _checkInputIsNotZeroAddress(address input) internal pure {
     if (input == address(0)) {
       revert Chief__checkInput_zeroAddress();
+    }
+  }
+
+  /**
+   * @dev reverts if `rating` input is not in range [1,100].
+   */
+  function _checkRatingValue(uint256 rating) internal pure {
+    if (rating == 0 || rating > 100) {
+      revert Chief__checkRatingValue_notInRange();
+    }
+  }
+
+  /**
+   * @dev reverts if `rating` input is not in range [1,100].
+   */
+  function _checkValidVault(address vault_) internal view {
+    _checkInputIsNotZeroAddress(vault_);
+    uint256 len = _vaults.length;
+    bool isInVaultList;
+    for (uint256 i = 0; i < len;) {
+      if (vault_ == _vaults[i]) {
+        isInVaultList = true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    if (!isInVaultList) {
+      revert Chief__checkValidVault_notValidVault();
     }
   }
 }
