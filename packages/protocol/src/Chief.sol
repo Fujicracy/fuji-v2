@@ -251,7 +251,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `rating` input is not in range [1,100].
+   * @dev reverts if `vault_` is not in `_vaults` array.
    */
   function _checkValidVault(address vault_) internal view {
     _checkInputIsNotZeroAddress(vault_);
