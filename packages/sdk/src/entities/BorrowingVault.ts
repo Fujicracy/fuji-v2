@@ -9,15 +9,7 @@ import invariant from 'tiny-invariant';
 
 import { CONNEXT_ROUTER_ADDRESS } from '../constants';
 import { ChainId, RouterAction } from '../enums';
-import {
-  BorrowParams,
-  ChainConfig,
-  DepositParams,
-  LendingProviderDetails,
-  PaybackParams,
-  PermitParams,
-  WithdrawParams,
-} from '../types';
+import { ChainConfig, LendingProviderDetails, PermitParams } from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
@@ -340,98 +332,6 @@ export class BorrowingVault extends StreamManager {
     const digest = utils._TypedDataEncoder.hash(domain, types, value);
 
     return { digest, domain, types, value };
-  }
-
-  previewDeposit(
-    amount: BigNumber,
-    receiver: Address,
-    sender: Address
-  ): DepositParams {
-    return {
-      action: RouterAction.DEPOSIT,
-      vault: this.address,
-      amount,
-      receiver,
-      sender,
-    };
-  }
-
-  previewWithdraw(
-    amount: BigNumber,
-    receiver: Address,
-    owner: Address
-  ): WithdrawParams {
-    return {
-      action: RouterAction.WITHDRAW,
-      vault: this.address,
-      amount,
-      receiver,
-      owner,
-    };
-  }
-
-  previewBorrow(
-    amount: BigNumber,
-    receiver: Address,
-    owner: Address
-  ): BorrowParams {
-    return {
-      action: RouterAction.BORROW,
-      vault: this.address,
-      amount,
-      receiver,
-      owner,
-    };
-  }
-
-  previewPayback(
-    amount: BigNumber,
-    receiver: Address,
-    sender: Address
-  ): PaybackParams {
-    return {
-      action: RouterAction.PAYBACK,
-      vault: this.address,
-      amount,
-      receiver,
-      sender,
-    };
-  }
-
-  previewPermitBorrow(
-    amount: BigNumber,
-    receiver: Address,
-    owner: Address,
-    deadline?: number
-  ): PermitParams {
-    // set deadline to approx. 24h
-    const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
-    return {
-      action: RouterAction.PERMIT_BORROW,
-      vault: this.address,
-      amount,
-      receiver,
-      owner,
-      deadline: deadline ?? oneDayLater,
-    };
-  }
-
-  previewPermitWithdraw(
-    amount: BigNumber,
-    receiver: Address,
-    owner: Address,
-    deadline?: number
-  ): PermitParams {
-    // set deadline to approx. 24h
-    const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
-    return {
-      action: RouterAction.PERMIT_WITHDRAW,
-      vault: this.address,
-      amount,
-      receiver,
-      owner,
-      deadline: deadline ?? oneDayLater,
-    };
   }
 
   private _getPermitDigest(params: PermitParams, nonce: BigNumber) {

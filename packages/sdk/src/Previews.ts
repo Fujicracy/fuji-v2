@@ -6,7 +6,12 @@ import { CONNEXT_DOMAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
 import { Address, BorrowingVault, Token } from './entities';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import {
+  BorrowParams,
+  DepositParams,
+  PaybackParams,
+  PermitParams,
   RouterActionParams,
+  WithdrawParams,
   XTransferParams,
   XTransferWithCallParams,
 } from './types/RouterActionParams';
@@ -38,15 +43,15 @@ export class Previews {
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
       // everything happens on the same chain
-      actions = [vault.previewDeposit(amountIn, account, account)];
+      actions = [this._depositAction(vault, amountIn, account, account)];
     } else {
       // transfer from chain A and deposit on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        vault.previewDeposit(amountIn, account, connextRouter),
+        this._depositAction(vault, amountIn, account, connextRouter),
       ];
       actions = [
-        this.xTransferWithCall(
+        this._xTransferWithCallAction(
           vault.chainId,
           tokenIn,
           amountIn,
@@ -91,8 +96,8 @@ export class Previews {
     if (srcChainId == vault.chainId && tokenOut.chainId === vault.chainId) {
       // everything happens on the same chain
       actions = [
-        vault.previewPermitBorrow(amountOut, account, account, deadline),
-        vault.previewBorrow(amountOut, account, account),
+        this._permitBorrowAction(vault, amountOut, account, account, deadline),
+        this._borrowAction(vault, amountOut, account, account),
       ];
     } else if (
       srcChainId === vault.chainId &&
@@ -101,9 +106,15 @@ export class Previews {
       // start from chain A, borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       actions = [
-        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, connextRouter, account),
-        this.xTransfer(
+        this._permitBorrowAction(
+          vault,
+          amountOut,
+          connextRouter,
+          account,
+          deadline
+        ),
+        this._borrowAction(vault, amountOut, connextRouter, account),
+        this._xTransferAction(
           tokenOut.chainId,
           vault.debt,
           amountOut,
@@ -119,11 +130,17 @@ export class Previews {
       // start from chain A and borrow on chain B where's also the position
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, connextRouter, account),
+        this._permitBorrowAction(
+          vault,
+          amountOut,
+          connextRouter,
+          account,
+          deadline
+        ),
+        this._borrowAction(vault, amountOut, connextRouter, account),
       ];
       actions = [
-        this.xTransferWithCall(
+        this._xTransferWithCallAction(
           vault.chainId,
           { address: Address.from(AddressZero) } as Token,
           BigNumber.from(0),
@@ -169,15 +186,15 @@ export class Previews {
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
       // everything happens on the same chain
-      actions = [vault.previewPayback(amountIn, account, account)];
+      actions = [this._paybackAction(vault, amountIn, account, account)];
     } else {
       // transfer from chain A and payback on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        vault.previewPayback(amountIn, account, connextRouter),
+        this._paybackAction(vault, amountIn, account, connextRouter),
       ];
       actions = [
-        this.xTransferWithCall(
+        this._xTransferWithCallAction(
           vault.chainId,
           tokenIn,
           amountIn,
@@ -222,8 +239,14 @@ export class Previews {
     if (srcChainId == vault.chainId && tokenOut.chainId === vault.chainId) {
       // everything happens on the same chain
       actions = [
-        vault.previewPermitWithdraw(amountOut, account, account, deadline),
-        vault.previewWithdraw(amountOut, account, account),
+        this._permitWithdrawAction(
+          vault,
+          amountOut,
+          account,
+          account,
+          deadline
+        ),
+        this._withdrawAction(vault, amountOut, account, account),
       ];
     } else if (
       srcChainId === vault.chainId &&
@@ -232,14 +255,15 @@ export class Previews {
       // start from chain A, withdraw to chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       actions = [
-        vault.previewPermitWithdraw(
+        this._permitWithdrawAction(
+          vault,
           amountOut,
           connextRouter,
           account,
           deadline
         ),
-        vault.previewWithdraw(amountOut, connextRouter, account),
-        this.xTransfer(
+        this._withdrawAction(vault, amountOut, connextRouter, account),
+        this._xTransferAction(
           tokenOut.chainId,
           vault.debt,
           amountOut,
@@ -255,16 +279,17 @@ export class Previews {
       // start from chain A and withdraw to chain B where's also the position
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        vault.previewPermitWithdraw(
+        this._permitWithdrawAction(
+          vault,
           amountOut,
           connextRouter,
           account,
           deadline
         ),
-        vault.previewWithdraw(amountOut, connextRouter, account),
+        this._withdrawAction(vault, amountOut, connextRouter, account),
       ];
       actions = [
-        this.xTransferWithCall(
+        this._xTransferWithCallAction(
           vault.chainId,
           { address: Address.from(AddressZero) } as Token,
           BigNumber.from(0),
@@ -339,18 +364,24 @@ export class Previews {
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
       // everything happens on the same chain
       actions = [
-        vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, account, account, deadline),
-        vault.previewBorrow(amountOut, account, account),
+        this._depositAction(vault, amountIn, account, account),
+        this._permitBorrowAction(vault, amountOut, account, account, deadline),
+        this._borrowAction(vault, amountOut, account, account),
       ];
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
       actions = [
-        vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, connextRouter, account),
-        this.xTransfer(
+        this._depositAction(vault, amountIn, account, account),
+        this._permitBorrowAction(
+          vault,
+          amountOut,
+          connextRouter,
+          account,
+          deadline
+        ),
+        this._borrowAction(vault, amountOut, connextRouter, account),
+        this._xTransferAction(
           destChainId,
           vault.debt,
           amountOut,
@@ -363,12 +394,12 @@ export class Previews {
       // transfer from chain A and deposit and borrow on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
-        vault.previewDeposit(amountIn, account, connextRouter),
-        vault.previewPermitBorrow(amountOut, account, account, deadline),
-        vault.previewBorrow(amountOut, account, account),
+        this._depositAction(vault, amountIn, account, connextRouter),
+        this._permitBorrowAction(vault, amountOut, account, account, deadline),
+        this._borrowAction(vault, amountOut, account, account),
       ];
       actions = [
-        this.xTransferWithCall(
+        this._xTransferWithCallAction(
           destChainId,
           tokenIn,
           amountIn,
@@ -419,23 +450,30 @@ export class Previews {
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
       // everything happens on the same chain
       actions = [
-        vault.previewPayback(amountIn, account, account),
-        vault.previewPermitWithdraw(amountOut, account, account, deadline),
-        vault.previewWithdraw(amountOut, account, account),
+        this._paybackAction(vault, amountIn, account, account),
+        this._permitWithdrawAction(
+          vault,
+          amountOut,
+          account,
+          account,
+          deadline
+        ),
+        this._withdrawAction(vault, amountOut, account, account),
       ];
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
       actions = [
-        vault.previewPayback(amountIn, account, account),
-        vault.previewPermitWithdraw(
+        this._paybackAction(vault, amountIn, account, account),
+        this._permitWithdrawAction(
+          vault,
           amountOut,
           connextRouter,
           account,
           deadline
         ),
-        vault.previewWithdraw(amountOut, connextRouter, account),
-        this.xTransfer(
+        this._withdrawAction(vault, amountOut, connextRouter, account),
+        this._xTransferAction(
           destChainId,
           vault.debt,
           amountOut,
@@ -448,12 +486,18 @@ export class Previews {
       // transfer from chain A and deposit and borrow on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
-        vault.previewPayback(amountIn, account, connextRouter),
-        vault.previewPermitWithdraw(amountOut, account, account, deadline),
-        vault.previewWithdraw(amountOut, account, account),
+        this._paybackAction(vault, amountIn, account, connextRouter),
+        this._permitWithdrawAction(
+          vault,
+          amountOut,
+          account,
+          account,
+          deadline
+        ),
+        this._withdrawAction(vault, amountOut, account, account),
       ];
       actions = [
-        this.xTransferWithCall(
+        this._xTransferWithCallAction(
           destChainId,
           tokenIn,
           amountIn,
@@ -475,51 +519,6 @@ export class Previews {
 
     return { actions, bridgeFee, steps, estimateTime };
   }
-
-  /********** Actions ***********/
-
-  xTransfer(
-    destChainId: ChainId,
-    asset: Token,
-    amount: BigNumber,
-    receiver: Address,
-    sender: Address,
-    slippage: number
-  ): XTransferParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
-    invariant(destDomain, 'Chain is not available on Connext!');
-
-    return {
-      action: RouterAction.X_TRANSFER,
-      destDomain,
-      slippage,
-      amount,
-      asset: asset.address,
-      receiver: receiver,
-      sender,
-    };
-  }
-
-  xTransferWithCall(
-    destChainId: ChainId,
-    asset: Token,
-    amount: BigNumber,
-    slippage: number,
-    innerActions: RouterActionParams[]
-  ): XTransferWithCallParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
-    invariant(destDomain, `Chain ${destChainId} is not available on Connext!`);
-
-    return {
-      action: RouterAction.X_TRANSFER_WITH_CALL,
-      destDomain,
-      amount,
-      asset: asset.address,
-      slippage,
-      innerActions,
-    };
-  }
-
   /********** Steps ***********/
 
   // DEPOSIT or PAYBACK
@@ -877,5 +876,147 @@ export class Previews {
     });
 
     return steps;
+  }
+
+  /********** Actions ***********/
+
+  private _depositAction(
+    vault: BorrowingVault,
+    amount: BigNumber,
+    receiver: Address,
+    sender: Address
+  ): DepositParams {
+    return {
+      action: RouterAction.DEPOSIT,
+      vault: vault.address,
+      amount,
+      receiver,
+      sender,
+    };
+  }
+
+  private _withdrawAction(
+    vault: BorrowingVault,
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address
+  ): WithdrawParams {
+    return {
+      action: RouterAction.WITHDRAW,
+      vault: vault.address,
+      amount,
+      receiver,
+      owner,
+    };
+  }
+
+  private _borrowAction(
+    vault: BorrowingVault,
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address
+  ): BorrowParams {
+    return {
+      action: RouterAction.BORROW,
+      vault: vault.address,
+      amount,
+      receiver,
+      owner,
+    };
+  }
+
+  private _paybackAction(
+    vault: BorrowingVault,
+    amount: BigNumber,
+    receiver: Address,
+    sender: Address
+  ): PaybackParams {
+    return {
+      action: RouterAction.PAYBACK,
+      vault: vault.address,
+      amount,
+      receiver,
+      sender,
+    };
+  }
+
+  private _permitBorrowAction(
+    vault: BorrowingVault,
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address,
+    deadline?: number
+  ): PermitParams {
+    // set deadline to approx. 24h
+    const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+    return {
+      action: RouterAction.PERMIT_BORROW,
+      vault: vault.address,
+      amount,
+      receiver,
+      owner,
+      deadline: deadline ?? oneDayLater,
+    };
+  }
+
+  private _permitWithdrawAction(
+    vault: BorrowingVault,
+    amount: BigNumber,
+    receiver: Address,
+    owner: Address,
+    deadline?: number
+  ): PermitParams {
+    // set deadline to approx. 24h
+    const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+    return {
+      action: RouterAction.PERMIT_WITHDRAW,
+      vault: vault.address,
+      amount,
+      receiver,
+      owner,
+      deadline: deadline ?? oneDayLater,
+    };
+  }
+
+  private _xTransferAction(
+    destChainId: ChainId,
+    asset: Token,
+    amount: BigNumber,
+    receiver: Address,
+    sender: Address,
+    slippage: number
+  ): XTransferParams {
+    const destDomain = CONNEXT_DOMAIN[destChainId];
+    invariant(destDomain, 'Chain is not available on Connext!');
+
+    return {
+      action: RouterAction.X_TRANSFER,
+      destDomain,
+      slippage,
+      amount,
+      asset: asset.address,
+      receiver: receiver,
+      sender,
+    };
+  }
+
+  private _xTransferWithCallAction(
+    destChainId: ChainId,
+    asset: Token,
+    amount: BigNumber,
+    slippage: number,
+    innerActions: RouterActionParams[]
+  ): XTransferWithCallParams {
+    const destDomain = CONNEXT_DOMAIN[destChainId];
+    invariant(destDomain, `Chain ${destChainId} is not available on Connext!`);
+
+    return {
+      action: RouterAction.X_TRANSFER_WITH_CALL,
+      destDomain,
+      amount,
+      asset: asset.address,
+      slippage,
+      innerActions,
+    };
   }
 }
