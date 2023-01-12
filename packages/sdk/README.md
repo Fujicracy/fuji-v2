@@ -115,11 +115,18 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   }
 ```
 
-### Transation
+### Transaction
 
 ```
-  // TODO: cost and estimateTime are hardcoded
-  const { steps, actions, bridgeFee, estimateTime } = await sdk.previewDepositAndBorrow(vault, amount1, amount2, token1, token2, user);
+  // Note: cost and estimateTime are hardcoded
+  const { steps, actions, bridgeFee, estimateTime } = await sdk.previews.depositAndBorrow(
+    vault,
+    amount1,
+    amount2,
+    token1,
+    token2,
+    user
+  );
 
   // verify if user needs to sign a permit
   if (Sdk.needPermit(actions)) {
@@ -139,18 +146,4 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   // 'step.txHash' is a Promise returning the transactionHash when the tx gets validated
   // use step.chainId and step.txHash to construct the etherscan links
   stepsWithStatus.forEach((step) => step.txHash.then(console.log));
-```
-
-### Misc
-
-```
-  class SDK {
-    // TODO
-    // if account has a position on srcChain or destChain, return the corresponding vault
-    // else return the vault with the lowest APR for currencyOut
-    getDefaultVaultFor(currencyIn, currencyOut, srcChain, destChain) {
-      // determine chain
-      return new Vault(this, currencyIn, currencyOut, chain)
-    }
-  }
 ```

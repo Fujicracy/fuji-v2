@@ -323,7 +323,7 @@ export class Previews {
    * @remarks
    * The array that is returned should be first passed to `BorrowingVault.needSignature`.
    * If one of the actions must be signed by the user, we have to obtain the digest
-   * from `this.signPermitFor` and make the user sign it with their wallet. The last step is
+   * from `sdk.signPermitFor` and make the user sign it with their wallet. The last step is
    * to obtain the txData and the address of the router from `sdk.getTxDetails` which is to be
    * used in ethers.sendTransaction.
    *
@@ -421,6 +421,29 @@ export class Previews {
 
     return { actions, bridgeFee, steps, estimateTime };
   }
+
+  /**
+   * Prepares and returns 1) the bundle of actions that will be send to the router
+   * for a compound operation of payback+withdraw; 2) the steps to be taken in order to
+   * accomplish the operation; 3) the bridge fee; 4) the estimate time to process the tx
+   * in seconds
+   *
+   * @remarks
+   * The array that is returned should be first passed to `BorrowingVault.needSignature`.
+   * If one of the actions must be signed by the user, we have to obtain the digest
+   * from `sdk.signPermitFor` and make the user sign it with their wallet. The last step is
+   * to obtain the txData and the address of the router from `sdk.getTxDetails` which is to be
+   * used in ethers.sendTransaction.
+   *
+   * @param vault - vault instance on which we want to open a position
+   * @param amountIn - amount of provided collateral
+   * @param amountOut - amount of loan
+   * @param tokenIn - token with which user starts the operation
+   * @param tokenOut - token that user want to borrow
+   * @param account - user address, wrapped in {@link Address}
+   * @param deadline - timestamp for validity of permit (defaults to 24h starting from now)
+   * @param slippage - accepted slippage in BPS as 30 == 0.3% (defaults to 0.3%)
+   */
 
   async paybackAndWithdraw(
     vault: BorrowingVault,
@@ -658,7 +681,7 @@ export class Previews {
 
   /**
    * Prepares and returns the steps that will be taken
-   * in order to accomplish an operation.
+   * in order to accomplish a deposit+borrow operation.
    *
    * @param vault - vault instance on which we want to open a position
    * @param amountIn - amount of provided collateral
@@ -772,6 +795,16 @@ export class Previews {
     return steps;
   }
 
+  /**
+   * Prepares and returns the steps that will be taken
+   * in order to accomplish a payback+withdraw operation.
+   *
+   * @param vault - vault instance on which we want to open a position
+   * @param amountIn - amount of provided collateral
+   * @param amountOut - amount of loan
+   * @param tokenIn - token provided by the user
+   * @param tokenOut - token seeked by the user
+   */
   async getPaybackAndWithdrawSteps(
     vault: BorrowingVault,
     amountIn: BigNumber,
