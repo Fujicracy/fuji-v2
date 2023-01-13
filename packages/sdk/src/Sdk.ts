@@ -13,7 +13,7 @@ import {
   VAULT_LIST,
 } from './constants';
 import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
-import { Address, ChainConnection, Currency, Token } from './entities';
+import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, RouterAction } from './enums';
 import { encodeActionArgs } from './functions';
@@ -110,7 +110,7 @@ export class Sdk {
    * @param chainId - ID of the chain
    */
   getConnectionFor(chainId: ChainId): ChainConnectionDetails {
-    return ChainConnection.from(this._configParams, chainId);
+    return CHAIN[chainId].getConnection(this._configParams);
   }
 
   /**
@@ -168,10 +168,7 @@ export class Sdk {
       !tokens.find((t) => t.chainId !== chainId),
       'Token from a different chain!'
     );
-    const { multicallRpcProvider } = ChainConnection.from(
-      this._configParams,
-      chainId
-    );
+    const { multicallRpcProvider } = this.getConnectionFor(chainId);
     const balances = tokens
       .map((token) => token.setConnection(this._configParams))
       .map(
@@ -349,7 +346,7 @@ export class Sdk {
     chainId: ChainId,
     transactionHash: string
   ): Promise<string | undefined> {
-    const { rpcProvider } = ChainConnection.from(this._configParams, chainId);
+    const { rpcProvider } = this.getConnectionFor(chainId);
     const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
     invariant(
       !!receipt,
@@ -436,7 +433,7 @@ export class Sdk {
     pools: LlamaAssetPool[],
     borrows: LlamaBorrowPool[]
   ): BorrowingVaultWithFinancials {
-    const chain = CHAIN[v.chainId].llama;
+    const chain = CHAIN[v.chainId].llamaKey;
     const project = LENDING_PROVIDERS_LIST[v.chainId][providerAddr];
     const collateralSym = v.collateral.symbol;
     const debtSym = v.debt.symbol;

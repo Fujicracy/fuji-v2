@@ -144,7 +144,7 @@ export class Token extends AbstractCurrency {
     const provider = new AnkrProvider();
     return provider
       .getTokenPrice({
-        blockchain: CHAIN[this.chainId].ankr as Blockchain,
+        blockchain: CHAIN[this.chainId].ankrKey as Blockchain,
         contractAddress: this.address.value,
       })
       .then(({ usdPrice }) => parseFloat(usdPrice));
