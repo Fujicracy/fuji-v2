@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
 
-import { CONNEXT_DOMAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
+import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
 import { Address, BorrowingVault, Token } from './entities';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import {
@@ -1019,7 +1019,7 @@ export class Previews {
     sender: Address,
     slippage: number
   ): XTransferParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
+    const destDomain = CHAIN[destChainId].connextDomain;
     invariant(destDomain, 'Chain is not available on Connext!');
 
     return {
@@ -1040,7 +1040,7 @@ export class Previews {
     slippage: number,
     innerActions: RouterActionParams[]
   ): XTransferWithCallParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
+    const destDomain = CHAIN[destChainId].connextDomain;
     invariant(destDomain, `Chain ${destChainId} is not available on Connext!`);
 
     return {

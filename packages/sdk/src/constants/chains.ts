@@ -1,12 +1,12 @@
 import { Chain } from '../entities/Chain';
+import { ChainId } from '../enums/ChainId';
 import {
   ChainAnkrKey,
   ChainCoingeckoKey,
-  ChainId,
   ChainLlamaKey,
-  ChainType,
-  ConnextDomain,
-} from '../enums';
+} from '../enums/ChainKey';
+import { ChainType } from '../enums/ChainType';
+import { ConnextDomain } from '../enums/ConnextDomain';
 
 export const CHAIN: Record<ChainId, Chain> = {
   [ChainId.ETHEREUM]: new Chain(

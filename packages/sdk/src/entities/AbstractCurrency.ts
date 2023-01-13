@@ -4,7 +4,7 @@ import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
-import { CHAIN } from '../constants';
+import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
 import { Address } from './Address';
