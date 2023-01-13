@@ -87,14 +87,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   function deployVault(
-    address _factory,
-    bytes calldata _deployData,
+    address factory,
+    bytes calldata deployData,
     uint256 rating
   )
     external
     returns (address vault)
   {
-    if (!allowedVaultFactory[_factory]) {
+    if (!allowedVaultFactory[factory]) {
       revert Chief__deployVault_factoryNotAllowed();
     }
     if (!openVaultFactory && !hasRole(DEPLOYER_ROLE, msg.sender)) {
@@ -102,28 +102,28 @@ contract Chief is CoreRoles, AccessControl, IChief {
     }
     _checkRatingValue(rating);
 
-    vault = IVaultFactory(_factory).deployVault(_deployData);
+    vault = IVaultFactory(factory).deployVault(deployData);
     vaultSafetyRating[vault] = rating;
     _vaults.push(vault);
 
-    emit DeployVault(_factory, vault, _deployData);
+    emit DeployVault(factory, vault, deployData);
   }
 
   /**
-   * @notice Set `vaultSafetyRating` for `_vault`.
+   * @notice Sets `vaultSafetyRating` for `vault`.
    * Requirements:
    *  - Emits a `SafetyRatingChange` event.
    *  - Only timelock can change rating.
    *  - `newRating` is in range [1=100].
    *  - `vault_` is not zero address.
    */
-  function setSafetyRating(address vault_, uint256 newRating) external onlyTimelock {
-    _checkValidVault(vault_);
+  function setSafetyRating(address vault, uint256 newRating) external onlyTimelock {
+    _checkValidVault(vault);
     _checkRatingValue(newRating);
 
-    vaultSafetyRating[vault_] = newRating;
+    vaultSafetyRating[vault] = newRating;
 
-    emit SafetyRatingChange(vault_, newRating);
+    emit SafetyRatingChange(vault, newRating);
   }
 
   /**
@@ -140,16 +140,16 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `_factory` as an authorized address for vault deployments.
+   * @notice Sets `factory` as an authorized address for vault deployments.
    * - Emits a `AllowVaultFactory` event.
    */
-  function allowVaultFactory(address _factory, bool allowed) external onlyTimelock {
-    _checkInputIsNotZeroAddress(_factory);
-    if (allowedVaultFactory[_factory] == allowed) {
+  function allowVaultFactory(address factory, bool allowed) external onlyTimelock {
+    _checkInputIsNotZeroAddress(factory);
+    if (allowedVaultFactory[factory] == allowed) {
       revert Chief__allowVaultFactory_noAllowChange();
     }
-    allowedVaultFactory[_factory] = allowed;
-    emit AllowVaultFactory(_factory, allowed);
+    allowedVaultFactory[factory] = allowed;
+    emit AllowVaultFactory(factory, allowed);
   }
 
   /**
@@ -251,14 +251,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `vault_` is not in `_vaults` array.
+   * @dev reverts if `vault` is not in `_vaults` array.
    */
-  function _checkValidVault(address vault_) internal view {
-    _checkInputIsNotZeroAddress(vault_);
+  function _checkValidVault(address vault) internal view {
+    _checkInputIsNotZeroAddress(vault);
     uint256 len = _vaults.length;
     bool isInVaultList;
     for (uint256 i = 0; i < len;) {
-      if (vault_ == _vaults[i]) {
+      if (vault == _vaults[i]) {
         isInVaultList = true;
       }
       unchecked {
