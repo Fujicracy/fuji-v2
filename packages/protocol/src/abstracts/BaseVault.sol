@@ -48,7 +48,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    *  MINOR version when you add functionality in a backwards compatible manner.
    *  PATCH version when you make backwards compatible fixes.
    */
-  string public constant VERSION = "v-0.0.0";
+  string public constant VERSION = string("0.0.1");
 
   IERC20Metadata internal _asset;
 
