@@ -13,7 +13,7 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
  */
 contract AgaveGnosis is ILendingProvider {
   function _getPool() internal pure returns (IV2Pool) {
-    return IV2Pool(0x3673C22153E363B1da69732c4E0aA71872Bbb87F);
+    return IV2Pool(0x5E15d5E33d318dCEd84Bfe3F4EACe07909bE6d9c);
   }
 
   /// inheritdoc ILendingProvider
