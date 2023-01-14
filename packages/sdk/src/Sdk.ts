@@ -1,9 +1,11 @@
+import { create, NxtpSdkBase } from '@connext/nxtp-sdk';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
 import invariant from 'tiny-invariant';
+import warning from 'tiny-warning';
 
 import {
   CHAIN,
@@ -40,6 +42,8 @@ export class Sdk {
    */
   previews: Previews;
 
+  private _nxtpSdkBase?: NxtpSdkBase;
+
   /**
    * ChainConfig object containing Infura and Alchemy ids that
    * are used to create JsonRpcProviders.
@@ -49,6 +53,8 @@ export class Sdk {
   constructor(config: ChainConfig) {
     this.previews = new Previews();
     this._configParams = config;
+
+    Object.values(CHAIN).forEach((c) => c.getConnection(this._configParams));
   }
 
   /**
@@ -326,6 +332,12 @@ export class Sdk {
     };
   }
 
+  /**
+   * Based on the `steps` tracks the tx status and resolves with txHash.
+   *
+   * @param transactionHash - hash of the tx on the source chain.
+   * @param steps - array of the steps obtained from `sdk.previews.METHOD`.
+   */
   async watchTxStatus(
     transactionHash: string,
     steps: RoutingStepDetails[]
@@ -342,6 +354,12 @@ export class Sdk {
     }));
   }
 
+  /**
+   * Gets ID of the transfer attributed by Connext.
+   *
+   * @param chainId - ID of the chain where the tx gets initiated.
+   * @param transactionHash - hash of the tx on the source chain.
+   */
   async getTransferId(
     chainId: ChainId,
     transactionHash: string
@@ -370,6 +388,13 @@ export class Sdk {
     return transferId;
   }
 
+  /**
+   * Resolves with the tx hash on the destination chain,
+   * once the destination tx gets executed.
+   * `transferId` can be obtained from `sdk.getTransferId`.
+   *
+   * @param transferId - transfer ID according to Connext numenclature.
+   */
   getDestTxHash(transferId: string): Promise<string> {
     return new Promise((resolve) => {
       const apiCall = () =>
@@ -389,6 +414,32 @@ export class Sdk {
       };
 
       interval();
+    });
+  }
+
+  /**
+   * Estimates the fee to be paid to a destination chain relayer
+   * for the tx to get settled.
+   *
+   * @param srcChainId - ID of the source chain.
+   * @param destChainId - ID of the destination chain.
+   */
+  async estimateRelayerFee(
+    srcChainId: ChainId,
+    destChainId: ChainId
+  ): Promise<BigNumber> {
+    const nxtp = await this._getOrCreateConnextSdk();
+
+    const srcDomain = CHAIN[srcChainId].connextDomain;
+    const destDomain = CHAIN[destChainId].connextDomain;
+    invariant(
+      srcDomain && destDomain,
+      'Estimaing fee for an unsupported by Connext chain!'
+    );
+
+    return nxtp.estimateRelayerFee({
+      originDomain: String(srcDomain),
+      destinationDomain: String(destDomain),
     });
   }
 
@@ -416,6 +467,28 @@ export class Sdk {
           );
         return [...acc, ...vaults];
       }, []);
+  }
+
+  private async _getOrCreateConnextSdk(): Promise<NxtpSdkBase> {
+    if (this._nxtpSdkBase) return this._nxtpSdkBase;
+
+    const chains: Record<string, { providers: string[] }> = {};
+    Object.values(CHAIN)
+      .filter((c) => c.connextDomain)
+      .forEach((c) => {
+        if (c.connection) {
+          chains[String(c.connextDomain)] = {
+            providers: [c.connection.rpcProvider.connection.url],
+          };
+        } else {
+          warning(true, `Connection not set for chain ${c.chainId}!`);
+        }
+      });
+
+    const { nxtpSdkBase } = await create({ chains, logLevel: 'error' });
+    this._nxtpSdkBase = nxtpSdkBase;
+
+    return this._nxtpSdkBase;
   }
 
   private _getAllVaults(): BorrowingVault[] {
