@@ -142,8 +142,9 @@ contract ForkingSetup is CoreRoles, Test {
 
     Registry memory gnosis = Registry({
       weth: 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1,
-      usdc: address(0),
-      dai: 0x82CeB1faBFF9D4eD563710937c89689fc8b8275d,
+      usdc: 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83,
+      // dai: 0x82CeB1faBFF9D4eD563710937c89689fc8b8275d,
+      dai: 0x44fA8E6f47987339850636F88629646662444217,
       wmatic: address(0),
       connext: address(0)
     });
@@ -217,6 +218,8 @@ contract ForkingSetup is CoreRoles, Test {
   {
     collateralAsset = collateralAsset_;
     debtAsset = debtAsset_;
+    vm.label(collateralAsset_, collateralAssetName);
+    vm.label(debtAsset, debtAssetName);
 
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
