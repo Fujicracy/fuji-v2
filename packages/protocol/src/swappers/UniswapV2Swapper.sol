@@ -17,6 +17,7 @@ contract UniswapV2Swapper is ISwapper {
   using SafeERC20 for ERC20;
 
   error UniswapV2Swapper__swap_slippageTooHigh();
+  error UniswapV2Swapper__swap_notEnoughAmountIn();
 
   IUniswapV2Router01 public uniswapRouter;
 
@@ -66,6 +67,10 @@ contract UniswapV2Swapper is ISwapper {
 
     uint256[] memory amounts = uniswapRouter.getAmountsIn(amountOut, path);
 
+    if (amountIn < amounts[0]) {
+      revert UniswapV2Swapper__swap_notEnoughAmountIn();
+    }
+
     ERC20(assetIn).safeApprove(address(uniswapRouter), amounts[0]);
     // swap and transfer swapped amount to receiver (could be Flasher)
     uniswapRouter.swapTokensForExactTokens(
@@ -78,7 +83,7 @@ contract UniswapV2Swapper is ISwapper {
     );
 
     uint256 leftover = amountIn - amounts[0];
-    if (minSweepOut > 0 && minSweepOut >= leftover) {
+    if (minSweepOut > 0 && minSweepOut > leftover) {
       revert UniswapV2Swapper__swap_slippageTooHigh();
     }
     // transfer the leftovers to sweeper
