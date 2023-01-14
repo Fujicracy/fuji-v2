@@ -37,7 +37,7 @@ contract UniswapV2Swapper is ISwapper {
    * @param amountOut The exact amount of `assetOut` required after the swap.
    * @param receiver The address that will receive `amountOut` tokens.
    * @param sweeper The address that will receive the leftovers after the swap.
-   * @param minSweepOut The min amount of leftovers reuqired.
+   * @param minSweepOut The min amount of leftovers required.
    */
   function swap(
     address assetIn,
@@ -78,10 +78,10 @@ contract UniswapV2Swapper is ISwapper {
     );
 
     uint256 leftover = amountIn - amounts[0];
-    if (minSweepOut > 0 && minSweepOut <= leftover) {
+    if (minSweepOut > 0 && minSweepOut >= leftover) {
       revert UniswapV2Swapper__swap_slippageTooHigh();
     }
-    // trnsfer the leftovers to sweeper
+    // transfer the leftovers to sweeper
     ERC20(assetIn).safeTransfer(sweeper, leftover);
   }
 }
