@@ -143,8 +143,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory gnosis = Registry({
       weth: 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1,
       usdc: 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83,
-      // dai: 0x82CeB1faBFF9D4eD563710937c89689fc8b8275d,
-      dai: 0x44fA8E6f47987339850636F88629646662444217,
+      dai: 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d,
       wmatic: address(0),
       connext: address(0)
     });
@@ -291,7 +290,33 @@ contract ForkingSetup is CoreRoles, Test {
     deadline = permit.deadline;
   }
 
+  /**
+   * @dev this function was created to avoid stack to deep in `_getDepositAndBorrowCallData`.
+   */
+  function _buildPermitAsBytes(
+    address owner,
+    uint256 ownerPrivateKey,
+    address operator,
+    address receiver,
+    uint256 amount,
+    uint256 plusNonce,
+    address vault_
+  )
+    internal
+    returns (bytes memory arg)
+  {
+    LibSigUtils.Permit memory permit =
+      LibSigUtils.buildPermitStruct(owner, operator, owner, amount, plusNonce, vault_);
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ownerPrivateKey, vault_);
+
+    arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
+  }
+
   function _getDepositAndBorrowCallData(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
     uint256 amount,
     uint256 borrowAmount,
     address router,
@@ -306,18 +331,40 @@ contract ForkingSetup is CoreRoles, Test {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, ALICE, router);
+    args[0] = abi.encode(vault_, amount, beneficiary, router);
 
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(ALICE, router, ALICE, borrowAmount, 0, vault_);
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, vault_);
-
-    args[1] = abi.encode(vault_, ALICE, ALICE, borrowAmount, deadline, v, r, s);
-
-    args[2] = abi.encode(vault_, borrowAmount, ALICE, ALICE);
+    args[1] = _buildPermitAsBytes(
+      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+    );
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
 
     callData = abi.encode(actions, args);
+  }
+
+  function _getDepositAndBorrow(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
+    uint256 amount,
+    uint256 borrowAmount,
+    address router,
+    address vault_
+  )
+    internal
+    returns (IRouter.Action[] memory, bytes[] memory)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(vault_, amount, beneficiary, router);
+
+    args[1] = _buildPermitAsBytes(
+      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+    );
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    return (actions, args);
   }
 }
