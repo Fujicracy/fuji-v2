@@ -19,7 +19,7 @@ contract AgaveGnosisForkingTest is Routines, ForkingSetup {
 
     deployVault(
       registry[GNOSIS_DOMAIN].weth,
-      registry[GNOSIS_DOMAIN].wxdai,
+      registry[GNOSIS_DOMAIN].dai,
       796341757142697,
       100000000,
       "WETH",
