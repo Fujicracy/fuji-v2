@@ -48,6 +48,10 @@ export class Chain {
     this.llamaKey = llama;
   }
 
+  getConnextDomain(): string {
+    return this.connextDomain?.toString() ?? '';
+  }
+
   /**
    * Sets a rpc and a wss for a specific chain if it's not already done.
    *

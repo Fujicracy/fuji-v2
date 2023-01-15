@@ -22,6 +22,7 @@ import {
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
+import { Chain } from './Chain';
 import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
@@ -44,6 +45,11 @@ export class BorrowingVault extends StreamManager {
    * The chain ID on which this vault resides
    */
   readonly chainId: ChainId;
+
+  /**
+   * The chain on which this vault resides
+   */
+  readonly chain: Chain;
 
   /**
    * The address of the vault contract, wrapped in {@link Address}
@@ -146,6 +152,7 @@ export class BorrowingVault extends StreamManager {
     this.address = address;
     this.collateral = collateral;
     this.chainId = collateral.chainId;
+    this.chain = CHAIN[this.chainId];
     this.debt = debt;
   }
 
