@@ -1,4 +1,4 @@
-import { create, NxtpSdkBase } from '@connext/nxtp-sdk';
+import { create, NxtpSdkBase, NxtpSdkPool } from '@connext/nxtp-sdk';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
@@ -42,7 +42,10 @@ export class Sdk {
    */
   previews: Previews;
 
-  private _nxtpSdkBase?: NxtpSdkBase;
+  private _connextSdk?: {
+    base: NxtpSdkBase;
+    pool: NxtpSdkPool;
+  };
 
   /**
    * ChainConfig object containing Infura and Alchemy ids that
@@ -437,7 +440,7 @@ export class Sdk {
       'Estimaing fee for an unsupported by Connext chain!'
     );
 
-    return nxtp.estimateRelayerFee({
+    return nxtp.base.estimateRelayerFee({
       originDomain: String(srcDomain),
       destinationDomain: String(destDomain),
     });
@@ -469,8 +472,11 @@ export class Sdk {
       }, []);
   }
 
-  private async _getOrCreateConnextSdk(): Promise<NxtpSdkBase> {
-    if (this._nxtpSdkBase) return this._nxtpSdkBase;
+  private async _getOrCreateConnextSdk(): Promise<{
+    base: NxtpSdkBase;
+    pool: NxtpSdkPool;
+  }> {
+    if (this._connextSdk) return this._connextSdk;
 
     const chains: Record<string, { providers: string[] }> = {};
     Object.values(CHAIN)
@@ -485,10 +491,17 @@ export class Sdk {
         }
       });
 
-    const { nxtpSdkBase } = await create({ chains, logLevel: 'error' });
-    this._nxtpSdkBase = nxtpSdkBase;
+    const { nxtpSdkBase, nxtpSdkPool } = await create({
+      network: 'mainnet',
+      chains,
+      logLevel: 'error',
+    });
+    this._connextSdk = {
+      base: nxtpSdkBase,
+      pool: nxtpSdkPool,
+    };
 
-    return this._nxtpSdkBase;
+    return this._connextSdk;
   }
 
   private _getAllVaults(): BorrowingVault[] {
