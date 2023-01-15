@@ -1,11 +1,9 @@
-import { create, NxtpSdkBase, NxtpSdkPool } from '@connext/nxtp-sdk';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
 import invariant from 'tiny-invariant';
-import warning from 'tiny-warning';
 
 import {
   CHAIN,
@@ -19,6 +17,7 @@ import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, RouterAction } from './enums';
 import { encodeActionArgs } from './functions';
+import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
   BorrowingVaultWithFinancials,
@@ -41,11 +40,6 @@ export class Sdk {
    * Instance of Preview helper class.
    */
   previews: Previews;
-
-  private _connextSdk?: {
-    base: NxtpSdkBase;
-    pool: NxtpSdkPool;
-  };
 
   /**
    * ChainConfig object containing Infura and Alchemy ids that
@@ -432,7 +426,7 @@ export class Sdk {
     srcChainId: ChainId,
     destChainId: ChainId
   ): Promise<BigNumber> {
-    const nxtp = await this._getOrCreateConnextSdk();
+    const nxtp = await Nxtp.getOrCreate();
 
     const srcDomain = CHAIN[srcChainId].connextDomain;
     const destDomain = CHAIN[destChainId].connextDomain;
@@ -471,38 +465,6 @@ export class Sdk {
           );
         return [...acc, ...vaults];
       }, []);
-  }
-
-  private async _getOrCreateConnextSdk(): Promise<{
-    base: NxtpSdkBase;
-    pool: NxtpSdkPool;
-  }> {
-    if (this._connextSdk) return this._connextSdk;
-
-    const chains: Record<string, { providers: string[] }> = {};
-    Object.values(CHAIN)
-      .filter((c) => c.connextDomain)
-      .forEach((c) => {
-        if (c.connection) {
-          chains[String(c.connextDomain)] = {
-            providers: [c.connection.rpcProvider.connection.url],
-          };
-        } else {
-          warning(true, `Connection not set for chain ${c.chainId}!`);
-        }
-      });
-
-    const { nxtpSdkBase, nxtpSdkPool } = await create({
-      network: 'mainnet',
-      chains,
-      logLevel: 'error',
-    });
-    this._connextSdk = {
-      base: nxtpSdkBase,
-      pool: nxtpSdkPool,
-    };
-
-    return this._connextSdk;
   }
 
   private _getAllVaults(): BorrowingVault[] {
