@@ -49,7 +49,7 @@ export class Chain {
   }
 
   /**
-   * Returns a rpc and a wss for a specific chain.
+   * Sets a rpc and a wss for a specific chain if it's not already done.
    *
    * @remarks
    * Infura has only one ID for interacting with all available chains
@@ -59,7 +59,7 @@ export class Chain {
    *
    * Defaults to Infura but for missing web socket endpoints, uses Alchemy.
    */
-  getConnection(params: ChainConfig): ChainConnectionDetails {
+  setConnection(params: ChainConfig): Chain {
     if (!this.connection) {
       const url: string = INFURA_RPC_URL[this.chainId](params.infuraId);
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
@@ -81,6 +81,6 @@ export class Chain {
       };
     }
 
-    return this.connection;
+    return this;
   }
 }

@@ -5,7 +5,6 @@ import { AddressZero } from '@ethersproject/constants';
 import { formatUnits } from '@ethersproject/units';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
-import warning from 'tiny-warning';
 
 import { FUJI_ORACLE_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
@@ -66,7 +65,6 @@ export class Token extends AbstractCurrency {
    * {@inheritDoc AbstractCurrency.setConnection}
    */
   setConnection(configParams: ChainConfig): Token {
-    warning(!this.rpcProvider, 'Connection already set!');
     if (this.rpcProvider) return this;
 
     super.setConnection(configParams);

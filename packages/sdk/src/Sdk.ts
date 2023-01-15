@@ -57,7 +57,7 @@ export class Sdk {
     this.previews = new Previews();
     this._configParams = config;
 
-    Object.values(CHAIN).forEach((c) => c.getConnection(this._configParams));
+    Object.values(CHAIN).forEach((c) => c.setConnection(this._configParams));
   }
 
   /**
@@ -119,7 +119,8 @@ export class Sdk {
    * @param chainId - ID of the chain
    */
   getConnectionFor(chainId: ChainId): ChainConnectionDetails {
-    return CHAIN[chainId].getConnection(this._configParams);
+    return CHAIN[chainId].setConnection(this._configParams)
+      .connection as ChainConnectionDetails;
   }
 
   /**

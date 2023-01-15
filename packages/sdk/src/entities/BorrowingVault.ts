@@ -9,7 +9,12 @@ import invariant from 'tiny-invariant';
 
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from '../constants';
 import { ChainId, RouterAction } from '../enums';
-import { ChainConfig, LendingProviderDetails, PermitParams } from '../types';
+import {
+  ChainConfig,
+  ChainConnectionDetails,
+  LendingProviderDetails,
+  PermitParams,
+} from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
@@ -150,7 +155,11 @@ export class BorrowingVault extends StreamManager {
    * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
   setConnection(configParams: ChainConfig): BorrowingVault {
-    const connection = CHAIN[this.chainId].getConnection(configParams);
+    if (this.rpcProvider) return this;
+
+    const connection = CHAIN[this.chainId].setConnection(configParams)
+      .connection as ChainConnectionDetails;
+
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;
     this.multicallRpcProvider = connection.multicallRpcProvider;
