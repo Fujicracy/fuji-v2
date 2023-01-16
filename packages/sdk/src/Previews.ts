@@ -532,7 +532,7 @@ export class Previews {
       );
     } else {
       // transfer from chain A and deposit/payback on chain B
-      const nxtp = await Nxtp.getOrCreate();
+      const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
       const { amountReceived, originSlippage, destinationSlippage, routerFee } =
         await nxtp.pool.calculateAmountReceived(
           tokenIn.chain.getConnextDomain(),
@@ -593,7 +593,7 @@ export class Previews {
       tokenOut.chainId !== vault.chainId
     ) {
       // start from chain A, borrow/withdraw on chain A and transfer to chain B
-      const nxtp = await Nxtp.getOrCreate();
+      const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
       const { amountReceived, originSlippage, destinationSlippage, routerFee } =
         await nxtp.pool.calculateAmountReceived(
           CHAIN[srcChainId].getConnextDomain(),
@@ -664,7 +664,7 @@ export class Previews {
     let estimateSlippage = BigNumber.from(0);
     let bridgeFee = BigNumber.from(0);
 
-    const nxtp = await Nxtp.getOrCreate();
+    const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
 
     const steps: RoutingStepDetails[] = [
       this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
@@ -802,7 +802,7 @@ export class Previews {
     const estimateTime = 3 * 60;
     let bridgeFee = BigNumber.from(0);
 
-    const nxtp = await Nxtp.getOrCreate();
+    const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
 
     const steps: RoutingStepDetails[] = [
       this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),

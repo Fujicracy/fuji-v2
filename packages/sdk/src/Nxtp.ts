@@ -2,6 +2,7 @@ import { create, NxtpSdkBase, NxtpSdkPool } from '@connext/nxtp-sdk';
 import warning from 'tiny-warning';
 
 import { CHAIN } from './constants/chains';
+import { ChainType } from './enums';
 
 export class Nxtp {
   private static _connextSdk?: {
@@ -9,7 +10,7 @@ export class Nxtp {
     pool: NxtpSdkPool;
   };
 
-  static async getOrCreate(): Promise<{
+  static async getOrCreate(chainType: ChainType = ChainType.MAINNET): Promise<{
     base: NxtpSdkBase;
     pool: NxtpSdkPool;
   }> {
@@ -29,7 +30,7 @@ export class Nxtp {
       });
 
     const { nxtpSdkBase, nxtpSdkPool } = await create({
-      network: 'mainnet',
+      network: chainType === ChainType.MAINNET ? 'mainnet' : 'testnet',
       chains,
       logLevel: 'error',
     });
