@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant';
 
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
 import { Address, BorrowingVault, Token } from './entities';
+import { Chain } from './entities/Chain';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { Nxtp } from './Nxtp';
 import { LendingProviderDetails } from './types';
@@ -532,18 +533,16 @@ export class Previews {
       );
     } else {
       // transfer from chain A and deposit/payback on chain B
-      const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
-      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-        await nxtp.pool.calculateAmountReceived(
-          tokenIn.chain.getConnextDomain(),
-          vault.chain.getConnextDomain(),
-          tokenIn.address.value,
-          amountIn
-        );
-      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      const r = await this._callNxtp(
+        tokenIn.chain,
+        vault.chain,
+        tokenIn,
+        amountIn
+      );
+      estimateSlippage = r.estimateSlippage;
       // add back 'routerFee' because the tx passes through
       // Connext slow path where no fee is taken
-      const received = (amountReceived as BigNumber).add(routerFee);
+      const received = r.received.add(r.bridgeFee);
 
       steps.push(
         this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -593,20 +592,17 @@ export class Previews {
       tokenOut.chainId !== vault.chainId
     ) {
       // start from chain A, borrow/withdraw on chain A and transfer to chain B
-      const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
-      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-        await nxtp.pool.calculateAmountReceived(
-          CHAIN[srcChainId].getConnextDomain(),
-          vault.chain.getConnextDomain(),
-          vaultToken.address.value,
-          amountOut
-        );
+      const r = await this._callNxtp(
+        CHAIN[srcChainId],
+        vault.chain,
+        vaultToken,
+        amountOut
+      );
+      bridgeFee = r.bridgeFee;
+      estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
       // so we need to account for the router fee (0.05) + slippage
-      const received = amountReceived as BigNumber;
-      bridgeFee = routerFee as BigNumber;
-      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
-
+      const received = r.received;
       steps.push(
         this._step(step, srcChainId, amountOut, tokenOut, activeProvider),
         this._step(
@@ -664,8 +660,6 @@ export class Previews {
     let estimateSlippage = BigNumber.from(0);
     let bridgeFee = BigNumber.from(0);
 
-    const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
-
     const steps: RoutingStepDetails[] = [
       this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
     ];
@@ -696,18 +690,17 @@ export class Previews {
       tokenIn.chainId === vault.chainId
     ) {
       // deposit and borrow on chain A and transfer to chain B
-      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-        await nxtp.pool.calculateAmountReceived(
-          tokenIn.chain.getConnextDomain(),
-          tokenOut.chain.getConnextDomain(),
-          vault.debt.address.value,
-          amountOut
-        );
+      const r = await this._callNxtp(
+        tokenIn.chain,
+        tokenOut.chain,
+        vault.debt,
+        amountOut
+      );
+      bridgeFee = r.bridgeFee;
+      estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
       // so we need to account for the router fee (0.05) + slippage
-      const received = amountReceived as BigNumber;
-      bridgeFee = routerFee as BigNumber;
-      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      const received = r.received;
       steps.push(
         this._step(
           RoutingStep.DEPOSIT,
@@ -736,17 +729,16 @@ export class Previews {
       tokenOut.chainId === vault.chainId
     ) {
       // transfer from chain A and deposit and borrow on chain B
-      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-        await nxtp.pool.calculateAmountReceived(
-          tokenIn.chain.getConnextDomain(),
-          tokenOut.chain.getConnextDomain(),
-          tokenIn.address.value,
-          amountIn
-        );
-      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      const r = await this._callNxtp(
+        tokenIn.chain,
+        tokenOut.chain,
+        tokenIn,
+        amountIn
+      );
+      estimateSlippage = r.estimateSlippage;
       // add back 'routerFee' because the tx passes through
       // Connext slow path where no fee is taken
-      const received = (amountReceived as BigNumber).add(routerFee);
+      const received = r.received.add(r.bridgeFee);
 
       steps.push(
         this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -802,8 +794,6 @@ export class Previews {
     const estimateTime = 3 * 60;
     let bridgeFee = BigNumber.from(0);
 
-    const nxtp = await Nxtp.getOrCreate(vault.chain.chainType);
-
     const steps: RoutingStepDetails[] = [
       this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
     ];
@@ -834,18 +824,17 @@ export class Previews {
       tokenIn.chainId === vault.chainId
     ) {
       // payback and withdraw on chain A and transfer to chain B
-      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-        await nxtp.pool.calculateAmountReceived(
-          tokenIn.chain.getConnextDomain(),
-          tokenOut.chain.getConnextDomain(),
-          vault.collateral.address.value,
-          amountOut
-        );
+      const r = await this._callNxtp(
+        tokenIn.chain,
+        tokenOut.chain,
+        vault.collateral,
+        amountOut
+      );
+      bridgeFee = r.bridgeFee;
+      estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
       // so we need to account for the router fee (0.05) + slippage
-      const received = amountReceived as BigNumber;
-      bridgeFee = routerFee as BigNumber;
-      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      const received = r.received;
       steps.push(
         this._step(
           RoutingStep.PAYBACK,
@@ -874,17 +863,16 @@ export class Previews {
       tokenOut.chainId === vault.chainId
     ) {
       // transfer from chain A and payback and withdraw on chain B
-      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-        await nxtp.pool.calculateAmountReceived(
-          tokenIn.chain.getConnextDomain(),
-          tokenOut.chain.getConnextDomain(),
-          tokenIn.address.value,
-          amountIn
-        );
-      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      const r = await this._callNxtp(
+        tokenIn.chain,
+        tokenOut.chain,
+        tokenIn,
+        amountIn
+      );
+      estimateSlippage = r.estimateSlippage;
       // add back 'routerFee' because the tx passes through
       // Connext slow path where no fee is taken
-      const received = (amountReceived as BigNumber).add(routerFee);
+      const received = r.received.add(r.bridgeFee);
 
       steps.push(
         this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -1053,7 +1041,7 @@ export class Previews {
     };
   }
 
-  /********** Steps ***********/
+  /********** Misc ***********/
   private _step(
     step: RoutingStep,
     chainId: ChainId,
@@ -1067,6 +1055,33 @@ export class Previews {
       chainId,
       token,
       lendingProvider,
+    };
+  }
+
+  private async _callNxtp(
+    srcChain: Chain,
+    destChain: Chain,
+    token: Token,
+    amount: BigNumber
+  ): Promise<{
+    received: BigNumber;
+    estimateSlippage: BigNumber;
+    bridgeFee: BigNumber;
+  }> {
+    const nxtp = await Nxtp.getOrCreate(token.chain.chainType);
+
+    const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+      await nxtp.pool.calculateAmountReceived(
+        srcChain.getConnextDomain(),
+        destChain.getConnextDomain(),
+        token.address.value,
+        amount
+      );
+
+    return {
+      received: amountReceived as BigNumber,
+      estimateSlippage: (originSlippage as BigNumber).add(destinationSlippage),
+      bridgeFee: routerFee as BigNumber,
     };
   }
 }
