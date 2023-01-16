@@ -6,7 +6,6 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {RadiantArbitrum} from "../../../src/providers/arbitrum/RadiantArbitrum.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract RadiantArbitrumForkingTest is Routines, ForkingSetup {
@@ -16,14 +15,13 @@ contract RadiantArbitrumForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
+    setUpFork(ARBITRUM_DOMAIN);
 
     radiant = new RadiantArbitrum();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = radiant;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(radiant);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {
