@@ -69,17 +69,13 @@ contract RebalancerManager is SystemAccessControl {
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
-      vault.rebalance(assets, 0, from, to, 0);
+      vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
       _checkDebtAmount(vault, debt, from);
       if (!chief.allowedFlasher(address(flasher))) {
         revert RebalancerManager__rebalanceVault_notValidFlasher();
       }
       _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
-    }
-
-    if (setToAsActiveProvider) {
-      vault.setActiveProvider(to);
     }
 
     success = true;
@@ -202,7 +198,7 @@ contract RebalancerManager is SystemAccessControl {
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debt);
 
-    vault.rebalance(assets, debt, from, to, flashloanFee);
+    vault.rebalance(assets, debt, from, to, flashloanFee, setToAsActiveProvider);
 
     debtAsset.safeTransfer(address(flasher), debt + flashloanFee);
 

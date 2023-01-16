@@ -17,10 +17,10 @@ import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../src/abstracts/BaseVault.sol";
 
 contract VaultUnitTests is DSTestPlus, CoreRoles {
-  event MinDepositAmountChanged(uint256 newMinDeposit);
+  event MinAmountChanged(uint256 newMinAmount);
   event DepositCapChanged(uint256 newDepositCap);
 
-  IVault public vault;
+  BorrowingVault public vault;
   Chief public chief;
   TimelockController public timelock;
 
@@ -48,9 +48,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.label(alice, "Alice");
     vm.label(bob, "Bob");
 
-    asset = new MockERC20("Test WETH", "tWETH");
+    asset = new MockERC20('Test WETH', 'tWETH');
     vm.label(address(asset), "tWETH");
-    debtAsset = new MockERC20("Test DAI", "tDAI");
+    debtAsset = new MockERC20('Test DAI', 'tDAI');
     vm.label(address(debtAsset), "tDAI");
 
     oracle = new MockOracle();
@@ -58,19 +58,25 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
 
     vault = new BorrowingVault(
-      address(asset),
-      address(debtAsset),
-      address(oracle),
-      address(chief),
-      "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
-    );
+            address(asset),
+            address(debtAsset),
+            address(oracle),
+            address(chief),
+            'Fuji-V2 WETH Vault Shares',
+            'fv2WETH',
+            providers
+        );
 
-    _utils_setupVaultProvider();
+    _utils_setupTestRoles();
+
+    // _utils_setupVaultProvider();
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
@@ -106,15 +112,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(chief), sendData);
   }
 
-  function _utils_setupVaultProvider() internal {
-    _utils_setupTestRoles();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setProviders.selector, providers);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-    vault.setActiveProvider(mockProvider);
-  }
+  // function _utils_setupVaultProvider() internal {
+  //   _utils_setupTestRoles();
+  //   ILendingProvider[] memory providers = new ILendingProvider[](1);
+  //   providers[0] = mockProvider;
+  //   bytes memory encodedWithSelectorData =
+  //     abi.encodeWithSelector(vault.setProviders.selector, providers);
+  //   _callWithTimelock(address(vault), encodedWithSelectorData);
+  //   vault.setActiveProvider(mockProvider);
+  // }
 
   function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
     mockerc20.mint(to, amount);
@@ -230,12 +236,13 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_deposit(uint128 amount) public {
+    vm.assume(amount > vault.minAmount());
     _utils_doDeposit(amount, vault, alice);
     assertEq(vault.balanceOf(alice), amount);
   }
 
   function test_withdraw(uint96 amount) public {
-    vm.assume(amount > 0);
+    vm.assume(amount > vault.minAmount());
     _utils_doDeposit(amount, vault, alice);
 
     vm.prank(alice);
@@ -245,7 +252,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
 
     assertEq(vault.totalDebt(), 0);
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
@@ -255,7 +265,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_paybackAndWithdraw(uint96 amount, uint96 borrowAmount) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
 
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
@@ -271,7 +284,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_tryBorrowWithoutCollateral(uint256 borrowAmount) public {
-    vm.assume(borrowAmount > 0);
+    uint256 minAmount = vault.minAmount();
+    vm.assume(borrowAmount > minAmount);
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
 
     vm.prank(alice);
@@ -279,7 +293,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
@@ -288,18 +305,16 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vault.withdraw(amount, alice, alice);
   }
 
-  function test_setMinDeposit(uint256 min) public {
+  function test_setMinAmount(uint256 min) public {
     vm.expectEmit(true, false, false, false);
-    emit MinDepositAmountChanged(min);
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    emit MinAmountChanged(min);
+    bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
     _callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
-  function test_tryLessThanMinDeposit(uint128 min, uint128 amount) public {
+  function test_tryLessThanMinAmount(uint128 min, uint128 amount) public {
     vm.assume(amount < min);
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setMinDepositAmount.selector, min);
+    bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
     _callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
@@ -308,7 +323,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_setMaxCap(uint256 maxCap) public {
-    vm.assume(maxCap > 0);
+    uint256 minAmount = vault.minAmount();
+    vm.assume(maxCap > minAmount);
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
     bytes memory encodedWithSelectorData =
@@ -317,8 +333,9 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
+    uint256 minAmount = vault.minAmount();
     vm.assume(
-      maxCap > 0 && depositAlice > 0 && depositBob > 0
+      maxCap > minAmount && depositAlice > minAmount && depositBob > minAmount
         && _utils_add(depositBob, depositAlice) > maxCap && depositAlice < maxCap
     );
     bytes memory encodedWithSelectorData =
@@ -336,7 +353,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
 
     uint256 HF = vault.getHealthFactor(alice);
     assertEq(HF, type(uint256).max);
@@ -384,7 +404,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_tryLiquidateHealthy(uint96 amount, uint96 borrowAmount) public {
-    vm.assume(amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
     _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
@@ -392,41 +415,38 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vault.liquidate(alice, bob);
   }
 
-  function test_liquidateMax(
-    uint32 amount,
-    uint32 borrowAmount,
-    uint32 liquidatorAmount,
-    uint8 priceDrop
-  )
-    public
-  {
-    vm.assume(
-      amount > 0 && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount) && priceDrop > 0
-        && liquidatorAmount > borrowAmount
-        && _utils_checkLiquidateMaxFuture(amount, borrowAmount, priceDrop)
-    );
+  function test_liquidateMax(uint256 borrowAmount) public {
+    uint256 currentPrice = oracle.getPriceOf(address(debtAsset), address(asset), 18);
+    uint256 minAmount = (vault.minAmount() * currentPrice) / 1e18;
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    vm.assume(borrowAmount > minAmount && borrowAmount < USD_PER_ETH_PRICE);
 
-    // price drop
-    uint256 currentPrice = oracle.getPriceOf(address(asset), address(debtAsset), 18);
-    uint256 price = currentPrice - priceDrop;
-    _utils_setPrice(address(asset), address(debtAsset), price);
-    _utils_setPrice(address(debtAsset), address(asset), 1e18 / price);
-    dealMockERC20(debtAsset, bob, liquidatorAmount);
+    uint256 maxltv = vault.maxLtv();
+    uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
+
+    _utils_doDepositAndBorrow(unsafeAmount, borrowAmount, vault, alice);
+
+    // Simulate 90% price drop
+    uint256 liquidationPrice = (currentPrice * 10) / 100;
+    uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
+
+    _utils_setPrice(address(asset), address(debtAsset), inversePrice);
+    _utils_setPrice(address(debtAsset), address(asset), liquidationPrice);
+
+    dealMockERC20(debtAsset, bob, borrowAmount);
 
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
-    assertEq(vault.balanceOf(alice), amount);
+    assertEq(vault.balanceOf(alice), unsafeAmount);
     assertEq(vault.balanceOfDebt(alice), borrowAmount);
 
     assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), liquidatorAmount);
+    assertEq(debtAsset.balanceOf(bob), borrowAmount);
     assertEq(vault.balanceOf(bob), 0);
     assertEq(vault.balanceOfDebt(bob), 0);
 
     vm.startPrank(bob);
-    SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
+    SafeERC20.safeApprove(debtAsset, address(vault), borrowAmount);
     vault.liquidate(alice, bob);
     vm.stopPrank();
 
@@ -436,8 +456,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     assertEq(vault.balanceOfDebt(alice), 0);
 
     assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), liquidatorAmount - borrowAmount);
-    assertEq(vault.balanceOf(bob), amount);
+    assertEq(debtAsset.balanceOf(bob), 0);
+    assertEq(vault.balanceOf(bob), unsafeAmount);
     assertEq(vault.balanceOfDebt(bob), 0);
   }
 
@@ -486,8 +506,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     assertEq(asset.balanceOf(alice), 0);
     assertEq(debtAsset.balanceOf(alice), borrowAmount);
 
-    uint256 discountedPrice = newPrice * 0.9e18 / 1e18;
-    uint256 amountGivenToLiquidator = borrowAmount * 0.5e18 / discountedPrice;
+    uint256 discountedPrice = (newPrice * 0.9e18) / 1e18;
+    uint256 amountGivenToLiquidator = (borrowAmount * 0.5e18) / discountedPrice;
 
     if (amountGivenToLiquidator >= amount) {
       amountGivenToLiquidator = amount;
