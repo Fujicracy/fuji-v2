@@ -26,8 +26,8 @@ contract HundredGnosis is ILendingProvider {
   error Hundred__withdraw_failed(uint256 status);
   error Hundred__borrow_failed(uint256 status);
 
-  function _isDAI(address token) internal pure returns (bool) {
-    return token == 0x44fA8E6f47987339850636F88629646662444217;
+  function _isWDAI(address token) internal pure returns (bool) {
+    return token == 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
   }
 
   function _getAddrmapper() internal pure returns (IAddrMapper) {
@@ -68,7 +68,8 @@ contract HundredGnosis is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function approvedOperator(
-    address asset,
+    address keyAsset,
+    address,
     address
   )
     external
@@ -76,7 +77,7 @@ contract HundredGnosis is ILendingProvider {
     override
     returns (address operator)
   {
-    operator = _getCToken(asset);
+    operator = _getCToken(keyAsset);
   }
 
   /// inheritdoc ILendingProvider
@@ -86,8 +87,11 @@ contract HundredGnosis is ILendingProvider {
 
     _enterCollatMarket(cTokenAddr);
 
-    if (_isDAI(asset)) {
+    if (_isWDAI(asset)) {
       ICETH cToken = ICETH(cTokenAddr);
+
+      // unwrap WDAI to DAI
+      IWETH9(asset).withdraw(amount);
 
       // Compound protocol Mints cTokens, ETH method
       cToken.mint{value: amount}();
@@ -114,6 +118,10 @@ contract HundredGnosis is ILendingProvider {
     if (status != 0) {
       revert Hundred__borrow_failed(status);
     }
+    // wrap DAI to WDAI
+    if (_isWDAI(asset)) {
+      IWETH9(asset).deposit{value: amount}();
+    }
     success = true;
   }
 
@@ -125,7 +133,7 @@ contract HundredGnosis is ILendingProvider {
     // Create a reference to the corresponding cToken contract
     ICToken cToken = ICToken(cTokenAddr);
 
-    if (_isDAI(asset)) {
+    if (_isWDAI(asset)) {
       // use a proxy receiver because Hundred uses "to.transfer(amount)"
       // which runs out of gas with proxy contracts
       uint256 exRate = cToken.exchangeRateStored();
@@ -134,6 +142,8 @@ contract HundredGnosis is ILendingProvider {
       address receiverAddr = _getProxyReceiver();
       cToken.transfer(receiverAddr, scaledAmount);
       IProxyReceiver(receiverAddr).withdraw(amount, cToken);
+      // wrap DAI to WDAI
+      IWETH9(asset).deposit{value: amount}();
     } else {
       uint256 status = cToken.redeemUnderlying(amount);
       if (status != 0) {
@@ -148,8 +158,10 @@ contract HundredGnosis is ILendingProvider {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
 
-    if (_isDAI(asset)) {
+    if (_isWDAI(asset)) {
       ICETH cToken = ICETH(cTokenAddr);
+      // unwrap WDAI to DAI
+      IWETH9(asset).withdraw(amount);
 
       cToken.repayBorrow{value: amount}();
     } else {

@@ -5,7 +5,6 @@ import "forge-std/console.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {HundredGnosis} from "../../../src/providers/gnosis/HundredGnosis.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
@@ -17,7 +16,11 @@ contract HundredGnosisForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(GNOSIS_DOMAIN);
+    setUpFork(GNOSIS_DOMAIN);
+
+    hundred = new HundredGnosis();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = hundred;
 
     deployVault(
       registry[GNOSIS_DOMAIN].weth,
@@ -25,14 +28,9 @@ contract HundredGnosisForkingTest is Routines, ForkingSetup {
       796341757142697,
       100000000,
       "WETH",
-      "DAI"
+      "DAI",
+      providers
     );
-    hundred = new HundredGnosis();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = hundred;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(hundred);
   }
 
   function test_depositAndBorrow() public {
