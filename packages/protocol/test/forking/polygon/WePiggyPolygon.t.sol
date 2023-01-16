@@ -5,7 +5,6 @@ import "forge-std/console.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol";
 
 contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
@@ -15,22 +14,21 @@ contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
-    deploy(POLYGON_DOMAIN);
+    setUpFork(POLYGON_DOMAIN);
+
+    wePiggy = new WePiggyPolygon();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = wePiggy;
+
     deployVault(
       registry[POLYGON_DOMAIN].wmatic,
       registry[POLYGON_DOMAIN].usdc,
       1250000000000000000,
       100000000,
       "WMATIC",
-      "USDC"
+      "USDC",
+      providers
     );
-
-    wePiggy = new WePiggyPolygon();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = wePiggy;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(wePiggy);
   }
 
   function test_depositAndBorrow() public {

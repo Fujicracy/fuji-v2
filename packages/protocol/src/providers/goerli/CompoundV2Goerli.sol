@@ -57,8 +57,16 @@ contract CompoundV2Goerli is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
-  function approvedOperator(address asset, address) external view returns (address operator) {
-    operator = getMapper().getAddressMapping(providerName(), asset);
+  function approvedOperator(
+    address keyAsset,
+    address,
+    address
+  )
+    external
+    view
+    returns (address operator)
+  {
+    operator = getMapper().getAddressMapping(providerName(), keyAsset);
   }
 
   /// inheritdoc ILendingProvider

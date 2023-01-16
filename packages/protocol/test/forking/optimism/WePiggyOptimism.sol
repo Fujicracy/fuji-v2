@@ -15,14 +15,13 @@ contract WePiggyOptimismForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(OPTIMISM_DOMAIN);
+    setUpFork(OPTIMISM_DOMAIN);
 
     wePiggy = new WePiggyOptimism();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = wePiggy;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(wePiggy);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

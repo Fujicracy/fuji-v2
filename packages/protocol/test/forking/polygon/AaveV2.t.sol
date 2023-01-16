@@ -16,14 +16,13 @@ contract AaveV2ForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(POLYGON_DOMAIN);
+    setUpFork(POLYGON_DOMAIN);
 
     aaveV2 = new AaveV2Polygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV2;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(aaveV2);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

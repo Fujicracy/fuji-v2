@@ -80,10 +80,10 @@ interface IVault is IERC4626 {
   event LiqRatioChanged(uint256 newLiqRatio);
 
   /**
-   * @dev Emitted when the minumum deposit amount is changed
-   * @param newMinDeposit the new minimum deposit amount
+   * @dev Emitted when the minumum amount is changed
+   * @param newMinAmount the new minimum amount
    */
-  event MinDepositAmountChanged(uint256 newMinDeposit);
+  event MinAmountChanged(uint256 newMinAmount);
 
   /**
    * @dev Emitted when the deposit cap is changed
@@ -206,6 +206,7 @@ interface IVault is IERC4626 {
    * @param from provider address currently custoding `assets` and/or `debt`.
    * @param to provider address to which `assets` and/or `debt` will be transferred.
    * @param fee expected from rebalancing operation.
+   * @param setToAsActiveProvider boolean.
    *
    * - MUST check providers `from` and `to` are valid.
    * - MUST be called from a {RebalancerManager} contract that makes all proper checks.
@@ -219,7 +220,8 @@ interface IVault is IERC4626 {
     uint256 debt,
     ILendingProvider from,
     ILendingProvider to,
-    uint256 fee
+    uint256 fee,
+    bool setToAsActiveProvider
   )
     external
     returns (bool);
@@ -275,15 +277,19 @@ interface IVault is IERC4626 {
 
   /**
    * @notice Sets the active provider for this vault.
+   * @dev WARNING! Changing active provider without a `rebalance()` call
+   * can result in denial of service for vault users.
    *
    * - MUST be a provider previously set by `setProviders()`.
+   * - MUST be called from a timelock contract.
    */
   function setActiveProvider(ILendingProvider activeProvider) external;
 
   /**
-   * @dev Sets the minimum deposit amount.
+   * @dev Sets the minimum amount for:
+   * `deposit()`, `mint()` and borrow()`.
    */
-  function setMinDepositAmount(uint256 amount) external;
+  function setMinAmount(uint256 amount) external;
 
   /**
    * @dev Sets the deposit cap amount of this vault.

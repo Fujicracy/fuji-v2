@@ -17,14 +17,13 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(MAINNET_DOMAIN);
+    setUpFork(MAINNET_DOMAIN);
 
     compoundV3 = new CompoundV3();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = compoundV3;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(compoundV3);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {
@@ -70,7 +69,7 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    vault.setActiveProvider(aaveV2);
+    _setActiveProvider(vault, aaveV2);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, BOB);
 
     uint256 depositBalance = vault.totalAssets();
@@ -89,13 +88,17 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
 
   // This test is applicable only for CompoundV3
   function testFail_getInterestRatesWithNoMapping() public {
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = compoundV3;
+
     BorrowingVault v = new BorrowingVault(
       address(0),
       address(0),
       address(0),
       address(chief),
       "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+      "fv2WETH",
+      providers
     );
 
     compoundV3.getDepositRateFor(v);
