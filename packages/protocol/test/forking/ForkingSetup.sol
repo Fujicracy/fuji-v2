@@ -6,6 +6,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
@@ -59,6 +60,8 @@ contract ForkingSetup is CoreRoles, Test {
   Chief public chief;
   TimelockController public timelock;
   MockOracle mockOracle;
+
+  address public dummy;
 
   address public collateralAsset;
   address public debtAsset;
@@ -150,7 +153,7 @@ contract ForkingSetup is CoreRoles, Test {
     registry[GNOSIS_DOMAIN] = gnosis;
   }
 
-  function deploy(uint32 domain) public {
+  function setUpFork(uint32 domain) public {
     Registry memory reg = registry[domain];
     if (reg.connext == address(0) && reg.weth == address(0) && reg.usdc == address(0)) {
       revert("No registry for this chain");
@@ -175,7 +178,9 @@ contract ForkingSetup is CoreRoles, Test {
       debtAsset = reg.usdc;
       vm.label(debtAsset, "USDC");
     }
+  }
 
+  function deploy(ILendingProvider[] memory providers) public {
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
     /*address[] memory empty = new address[](0);*/
@@ -184,10 +189,6 @@ contract ForkingSetup is CoreRoles, Test {
     // WETH and DAI prices by Nov 11h 2022
     mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
     mockOracle.setUSDPriceOf(debtAsset, 100000000);
-
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
 
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
@@ -201,7 +202,8 @@ contract ForkingSetup is CoreRoles, Test {
       address(mockOracle),
       address(chief),
       "Fuji-V2 WETH-USDC Vault Shares",
-      "fv2WETHUSDC"
+      "fv2WETHUSDC",
+      providers
     );
   }
 
@@ -211,7 +213,8 @@ contract ForkingSetup is CoreRoles, Test {
     uint256 collateralAssetUSDPrice,
     uint256 debtAssetUSDPrice,
     string memory collateralAssetName,
-    string memory debtAssetName
+    string memory debtAssetName,
+    ILendingProvider[] memory providers
   )
     internal
   {
@@ -233,13 +236,20 @@ contract ForkingSetup is CoreRoles, Test {
       string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
     string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
 
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
+    // Grant this address all roles.
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+
     vault = new BorrowingVault(
       collateralAsset,
       debtAsset,
       address(mockOracle),
       address(chief),
       nameVault,
-      symbolVault
+      symbolVault,
+      providers
     );
   }
 
@@ -257,6 +267,11 @@ contract ForkingSetup is CoreRoles, Test {
 
   function _setVaultProviders(IVault v, ILendingProvider[] memory providers) internal {
     bytes memory callData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
+    _callWithTimelock(address(v), callData);
+  }
+
+  function _setActiveProvider(IVault v, ILendingProvider provider) internal {
+    bytes memory callData = abi.encodeWithSelector(IVault.setActiveProvider.selector, provider);
     _callWithTimelock(address(v), callData);
   }
 

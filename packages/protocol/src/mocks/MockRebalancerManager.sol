@@ -33,15 +33,11 @@ contract MockRebalancerManager {
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
-      vault.rebalance(assets, 0, from, to, 0);
+      vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
       _checkDebtAmount(vault, debt, from);
 
       _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
-    }
-
-    if (setToAsActiveProvider) {
-      vault.setActiveProvider(to);
     }
 
     success = true;
@@ -147,7 +143,7 @@ contract MockRebalancerManager {
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debt);
 
-    vault.rebalance(assets, debt, from, to, flashloanFee);
+    vault.rebalance(assets, debt, from, to, flashloanFee, setToAsActiveProvider);
 
     debtAsset.transfer(address(flasher), debt + flashloanFee);
 

@@ -24,6 +24,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   using Math for uint256;
   using Address for address;
 
+  error BaseVault__constructor_invalidInput();
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
   error BaseVault__mint_moreThanMax();
@@ -39,13 +40,24 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
 
-  IERC20Metadata internal immutable _asset;
+  /**
+   * @dev `VERSION` of this vault.
+   * Software versioning rules are followed: v-0.0.0
+   *  v-MAJOR.MINOR.PATCH
+   *  MAJOR version when you make incompatible ABI changes
+   *  MINOR version when you add functionality in a backwards compatible manner.
+   *  PATCH version when you make backwards compatible fixes.
+   */
+  string public constant VERSION = string("0.0.1");
+
+  IERC20Metadata internal _asset;
+
   uint8 private immutable _decimals;
 
   ILendingProvider[] internal _providers;
   ILendingProvider public activeProvider;
 
-  uint256 public minDepositAmount;
+  uint256 public minAmount;
   uint256 public depositCap;
 
   constructor(
@@ -58,9 +70,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     SystemAccessControl(chief_)
     VaultPermissions(name_)
   {
+    if (asset_ == address(0) || chief_ == address(0)) {
+      revert BaseVault__constructor_invalidInput();
+    }
     _asset = IERC20Metadata(asset_);
     _decimals = _asset.decimals();
     depositCap = type(uint128).max;
+    // To reduce initial deposit shares manipulation, the minimum deposit can't be < than this number.
+    // refer to https://rokinot.github.io/hatsfinance
+    minAmount = 1e6;
   }
 
   /*////////////////////////////////////////////////////
@@ -238,7 +256,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (shares + totalSupply() > maxMint(receiver)) {
       revert BaseVault__deposit_moreThanMax();
     }
-    if (assets < minDepositAmount) {
+    if (assets < minAmount) {
       revert BaseVault__deposit_lessThanMin();
     }
 
@@ -276,7 +294,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (shares + totalSupply() > maxMint(receiver)) {
       revert BaseVault__mint_moreThanMax();
     }
-    if (assets < minDepositAmount) {
+    if (assets < minAmount) {
       revert BaseVault__mint_lessThanMin();
     }
 
@@ -623,51 +641,25 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// Admin set functions ///
   ///////////////////////////
 
+  /// inheritdoc IVault
   function setProviders(ILendingProvider[] memory providers) external onlyTimelock {
-    uint256 len = providers.length;
-    for (uint256 i = 0; i < len;) {
-      if (address(providers[i]) == address(0)) {
-        revert BaseVault__setter_invalidInput();
-      }
-      IERC20(asset()).approve(
-        providers[i].approvedOperator(asset(), address(this)), type(uint256).max
-      );
-      if (debtAsset() != address(0)) {
-        IERC20(debtAsset()).approve(
-          providers[i].approvedOperator(debtAsset(), address(this)), type(uint256).max
-        );
-      }
-      unchecked {
-        ++i;
-      }
-    }
-    _providers = providers;
-
-    emit ProvidersChanged(providers);
+    _setProviders(providers);
   }
 
   /// inheritdoc IVault
-  function setActiveProvider(ILendingProvider activeProvider_)
-    external
-    override
-    hasRole(msg.sender, REBALANCER_ROLE)
-  {
-    if (!_isValidProvider(address(activeProvider_))) {
-      revert BaseVault__setter_invalidInput();
-    }
-    activeProvider = activeProvider_;
-    emit ActiveProviderChanged(activeProvider_);
+  function setActiveProvider(ILendingProvider activeProvider_) external override onlyTimelock {
+    _setActiveProvider(activeProvider_);
   }
 
   /// inheritdoc IVault
-  function setMinDepositAmount(uint256 amount) external override onlyTimelock {
-    minDepositAmount = amount;
-    emit MinDepositAmountChanged(amount);
+  function setMinAmount(uint256 amount) external override onlyTimelock {
+    minAmount = amount;
+    emit MinAmountChanged(amount);
   }
 
   /// inheritdoc IVault
   function setDepositCap(uint256 newCap) external override onlyTimelock {
-    if (newCap == 0 || newCap <= minDepositAmount) {
+    if (newCap == 0 || newCap <= minAmount) {
       revert BaseVault__setter_invalidInput();
     }
     depositCap = newCap;
@@ -697,6 +689,19 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     hasRole(msg.sender, UNPAUSER_ROLE)
   {
     _unpause(action);
+  }
+
+  /**
+   * @dev implement at children level.
+   */
+  function _setProviders(ILendingProvider[] memory providers) internal virtual;
+
+  function _setActiveProvider(ILendingProvider activeProvider_) internal {
+    if (!_isValidProvider(address(activeProvider_))) {
+      revert BaseVault__setter_invalidInput();
+    }
+    activeProvider = activeProvider_;
+    emit ActiveProviderChanged(activeProvider_);
   }
 
   /**

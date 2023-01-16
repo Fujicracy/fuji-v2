@@ -15,14 +15,13 @@ contract DForceArbitrumForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
+    setUpFork(ARBITRUM_DOMAIN);
 
     dForce = new DForceArbitrum();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = dForce;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(dForce);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

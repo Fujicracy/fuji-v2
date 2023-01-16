@@ -17,7 +17,16 @@ contract MockProviderV0 is ILendingProvider {
    * @notice See {ILendingProvider}
    */
 
-  function approvedOperator(address, address) external pure override returns (address operator) {
+  function approvedOperator(
+    address,
+    address,
+    address
+  )
+    external
+    pure
+    override
+    returns (address operator)
+  {
     operator = address(0xAbc123);
   }
 

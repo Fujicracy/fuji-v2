@@ -16,14 +16,13 @@ contract EulerForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(MAINNET_DOMAIN);
+    setUpFork(MAINNET_DOMAIN);
 
     euler = new Euler();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = euler;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(euler);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

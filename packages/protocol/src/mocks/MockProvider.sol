@@ -17,7 +17,8 @@ contract MockProvider is ILendingProvider {
    */
 
   function approvedOperator(
-    address asset,
+    address keyAsset,
+    address,
     address
   )
     external
@@ -25,7 +26,7 @@ contract MockProvider is ILendingProvider {
     override
     returns (address operator)
   {
-    operator = asset;
+    operator = keyAsset;
   }
 
   /**

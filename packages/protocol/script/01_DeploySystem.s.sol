@@ -92,7 +92,7 @@ contract DeploySystem is ScriptPlus {
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
     address vault = chief.deployVault(
-      address(factory), abi.encode(collateral, debtAsset, address(mockOracle)), "A+"
+      address(factory), abi.encode(collateral, debtAsset, address(mockOracle)), 95
     );
     saveAddress(name, vault);
 
