@@ -5,6 +5,8 @@ import invariant from 'tiny-invariant';
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
 import { Address, BorrowingVault, Token } from './entities';
 import { ChainId, RouterAction, RoutingStep } from './enums';
+import { Nxtp } from './Nxtp';
+import { LendingProviderDetails } from './types';
 import {
   BorrowParams,
   DepositParams,
@@ -30,28 +32,25 @@ export class Previews {
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
     const srcChainId = tokenIn.chainId;
-
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
 
     const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
       // everything happens on the same chain
-      actions = [this._depositAction(vault, amountIn, account, account)];
+      actions = [this._deposit(vault, amountIn, account, account)];
     } else {
       // transfer from chain A and deposit on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        this._depositAction(vault, amountIn, account, connextRouter),
+        this._deposit(vault, amountIn, account, connextRouter),
       ];
       actions = [
-        this._xTransferWithCallAction(
+        this._xTransferWithCall(
           vault.chainId,
           tokenIn,
           amountIn,
@@ -61,14 +60,15 @@ export class Previews {
       ];
     }
 
-    const steps = await this.getInflowSteps(
-      RoutingStep.DEPOSIT,
-      vault,
-      amountIn,
-      tokenIn
-    );
+    const { estimateTime, estimateSlippage, bridgeFee, steps } =
+      await this.inflowRoutingDetails(
+        RoutingStep.DEPOSIT,
+        vault,
+        amountIn,
+        tokenIn
+      );
 
-    return { actions, bridgeFee, steps, estimateTime };
+    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
   }
 
   async borrow(
@@ -83,12 +83,9 @@ export class Previews {
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
-
     const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
@@ -96,8 +93,8 @@ export class Previews {
     if (srcChainId == vault.chainId && tokenOut.chainId === vault.chainId) {
       // everything happens on the same chain
       actions = [
-        this._permitBorrowAction(vault, amountOut, account, account, deadline),
-        this._borrowAction(vault, amountOut, account, account),
+        this._permitBorrow(vault, amountOut, account, account, deadline),
+        this._borrow(vault, amountOut, account, account),
       ];
     } else if (
       srcChainId === vault.chainId &&
@@ -106,15 +103,9 @@ export class Previews {
       // start from chain A, borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       actions = [
-        this._permitBorrowAction(
-          vault,
-          amountOut,
-          connextRouter,
-          account,
-          deadline
-        ),
-        this._borrowAction(vault, amountOut, connextRouter, account),
-        this._xTransferAction(
+        this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
+        this._borrow(vault, amountOut, connextRouter, account),
+        this._xTransfer(
           tokenOut.chainId,
           vault.debt,
           amountOut,
@@ -130,17 +121,11 @@ export class Previews {
       // start from chain A and borrow on chain B where's also the position
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        this._permitBorrowAction(
-          vault,
-          amountOut,
-          connextRouter,
-          account,
-          deadline
-        ),
-        this._borrowAction(vault, amountOut, connextRouter, account),
+        this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
+        this._borrow(vault, amountOut, connextRouter, account),
       ];
       actions = [
-        this._xTransferWithCallAction(
+        this._xTransferWithCall(
           vault.chainId,
           { address: Address.from(AddressZero) } as Token,
           BigNumber.from(0),
@@ -152,15 +137,16 @@ export class Previews {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    const steps = await this.getOutflowSteps(
-      RoutingStep.BORROW,
-      vault,
-      srcChainId,
-      amountOut,
-      tokenOut
-    );
+    const { estimateTime, estimateSlippage, bridgeFee, steps } =
+      await this.outflowRoutingDetails(
+        RoutingStep.BORROW,
+        vault,
+        srcChainId,
+        amountOut,
+        tokenOut
+      );
 
-    return { actions, bridgeFee, steps, estimateTime };
+    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
   }
 
   async payback(
@@ -173,28 +159,25 @@ export class Previews {
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
     const srcChainId = tokenIn.chainId;
-
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
 
     const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
       // everything happens on the same chain
-      actions = [this._paybackAction(vault, amountIn, account, account)];
+      actions = [this._payback(vault, amountIn, account, account)];
     } else {
       // transfer from chain A and payback on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        this._paybackAction(vault, amountIn, account, connextRouter),
+        this._payback(vault, amountIn, account, connextRouter),
       ];
       actions = [
-        this._xTransferWithCallAction(
+        this._xTransferWithCall(
           vault.chainId,
           tokenIn,
           amountIn,
@@ -204,14 +187,15 @@ export class Previews {
       ];
     }
 
-    const steps = await this.getInflowSteps(
-      RoutingStep.PAYBACK,
-      vault,
-      amountIn,
-      tokenIn
-    );
+    const { estimateTime, estimateSlippage, bridgeFee, steps } =
+      await this.inflowRoutingDetails(
+        RoutingStep.PAYBACK,
+        vault,
+        amountIn,
+        tokenIn
+      );
 
-    return { actions, bridgeFee, steps, estimateTime };
+    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
   }
 
   async withdraw(
@@ -226,12 +210,9 @@ export class Previews {
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
-
     const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
@@ -239,14 +220,8 @@ export class Previews {
     if (srcChainId == vault.chainId && tokenOut.chainId === vault.chainId) {
       // everything happens on the same chain
       actions = [
-        this._permitWithdrawAction(
-          vault,
-          amountOut,
-          account,
-          account,
-          deadline
-        ),
-        this._withdrawAction(vault, amountOut, account, account),
+        this._permitWithdraw(vault, amountOut, account, account, deadline),
+        this._withdraw(vault, amountOut, account, account),
       ];
     } else if (
       srcChainId === vault.chainId &&
@@ -255,15 +230,15 @@ export class Previews {
       // start from chain A, withdraw to chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       actions = [
-        this._permitWithdrawAction(
+        this._permitWithdraw(
           vault,
           amountOut,
           connextRouter,
           account,
           deadline
         ),
-        this._withdrawAction(vault, amountOut, connextRouter, account),
-        this._xTransferAction(
+        this._withdraw(vault, amountOut, connextRouter, account),
+        this._xTransfer(
           tokenOut.chainId,
           vault.debt,
           amountOut,
@@ -279,17 +254,17 @@ export class Previews {
       // start from chain A and withdraw to chain B where's also the position
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
       const innerActions = [
-        this._permitWithdrawAction(
+        this._permitWithdraw(
           vault,
           amountOut,
           connextRouter,
           account,
           deadline
         ),
-        this._withdrawAction(vault, amountOut, connextRouter, account),
+        this._withdraw(vault, amountOut, connextRouter, account),
       ];
       actions = [
-        this._xTransferWithCallAction(
+        this._xTransferWithCall(
           vault.chainId,
           { address: Address.from(AddressZero) } as Token,
           BigNumber.from(0),
@@ -301,15 +276,16 @@ export class Previews {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    const steps = await this.getOutflowSteps(
-      RoutingStep.WITHDRAW,
-      vault,
-      srcChainId,
-      amountOut,
-      tokenOut
-    );
+    const { estimateTime, estimateSlippage, bridgeFee, steps } =
+      await this.outflowRoutingDetails(
+        RoutingStep.WITHDRAW,
+        vault,
+        srcChainId,
+        amountOut,
+        tokenOut
+      );
 
-    return { actions, bridgeFee, steps, estimateTime };
+    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
   }
 
   /********** Combo Previews ***********/
@@ -349,14 +325,11 @@ export class Previews {
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
-
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
 
     const _slippage = slippage ?? 30;
 
@@ -364,24 +337,18 @@ export class Previews {
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
       // everything happens on the same chain
       actions = [
-        this._depositAction(vault, amountIn, account, account),
-        this._permitBorrowAction(vault, amountOut, account, account, deadline),
-        this._borrowAction(vault, amountOut, account, account),
+        this._deposit(vault, amountIn, account, account),
+        this._permitBorrow(vault, amountOut, account, account, deadline),
+        this._borrow(vault, amountOut, account, account),
       ];
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
       actions = [
-        this._depositAction(vault, amountIn, account, account),
-        this._permitBorrowAction(
-          vault,
-          amountOut,
-          connextRouter,
-          account,
-          deadline
-        ),
-        this._borrowAction(vault, amountOut, connextRouter, account),
-        this._xTransferAction(
+        this._deposit(vault, amountIn, account, account),
+        this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
+        this._borrow(vault, amountOut, connextRouter, account),
+        this._xTransfer(
           destChainId,
           vault.debt,
           amountOut,
@@ -394,12 +361,12 @@ export class Previews {
       // transfer from chain A and deposit and borrow on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
-        this._depositAction(vault, amountIn, account, connextRouter),
-        this._permitBorrowAction(vault, amountOut, account, account, deadline),
-        this._borrowAction(vault, amountOut, account, account),
+        this._deposit(vault, amountIn, account, connextRouter),
+        this._permitBorrow(vault, amountOut, account, account, deadline),
+        this._borrow(vault, amountOut, account, account),
       ];
       actions = [
-        this._xTransferWithCallAction(
+        this._xTransferWithCall(
           destChainId,
           tokenIn,
           amountIn,
@@ -411,15 +378,16 @@ export class Previews {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    const steps = await this.getDepositAndBorrowSteps(
-      vault,
-      amountIn,
-      amountOut,
-      tokenIn,
-      tokenOut
-    );
+    const { estimateTime, estimateSlippage, bridgeFee, steps } =
+      await this.depositAndBorrowRoutingDetails(
+        vault,
+        amountIn,
+        amountOut,
+        tokenIn,
+        tokenOut
+      );
 
-    return { actions, bridgeFee, steps, estimateTime };
+    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
   }
 
   /**
@@ -458,14 +426,11 @@ export class Previews {
     actions: RouterActionParams[];
     steps: RoutingStepDetails[];
     bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
-
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
 
     const _slippage = slippage ?? 30;
 
@@ -473,30 +438,24 @@ export class Previews {
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
       // everything happens on the same chain
       actions = [
-        this._paybackAction(vault, amountIn, account, account),
-        this._permitWithdrawAction(
-          vault,
-          amountOut,
-          account,
-          account,
-          deadline
-        ),
-        this._withdrawAction(vault, amountOut, account, account),
+        this._payback(vault, amountIn, account, account),
+        this._permitWithdraw(vault, amountOut, account, account, deadline),
+        this._withdraw(vault, amountOut, account, account),
       ];
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
       actions = [
-        this._paybackAction(vault, amountIn, account, account),
-        this._permitWithdrawAction(
+        this._payback(vault, amountIn, account, account),
+        this._permitWithdraw(
           vault,
           amountOut,
           connextRouter,
           account,
           deadline
         ),
-        this._withdrawAction(vault, amountOut, connextRouter, account),
-        this._xTransferAction(
+        this._withdraw(vault, amountOut, connextRouter, account),
+        this._xTransfer(
           destChainId,
           vault.debt,
           amountOut,
@@ -509,18 +468,12 @@ export class Previews {
       // transfer from chain A and deposit and borrow on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
-        this._paybackAction(vault, amountIn, account, connextRouter),
-        this._permitWithdrawAction(
-          vault,
-          amountOut,
-          account,
-          account,
-          deadline
-        ),
-        this._withdrawAction(vault, amountOut, account, account),
+        this._payback(vault, amountIn, account, connextRouter),
+        this._permitWithdraw(vault, amountOut, account, account, deadline),
+        this._withdraw(vault, amountOut, account, account),
       ];
       actions = [
-        this._xTransferWithCallAction(
+        this._xTransferWithCall(
           destChainId,
           tokenIn,
           amountIn,
@@ -532,151 +485,154 @@ export class Previews {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    const steps = await this.getPaybackAndWithdrawSteps(
-      vault,
-      amountIn,
-      amountOut,
-      tokenIn,
-      tokenOut
-    );
+    const { estimateTime, estimateSlippage, bridgeFee, steps } =
+      await this.paybackAndWithdrawRoutingDetails(
+        vault,
+        amountIn,
+        amountOut,
+        tokenIn,
+        tokenOut
+      );
 
-    return { actions, bridgeFee, steps, estimateTime };
+    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
   }
-  /********** Steps ***********/
+  /********** Routing Details ***********/
 
   // DEPOSIT or PAYBACK
-  async getInflowSteps(
+  async inflowRoutingDetails(
     step: RoutingStep.DEPOSIT | RoutingStep.PAYBACK,
     vault: BorrowingVault,
     amountIn: BigNumber,
     tokenIn: Token
-  ): Promise<RoutingStepDetails[]> {
+  ): Promise<{
+    steps: RoutingStepDetails[];
+    bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
+    estimateTime: number;
+  }> {
     const activeProvider = (await vault.getProviders()).find((p) => p.active);
 
+    let estimateSlippage = BigNumber.from(0);
+    // TODO: estimate time
+    const estimateTime = 3 * 60;
+    const bridgeFee = BigNumber.from(0);
+
+    const vaultToken =
+      step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt;
+
     const steps: RoutingStepDetails[] = [
-      {
-        step: RoutingStep.START,
-        amount: amountIn,
-        chainId: tokenIn.chainId,
-        token: tokenIn,
-      },
+      this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
     ];
 
     if (tokenIn.chainId === vault.chainId) {
       // everything happens on the same chain
-      steps.push({
-        step,
-        amount: amountIn,
-        chainId: tokenIn.chainId,
-        token: step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt,
-        lendingProvider: activeProvider,
-      });
-    } else {
-      // transfer from chain A and deposit on chain B
       steps.push(
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountIn,
-          chainId: vault.chainId,
-          token: tokenIn,
-        },
-        {
-          step,
-          amount: amountIn,
-          chainId: tokenIn.chainId,
-          token: step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt,
-          lendingProvider: activeProvider,
-        }
+        this._step(step, tokenIn.chainId, amountIn, vaultToken, activeProvider),
+        this._step(RoutingStep.END, vault.chainId, amountIn, vaultToken)
+      );
+    } else {
+      // transfer from chain A and deposit/payback on chain B
+      const nxtp = await Nxtp.getOrCreate();
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          tokenIn.chain.getConnextDomain(),
+          vault.chain.getConnextDomain(),
+          tokenIn.address.value,
+          amountIn
+        );
+      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      // add back 'routerFee' because the tx passes through
+      // Connext slow path where no fee is taken
+      const received = (amountReceived as BigNumber).add(routerFee);
+
+      steps.push(
+        this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+        this._step(step, vault.chainId, received, vaultToken, activeProvider),
+        this._step(RoutingStep.END, vault.chainId, received, vaultToken)
       );
     }
 
-    steps.push({
-      step: RoutingStep.END,
-      amount: amountIn,
-      chainId: vault.chainId,
-      token: step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt,
-    });
-
-    return steps;
+    return { steps, estimateSlippage, estimateTime, bridgeFee };
   }
 
   // BORROW or WITHDRAW
-  async getOutflowSteps(
+  async outflowRoutingDetails(
     step: RoutingStep.BORROW | RoutingStep.WITHDRAW,
     vault: BorrowingVault,
     srcChainId: ChainId,
     amountOut: BigNumber,
     tokenOut: Token
-  ): Promise<RoutingStepDetails[]> {
+  ): Promise<{
+    steps: RoutingStepDetails[];
+    bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
+    estimateTime: number;
+  }> {
     const activeProvider = (await vault.getProviders()).find((p) => p.active);
 
+    let estimateSlippage = BigNumber.from(0);
+    // TODO: estimate time
+    const estimateTime = 3 * 60;
+    let bridgeFee = BigNumber.from(0);
+
+    const vaultToken =
+      step === RoutingStep.BORROW ? vault.debt : vault.collateral;
+
     const steps: RoutingStepDetails[] = [
-      {
-        step: RoutingStep.START,
-        chainId: srcChainId,
-      },
+      this._step(RoutingStep.START, srcChainId),
     ];
 
     if (srcChainId == vault.chainId && tokenOut.chainId === vault.chainId) {
       // everything happens on the same chain
-      steps.push({
-        step,
-        amount: amountOut,
-        chainId: vault.chainId,
-        token: tokenOut,
-        lendingProvider: activeProvider,
-      });
+      steps.push(
+        this._step(step, vault.chainId, amountOut, tokenOut, activeProvider),
+        this._step(RoutingStep.END, vault.chainId, amountOut, tokenOut)
+      );
     } else if (
       srcChainId === vault.chainId &&
       tokenOut.chainId !== vault.chainId
     ) {
       // start from chain A, borrow/withdraw on chain A and transfer to chain B
+      const nxtp = await Nxtp.getOrCreate();
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          CHAIN[srcChainId].getConnextDomain(),
+          vault.chain.getConnextDomain(),
+          vaultToken.address.value,
+          amountOut
+        );
+      // Transfer will pass through the fast path
+      // so we need to account for the router fee (0.05) + slippage
+      const received = amountReceived as BigNumber;
+      bridgeFee = routerFee as BigNumber;
+      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+
       steps.push(
-        {
-          step,
-          amount: amountOut,
-          chainId: srcChainId,
-          token: step === RoutingStep.BORROW ? vault.debt : vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.debt,
-        }
+        this._step(step, srcChainId, amountOut, tokenOut, activeProvider),
+        this._step(
+          RoutingStep.X_TRANSFER,
+          tokenOut.chainId,
+          amountOut,
+          vaultToken
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, received, tokenOut)
       );
     } else if (
       srcChainId !== vault.chainId &&
       tokenOut.chainId === vault.chainId
     ) {
-      // start from chain A and borrow on chain B where's also the position
+      // start from chain A and borrow/withdraw on chain B where's also the position
+      // => no transfer of funds
       steps.push(
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountOut,
-          chainId: srcChainId,
-        },
-        {
-          step,
-          amount: amountOut,
-          chainId: vault.chainId,
-          token: step === RoutingStep.BORROW ? vault.debt : vault.collateral,
-          lendingProvider: activeProvider,
-        }
+        this._step(RoutingStep.X_TRANSFER, srcChainId, amountOut),
+        this._step(step, vault.chainId, amountOut, vaultToken, activeProvider),
+        this._step(RoutingStep.END, vault.chainId, amountOut, tokenOut)
       );
     } else {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    steps.push({
-      step: RoutingStep.END,
-      amount: amountOut,
-      chainId: tokenOut.chainId,
-      token: tokenOut,
-    });
-
-    return steps;
+    return { steps, estimateSlippage, estimateTime, bridgeFee };
   }
 
   /**
@@ -689,22 +645,29 @@ export class Previews {
    * @param tokenIn - token provided by the user
    * @param tokenOut - token seeked by the user
    */
-  async getDepositAndBorrowSteps(
+  async depositAndBorrowRoutingDetails(
     vault: BorrowingVault,
     amountIn: BigNumber,
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<RoutingStepDetails[]> {
+  ): Promise<{
+    steps: RoutingStepDetails[];
+    bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
+    estimateTime: number;
+  }> {
     const activeProvider = (await vault.getProviders()).find((p) => p.active);
 
+    // TODO: estimate time
+    const estimateTime = 3 * 60;
+    let estimateSlippage = BigNumber.from(0);
+    let bridgeFee = BigNumber.from(0);
+
+    const nxtp = await Nxtp.getOrCreate();
+
     const steps: RoutingStepDetails[] = [
-      {
-        step: RoutingStep.START,
-        amount: amountIn,
-        chainId: tokenIn.chainId,
-        token: tokenIn,
-      },
+      this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
     ];
     if (
       tokenIn.chainId === tokenOut.chainId &&
@@ -712,87 +675,102 @@ export class Previews {
     ) {
       // everything happens on the same chain
       steps.push(
-        {
-          step: RoutingStep.DEPOSIT,
-          amount: amountIn,
-          chainId: tokenIn.chainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.BORROW,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        }
+        this._step(
+          RoutingStep.DEPOSIT,
+          tokenIn.chainId,
+          amountIn,
+          vault.collateral,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.BORROW,
+          tokenOut.chainId,
+          amountOut,
+          vault.debt,
+          activeProvider
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
       );
     } else if (
       tokenIn.chainId !== tokenOut.chainId &&
       tokenIn.chainId === vault.chainId
     ) {
       // deposit and borrow on chain A and transfer to chain B
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          tokenIn.chain.getConnextDomain(),
+          tokenOut.chain.getConnextDomain(),
+          vault.debt.address.value,
+          amountOut
+        );
+      // Transfer will pass through the fast path
+      // so we need to account for the router fee (0.05) + slippage
+      const received = amountReceived as BigNumber;
+      bridgeFee = routerFee as BigNumber;
+      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
       steps.push(
-        {
-          step: RoutingStep.DEPOSIT,
-          amount: amountIn,
-          chainId: tokenIn.chainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.BORROW,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.debt,
-        }
+        this._step(
+          RoutingStep.DEPOSIT,
+          tokenIn.chainId,
+          amountIn,
+          vault.collateral,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.BORROW,
+          tokenOut.chainId,
+          amountOut,
+          vault.debt,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.X_TRANSFER,
+          tokenOut.chainId,
+          amountOut,
+          vault.debt
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, received, tokenOut)
       );
     } else if (
       tokenIn.chainId !== tokenOut.chainId &&
       tokenOut.chainId === vault.chainId
     ) {
       // transfer from chain A and deposit and borrow on chain B
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          tokenIn.chain.getConnextDomain(),
+          tokenOut.chain.getConnextDomain(),
+          tokenIn.address.value,
+          amountIn
+        );
+      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      // add back 'routerFee' because the tx passes through
+      // Connext slow path where no fee is taken
+      const received = (amountReceived as BigNumber).add(routerFee);
+
       steps.push(
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountIn,
-          chainId: vault.chainId,
-          token: tokenIn,
-        },
-        {
-          step: RoutingStep.DEPOSIT,
-          amount: amountIn,
-          chainId: vault.chainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.BORROW,
-          amount: amountOut,
-          chainId: vault.chainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        }
+        this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+        this._step(
+          RoutingStep.DEPOSIT,
+          vault.chainId,
+          received,
+          vault.collateral,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.BORROW,
+          vault.chainId,
+          amountOut,
+          vault.debt,
+          activeProvider
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
       );
     } else {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    steps.push({
-      step: RoutingStep.END,
-      amount: amountOut,
-      chainId: tokenOut.chainId,
-      token: tokenOut,
-    });
-
-    return steps;
+    return { steps, estimateSlippage, estimateTime, bridgeFee };
   }
 
   /**
@@ -805,22 +783,29 @@ export class Previews {
    * @param tokenIn - token provided by the user
    * @param tokenOut - token seeked by the user
    */
-  async getPaybackAndWithdrawSteps(
+  async paybackAndWithdrawRoutingDetails(
     vault: BorrowingVault,
     amountIn: BigNumber,
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<RoutingStepDetails[]> {
+  ): Promise<{
+    steps: RoutingStepDetails[];
+    bridgeFee: BigNumber;
+    estimateSlippage: BigNumber;
+    estimateTime: number;
+  }> {
     const activeProvider = (await vault.getProviders()).find((p) => p.active);
 
+    let estimateSlippage = BigNumber.from(0);
+    // TODO: estimate time
+    const estimateTime = 3 * 60;
+    let bridgeFee = BigNumber.from(0);
+
+    const nxtp = await Nxtp.getOrCreate();
+
     const steps: RoutingStepDetails[] = [
-      {
-        step: RoutingStep.START,
-        amount: amountIn,
-        chainId: tokenIn.chainId,
-        token: tokenIn,
-      },
+      this._step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
     ];
     if (
       tokenIn.chainId === tokenOut.chainId &&
@@ -828,92 +813,107 @@ export class Previews {
     ) {
       // everything happens on the same chain
       steps.push(
-        {
-          step: RoutingStep.PAYBACK,
-          amount: amountIn,
-          chainId: tokenIn.chainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.WITHDRAW,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        }
+        this._step(
+          RoutingStep.PAYBACK,
+          tokenIn.chainId,
+          amountIn,
+          vault.debt,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.WITHDRAW,
+          tokenOut.chainId,
+          amountOut,
+          vault.collateral,
+          activeProvider
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
       );
     } else if (
       tokenIn.chainId !== tokenOut.chainId &&
       tokenIn.chainId === vault.chainId
     ) {
-      // payback and withdraw oon chain A and transfer to chain B
+      // payback and withdraw on chain A and transfer to chain B
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          tokenIn.chain.getConnextDomain(),
+          tokenOut.chain.getConnextDomain(),
+          vault.collateral.address.value,
+          amountOut
+        );
+      // Transfer will pass through the fast path
+      // so we need to account for the router fee (0.05) + slippage
+      const received = amountReceived as BigNumber;
+      bridgeFee = routerFee as BigNumber;
+      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
       steps.push(
-        {
-          step: RoutingStep.PAYBACK,
-          amount: amountIn,
-          chainId: tokenIn.chainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.WITHDRAW,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.collateral,
-        }
+        this._step(
+          RoutingStep.PAYBACK,
+          tokenIn.chainId,
+          amountIn,
+          vault.debt,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.WITHDRAW,
+          tokenOut.chainId,
+          amountOut,
+          vault.collateral,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.X_TRANSFER,
+          tokenOut.chainId,
+          amountOut,
+          vault.collateral
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, received, tokenOut)
       );
     } else if (
       tokenIn.chainId !== tokenOut.chainId &&
       tokenOut.chainId === vault.chainId
     ) {
       // transfer from chain A and payback and withdraw on chain B
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          tokenIn.chain.getConnextDomain(),
+          tokenOut.chain.getConnextDomain(),
+          tokenIn.address.value,
+          amountIn
+        );
+      estimateSlippage = (originSlippage as BigNumber).add(destinationSlippage);
+      // add back 'routerFee' because the tx passes through
+      // Connext slow path where no fee is taken
+      const received = (amountReceived as BigNumber).add(routerFee);
+
       steps.push(
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountIn,
-          chainId: vault.chainId,
-          token: tokenIn,
-        },
-        {
-          step: RoutingStep.PAYBACK,
-          amount: amountIn,
-          chainId: vault.chainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.WITHDRAW,
-          amount: amountOut,
-          chainId: tokenOut.chainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        }
+        this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+        this._step(
+          RoutingStep.PAYBACK,
+          vault.chainId,
+          received,
+          vault.debt,
+          activeProvider
+        ),
+        this._step(
+          RoutingStep.WITHDRAW,
+          vault.chainId,
+          amountOut,
+          vault.collateral,
+          activeProvider
+        ),
+        this._step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
       );
     } else {
       invariant(true, '3-chain transfers are not enabled yet!');
     }
 
-    steps.push({
-      step: RoutingStep.END,
-      amount: amountOut,
-      chainId: tokenOut.chainId,
-      token: tokenOut,
-    });
-
-    return steps;
+    return { steps, estimateSlippage, estimateTime, bridgeFee };
   }
 
   /********** Actions ***********/
 
-  private _depositAction(
+  private _deposit(
     vault: BorrowingVault,
     amount: BigNumber,
     receiver: Address,
@@ -928,7 +928,7 @@ export class Previews {
     };
   }
 
-  private _withdrawAction(
+  private _withdraw(
     vault: BorrowingVault,
     amount: BigNumber,
     receiver: Address,
@@ -943,7 +943,7 @@ export class Previews {
     };
   }
 
-  private _borrowAction(
+  private _borrow(
     vault: BorrowingVault,
     amount: BigNumber,
     receiver: Address,
@@ -958,7 +958,7 @@ export class Previews {
     };
   }
 
-  private _paybackAction(
+  private _payback(
     vault: BorrowingVault,
     amount: BigNumber,
     receiver: Address,
@@ -973,7 +973,7 @@ export class Previews {
     };
   }
 
-  private _permitBorrowAction(
+  private _permitBorrow(
     vault: BorrowingVault,
     amount: BigNumber,
     receiver: Address,
@@ -992,7 +992,7 @@ export class Previews {
     };
   }
 
-  private _permitWithdrawAction(
+  private _permitWithdraw(
     vault: BorrowingVault,
     amount: BigNumber,
     receiver: Address,
@@ -1011,7 +1011,7 @@ export class Previews {
     };
   }
 
-  private _xTransferAction(
+  private _xTransfer(
     destChainId: ChainId,
     asset: Token,
     amount: BigNumber,
@@ -1033,7 +1033,7 @@ export class Previews {
     };
   }
 
-  private _xTransferWithCallAction(
+  private _xTransferWithCall(
     destChainId: ChainId,
     asset: Token,
     amount: BigNumber,
@@ -1050,6 +1050,23 @@ export class Previews {
       asset: asset.address,
       slippage,
       innerActions,
+    };
+  }
+
+  /********** Steps ***********/
+  private _step(
+    step: RoutingStep,
+    chainId: ChainId,
+    amount?: BigNumber,
+    token?: Token,
+    lendingProvider?: LendingProviderDetails
+  ): RoutingStepDetails {
+    return {
+      step,
+      amount,
+      chainId,
+      token,
+      lendingProvider,
     };
   }
 }
