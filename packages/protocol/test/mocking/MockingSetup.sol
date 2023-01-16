@@ -8,6 +8,7 @@ import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
+import {MockProvider} from "../../src/mocks/MockProvider.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
@@ -25,6 +26,7 @@ contract MockingSetup is CoreRoles, Test {
   IVault public vault;
   Chief public chief;
   TimelockController public timelock;
+  ILendingProvider public mockProvider;
   MockOracle oracle;
 
   address public collateralAsset;
@@ -56,13 +58,19 @@ contract MockingSetup is CoreRoles, Test {
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
     _grantRoleChief(HOUSE_KEEPER_ROLE, address(this));
 
+    // Initialize with a default mockProvider
+    mockProvider = new MockProvider();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     vault = new BorrowingVault(
       collateralAsset,
       debtAsset,
       address(oracle),
       address(chief),
       "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+      "fv2WETH",
+      providers
     );
   }
 

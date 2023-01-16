@@ -16,10 +16,14 @@ contract YieldVault is BaseVault {
     address asset_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    ILendingProvider[] memory providers_
   )
     BaseVault(asset_, chief_, name_, symbol_)
-  {}
+  {
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
+  }
 
   receive() external payable {}
 
@@ -148,7 +152,8 @@ contract YieldVault is BaseVault {
     uint256 debt,
     ILendingProvider from,
     ILendingProvider to,
-    uint256 fee
+    uint256 fee,
+    bool setToAsActiveProvider
   )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
@@ -166,6 +171,11 @@ contract YieldVault is BaseVault {
 
     _executeProviderAction(assets, "withdraw", from);
     _executeProviderAction(assets, "deposit", to);
+
+    if (setToAsActiveProvider) {
+      _setActiveProvider(to);
+    }
+
     emit VaultRebalance(assets, 0, address(from), address(to));
     return true;
   }
@@ -187,5 +197,27 @@ contract YieldVault is BaseVault {
   /// inheritdoc IVault
   function liquidate(address, address) public pure returns (uint256) {
     revert YieldVault__notApplicable();
+  }
+
+  ///////////////////////////
+  /// Admin set functions ///
+  ///////////////////////////
+
+  function _setProviders(ILendingProvider[] memory providers) internal override {
+    uint256 len = providers.length;
+    for (uint256 i = 0; i < len;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      IERC20(asset()).approve(
+        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
+      );
+      unchecked {
+        ++i;
+      }
+    }
+    _providers = providers;
+
+    emit ProvidersChanged(providers);
   }
 }

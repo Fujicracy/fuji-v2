@@ -22,7 +22,16 @@ contract AaveV2Polygon is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
+  function approvedOperator(
+    address,
+    address,
+    address
+  )
+    external
+    pure
+    override
+    returns (address operator)
+  {
     operator = address(_getPool());
   }
 
