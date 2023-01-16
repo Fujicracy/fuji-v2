@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {DForceOptimism} from "../../../src/providers/optimism/DForceOptimism.sol";
 
-contract DForceOptimismTest is Routines, ForkingSetup {
+contract DForceOptimismForkingTest is Routines, ForkingSetup {
   ILendingProvider public dForce;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

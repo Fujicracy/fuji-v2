@@ -25,7 +25,7 @@ export default function Markets() {
     setCurrentTab(newValue)
 
   return (
-    <Box m={{ xs: "1rem", sm: "" }}>
+    <Box>
       <Typography variant="h4">X-Fuji Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile ? (
@@ -56,36 +56,20 @@ export default function Markets() {
           sx={{ width: { xs: "100%", sm: "auto" } }}
           TabIndicatorProps={{ sx: { background: palette.text.primary } }}
         >
-          <Tab
-            label="Borrowing"
-            sx={{
-              borderBottom: 1,
-              width: { xs: "50%", sm: "auto" },
-              borderColor: "divider",
-              color:
-                currentTab === 0 ? `${palette.text.primary} !important` : "",
-            }}
-          />
+          <Tab label="Borrowing" />
           <Tab
             label={
-              <Grid container alignItems="center" justifyContent="center">
+              <Grid container alignItems="center" gap={1}>
                 Lending
                 {!onMobile && (
                   <Chip
                     variant="gradient"
                     label="Coming soon"
-                    sx={{ ml: "0.625rem", cursor: "pointer" }}
+                    sx={{ cursor: "pointer" }}
                   />
                 )}
               </Grid>
             }
-            sx={{
-              width: { xs: "50%", sm: "auto" },
-              borderBottom: 1,
-              borderColor: "divider",
-              color:
-                currentTab === 1 ? `${palette.text.primary} !important` : "",
-            }}
           />
         </Tabs>
 

@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {DForceArbitrum} from "../../../src/providers/arbitrum/DForceArbitrum.sol";
 
-contract DForceArbitrumTest is Routines, ForkingSetup {
+contract DForceArbitrumForkingTest is Routines, ForkingSetup {
   ILendingProvider public dForce;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

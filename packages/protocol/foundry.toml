@@ -4,7 +4,7 @@ out = 'out'
 libs = ['lib']
 fs_permissions = [{ access = "read-write", path = "./.local" }, { access = "read", path = "./out" }]
 optimizer = true
-optimizer_runs = 1000
+optimizer_runs = 750
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
