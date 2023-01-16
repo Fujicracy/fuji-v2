@@ -15,14 +15,13 @@ contract IronBankTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(MAINNET_DOMAIN);
+    setUpFork(MAINNET_DOMAIN);
 
     ironBank = new IronBank();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = ironBank;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(ironBank);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

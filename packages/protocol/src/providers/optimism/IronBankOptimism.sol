@@ -59,7 +59,8 @@ contract IronBankOptimism is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function approvedOperator(
-    address asset,
+    address keyAsset,
+    address,
     address
   )
     external
@@ -67,7 +68,7 @@ contract IronBankOptimism is ILendingProvider {
     override
     returns (address operator)
   {
-    operator = _getCyToken(asset);
+    operator = _getCyToken(keyAsset);
   }
 
   /// inheritdoc ILendingProvider
