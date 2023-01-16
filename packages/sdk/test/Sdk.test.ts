@@ -4,7 +4,7 @@ import { AddressZero } from '@ethersproject/constants';
 import { formatUnits, parseUnits } from '@ethersproject/units';
 import { BigNumber, utils, Wallet } from 'ethers';
 
-import { DAI, NATIVE, USDC, VAULT_LIST, WNATIVE } from '../src/constants';
+import { NATIVE, USDC, VAULT_LIST, WETH9, WNATIVE } from '../src/constants';
 import { Address, BorrowingVault, Token } from '../src/entities';
 import { ChainId, RouterAction } from '../src/enums';
 import { Sdk } from '../src/Sdk';
@@ -14,7 +14,6 @@ import {
   DepositParams,
   PermitParams,
   RouterActionParams,
-  XTransferWithCallParams,
 } from '../src/types';
 
 describe('Sdk', () => {
@@ -66,7 +65,7 @@ describe('Sdk', () => {
       await expect(
         async () =>
           await sdk.getTokenBalancesFor(
-            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.GOERLI]],
+            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.MATIC]],
             Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
             ChainId.ETHEREUM
           )
@@ -79,7 +78,7 @@ describe('Sdk', () => {
           await sdk.getTokenBalancesFor(
             [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
             Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
-            ChainId.GOERLI
+            ChainId.MATIC
           )
       ).rejects.toThrowError('Token from a different chain!');
     });
@@ -93,18 +92,18 @@ describe('Sdk', () => {
         .mockImplementation(() => [
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.GOERLI],
-            USDC[ChainId.GOERLI]
+            WNATIVE[ChainId.MATIC],
+            USDC[ChainId.MATIC]
           ),
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.GOERLI],
-            USDC[ChainId.GOERLI]
+            WNATIVE[ChainId.MATIC],
+            USDC[ChainId.MATIC]
           ),
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.OPTIMISM_GOERLI],
-            USDC[ChainId.OPTIMISM_GOERLI]
+            WNATIVE[ChainId.OPTIMISM],
+            USDC[ChainId.OPTIMISM]
           ),
         ]);
 
@@ -114,11 +113,11 @@ describe('Sdk', () => {
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(3));
 
-      const collateralA = WNATIVE[ChainId.GOERLI];
-      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+      const collateralA = WNATIVE[ChainId.MATIC];
+      const debtB = USDC[ChainId.OPTIMISM];
 
       const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
-      expect(vaults[0].chainId).toEqual(ChainId.GOERLI);
+      expect(vaults[0].chainId).toEqual(ChainId.MATIC);
     });
 
     it('returns a first vault from chainB based on an APR check', async () => {
@@ -128,18 +127,18 @@ describe('Sdk', () => {
         .mockImplementation(() => [
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.GOERLI],
-            USDC[ChainId.GOERLI]
+            WNATIVE[ChainId.MATIC],
+            USDC[ChainId.MATIC]
           ),
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.GOERLI],
-            USDC[ChainId.GOERLI]
+            WNATIVE[ChainId.MATIC],
+            USDC[ChainId.MATIC]
           ),
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.OPTIMISM_GOERLI],
-            USDC[ChainId.OPTIMISM_GOERLI]
+            WNATIVE[ChainId.OPTIMISM],
+            USDC[ChainId.OPTIMISM]
           ),
         ]);
       jest
@@ -148,11 +147,11 @@ describe('Sdk', () => {
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(1));
 
-      const collateralA = WNATIVE[ChainId.GOERLI];
-      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+      const collateralA = WNATIVE[ChainId.MATIC];
+      const debtB = USDC[ChainId.OPTIMISM];
 
       const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
-      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM_GOERLI);
+      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
     it('returns a first vault from same chain although it is with the highest borrow rate', async () => {
@@ -162,18 +161,18 @@ describe('Sdk', () => {
         .mockImplementation(() => [
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.OPTIMISM_GOERLI],
-            USDC[ChainId.OPTIMISM_GOERLI]
+            WNATIVE[ChainId.OPTIMISM],
+            USDC[ChainId.OPTIMISM]
           ),
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.GOERLI],
-            USDC[ChainId.GOERLI]
+            WNATIVE[ChainId.MATIC],
+            USDC[ChainId.MATIC]
           ),
           new BorrowingVault(
             ADDRESS_ONE,
-            WNATIVE[ChainId.GOERLI],
-            USDC[ChainId.GOERLI]
+            WNATIVE[ChainId.MATIC],
+            USDC[ChainId.MATIC]
           ),
         ]);
       jest
@@ -182,11 +181,11 @@ describe('Sdk', () => {
         .mockResolvedValueOnce(BigNumber.from(2))
         .mockResolvedValueOnce(BigNumber.from(1));
 
-      const collateralA = WNATIVE[ChainId.OPTIMISM_GOERLI];
-      const debtB = USDC[ChainId.OPTIMISM_GOERLI];
+      const collateralA = WNATIVE[ChainId.OPTIMISM];
+      const debtB = USDC[ChainId.OPTIMISM];
 
       const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
-      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM_GOERLI);
+      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
     it('cannot find a vault', async () => {
@@ -194,8 +193,8 @@ describe('Sdk', () => {
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
         .mockImplementation(() => []);
-      const collateral = WNATIVE[ChainId.GOERLI];
-      const debt = new Token(ChainId.GOERLI, ADDRESS_BOB, 6, 'Bob');
+      const collateral = WNATIVE[ChainId.MATIC];
+      const debt = new Token(ChainId.MATIC, ADDRESS_BOB, 6, 'Bob');
       const vaults = await sdk.getBorrowingVaultsFor(collateral, debt);
       expect(vaults.length).toEqual(0);
     });
@@ -352,17 +351,19 @@ describe('Sdk', () => {
   });
 
   describe('#getTxDetails', () => {
+    jest.setTimeout(20000);
+
     it('returns a NON cross-chain calldata for TrasactionRequest', async () => {
-      const vault = VAULT_LIST[ChainId.GOERLI][0].setConnection(config);
+      const vault = VAULT_LIST[ChainId.MATIC][0].setConnection(config);
 
       const owner = new Wallet(JUNK_KEY);
 
       const { actions } = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1'),
-        parseUnits('1'),
-        WNATIVE[ChainId.GOERLI],
-        DAI[ChainId.GOERLI],
+        parseUnits('1', 6),
+        WETH9[ChainId.MATIC],
+        USDC[ChainId.MATIC],
         Address.from(owner.address),
         123456789
       );
@@ -376,7 +377,7 @@ describe('Sdk', () => {
       const signature = skey.signDigest(digest);
       const { data } = sdk.getTxDetails(
         actions,
-        ChainId.GOERLI,
+        ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
@@ -384,30 +385,32 @@ describe('Sdk', () => {
     });
 
     it('returns a cross-chain calldata for TrasactionRequest (deposit+borrow on chain A and transfer to chain B)', async () => {
-      const vault = VAULT_LIST[ChainId.GOERLI][0].setConnection(config);
+      const vault = new BorrowingVault(
+        Address.from('0x653D89d7548EB859f86Ab9011f7B960d52910Abf'),
+        USDC[ChainId.MATIC],
+        WETH9[ChainId.MATIC]
+      ).setConnection(config);
 
       const owner = new Wallet(JUNK_KEY);
 
       const { actions } = await sdk.previews.depositAndBorrow(
         vault,
+        parseUnits('1', 6),
         parseUnits('1'),
-        parseUnits('1'),
-        WNATIVE[ChainId.GOERLI],
-        DAI[ChainId.OPTIMISM_GOERLI],
+        USDC[ChainId.OPTIMISM],
+        WETH9[ChainId.MATIC],
         Address.from(owner.address),
         123456789
       );
 
-      const permitBorrow = actions.find(
-        (a) => a.action === RouterAction.PERMIT_BORROW
-      ) as PermitParams;
+      const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
       const { data } = sdk.getTxDetails(
         actions,
-        ChainId.GOERLI,
+        ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
@@ -415,32 +418,28 @@ describe('Sdk', () => {
     });
 
     it('returns a cross-chain calldata for TrasactionRequest (transfer from chain A and deposit+borrow on chain B)', async () => {
-      const vault =
-        VAULT_LIST[ChainId.OPTIMISM_GOERLI][0].setConnection(config);
+      const vault = VAULT_LIST[ChainId.OPTIMISM][0].setConnection(config);
 
       const owner = new Wallet(JUNK_KEY);
 
       const { actions } = await sdk.previews.depositAndBorrow(
         vault,
+        parseUnits('1', 6),
         parseUnits('1'),
-        parseUnits('1'),
-        WNATIVE[ChainId.GOERLI],
-        DAI[ChainId.OPTIMISM_GOERLI],
+        USDC[ChainId.OPTIMISM],
+        WETH9[ChainId.MATIC],
         Address.from(owner.address),
         123456789
       );
-      const innerActions = (actions[0] as XTransferWithCallParams).innerActions;
 
-      const permitBorrow = innerActions.find(
-        (a) => a.action === RouterAction.PERMIT_BORROW
-      ) as PermitParams;
+      const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
       const { data } = sdk.getTxDetails(
         actions,
-        ChainId.GOERLI,
+        ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
