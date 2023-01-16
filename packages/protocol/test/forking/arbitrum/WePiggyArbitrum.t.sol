@@ -8,21 +8,20 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {WePiggyArbitrum} from "../../../src/providers/arbitrum/WePiggyArbitrum.sol";
 
-contract WePiggyArbitrumTest is Routines, ForkingSetup {
+contract WePiggyArbitrumForkingTest is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
+    setUpFork(ARBITRUM_DOMAIN);
 
     wePiggy = new WePiggyArbitrum();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = wePiggy;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(wePiggy);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

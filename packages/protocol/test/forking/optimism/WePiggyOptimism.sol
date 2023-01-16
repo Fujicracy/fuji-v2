@@ -8,21 +8,20 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {WePiggyOptimism} from "../../../src/providers/optimism/WePiggyOptimism.sol";
 
-contract WePiggyOptimismTest is Routines, ForkingSetup {
+contract WePiggyOptimismForkingTest is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(OPTIMISM_DOMAIN);
+    setUpFork(OPTIMISM_DOMAIN);
 
     wePiggy = new WePiggyOptimism();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = wePiggy;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(wePiggy);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

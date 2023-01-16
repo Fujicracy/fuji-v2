@@ -8,21 +8,20 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {DForceArbitrum} from "../../../src/providers/arbitrum/DForceArbitrum.sol";
 
-contract DForceArbitrumTest is Routines, ForkingSetup {
+contract DForceArbitrumForkingTest is Routines, ForkingSetup {
   ILendingProvider public dForce;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(ARBITRUM_DOMAIN);
+    setUpFork(ARBITRUM_DOMAIN);
 
     dForce = new DForceArbitrum();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = dForce;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(dForce);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

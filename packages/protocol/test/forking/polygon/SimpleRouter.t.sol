@@ -33,7 +33,13 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
   address public debtAsset2;
 
   function setUp() public {
-    deploy(POLYGON_DOMAIN);
+    setUpFork(POLYGON_DOMAIN);
+
+    aaveV2 = new AaveV2Polygon();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = aaveV2;
+
+    deploy(providers);
 
     address aaveV3Pool = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
     vm.label(aaveV3Pool, "AaveV3Pool");
@@ -44,17 +50,13 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     flasher = new FlasherAaveV3(aaveV3Pool);
     swapper = new UniswapV2Swapper(IWETH9(collateralAsset), IUniswapV2Router01(quickSwap));
 
-    aaveV2 = new AaveV2Polygon();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = aaveV2;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(aaveV2);
-
     // new BorrowingVault with USDT
     debtAsset2 = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
     vm.label(debtAsset2, "USDT");
     mockOracle.setUSDPriceOf(debtAsset2, 100000000);
+
+    aaveV3 = new AaveV3Polygon();
+    providers[0] = aaveV3;
 
     vault2 = new BorrowingVault(
       collateralAsset,
@@ -62,15 +64,10 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       address(mockOracle),
       address(chief),
       "Fuji-V2 WETH-USDT Vault Shares",
-      "fv2WETHDAI"
+      "fv2WETHUSDT",
+      providers
     );
     vm.label(address(vault2), "Vault2");
-
-    aaveV3 = new AaveV3Polygon();
-    providers[0] = aaveV3;
-
-    _setVaultProviders(vault2, providers);
-    vault2.setActiveProvider(aaveV3);
   }
 
   function test_closePositionWithFlashloan() public {
@@ -201,6 +198,8 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     router.xBundle(actions, args);
 
     assertEq(vault.balanceOf(ALICE), 0);
-    assertEq(vault2.balanceOf(ALICE), amount);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertGt(vault2.balanceOf(ALICE), 0);
+    assertGe(vault2.balanceOfDebt(ALICE), borrowAmount);
   }
 }

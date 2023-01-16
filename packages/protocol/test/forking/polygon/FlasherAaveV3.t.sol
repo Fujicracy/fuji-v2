@@ -28,16 +28,7 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
   uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
-    deploy(POLYGON_DOMAIN);
-
-    deployVault(
-      registry[POLYGON_DOMAIN].wmatic,
-      registry[POLYGON_DOMAIN].usdc,
-      1250000000000000000,
-      100000000,
-      "WMATIC",
-      "USDC"
-    );
+    setUpFork(POLYGON_DOMAIN);
 
     dForce = new DForcePolygon();
     wePiggy = new WePiggyPolygon();
@@ -48,8 +39,15 @@ contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleRec
     providers[0] = dForce;
     providers[1] = wePiggy;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(dForce);
+    deployVault(
+      registry[POLYGON_DOMAIN].wmatic,
+      registry[POLYGON_DOMAIN].usdc,
+      1250000000000000000,
+      100000000,
+      "WMATIC",
+      "USDC",
+      providers
+    );
 
     rebalancer = new RebalancerManager(address(chief));
     _grantRoleChief(REBALANCER_ROLE, address(rebalancer));

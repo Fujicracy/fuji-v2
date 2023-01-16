@@ -1,24 +1,20 @@
-import { SyntheticEvent, useState } from "react"
+import { useState } from "react"
 import {
-  Alert,
-  Box,
   Button,
   Card,
   CardContent,
   CircularProgress,
-  Dialog,
-  DialogContent,
-  Grid,
-  Link,
+  Divider,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  Snackbar,
+  Popover,
+  Stack,
   Typography,
+  Box,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
-import CloseIcon from "@mui/icons-material/Close"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CircleIcon from "@mui/icons-material/Circle"
@@ -33,181 +29,182 @@ import {
   HistoryRoutingStep,
 } from "../../store/history.store"
 import { chainName } from "../../helpers/chainName"
+import { transactionAddress } from "../../helpers/transactionInformations"
 
 type AccountModalProps = {
   isOpen: boolean
+  anchorEl: HTMLElement
   address: string
   closeAccountModal: () => void
 }
 
 export default function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
+  const [copied, setCopied] = useState(false)
+  const [copyAddressHovered, setCopyAddressHovered] = useState(false)
+  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false)
   const logout = useStore((state) => state.logout)
-  const [showSnackbar, setShowSnackbar] = useState(false)
-
+  const walletName = useStore((state) => state.walletName)
   const historyEntries = useHistory((state) =>
     state.allHash.map((hash) => state.byHash[hash]).slice(0, 3)
   )
   const openModal = useHistory((state) => state.openModal)
+  const clearAll = useHistory((state) => state.clearAll)
 
-  const addr = props.address
+  const chainId = useStore((state) => state.chain?.id)
+
   const formattedAddress =
-    addr.substring(0, 5) + "..." + addr.substring(addr.length - 4)
+    props.address.substring(0, 8) +
+    "..." +
+    props.address.substring(props.address.length - 4)
 
   const copy = () => {
-    navigator.clipboard.writeText(addr)
-    setShowSnackbar(true)
-  }
-
-  const handleClose = (
-    _: Event | SyntheticEvent<Element, Event>,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return
-    }
-    setShowSnackbar(false)
+    navigator.clipboard.writeText(props.address)
+    setCopied(true)
+    setTimeout(() => {
+      setCopied(false)
+    }, 5000)
   }
 
   return (
-    <Dialog
-      onClose={() => props.closeAccountModal()}
+    <Popover
       open={props.isOpen}
-      maxWidth="xs"
+      onClose={props.closeAccountModal}
+      anchorEl={props.anchorEl}
+      anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
+      PaperProps={{ sx: { background: "transparent", padding: 0 } }}
     >
-      <DialogContent
-        sx={{
-          p: "1.5rem",
-          background: palette.secondary.contrastText,
-          borderTopLeftRadius: "1.125rem",
-          borderTopRightRadius: "1.125rem",
-          border: `1px solid ${palette.secondary.light}`,
-          borderBottom: "none",
-        }}
-      >
-        <CloseIcon
-          sx={{
-            cursor: "pointer",
-            position: "absolute",
-            right: "2rem",
-          }}
-          onClick={props.closeAccountModal}
-        />
-        <Typography variant="body2">Account</Typography>
-        <Card
-          sx={{
-            border: `1px solid ${palette.secondary.light}`,
-            mt: "1.5rem",
-          }}
-        >
-          <CardContent sx={{ position: "relative", width: "100%" }}>
-            <Typography variant="xsmall">Connected with MetaMask</Typography>
-            <Button
-              sx={{ position: "absolute", right: "1rem", top: "1rem" }}
-              variant="small"
-              onClick={() => logout()}
-            >
+      <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
+        <CardContent sx={{ width: "340px", p: 0, pb: "0 !important" }}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            p="1.5rem 1.25rem 0.625rem 1.25rem"
+          >
+            <Typography variant="xsmall">
+              Connected with {walletName}
+            </Typography>
+            <Button variant="small" onClick={logout}>
               Disconnect
             </Button>
-            <Grid container alignItems="center">
-              <CircleIcon />
-              <Typography variant="h5" ml="0.5rem" mt="0.625rem" mb="0.625rem">
-                {formattedAddress}
-              </Typography>
-            </Grid>
+          </Stack>
 
-            <Grid container alignItems="center">
-              <Grid item>
-                <Grid
-                  container
-                  alignItems="center"
-                  sx={{ cursor: "pointer" }}
-                  onClick={copy}
-                >
-                  <ContentCopyIcon
-                    fontSize="small"
-                    sx={{ color: palette.primary.main, mr: "0.438rem" }}
-                  />
-                  <Typography variant="small" color={palette.primary.main}>
-                    Copy Address
-                  </Typography>
-                  <Snackbar
-                    open={showSnackbar}
-                    autoHideDuration={2000}
-                    onClose={handleClose}
-                  >
-                    <Alert
-                      onClose={handleClose}
-                      severity="success"
-                      sx={{ color: palette.success.main }}
-                    >
-                      Address copied!
-                    </Alert>
-                  </Snackbar>
-                </Grid>
-              </Grid>
-              <Grid item>
-                <Link
-                  href={"https://etherscan.io/address/" + props.address} // TODO: This link only work on mainnet. Make it work with any scanner
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Grid container alignItems="center">
-                    <>
-                      <LaunchIcon
-                        fontSize="small"
-                        sx={{
-                          color: palette.info.dark,
-                          ml: "1.188rem",
-                          mr: "0.438rem",
-                        }}
-                      />
-                      <Typography variant="small" color={palette.info.dark}>
-                        View on Explorer
-                      </Typography>
-                    </>
-                  </Grid>
-                </Link>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </DialogContent>
-      <Box
-        sx={{
-          background: palette.secondary.dark,
-          borderBottomLeftRadius: "1.125rem",
-          borderBottomRightRadius: "1.125rem",
-        }}
-      >
-        <Grid
-          container
-          justifyContent="space-between"
-          p="1.5rem 1.5rem 0 1.5rem"
-        >
-          <Typography variant="body">Recent Transactions</Typography>
-          {/* TODO */}
-          <Typography variant="small">clear all</Typography>
-        </Grid>
-        <List>
-          {historyEntries?.length ? (
-            historyEntries.map((e) => (
-              <BorrowEntry
-                key={e.hash}
-                entry={e}
-                onClick={() => openModal(e.hash)}
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap=".5rem"
+            ml="1.25rem"
+            mb=".8rem"
+          >
+            <CircleIcon sx={{ fontSize: "20px" }} />
+            <Typography variant="body">{formattedAddress}</Typography>
+          </Stack>
+
+          <Stack direction="row" alignItems="center" gap="1.125rem" ml="1.4rem">
+            <Stack
+              direction="row"
+              alignItems="center"
+              sx={{ cursor: "pointer" }}
+              onClick={copy}
+              onMouseEnter={() => setCopyAddressHovered(true)}
+              onMouseLeave={() => setCopyAddressHovered(false)}
+            >
+              <ContentCopyIcon
+                fontSize="small"
+                sx={{
+                  color: !copyAddressHovered
+                    ? palette.info.main
+                    : palette.text.primary,
+                  mr: ".2rem",
+                  fontSize: "1rem",
+                }}
               />
-            ))
-          ) : (
-            <ListItem sx={{ p: "0 1.5rem 1rem" }}>
-              <Typography variant="small">
-                Nothing here... What are you waiting for ?
+              <Typography
+                variant="xsmall"
+                color={
+                  !copyAddressHovered ? palette.info.main : palette.text.primary
+                }
+              >
+                {!copied ? "Copy Address" : "Copied!"}
               </Typography>
-            </ListItem>
-          )}
-        </List>
-      </Box>
-    </Dialog>
+            </Stack>
+
+            <Box>
+              <a
+                href={transactionAddress(chainId, props.address)}
+                target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                rel="noreferrer"
+              >
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  onMouseEnter={() => setViewOnExplorerHovered(true)}
+                  onMouseLeave={() => setViewOnExplorerHovered(false)}
+                >
+                  <LaunchIcon
+                    sx={{
+                      color: viewOnExplorerHovered
+                        ? palette.text.primary
+                        : palette.info.main,
+                      mr: ".2rem",
+                      fontSize: "1rem",
+                    }}
+                  />
+                  <Typography
+                    variant="xsmall"
+                    color={
+                      viewOnExplorerHovered
+                        ? palette.text.primary
+                        : palette.info.main
+                    }
+                  >
+                    View on Explorer
+                  </Typography>
+                </Stack>
+              </a>
+            </Box>
+          </Stack>
+
+          <Divider
+            sx={{
+              m: "1rem 1.25rem .75rem 1.25rem",
+              background: palette.secondary.light,
+            }}
+          />
+
+          <Stack direction="row" justifyContent="space-between" mx="1.25rem">
+            <Typography variant="xsmall">Recent Transactions</Typography>
+            {historyEntries.length > 0 &&
+              historyEntries.filter((entry) => entry.status === "ongoing")
+                .length !== historyEntries.length && (
+                <Typography variant="xsmallLink" onClick={clearAll}>
+                  clear all
+                </Typography>
+              )}
+          </Stack>
+
+          <List sx={{ pb: ".75rem" }}>
+            {historyEntries?.length ? (
+              historyEntries.map((e) => (
+                <BorrowEntry
+                  key={e.hash}
+                  entry={e}
+                  onClick={() => openModal(e.hash)}
+                />
+              ))
+            ) : (
+              <ListItem sx={{ px: "1.25rem" }}>
+                <Typography variant="xsmallDark">
+                  Your recent transaction history will appear here.
+                </Typography>
+              </ListItem>
+            )}
+          </List>
+        </CardContent>
+      </Card>
+    </Popover>
   )
 }
 
@@ -215,6 +212,7 @@ type BorrowEntryProps = {
   entry: HistoryEntry
   onClick: () => void
 }
+
 function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const collateral = entry.steps.find(
     (s) => s.step === RoutingStep.DEPOSIT
@@ -227,23 +225,24 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const listAction =
     entry.status === "ongoing" ? (
-      <CircularProgress size={16} />
+      <CircularProgress size={16} sx={{ mr: "-1rem" }} />
     ) : (
       <CheckIcon
         sx={{
-          backgroundColor: "rgba(66, 255, 0, 0.1)",
+          background: `${palette.success.main}1A`,
           color: palette.success.dark,
           borderRadius: "100%",
-          padding: "0.25rem",
+          fontSize: "20px",
+          mr: "-1rem",
         }}
       />
     )
 
   return (
-    <ListItemButton sx={{ p: "0 .5rem" }} onClick={onClick}>
-      <ListItem secondaryAction={listAction}>
-        <ListItemText>
-          <Typography variant="small">
+    <ListItemButton sx={{ px: "1.25rem", py: ".25rem" }} onClick={onClick}>
+      <ListItem secondaryAction={listAction} sx={{ p: 0, pr: "3rem" }}>
+        <ListItemText sx={{ m: 0 }}>
+          <Typography variant="xsmall">
             Deposit {formatUnits(collateral.amount, collateral.token.decimals)}{" "}
             {collateral.token.symbol} and borrow{" "}
             {formatUnits(debt.amount, debt.token.decimals)} {debt.token.symbol}{" "}

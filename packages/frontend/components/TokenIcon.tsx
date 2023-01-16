@@ -4,7 +4,7 @@ import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
 
 interface Props extends Omit<ImageProps, "src"> {
-  token: Token
+  token: Token | string
   sx?: object
 }
 
@@ -13,16 +13,17 @@ export const getTokenImage = (symbol: string) =>
 
 export default function TokenIcon(props: Props) {
   const { palette } = useTheme()
-  const path = getTokenImage(props.token.symbol)
   const { token, ...rest } = props
+  const symbol = typeof token === "string" ? token : token.symbol
+  const path = getTokenImage(symbol)
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
 
   useEffect(() => {
     if (error)
       console.error(
-        `404 Not found. No image found for toke ${token.symbol}. Searched in ${path}"`
+        `404 Not found. No image found for token ${symbol}. Searched in ${path}"`
       )
-  }, [error, token.symbol, path])
+  }, [error, symbol, path])
 
   if (error) {
     return (
@@ -44,7 +45,7 @@ export default function TokenIcon(props: Props) {
           <Image
             {...rest}
             src={path}
-            alt={`${token.name} icon`}
+            alt={`${symbol} icon`}
             onError={(e) => setError(e)}
           />
         </div>
@@ -52,7 +53,7 @@ export default function TokenIcon(props: Props) {
         <Image
           {...rest}
           src={path}
-          alt={`${token.name} icon`}
+          alt={`${symbol} icon`}
           onError={(e) => setError(e)}
         />
       )}

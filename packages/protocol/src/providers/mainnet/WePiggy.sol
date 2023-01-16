@@ -62,7 +62,8 @@ contract WePiggy is ILendingProvider {
 
   /// inheritdoc ILendingProvider
   function approvedOperator(
-    address asset,
+    address keyAsset,
+    address,
     address
   )
     external
@@ -70,7 +71,7 @@ contract WePiggy is ILendingProvider {
     override
     returns (address operator)
   {
-    operator = _getCToken(asset);
+    operator = _getCToken(keyAsset);
   }
 
   /// inheritdoc ILendingProvider
