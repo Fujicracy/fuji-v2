@@ -5,7 +5,6 @@ import "forge-std/console.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {HundredOptimism} from "../../../src/providers/optimism/HundredOptimism.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
@@ -17,14 +16,13 @@ contract HundredOptimismForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(OPTIMISM_DOMAIN);
+    setUpFork(OPTIMISM_DOMAIN);
 
     hundred = new HundredOptimism();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = hundred;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(hundred);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {
