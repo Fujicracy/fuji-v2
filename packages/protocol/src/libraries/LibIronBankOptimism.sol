@@ -5,9 +5,10 @@ import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
 import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
 
 /**
- * @title CompoundV2 latest ICToken data.
+ * @title IronBank latest ICToken data on Optimisim.
  * @author Fujidao Labs
- * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound)
+ * @notice This implementation is modifed from "./LibCompoundV2".
+ * @dev Interest accrual in IronBank optimism is based on block.timestamp as opposed to block.number.
  */
 library LibIronBankOptimism {
   using LibSolmateFixedPointMath for uint256;
