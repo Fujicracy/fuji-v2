@@ -24,7 +24,16 @@ contract Euler is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address, address) external pure override returns (address operator) {
+  function approvedOperator(
+    address,
+    address,
+    address
+  )
+    external
+    pure
+    override
+    returns (address operator)
+  {
     operator = 0x27182842E098f60e3D576794A5bFFb0777E025d3;
   }
 

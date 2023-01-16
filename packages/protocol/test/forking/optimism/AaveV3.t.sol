@@ -16,14 +16,13 @@ contract AaveV3OptimismForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(OPTIMISM_DOMAIN);
+    setUpFork(OPTIMISM_DOMAIN);
 
     aaveV3 = new AaveV3Optimism();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV3;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(aaveV3);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

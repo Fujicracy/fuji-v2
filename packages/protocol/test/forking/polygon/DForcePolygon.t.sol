@@ -5,7 +5,6 @@ import "forge-std/console.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
-import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 import {IGenIToken} from "../../../src/interfaces/dforce/IGenIToken.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
@@ -17,22 +16,21 @@ contract DForcePolygonForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 100e6;
 
   function setUp() public {
-    deploy(POLYGON_DOMAIN);
+    setUpFork(POLYGON_DOMAIN);
+
+    dForce = new DForcePolygon();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = dForce;
+
     deployVault(
       registry[POLYGON_DOMAIN].wmatic,
       registry[POLYGON_DOMAIN].usdc,
       1250000000000000000,
       100000000,
       "WMATIC",
-      "USDC"
+      "USDC",
+      providers
     );
-
-    dForce = new DForcePolygon();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = dForce;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(dForce);
   }
 
   function test_depositAndBorrow() public {

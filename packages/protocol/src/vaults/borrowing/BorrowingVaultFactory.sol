@@ -6,6 +6,7 @@ import {LibSSTORE2} from "../../libraries/LibSSTORE2.sol";
 import {LibBytes} from "../../libraries/LibBytes.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 
 /**
  * @title BorrowingVaultFactory
@@ -42,8 +43,8 @@ contract BorrowingVaultFactory is VaultDeployer {
    * @param deployData The encoded data containing asset, debtAsset and oracle.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
-    (address asset, address debtAsset, address oracle) =
-      abi.decode(deployData, (address, address, address));
+    (address asset, address debtAsset, address oracle, ILendingProvider[] memory providers) =
+      abi.decode(deployData, (address, address, address, ILendingProvider[]));
 
     string memory assetSymbol = IERC20Metadata(asset).symbol();
     string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
@@ -60,8 +61,9 @@ contract BorrowingVaultFactory is VaultDeployer {
     bytes memory creationCode =
       LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
 
-    bytes memory bytecode =
-      abi.encodePacked(creationCode, abi.encode(asset, debtAsset, oracle, chief, name, symbol));
+    bytes memory bytecode = abi.encodePacked(
+      creationCode, abi.encode(asset, debtAsset, oracle, chief, name, symbol, providers)
+    );
 
     assembly {
       vault := create2(0, add(bytecode, 32), mload(bytecode), salt)

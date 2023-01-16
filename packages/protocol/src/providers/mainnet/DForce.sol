@@ -54,8 +54,16 @@ contract DForce is ILendingProvider {
   }
 
   /// inheritdoc ILendingProvider
-  function approvedOperator(address asset, address) external view returns (address operator) {
-    operator = _getiToken(asset);
+  function approvedOperator(
+    address keyAsset,
+    address,
+    address
+  )
+    external
+    view
+    returns (address operator)
+  {
+    operator = _getiToken(keyAsset);
   }
 
   /// inheritdoc ILendingProvider

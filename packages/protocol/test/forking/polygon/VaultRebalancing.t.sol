@@ -30,7 +30,15 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(POLYGON_DOMAIN);
+    setUpFork(POLYGON_DOMAIN);
+
+    aaveV2 = new AaveV2Polygon();
+    aaveV3 = new AaveV3Polygon();
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
+    providers[0] = aaveV3; // activeProvider
+    providers[1] = aaveV2;
+
+    deploy(providers);
 
     address aaveV3Pool = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
     vm.label(aaveV3Pool, "AaveV3Pool");
@@ -46,15 +54,6 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
 
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _callWithTimelock(address(chief), executionCall);
-
-    aaveV2 = new AaveV2Polygon();
-    aaveV3 = new AaveV3Polygon();
-    ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = aaveV2;
-    providers[1] = aaveV3;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(aaveV3);
   }
 
   function test_fullRebalancing() public {
@@ -70,7 +69,7 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
     deal(debtAsset, address(this), debt);
 
     SafeERC20.safeApprove(IERC20(debtAsset), address(vault), debt);
-    vault.rebalance(assets, debt, aaveV3, aaveV2, 0);
+    vault.rebalance(assets, debt, aaveV3, aaveV2, 0, true);
 
     assertEq(aaveV3.getDepositBalance(address(vault), IVault(address(vault))), 0);
     assertEq(aaveV3.getBorrowBalance(address(vault), IVault(address(vault))), 0);
