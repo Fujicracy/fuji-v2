@@ -14,6 +14,7 @@ import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
   /**
@@ -85,7 +86,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * If `xBundle` fails on our side, this contract will keep the custody of the sent funds.
    *
    * @param transferId - The unique identifier of the crosschain transfer.
-   * @param amount - The amount of transferring asset the recipient address receives.
+   * @param amount - The amount of transferring asset, after slippage, the recipient address receives.
    * @param asset - The asset being transferred.
    * @param originDomain - The origin domain identifier according Connext nomenclature.
    * @param callData - The calldata that will get decoded and executed.
@@ -118,7 +119,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       _tokensToCheck.push(checkedToken);
     }
 
-    try this.xBundle(actions, args) {
+    // Checking if encoded args, need to be substituted with bridging slippage values.
+    bytes[] memory newArgs;
+    if (amount > 0) {
+      newArgs = _replaceSlippageAmount(asset, amount, actions[0], args);
+    } else {
+      newArgs = args;
+    }
+
+    try this.xBundle(actions, newArgs) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       // Else:
@@ -131,6 +140,55 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     return "";
   }
+
+  /**
+   * @dev Replaces `firstAction` argument with `slippageAmount`.
+   * Refer to:
+   * https://github.com/Fujicracy/fuji-v2/issues/253#issuecomment-1385995095
+   */
+  function _replaceSlippageAmount(
+    address asset,
+    uint256 slippageAmount,
+    Action firstAction,
+    bytes[] memory args
+  )
+    internal
+    view
+    returns (bytes[] memory newArgs)
+  {
+    uint256 originalAmount;
+    // All args are the same except initial "value-transfer" operation
+    newArgs = args;
+    // Check first action type and replace with slippage-amount
+    if (firstAction == Action.Deposit || firstAction == Action.Payback) {
+      // DEPOSIT OR PAYBACK
+      (IVault vault, uint256 amount, address receiver, address sender) =
+        abi.decode(args[0], (IVault, uint256, address, address));
+      originalAmount = amount;
+      newArgs[0] = abi.encode(vault, slippageAmount, receiver, sender);
+    } else if (firstAction == Action.Swap) {
+      // SWAP
+      (
+        ISwapper swapper,
+        address assetIn,
+        address assetOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        address receiver,
+        address sweeper,
+        uint256 minSweepOut
+      ) = abi.decode(
+        args[0], (ISwapper, address, address, uint256, uint256, address, address, uint256)
+      );
+      originalAmount = amountIn;
+      newArgs[0] = abi.encode(
+        swapper, assetIn, assetOut, slippageAmount, amountOut, receiver, sweeper, minSweepOut
+      );
+    }
+    _checkSlippageAmount(originalAmount, slippageAmount);
+  }
+
+  function _checkSlippageAmount(uint256 original, uint256 slippage) internal view {}
 
   function _crossTransfer(bytes memory params) internal override {
     (
