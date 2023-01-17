@@ -28,7 +28,7 @@ contract UniswapV2SwapperForkingTest is Routines, ForkingSetup {
     address assetOut = debtAsset;
 
     uint256 amountOut = 1000e6;
-    uint256 amountIn = compute_amountIn(assetIn, assetOut, amountOut);
+    uint256 amountIn = swapper.getAmountIn(assetIn, assetOut, amountOut);
     uint256 minSweepOut = 0;
 
     deal(assetIn, ALICE, amountIn);
@@ -46,7 +46,7 @@ contract UniswapV2SwapperForkingTest is Routines, ForkingSetup {
     address assetOut = debtAsset;
 
     uint256 desiredAmountOut = 1000e6;
-    uint256 desiredAmountIn = compute_amountIn(assetIn, assetOut, desiredAmountOut);
+    uint256 desiredAmountIn = swapper.getAmountIn(assetIn, assetOut, desiredAmountOut);
 
     uint256 excessAmountIn = 2 * desiredAmountIn;
     uint256 minSweepOut = excessAmountIn - desiredAmountIn;
@@ -66,7 +66,7 @@ contract UniswapV2SwapperForkingTest is Routines, ForkingSetup {
     address assetOut = debtAsset;
 
     uint256 amountOut = 1000e6;
-    uint256 amountIn = compute_amountIn(assetIn, assetOut, amountOut);
+    uint256 amountIn = swapper.getAmountIn(assetIn, assetOut, amountOut);
     uint256 smallerAmountIn = amountIn / 2;
     uint256 minSweepOut = 0;
 
@@ -79,37 +79,5 @@ contract UniswapV2SwapperForkingTest is Routines, ForkingSetup {
 
     assertEq(IERC20(assetIn).balanceOf(ALICE), amountIn);
     assertEq(IERC20(assetOut).balanceOf(ALICE), 0);
-  }
-
-  function compute_amountOut(
-    address assetIn,
-    address assetOut,
-    uint256 amountIn
-  )
-    internal
-    view
-    returns (uint256)
-  {
-    address[] memory path = new address[](2);
-    path[0] = assetIn;
-    path[1] = assetOut;
-    uint256[] memory amounts = IUniswapV2Router01(uniswapV2Router).getAmountsOut(amountIn, path);
-    return amounts[1];
-  }
-
-  function compute_amountIn(
-    address assetIn,
-    address assetOut,
-    uint256 amountOut
-  )
-    internal
-    view
-    returns (uint256)
-  {
-    address[] memory path = new address[](2);
-    path[0] = assetIn;
-    path[1] = assetOut;
-    uint256[] memory amounts = IUniswapV2Router01(uniswapV2Router).getAmountsIn(amountOut, path);
-    return amounts[0];
   }
 }
