@@ -31,6 +31,7 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant OPTIMISM_DOMAIN = 1869640809;
   uint32 public constant ARBITRUM_DOMAIN = 1634886255;
   uint32 public constant POLYGON_DOMAIN = 1886350457;
+  uint32 public constant GNOSIS_DOMAIN = 6778479;
   //https://github.com/connext/chaindata/blob/main/crossChain.json
 
   uint256 public constant ALICE_PK = 0xA;
@@ -77,6 +78,7 @@ contract ForkingSetup is CoreRoles, Test {
     forks[OPTIMISM_DOMAIN] = vm.createFork("optimism");
     forks[ARBITRUM_DOMAIN] = vm.createFork("arbitrum");
     forks[POLYGON_DOMAIN] = vm.createFork("polygon");
+    forks[GNOSIS_DOMAIN] = vm.createFork("gnosis");
 
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
@@ -140,6 +142,15 @@ contract ForkingSetup is CoreRoles, Test {
       connext: address(0)
     });
     registry[POLYGON_DOMAIN] = polygon;
+
+    Registry memory gnosis = Registry({
+      weth: 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1,
+      usdc: 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83,
+      dai: 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d,
+      wmatic: address(0),
+      connext: address(0)
+    });
+    registry[GNOSIS_DOMAIN] = gnosis;
   }
 
   function setUpFork(uint32 domain) public {
@@ -209,6 +220,8 @@ contract ForkingSetup is CoreRoles, Test {
   {
     collateralAsset = collateralAsset_;
     debtAsset = debtAsset_;
+    vm.label(collateralAsset_, collateralAssetName);
+    vm.label(debtAsset, debtAssetName);
 
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
