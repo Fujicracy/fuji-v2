@@ -17,11 +17,9 @@ import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
-import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
-import {MockSwapper} from "../../../src/mocks/MockSwapper.sol";
 import {MockProvider} from "../../../src/mocks/MockProvider.sol";
 import {MockERC20} from "../../../src/mocks/MockERC20.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
@@ -58,7 +56,6 @@ contract SimpleRouterUnitTests is MockingSetup {
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   IRouter public simpleRouter;
-  ISwapper public swapper;
 
   MockFlasher public flasher;
 
@@ -70,9 +67,6 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   function setUp() public {
     oracle = new MockOracle();
-
-    swapper = new MockSwapper(oracle);
-
     flasher = new MockFlasher();
 
     // _setVaultProviders(vault, providers);
