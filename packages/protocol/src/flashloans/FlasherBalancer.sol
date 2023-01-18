@@ -11,6 +11,7 @@ import {BaseFlasher} from "../abstracts/BaseFlasher.sol";
 import {IBalancerVault} from "../interfaces/balancer/IBalancerVault.sol";
 import {IFlashLoanRecipient} from "../interfaces/balancer/IFlashLoanRecipient.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IProtocolFeesCollector} from "../interfaces/balancer/IProtocolFeesCollector.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
@@ -37,8 +38,18 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
     IBalancerVault(getFlashloanSourceAddr(asset)).flashLoan(this, tokens, amounts, data);
   }
 
-  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
-    fee = 0;
+  function computeFlashloanFee(
+    address asset,
+    uint256 amount
+  )
+    external
+    view
+    override
+    returns (uint256 fee)
+  {
+    uint256 feePercentage = IBalancerVault(getFlashloanSourceAddr(asset)).getProtocolFeesCollector()
+      .getFlashLoanFeePercentage();
+    fee = amount * feePercentage / 1e18;
   }
 
   /**
@@ -47,7 +58,7 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
   function receiveFlashLoan(
     IERC20[] memory tokens,
     uint256[] memory amounts,
-    uint256[] memory, /*feeAmounts*/
+    uint256[] memory feeAmounts,
     bytes calldata userData
   )
     external
@@ -62,7 +73,7 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
       revert BaseFlasher__notAuthorized();
     }
 
-    _requestorExecution(address(tokens[0]), amounts[0], 0, requestor, requestorCalldata);
+    _requestorExecution(address(tokens[0]), amounts[0], feeAmounts[0], requestor, requestorCalldata);
 
     SafeERC20.safeTransfer(tokens[0], getFlashloanSourceAddr(asset), amounts[0]);
   }
