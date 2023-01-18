@@ -90,12 +90,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev executes a bundle of actions.
+   * @dev Execute a bundle of actions.
    *
    * Requirements:
    * - MUST not leave any balance in this contract after all actions.
-   * - MUST call `_getTokenListFromBundle()` before `actions` are executed.
    * - MUST call `_checkNoBalanceChange()` after all `actions` are executed.
+   * - MUST call `_addTokenToList()` in `actions` that involve tokens.
    * - MUST clear `_beneficiary` from storage after all `actions` are executed.
    */
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
@@ -103,8 +103,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       revert BaseRouter__bundleInternal_paramsMismatch();
     }
 
-    // Check balance of all intended token transactions
-    _getTokenListFromBundle(actions, args);
     uint256 nativeBalance = address(this).balance - msg.value;
 
     uint256 len = actions.length;
@@ -114,9 +112,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
-        _checkBeneficiary(receiver);
-
         address token = vault.asset();
+        _checkBeneficiary(receiver);
+        _addTokenToList(token);
         _safePullTokenFrom(token, sender, receiver, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -125,23 +123,28 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // WITHDRAW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
+
         _checkBeneficiary(owner);
+        _addTokenToList(vault.asset());
 
         vault.withdraw(amount, receiver, owner);
       } else if (actions[i] == Action.Borrow) {
         // BORROW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
+
         _checkBeneficiary(owner);
+        _addTokenToList(vault.debtAsset());
 
         vault.borrow(amount, receiver, owner);
       } else if (actions[i] == Action.Payback) {
         // PAYBACK
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
-        _checkBeneficiary(receiver);
 
         address token = vault.debtAsset();
+        _checkBeneficiary(receiver);
+        _addTokenToList(token);
         _safePullTokenFrom(token, sender, receiver, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -200,6 +203,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
         );
 
+        _addTokenToList(assetIn);
+        _addTokenToList(assetOut);
         _safeApprove(assetIn, address(swapper), amountIn);
 
         swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
@@ -218,6 +223,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
+        _addTokenToList(asset);
 
         // Call Flasher
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
@@ -227,11 +233,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (amount != msg.value) {
           revert BaseRouter__bundleInternal_insufficientETH();
         }
+        _addTokenToList(address(WETH9));
 
         WETH9.deposit{value: msg.value}();
       } else if (actions[i] == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
         _checkBeneficiary(receiver);
+        _addTokenToList(address(WETH9));
 
         WETH9.withdraw(amount);
 
@@ -286,53 +294,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _crossTransfer(bytes memory) internal virtual;
 
   function _crossTransferWithCalldata(bytes memory) internal virtual;
-
-  /**
-   * @dev Populates `_tokenList` with the erc20-tokens that will be transacted
-   * in the `actions` of `_bundleInternal()`.
-   * Requirements:
-   * - MUST call `_addTokenToList()` in `actions` that involve tokens.
-   */
-  function _getTokenListFromBundle(Action[] memory actions, bytes[] memory args) internal {
-    uint256 len = actions.length;
-    for (uint256 i = 0; i < len;) {
-      if (actions[i] == Action.Deposit) {
-        // DEPOSIT
-        (IVault vault,,,) = abi.decode(args[i], (IVault, uint256, address, address));
-        _addTokenToList(vault.asset());
-      } else if (actions[i] == Action.Withdraw) {
-        // WITHDRAW
-        (IVault vault,,,) = abi.decode(args[i], (IVault, uint256, address, address));
-        _addTokenToList(vault.asset());
-      } else if (actions[i] == Action.Borrow) {
-        // BORROW
-        (IVault vault,,,) = abi.decode(args[i], (IVault, uint256, address, address));
-        _addTokenToList(vault.debtAsset());
-      } else if (actions[i] == Action.Payback) {
-        // PAYBACK
-        (IVault vault,,,) = abi.decode(args[i], (IVault, uint256, address, address));
-        _addTokenToList(vault.debtAsset());
-      } else if (actions[i] == Action.Swap) {
-        // SWAP
-        (, address assetIn, address assetOut,,,,,) = abi.decode(
-          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
-        );
-        _addTokenToList(assetIn);
-        _addTokenToList(assetOut);
-      } else if (actions[i] == Action.Flashloan) {
-        // FLASHLOAN
-        (, address asset,,,) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
-        _addTokenToList(asset);
-      } else if (actions[i] == Action.DepositETH) {
-        _addTokenToList(address(WETH9));
-      } else if (actions[i] == Action.WithdrawETH) {
-        _addTokenToList(address(WETH9));
-      }
-      unchecked {
-        ++i;
-      }
-    }
-  }
 
   /**
    * @dev Returns true if token has already been added to `_tokenList`.
