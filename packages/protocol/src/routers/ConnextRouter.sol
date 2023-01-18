@@ -125,16 +125,16 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       _tokensToCheck.push(checkedToken);
     }
 
-    // Checking if encoded args need to be substituted with bridging slippage values.
-    // for first action
-    bytes[] memory newArgs;
+    // Due to the AMM nature of Connext, there could be some slippage
+    // incurred on the amount that this contract receives after bridging.
+    // The slippage can't be calculated upfront so that's why we need to
+    // replace `amount` in the encoded args for the first action if
+    // the action is Deposit, Payback or Swap.
     if (amount > 0) {
-      newArgs = _replaceSlippageAmount(amount, actions[0], args);
-    } else {
-      newArgs = args;
+      args[0] = _accountForSlippage(amount, actions[0], args[0]);
     }
 
-    try this.xBundle(actions, newArgs) {
+    try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       // Else:
@@ -149,35 +149,34 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /**
-   * @dev Replaces `firstAction` argument with `slippageAmount`.
+   * @dev Decode and replace "amount" argument in args with `receivedAmount`
+   * in Deposit, Payback or Swap action.
+   *
    * Refer to:
    * https://github.com/Fujicracy/fuji-v2/issues/253#issuecomment-1385995095
    */
-  function _replaceSlippageAmount(
-    uint256 slippageAmount,
-    Action firstAction,
-    bytes[] memory args
+  function _accountForSlippage(
+    uint256 receivedAmount,
+    Action action,
+    bytes memory args
   )
     internal
     view
-    returns (bytes[] memory newArgs)
+    returns (bytes memory newArgs)
   {
-    uint256 originalAmount;
-    // All args are the same except initial "value-transfer" operation
     newArgs = args;
+
     // Check first action type and replace with slippage-amount
-    if (firstAction == Action.Deposit || firstAction == Action.Payback) {
+    if (action == Action.Deposit || action == Action.Payback) {
       // DEPOSIT OR PAYBACK
       (IVault vault, uint256 amount, address receiver, address sender) =
-        abi.decode(args[0], (IVault, uint256, address, address));
-      if (amount != slippageAmount) {
-        originalAmount = amount;
-        newArgs[0] = abi.encode(vault, slippageAmount, receiver, sender);
-        _checkSlippage(originalAmount, slippageAmount);
-      } else {
-        newArgs[0] = args[0];
+        abi.decode(args, (IVault, uint256, address, address));
+
+      if (amount != receivedAmount) {
+        newArgs = abi.encode(vault, receivedAmount, receiver, sender);
+        _checkSlippage(amount, receivedAmount);
       }
-    } else if (firstAction == Action.Swap) {
+    } else if (action == Action.Swap) {
       // SWAP
       (
         ISwapper swapper,
@@ -188,17 +187,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         address receiver,
         address sweeper,
         uint256 minSweepOut
-      ) = abi.decode(
-        args[0], (ISwapper, address, address, uint256, uint256, address, address, uint256)
-      );
-      if (amountIn != slippageAmount) {
-        originalAmount = amountIn;
-        newArgs[0] = abi.encode(
-          swapper, assetIn, assetOut, slippageAmount, amountOut, receiver, sweeper, minSweepOut
+      ) =
+        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+
+      if (amountIn != receivedAmount) {
+        newArgs = abi.encode(
+          swapper, assetIn, assetOut, receivedAmount, amountOut, receiver, sweeper, minSweepOut
         );
-        _checkSlippage(originalAmount, slippageAmount);
-      } else {
-        newArgs[0] = args[0];
+        _checkSlippage(amountIn, receivedAmount);
       }
     }
   }
