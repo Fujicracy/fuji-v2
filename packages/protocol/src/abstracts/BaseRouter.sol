@@ -49,7 +49,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /// @dev Apply it on cross-bridge entry functions as required.
   mapping(address => bool) internal _isAllowedCaller;
 
-  address[] internal _tokenList;
   BalanceChecker[] internal _tokensToCheck;
   address private _beneficiary;
 
@@ -296,12 +295,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _crossTransferWithCalldata(bytes memory) internal virtual;
 
   /**
-   * @dev Returns true if token has already been added to `_tokenList`.
+   * @dev Returns true if token has already been added to `_tokensToCheck`.
    */
   function _isInTokenList(address token) private view returns (bool value) {
-    uint256 len = _tokenList.length;
+    uint256 len = _tokensToCheck.length;
     for (uint256 i = 0; i < len;) {
-      if (token == _tokenList[i]) {
+      if (token == _tokensToCheck[i].token) {
         value = true;
       }
       unchecked {
@@ -317,7 +316,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    */
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
-      _tokenList.push(token);
       BalanceChecker memory checkedToken =
         BalanceChecker(token, IERC20(token).balanceOf(address(this)));
       _tokensToCheck.push(checkedToken);
@@ -325,10 +323,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Checks that `erc20-balanceOf` of `_tokenList` haven't change for this address.
+   * @dev Checks that `erc20-balanceOf` of `_tokensToCheck` haven't change for this address.
    * Requirements:
    * - MUST be called in `_bundleInternal()` at the end of all executed `actions`.
-   * - MUST clear `_tokenList` from storage at the end of checks.
    * - MUST clear `_tokensToCheck` from storage at the end of checks.
    */
   function _checkNoBalanceChange(
@@ -355,7 +352,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       revert BaseRouter__bundleInternal_noBalanceChange();
     }
 
-    delete _tokenList;
     delete _tokensToCheck;
   }
 

@@ -119,7 +119,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     if (IERC20(asset).balanceOf(address(this)) < amount) {
       revert ConnextRouter__xReceive_notReceivedAssetBalance();
     } else {
-      _tokenList.push(asset);
       BalanceChecker memory checkedToken =
         BalanceChecker(asset, IERC20(asset).balanceOf(address(this)) - amount);
       _tokensToCheck.push(checkedToken);
@@ -139,7 +138,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     } catch {
       // Else:
       // ensure clear storage for token balance checks
-      delete _tokenList;
       delete _tokensToCheck;
       // keep funds in router and let them be handled by admin
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
