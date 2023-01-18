@@ -134,6 +134,40 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
   }
 
+  function test_bridgeSlippageInbound() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(connextRouter), address(vault)
+    );
+
+    vm.expectEmit(true, true, true, false);
+    emit Deposit(address(connextRouter), ALICE, amount, amount);
+
+    vm.expectEmit(true, true, true, false);
+    emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    // including a 0.03% slippage (3 BPS)
+    uint256 slippageAmount = ((amount * 10000) / 10003);
+    deal(collateralAsset, address(connextRouter), slippageAmount);
+
+    vm.startPrank(registry[domain].connext);
+    connextRouter.xReceive("", slippageAmount, vault.asset(), address(0), originDomain, callData);
+    vm.stopPrank();
+
+    // Assert ALICE has received shares
+    assertGt(vault.balanceOf(ALICE), 0);
+    // Since ALICE is first depositor, assert ALICE shares are equal `slippageAmount`.
+    assertEq(vault.balanceOf(ALICE), slippageAmount);
+    // Assert ALICE received borrowAmount
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    // Assert router does not have collateral.
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
+  }
+
   function test_attackXReceive() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
