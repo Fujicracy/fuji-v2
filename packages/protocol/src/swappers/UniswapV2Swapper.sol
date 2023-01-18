@@ -69,7 +69,7 @@ contract UniswapV2Swapper is ISwapper {
     ERC20(assetIn).safeTransfer(sweeper, leftover);
   }
 
-  /// inherit Iswapper
+  /// inherit ISwapper
   function getAmountIn(
     address assetIn,
     address assetOut,
@@ -85,7 +85,7 @@ contract UniswapV2Swapper is ISwapper {
     amountIn = amounts[0];
   }
 
-  /// inherit Iswapper
+  /// inherit ISwapper
   function getAmountOut(
     address assetIn,
     address assetOut,
