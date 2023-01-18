@@ -53,14 +53,14 @@ contract FlasherBalancerOptimismForkingTest is Routines, ForkingSetup, IFlashLoa
   function receiveFlashLoan(
     IERC20[] memory, /*asset*/
     uint256[] memory, /*amount*/
-    uint256[] memory, /*initiator*/
+    uint256[] memory feeAmounts,
     bytes calldata data
   )
     external
   {
     (IERC20[] memory assets, uint256[] memory amounts) = abi.decode(data, (IERC20[], uint256[]));
 
-    assertEq(assets[0].balanceOf(address(this)), amounts[0]);
+    assertEq(assets[0].balanceOf(address(this)), amounts[0] + feeAmounts[0]);
 
     IERC20(assets[0]).transfer(msg.sender, amounts[0]);
   }
@@ -72,6 +72,9 @@ contract FlasherBalancerOptimismForkingTest is Routines, ForkingSetup, IFlashLoa
     amounts[0] = BORROW_AMOUNT;
 
     bytes memory data = abi.encode(tokens, amounts);
+
+    //deal premium
+    deal(address(debtAsset), address(this), flasher.computeFlashloanFee(debtAsset, BORROW_AMOUNT));
 
     IBalancerVault(flasher.getFlashloanSourceAddr(debtAsset)).flashLoan(this, tokens, amounts, data);
 
