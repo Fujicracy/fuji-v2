@@ -66,9 +66,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__setRouter_invalidInput();
   error ConnextRouter__xReceive_notReceivedAssetBalance();
   error ConnextRouter__xReceive_notAllowedCaller();
+  error ConnnextRouter__checkSlippage_outOfBounds();
 
   // The connext contract on the origin domain.
   IConnext public immutable connext;
+
+  // The maximum slippage Fuji accepts, in BPS, due to the Connext bridging mechanics
+  // Eg. 0.05% slippage threshold will be 5.
+  uint256 public immutable slippageThreshold;
 
   // ref: https://docs.nomad.xyz/developers/environments/domain-chain-ids
   mapping(uint256 => address) public routerByDomain;
@@ -76,6 +81,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
     _allowCaller(address(connext_), true);
+    slippageThreshold = 5;
   }
 
   // Connext specific functions
@@ -119,10 +125,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       _tokensToCheck.push(checkedToken);
     }
 
-    // Checking if encoded args, need to be substituted with bridging slippage values.
+    // Checking if encoded args need to be substituted with bridging slippage values.
+    // for first action
     bytes[] memory newArgs;
     if (amount > 0) {
-      newArgs = _replaceSlippageAmount(asset, amount, actions[0], args);
+      newArgs = _replaceSlippageAmount(amount, actions[0], args);
     } else {
       newArgs = args;
     }
@@ -147,7 +154,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * https://github.com/Fujicracy/fuji-v2/issues/253#issuecomment-1385995095
    */
   function _replaceSlippageAmount(
-    address asset,
     uint256 slippageAmount,
     Action firstAction,
     bytes[] memory args
@@ -164,8 +170,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // DEPOSIT OR PAYBACK
       (IVault vault, uint256 amount, address receiver, address sender) =
         abi.decode(args[0], (IVault, uint256, address, address));
-      originalAmount = amount;
-      newArgs[0] = abi.encode(vault, slippageAmount, receiver, sender);
+      if (amount != slippageAmount) {
+        originalAmount = amount;
+        newArgs[0] = abi.encode(vault, slippageAmount, receiver, sender);
+        _checkSlippage(originalAmount, slippageAmount);
+      } else {
+        newArgs[0] = args[0];
+      }
     } else if (firstAction == Action.Swap) {
       // SWAP
       (
@@ -180,15 +191,25 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       ) = abi.decode(
         args[0], (ISwapper, address, address, uint256, uint256, address, address, uint256)
       );
-      originalAmount = amountIn;
-      newArgs[0] = abi.encode(
-        swapper, assetIn, assetOut, slippageAmount, amountOut, receiver, sweeper, minSweepOut
-      );
+      if (amountIn != slippageAmount) {
+        originalAmount = amountIn;
+        newArgs[0] = abi.encode(
+          swapper, assetIn, assetOut, slippageAmount, amountOut, receiver, sweeper, minSweepOut
+        );
+        _checkSlippage(originalAmount, slippageAmount);
+      } else {
+        newArgs[0] = args[0];
+      }
     }
-    _checkSlippageAmount(originalAmount, slippageAmount);
   }
 
-  function _checkSlippageAmount(uint256 original, uint256 slippage) internal view {}
+  function _checkSlippage(uint256 original, uint256 slippage) internal view {
+    uint256 upperBound = original * (10000 + slippageThreshold) / 10000;
+    uint256 lowerBound = original * 10000 / (10000 + slippageThreshold);
+    if (slippage > upperBound || slippage < lowerBound) {
+      revert ConnnextRouter__checkSlippage_outOfBounds();
+    }
+  }
 
   function _crossTransfer(bytes memory params) internal override {
     (
