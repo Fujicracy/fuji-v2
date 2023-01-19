@@ -87,8 +87,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   // Connext specific functions
 
   /**
-   * @notice Called by Connext on the destination chain. It doesn't perform an authentification
-   * by doing a check on `originSender`. As a result of that, all txns go through the fast path.
+   * @notice Called by Connext on the destination chain. It does perform an authentification.
+   * As a result of that, all txns go through Connext's slow path.
    * If `xBundle` fails on our side, this contract will keep the custody of the sent funds.
    *
    * @param transferId - The unique identifier of the crosschain transfer.
@@ -119,9 +119,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     if (IERC20(asset).balanceOf(address(this)) < amount) {
       revert ConnextRouter__xReceive_notReceivedAssetBalance();
     } else {
-      BalanceChecker memory checkedToken =
-        BalanceChecker(asset, IERC20(asset).balanceOf(address(this)) - amount);
-      _tokensToCheck.push(checkedToken);
+      _tokensToCheck.push(Snapshot(asset, IERC20(asset).balanceOf(address(this)) - amount));
     }
 
     // Due to the AMM nature of Connext, there could be some slippage

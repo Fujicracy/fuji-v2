@@ -22,7 +22,7 @@ import {IWETH9} from "../abstracts/WETH9.sol";
 abstract contract BaseRouter is SystemAccessControl, IRouter {
   using SafeERC20 for ERC20;
 
-  struct BalanceChecker {
+  struct Snapshot {
     address token;
     uint256 balance;
   }
@@ -46,10 +46,21 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   IWETH9 public immutable WETH9;
 
-  /// @dev Apply it on cross-bridge entry functions as required.
+  /// @dev Apply it on entry functions as required.
   mapping(address => bool) internal _isAllowedCaller;
 
-  BalanceChecker[] internal _tokensToCheck;
+  /**
+   * @dev Store token balances of this contract at a given moment.
+   * It's used to assure that there're no changes in balances at the
+   * end of a transaction.
+   */
+  Snapshot[] internal _tokensToCheck;
+
+  /**
+   * @dev Operations in the bundle should "benefit" or be executed
+   * on behalf of this account. These are receivers on DEPOSIT and PAYBACK
+   * or owners on WITHDRAW and BORROW.
+   */
   address private _beneficiary;
 
   constructor(IWETH9 weth, IChief chief) SystemAccessControl(address(chief)) {
@@ -316,8 +327,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    */
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
-      BalanceChecker memory checkedToken =
-        BalanceChecker(token, IERC20(token).balanceOf(address(this)));
+      Snapshot memory checkedToken = Snapshot(token, IERC20(token).balanceOf(address(this)));
       _tokensToCheck.push(checkedToken);
     }
   }
@@ -328,12 +338,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * - MUST be called in `_bundleInternal()` at the end of all executed `actions`.
    * - MUST clear `_tokensToCheck` from storage at the end of checks.
    */
-  function _checkNoBalanceChange(
-    BalanceChecker[] memory tokensToCheck,
-    uint256 nativeBalance
-  )
-    private
-  {
+  function _checkNoBalanceChange(Snapshot[] memory tokensToCheck, uint256 nativeBalance) private {
     uint256 len = tokensToCheck.length;
     for (uint256 i = 0; i < len;) {
       uint256 previousBalance = tokensToCheck[i].balance;
