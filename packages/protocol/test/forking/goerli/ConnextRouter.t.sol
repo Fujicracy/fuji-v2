@@ -123,7 +123,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     deal(collateralAsset, address(connextRouter), amount);
 
     vm.startPrank(registry[domain].connext);
-    connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, callData);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
     vm.stopPrank();
 
     // Assert ALICE has received shares

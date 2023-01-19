@@ -101,7 +101,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes32 transferId,
     uint256 amount,
     address asset,
-    address, /* originSender */
+    address originSender,
     uint32 originDomain,
     bytes memory callData
   )
@@ -111,7 +111,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     // Block callers except allowed cross callers.
-    if (!_isAllowedCaller[msg.sender]) {
+    if (
+      !_isAllowedCaller[msg.sender] || routerByDomain[originDomain] != originSender
+        || originSender == address(0)
+    ) {
       revert ConnextRouter__xReceive_notAllowedCaller();
     }
 
