@@ -75,7 +75,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   // Eg. 0.05% slippage threshold will be 5.
   uint256 public immutable slippageThreshold;
 
-  // ref: https://docs.nomad.xyz/developers/environments/domain-chain-ids
+  // ref: https://docs.connext.network/resources/deployments
   mapping(uint256 => address) public routerByDomain;
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
@@ -119,10 +119,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     }
 
     // Ensure that at this entry point expected `asset` `amount` is received.
-    if (IERC20(asset).balanceOf(address(this)) < amount) {
+    uint256 balance = IERC20(asset).balanceOf(address(this));
+    if (balance < amount) {
       revert ConnextRouter__xReceive_notReceivedAssetBalance();
     } else {
-      _tokensToCheck.push(Snapshot(asset, IERC20(asset).balanceOf(address(this)) - amount));
+      _tokensToCheck.push(Snapshot(asset, balance - amount));
     }
 
     // Due to the AMM nature of Connext, there could be some slippage
@@ -134,10 +135,12 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       args[0] = _accountForSlippage(amount, actions[0], args[0]);
     }
 
+    // Connext will keep the custody of the bridged amount if the call
+    // to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
+    // That's why we try/catch instead of directly calling _bundleInternal(actions, args).
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      // Else:
       // ensure clear storage for token balance checks
       delete _tokensToCheck;
       // keep funds in router and let them be handled by admin
