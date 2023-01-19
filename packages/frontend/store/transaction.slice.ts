@@ -430,7 +430,7 @@ export const createTransactionSlice: TransactionSlice = (set, get) => ({
 
     try {
       const { bridgeFee, estimateTime, actions, steps } =
-        await sdk.previewDepositAndBorrow(
+        await sdk.previews.depositAndBorrow(
           vault,
           parseUnits(collateral.amount.toString(), collateral.token.decimals),
           parseUnits(debt.amount.toString(), debt.token.decimals),

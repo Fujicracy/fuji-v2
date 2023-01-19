@@ -68,11 +68,11 @@ export function toHistoryRoutingStep(
       ...s,
       txHash: undefined,
       token: {
-        chainId: s.token.chainId,
-        address: s.token.address.value,
-        decimals: s.token.decimals,
-        symbol: s.token.symbol,
-        name: s.token.name,
+        chainId: s.token?.chainId as ChainId,
+        address: s.token?.address.value as string,
+        decimals: s.token?.decimals as number,
+        symbol: s.token?.symbol as string,
+        name: s.token?.name as string,
       },
     }
   })
@@ -189,9 +189,9 @@ export const useHistory = create<HistoryStore>()(
 
           const { steps } = get().byHash[hash]
           const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-          const dAmount = d && formatUnits(d.amount, d.token.decimals)
+          const dAmount = d?.amount && formatUnits(d.amount, d.token.decimals)
           const b = steps.find((s) => s.step === RoutingStep.BORROW)
-          const bAmount = b && formatUnits(b.amount, b.token.decimals)
+          const bAmount = b?.amount && formatUnits(b.amount, b.token.decimals)
           useSnack.getState().display({
             icon: "success",
             title: `Deposit ${dAmount} ${d?.token.symbol} and borrow ${bAmount} ${b?.token.symbol}`,
