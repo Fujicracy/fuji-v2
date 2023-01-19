@@ -6,9 +6,9 @@ import { LendingProviderDetails } from './LendingProviderDetails';
 
 export type RoutingStepDetails = {
   step: RoutingStep;
-  amount: BigNumber;
   chainId: ChainId;
-  token: Token;
+  amount?: BigNumber;
+  token?: Token;
   txHash?: Promise<string>;
   lendingProvider?: LendingProviderDetails;
 };

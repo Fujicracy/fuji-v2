@@ -4,10 +4,11 @@ import { IMulticallProvider } from '@hovoh/ethcall';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
+import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
-import { ChainConfig } from '../types';
+import { ChainConfig, ChainConnectionDetails } from '../types';
 import { Address } from './Address';
-import { ChainConnection } from './ChainConnection';
+import { Chain } from './Chain';
 import { Currency } from './Currency';
 import { StreamManager } from './StreamManager';
 import { Token } from './Token';
@@ -29,14 +30,22 @@ export abstract class AbstractCurrency extends StreamManager {
    * The chain ID on which this currency resides
    */
   readonly chainId: ChainId;
+
+  /**
+   * The chain ID on which this currency resides
+   */
+  readonly chain: Chain;
+
   /**
    * The decimals used in representing currency amounts
    */
   readonly decimals: number;
+
   /**
    * The symbol of the currency, i.e. a short textual non-unique identifier
    */
   readonly symbol: string;
+
   /**
    * The name of the currency, i.e. a descriptive textual non-unique identifier
    */
@@ -78,6 +87,7 @@ export abstract class AbstractCurrency extends StreamManager {
     super();
 
     this.chainId = chainId;
+    this.chain = CHAIN[this.chainId];
     this.decimals = decimals;
     this.symbol = symbol;
     this.name = name;
@@ -125,7 +135,9 @@ export abstract class AbstractCurrency extends StreamManager {
    * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
   setConnection(configParams: ChainConfig): AbstractCurrency {
-    const connection = ChainConnection.from(configParams, this.chainId);
+    const connection = CHAIN[this.chainId].setConnection(configParams)
+      .connection as ChainConnectionDetails;
+
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;
     this.multicallRpcProvider = connection.multicallRpcProvider;
