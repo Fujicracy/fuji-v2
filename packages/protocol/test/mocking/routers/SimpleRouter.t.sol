@@ -17,11 +17,9 @@ import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
-import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
-import {MockSwapper} from "../../../src/mocks/MockSwapper.sol";
 import {MockProvider} from "../../../src/mocks/MockProvider.sol";
 import {MockERC20} from "../../../src/mocks/MockERC20.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
@@ -57,9 +55,7 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
-  ILendingProvider public mockProvider;
   IRouter public simpleRouter;
-  ISwapper public swapper;
 
   MockFlasher public flasher;
 
@@ -71,17 +67,10 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   function setUp() public {
     oracle = new MockOracle();
-
-    swapper = new MockSwapper(oracle);
-
     flasher = new MockFlasher();
 
-    mockProvider = new MockProvider();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(mockProvider);
+    // _setVaultProviders(vault, providers);
+    // vault.setActiveProvider(mockProvider);
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
   }
@@ -425,13 +414,17 @@ contract SimpleRouterUnitTests is MockingSetup {
 
   function test_borrowWithPermitAttack() public {
     // Create an inverted "asset-debtAsset" vault.
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     newVault = new BorrowingVault(
       debtAsset, // Debt asset as collateral
       collateralAsset, // Collateral asset as debt
       address(oracle),
       address(chief),
       "Fuji-V2 DAI Vault Shares",
-      "fv2DAI"
+      "fv2DAI",
+      providers
     );
 
     _dealMockERC20(collateralAsset, ALICE, amount);

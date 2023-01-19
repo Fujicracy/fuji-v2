@@ -15,14 +15,13 @@ contract WePiggyForkingTest is Routines, ForkingSetup {
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
   function setUp() public {
-    deploy(MAINNET_DOMAIN);
+    setUpFork(MAINNET_DOMAIN);
 
     wePiggy = new WePiggy();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = wePiggy;
 
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(wePiggy);
+    deploy(providers);
   }
 
   function test_depositAndBorrow() public {

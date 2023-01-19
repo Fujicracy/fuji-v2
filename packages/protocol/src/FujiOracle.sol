@@ -56,48 +56,47 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
 
   /**
    * @dev Calculates the exchange rate between two assets, with price oracle given in specified decimals.
-   * Format is: (_currencyAsset per unit of _commodityAsset Exchange Rate).
-   * @param _currencyAsset: the currency asset, zero-address for USD.
-   * @param _commodityAsset: the commodity asset, zero-address for USD.
-   * @param _decimals: the decimals of the price output.
+   * Format is: (currencyAsset per unit of commodityAsset Exchange Rate).
+   * @param currencyAsset: the currency asset, zero-address for USD.
+   * @param commodityAsset: the commodity asset, zero-address for USD.
+   * @param decimals: the decimals of the price output.
    * Returns the exchange rate of the given pair.
    */
   function getPriceOf(
-    address _currencyAsset,
-    address _commodityAsset,
-    uint8 _decimals
+    address currencyAsset,
+    address commodityAsset,
+    uint8 decimals
   )
     external
     view
     override
     returns (uint256 price)
   {
-    price = 10 ** uint256(_decimals);
+    price = 10 ** uint256(decimals);
 
-    if (_commodityAsset != address(0)) {
-      price = price * _getUSDPrice(_commodityAsset);
+    if (commodityAsset != address(0)) {
+      price = price * _getUSDPrice(commodityAsset);
     } else {
       price = price * (10 ** 8);
     }
 
-    if (_currencyAsset != address(0)) {
-      price = price / _getUSDPrice(_currencyAsset);
+    if (currencyAsset != address(0)) {
+      price = price / _getUSDPrice(currencyAsset);
     } else {
       price = price / (10 ** 8);
     }
   }
 
   /**
-   * @dev Calculates the USD price of asset.
-   * @param _asset: the asset address.
-   * Returns the USD price of the given asset
+   * @dev Returns the USD price of asset in a 8 decimal uint format.
+   * @param asset: the asset address.
    */
-  function _getUSDPrice(address _asset) internal view returns (uint256 price) {
-    if (usdPriceFeeds[_asset] == address(0)) {
+  function _getUSDPrice(address asset) internal view returns (uint256 price) {
+    if (usdPriceFeeds[asset] == address(0)) {
       revert FujiOracle__noPriceFeed();
     }
 
-    (, int256 latestPrice,,,) = IAggregatorV3(usdPriceFeeds[_asset]).latestRoundData();
+    (, int256 latestPrice,,,) = IAggregatorV3(usdPriceFeeds[asset]).latestRoundData();
 
     price = uint256(latestPrice);
   }

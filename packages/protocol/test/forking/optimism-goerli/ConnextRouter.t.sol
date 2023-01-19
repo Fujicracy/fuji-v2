@@ -34,7 +34,14 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
   function setUp() public {
     domain = OPTIMISM_GOERLI_DOMAIN;
-    deploy(domain);
+    setUpFork(domain);
+
+    // test with a mock provider because Connext's and Aave's WETH mismatch
+    MockProviderV0 mockProvider = new MockProviderV0();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
+    deploy(providers);
 
     connextRouter = new ConnextRouter(
       IWETH9(collateralAsset),
@@ -54,14 +61,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
     );
     _callWithTimelock(address(connextRouter), callData);
-
-    // test with a mock provider because Connext's and Aave's WETH mismatch
-    MockProviderV0 mockProvider = new MockProviderV0();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(mockProvider);
+    // _setVaultProviders(vault, providers);
+    // vault.setActiveProvider(mockProvider);
   }
 
   function test_bridgeOutbound() public {
