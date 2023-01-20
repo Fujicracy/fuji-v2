@@ -47,13 +47,14 @@ export type PermitParams = BaseRouterActionParams & {
   s?: string;
 };
 
-//(uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver)
+//(uint256 destDomain, uint256 slippage, address asset, uint256 amount, address receiver, address sender)
 export type XTransferParams = BaseRouterActionParams & {
   action: RouterAction.X_TRANSFER;
   destDomain: number;
   asset: Address;
   receiver: Address;
   slippage: number;
+  sender: Address;
 };
 
 //(uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData)
