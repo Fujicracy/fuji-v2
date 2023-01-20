@@ -108,8 +108,18 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
     bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(connextRouter), address(vault)
+      ALICE,
+      ALICE_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
     );
 
     vm.expectEmit(true, true, true, false);
@@ -142,8 +152,18 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
     bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(connextRouter), address(vault)
+      ALICE,
+      ALICE_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
     );
 
     vm.expectEmit(true, true, true, false);
@@ -176,9 +196,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
     // This calldata has to fail and funds stay at the router.
     bytes memory failingCallData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
     );
 
     // Send directly the bridged funds to our router thus mocking Connext behavior
@@ -194,7 +218,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Attacker makes first attempt to take funds using xReceive, BOB
     address attacker = BOB;
     bytes memory attackCallData = _getDepositAndBorrowCallData(
-      attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
+      attacker,
+      BOB_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
     );
 
     vm.startPrank(attacker);
@@ -234,9 +264,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
     // make the callData to fail
     bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
     );
 
     // send directly the bridged funds to our router
