@@ -179,7 +179,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     deal(collateralAsset, address(connextRouter), slippageAmount);
 
     vm.startPrank(registry[domain].connext);
-    connextRouter.xReceive("", slippageAmount, vault.asset(), address(0), originDomain, callData);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", slippageAmount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
     vm.stopPrank();
 
     // Assert ALICE has received shares
@@ -209,7 +213,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     deal(collateralAsset, address(connextRouter), amount);
 
     vm.startPrank(registry[domain].connext);
-    connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, failingCallData);
+    // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, failingCallData
+    );
     vm.stopPrank();
 
     // Assert that funds are kept at the Router
@@ -228,8 +236,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     );
 
     vm.startPrank(attacker);
-    try connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, attackCallData)
-    {
+    // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    try connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, attackCallData
+    ) {
       console.log("xReceive-attack succeeded");
     } catch {
       console.log("xReceive-attack repelled");
@@ -278,7 +289,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     deal(collateralAsset, address(connextRouter), amount);
 
     vm.startPrank(registry[domain].connext);
-    connextRouter.xReceive("", amount, vault.asset(), address(0), originDomain, callData);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), 0);

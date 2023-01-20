@@ -89,6 +89,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param transferId - The unique identifier of the crosschain transfer.
    * @param amount - The amount of transferring asset, after slippage, the recipient address receives.
    * @param asset - The asset being transferred.
+   * @param originSender - The address of the contract or EOA that called xcall on the origin chain.
    * @param originDomain - The origin domain identifier according Connext nomenclature.
    * @param callData - The calldata that will get decoded and executed.
    */
