@@ -11,6 +11,7 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 /**
  * @title BorrowingVaultFactory
  * @author Fujidao Labs
+ *
  * @notice A factory contract through which new borrowing vaults are created.
  * The BorrowingVault contract is quie big in size. Creating new isntances of it with
  * `new BorrowingVault()` makes the factory contract exceed the 24K limit. That's why
