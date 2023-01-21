@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {IFlasher} from "../../interfaces/IFlasher.sol";
@@ -117,37 +118,37 @@ contract BorrowingVault is BaseVault {
   /// Debt management overrides ///
   /////////////////////////////////
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function debtDecimals() public view override returns (uint8) {
     return _debtDecimals;
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function debtAsset() public view override returns (address) {
     return address(_debtAsset);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function balanceOfDebt(address owner) public view override returns (uint256 debt) {
     return convertToDebt(_debtShares[owner]);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function totalDebt() public view override returns (uint256) {
     return _checkProvidersBalance("getBorrowBalance");
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Down);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc IVault
   function maxBorrow(address borrower) public view override returns (uint256) {
     return _computeMaxBorrow(borrower);
   }
@@ -436,7 +437,7 @@ contract BorrowingVault is BaseVault {
   /// Rebalancing ///
   ///////////////////
 
-  // inheritdoc IVault
+  // @inheritdoc IVault
   function rebalance(
     uint256 assets,
     uint256 debt,
@@ -474,7 +475,7 @@ contract BorrowingVault is BaseVault {
   ///  Liquidation  ////
   //////////////////////
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function getHealthFactor(address owner) public view returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
@@ -490,7 +491,7 @@ contract BorrowingVault is BaseVault {
     }
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
@@ -503,7 +504,7 @@ contract BorrowingVault is BaseVault {
     }
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function liquidate(
     address owner,
     address receiver
