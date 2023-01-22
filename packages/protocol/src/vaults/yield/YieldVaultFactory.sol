@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+/**
+ * @title YieldVaultFactory
+ * @author Fujidao Labs
+ *
+ * @notice A factory contract through which new yield vaults are created.
+ */
+
 import {YieldVault} from "./YieldVault.sol";
 import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {IERC20Metadata} from
@@ -10,11 +17,25 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 contract YieldVaultFactory is VaultDeployer {
   uint256 public nonce;
 
-  constructor(address _chief) VaultDeployer(_chief) {}
+  /**
+   * @notice Constructor of a new {YieldVaultFactory}
+   * Requirements:
+   * - Must comply with {VaultDeployer} requirements.
+   *
+   * @param chief_ address of {Chief}.
+   */
+  constructor(address chief_) VaultDeployer(chief_) {}
 
-  function deployVault(bytes memory _deployData) external onlyChief returns (address vault) {
+  /**
+   * @notice Deploys a new {YieldVault}.
+   * Requirements:
+   * - Must be called from {Chief} contract only.
+   *
+   * @param deployData The encoded data containing asset, debtAsset and oracle.
+   */
+  function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
     (address asset, ILendingProvider[] memory providers) =
-      abi.decode(_deployData, (address, ILendingProvider[]));
+      abi.decode(deployData, (address, ILendingProvider[]));
 
     string memory assetName = IERC20Metadata(asset).name();
     string memory assetSymbol = IERC20Metadata(asset).symbol();
@@ -24,7 +45,7 @@ contract YieldVaultFactory is VaultDeployer {
     // symbol_, ex: fyvDAI
     string memory symbol = string(abi.encodePacked("fyv", assetSymbol));
 
-    bytes32 salt = keccak256(abi.encode(_deployData, nonce));
+    bytes32 salt = keccak256(abi.encode(deployData, nonce));
     nonce++;
     vault = address(new YieldVault{salt: salt}(asset, chief, name, symbol, providers));
     _registerVault(vault, asset, salt);

@@ -5,14 +5,14 @@ pragma solidity 0.8.15;
  * @title BaseVault
  * @author Fujidao Labs
  *
- * @notice Abstract contract that defines the basic common functions and
- * interface for all vault types.
- * User state is kept at vaults via token-shares compliant to ERC4626.
+ * @notice Abstract contract that defines the basic common functions and interface
+ * for all vault types.
+ * User state is kept in vaults via tokenized shares compliant to ERC4626.
  * BaseVault defines but does not implement the debt handling functions.
  * Slippage protected functions are available thru ERC5143 extension.
  * The set of `providers` of this vault is where liquidity is sourced for
  * lending, borrowing and/or yielding operations.
- * Setter functions are controlled by timelock, defined in {SystemAccessControl}.
+ * Setter functions are controlled by timelock, and roles defined in {SystemAccessControl}.
  * Pausability in core functions is implemented for emergency cases.
  * Allowance and approvals for value extracting operations  is possible via
  * signed messages defined in {VaultPermissions}.
@@ -76,7 +76,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - `asset_` erc20-decimals and `_decimals` of this vault should be equal.
    * - initial `minAmount` can not be < 1e6. Refer to https://rokinot.github.io/hatsfinance
    *
-   * @param asset_ address this vault will handle as main asset (collateral) of this vault.
+   * @param asset_ address this vault will handle as main asset (collateral).
    * @param chief_ address that deploys and controls this vault.
    * @param name_ string of the token-shares handled in this vault.
    * @param symbol_ string of the token-shares handled in this vault.

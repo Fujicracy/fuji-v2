@@ -1,17 +1,36 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+/**
+ * @title YieldVault
+ * @author Fujidao Labs
+ *
+ * @notice Implementation vault that handles pooled single sided asset for
+ * lending and strategies seeking yield.
+ * All debt handling functions return zero or revert accordingly.
+ * User state is kept at vaults via token-shares compliant to ERC4626.
+ * This vault can aggregate protocols that implement yield strategies.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 
 contract YieldVault is BaseVault {
+  /// @dev Custom Errors
   error YieldVault__notApplicable();
   error YieldVault__rebalance_invalidProvider();
 
+  /**
+   * @notice Constructor of a new {YieldVault}.
+   * Requirements:
+   * - Must be initialized with a set of providers.
+   * - Must set first provider in `providers_` array as `activeProvider`.
+   */
   constructor(
     address asset_,
     address chief_,
@@ -27,9 +46,9 @@ contract YieldVault is BaseVault {
 
   receive() external payable {}
 
-  /////////////////////////////////
+  /*///////////////////////////////
   /// Debt management overrides ///
-  /////////////////////////////////
+  ///////////////////////////////*/
 
   /// @inheritdoc BaseVault
   function debtDecimals() public pure override returns (uint8) {}
@@ -62,14 +81,11 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /////////////////////////
+  /*///////////////////////
   /// Borrow allowances ///
-  /////////////////////////
+  ///////////////////////*/
 
-  /**
-   * @dev See {IVaultPermissions-borrowAllowance}.
-   * Implement in {BorrowingVault}, revert in {YieldVault}
-   */
+  /// @inheritdoc BaseVault
   function borrowAllowance(
     address,
     address,
@@ -84,10 +100,7 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /**
-   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
-   * Implement in {BorrowingVault}, revert in {YieldVault}
-   */
+  /// @inheritdoc BaseVault
   function increaseBorrowAllowance(
     address,
     address,
@@ -101,10 +114,7 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /**
-   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
-   * Implement in {BorrowingVault}, revert in {YieldVault}
-   */
+  /// @inheritdoc BaseVault
   function decreaseBorrowAllowance(
     address,
     address,
@@ -118,10 +128,7 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /**
-   * @dev See {IVaultPermissions-permitBorrow}.
-   * Implement in {BorrowingVault}, revert in {YieldVault}
-   */
+  /// @inheritdoc BaseVault
   function permitBorrow(
     address,
     address,
@@ -138,15 +145,16 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
+  /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256) {
     return convertToAssets(balanceOf(owner));
   }
 
-  ///////////////////
+  /*/////////////////
   /// Rebalancing ///
-  ///////////////////
+  /////////////////*/
 
-  // inheritdoc IVault
+  /// @inheritdoc IVault
   function rebalance(
     uint256 assets,
     uint256 debt,
@@ -180,29 +188,30 @@ contract YieldVault is BaseVault {
     return true;
   }
 
-  //////////////////////
+  /*////////////////////
   ///  Liquidate    ////
-  //////////////////////
+  ////////////////////*/
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function getHealthFactor(address) public pure returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function getLiquidationFactor(address) public pure returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function liquidate(address, address) public pure returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
-  ///////////////////////////
+  /*/////////////////////////
   /// Admin set functions ///
-  ///////////////////////////
+  /////////////////////////*/
 
+  /// @inheritdoc BaseVault
   function _setProviders(ILendingProvider[] memory providers) internal override {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {

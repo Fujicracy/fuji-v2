@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
+/**
+ * @title BorrowingVaultFactory
+ * @author Fujidao Labs
+ *
+ * @notice A factory contract through which new borrowing vaults are created.
+ * The BorrowingVault contract is quie big in size. Creating new instances of it with
+ * `new BorrowingVault()` makes the factory contract exceed the 24K limit. That's why
+ * we use an approach found at Fraxlend. We split and store the BorrowingVault bytecode
+ * in two different locations and when used they get concatanated and deployed by using assembly.
+ * ref: https://github.com/FraxFinance/fraxlend/blob/main/src/contracts/FraxlendPairDeployer.sol
+ */
+
 import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {LibSSTORE2} from "../../libraries/LibSSTORE2.sol";
 import {LibBytes} from "../../libraries/LibBytes.sol";
@@ -8,19 +20,8 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 
-/**
- * @title BorrowingVaultFactory
- * @author Fujidao Labs
- *
- * @notice A factory contract through which new borrowing vaults are created.
- * The BorrowingVault contract is quie big in size. Creating new isntances of it with
- * `new BorrowingVault()` makes the factory contract exceed the 24K limit. That's why
- * we use an approach found at Fraxlend. We split and store the BorrowingVault bytecode
- * in two different locations and when used they get concatanated and deployed by using assembly.
- * ref: https://github.com/FraxFinance/fraxlend/blob/main/src/contracts/FraxlendPairDeployer.sol
- */
-
 contract BorrowingVaultFactory is VaultDeployer {
+  /// @dev Custom Errors
   error BorrowingVaultFactory__deployVault_failed();
 
   event DeployBorrowingVault(
@@ -37,10 +38,20 @@ contract BorrowingVaultFactory is VaultDeployer {
   address private _creationAddress1;
   address private _creationAddress2;
 
-  constructor(address _chief) VaultDeployer(_chief) {}
+  /**
+   * @notice Constructor of a new {YieldVaultFactory}
+   * Requirements:
+   * - Must comply with {VaultDeployer} requirements.
+   *
+   * @param chief_ address of {Chief}.
+   */
+  constructor(address chief_) VaultDeployer(chief_) {}
 
   /**
-   * Deploys a new "BorrowingVault".
+   * @notice Deploys a new {BorrowingVault}.
+   * Requirements:
+   * - Must be called from {Chief} contract only.
+   *
    * @param deployData The encoded data containing asset, debtAsset and oracle.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
