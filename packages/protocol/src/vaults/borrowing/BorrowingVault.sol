@@ -557,7 +557,7 @@ contract BorrowingVault is BaseVault {
     address owner,
     address receiver
   )
-    public
+    external
     hasRole(msg.sender, LIQUIDATOR_ROLE)
     returns (uint256 gainedShares)
   {
