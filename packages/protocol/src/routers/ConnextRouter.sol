@@ -82,16 +82,25 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   // Connext specific functions
 
   /**
-   * @notice Called by Connext on the destination chain. It does perform an authentification.
-   * As a result of that, all txns go through Connext's slow path.
-   * If `xBundle` fails on our side, this contract will keep the custody of the sent funds.
+   * @notice Called by Connext on the destination chain. It performs authentification of
+   * the calling address. As a result of that, all txns go through Connext's slow path.
+   * If `xBundle` fails internally, this contract will keep custody of the sent funds.
+   * Requirements:
+   * - `calldata` parameter should be encoded with the following structure:
+   *     > abi.encode(Action[] actions, bytes[] args, uint256 slippageThreshold)
+   *   • actions: array of serialized actions to execute from available enum IRouter.Action.
+   *   • args: array of encoded arguments according to each action. See
+   *     {BaseRouter-internalBundle}.
+   *   • slippageThreshold: same argument as defined in the original `xCall()`. This
+   *     argument protects and checks internally for any slippage that happens during
+   *     the bridge of assets.
    *
    * @param transferId - The unique identifier of the crosschain transfer.
    * @param amount - The amount of transferring asset, after slippage, the recipient address receives.
    * @param asset - The asset being transferred.
    * @param originSender - The address of the contract or EOA that called xcall on the origin chain.
    * @param originDomain - The origin domain identifier according Connext nomenclature.
-   * @param callData - The calldata that will get decoded and executed.
+   * @param callData - The calldata that will get decoded and executed, see "Requirements".
    */
   function xReceive(
     bytes32 transferId,
