@@ -26,32 +26,48 @@ contract HundredArbitrum is ILendingProvider {
   error Hundred__withdraw_failed(uint256 status);
   error Hundred__borrow_failed(uint256 status);
 
+  /**
+   * @dev Returns true/false wether the given token is/isn't WETH
+   * @param token address of the token
+   */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
   }
 
+  /**
+   * @dev Returns the IAddrMapper on this chain
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5);
   }
 
-  function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("Hundred", underlying);
+  /**
+   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce
+   * @param asset address of the token to be used as collateral/debt
+   */
+  function _getCToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("Hundred", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of Hundred
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0x0F390559F258eB8591C8e31Cf0905E97cf36ACE2; // Hundred Arbitrum
   }
 
+  /**
+   * @dev Returns the ProxyReceiver's address used to withdraw from the protocol
+   */
   function _getProxyReceiver() internal pure returns (address) {
     return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be approved as collateral.
+   * @dev Approves vault's assets as collateral for Hundred Protocol.
+   * @param _cTokenAddress address of the underlying cToken to be approved as collateral.
    */
-
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
     IComptroller comptroller = IComptroller(_getComptrollerAddress());
