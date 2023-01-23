@@ -71,7 +71,7 @@ export default function TransactionProcessingModal({
   const steps = entry.steps
     .map((s): TransactionStep => {
       const token = s.token
-      const amount = formatUnits(s.amount, token.decimals)
+      const amount = formatUnits(s.amount ?? 0, token.decimals)
       const provider = s.lendingProvider?.name
       const chain = chainName(s.chainId)
       const link = s.txHash && transactionLink(s.chainId, s.txHash)

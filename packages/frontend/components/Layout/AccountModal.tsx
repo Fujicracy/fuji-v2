@@ -243,10 +243,11 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
       <ListItem secondaryAction={listAction} sx={{ p: 0, pr: "3rem" }}>
         <ListItemText sx={{ m: 0 }}>
           <Typography variant="xsmall">
-            Deposit {formatUnits(collateral.amount, collateral.token.decimals)}{" "}
+            Deposit{" "}
+            {formatUnits(collateral.amount ?? 0, collateral.token.decimals)}{" "}
             {collateral.token.symbol} and borrow{" "}
-            {formatUnits(debt.amount, debt.token.decimals)} {debt.token.symbol}{" "}
-            on {chainName(debt.token.chainId)}
+            {formatUnits(debt.amount ?? 0, debt.token.decimals)}{" "}
+            {debt.token.symbol} on {chainName(debt.token.chainId)}
           </Typography>
         </ListItemText>
       </ListItem>
