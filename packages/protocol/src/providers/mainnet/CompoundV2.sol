@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICToken} from "../../interfaces/compoundV2/ICToken.sol";
@@ -9,6 +10,7 @@ import {ICETH} from "../../interfaces/compoundV2/ICETH.sol";
 import {IComptroller} from "../../interfaces/compoundV2/IComptroller.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 /**
  * @title Compound V2 Lending Provider.
@@ -17,6 +19,8 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
  * @dev The IAddrMapper needs to be properly configured for CompoundV2
  */
 contract CompoundV2 is ILendingProvider {
+  using Address for address;
+
   error CompoundV2__deposit_failed(uint256 status);
   error CompoundV2__borrow_failed(uint256 status);
   error CompoundV2__withdraw_failed(uint256 status);
@@ -54,8 +58,16 @@ contract CompoundV2 is ILendingProvider {
   /**
    * @notice Refer to {ILendingProvider-approveOperator}.
    */
-  function approvedOperator(address asset, address) external view returns (address operator) {
-    operator = getMapper().getAddressMapping(providerName(), asset);
+  function approvedOperator(
+    address keyAsset,
+    address,
+    address
+  )
+    external
+    view
+    returns (address operator)
+  {
+    operator = getMapper().getAddressMapping(providerName(), keyAsset);
   }
 
   /// inheritdoc ILendingProvider
@@ -180,11 +192,8 @@ contract CompoundV2 is ILendingProvider {
    */
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.asset();
-    address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
-    uint256 cTokenBal = ICToken(cTokenAddr).balanceOf(user);
-    uint256 exRate = ICToken(cTokenAddr).exchangeRateStored();
-
-    balance = (exRate * cTokenBal) / 1e18;
+    ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
+    balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
   /**
@@ -192,8 +201,7 @@ contract CompoundV2 is ILendingProvider {
    */
   function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.debtAsset();
-    address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
-
-    balance = ICToken(cTokenAddr).borrowBalanceStored(user);
+    ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
+    balance = LibCompoundV2.viewBorrowingBalanceOf(cToken, user);
   }
 }

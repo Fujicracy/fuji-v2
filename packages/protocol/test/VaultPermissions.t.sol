@@ -55,8 +55,13 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
 
     mockProvider = new MockProvider();
 
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
+
+    _utils_setupTestRoles();
 
     vault = new BorrowingVault(
       address(asset),
@@ -64,10 +69,11 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
       address(oracle),
       address(chief),
       "Fuji-V2 WETH Vault Shares",
-      "fv2WETH"
+      "fv2WETH", 
+      providers
     );
 
-    _utils_setupVaultProvider(vault);
+    // _utils_setupVaultProvider(vault);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
@@ -101,15 +107,15 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     _callWithTimelock(address(chief), sendData);
   }
 
-  function _utils_setupVaultProvider(BorrowingVault vault_) internal {
-    _utils_setupTestRoles();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _callWithTimelock(address(vault_), encodedWithSelectorData);
-    vault_.setActiveProvider(mockProvider);
-  }
+  // function _utils_setupVaultProvider(BorrowingVault vault_) internal {
+  //   _utils_setupTestRoles();
+  //   ILendingProvider[] memory providers = new ILendingProvider[](1);
+  //   providers[0] = mockProvider;
+  //   bytes memory encodedWithSelectorData =
+  //     abi.encodeWithSelector(vault_.setProviders.selector, providers);
+  //   _callWithTimelock(address(vault_), encodedWithSelectorData);
+  //   vault_.setActiveProvider(mockProvider);
+  // }
 
   function test_increaseWithdrawAllowance(uint256 amount) public {
     vm.assume(amount > 0);
@@ -224,8 +230,11 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
     vault.withdraw(withdrawDelegated_, receiver, owner);
   }
 
-  function test_withdrawWithPermit(uint256 depositAmount_, uint256 withdrawDelegated_) public {
-    vm.assume(depositAmount_ > 0 && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_);
+  function test_withdrawWithPermit(uint128 depositAmount_, uint128 withdrawDelegated_) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      depositAmount_ > minAmount && withdrawDelegated_ > 0 && withdrawDelegated_ < depositAmount_
+    );
     do_deposit(depositAmount_, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
@@ -273,7 +282,8 @@ contract VaultPermissionsUnitTests is Routines, CoreRoles {
   }
 
   function test_borrowWithPermit(uint256 borrowDelegated_) public {
-    vm.assume(borrowDelegated_ > 0 && borrowDelegated_ <= BORROW_LIMIT);
+    uint256 minAmount = vault.minAmount();
+    vm.assume(borrowDelegated_ > minAmount && borrowDelegated_ <= BORROW_LIMIT);
     do_deposit(10 ether, vault, owner);
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({

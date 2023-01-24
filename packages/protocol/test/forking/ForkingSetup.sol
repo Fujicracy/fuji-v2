@@ -6,6 +6,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
@@ -27,9 +28,10 @@ contract ForkingSetup is CoreRoles, Test {
   uint32 public constant MUMBAI_DOMAIN = 9991;
 
   uint32 public constant MAINNET_DOMAIN = 6648936;
-  uint32 public constant OPTIMISM_DOMAIN = 22222222; // TODO: replace with the real one
-  uint32 public constant ARBITRUM_DOMAIN = 33333333; // TODO: replace with the real one
+  uint32 public constant OPTIMISM_DOMAIN = 1869640809;
+  uint32 public constant ARBITRUM_DOMAIN = 1634886255;
   uint32 public constant POLYGON_DOMAIN = 1886350457;
+  uint32 public constant GNOSIS_DOMAIN = 6778479;
   //https://github.com/connext/chaindata/blob/main/crossChain.json
 
   uint256 public constant ALICE_PK = 0xA;
@@ -45,6 +47,7 @@ contract ForkingSetup is CoreRoles, Test {
     address weth;
     address usdc;
     address dai;
+    address wmatic;
     address connext;
   }
   // domain => addresses registry
@@ -57,6 +60,8 @@ contract ForkingSetup is CoreRoles, Test {
   Chief public chief;
   TimelockController public timelock;
   MockOracle mockOracle;
+
+  address public dummy;
 
   address public collateralAsset;
   address public debtAsset;
@@ -73,11 +78,13 @@ contract ForkingSetup is CoreRoles, Test {
     forks[OPTIMISM_DOMAIN] = vm.createFork("optimism");
     forks[ARBITRUM_DOMAIN] = vm.createFork("arbitrum");
     forks[POLYGON_DOMAIN] = vm.createFork("polygon");
+    forks[GNOSIS_DOMAIN] = vm.createFork("gnosis");
 
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
       usdc: address(0),
       dai: address(0),
+      wmatic: address(0),
       connext: 0x99A784d082476E551E5fc918ce3d849f2b8e89B6
     });
     registry[GOERLI_DOMAIN] = goerli;
@@ -86,6 +93,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0x74c6FD7D2Bc6a8F0Ebd7D78321A95471b8C2B806,
       usdc: address(0),
       dai: address(0),
+      wmatic: address(0),
       connext: 0x705791AD27229dd4CCf41b6720528AfE1bcC2910
     });
     registry[OPTIMISM_GOERLI_DOMAIN] = optimismGoerli;
@@ -94,6 +102,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0xFD2AB41e083c75085807c4A65C0A14FDD93d55A9,
       usdc: address(0),
       dai: address(0),
+      wmatic: address(0),
       connext: 0xfeBBcfe9a88aadefA6e305945F2d2011493B15b4
     });
     registry[MUMBAI_DOMAIN] = mumbai;
@@ -102,6 +111,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
       usdc: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,
       dai: address(0),
+      wmatic: address(0),
       connext: address(0)
     });
     registry[MAINNET_DOMAIN] = mainnet;
@@ -110,6 +120,7 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0x4200000000000000000000000000000000000006,
       usdc: 0x7F5c764cBc14f9669B88837ca1490cCa17c31607,
       dai: address(0),
+      wmatic: address(0),
       connext: address(0)
     });
     registry[OPTIMISM_DOMAIN] = optimism;
@@ -117,6 +128,7 @@ contract ForkingSetup is CoreRoles, Test {
     Registry memory arbitrum = Registry({
       weth: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,
       usdc: 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8,
+      wmatic: address(0),
       dai: address(0),
       connext: address(0)
     });
@@ -126,12 +138,22 @@ contract ForkingSetup is CoreRoles, Test {
       weth: 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619,
       usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
       dai: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063,
+      wmatic: 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270,
       connext: address(0)
     });
     registry[POLYGON_DOMAIN] = polygon;
+
+    Registry memory gnosis = Registry({
+      weth: 0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1,
+      usdc: 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83,
+      dai: 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d,
+      wmatic: address(0),
+      connext: address(0)
+    });
+    registry[GNOSIS_DOMAIN] = gnosis;
   }
 
-  function deploy(uint32 domain) public {
+  function setUpFork(uint32 domain) public {
     Registry memory reg = registry[domain];
     if (reg.connext == address(0) && reg.weth == address(0) && reg.usdc == address(0)) {
       revert("No registry for this chain");
@@ -140,10 +162,12 @@ contract ForkingSetup is CoreRoles, Test {
 
     originDomain = domain;
 
-    if (reg.connext != address(0)) vm.label(reg.connext, "Connext");
+    if (reg.connext != address(0)) {
+      vm.label(reg.connext, "Connext");
+    }
 
     collateralAsset = reg.weth;
-    vm.label(reg.weth, "ConnextWETH");
+    vm.label(reg.weth, "WETH");
 
     if (reg.usdc == address(0)) {
       // mostly for testnets
@@ -154,21 +178,20 @@ contract ForkingSetup is CoreRoles, Test {
       debtAsset = reg.usdc;
       vm.label(debtAsset, "USDC");
     }
+  }
 
+  function deploy(ILendingProvider[] memory providers) public {
     // TODO: replace with real oracle
     mockOracle = new MockOracle();
     /*address[] memory empty = new address[](0);*/
     /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
+
     // WETH and DAI prices by Nov 11h 2022
     mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
     mockOracle.setUSDPriceOf(debtAsset, 100000000);
 
-    address[] memory admins = new address[](1);
-    admins[0] = address(this);
-    timelock = new TimelockController(1 days, admins, admins);
-
     chief = new Chief(true, true);
-    chief.setTimelock(address(timelock));
+    timelock = TimelockController(payable(chief.timelock()));
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
@@ -179,7 +202,54 @@ contract ForkingSetup is CoreRoles, Test {
       address(mockOracle),
       address(chief),
       "Fuji-V2 WETH-USDC Vault Shares",
-      "fv2WETHUSDC"
+      "fv2WETHUSDC",
+      providers
+    );
+  }
+
+  function deployVault(
+    address collateralAsset_,
+    address debtAsset_,
+    uint256 collateralAssetUSDPrice,
+    uint256 debtAssetUSDPrice,
+    string memory collateralAssetName,
+    string memory debtAssetName,
+    ILendingProvider[] memory providers
+  )
+    internal
+  {
+    collateralAsset = collateralAsset_;
+    debtAsset = debtAsset_;
+    vm.label(collateralAsset_, collateralAssetName);
+    vm.label(debtAsset, debtAssetName);
+
+    // TODO: replace with real oracle
+    mockOracle = new MockOracle();
+    /*address[] memory empty = new address[](0);*/
+    /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
+
+    //TODO only being used for wmatic and usdc, the following lines will be unecessary once real oracle is used
+    mockOracle.setUSDPriceOf(collateralAsset, collateralAssetUSDPrice);
+    mockOracle.setUSDPriceOf(debtAsset, debtAssetUSDPrice);
+
+    string memory nameVault =
+      string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
+    string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
+
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
+    // Grant this address all roles.
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+
+    vault = new BorrowingVault(
+      collateralAsset,
+      debtAsset,
+      address(mockOracle),
+      address(chief),
+      nameVault,
+      symbolVault,
+      providers
     );
   }
 
@@ -197,6 +267,11 @@ contract ForkingSetup is CoreRoles, Test {
 
   function _setVaultProviders(IVault v, ILendingProvider[] memory providers) internal {
     bytes memory callData = abi.encodeWithSelector(IVault.setProviders.selector, providers);
+    _callWithTimelock(address(v), callData);
+  }
+
+  function _setActiveProvider(IVault v, ILendingProvider provider) internal {
+    bytes memory callData = abi.encodeWithSelector(IVault.setActiveProvider.selector, provider);
     _callWithTimelock(address(v), callData);
   }
 
@@ -230,11 +305,38 @@ contract ForkingSetup is CoreRoles, Test {
     deadline = permit.deadline;
   }
 
+  /**
+   * @dev this function was created to avoid stack to deep in `_getDepositAndBorrowCallData`.
+   */
+  function _buildPermitAsBytes(
+    address owner,
+    uint256 ownerPrivateKey,
+    address operator,
+    address receiver,
+    uint256 amount,
+    uint256 plusNonce,
+    address vault_
+  )
+    internal
+    returns (bytes memory arg)
+  {
+    LibSigUtils.Permit memory permit =
+      LibSigUtils.buildPermitStruct(owner, operator, owner, amount, plusNonce, vault_);
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ownerPrivateKey, vault_);
+
+    arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
+  }
+
   function _getDepositAndBorrowCallData(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
     uint256 amount,
     uint256 borrowAmount,
     address router,
-    address vault_
+    address vault_,
+    uint256 slippage
   )
     internal
     returns (bytes memory callData)
@@ -245,18 +347,40 @@ contract ForkingSetup is CoreRoles, Test {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, ALICE, router);
+    args[0] = abi.encode(vault_, amount, beneficiary, router);
 
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(ALICE, router, ALICE, borrowAmount, 0, vault_);
+    args[1] = _buildPermitAsBytes(
+      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+    );
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
 
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, vault_);
+    callData = abi.encode(actions, args, slippage);
+  }
 
-    args[1] = abi.encode(vault_, ALICE, ALICE, borrowAmount, deadline, v, r, s);
+  function _getDepositAndBorrow(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
+    uint256 amount,
+    uint256 borrowAmount,
+    address router,
+    address vault_
+  )
+    internal
+    returns (IRouter.Action[] memory, bytes[] memory)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
 
-    args[2] = abi.encode(vault_, borrowAmount, ALICE, ALICE);
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(vault_, amount, beneficiary, router);
 
-    callData = abi.encode(actions, args);
+    args[1] = _buildPermitAsBytes(
+      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+    );
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    return (actions, args);
   }
 }

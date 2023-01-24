@@ -19,7 +19,7 @@ import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
-contract ConnextRouterTest is Routines, ForkingSetup {
+contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Borrow(
@@ -33,10 +33,18 @@ contract ConnextRouterTest is Routines, ForkingSetup {
   event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
   ConnextRouter public connextRouter;
+  uint32 domain;
 
   function setUp() public {
-    uint32 domain = GOERLI_DOMAIN;
-    deploy(domain);
+    domain = GOERLI_DOMAIN;
+    setUpFork(domain);
+
+    // test with a mock provider because Connext's and Aave's WETH mismatch
+    MockProviderV0 mockProvider = new MockProviderV0();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
+    deploy(providers);
 
     connextRouter = new ConnextRouter(
       IWETH9(collateralAsset),
@@ -56,14 +64,6 @@ contract ConnextRouterTest is Routines, ForkingSetup {
       ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
     );
     _callWithTimelock(address(connextRouter), callData);
-
-    // test with a mock provider because Connext's and Aave's WETH mismatch
-    MockProviderV0 mockProvider = new MockProviderV0();
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-
-    _setVaultProviders(vault, providers);
-    vault.setActiveProvider(mockProvider);
   }
 
   function test_bridgeOutbound() public {
@@ -108,8 +108,19 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    bytes memory callData =
-      _getDepositAndBorrowCallData(amount, borrowAmount, address(connextRouter), address(vault));
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE,
+      ALICE_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
+    );
 
     vm.expectEmit(true, true, true, false);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
@@ -121,25 +132,169 @@ contract ConnextRouterTest is Routines, ForkingSetup {
     // thus mocking Connext behavior
     deal(collateralAsset, address(connextRouter), amount);
 
-    connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
+    vm.stopPrank();
 
-    assertEq(vault.balanceOf(ALICE), amount);
+    // Assert ALICE has received shares
+    assertGt(vault.balanceOf(ALICE), 0);
+    // Assert ALICE received borrowAmount
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    // Assert router does not have collateral.
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
   }
 
-  function test_bridgeInboundXBundleFails() public {
+  function test_bridgeSlippageInbound() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE,
+      ALICE_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
+    );
+
+    vm.expectEmit(true, true, true, false);
+    emit Deposit(address(connextRouter), ALICE, amount, amount);
+
+    vm.expectEmit(true, true, true, false);
+    emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    // including a 0.03% slippage (3 BPS)
+    uint256 slippageAmount = ((amount * 10000) / 10003);
+    deal(collateralAsset, address(connextRouter), slippageAmount);
+
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", slippageAmount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
+    vm.stopPrank();
+
+    // Assert ALICE has received shares
+    assertGt(vault.balanceOf(ALICE), 0);
+    // Since ALICE is first depositor, assert ALICE shares are equal `slippageAmount`.
+    assertEq(vault.balanceOf(ALICE), slippageAmount);
+    // Assert ALICE received borrowAmount
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    // Assert router does not have collateral.
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
+  }
+
+  function test_attackXReceive() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
+    // This calldata has to fail and funds stay at the router.
+    bytes memory failingCallData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+    );
+
+    // Send directly the bridged funds to our router thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    vm.startPrank(registry[domain].connext);
+    // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, failingCallData
+    );
+    vm.stopPrank();
+
+    // Assert that funds are kept at the Router
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+
+    // Attacker makes first attempt to take funds using xReceive, BOB
+    address attacker = BOB;
+    bytes memory attackCallData = _getDepositAndBorrowCallData(
+      attacker,
+      BOB_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
+    );
+
+    vm.startPrank(attacker);
+    // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    try connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, attackCallData
+    ) {
+      console.log("xReceive-attack succeeded");
+    } catch {
+      console.log("xReceive-attack repelled");
+    }
+    vm.stopPrank();
+
+    // Assert attacker has no funds deposited in the vault
+    assertEq(vault.balanceOf(BOB), 0);
+    // Assert attacker was not able to borrow from the vault
+    assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
+
+    // Attacker makes second attempt to take funds using xBundle, BOB
+    (IRouter.Action[] memory attackActions, bytes[] memory attackArgs) = _getDepositAndBorrow(
+      attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
+    );
+
+    vm.startPrank(attacker);
+    try connextRouter.xBundle(attackActions, attackArgs) {
+      console.log("xBundle-attack succeeded");
+    } catch {
+      console.log("xBundle-attack repelled");
+    }
+    vm.stopPrank();
+
+    // Assert attacker has no funds deposited in the vault
+    assertEq(vault.balanceOf(BOB), 0);
+    // Assert attacker was not able to borrow from the vault
+    assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
+  }
+
+  function test_failsbridgeInboundXBundle() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
     // make the callData to fail
-    bytes memory callData =
-      _getDepositAndBorrowCallData(amount, borrowAmount, address(0), address(vault));
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+    );
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
     deal(collateralAsset, address(connextRouter), amount);
 
-    connextRouter.xReceive("", 0, address(0), address(0), originDomain, callData);
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
+    vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), 0);
     // funds are kept at the Router

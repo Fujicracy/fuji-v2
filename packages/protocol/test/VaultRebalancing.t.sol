@@ -214,15 +214,23 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     mockProviderB = new MockProviderIdB();
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
+    providers[0] = mockProviderA;
+    providers[1] = mockProviderB;
 
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
 
     bVaultFactory = new BorrowingVaultFactory(address(chief));
+    bytes memory executionCall = abi.encodeWithSelector(
+      bVaultFactory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
+    );
+    _callWithTimelock(address(bVaultFactory), executionCall);
+
     yVaultFactory = new YieldVaultFactory(address(chief));
 
-    bytes memory executionCall =
+    executionCall =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
     _callWithTimelock(address(chief), executionCall);
 
@@ -231,14 +239,17 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(chief), executionCall);
 
     address bvaultAddr = chief.deployVault(
-      address(bVaultFactory), abi.encode(address(asset), address(debtAsset), address(oracle)), "A+"
+      address(bVaultFactory),
+      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
+      95
     );
     bvault = BorrowingVault(payable(bvaultAddr));
-    _utils_setupVaultProviders(IVault(bvaultAddr));
+    // _utils_setupVaultProviders(IVault(bvaultAddr));
 
-    address yvaultAddr = chief.deployVault(address(yVaultFactory), abi.encode(address(asset)), "A+");
+    address yvaultAddr =
+      chief.deployVault(address(yVaultFactory), abi.encode(address(asset), providers), 95);
     yvault = YieldVault(payable(yvaultAddr));
-    _utils_setupVaultProviders(IVault(yvaultAddr));
+    // _utils_setupVaultProviders(IVault(yvaultAddr));
 
     flasher = new MockFlasher();
     executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
@@ -352,7 +363,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     dealMockERC20(MockERC20(address(debtAsset)), address(this), debt);
 
     SafeERC20.safeApprove(debtAsset, address(bvault), debt);
-    bvault.rebalance(assets, debt, mockProviderA, mockProviderB, 0);
+    bvault.rebalance(assets, debt, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
     assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
@@ -364,7 +375,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   function test_fullRebalancingYieldVault() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
 
-    yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0);
+    yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
     assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), assets);
@@ -379,7 +390,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     dealMockERC20(MockERC20(address(debtAsset)), address(this), debt75);
 
     SafeERC20.safeApprove(debtAsset, address(bvault), debt75);
-    bvault.rebalance(assets75, debt75, mockProviderA, mockProviderB, 0);
+    bvault.rebalance(assets75, debt75, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), assets25);
     assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), debt25);

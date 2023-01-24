@@ -14,7 +14,6 @@ import {
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
-import Fade from "@mui/material/Fade"
 
 import { chains, useAuth } from "../../store/auth.store"
 import NetworkIcon from "../NetworkIcon"
@@ -45,7 +44,7 @@ export default function ChainSelect() {
       {networkName ? (
         <Chip
           label={
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" alignItems="center" spacing={1}>
               <ListItem
                 chainName={networkName}
                 selected={false}
@@ -77,8 +76,12 @@ export default function ChainSelect() {
         open={isOpen}
         onClose={() => setAnchorEl(null)}
         MenuListProps={{ "aria-labelledby": "basic-button" }}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        TransitionComponent={Fade}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{ mt: 1 }}
+        PaperProps={{
+          sx: { background: theme.palette.secondary.contrastText },
+        }}
       >
         {chains.map((chain) => (
           <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
@@ -105,10 +108,12 @@ const ListItem = (props: ListItemProps) => {
       <ListItemIcon sx={{ minWidth: "inherit" }}>
         <NetworkIcon network={chainName} height={20} width={20} />
       </ListItemIcon>
-      {!onMobile && <ListItemText>{chainName}</ListItemText>}
+      {!onMobile && (
+        <ListItemText sx={{ fontSize: "0.875rem" }}>{chainName}</ListItemText>
+      )}
 
       {selected && (
-        <CheckIcon sx={{ color: palette.primary.main, ml: "2rem" }} />
+        <CheckIcon sx={{ color: palette.text.primary, ml: "2rem" }} />
       )}
     </>
   )

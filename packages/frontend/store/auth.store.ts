@@ -43,6 +43,7 @@ const walletConnect = walletConnectModule({
 export const sdkInitOptions = {
   infuraId: `${process.env.NEXT_PUBLIC_INFURA_KEY}`,
   alchemy: {},
+  defillamaproxy: "/proxy/defillama/",
 }
 export const sdk = new Sdk(sdkInitOptions)
 
@@ -134,6 +135,7 @@ type ConnectedState = {
   balance: Balances
   chain: ConnectedChain
   provider: ethers.providers.Web3Provider
+  walletName: string
 }
 type InitialState = {
   status: "initial"
@@ -142,6 +144,7 @@ type InitialState = {
   balance: undefined
   chain: undefined
   provider: undefined
+  walletName: undefined
 }
 type DisconnectedState = {
   status: "disconnected"
@@ -150,6 +153,7 @@ type DisconnectedState = {
   balance: undefined
   chain: undefined
   provider: undefined
+  walletName: undefined
 }
 type State = InitialState | ConnectedState | DisconnectedState
 
@@ -169,6 +173,7 @@ const initialState: InitialState = {
   balance: undefined,
   chain: undefined,
   provider: undefined,
+  walletName: undefined,
 }
 
 export const useAuth = create<AuthStore>()(
@@ -275,6 +280,12 @@ function onOnboardChange(
     const ens = w[0].accounts[0].ens?.name
     if (ens !== get().ens) {
       updates.ens = ens
+    }
+
+    const walletName = w[0].label
+
+    if (walletName) {
+      updates.walletName = walletName
     }
 
     if (Object.entries(updates).length > 0) {

@@ -1,31 +1,90 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.15;
 
-import {BorrowingVault} from "./BorrowingVault.sol";
 import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
+import {LibSSTORE2} from "../../libraries/LibSSTORE2.sol";
+import {LibBytes} from "../../libraries/LibBytes.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+
+/**
+ * @title BorrowingVaultFactory
+ * @author Fujidao Labs
+ * @notice A factory contract through which new borrowing vaults are created.
+ * The BorrowingVault contract is quie big in size. Creating new isntances of it with
+ * `new BorrowingVault()` makes the factory contract exceed the 24K limit. That's why
+ * we use an approach found at Fraxlend. We split and store the BorrowingVault bytecode
+ * in two different locations and when used they get concatanated and deployed by using assembly.
+ * ref: https://github.com/FraxFinance/fraxlend/blob/main/src/contracts/FraxlendPairDeployer.sol
+ */
 
 contract BorrowingVaultFactory is VaultDeployer {
+  error BorrowingVaultFactory__deployVault_failed();
+
+  event DeployBorrowingVault(
+    address indexed vault,
+    address indexed asset,
+    address indexed debtAsset,
+    string name,
+    string symbol,
+    bytes32 salt
+  );
+
   uint256 public nonce;
+
+  address private _creationAddress1;
+  address private _creationAddress2;
 
   constructor(address _chief) VaultDeployer(_chief) {}
 
-  function deployVault(bytes memory _deployData) external onlyChief returns (address vault) {
-    (address asset, address debtAsset, address oracle) =
-      abi.decode(_deployData, (address, address, address));
+  /**
+   * Deploys a new "BorrowingVault".
+   * @param deployData The encoded data containing asset, debtAsset and oracle.
+   */
+  function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
+    (address asset, address debtAsset, address oracle, ILendingProvider[] memory providers) =
+      abi.decode(deployData, (address, address, address, ILendingProvider[]));
 
-    string memory assetName = IERC20Metadata(asset).name();
     string memory assetSymbol = IERC20Metadata(asset).symbol();
+    string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
 
-    // name_, ex: Fuji-V2 Dai Stablecoin BorrowingVault Shares
-    string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " BorrowingVault Shares"));
-    // symbol_, ex: fbvDAI
-    string memory symbol = string(abi.encodePacked("fbv", assetSymbol));
+    // name_, ex: Fuji-V2 WETH-DAI BorrowingVault
+    string memory name =
+      string(abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault"));
+    // symbol_, ex: fbvWETHDAI
+    string memory symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol));
 
-    bytes32 salt = keccak256(abi.encode(_deployData, nonce));
+    bytes32 salt = keccak256(abi.encode(deployData, nonce));
     nonce++;
-    vault = address(new BorrowingVault{salt: salt}(asset, debtAsset, oracle, chief, name, symbol));
+
+    bytes memory creationCode =
+      LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
+
+    bytes memory bytecode = abi.encodePacked(
+      creationCode, abi.encode(asset, debtAsset, oracle, chief, name, symbol, providers)
+    );
+
+    assembly {
+      vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
+    }
+    if (vault == address(0)) revert BorrowingVaultFactory__deployVault_failed();
+
     _registerVault(vault, asset, salt);
+
+    emit DeployBorrowingVault(vault, asset, debtAsset, name, symbol, salt);
+  }
+
+  /**
+   * Sets the bytecode for the BorrowingVault.
+   * @param creationCode The creationCode for the vault contract.
+   */
+  function setContractCode(bytes calldata creationCode) external onlyTimelock {
+    bytes memory firstHalf = LibBytes.slice(creationCode, 0, 13000);
+    _creationAddress1 = LibSSTORE2.write(firstHalf);
+    if (creationCode.length > 13000) {
+      bytes memory secondHalf = LibBytes.slice(creationCode, 13000, creationCode.length - 13000);
+      _creationAddress2 = LibSSTORE2.write(secondHalf);
+    }
   }
 }

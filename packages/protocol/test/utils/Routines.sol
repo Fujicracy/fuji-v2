@@ -28,16 +28,26 @@ contract Routines is Test {
     v.deposit(amount, from);
     vm.stopPrank();
 
-    assertEq(v.balanceOf(from), amount);
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+
+    uint256 mintedShares = v.balanceOf(from);
+    uint256 assetBalance = v.convertToAssets(mintedShares);
+
+    assertApproxEqAbs(assetBalance, amount, amount / 1000);
+
+    vm.warp(block.timestamp - 13 seconds);
+    vm.roll(block.number - 1);
   }
 
   function do_withdraw(uint256 amount, IVault v, address from) internal {
-    uint256 prevAssets = v.convertToAssets(v.balanceOf(from));
+    IERC20 asset_ = IERC20(v.asset());
+    uint256 prevBalance = asset_.balanceOf(from);
     vm.prank(from);
     v.withdraw(amount, from, from);
 
-    uint256 diff = prevAssets - amount;
-    assertEq(v.convertToAssets(v.balanceOf(from)), diff);
+    uint256 newBalance = prevBalance + amount;
+    assertEq(asset_.balanceOf(from), newBalance);
   }
 
   function do_borrow(uint256 amount, IVault v, address from) internal {

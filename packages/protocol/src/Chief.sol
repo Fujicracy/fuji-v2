@@ -27,6 +27,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   event AllowFlasher(address indexed flasher, bool allowed);
   event AllowVaultFactory(address indexed factory, bool allowed);
   event TimelockUpdated(address indexed timelock);
+  event SafetyRatingChange(address vault, uint256 newRating);
 
   /// @dev Custom Errors
   error Chief__checkInput_zeroAddress();
@@ -35,6 +36,8 @@ contract Chief is CoreRoles, AccessControl, IChief {
   error Chief__deployVault_factoryNotAllowed();
   error Chief__deployVault_missingRole(address account, bytes32 role);
   error Chief__onlyTimelock_callerIsNotTimelock();
+  error Chief__checkRatingValue_notInRange();
+  error Chief__checkValidVault_notValidVault();
 
   bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
 
@@ -43,7 +46,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   bool public openVaultFactory;
 
   address[] internal _vaults;
-  mapping(address => string) public vaultSafetyRating;
+  mapping(address => uint256) public vaultSafetyRating;
   mapping(address => bool) public allowedVaultFactory;
   mapping(address => bool) public allowedFlasher;
 
@@ -84,23 +87,43 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   function deployVault(
-    address _factory,
-    bytes calldata _deployData,
-    string calldata rating
+    address factory,
+    bytes calldata deployData,
+    uint256 rating
   )
     external
     returns (address vault)
   {
-    if (!allowedVaultFactory[_factory]) {
+    if (!allowedVaultFactory[factory]) {
       revert Chief__deployVault_factoryNotAllowed();
     }
     if (!openVaultFactory && !hasRole(DEPLOYER_ROLE, msg.sender)) {
       revert Chief__deployVault_missingRole(msg.sender, DEPLOYER_ROLE);
     }
-    vault = IVaultFactory(_factory).deployVault(_deployData);
+    _checkRatingValue(rating);
+
+    vault = IVaultFactory(factory).deployVault(deployData);
     vaultSafetyRating[vault] = rating;
     _vaults.push(vault);
-    emit DeployVault(_factory, vault, _deployData);
+
+    emit DeployVault(factory, vault, deployData);
+  }
+
+  /**
+   * @notice Sets `vaultSafetyRating` for `vault`.
+   * Requirements:
+   *  - Emits a `SafetyRatingChange` event.
+   *  - Only timelock can change rating.
+   *  - `newRating` is in range [1=100].
+   *  - `vault_` is not zero address.
+   */
+  function setSafetyRating(address vault, uint256 newRating) external onlyTimelock {
+    _checkValidVault(vault);
+    _checkRatingValue(newRating);
+
+    vaultSafetyRating[vault] = newRating;
+
+    emit SafetyRatingChange(vault, newRating);
   }
 
   /**
@@ -117,16 +140,16 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `_factory` as an authorized address for vault deployments.
+   * @notice Sets `factory` as an authorized address for vault deployments.
    * - Emits a `AllowVaultFactory` event.
    */
-  function allowVaultFactory(address _factory, bool allowed) external onlyTimelock {
-    _checkInputIsNotZeroAddress(_factory);
-    if (allowedVaultFactory[_factory] == allowed) {
+  function allowVaultFactory(address factory, bool allowed) external onlyTimelock {
+    _checkInputIsNotZeroAddress(factory);
+    if (allowedVaultFactory[factory] == allowed) {
       revert Chief__allowVaultFactory_noAllowChange();
     }
-    allowedVaultFactory[_factory] = allowed;
-    emit AllowVaultFactory(_factory, allowed);
+    allowedVaultFactory[factory] = allowed;
+    emit AllowVaultFactory(factory, allowed);
   }
 
   /**
@@ -215,6 +238,35 @@ contract Chief is CoreRoles, AccessControl, IChief {
   function _checkInputIsNotZeroAddress(address input) internal pure {
     if (input == address(0)) {
       revert Chief__checkInput_zeroAddress();
+    }
+  }
+
+  /**
+   * @dev reverts if `rating` input is not in range [1,100].
+   */
+  function _checkRatingValue(uint256 rating) internal pure {
+    if (rating == 0 || rating > 100) {
+      revert Chief__checkRatingValue_notInRange();
+    }
+  }
+
+  /**
+   * @dev reverts if `vault` is not in `_vaults` array.
+   */
+  function _checkValidVault(address vault) internal view {
+    _checkInputIsNotZeroAddress(vault);
+    uint256 len = _vaults.length;
+    bool isInVaultList;
+    for (uint256 i = 0; i < len;) {
+      if (vault == _vaults[i]) {
+        isInVaultList = true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    if (!isInVaultList) {
+      revert Chief__checkValidVault_notValidVault();
     }
   }
 }

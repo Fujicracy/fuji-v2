@@ -57,7 +57,6 @@ export const Fees = () => {
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
         />
-        <Fee label="Route" value={<u>{"ETH > Polygon"}</u>} />
       </Collapse>
     </Card>
   )

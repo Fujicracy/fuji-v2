@@ -398,7 +398,7 @@ export const useBorrow = create<BorrowStore>()(
 
         try {
           const { bridgeFee, estimateTime, actions, steps } =
-            await sdk.previewDepositAndBorrow(
+            await sdk.previews.depositAndBorrow(
               vault,
               parseUnits(collateralInput, collateral.token.decimals),
               parseUnits(debtInput, debt.token.decimals),

@@ -3,49 +3,41 @@ import {
   Box,
   Chip,
   Grid,
-  InputAdornment,
-  Stack,
+  Link,
   Tab,
   Tabs,
-  TextField,
-  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
 import Lending from "./Lending"
-import { Chain, chains } from "../../store/auth.store"
-import Image from "next/image"
-import SearchIcon from "@mui/icons-material/Search"
 import { theme } from "../../styles/theme"
 
 export default function Markets() {
   const { palette } = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [currentTab, setCurrentTab] = useState(0)
-  const [filterValue, setFilterValue] = useState("")
-  const [chainFilters, setChainFilters] = useState<Chain[]>([])
+  /* const [filterValue, setFilterValue] = useState("") */
+  /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
   return (
-    <Box m={{ xs: "1rem", sm: "" }}>
-      <Typography variant="h4">
-        {currentTab === 0 || onMobile ? "X-Fuji Markets" : "Lend"}
-      </Typography>
+    <Box>
+      <Typography variant="h4">X-Fuji Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile ? (
           "Fuji aggregates the best borrowing interest rates available across the markets"
         ) : (
           <span>
             Optimize your lending vaults for better yield
-            <a href="#">
+            <Link href="#">
               {" "}
               {/* TODO: Asked to Ivan the link but waiting answer */}
               <u>learn more</u>
-            </a>
+            </Link>
           </span>
         )}
       </Typography>
@@ -64,40 +56,24 @@ export default function Markets() {
           sx={{ width: { xs: "100%", sm: "auto" } }}
           TabIndicatorProps={{ sx: { background: palette.text.primary } }}
         >
-          <Tab
-            label="Borrowing"
-            sx={{
-              borderBottom: 1,
-              width: { xs: "50%", sm: "auto" },
-              borderColor: "divider",
-              color:
-                currentTab === 0 ? `${palette.text.primary} !important` : "",
-            }}
-          />
+          <Tab label="Borrowing" />
           <Tab
             label={
-              <Grid container alignItems="center" justifyContent="center">
+              <Grid container alignItems="center" gap={1}>
                 Lending
                 {!onMobile && (
                   <Chip
                     variant="gradient"
                     label="Coming soon"
-                    sx={{ ml: "0.625rem", cursor: "pointer" }}
+                    sx={{ cursor: "pointer" }}
                   />
                 )}
               </Grid>
             }
-            sx={{
-              width: { xs: "50%", sm: "auto" },
-              borderBottom: 1,
-              borderColor: "divider",
-              color:
-                currentTab === 1 ? `${palette.text.primary} !important` : "",
-            }}
           />
         </Tabs>
 
-        {currentTab === 0 && (
+        {/* {currentTab === 0 && (
           <Stack
             direction="row"
             gap="0.5rem"
@@ -159,7 +135,7 @@ export default function Markets() {
               }}
             />
           </Stack>
-        )}
+        )} */}
       </Grid>
 
       {currentTab === 0 && <MarketsTable />}

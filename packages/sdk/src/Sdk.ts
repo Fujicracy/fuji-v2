@@ -8,16 +8,17 @@ import invariant from 'tiny-invariant';
 import {
   CHAIN,
   COLLATERAL_LIST,
-  CONNEXT_DOMAIN,
   CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
   VAULT_LIST,
 } from './constants';
 import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
-import { Address, ChainConnection, Currency, Token } from './entities';
+import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ChainId, RouterAction, RoutingStep } from './enums';
+import { ChainId, RouterAction } from './enums';
 import { encodeActionArgs } from './functions';
+import { Nxtp } from './Nxtp';
+import { Previews } from './Previews';
 import {
   BorrowingVaultWithFinancials,
   ChainConfig,
@@ -25,8 +26,6 @@ import {
   PermitParams,
   RouterActionParams,
   RoutingStepDetails,
-  XTransferParams,
-  XTransferWithCallParams,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
 import {
@@ -38,13 +37,21 @@ import {
 
 export class Sdk {
   /**
+   * Instance of Preview helper class.
+   */
+  previews: Previews;
+
+  /**
    * ChainConfig object containing Infura and Alchemy ids that
    * are used to create JsonRpcProviders.
    */
   private _configParams: ChainConfig;
 
   constructor(config: ChainConfig) {
+    this.previews = new Previews();
     this._configParams = config;
+
+    Object.values(CHAIN).forEach((c) => c.setConnection(this._configParams));
   }
 
   /**
@@ -106,7 +113,8 @@ export class Sdk {
    * @param chainId - ID of the chain
    */
   getConnectionFor(chainId: ChainId): ChainConnectionDetails {
-    return ChainConnection.from(this._configParams, chainId);
+    return CHAIN[chainId].setConnection(this._configParams)
+      .connection as ChainConnectionDetails;
   }
 
   /**
@@ -164,10 +172,7 @@ export class Sdk {
       !tokens.find((t) => t.chainId !== chainId),
       'Token from a different chain!'
     );
-    const { multicallRpcProvider } = ChainConnection.from(
-      this._configParams,
-      chainId
-    );
+    const { multicallRpcProvider } = this.getConnectionFor(chainId);
     const balances = tokens
       .map((token) => token.setConnection(this._configParams))
       .map(
@@ -246,15 +251,22 @@ export class Sdk {
     const providers = vaults.map((v) => v.activeProvider) as string[];
 
     // fetch from DefiLlama
+    const { defillamaproxy } = this._configParams;
+    const uri = {
+      lendBorrow: defillamaproxy
+        ? defillamaproxy + 'lendBorrow'
+        : 'https://yields.llama.fi/lendBorrow',
+      pools: defillamaproxy
+        ? defillamaproxy + 'pools'
+        : 'https://yields.llama.fi/pools',
+    };
     try {
       const [borrows, pools] = await Promise.all([
         axios
-          .get<GetLlamaBorrowPoolsResponse>(
-            'https://yields.llama.fi/lendBorrow'
-          )
+          .get<GetLlamaBorrowPoolsResponse>(uri.lendBorrow)
           .then(({ data }) => data),
         axios
-          .get<GetLlamaAssetPoolsResponse>('https://yields.llama.fi/pools')
+          .get<GetLlamaAssetPoolsResponse>(uri.pools)
           .then(({ data }) => data.data),
       ]);
 
@@ -268,107 +280,6 @@ export class Sdk {
         console.error('DefiLlama API call failed with an unexpected error!');
       }
     }
-  }
-
-  /**
-   * Prepares and returns 1) the bundle of actions that will be send to the router
-   * for a compound operation of deposit+borrow; 2) the steps to be taken in order to
-   * accomplish the operation; 3) the bridge fee; 4) the estimate time to process the tx
-   * in seconds
-   *
-   * @remarks
-   * The array that is returned should be first passed to `BorrowingVault.needSignature`.
-   * If one of the actions must be signed by the user, we have to obtain the digest
-   * from `this.signPermitFor` and make the user sign it with their wallet. The last step is
-   * to obtain the txData and the address of the router from `this.getTxDetails` which is to be
-   * used in ethers.sendTransaction.
-   *
-   * @param vault - vault instance on which we want to open a position
-   * @param amountIn - amount of provided collateral
-   * @param amountOut - amount of loan
-   * @param tokenIn - token with which user starts the operation
-   * @param tokenOut - token that user want to borrow
-   * @param account - user address, wrapped in {@link Address}
-   * @param deadline - timestamp for validity of permit (defaults to 24h starting from now)
-   * @param slippage - accepted slippage in BPS as 30 == 0.3% (defaults to 0.3%)
-   */
-  async previewDepositAndBorrow(
-    vault: BorrowingVault,
-    amountIn: BigNumber,
-    amountOut: BigNumber,
-    tokenIn: Token,
-    tokenOut: Token,
-    account: Address,
-    deadline?: number,
-    slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateTime: number;
-  }> {
-    const srcChainId = tokenIn.chainId;
-    const destChainId = tokenOut.chainId;
-
-    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
-    // TODO estimate bridge cost
-    const bridgeFee = BigNumber.from(1);
-    const estimateTime = 3 * 60;
-
-    const _slippage = slippage ?? 30;
-
-    let actions: RouterActionParams[] = [];
-    if (srcChainId === destChainId && srcChainId == vault.chainId) {
-      // everything happens on the same chain
-      actions = [
-        vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, account, account, deadline),
-        vault.previewBorrow(amountOut, account, account),
-      ];
-    } else if (srcChainId === vault.chainId) {
-      // deposit and borrow on chain A and transfer to chain B
-      actions = [
-        vault.previewDeposit(amountIn, account, account),
-        vault.previewPermitBorrow(amountOut, connextRouter, account, deadline),
-        vault.previewBorrow(amountOut, connextRouter, account),
-        this.previewXTransfer(
-          destChainId,
-          vault.debt,
-          amountOut,
-          account,
-          _slippage
-        ),
-      ];
-    } else if (destChainId === vault.chainId) {
-      // transfer from chain A and deposit and borrow on chain B
-      const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
-      const innerActions = [
-        vault.previewDeposit(amountIn, connextRouter, account),
-        vault.previewPermitBorrow(amountOut, account, account, deadline),
-        vault.previewBorrow(amountOut, account, account),
-      ];
-      actions = [
-        this.previewXTransferWithCall(
-          destChainId,
-          tokenIn,
-          amountIn,
-          _slippage,
-          innerActions
-        ),
-      ];
-    } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
-    }
-
-    const steps = await this._getRoutingStepsFor(
-      vault,
-      amountIn,
-      amountOut,
-      srcChainId,
-      destChainId
-    );
-
-    return { actions, bridgeFee, steps, estimateTime };
   }
 
   /**
@@ -419,6 +330,12 @@ export class Sdk {
     };
   }
 
+  /**
+   * Based on the `steps` tracks the tx status and resolves with txHash.
+   *
+   * @param transactionHash - hash of the tx on the source chain.
+   * @param steps - array of the steps obtained from `sdk.previews.METHOD`.
+   */
   async watchTxStatus(
     transactionHash: string,
     steps: RoutingStepDetails[]
@@ -435,11 +352,17 @@ export class Sdk {
     }));
   }
 
+  /**
+   * Gets ID of the transfer attributed by Connext.
+   *
+   * @param chainId - ID of the chain where the tx gets initiated.
+   * @param transactionHash - hash of the tx on the source chain.
+   */
   async getTransferId(
     chainId: ChainId,
     transactionHash: string
   ): Promise<string | undefined> {
-    const { rpcProvider } = ChainConnection.from(this._configParams, chainId);
+    const { rpcProvider } = this.getConnectionFor(chainId);
     const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
     invariant(
       !!receipt,
@@ -463,6 +386,13 @@ export class Sdk {
     return transferId;
   }
 
+  /**
+   * Resolves with the tx hash on the destination chain,
+   * once the destination tx gets executed.
+   * `transferId` can be obtained from `sdk.getTransferId`.
+   *
+   * @param transferId - transfer ID according to Connext numenclature.
+   */
   getDestTxHash(transferId: string): Promise<string> {
     return new Promise((resolve) => {
       const apiCall = () =>
@@ -485,149 +415,30 @@ export class Sdk {
     });
   }
 
-  previewXTransfer(
-    destChainId: ChainId,
-    asset: Token,
-    amount: BigNumber,
-    receiver: Address,
-    slippage: number
-  ): XTransferParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
-    invariant(destDomain, 'Chain is not available on Connext!');
-
-    return {
-      action: RouterAction.X_TRANSFER,
-      destDomain,
-      slippage,
-      amount,
-      asset: asset.address,
-      receiver: receiver,
-    };
-  }
-
-  previewXTransferWithCall(
-    destChainId: ChainId,
-    asset: Token,
-    amount: BigNumber,
-    slippage: number,
-    innerActions: RouterActionParams[]
-  ): XTransferWithCallParams {
-    const destDomain = CONNEXT_DOMAIN[destChainId];
-    invariant(destDomain, `Chain ${destChainId} is not available on Connext!`);
-
-    return {
-      action: RouterAction.X_TRANSFER_WITH_CALL,
-      destDomain,
-      amount,
-      asset: asset.address,
-      slippage,
-      innerActions,
-    };
-  }
-
   /**
-   * Prepares and returns the steps that will be taken
-   * in order to accomplish an operation.
-   * IMPORTANT: only works for depositAndBorrow
+   * Estimates the fee to be paid to a destination chain relayer
+   * for the tx to get settled.
    *
-   * @param vault - vault instance on which we want to open a position
-   * @param amountIn - amount of provided collateral
-   * @param amountOut - amount of loan
-   * @param srcChainId - chain ID from which the tx is initated
-   * @param destChainId - chain ID where user wants their borrowed amount disbursed
+   * @param srcChainId - ID of the source chain.
+   * @param destChainId - ID of the destination chain.
    */
-  private async _getRoutingStepsFor(
-    vault: BorrowingVault,
-    amountIn: BigNumber,
-    amountOut: BigNumber,
+  async estimateRelayerFee(
     srcChainId: ChainId,
     destChainId: ChainId
-  ): Promise<RoutingStepDetails[]> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+  ): Promise<BigNumber> {
+    const nxtp = await Nxtp.getOrCreate();
 
-    const steps: RoutingStepDetails[] = [
-      {
-        step: RoutingStep.START,
-        amount: amountIn,
-        chainId: srcChainId,
-        token: vault.collateral,
-      },
-    ];
-    if (srcChainId === destChainId && srcChainId == vault.chainId) {
-      // everything happens on the same chain
-      steps.push(
-        {
-          step: RoutingStep.DEPOSIT,
-          amount: amountIn,
-          chainId: srcChainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.BORROW,
-          amount: amountOut,
-          chainId: srcChainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        }
-      );
-    } else if (srcChainId === vault.chainId) {
-      // deposit and borrow on chain A and transfer to chain B
-      steps.push(
-        {
-          step: RoutingStep.DEPOSIT,
-          amount: amountIn,
-          chainId: srcChainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.BORROW,
-          amount: amountOut,
-          chainId: srcChainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountOut,
-          chainId: destChainId,
-          token: vault.debt,
-        }
-      );
-    } else if (destChainId === vault.chainId) {
-      // transfer from chain A and deposit and borrow on chain B
-      steps.push(
-        {
-          step: RoutingStep.X_TRANSFER,
-          amount: amountIn,
-          chainId: srcChainId,
-          token: vault.collateral,
-        },
-        {
-          step: RoutingStep.DEPOSIT,
-          amount: amountIn,
-          chainId: destChainId,
-          token: vault.collateral,
-          lendingProvider: activeProvider,
-        },
-        {
-          step: RoutingStep.BORROW,
-          amount: amountOut,
-          chainId: destChainId,
-          token: vault.debt,
-          lendingProvider: activeProvider,
-        }
-      );
-    }
-    steps.push({
-      step: RoutingStep.END,
-      amount: amountOut,
-      chainId: destChainId,
-      token: vault.debt,
+    const srcDomain = CHAIN[srcChainId].connextDomain;
+    const destDomain = CHAIN[destChainId].connextDomain;
+    invariant(
+      srcDomain && destDomain,
+      'Estimaing fee for an unsupported by Connext chain!'
+    );
+
+    return nxtp.base.estimateRelayerFee({
+      originDomain: String(srcDomain),
+      destinationDomain: String(destDomain),
     });
-
-    return steps;
   }
 
   private _findVaultsByTokens(
@@ -671,7 +482,7 @@ export class Sdk {
     pools: LlamaAssetPool[],
     borrows: LlamaBorrowPool[]
   ): BorrowingVaultWithFinancials {
-    const chain = CHAIN[v.chainId].llama;
+    const chain = CHAIN[v.chainId].llamaKey;
     const project = LENDING_PROVIDERS_LIST[v.chainId][providerAddr];
     const collateralSym = v.collateral.symbol;
     const debtSym = v.debt.symbol;

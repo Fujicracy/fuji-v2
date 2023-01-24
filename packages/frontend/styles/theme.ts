@@ -18,6 +18,9 @@ declare module "@mui/material/Chip" {
     success: true
     warning: true
     number: true
+    routing: true
+    recommended: true
+    selected: true
   }
 }
 
@@ -38,14 +41,9 @@ declare module "@mui/material/Typography" {
     smallDark: true
     xsmall: true
     xsmallDark: true
+    xsmallLink: true
     label: true
     regularH4: true
-  }
-}
-
-declare module "@mui/material/Chip" {
-  interface ChipPropsVariantOverrides {
-    gradient: true
   }
 }
 
@@ -88,6 +86,9 @@ const colorTheme = createTheme({
       paper: "black",
       default: "#2D2F35",
     },
+  },
+  typography: {
+    fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
   },
 })
 
@@ -161,6 +162,12 @@ const theme = createTheme(colorTheme, {
       fontWeight: 400,
       fontSize: "0.75rem",
       color: colorTheme.palette.info.dark,
+    },
+    xsmallLink: {
+      fontWeight: 400,
+      fontSize: "0.75rem",
+      cursor: "pointer",
+      ":hover": { color: colorTheme.palette.primary.main },
     },
     label: {
       fontWeight: 700,
@@ -273,7 +280,6 @@ const theme = createTheme(colorTheme, {
           props: { variant: "rounded" },
           style: {
             borderRadius: "50rem",
-            // backgroundColor: colorTheme.palette.background.paper,
             color: colorTheme.palette.primary.light,
             border: `1px solid ${colorTheme.palette.primary.light}`,
           },
@@ -292,6 +298,7 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: "0.75rem",
+          // TODO: refacto and reomve, flex should not be part of card theming
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-start",
@@ -378,13 +385,15 @@ const theme = createTheme(colorTheme, {
         tooltip: {
           padding: "0.75rem 1rem",
           fontSize: "0.875rem",
+          lineHeight: "1rem",
           borderRadius: "0.5rem",
           background: colorTheme.palette.secondary.dark,
           textAlign: "center",
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
           boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
         },
         arrow: {
-          color: colorTheme.palette.secondary.dark,
+          color: colorTheme.palette.secondary.light,
         },
       },
     },
@@ -421,6 +430,7 @@ const theme = createTheme(colorTheme, {
     MuiChip: {
       styleOverrides: {
         root: {
+          fontFamily: "Inherit",
           background: colorTheme.palette.secondary.dark,
           height: "2.25rem",
           fontSize: "0.75rem",
@@ -475,6 +485,36 @@ const theme = createTheme(colorTheme, {
             right: `${3 * 0.25}rem`,
           },
         },
+        {
+          props: {
+            variant: "routing",
+          },
+          style: {
+            background: colorTheme.palette.secondary.main,
+            height: "22px",
+          },
+        },
+        {
+          props: {
+            variant: "recommended",
+          },
+          style: {
+            background: colorTheme.palette.primary.main,
+            position: "relative",
+            bottom: ".7rem",
+            height: "22px",
+          },
+        },
+        {
+          props: {
+            variant: "selected",
+          },
+          style: {
+            height: "22px",
+            color: colorTheme.palette.primary.main,
+            border: `1px solid ${colorTheme.palette.primary.main}`,
+          },
+        },
       ],
     },
     MuiCardContent: {
@@ -503,8 +543,7 @@ const theme = createTheme(colorTheme, {
     MuiMenu: {
       styleOverrides: {
         paper: {
-          background: colorTheme.palette.background.paper,
-          border: `1px solid ${colorTheme.palette.grey[800]}`,
+          border: `1px solid ${colorTheme.palette.secondary.light}`,
           borderRadius: "12px !important",
         },
       },
@@ -513,10 +552,21 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           color: colorTheme.palette.info.dark,
-          textTransform: "capitalize",
-          fontWeigt: 500,
+          textTransform: "none",
           fontSize: "0.875rem",
-          textAlign: "center !important",
+          borderBottom: `1px solid ${colorTheme.palette.info.dark}`,
+          "&.Mui-selected": {
+            color: colorTheme.palette.text.primary,
+          },
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          ".MuiTabs-indicator": {
+            backgroundColor: colorTheme.palette.text.primary,
+          },
         },
       },
     },

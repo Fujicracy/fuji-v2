@@ -46,6 +46,8 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__rebalance_invalidProvider();
   error BorrowingVault__rebalance_invalidFlasher();
   error BorrowingVault__checkFee_excessFee();
+  error BorrowingVault__borrow_slippageTooHigh();
+  error BorrowingVault__payback_slippageTooHigh();
 
   /// Liquidation controls
 
@@ -61,8 +63,8 @@ contract BorrowingVault is BaseVault {
   /// Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  IERC20Metadata internal immutable _debtAsset;
-  uint8 private immutable _debtDecimals;
+  IERC20Metadata internal _debtAsset;
+  uint8 internal immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
 
@@ -75,7 +77,6 @@ contract BorrowingVault is BaseVault {
   Factors
   See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
   */
-
   /**
    * @dev A factor that defines
    * the maximum Loan-To-Value a user can take.
@@ -94,15 +95,20 @@ contract BorrowingVault is BaseVault {
     address oracle_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    ILendingProvider[] memory providers_
   )
     BaseVault(asset_, chief_, name_, symbol_)
   {
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = _debtAsset.decimals();
+
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;
     liqRatio = 80 * 1e16;
+
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
   }
 
   receive() external payable {}
@@ -133,7 +139,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Up);
+    return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
   /// @inheritdoc BaseVault
@@ -146,11 +152,32 @@ contract BorrowingVault is BaseVault {
     return _computeMaxBorrow(borrower);
   }
 
+  /**
+   * @notice Slippage protected `borrow` inspired by EIP5143.
+   * Requirements:
+   * - MUST mint maximum `maxDebtShares` when calling borrow().
+   */
+  function borrow(
+    uint256 debt,
+    address receiver,
+    address owner,
+    uint256 maxDebtShares
+  )
+    public
+    returns (uint256)
+  {
+    uint256 receivedDebtShares = borrow(debt, receiver, owner);
+    if (receivedDebtShares > maxDebtShares) {
+      revert BorrowingVault__borrow_slippageTooHigh();
+    }
+    return receivedDebtShares;
+  }
+
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = _msgSender();
 
-    if (debt == 0 || receiver == address(0) || owner == address(0)) {
+    if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {
@@ -165,6 +192,19 @@ contract BorrowingVault is BaseVault {
     _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `payback` inspired by EIP5143.
+   * Requirements:
+   * - MUST burn at least `minDebtShares` when calling payback().
+   */
+  function payback(uint256 debt, address owner, uint256 minDebtShares) public returns (uint256) {
+    uint256 burnedDebtShares = payback(debt, owner);
+    if (burnedDebtShares < minDebtShares) {
+      revert BorrowingVault__payback_slippageTooHigh();
+    }
+    return burnedDebtShares;
   }
 
   /// @inheritdoc BaseVault
@@ -402,7 +442,8 @@ contract BorrowingVault is BaseVault {
     uint256 debt,
     ILendingProvider from,
     ILendingProvider to,
-    uint256 fee
+    uint256 fee,
+    bool setToAsActiveProvider
   )
     external
     hasRole(msg.sender, REBALANCER_ROLE)
@@ -420,6 +461,10 @@ contract BorrowingVault is BaseVault {
     _executeProviderAction(assets, "deposit", to);
     _executeProviderAction(debt + fee, "borrow", to);
     SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
+
+    if (setToAsActiveProvider) {
+      _setActiveProvider(to);
+    }
 
     emit VaultRebalance(assets, debt, address(from), address(to));
     return true;
@@ -543,5 +588,26 @@ contract BorrowingVault is BaseVault {
     }
     liqRatio = liqRatio_;
     emit LiqRatioChanged(liqRatio);
+  }
+
+  function _setProviders(ILendingProvider[] memory providers) internal override {
+    uint256 len = providers.length;
+    for (uint256 i = 0; i < len;) {
+      if (address(providers[i]) == address(0)) {
+        revert BaseVault__setter_invalidInput();
+      }
+      IERC20(asset()).approve(
+        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
+      );
+      IERC20(debtAsset()).approve(
+        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()), type(uint256).max
+      );
+      unchecked {
+        ++i;
+      }
+    }
+    _providers = providers;
+
+    emit ProvidersChanged(providers);
   }
 }

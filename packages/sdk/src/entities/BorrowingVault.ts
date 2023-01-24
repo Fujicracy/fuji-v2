@@ -7,12 +7,11 @@ import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
-import { CONNEXT_ROUTER_ADDRESS } from '../constants';
+import { CHAIN, CONNEXT_ROUTER_ADDRESS } from '../constants';
 import { ChainId, RouterAction } from '../enums';
 import {
-  BorrowParams,
   ChainConfig,
-  DepositParams,
+  ChainConnectionDetails,
   LendingProviderDetails,
   PermitParams,
 } from '../types';
@@ -23,7 +22,7 @@ import {
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
-import { ChainConnection } from './ChainConnection';
+import { Chain } from './Chain';
 import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
@@ -46,6 +45,11 @@ export class BorrowingVault extends StreamManager {
    * The chain ID on which this vault resides
    */
   readonly chainId: ChainId;
+
+  /**
+   * The chain on which this vault resides
+   */
+  readonly chain: Chain;
 
   /**
    * The address of the vault contract, wrapped in {@link Address}
@@ -148,6 +152,7 @@ export class BorrowingVault extends StreamManager {
     this.address = address;
     this.collateral = collateral;
     this.chainId = collateral.chainId;
+    this.chain = CHAIN[this.chainId];
     this.debt = debt;
   }
 
@@ -157,7 +162,11 @@ export class BorrowingVault extends StreamManager {
    * @param configParams - {@link ChainConfig} object with infura and alchemy ids
    */
   setConnection(configParams: ChainConfig): BorrowingVault {
-    const connection = ChainConnection.from(configParams, this.chainId);
+    if (this.rpcProvider) return this;
+
+    const connection = CHAIN[this.chainId].setConnection(configParams)
+      .connection as ChainConnectionDetails;
+
     this.rpcProvider = connection.rpcProvider;
     this.wssProvider = connection.wssProvider;
     this.multicallRpcProvider = connection.multicallRpcProvider;
@@ -277,9 +286,13 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    const [deposit, borrow] = await this.multicallRpcProvider.all([
+    // TODO: call both in a consistent manner after fixing issue #251
+    const [depositShares, borrow] = await this.multicallRpcProvider.all([
       this.multicallContract.balanceOf(account.value),
       this.multicallContract.balanceOfDebt(account.value),
+    ]);
+    const [deposit] = await this.multicallRpcProvider.all([
+      this.multicallContract.convertToAssets(depositShares),
     ]);
 
     return { deposit, borrow };
@@ -338,52 +351,6 @@ export class BorrowingVault extends StreamManager {
     const digest = utils._TypedDataEncoder.hash(domain, types, value);
 
     return { digest, domain, types, value };
-  }
-
-  previewDeposit(
-    amount: BigNumber,
-    sender: Address,
-    account: Address
-  ): DepositParams {
-    return {
-      action: RouterAction.DEPOSIT,
-      vault: this.address,
-      amount,
-      receiver: account,
-      sender,
-    };
-  }
-
-  previewBorrow(
-    amount: BigNumber,
-    receiver: Address,
-    owner: Address
-  ): BorrowParams {
-    return {
-      action: RouterAction.BORROW,
-      vault: this.address,
-      amount,
-      receiver,
-      owner,
-    };
-  }
-
-  previewPermitBorrow(
-    amount: BigNumber,
-    receiver: Address,
-    owner: Address,
-    deadline?: number
-  ): PermitParams {
-    // set deadline to approx. 24h
-    const oneDayLater: number = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
-    return {
-      action: RouterAction.PERMIT_BORROW,
-      vault: this.address,
-      amount,
-      receiver,
-      owner,
-      deadline: deadline ?? oneDayLater,
-    };
   }
 
   private _getPermitDigest(params: PermitParams, nonce: BigNumber) {
