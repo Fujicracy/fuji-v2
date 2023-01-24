@@ -16,29 +16,44 @@ import {LibDForce} from "../../libraries/LibDForce.sol";
  * @title DForce Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with DForce.
+ * @dev The IAddrMapper needs to be properly configured for DForce.
  */
 contract DForcePolygon is ILendingProvider {
+  /**
+   * @dev Returns true/false wether the given token is/isn't WMATIC.
+   * @param token address of the token
+   */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
   }
 
+  /**
+   * @dev Returns the IAddrMapper on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
   }
 
+  /**
+   * @dev Returns the Controller address of Hundred.
+   */
   function _getControllerAddress() internal pure returns (address) {
     return 0x52eaCd19E38D501D006D2023C813d7E37F025f37; // dForce Polygon
   }
 
+  /**
+   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce.
+   * @param asset address of the token to be used as collateral/debt.
+   */
   function _getiToken(address asset) internal view returns (address iToken) {
     iToken = _getAddrmapper().getAddressMapping("DForce", asset);
   }
+
   /**
    * @dev Approves vault's assets as collateral for dForce Protocol.
-   * @param _iTokenAddress: asset type to be approved as collateral.
+   * @param _iTokenAddress address of the underlying iToken to be approved as collateral.
    */
-
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
     IComptroller controller = IComptroller(_getControllerAddress());

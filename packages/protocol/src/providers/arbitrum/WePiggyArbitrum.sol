@@ -26,7 +26,7 @@ contract WePiggyArbitrum is ILendingProvider {
   error WePiggy__borrow_failed(uint256 status);
 
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH
+   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param token address of the token
    */
   function _isWETH(address token) internal pure returns (bool) {
@@ -34,7 +34,7 @@ contract WePiggyArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain
+   * @dev Returns the IAddrMapper on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -42,15 +42,15 @@ contract WePiggyArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns WePiggy's underlying cToken associated with the asset to interact with DForce
-   * @param asset address of the token to be used as collateral/debt
+   * @dev Returns WePiggy's underlying cToken associated with the asset to interact with DForce.
+   * @param asset address of the token to be used as collateral/debt.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("WePiggy", asset);
   }
 
   /**
-   * @dev Returns the Controller address of WePiggy
+   * @dev Returns the Controller address of WePiggy.
    */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xaa87715E858b482931eB2f6f92E504571588390b; // WePiggy Arbitrum

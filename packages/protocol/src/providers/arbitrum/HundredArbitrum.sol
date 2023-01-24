@@ -19,6 +19,7 @@ import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
  * @title Hundred Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with Hundred.
+ * @dev The IAddrMapper needs to be properly configured for Hundred.
  */
 contract HundredArbitrum is ILendingProvider {
   error Hundred__deposit_failed(uint256 status);
@@ -27,7 +28,7 @@ contract HundredArbitrum is ILendingProvider {
   error Hundred__borrow_failed(uint256 status);
 
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH
+   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param token address of the token
    */
   function _isWETH(address token) internal pure returns (bool) {
@@ -35,7 +36,7 @@ contract HundredArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain
+   * @dev Returns the IAddrMapper on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -43,22 +44,22 @@ contract HundredArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce
-   * @param asset address of the token to be used as collateral/debt
+   * @dev Returns Hundred's underlying iToken associated with the asset to interact with Hundred.
+   * @param asset address of the token to be used as collateral/debt.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("Hundred", asset);
   }
 
   /**
-   * @dev Returns the Controller address of Hundred
+   * @dev Returns the Controller address of Hundred.
    */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0x0F390559F258eB8591C8e31Cf0905E97cf36ACE2; // Hundred Arbitrum
   }
 
   /**
-   * @dev Returns the ProxyReceiver's address used to withdraw from the protocol
+   * @dev Returns the ProxyReceiver's address used to withdraw from the protocol.
    */
   function _getProxyReceiver() internal pure returns (address) {
     return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;

@@ -30,9 +30,7 @@ contract CompoundV3 is ILendingProvider {
     return "Compound_V3";
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-approveOperator}.
-   */
+  /// inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address asset,

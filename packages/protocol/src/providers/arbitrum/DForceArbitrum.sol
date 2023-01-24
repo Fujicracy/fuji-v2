@@ -19,7 +19,7 @@ import {LibDForce} from "../../libraries/LibDForce.sol";
  */
 contract DForceArbitrum is ILendingProvider {
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH
+   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param token address of the token
    */
   function _isWETH(address token) internal pure returns (bool) {
@@ -27,7 +27,7 @@ contract DForceArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain
+   * @dev Returns the IAddrMapper on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -35,7 +35,7 @@ contract DForceArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns the Controller address of DForce
+   * @dev Returns the Controller address of DForce.
    */
   function _getControllerAddress() internal pure returns (address) {
     return 0x8E7e9eA9023B81457Ae7E6D2a51b003D421E5408; // dForce Arbitrum
@@ -55,8 +55,8 @@ contract DForceArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce
-   * @param asset address of the token to be used as collateral/debt
+   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce.
+   * @param asset address of the token to be used as collateral/debt.
    */
   function _getiToken(address asset) internal view returns (address iToken) {
     iToken = _getAddrmapper().getAddressMapping("DForce", asset);

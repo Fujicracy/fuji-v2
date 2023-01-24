@@ -18,6 +18,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
  * @title WePiggy Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with WePiggy.
+ * @dev The IAddrMapper needs to be properly configured for WePiggy.
  */
 
 contract WePiggyPolygon is ILendingProvider {
@@ -26,26 +27,40 @@ contract WePiggyPolygon is ILendingProvider {
   error WePiggy__withdraw_failed(uint256 status);
   error WePiggy__borrow_failed(uint256 status);
 
+  /**
+   * @dev Returns true/false wether the given token is/isn't WMATIC.
+   * @param token address of the token
+   */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
   }
 
+  /**
+   * @dev Returns the IAddrMapper on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
   }
 
-  function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("WePiggy", underlying);
+  /**
+   * @dev Returns WePiggy's underlying cToken associated with the asset to interact with WePiggy.
+   * @param asset address of the token to be used as collateral/debt.
+   */
+  function _getCToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("WePiggy", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of WePiggy.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xFfceAcfD39117030314A07b2C86dA36E51787948; // WePiggy Polygon
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be approved as collateral.
+   * @dev Approves vault's assets as collateral for WePiggy Protocol.
+   * @param _cTokenAddress address of the asset to be approved as collateral.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller

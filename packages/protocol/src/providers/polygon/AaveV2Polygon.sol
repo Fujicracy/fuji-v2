@@ -12,6 +12,9 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
  * @notice This contract allows interaction with AaveV2.
  */
 contract AaveV2Polygon is ILendingProvider {
+  /**
+   * @dev Returns the IV2Pool pool to interact with AaveV2
+   */
   function _getPool() internal pure returns (IV2Pool) {
     return IV2Pool(0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf);
   }

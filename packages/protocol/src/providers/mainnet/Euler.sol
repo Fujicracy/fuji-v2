@@ -14,6 +14,9 @@ import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
  * @notice This contract allows interaction with Euler Finance.
  */
 contract Euler is ILendingProvider {
+  /**
+   * @dev Returns the {IEulerMarkets} to interact with Euler.
+   */
   function _getEulerMarkets() internal pure returns (IEulerMarkets) {
     return IEulerMarkets(0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3);
   }

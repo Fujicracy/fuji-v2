@@ -22,17 +22,27 @@ contract MorphoAaveV2 is ILendingProvider {
     return "Morpho";
   }
 
+  /**
+   * @dev Returns {IMorpho} contract to be able to interact with the protocol
+   */
   function _getMorpho() internal pure returns (IMorpho) {
     return IMorpho(MORPHO);
   }
 
+  /**
+   * @dev Returns the IAddrMapper on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
   }
 
-  function _getAToken(address underlying) internal view returns (address aToken) {
-    aToken = _getAddrmapper().getAddressMapping("Aave_V2", underlying);
+  /**
+   * @dev Returns AaveV2's underlying aToken associated with the given asset.
+   * @param asset address of the token to deposit/borrow
+   */
+  function _getAToken(address asset) internal view returns (address aToken) {
+    aToken = _getAddrmapper().getAddressMapping("Aave_V2", asset);
   }
 
   /// inheritdoc ILendingProvider

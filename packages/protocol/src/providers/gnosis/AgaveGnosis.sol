@@ -12,6 +12,9 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
  * @notice This contract allows interaction with Agave.
  */
 contract AgaveGnosis is ILendingProvider {
+  /**
+   * @dev Returns the IV3Pool pool to interact with Agave
+   */
   function _getPool() internal pure returns (IV2Pool) {
     return IV2Pool(0x5E15d5E33d318dCEd84Bfe3F4EACe07909bE6d9c);
   }

@@ -15,6 +15,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
  * @title IronBank Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with IronBank .
+ * @dev The IAddrMapper needs to be properly configured for IronBank.
  */
 contract IronBank is ILendingProvider {
   error IronBank__deposit_failed(uint256 status);
@@ -22,26 +23,40 @@ contract IronBank is ILendingProvider {
   error IronBank__withdraw_failed(uint256 status);
   error IronBank__borrow_failed(uint256 status);
 
+  /**
+   * @dev Returns true/false wether the given token is/isn't WETH.
+   * @param token address of the token
+   */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   }
 
+  /**
+   * @dev Returns the IAddrMapper on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
   }
 
-  function _getCyToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("IronBank", underlying);
+  /**
+   * @dev Returns IronBank's underlying iToken associated with the asset to interact with IronBank.
+   * @param asset address of the token to be used as collateral/debt.
+   */
+  function _getCyToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("IronBank", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of IronBank.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xAB1c342C7bf5Ec5F02ADEA1c2270670bCa144CbB;
   }
 
   /**
    * @dev Approves vault's assets as collateral for IronBank Protocol.
-   * @param _cyTokenAddress: asset type to be approved as collateral.
+   * @param _cyTokenAddress address of the asset to be approved as collateral.
    */
   function _enterCollatMarket(address _cyTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
