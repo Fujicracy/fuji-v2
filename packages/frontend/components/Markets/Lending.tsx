@@ -8,15 +8,15 @@ import {
   useTheme,
 } from "@mui/material"
 import Image from "next/image"
-import { useStore } from "../../store"
+import { useAuth } from "../../store/auth.store"
 
 export default function Lending() {
   const { palette } = useTheme()
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-  const address = useStore((state) => state.address)
-  const login = useStore((state) => state.login)
+  const address = useAuth((state) => state.address)
+  const login = useAuth((state) => state.login)
 
   const onSubmit = () => {
     if (

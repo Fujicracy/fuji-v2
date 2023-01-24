@@ -347,3 +347,5 @@ const BalanceAddress = (props: BalanceAddressProps) => {
     </Box>
   )
 }
+
+export default Header

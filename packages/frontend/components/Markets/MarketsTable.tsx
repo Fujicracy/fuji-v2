@@ -15,7 +15,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import { sdk } from "../../store/auth.slice"
+import { sdk } from "../../store/auth.store"
 import {
   BorrowingVaultWithFinancials,
   LendingProviderDetails,
