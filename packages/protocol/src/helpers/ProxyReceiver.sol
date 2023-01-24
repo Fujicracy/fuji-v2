@@ -4,13 +4,18 @@ pragma solidity 0.8.15;
 import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
 
 contract ProxyReceiver {
+  /**
+   * @notice Receives a certain amount of assets.
+   * @dev This function is used in the integration of some protocols because the withdraw function runs out of gas.
+   * This is used to withdraw the collateral and later on transfer it to the intended user through the withdraw function.
+   */
   receive() external payable {}
 
   /**
-   * @notice Withdraw native and transfer to msg.sender
-   * @dev msg.sender needs to transfer before calling this withdraw
-   * @param amount amount to withdraw.
-   * @param cToken cToken to interact with.
+   * @notice Withdraw native and transfer to msg.sender.
+   * @dev msg.sender needs to transfer before calling this withdraw.
+   * @param amount integer amount to withdraw.
+   * @param cToken ICToken to interact with.
    */
   function withdraw(uint256 amount, ICToken cToken) external {
     require(cToken.redeemUnderlying(amount) == 0, "Withdraw-failed");
