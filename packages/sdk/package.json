@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@ankr.com/ankr.js": "^0.1.9",
-    "@connext/nxtp-sdk": "0.2.1-rc.13",
+    "@connext/sdk": "^0.2.1-rc.18",
     "@ethersproject/abi": "^5.4.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/bytes": "^5.0.0",
