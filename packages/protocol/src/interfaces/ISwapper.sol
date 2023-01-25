@@ -2,24 +2,27 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Swapper interface.
- * @author fujidao Labs
+ * @title ISwapper
+ * @author Fujidao Labs
+ *
  * @notice  Defines the interface for routers to perform token swaps with DEX protocols.
- * @dev Implementation should be permisionless.
+ * @dev Implementation inheriting this interface should be permisionless.
  */
 
 interface ISwapper {
   /**
-   * @notice Swap tokens.
-   * @dev Slippage is controlled though `minSweepOut`.
-   * If `minSweepOut` is 0, the slippage check gets skipped.
-   * @param assetIn The address of the ERC-20 token to swap from.
-   * @param assetOut The address of the ERC-20 token to swap to.
-   * @param amountIn The amount of `assetIn` that will be pulled from msg.sender.
-   * @param amountOut The exact amount of `assetOut` required after the swap.
-   * @param receiver The address that will receive `amountOut` tokens.
-   * @param sweeper The address that will receive the leftovers after the swap.
-   * @param minSweepOut The min amount of `assetIn` leftover expected after swap.
+   * @notice Swap tokens at exchange.
+   *
+   * @param assetIn address of the ERC-20 token to swap from
+   * @param assetOut address of the ERC-20 token to swap to
+   * @param amountIn that will be pulled from msg.sender
+   * @param amountOut of `assetOut` expected after the swap
+   * @param receiver address of the `amountOut` tokens
+   * @param sweeper address who receives the leftovers `assetIn` tokens after swap
+   * @param minSweepOut  amount of `assetIn` leftover expected after swap
+   *
+   * @dev Slippage is controlled through `minSweepOut`. If `minSweepOut` is 0,
+   * the slippage check gets skipped.
    */
   function swap(
     address assetIn,
@@ -33,10 +36,11 @@ interface ISwapper {
     external;
 
   /**
-   * @notice Estimate the amount of `assetIn` required for swap.
-   * @param assetIn The address of the ERC-20 token to swap from.
-   * @param assetOut The address of the ERC-20 token to swap to.
-   * @param amountOut The exact expected amount of `assetOut` after the swap.
+   * @notice Estimate the amount of `assetIn` required for `swap()`.
+   *
+   * @param assetIn address of the ERC-20 token to swap from
+   * @param assetOut address of the ERC-20 token to swap to
+   * @param amountOut expected amount of `assetOut` after the swap
    */
   function getAmountIn(
     address assetIn,
@@ -48,10 +52,10 @@ interface ISwapper {
     returns (uint256 amountIn);
 
   /**
-   * @notice Estimate the amount of `assetOut` received after swap.
-   * @param assetIn The address of the ERC-20 token to swap from.
-   * @param assetOut The address of the ERC-20 token to swap to.
-   * @param amountIn The exact amount of `assetIn` to perform swap.
+   * @notice Estimate the amount of `assetOut` received after swap
+   * @param assetIn address of the ERC-20 token to swap from
+   * @param assetOut address of the ERC-20 token to swap to
+   * @param amountIn of `assetIn` to perform swap
    */
   function getAmountOut(
     address assetIn,

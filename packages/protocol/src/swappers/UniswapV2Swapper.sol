@@ -2,8 +2,9 @@
 pragma solidity 0.8.15;
 
 /**
- * @title UniswapV2Swapper.
+ * @title UniswapV2Swapper
  * @author Fujidao Labs
+ *
  * @notice Wrapper of UniswapV2 to to be called from the router.
  */
 
@@ -28,7 +29,7 @@ contract UniswapV2Swapper is ISwapper {
     WETH9 = weth;
   }
 
-  /// inheritdoc ISwapper
+  /// @inheritdoc ISwapper
   function swap(
     address assetIn,
     address assetOut,
@@ -51,7 +52,7 @@ contract UniswapV2Swapper is ISwapper {
     address[] memory path = _buildPath(assetIn, assetOut);
 
     ERC20(assetIn).safeApprove(address(uniswapRouter), computedAmountIn);
-    // swap and transfer swapped amount to receiver (could be Flasher)
+    // Swap, then transfer the swapped amount to receiver (could be Flasher).
     uniswapRouter.swapTokensForExactTokens(
       amountOut,
       computedAmountIn,
@@ -65,11 +66,11 @@ contract UniswapV2Swapper is ISwapper {
     if (minSweepOut > 0 && minSweepOut > leftover) {
       revert UniswapV2Swapper__swap_slippageTooHigh();
     }
-    // transfer the leftovers to sweeper
+    // Transfer the leftovers to `sweeper`.
     ERC20(assetIn).safeTransfer(sweeper, leftover);
   }
 
-  /// inherit ISwapper
+  /// @inheritdoc ISwapper
   function getAmountIn(
     address assetIn,
     address assetOut,
@@ -85,7 +86,7 @@ contract UniswapV2Swapper is ISwapper {
     amountIn = amounts[0];
   }
 
-  /// inherit ISwapper
+  /// @inheritdoc ISwapper
   function getAmountOut(
     address assetIn,
     address assetOut,
@@ -101,6 +102,11 @@ contract UniswapV2Swapper is ISwapper {
     amountOut = amounts[1];
   }
 
+  /**
+   * @dev Build trade path for swap.
+   * Requirements:
+   * - Must use WETH as a path when neither `assetIn` or `assetOut` are WETH.
+   */
   function _buildPath(
     address assetIn,
     address assetOut
