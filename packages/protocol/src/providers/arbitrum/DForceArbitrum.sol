@@ -13,7 +13,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
- * @title DForce Lending Provider.
+ * @title DForce Lending Provider
  * @author fujidao Labs
  * @notice This contract allows interaction with DForce.
  * @dev The IAddrMapper needs to be properly configured for DForce.
@@ -44,7 +44,7 @@ contract DForceArbitrum is ILendingProvider {
 
   /**
    * @dev Approves vault's assets as collateral for dForce Protocol.
-   * @param _iTokenAddress address of the underlying iToken to be approved as collateral.
+   * @param _iTokenAddress address of the underlying iToken to be approved as collateral
    */
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
@@ -57,7 +57,7 @@ contract DForceArbitrum is ILendingProvider {
 
   /**
    * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce.
-   * @param asset address of the token to be used as collateral/debt.
+   * @param asset address of the token to be used as collateral/debt
    */
   function _getiToken(address asset) internal view returns (address iToken) {
     iToken = _getAddrmapper().getAddressMapping("DForce", asset);

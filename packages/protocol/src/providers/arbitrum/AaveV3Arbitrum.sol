@@ -7,13 +7,13 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
 
 /**
- * @title AaveV3 Lending Provider.
+ * @title AaveV3 Lending Provider
  * @author fujidao Labs
  * @notice This contract allows interaction with AaveV3.
  */
 contract AaveV3Arbitrum is ILendingProvider {
   /**
-   * @dev Returns the IV3Pool pool to interact with AaveV3
+   * @dev Returns the IV3Pool pool to interact with AaveV3.
    */
   function _getPool() internal pure returns (IV3Pool) {
     return IV3Pool(0x794a61358D6845594F94dc1DB02A252b5b4814aD);
