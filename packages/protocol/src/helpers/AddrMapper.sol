@@ -25,10 +25,14 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
 
   constructor(address chief) SystemAccessControl(chief) {}
 
+  /**
+   * @notice Returns a list of all the providers who have a mapping.
+   */
   function getProviders() public view returns (string[] memory) {
     return _providerNames;
   }
 
+  /// @inheritdoc IAddrMapper
   function getAddressMapping(
     string memory providerName,
     address inputAddr
@@ -41,6 +45,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     return _addrMapping[providerName][inputAddr];
   }
 
+  /// @inheritdoc IAddrMapper
   function getAddressNestedMapping(
     string memory providerName,
     address inputAddr1,
@@ -54,11 +59,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     return _addrNestedMapping[providerName][inputAddr1][inputAddr2];
   }
 
-  /**
-   * @dev Adds an address mapping.
-   * Requirements:
-   * - ProviderName should be formatted: Name_Version or Name_Version_Asset
-   */
+  /// @inheritdoc IAddrMapper
   function setMapping(
     string memory providerName,
     address keyAddr,
@@ -78,11 +79,7 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
     emit MappingChanged(inputAddrs, returnedAddr);
   }
 
-  /**
-   * @dev Adds a nested address mapping.
-   * Requirements:
-   * - ProviderName should be formatted: Name_Version or Name_Version_Asset
-   */
+  /// @inheritdoc IAddrMapper
   function setNestedMapping(
     string memory providerName,
     address keyAddr1,
