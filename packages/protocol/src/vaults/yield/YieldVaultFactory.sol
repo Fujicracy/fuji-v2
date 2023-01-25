@@ -18,11 +18,11 @@ contract YieldVaultFactory is VaultDeployer {
   uint256 public nonce;
 
   /**
-   * @notice Constructor of a new {YieldVaultFactory}
+   * @notice Constructor of a new {YieldVaultFactory}.
    * Requirements:
    * - Must comply with {VaultDeployer} requirements.
    *
-   * @param chief_ address of {Chief}.
+   * @param chief_ address of {Chief}
    */
   constructor(address chief_) VaultDeployer(chief_) {}
 
@@ -31,7 +31,7 @@ contract YieldVaultFactory is VaultDeployer {
    * Requirements:
    * - Must be called from {Chief} contract only.
    *
-   * @param deployData The encoded data containing asset, debtAsset and oracle.
+   * @param deployData The encoded data containing asset and providers
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
     (address asset, ILendingProvider[] memory providers) =
@@ -40,9 +40,9 @@ contract YieldVaultFactory is VaultDeployer {
     string memory assetName = IERC20Metadata(asset).name();
     string memory assetSymbol = IERC20Metadata(asset).symbol();
 
-    // name_, ex: Fuji-V2 Dai Stablecoin YieldVault Shares
+    // Example of `name_`: "Fuji-V2 Dai Stablecoin YieldVault".
     string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " YieldVault Shares"));
-    // symbol_, ex: fyvDAI
+    // Example of `symbol_`: "fyvDAI".
     string memory symbol = string(abi.encodePacked("fyv", assetSymbol));
 
     bytes32 salt = keccak256(abi.encode(deployData, nonce));

@@ -7,7 +7,7 @@ pragma solidity 0.8.15;
  *
  * @notice An abstract contract intended to be inherited by tokenized vaults, that
  * allow users to modify allowance of a withdraw and/or borrow amount by signing a
- * structured data {EIP712} messages.
+ * structured data {EIP712} message.
  * This implementation is inspired by EIP2612 used for `ERC20-permit()`.
  * The use of `permitBorrow()` and `permitWithdraw()` allows for third party contracts
  * or "operators" to perform actions on behalf users across chains.
@@ -29,7 +29,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   error VaultPermissions__insufficientBorrowAllowance();
   error VaultPermissions__allowanceBelowZero();
 
-  /// @dev Allowance mapping structure: owner => operator => receiver => amount
+  /// @dev Allowance mapping structure: owner => operator => receiver => amount.
   mapping(address => mapping(address => mapping(address => uint256))) internal _withdrawAllowance;
   mapping(address => mapping(address => mapping(address => uint256))) internal _borrowAllowance;
 
@@ -53,7 +53,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * Requirements:
    * - Must initialize using the same `name` parameter as used in {BaseVault}.
    *
-   * @param name_ string used in {BaseVault}.
+   * @param name_ string used in {BaseVault}
    *
    * @dev Initialize the {EIP712} domain separator using the `name` parameter, and
    * setting `version` to "1".
@@ -246,18 +246,18 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /// Internal Functions
 
   /**
-   * @dev Sets `assets amount` as the allowance of `operator` over the `owner` assets.
+   * @dev Sets assets `amount` as the allowance of `operator` over the `owner`'s assets.
    * This internal function is equivalent to `approve`.
    * Requirements:
-   * - Must ONLY be used in `asset` withdrawal logic.
+   * - Must only be used in `asset` withdrawal logic.
    * - Must check `owner` cannot be the zero address.
    * - Much check `operator` cannot be the zero address.
    * - Must emits an {WithdrawApproval} event.
    *
-   * @param owner address who is providing `withdrawAllowance`.
-   * @param operator address who is allowed to operate the allowance.
-   * @param receiver address who can spend the allowance.
-   * @param amount of allowance.
+   * @param owner address who is providing `withdrawAllowance`
+   * @param operator address who is allowed to operate the allowance
+   * @param receiver address who can spend the allowance
+   * @param amount of allowance
    *
    */
   function _setWithdrawAllowance(
@@ -277,17 +277,17 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
   /**
    * @dev Sets `amount` as the borrow allowance of `operator` over the `owner`'s debt.
-   * This internal function is equivalent to `approve`.
+   * This internal function is equivalent to `approve` for debt.
    * Requirements:
-   * - Must ONLY be used in `debtAsset` borrowing logic.
+   * - Must  only be used in `debtAsset` borrowing logic.
    * - Must check `owner` cannot be the zero address.
    * - Much check `operator` cannot be the zero address.
    * - Must emit an {BorrowApproval} event.
    *
-   * @param owner address who is providing `borrowAllowance`.
-   * @param operator address who is allowed to operate the allowance.
-   * @param receiver address who can spend the allowance.
-   * @param amount of allowance.
+   * @param owner address who is providing `borrowAllowance`
+   * @param operator address who is allowed to operate the allowance
+   * @param receiver address who can spend the allowance
+   * @param amount of allowance
    *
    */
   function _setBorrowAllowance(
@@ -309,10 +309,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * @dev Spends `withdrawAllowance`.
    * Based on OZ {ERC20-spendAllowance} for {BaseVault-assets}.
    *
-   * @param owner address who is spending `withdrawAllowance`.
-   * @param operator address who is allowed to operate the allowance.
-   * @param receiver address who can spend the allowance.
-   * @param amount of allowance.
+   * @param owner address who is spending `withdrawAllowance`
+   * @param operator address who is allowed to operate the allowance
+   * @param receiver address who can spend the allowance
+   * @param amount of allowance
    */
   function _spendWithdrawAllowance(
     address owner,
@@ -337,10 +337,10 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * @dev Spends 'borrowAllowance`.
    * Based on OZ {ERC20-spendAllowance} for assets.
    *
-   * @param owner address who is spending `borrowAllowance`.
-   * @param operator address who is allowed to operate the allowance.
-   * @param receiver address who can spend the allowance.
-   * @param amount of allowance.
+   * @param owner address who is spending `borrowAllowance`
+   * @param operator address who is allowed to operate the allowance
+   * @param receiver address who can spend the allowance
+   * @param amount of allowance
    */
   function _spendBorrowAllowance(
     address owner,
@@ -366,7 +366,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * @dev "Consume a nonce": return the current amount and increment.
    * _Available since v4.1._
    *
-   * @param owner address who uses a permit.
+   * @param owner address who uses a permit
    */
   function _useNonce(address owner) internal returns (uint256 current) {
     Counters.Counter storage nonce = _nonces[owner];
@@ -377,7 +377,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   /**
    * @dev Reverts if block.timestamp is expired according to `deadline`.
    *
-   * @param deadline timestamp to check.
+   * @param deadline timestamp to check
    */
   function _checkDeadline(uint256 deadline) private view {
     if (block.timestamp > deadline) {

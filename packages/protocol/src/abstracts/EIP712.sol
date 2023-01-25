@@ -48,8 +48,8 @@ abstract contract EIP712 {
   /**
    * @notice Constructor to initializes the domain separator and parameter caches.
    *
-   * @param name readable string of the signing domain, i.e. the name of the DApp or the protocol.
-   * @param version string of the current major version of the signing domain.
+   * @param name readable string of the signing domain, i.e. the name of the DApp or the protocol
+   * @param version string of the current major version of the signing domain
    *
    * @dev The meaning of `name` and `version` is specified in
    * https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator[EIP 712]:
@@ -83,9 +83,9 @@ abstract contract EIP712 {
   /**
    * @dev Builds and returns domaain seperator according to inputs.
    *
-   * @param typeHash cached in this contract.
-   * @param nameHash cahed in this contract.
-   * @param versionHash cached in this contract.
+   * @param typeHash cached in this contract
+   * @param nameHash cahed in this contract
+   * @param versionHash cached in this contract
    */
   function _buildDomainSeparator(
     bytes32 typeHash,

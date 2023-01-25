@@ -33,13 +33,13 @@ contract BorrowingVault is BaseVault {
   using Math for uint256;
 
   /**
-   * @dev Emitted when a user is liquidated
-   * @param caller executor of liquidation.
-   * @param receiver receiver of liquidation bonus.
-   * @param owner address whose assets are being liquidated.
-   * @param collateralSold `owner`'s amount of collateral sold during liquidation.
-   * @param debtPaid `owner`'s amount of debt paid back during liquidation.
-   * @param price price of collateral at which liquidation was done.
+   * @dev Emitted when a user is liquidated.
+   * @param caller executor of liquidation
+   * @param receiver receiver of liquidation bonus
+   * @param owner address whose assets are being liquidated
+   * @param collateralSold `owner`'s amount of collateral sold during liquidation
+   * @param debtPaid `owner`'s amount of debt paid back during liquidation
+   * @param price price of collateral at which liquidation was done
    * @param liquidationFactor what % of debt was liquidated
    */
   event Liquidate(
@@ -64,6 +64,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__checkFee_excessFee();
   error BorrowingVault__borrow_slippageTooHigh();
   error BorrowingVault__payback_slippageTooHigh();
+  error BorrowingVault__burnDebtShares_amountExceedsBalance();
 
   /// Liquidation controls
 
@@ -93,12 +94,10 @@ contract BorrowingVault is BaseVault {
   Factors
   See: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
   */
-  /// @notice Returns the factor defining the maximum loan-to-value
-  /// a user can take in this vault.
+  /// @notice Returns the factor defining the maximum loan-to-value a user can take in this vault.
   uint256 public maxLtv;
 
-  /// @notice Returns the factor defining the loan-to-value at which
-  /// a user can be liquidated.
+  /// @notice Returns the factor defining the loan-to-value at which a user can be liquidated.
   uint256 public liqRatio;
 
   /**
@@ -107,16 +106,16 @@ contract BorrowingVault is BaseVault {
    * - Must be initialized with a set of providers.
    * - Must set first provider in `providers_` array as `activeProvider`.
    * - Must initialize `maxLTV` and `liqRatio` with a non-zero value.
-   * - `maxLTV` should < `liqRatio`.
-   * - `debtAsset_` erc20-decimals and `_debtDecimals` of this vault should be equal.
+   * - Must check `maxLTV` Must < `liqRatio`.
+   * - Must check `debtAsset_` erc20-decimals and `_debtDecimals` of this vault are equal.
    *
-   * @param asset_ address this vault will handle as main asset (collateral).
-   * @param debtAsset_ address this vault will handle as debt asset.
-   * @param oracle_ address of {FujiOracle} implementation.
-   * @param chief_ address that deploys and controls this vault.
-   * @param name_ string of the token-shares handled in this vault.
-   * @param symbol_ string of the token-shares handled in this vault.
-   * @param providers_ address array that will initialize this vault.
+   * @param asset_ address this vault will handle as main asset (collateral)
+   * @param debtAsset_ address this vault will handle as debt asset
+   * @param oracle_ address of {FujiOracle} implementation
+   * @param chief_ address that deploys and controls this vault
+   * @param name_ string of the token-shares handled in this vault
+   * @param symbol_ string of the token-shares handled in this vault
+   * @param providers_ address array that will initialize this vault
    */
   constructor(
     address asset_,
@@ -184,12 +183,12 @@ contract BorrowingVault is BaseVault {
   /**
    * @notice Slippage protected `borrow` inspired by EIP5143.
    * Requirements:
-   * - MUST mint maximum `maxDebtShares` when calling borrow().
+   * - Must mint maximum `maxDebtShares` when calling borrow().
    *
-   * @param debt amount to borrow.
-   * @param receiver address to whom borrowed amount will be transferred.
-   * @param owner address who will incur the debt.
-   * @param maxDebtShares amount that should be minted in this borrow call.
+   * @param debt amount to borrow
+   * @param receiver address to whom borrowed amount will be transferred
+   * @param owner address who will incur the debt
+   * @param maxDebtShares amount that Must be minted in this borrow call
    */
   function borrow(
     uint256 debt,
@@ -231,11 +230,11 @@ contract BorrowingVault is BaseVault {
   /**
    * @notice Slippage protected `payback` inspired by EIP5143.
    * Requirements:
-   * - MUST burn at least `minDebtShares` when calling payback().
+   * - Must burn at least `minDebtShares` when calling payback().
    *
-   * @param debt amount to payback.
-   * @param owner address whose debt will be reduced.
-   * @param minDebtShares amount that should be burned in this payback call.
+   * @param debt amount to payback
+   * @param owner address whose debt will be reduced
+   * @param minDebtShares amount that Must be burned in this payback call
    */
   function payback(uint256 debt, address owner, uint256 minDebtShares) public returns (uint256) {
     uint256 burnedDebtShares = payback(debt, owner);
@@ -328,9 +327,9 @@ contract BorrowingVault is BaseVault {
    * @dev Computes max borrow amount a user can take given their 'asset'
    * (collateral) balance and price.
    * Requirements:
-   * - Should read price from {FujiOracle}.
+   * - Must read price from {FujiOracle}.
    *
-   * @param borrower address to whom to check max borrow amount.
+   * @param borrower address to whom to check max borrow amount
    */
   function _computeMaxBorrow(address borrower) internal view returns (uint256 max) {
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
@@ -347,7 +346,7 @@ contract BorrowingVault is BaseVault {
   function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
 
-    // no debt
+    // Handle no debt case.
     if (debtShares == 0) {
       freeAssets = convertToAssets(balanceOf(owner));
     } else {
@@ -373,8 +372,8 @@ contract BorrowingVault is BaseVault {
    *   (Corresponds to a case where you divide by zero.)
    * - Must return `debt` if `debtSharesSupply` == 0.
    *
-   * @param debt amoun to convert to `debtShares`.
-   * @param rounding direction of division remainder.
+   * @param debt amount to convert to `debtShares`
+   * @param rounding direction of division remainder
    */
   function _convertDebtToShares(
     uint256 debt,
@@ -391,7 +390,7 @@ contract BorrowingVault is BaseVault {
   /**
    * @dev Conversion function from `debtShares` to debt with support for rounding direction.
    * Requirements:
-   * - Should return zero if `debtSharesSupply` == 0.
+   * - Must return zero if `debtSharesSupply` == 0.
    */
   function _convertToDebt(
     uint256 shares,
@@ -411,11 +410,11 @@ contract BorrowingVault is BaseVault {
    * - Must call `activeProvider` in `_executeProviderAction()`.
    * - Must emit a Borrow event.
    *
-   * @param caller address of {msg.sender} / operator.
-   * @param receiver address to whom borrowed amount is transferred.
-   * @param owner address to whom `debtShares` get minted.
-   * @param assets amount of debt.
-   * @param shares amount of `debtShares`.
+   * @param caller address of {msg.sender} / operator
+   * @param receiver address to whom borrowed amount is transferred
+   * @param owner address to whom `debtShares` get minted
+   * @param assets amount of debt
+   * @param shares amount of `debtShares`
    */
   function _borrow(
     address caller,
@@ -443,10 +442,10 @@ contract BorrowingVault is BaseVault {
    * - Must call `activeProvider` in `_executeProviderAction()`.
    * - Must emit a Payback event.
    *
-   * @param caller address {msg.sender}.
-   * @param owner address to whom `debtShares` will bet burned.
-   * @param assets amount of debt.
-   * @param shares amount of `debtShares`.
+   * @param caller address {msg.sender}
+   * @param owner address to whom `debtShares` will bet burned
+   * @param assets amount of debt
+   * @param shares amount of `debtShares`
    */
   function _payback(
     address caller,
@@ -467,14 +466,28 @@ contract BorrowingVault is BaseVault {
     emit Payback(caller, owner, assets, shares);
   }
 
+  /**
+   * @dev Common workflow to update state and mint `debtShares`.
+   *
+   * @param owner address to whom shares get minted
+   * @param amount of shares
+   */
   function _mintDebtShares(address owner, uint256 amount) internal {
     debtSharesSupply += amount;
     _debtShares[owner] += amount;
   }
 
+  /**
+   * @dev Common workflow to update state and burn `debtShares`.
+   *
+   * @param owner address to whom shares get burned
+   * @param amount of shares
+   */
   function _burnDebtShares(address owner, uint256 amount) internal {
     uint256 balance = _debtShares[owner];
-    require(balance >= amount, "Burn amount exceeds balance");
+    if (balance < amount) {
+      revert BorrowingVault__burnDebtShares_amountExceedsBalance();
+    }
     unchecked {
       _debtShares[owner] = balance - amount;
     }
@@ -572,7 +585,7 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__liquidate_positionHealthy();
     }
 
-    // Compute debt amount that should be paid by liquidator.
+    // Compute debt amount that must be paid by liquidator.
     uint256 debt = convertToDebt(_debtShares[owner]);
     uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liquidationFactor, 1e18);
     uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
@@ -604,11 +617,11 @@ contract BorrowingVault is BaseVault {
   /**
    * @notice Sets `newOracle` address as the {FujiOracle} for this vault.
    * Requirements:
-   * - Must NOT be address zero.
+   * - Must not be address zero.
    * - Must emit a OracleChanged event.
    * - Must be called from a timelock.
    *
-   * @param newOracle address.
+   * @param newOracle address
    */
   function setOracle(IFujiOracle newOracle) external onlyTimelock {
     if (address(newOracle) == address(0)) {
@@ -621,12 +634,12 @@ contract BorrowingVault is BaseVault {
   /**
    * @notice Sets the maximum loan-to-value factor of this vault.
    * Restrictions:
-   * - SHOULD be at least 1% (1e16)
+   * - Must be at least 1% (1e16).
    *
-   * @param maxLtv_ factor to be set.
+   * @param maxLtv_ factor to be set
    *
-   *  @dev See factor:
-   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   *  @dev See factor
+   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
     if (maxLtv_ < 1e16) {
@@ -639,12 +652,12 @@ contract BorrowingVault is BaseVault {
   /**
    * @dev Sets the Loan-To-Value liquidation threshold factor of this vault.
    * Restrictions:
-   * - SHOULD be greater than 'maxLTV'.
+   * - Must be greater than 'maxLTV'.
    *
-   * @param liqRatio_ factor to be set.
+   * @param liqRatio_ factor to be set
    *
-   * @dev See factor:
-   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * @dev See factor
+   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    */
   function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
     if (liqRatio_ < maxLtv || liqRatio_ == 0) {

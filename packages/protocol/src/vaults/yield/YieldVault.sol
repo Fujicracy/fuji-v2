@@ -30,6 +30,12 @@ contract YieldVault is BaseVault {
    * Requirements:
    * - Must be initialized with a set of providers.
    * - Must set first provider in `providers_` array as `activeProvider`.
+   *
+   * @param asset_ address this vault will handle as main asset (collateral)
+   * @param chief_ address that deploys and controls this vault
+   * @param name_ string of the token-shares handled in this vault
+   * @param symbol_ string of the token-shares handled in this vault
+   * @param providers_ address array that will initialize this vault
    */
   constructor(
     address asset_,

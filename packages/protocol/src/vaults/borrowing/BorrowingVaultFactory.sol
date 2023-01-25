@@ -6,7 +6,7 @@ pragma solidity 0.8.15;
  * @author Fujidao Labs
  *
  * @notice A factory contract through which new borrowing vaults are created.
- * The BorrowingVault contract is quie big in size. Creating new instances of it with
+ * The BorrowingVault contract is quite big in size. Creating new instances of it with
  * `new BorrowingVault()` makes the factory contract exceed the 24K limit. That's why
  * we use an approach found at Fraxlend. We split and store the BorrowingVault bytecode
  * in two different locations and when used they get concatanated and deployed by using assembly.
@@ -39,11 +39,11 @@ contract BorrowingVaultFactory is VaultDeployer {
   address private _creationAddress2;
 
   /**
-   * @notice Constructor of a new {YieldVaultFactory}
+   * @notice Constructor of a new {YieldVaultFactory}.
    * Requirements:
    * - Must comply with {VaultDeployer} requirements.
    *
-   * @param chief_ address of {Chief}.
+   * @param chief_ address of {Chief}
    */
   constructor(address chief_) VaultDeployer(chief_) {}
 
@@ -52,7 +52,7 @@ contract BorrowingVaultFactory is VaultDeployer {
    * Requirements:
    * - Must be called from {Chief} contract only.
    *
-   * @param deployData The encoded data containing asset, debtAsset and oracle.
+   * @param deployData The encoded data containing asset, debtAsset, oracle and providers
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
     (address asset, address debtAsset, address oracle, ILendingProvider[] memory providers) =
@@ -61,10 +61,10 @@ contract BorrowingVaultFactory is VaultDeployer {
     string memory assetSymbol = IERC20Metadata(asset).symbol();
     string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
 
-    // name_, ex: Fuji-V2 WETH-DAI BorrowingVault
+    // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault".
     string memory name =
       string(abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault"));
-    // symbol_, ex: fbvWETHDAI
+    // Example of `symbol_`: "fbvWETHDAI".
     string memory symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol));
 
     bytes32 salt = keccak256(abi.encode(deployData, nonce));
@@ -88,8 +88,9 @@ contract BorrowingVaultFactory is VaultDeployer {
   }
 
   /**
-   * Sets the bytecode for the BorrowingVault.
-   * @param creationCode The creationCode for the vault contract.
+   * @notice Sets the bytecode for the BorrowingVault.
+   *
+   * @param creationCode The creationCode for the vault contracts
    */
   function setContractCode(bytes calldata creationCode) external onlyTimelock {
     bytes memory firstHalf = LibBytes.slice(creationCode, 0, 13000);

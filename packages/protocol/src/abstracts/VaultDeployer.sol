@@ -20,7 +20,7 @@ abstract contract VaultDeployer {
   error VaultDeployer__zeroAddress();
 
   /**
-   * @dev Emit when a vault is registered
+   * @dev Emit when a vault is registered.
    * @param vault address
    * @param asset address
    * @param salt used for address generation

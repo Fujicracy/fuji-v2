@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /*
- * @title Solidity Bytes Arrays Utils
+ * @title LibBytes
  * @author Gonçalo Sá <goncalo.sa@consensys.net>
  *
  * @dev Bytes tightly packed arrays utility library for ethereum contracts written in Solidity.

@@ -57,7 +57,7 @@ abstract contract PausableVault is IPausableVault {
   /**
    * @dev Throws if the `action` in contract is paused.
    *
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _requireNotPaused(VaultActions action) private view {
     if (_actionsPaused[action]) {
@@ -68,7 +68,7 @@ abstract contract PausableVault is IPausableVault {
   /**
    * @dev Throws if the `action` in contract is not paused.
    *
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _requirePaused(VaultActions action) private view {
     if (!_actionsPaused[action]) {
@@ -79,7 +79,7 @@ abstract contract PausableVault is IPausableVault {
   /**
    * @dev Sets pause state for `action` of this vault.
    *
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _pause(VaultActions action) internal whenNotPaused(action) {
     _actionsPaused[action] = true;
@@ -89,7 +89,7 @@ abstract contract PausableVault is IPausableVault {
   /**
    * @dev Sets unpause state for `action` of this vault.
    *
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _unpause(VaultActions action) internal whenPaused(action) {
     _actionsPaused[action] = false;

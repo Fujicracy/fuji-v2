@@ -46,7 +46,7 @@ interface IVault is IERC4626 {
   event OracleChanged(IFujiOracle newOracle);
 
   /**
-   * @dev Emitted when the available providers for the vault change
+   * @dev Emitted when the available providers for the vault change.
    * @param newProviders the new providers available
    */
   event ProvidersChanged(ILendingProvider[] newProviders);
@@ -68,14 +68,14 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Emitted when the max LTV is changed.
-   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    * @param newMaxLtv the new max LTV
    */
   event MaxLtvChanged(uint256 newMaxLtv);
 
   /**
    * @dev Emitted when the liquidation ratio is changed.
-   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    * @param newLiqRatio the new liquidation ratio
    */
   event LiqRatioChanged(uint256 newLiqRatio);
@@ -88,7 +88,7 @@ interface IVault is IERC4626 {
 
   /**
    * @dev Emitted when the deposit cap is changed.
-   * @param newDepositCap the new deposit cap of this vault.
+   * @param newDepositCap the new deposit cap of this vault
    */
   event DepositCapChanged(uint256 newDepositCap);
 
@@ -107,7 +107,7 @@ interface IVault is IERC4626 {
    * Vault for debt, borrowing, and repaying. Based on {IERC4626-asset}.
    * Requirements:
    * - Must be an ERC-20 token contract.
-   * - Must NOT revert.
+   * - Must not revert.
    * - Must return zero in a {YieldVault}.
    */
   function debtAsset() external view returns (address);
@@ -115,7 +115,7 @@ interface IVault is IERC4626 {
   /**
    * @dev Returns the amount of debt owned by `owner`.
    *
-   * @param owner address to check balance.
+   * @param owner address to check balance
    */
   function balanceOfDebt(address owner) external view returns (uint256 debt);
 
@@ -125,7 +125,7 @@ interface IVault is IERC4626 {
    * Requirements:
    * - Must account for any compounding occuring from yield or interest accrual.
    * - Must be inclusive of any fees that are charged against assets in the Vault.
-   * - Must NOT revert.
+   * - Must not revert.
    * - Must return zero in a {YieldVault}.
    */
   function totalDebt() external view returns (uint256);
@@ -134,16 +134,16 @@ interface IVault is IERC4626 {
    * @notice Returns the amount of shares this vault would exchange for the amount
    * of debt assets provided. Based on {IERC4626-convertToShares}.
    * Requirements:
-   * - Must NOT be inclusive of any fees that are charged against assets in the Vault.
-   * - Must NOT show any variations depending on the caller.
-   * - Must NOT reflect slippage or other on-chain conditions, when performing the actual exchange.
-   * - Must NOT revert.
+   * - Must not be inclusive of any fees that are charged against assets in the Vault.
+   * - Must not show any variations depending on the caller.
+   * - Must not reflect slippage or other on-chain conditions, when performing the actual exchange.
+   * - Must not revert.
    *
-   * NOTE: This calculation MAY NOT reflect the “per-user” price-per-share, and instead Must reflect the
+   * NOTE: This calculation MAY not reflect the “per-user” price-per-share, and instead Must reflect the
    * “average-user’s” price-per-share, meaning what the average user Must expect to see when exchanging to and
    * from.
    *
-   * @param debt amount to convert into `debtShares`.
+   * @param debt amount to convert into `debtShares`
    */
   function convertDebtToShares(uint256 debt) external view returns (uint256 shares);
 
@@ -151,16 +151,16 @@ interface IVault is IERC4626 {
    * @notice Returns the amount of debt assets that this vault would exchange for the amount
    * of shares provided. Based on {IERC4626-convertToAssets}.
    * Requirements:
-   * - Must NOT be inclusive of any fees that are charged against assets in the Vault.
-   * - Must NOT show any variations depending on the caller.
-   * - Must NOT reflect slippage or other on-chain conditions, when performing the actual exchange.
-   * - Must NOT revert.
+   * - Must not be inclusive of any fees that are charged against assets in the Vault.
+   * - Must not show any variations depending on the caller.
+   * - Must not reflect slippage or other on-chain conditions, when performing the actual exchange.
+   * - Must not revert.
    *
-   * NOTE: This calculation MAY NOT reflect the “per-user” price-per-share, and instead Must reflect the
+   * NOTE: This calculation MAY not reflect the “per-user” price-per-share, and instead Must reflect the
    * “average-user’s” price-per-share, meaning what the average user Must expect to see when exchanging to and
    * from.
    *
-   * @param shares amount to convert into `debt` amount.
+   * @param shares amount to convert into `debt`
    */
   function convertToDebt(uint256 shares) external view returns (uint256 debt);
 
@@ -170,19 +170,24 @@ interface IVault is IERC4626 {
    * Requirements:
    * - Must return a limited value if receiver is subject to some borrow limit.
    * - Must return 2 ** 256 - 1 if there is no limit on the maximum amount of assets that may be borrowed.
-   * - Must NOT revert.
+   * - Must not revert.
    *
-   * @param borrower address to whom to check.
+   * @param borrower address to whom to check
    */
   function maxBorrow(address borrower) external view returns (uint256);
 
   /**
-   * @dev Based on {IERC4626-deposit}.
-   * @dev Mints debtShares to owner by taking a loan of exact amount of underlying tokens.
-   *
+   * @notice Perform a borrow action. Function inspired on {IERC4626-deposit}.
+   * Requirements:
    * - Must emit the Borrow event.
    * - Must revert if owner does not own sufficient collateral to back debt.
-   * - Must revert if caller is not owner or permission to act owner.
+   * - Must revert if caller is not owner or permissioned operator to act on owner behalf.
+   *
+   * @param debt amount
+   * @param receiver address of the `debt` amount
+   * @param owner address who will incur the `debt` amount
+   *
+   * * @dev Mints debtShares to owner by taking a loan of exact amount of underlying tokens.
    */
   function borrow(uint256 debt, address receiver, address owner) external returns (uint256);
 
@@ -191,10 +196,10 @@ interface IVault is IERC4626 {
    * Requirements:
    * - Must emit a Payback event.
    *
-   * NOTE: most implementations will require pre-erc20-approval of the underlying asset token.
+   * @param debt amount to payback
+   * @param receiver address to whom debt amount is being paid back
    *
-   * @param debt amount to payback.
-   * @param receiver address to whom debt amount is being paid back.
+   * @dev Implementations will require pre-erc20-approval of the underlying asset token.
    */
   function payback(uint256 debt, address receiver) external returns (uint256);
 
@@ -220,12 +225,12 @@ interface IVault is IERC4626 {
    * - Must emit the VaultRebalance event.
    * - Must check `fee` is a reasonable amount.
    *
-   * @param assets amount of this vault to be rebalanced.
-   * @param debt amount of this vault to be rebalanced. Note: pass zero for a {YieldVault}.
-   * @param from provider address currently custoding `assets` and/or `debt`.
-   * @param to provider address to which `assets` and/or `debt` will be transferred.
-   * @param fee expected from rebalancing operation.
-   * @param setToAsActiveProvider boolean.
+   * @param assets amount of this vault to be rebalanced
+   * @param debt amount of this vault to be rebalanced (Note: pass zero if this is a {YieldVault})
+   * @param from provider address currently custoding `assets` and/or `debt`
+   * @param to provider address to which `assets` and/or `debt` will be transferred
+   * @param fee expected from rebalancing operation
+   * @param setToAsActiveProvider boolean
    */
   function rebalance(
     uint256 assets,
@@ -248,9 +253,9 @@ interface IVault is IERC4626 {
    *
    * @param owner address to get health factor
    *
-   * @dev 'healthFactor' is scaled up by 1e18. A value below 1e18 means 'owner' is
-   * eligable for liquidation.
-   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme
+   * @dev 'healthFactor' is scaled up by 1e18. A value below 1e18 means 'owner' is eligable
+   * for liquidation.
+   * See factors: https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    *
    */
   function getHealthFactor(address owner) external returns (uint256 healthFactor);
@@ -261,7 +266,7 @@ interface IVault is IERC4626 {
    * - Must return zero if `owner` is not liquidatable.
    * - Must revert in {YieldVault}.
    *
-   * @param owner address owner of debt position.
+   * @param owner address owner of debt position
    */
   function getLiquidationFactor(address owner) external returns (uint256 liquidationFactor);
 
@@ -275,8 +280,8 @@ interface IVault is IERC4626 {
    * - Must liquidate 100% of 'owner' debt when: 95 > 'healthFactor'.
    * - Must revert in {YieldVault}.
    *
-   * @param owner address to be liquidated.
-   * @param receiver address of the collateral shares of liquidation.
+   * @param owner address to be liquidated
+   * @param receiver address of the collateral shares of liquidation
    *
    * @dev WARNING! It is liquidator's responsability to check if liquidation is profitable.
    */
@@ -289,9 +294,9 @@ interface IVault is IERC4626 {
   /**
    * @notice Sets the lists of providers of this vault.
    * Requirements:
-   * - Must NOT contain zero addresses.
+   * - Must not contain zero addresses.
    *
-   * @param providers address array.
+   * @param providers address array
    */
   function setProviders(ILendingProvider[] memory providers) external;
 
@@ -320,7 +325,7 @@ interface IVault is IERC4626 {
    * Requirements:
    * - Must be greater than zero.
    *
-   * @param newCap amount to be set.
+   * @param newCap amount to be set
    */
   function setDepositCap(uint256 newCap) external;
 }
