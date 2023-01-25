@@ -5,7 +5,7 @@ import {IVault} from "./IVault.sol";
 
 /**
  * @title Lending provider interface.
- * @author fujidao Labs
+ * @author Fujidao Labs
  * @notice  Defines the interface for core engine to perform operations at lending providers.
  * @dev Functions are intended to be called in the context of a Vault via delegateCall,
  * except indicated.
@@ -31,7 +31,7 @@ interface ILendingProvider {
 
   /**
    * @notice Performs deposit operation at lending provider on behalf vault.
-   * @param amount amount integer.
+   * @param amount amount to deposit
    * @param vault IVault calling this function.
    *
    * Requirements:
@@ -41,8 +41,8 @@ interface ILendingProvider {
 
   /**
    * @notice Performs borrow operation at lending provider on behalf vault.
-   * @param amount amount integer.
-   * @param vault IVault calling this function.
+   * @param amount amount to borrow
+   * @param vault IVault calling this function
    *
    * Requirements:
    * - This function should be delegate called in the context of a `vault`.
@@ -51,7 +51,7 @@ interface ILendingProvider {
 
   /**
    * @notice Performs withdraw operation at lending provider on behalf vault.
-   * @param amount amount integer.
+   * @param amount amount to withdraw
    * @param vault IVault calling this function.
    *
    * Requirements:
@@ -62,7 +62,7 @@ interface ILendingProvider {
   /**
    * of a `vault`.
    * @notice Performs payback operation at lending provider on behalf vault.
-   * @param amount amount integer.
+   * @param amount amount to payback
    * @param vault IVault calling this function.
    *
    * Requirements:
@@ -73,7 +73,7 @@ interface ILendingProvider {
 
   /**
    * @notice Returns DEPOSIT balance of 'user' at lending provider.
-   * @param user address whom balance is needed.
+   * @param user address whom balance is needed
    * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD NOT require Vault context.
@@ -82,7 +82,7 @@ interface ILendingProvider {
 
   /**
    * @notice Returns BORROW balance of 'user' at lending provider.
-   * @param user address whom balance is needed.
+   * @param user address whom balance is needed
    * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * - SHOULD NOT require Vault context.
@@ -91,7 +91,7 @@ interface ILendingProvider {
 
   /**
    * @notice Returns the latest SUPPLY annual percent rate (APR) at lending provider.
-   * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0).
+   * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0)
    *
    * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
@@ -101,7 +101,7 @@ interface ILendingProvider {
 
   /**
    * @notice Returns the latest BORROW annual percent rate (APR) at lending provider.
-   * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0).
+   * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0)
    *
    * - SHOULD return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
