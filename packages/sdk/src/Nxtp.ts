@@ -1,4 +1,4 @@
-import { create, NxtpSdkBase, NxtpSdkPool } from '@connext/nxtp-sdk';
+import { create, NxtpSdkBase, NxtpSdkPool } from '@connext/sdk';
 import warning from 'tiny-warning';
 
 import { CHAIN } from './constants/chains';
