@@ -14,8 +14,8 @@ contract ProxyReceiver {
   /**
    * @notice Withdraw native and transfer to msg.sender.
    * @dev msg.sender needs to transfer before calling this withdraw.
-   * @param amount integer amount to withdraw.
-   * @param cToken ICToken to interact with.
+   * @param amount integer amount to withdraw
+   * @param cToken ICToken to interact with
    */
   function withdraw(uint256 amount, ICToken cToken) external {
     require(cToken.redeemUnderlying(amount) == 0, "Withdraw-failed");
