@@ -17,12 +17,14 @@ import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol"
  * @notice This contract allows interaction with this specific vault.
  */
 contract BeefyVelodromesETHETH is ILendingProvider {
+  //custom errors
   error BeefyVelodromesETHETHOptimism__notImplemented();
   error BeefyVelodromesETHETHOptimism__notApplicable();
 
   using SafeERC20 for IERC20;
   using Math for uint256;
 
+  /// inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Beefy_V6_ETH";
   }
@@ -43,9 +45,7 @@ contract BeefyVelodromesETHETH is ILendingProvider {
     return IVelodromeRouter(0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9);
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address,
@@ -59,9 +59,7 @@ contract BeefyVelodromesETHETH is ILendingProvider {
     operator = address(_getBeefyZap());
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
@@ -74,18 +72,12 @@ contract BeefyVelodromesETHETH is ILendingProvider {
     return true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function borrow(uint256, IVault) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   * @dev We can use Beefy Zap as in deposit because 'zap.beefOutAndSwap(...)'
-   * returns ETH instead of WETH.
-   */
+  /// inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IBeefyUniV2ZapVelodrome zap = _getBeefyZap();
     IBeefyVaultV6 beefyVault = _getBeefyVault();
@@ -104,16 +96,12 @@ contract BeefyVelodromesETHETH is ILendingProvider {
     return true;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function payback(uint256, IVault) external pure override returns (bool) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function _removeLiquidityAndSwap(
     uint256 withdrawAmount,
     address desiredToken,
@@ -153,23 +141,17 @@ contract BeefyVelodromesETHETH is ILendingProvider {
     );
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function getDepositRateFor(IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notImplemented();
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function getBorrowRateFor(IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -182,9 +164,7 @@ contract BeefyVelodromesETHETH is ILendingProvider {
     balance = _getDepositBalance(vault.asset(), user);
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// inheritdoc ILendingProvider
   function getBorrowBalance(address, IVault) external pure override returns (uint256) {
     revert BeefyVelodromesETHETHOptimism__notApplicable();
   }
