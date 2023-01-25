@@ -2,9 +2,9 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Abstract contract for all routers.
+ * @title BaseRouter
  * @author Fujidao Labs
- * @dev Defines the interface and common functions for all routers.
+ * @notice Abstract contract to be inherited by all routers.
  */
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -67,40 +67,33 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     WETH9 = weth;
   }
 
+  /// @inheritdoc IRouter
   function xBundle(Action[] memory actions, bytes[] memory args) external payable override {
     _bundleInternal(actions, args);
   }
 
   /**
-   * @notice Allow cross-chain `caller` address to enter this router.
+   * @notice Allows cross-chain `caller` address to enter this router.
    * @dev This function is implemented on bridge specific contracts.
    */
   function allowCaller(address caller, bool allow) external onlyTimelock {
     _allowCaller(caller, allow);
   }
 
-  /**
-   * @dev Sweep accidental ERC-20 transfers to this contract or stuck funds due to failed
-   * cross-chain calls (cf. ConnextRouter).
-   * @param token The address of the ERC-20 token to sweep.
-   * @param receiver The address that will receive the swept funds.
-   */
+  /// @inheritdoc IRouter
   function sweepToken(ERC20 token, address receiver) external onlyHouseKeeper {
     uint256 balance = token.balanceOf(address(this));
     token.transfer(receiver, balance);
   }
 
-  /**
-   * @dev Sweep accidental ETH transfers to this contract.
-   * @param receiver The address that will receive the swept funds
-   */
+  /// @inheritdoc IRouter
   function sweepETH(address receiver) external onlyHouseKeeper {
     uint256 balance = address(this).balance;
     _safeTransferETH(receiver, balance);
   }
 
   /**
-   * @dev Execute a bundle of actions.
+   * @dev Executes a bundle of actions.
    *
    * Requirements:
    * - MUST not leave any balance in this contract after all actions.
@@ -384,7 +377,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Revert fallback calls
+   * @dev Reverts fallback calls.
    */
   fallback() external payable {
     revert BaseRouter__fallback_notAllowed();
