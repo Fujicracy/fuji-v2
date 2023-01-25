@@ -9,7 +9,7 @@ import {ILens} from "../../interfaces/morpho/ILens.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 /**
- * @title Morpho Lending Provider.
+ * @title Morpho Lending Provider
  * @author fujidao Labs
  * @notice This contract allows interaction with Morpho.
  * @dev The IAddrMapper needs to be properly configured for CompoundV3

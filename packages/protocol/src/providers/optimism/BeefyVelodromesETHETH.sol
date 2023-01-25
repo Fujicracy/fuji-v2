@@ -12,7 +12,7 @@ import {IVelodromePair} from "../../interfaces/velodrome/IVelodromePair.sol";
 import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol";
 
 /**
- * @title Beefy Velodrome sETH-ETH Optimism Lending Provider.
+ * @title Beefy Velodrome sETH-ETH Optimism Lending Provider
  * @author fujidao Labs
  * @notice This contract allows interaction with this specific vault.
  */

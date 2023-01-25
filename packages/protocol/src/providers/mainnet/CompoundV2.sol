@@ -13,7 +13,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 /**
- * @title Compound V2 Lending Provider.
+ * @title Compound V2 Lending Provider
  * @author Fujidao Labs
  * @notice This contract allows interaction with CompoundV2.
  * @dev The IAddrMapper needs to be properly configured for CompoundV2

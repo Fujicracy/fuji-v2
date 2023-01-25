@@ -12,7 +12,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibIronBankOptimism} from "../../libraries/LibIronBankOptimism.sol";
 
 /**
- * @title IronBank Lending Provider.
+ * @title IronBank Lending Provider
  * @author fujidao Labs
  * @notice This contract allows interaction with IronBank .
  * @dev The IAddrMapper needs to be properly configured for IronBank.

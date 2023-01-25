@@ -7,7 +7,7 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
 /**
- * @title Agave Lending Provider.
+ * @title Agave Lending Provider
  * @author fujidao Labs
  * @notice This contract allows interaction with Agave.
  */

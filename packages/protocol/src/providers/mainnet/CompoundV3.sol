@@ -7,7 +7,7 @@ import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 /**
- * @title Compound III Comet Lending Provider.
+ * @title Compound III Comet Lending Provider
  * @author Fujidao Labs
  * @notice This contract allows interaction with CompoundV3.
  * @dev The IAddrMapper needs to be properly configured for CompoundV3.
