@@ -18,6 +18,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
  * @title WePiggy Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with WePiggy.
+ * @dev The IAddrMapper needs to be properly configured for WePiggy.
  */
 contract WePiggyArbitrum is ILendingProvider {
   error WePiggy__deposit_failed(uint256 status);

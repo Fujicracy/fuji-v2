@@ -12,6 +12,7 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  * @title Morpho Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with Morpho.
+ * @dev The IAddrMapper needs to be properly configured for AaveV2.
  */
 contract MorphoAaveV2 is ILendingProvider {
   address public constant MORPHO = 0x777777c9898D384F785Ee44Acfe945efDFf5f3E0;

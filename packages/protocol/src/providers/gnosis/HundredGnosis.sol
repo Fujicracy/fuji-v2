@@ -19,6 +19,7 @@ import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
  * @title Hundred Lending Provider.
  * @author fujidao Labs
  * @notice This contract allows interaction with Hundred.
+ * @dev The IAddrMapper needs to be properly configured for DForce.
  */
 contract HundredGnosis is ILendingProvider {
   error Hundred__deposit_failed(uint256 status);
