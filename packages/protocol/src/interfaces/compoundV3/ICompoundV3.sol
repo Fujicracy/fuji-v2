@@ -18,6 +18,7 @@ interface ICompoundV3 {
     uint128 supplyCap;
   }
 
+  // 512 bits total = 2 slots
   struct TotalsBasic {
     // 1st slot
     uint64 baseSupplyIndex;
