@@ -17,7 +17,7 @@ import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol"
  * @notice This contract allows interaction with this specific vault.
  */
 contract BeefyVelodromesETHETH is ILendingProvider {
-  //custom errors
+  // Custom errors
   error BeefyVelodromesETHETHOptimism__notImplemented();
   error BeefyVelodromesETHETHOptimism__notApplicable();
 

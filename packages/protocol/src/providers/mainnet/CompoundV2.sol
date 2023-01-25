@@ -21,6 +21,7 @@ import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 contract CompoundV2 is ILendingProvider {
   using Address for address;
 
+  // Custom errors
   error CompoundV2__deposit_failed(uint256 status);
   error CompoundV2__borrow_failed(uint256 status);
   error CompoundV2__withdraw_failed(uint256 status);

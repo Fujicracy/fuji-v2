@@ -22,6 +22,7 @@ import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
  * @dev The IAddrMapper needs to be properly configured for DForce.
  */
 contract HundredGnosis is ILendingProvider {
+  // Custom errors
   error Hundred__deposit_failed(uint256 status);
   error Hundred__payback_failed(uint256 status);
   error Hundred__withdraw_failed(uint256 status);

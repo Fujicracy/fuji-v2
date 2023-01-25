@@ -21,6 +21,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
  * @dev The IAddrMapper needs to be properly configured for WePiggy.
  */
 contract WePiggy is ILendingProvider {
+  // Custom errors
   error WePiggy__deposit_failed(uint256 status);
   error WePiggy__payback_failed(uint256 status);
   error WePiggy__withdraw_failed(uint256 status);
