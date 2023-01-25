@@ -16,7 +16,7 @@ import {LibOvix} from "../../libraries/LibOvix.sol";
 
 /**
  * @title 0vix Lending Provider
- * @author fujidao Labs
+ * @author Fujidao Labs
  * @notice This contract allows interaction with 0vix.
  * @dev The IAddrMapper needs to be properly configured for 0vix.
  */

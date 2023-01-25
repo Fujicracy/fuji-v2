@@ -10,7 +10,7 @@ import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
 
 /**
  * @title Euler Finance Lending Provider
- * @author fujidao Labs
+ * @author Fujidao Labs
  * @notice This contract allows interaction with Euler Finance.
  */
 contract Euler is ILendingProvider {

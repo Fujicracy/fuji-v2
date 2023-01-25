@@ -13,7 +13,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
 /**
  * @title IronBank Lending Provider
- * @author fujidao Labs
+ * @author Fujidao Labs
  * @notice This contract allows interaction with IronBank .
  * @dev The IAddrMapper needs to be properly configured for IronBank.
  */

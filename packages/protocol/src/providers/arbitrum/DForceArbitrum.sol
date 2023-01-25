@@ -14,7 +14,7 @@ import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
  * @title DForce Lending Provider
- * @author fujidao Labs
+ * @author Fujidao Labs
  * @notice This contract allows interaction with DForce.
  * @dev The IAddrMapper needs to be properly configured for DForce.
  */
