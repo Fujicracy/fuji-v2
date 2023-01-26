@@ -8,11 +8,11 @@ pragma solidity 0.8.15;
  */
 
 import {BaseFlasher} from "../abstracts/BaseFlasher.sol";
+import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IV3Pool} from "../interfaces/aaveV3/IV3Pool.sol";
 import {IFlashLoanSimpleReceiver} from "../interfaces/aaveV3/IFlashLoanSimpleReceiver.sol";
 
 contract FlasherAaveV3 is BaseFlasher, IFlashLoanSimpleReceiver {
-  // aaveV3Pool Goerli = 0x368EedF3f56ad10b9bC57eed4Dac65B26Bb667f6
   constructor(address aaveV3Pool) BaseFlasher("FlasherAaveV3", aaveV3Pool) {}
 
   /// @inheritdoc BaseFlasher
@@ -33,6 +33,7 @@ contract FlasherAaveV3 is BaseFlasher, IFlashLoanSimpleReceiver {
     IV3Pool(getFlashloanSourceAddr(asset)).flashLoanSimple(receiverAddress, asset, amount, data, 0);
   }
 
+  /// @inheritdoc IFlasher
   function computeFlashloanFee(
     address asset,
     uint256 amount
@@ -47,9 +48,7 @@ contract FlasherAaveV3 is BaseFlasher, IFlashLoanSimpleReceiver {
     fee = (amount * basisPointsFee) / 10000;
   }
 
-  /**
-   * @dev Callback enforced by AaveV3 Flashloan
-   */
+  /// @inheritdoc IFlashLoanSimpleReceiver
   function executeOperation(
     address asset,
     uint256 amount,

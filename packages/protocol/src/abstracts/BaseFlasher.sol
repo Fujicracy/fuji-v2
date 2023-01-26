@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Abstract contract for all flashloan providers.
+ * @title Abstract contract for all flashloan providers
  * @author Fujidao Labs
  * @notice Defines the interface and common functions for all flashloan providers.
  */
@@ -32,8 +32,8 @@ abstract contract BaseFlasher is IFlasher {
 
   /**
    * @param flasherProviderName_ string name for identifying convenience
-   * @param flashloanCallAddr_ address or mapping address at which flashlon
-   * call is initiated for this flashloan provider.
+   * @param flashloanCallAddr_ address or mapping address at which flashloan
+   * call is initiated for this flashloan provider
    */
   constructor(string memory flasherProviderName_, address flashloanCallAddr_) {
     flasherProviderName = flasherProviderName_;
@@ -51,10 +51,16 @@ abstract contract BaseFlasher is IFlasher {
     virtual
     override;
 
+  /// @inheritdoc IFlasher
   function getFlashloanSourceAddr(address) public view virtual override returns (address) {
     return _flashloanCallAddr;
   }
 
+  /**
+   * @dev Check if a flashloan is already in course.
+   * If it is, revert. If not, start the execution while preventing a new one.
+   * @param data bytes representing the encoded flashloan parameters
+   */
   function _checkAndSetEntryPoint(bytes memory data) internal {
     if (_entryPoint != "") {
       revert BaseFlasher__notEmptyEntryPoint();
@@ -62,6 +68,10 @@ abstract contract BaseFlasher is IFlasher {
     _entryPoint = keccak256(abi.encode(data));
   }
 
+  /**
+   * @dev Check if the current flashloan is in fact the one that has been initiated previously.
+   * @param data bytes representing the encoded flashloan parameters
+   */
   function _checkReentryPoint(bytes calldata data)
     internal
     view
@@ -75,6 +85,12 @@ abstract contract BaseFlasher is IFlasher {
   }
 
   /**
+   * @dev Execute the flashloan operation requested and send the amount to payback the flashloan and fee to the provider.
+   * @param asset address of the asset to be borrowed
+   * @param amount integer amount to be borrowed
+   * @param fee integer fee to be paid required by some provider for executing a flashloan
+   * @param requestor address of the contract who called the flasher
+   * @param requestorCalldata bytes representing the encoded flashloan parameters
    */
   function _requestorExecution(
     address asset,

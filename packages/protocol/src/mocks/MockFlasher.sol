@@ -11,6 +11,7 @@ contract MockFlasher is IFlasher {
   using SafeERC20 for IERC20;
   using Address for address;
 
+  /// @inheritdoc IFlasher
   function initiateFlashloan(
     address asset,
     uint256 amount,
@@ -24,10 +25,12 @@ contract MockFlasher is IFlasher {
     requestor.functionCall(requestorCalldata);
   }
 
+  /// @inheritdoc IFlasher
   function getFlashloanSourceAddr(address) external view override returns (address) {
     return address(this);
   }
 
+  /// @inheritdoc IFlasher
   function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
     fee = 0;
   }

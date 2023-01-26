@@ -8,6 +8,7 @@ pragma solidity 0.8.15;
  */
 
 import {BaseFlasher} from "../abstracts/BaseFlasher.sol";
+import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IBalancerVault} from "../interfaces/balancer/IBalancerVault.sol";
 import {IFlashLoanRecipient} from "../interfaces/balancer/IFlashLoanRecipient.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -38,6 +39,7 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
     IBalancerVault(getFlashloanSourceAddr(asset)).flashLoan(this, tokens, amounts, data);
   }
 
+  /// @inheritdoc IFlasher
   function computeFlashloanFee(
     address asset,
     uint256 amount
@@ -52,9 +54,7 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
     fee = amount * feePercentage / 1e18;
   }
 
-  /**
-   * @dev Callback enforced by Balancer Flashloan
-   */
+  /// @inheritdoc IFlashLoanRecipient
   function receiveFlashLoan(
     IERC20[] memory tokens,
     uint256[] memory amounts,
