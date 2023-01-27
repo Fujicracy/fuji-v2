@@ -69,3 +69,163 @@ The contracts in Fuji version 2 shall use solidity `error messages` instead of `
 > `Contract__function_errorMessage();`
 
 Capitalized contract + two underscores + camelcase function + underscore + camelcase error message.  
+
+## General smart contract documentation guideline
+Use the follow contract as a documentation guideline.
+
+```js
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.13;
+
+/**
+ * @title DocumentationGuideline
+ * 
+ * @author Fujidao Labs
+ * 
+ * @notice Sample contract to illustrate the documentation style.
+ * 
+ * @dev All contracts and interfaces must have a documentation title block like this one.
+ * The title tag must match the contract name.
+ * The notice tag should explain the user what this contract does and are intended for 
+ * the general public/user audience.
+ * The dev tag should explain developer information details and are intended for 
+ * developer audience.
+ * There must be a line gap between tags.
+ * Imports must be placed after the title block.
+ * Interfaces for external protocols do not require further documentation aside
+ * from this title block. Optionally add a link to the repository
+ * of the external protocol in this block.
+ * Use explicit pragma, and define license accordingly. 
+ * Maintain documentation notes under the 100 character line.
+ */
+
+import { OtherContract } from "./<fake-path>/OtherContract.sol";
+import { ArbitraryLibrary } from "./<fake-path>/ArbitraryLibrary.sol";
+
+contract DocumentationGuideline {
+    using ArbitraryLibrary for uint;
+
+    /**
+     * @dev This is an example struct. If needed, define the parameters
+     * with simple inline comments. You must define the purpose of the struct in a dev tag.
+     * Struct/Enum definitions are follow type extensions.
+     */
+    struct ExampleStruct {
+        // This is the first property.
+        uint one;
+        // All inline comments must be there own line.
+        uint two;
+        // Inline comments first word must be capitalized and full stop. 
+        string three;
+    }
+
+    /**
+     * @dev Multiple line and/or tag comments should be described in a star block, such as this
+     * one, decribing an event. Event definition is located after struct/enum definitions.
+     * Event parameters must be described in tags.
+     * Parameter description must not be capitalized and with no full stop ("." at the end).
+     * 
+     * @param caller of the function
+     * @param name of who is saying "hello"
+     */
+    event SayHello(address caller, string name);
+
+    /// @dev Inline single tag comments must use the triple slash format. Error definition follow events.
+    error DocumentationGuideline__setNumber_zeroValue();
+
+    uint256 public constant THIS_IS_A_CONSTANT;
+
+    /// @dev The `number` in this contract is important. Public variable definition follow constants.
+    uint256 public number;
+
+    // Another example of a simple inline comment. Private variable definition follows public ones.
+    uint256 internal _secretNumber;
+
+    /**
+     * @notice Initialize a new {DocumentationGuideline}.
+     * Notice tag should describe briefly what the function does.
+     * 
+     * @param initialNumber to set when deploying this contract
+     * 
+     * @dev All contracts or interface objects must be wrapped in brackets. 
+     * For example; the {OtherContract} contract.
+     */
+    constructor(uint initialNumber) {
+        number = initialNumber
+    }
+
+    /**
+     * @notice In public functions inform the user what this function do in
+     * the notice tag. This must be the first tag.
+     * 
+     * @param name of who is saying "hello"
+     * 
+     * @dev Dev tags must follow the param tags in public or external
+     * functions.
+     */
+    function justSayHello(string memory name) public {
+        _justSayHello(name);
+    }
+
+    /**
+     * @notice Set the `number` state.
+     * 
+     * @param newNumber to set
+     * 
+     * @dev Requirements:
+     * - Must check `newNumber` is not zero.
+     * 
+     * Requirements must be defined in the dev tag. Function must ensure requirements 
+     * are met. All statements must be listed and use "must". For example:
+     *  - Must check this.
+     *  - Must be > x or =< y.
+     */
+    function setNumber(uint newNumber) public {
+        // Simple inline comments should be like this.
+        if (newNumber == 0) {
+            revert DocumentationGuideline__setNumber_zeroValue();
+        }
+        number = newNumber;
+    }
+
+    /**
+     * @notice Increment `number` by `number_`.
+     * 
+     * @param number_ to increment
+     * 
+     * @dev To avoid variable collisions add "_" after variable name in local variables.
+     * In public or external functions the dev tag follows the parameter definition.
+     */
+    function incrementBy(uint number_) public {
+        // When referring to variables in documentation surround them with backlashes; as `number_`.
+        number += number_;
+    }
+
+
+    /// @inheritdoc OtherContract
+    function decreaseBy(uint number_) public {
+        // Use the inheritdoc tag to import documentation from an imported file. 
+        if(number_ > number) {
+            revert DocumentationGuideline__decreaseBy_invalidInput();
+        }
+        number -= number_;
+    }
+
+    /*////////////////////////////////////
+        Example of code block separator
+    ////////////////////////////////////*/
+
+    // In large contracts, as required, separate blocks of code logic with a visual as shown above.
+
+    /**
+     * @dev Internal and private functions must be described with the dev tag, and
+     * this must be the first tag. Parameters of internal and private functions
+     * must also be described.
+     * 
+     * @param name of who is saying "hello"
+     */
+    function _justSayHello(string memory name) internal {
+        emit SayHello(msg.sender, name);
+    }
+}
+```
