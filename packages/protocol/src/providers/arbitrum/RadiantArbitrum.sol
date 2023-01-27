@@ -13,7 +13,7 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
  */
 contract RadiantArbitrum is ILendingProvider {
   /**
-   * @dev Returns the IV2Pool pool to interact with Radiant.
+   * @dev Returns the {IV2Pool} pool to interact with Radiant.
    */
   function _getPool() internal pure returns (IV2Pool) {
     return IV2Pool(0x2032b9A8e9F7e76768CA9271003d3e43E1616B1F);

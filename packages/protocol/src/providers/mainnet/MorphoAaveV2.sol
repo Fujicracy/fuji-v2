@@ -31,7 +31,7 @@ contract MorphoAaveV2 is ILendingProvider {
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain.
+   * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.

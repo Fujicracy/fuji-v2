@@ -13,7 +13,7 @@ import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
  */
 contract AaveV3Goerli is ILendingProvider {
   /**
-   * @dev Returns the IV3Pool pool to interact with AaveV3
+   * @dev Returns the {IV3Pool} pool to interact with AaveV3
    */
   function _getPool() internal pure returns (IV3Pool) {
     return IV3Pool(0x368EedF3f56ad10b9bC57eed4Dac65B26Bb667f6);

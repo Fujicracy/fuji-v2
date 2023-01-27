@@ -37,7 +37,7 @@ contract HundredGnosis is ILendingProvider {
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain.
+   * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -45,7 +45,7 @@ contract HundredGnosis is ILendingProvider {
   }
 
   /**
-   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce.
+   * @dev Returns DForce's underlying {ICToken} associated with the asset to interact with DForce.
    * @param asset address of the token to be used as collateral/debt.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
@@ -60,7 +60,7 @@ contract HundredGnosis is ILendingProvider {
   }
 
   /**
-   * @dev Returns the ProxyReceiver's address used to withdraw from the protocol.
+   * @dev Returns the {ProxyReceiver}'s address used to withdraw from the protocol.
    */
   function _getProxyReceiver() internal pure returns (address) {
     return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;

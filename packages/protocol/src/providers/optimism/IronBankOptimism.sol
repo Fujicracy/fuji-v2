@@ -33,7 +33,7 @@ contract IronBankOptimism is ILendingProvider {
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain.
+   * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -41,7 +41,7 @@ contract IronBankOptimism is ILendingProvider {
   }
 
   /**
-   * @dev Returns IronBank's underlying iToken associated with the asset to interact with IronBank.
+   * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
    * @param asset address of the token to be used as collateral/debt.
    */
   function _getCyToken(address asset) internal view returns (address cToken) {
