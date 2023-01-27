@@ -3,11 +3,12 @@ pragma solidity 0.8.15;
 
 /**
  * @title PausableVault
+ *
  * @author Fujidao Labs
  *
  * @notice Abstract pausable contract developed for granular control over vault actions.
- * This contract should be inherited by a vault implementation.
- * The code is inspired on OpenZeppelin-Pausable contract.
+ * This contract should be inherited by a vault implementation. The code is inspired on
+ * OpenZeppelin-Pausable contract.
  */
 
 import {IPausableVault} from "../interfaces/IPausableVault.sol";
@@ -108,7 +109,7 @@ abstract contract PausableVault is IPausableVault {
   }
 
   /**
-   * @dev Forces set unpause state fo  all `VaultActions`.
+   * @dev Forces set unpause state for all `VaultActions`.
    */
   function _unpauseForceAllActions() internal {
     _actionsPaused[VaultActions.Deposit] = false;

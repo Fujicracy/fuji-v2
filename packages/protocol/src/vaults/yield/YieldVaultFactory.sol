@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title YieldVaultFactory
+ *
  * @author Fujidao Labs
  *
  * @notice A factory contract through which new yield vaults are created.
@@ -19,19 +20,21 @@ contract YieldVaultFactory is VaultDeployer {
 
   /**
    * @notice Constructor of a new {YieldVaultFactory}.
-   * Requirements:
-   * - Must comply with {VaultDeployer} requirements.
    *
    * @param chief_ address of {Chief}
+   *
+   * @dev Requirements:
+   * - Must comply with {VaultDeployer} requirements.
    */
   constructor(address chief_) VaultDeployer(chief_) {}
 
   /**
    * @notice Deploys a new {YieldVault}.
-   * Requirements:
-   * - Must be called from {Chief} contract only.
    *
    * @param deployData The encoded data containing asset and providers
+   *
+   * @dev Requirements:
+   * - Must be called from {Chief} contract only.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
     (address asset, ILendingProvider[] memory providers) =

@@ -148,7 +148,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * Sets `vaultSafetyRating` for `vault`.
+   * @notice Sets `vaultSafetyRating` for `vault`.
    * Requirements:
    *  - Emits a `ChangeSafetyRating` event.
    *  - Only timelock can change rating.
@@ -168,11 +168,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `flasher` as an authorized address for flashloan operations.
+   * @notice Sets `flasher` as an authorized address for flashloan operations.
    * Requirements:
    * - Emits a `AllowFlasher` event.
    * - `flasher` is a non-zero address.
    * - `allowed` is different the previously recorded for the same `flasher`.
+   *
+   * @param flasher Address of the flasher to allow/disallow.
+   * @param allowed `true` to allow, `false` to disallow.
    */
   function allowFlasher(address flasher, bool allowed) external onlyTimelock {
     _checkInputIsNotZeroAddress(flasher);
@@ -188,6 +191,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
    * @notice Sets `factory` as an authorized address for vault deployments.
    * Requirements:
    * - Emits a `AllowVaultFactory` event.
+   *
+   * @param factory Address of the factory to allow/disallow.
+   * @param allowed `true` to allow, `false` to disallow.
    */
   function allowVaultFactory(address factory, bool allowed) external onlyTimelock {
     _checkInputIsNotZeroAddress(factory);
@@ -268,7 +274,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev executes pause state changes.
+   * @dev Executes pause state changes.
    */
   function _changePauseState(bytes memory callData) internal {
     uint256 alength = _vaults.length;
@@ -281,7 +287,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `input` is zero address.
+   * @dev Reverts if `input` is zero address.
    */
   function _checkInputIsNotZeroAddress(address input) internal pure {
     if (input == address(0)) {
@@ -290,7 +296,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `rating` input is not in range [1,100].
+   * @dev Reverts if `rating` input is not in range [1,100].
    */
   function _checkRatingValue(uint256 rating) internal pure {
     if (rating == 0 || rating > 100) {
@@ -299,7 +305,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `vault` is not in `_vaults` array.
+   * @dev Reverts if `vault` is not in `_vaults` array.
    */
   function _checkValidVault(address vault) internal view {
     _checkInputIsNotZeroAddress(vault);

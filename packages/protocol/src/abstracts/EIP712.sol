@@ -3,9 +3,11 @@ pragma solidity 0.8.15;
 
 /**
  * @title EIP712
+ *
  * @author Fujidao Labs
  *
  * @notice EIP712 abstract contract for VaultPermissions.
+ *
  * @dev https://eips.ethereum.org/EIPS/eip-712[EIP 712] is a standard for hashing and
  * signing of typed structured data.
  *
@@ -34,9 +36,11 @@ import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.s
 
 abstract contract EIP712 {
   /* solhint-disable var-name-mixedcase */
-  /// @dev Cache the domain separator as an immutable value, but also store
-  /// the chain id that it corresponds to, in order to invalidate the cached
-  /// domain separator if the chain id changes.
+  /**
+   * @dev Cache the domain separator as an immutable value, but also store
+   * the chain id that it corresponds to, in order to invalidate the cached
+   * domain separator if the chain id changes.
+   */
   bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
   uint256 private immutable _CACHED_CHAIN_ID;
   address private immutable _CACHED_THIS;
@@ -48,8 +52,8 @@ abstract contract EIP712 {
   /**
    * @notice Constructor to initializes the domain separator and parameter caches.
    *
-   * @param name readable string of the signing domain, i.e. the name of the DApp or the protocol
-   * @param version string of the current major version of the signing domain
+   * @param name of the signing domain, i.e. the name of the DApp or the protocol
+   * @param version of the current major version of the signing domain
    *
    * @dev The meaning of `name` and `version` is specified in
    * https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator[EIP 712]:
@@ -81,7 +85,7 @@ abstract contract EIP712 {
   }
 
   /**
-   * @dev Builds and returns domaain seperator according to inputs.
+   * @dev Builds and returns domain seperator according to inputs.
    *
    * @param typeHash cached in this contract
    * @param nameHash cahed in this contract
@@ -119,6 +123,7 @@ abstract contract EIP712 {
    * )));
    * address signer = ECDSA.recover(digest, signature);
    * ```
+   * @param structHash of signed data
    */
   function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {
     return ECDSA.toTypedDataHash(_domainSeparatorV4(), structHash);

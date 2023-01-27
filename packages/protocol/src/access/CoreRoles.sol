@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title CoreRoles
+ *
  * @author Fujidao Labs
  *
  * @notice System definition of roles used across FujiV2 contracts.

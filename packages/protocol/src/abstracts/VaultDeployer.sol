@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title VaultDeployer
+ *
  * @author Fujidao Labs
  *
  * @notice Abstract contract to be inherited by vault deployers
@@ -21,6 +22,7 @@ abstract contract VaultDeployer {
 
   /**
    * @dev Emit when a vault is registered.
+   *
    * @param vault address
    * @param asset address
    * @param salt used for address generation
@@ -49,10 +51,11 @@ abstract contract VaultDeployer {
 
   /**
    * @notice Abstract constructor of a new {VaultDeployer}.
-   * Requirements:
-   * - Must pass non-zero {Chief} address.
    *
-   * @param chief_ address.
+   * @param chief_ address
+   *
+   * @dev Requirements:
+   * - Must pass non-zero {Chief} address, that could be checked at child contract.
    */
   constructor(address chief_) {
     if (chief_ == address(0)) {
@@ -65,7 +68,7 @@ abstract contract VaultDeployer {
    * @notice Returns the historic number of vaults of an `asset` type
    * deployed by this deployer.
    *
-   * @param asset address.
+   * @param asset address
    */
   function vaultsCount(address asset) external view returns (uint256 count) {
     count = vaultsByAsset[asset].length;
@@ -74,9 +77,9 @@ abstract contract VaultDeployer {
   /**
    * @notice Returns an array of vaults based on their `asset` type.
    *
-   * @param asset address.
-   * @param startIndex number to start loop in vaults[] array.
-   * @param count number to end loop in vaults[] array.
+   * @param asset address
+   * @param startIndex number to start loop in vaults[] array
+   * @param count number to end loop in vaults[] array
    */
   function getVaults(
     address asset,

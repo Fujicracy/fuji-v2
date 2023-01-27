@@ -335,7 +335,8 @@ contract ForkingSetup is CoreRoles, Test {
     uint256 amount,
     uint256 borrowAmount,
     address router,
-    address vault_
+    address vault_,
+    uint256 slippage
   )
     internal
     returns (bytes memory callData)
@@ -353,7 +354,7 @@ contract ForkingSetup is CoreRoles, Test {
     );
     args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
 
-    callData = abi.encode(actions, args);
+    callData = abi.encode(actions, args, slippage);
   }
 
   function _getDepositAndBorrow(
