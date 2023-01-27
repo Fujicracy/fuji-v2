@@ -41,12 +41,12 @@ contract MorphoCompound is ILendingProvider {
     cToken = _getAddrmapper().getAddressMapping("Compound", asset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Morpho";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address,
@@ -60,31 +60,31 @@ contract MorphoCompound is ILendingProvider {
     operator = MORPHO;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().supply(_getCToken(vault.asset()), address(vault), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().borrow(_getCToken(vault.debtAsset()), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().withdraw(_getCToken(vault.asset()), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().repay(_getCToken(vault.debtAsset()), address(vault), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     (uint256 ratePerBlock,,) = ILens(LENS).getAverageSupplyRatePerBlock(_getCToken(vault.asset()));
     //no. of blocks per year
@@ -92,7 +92,7 @@ contract MorphoCompound is ILendingProvider {
     rate = ratePerBlock * 2102400 * 10 ** 9;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     (uint256 ratePerBlock,,) =
       ILens(LENS).getAverageBorrowRatePerBlock(_getCToken(vault.debtAsset()));
@@ -101,7 +101,7 @@ contract MorphoCompound is ILendingProvider {
     rate = ratePerBlock * 2102400 * 10 ** 9;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -116,7 +116,7 @@ contract MorphoCompound is ILendingProvider {
     balance = suppliedOnPool + suppliedP2P;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

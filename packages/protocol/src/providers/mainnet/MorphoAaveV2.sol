@@ -18,7 +18,7 @@ contract MorphoAaveV2 is ILendingProvider {
   address public constant MORPHO = 0x777777c9898D384F785Ee44Acfe945efDFf5f3E0;
   address public constant LENS = 0x507fA343d0A90786d86C7cd885f5C49263A91FF4;
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Morpho";
   }
@@ -46,7 +46,7 @@ contract MorphoAaveV2 is ILendingProvider {
     aToken = _getAddrmapper().getAddressMapping("Aave_V2", asset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address,
@@ -60,41 +60,41 @@ contract MorphoAaveV2 is ILendingProvider {
     operator = MORPHO;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().supply(_getAToken(vault.asset()), address(vault), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().borrow(_getAToken(vault.debtAsset()), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().withdraw(_getAToken(vault.asset()), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     _getMorpho().repay(_getAToken(vault.debtAsset()), address(vault), amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     (rate,,) = ILens(LENS).getAverageSupplyRatePerYear(_getAToken(vault.asset()));
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     (rate,,) = ILens(LENS).getAverageBorrowRatePerYear(_getAToken(vault.debtAsset()));
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -109,7 +109,7 @@ contract MorphoAaveV2 is ILendingProvider {
     balance = suppliedOnPool + suppliedP2P;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

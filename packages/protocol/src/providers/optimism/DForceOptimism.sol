@@ -63,12 +63,12 @@ contract DForceOptimism is ILendingProvider {
     controller.enterMarkets(iTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "DForce_Optimism";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -81,7 +81,7 @@ contract DForceOptimism is ILendingProvider {
     operator = _getiToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
@@ -109,7 +109,7 @@ contract DForceOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
@@ -128,7 +128,7 @@ contract DForceOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
@@ -147,7 +147,7 @@ contract DForceOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
@@ -170,7 +170,7 @@ contract DForceOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.asset());
 
@@ -182,7 +182,7 @@ contract DForceOptimism is ILendingProvider {
     return bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.debtAsset());
 
@@ -193,8 +193,8 @@ contract DForceOptimism is ILendingProvider {
     uint256 blocksperYear = 2102400;
     return bRateperBlock * blocksperYear;
   }
-  /// inheritdoc ILendingProvider
 
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -209,7 +209,7 @@ contract DForceOptimism is ILendingProvider {
     balance = LibDForce.viewUnderlyingBalanceOf(iToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

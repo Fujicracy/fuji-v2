@@ -19,12 +19,12 @@ contract AgaveGnosis is ILendingProvider {
     return IV2Pool(0x5E15d5E33d318dCEd84Bfe3F4EACe07909bE6d9c);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Agave_Gnosis";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address,
@@ -38,7 +38,7 @@ contract AgaveGnosis is ILendingProvider {
     operator = address(_getPool());
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IV2Pool agave = _getPool();
     agave.deposit(vault.asset(), amount, address(vault), 0);
@@ -46,42 +46,42 @@ contract AgaveGnosis is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IV2Pool agave = _getPool();
     agave.borrow(vault.debtAsset(), amount, 2, 0, address(vault));
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IV2Pool agave = _getPool();
     agave.withdraw(vault.asset(), amount, address(vault));
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     IV2Pool agave = _getPool();
     agave.repay(vault.debtAsset(), amount, 2, address(vault));
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IV2Pool agaveData = _getPool();
     IV2Pool.ReserveData memory rdata = agaveData.getReserveData(vault.asset());
     rate = rdata.currentLiquidityRate;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IV2Pool agaveData = _getPool();
     IV2Pool.ReserveData memory rdata = agaveData.getReserveData(vault.debtAsset());
     rate = rdata.currentVariableBorrowRate;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -96,7 +96,7 @@ contract AgaveGnosis is ILendingProvider {
     balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

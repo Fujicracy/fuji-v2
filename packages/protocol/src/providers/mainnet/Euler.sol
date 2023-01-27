@@ -21,12 +21,12 @@ contract Euler is ILendingProvider {
     return IEulerMarkets(0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Euler";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address,
@@ -40,7 +40,7 @@ contract Euler is ILendingProvider {
     operator = 0x27182842E098f60e3D576794A5bFFb0777E025d3;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerEToken eToken = IEulerEToken(markets.underlyingToEToken(vault.asset()));
@@ -53,7 +53,7 @@ contract Euler is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
 
@@ -64,7 +64,7 @@ contract Euler is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerEToken eToken = IEulerEToken(markets.underlyingToEToken(vault.asset()));
@@ -74,7 +74,7 @@ contract Euler is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     IEulerMarkets markets = _getEulerMarkets();
     IEulerDToken borrowedDToken = IEulerDToken(markets.underlyingToDToken(vault.debtAsset()));
@@ -83,7 +83,7 @@ contract Euler is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
     int256 iRate = markets.interestRate(vault.asset());
@@ -92,7 +92,7 @@ contract Euler is ILendingProvider {
     }
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IEulerMarkets markets = _getEulerMarkets();
     int256 iRate = markets.interestRate(vault.debtAsset());
@@ -101,7 +101,7 @@ contract Euler is ILendingProvider {
     }
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -116,7 +116,7 @@ contract Euler is ILendingProvider {
     balance = eToken.balanceOfUnderlying(user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

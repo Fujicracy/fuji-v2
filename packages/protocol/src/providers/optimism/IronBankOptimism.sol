@@ -68,12 +68,12 @@ contract IronBankOptimism is ILendingProvider {
     comptroller.enterMarkets(cyTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "IronBank_Optimism";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -87,7 +87,7 @@ contract IronBankOptimism is ILendingProvider {
     operator = _getCyToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     //Get cyToken address from mapping
@@ -107,7 +107,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
 
@@ -126,7 +126,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     //Get cyToken address from mapping
@@ -144,7 +144,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
 
@@ -162,7 +162,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address asset = vault.asset();
     address cyTokenAddr = _getCyToken(asset);
@@ -176,7 +176,7 @@ contract IronBankOptimism is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address asset = vault.debtAsset();
     address cyTokenAddr = _getCyToken(asset);
@@ -190,7 +190,7 @@ contract IronBankOptimism is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -205,7 +205,7 @@ contract IronBankOptimism is ILendingProvider {
     balance = LibIronBankOptimism.viewUnderlyingBalanceOf(cyToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

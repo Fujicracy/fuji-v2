@@ -22,6 +22,7 @@ import {LibOvix} from "../../libraries/LibOvix.sol";
  */
 
 contract OvixPolygon is ILendingProvider {
+  // Custom errors
   error Ovix__deposit_failed(uint256 status);
   error Ovix__payback_failed(uint256 status);
   error Ovix__withdraw_failed(uint256 status);
@@ -71,12 +72,12 @@ contract OvixPolygon is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Ovix_Polygon";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -90,7 +91,7 @@ contract OvixPolygon is ILendingProvider {
     operator = _getCToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -116,7 +117,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -136,7 +137,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -156,7 +157,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -179,7 +180,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.asset());
 
@@ -191,7 +192,7 @@ contract OvixPolygon is ILendingProvider {
     rate = bRateperTimestamp * secondsPerYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
@@ -202,8 +203,8 @@ contract OvixPolygon is ILendingProvider {
     uint256 secondsPerYear = 60 * 60 * 24 * 365;
     rate = bRateperTimestamp * secondsPerYear;
   }
-  /// inheritdoc ILendingProvider
 
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -218,7 +219,7 @@ contract OvixPolygon is ILendingProvider {
     balance = LibOvix.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

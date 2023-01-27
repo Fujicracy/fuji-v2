@@ -35,7 +35,7 @@ contract CompoundV2 is ILendingProvider {
     return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Compound_V2";
   }
@@ -60,7 +60,7 @@ contract CompoundV2 is ILendingProvider {
     return asset == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -73,7 +73,7 @@ contract CompoundV2 is ILendingProvider {
     operator = getMapper().getAddressMapping(providerName(), keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -98,7 +98,7 @@ contract CompoundV2 is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -117,7 +117,7 @@ contract CompoundV2 is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -136,7 +136,7 @@ contract CompoundV2 is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -158,9 +158,7 @@ contract CompoundV2 is ILendingProvider {
     success = true;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getDepositRateFor}.
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view returns (uint256 rate) {
     address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -174,9 +172,7 @@ contract CompoundV2 is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowRateFor}.
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view returns (uint256 rate) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -190,18 +186,14 @@ contract CompoundV2 is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getDepositBalance}.
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.asset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowBalance}.
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.debtAsset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
