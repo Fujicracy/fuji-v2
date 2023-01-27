@@ -86,7 +86,7 @@ interface ILendingProvider {
    * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * @dev Requirements:
-   * - SHOULD NOT require Vault context.
+   * - Must not require Vault context.
    */
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance);
 
@@ -97,7 +97,7 @@ interface ILendingProvider {
    * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0).
    *
    * @dev Requirements:
-   * - SHOULD NOT require Vault context.
+   * - Must not require Vault context.
    */
   function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance);
 
@@ -107,9 +107,9 @@ interface ILendingProvider {
    * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0)
    *
    * @dev Requirements:
-   * - SHOULD return the rate in ray units (1e27)
+   * - Must return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
-   * - SHOULD NOT require Vault context.
+   * - Must not require Vault context.
    */
   function getDepositRateFor(IVault vault) external view returns (uint256 rate);
 
@@ -119,9 +119,9 @@ interface ILendingProvider {
    * @param vault IVault required by some specific providers with multi-markets, otherwise pass address(0)
    *
    * @dev Requirements:
-   * - SHOULD return the rate in ray units (1e27)
+   * - Must return the rate in ray units (1e27)
    * Example 8.5% APR = 0.085 x 1e27 = 85000000000000000000000000
-   * - SHOULD NOT require Vault context.
+   * - Must not require Vault context.
    */
   function getBorrowRateFor(IVault vault) external view returns (uint256 rate);
 }
