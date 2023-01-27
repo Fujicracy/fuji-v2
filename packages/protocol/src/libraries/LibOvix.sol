@@ -6,7 +6,9 @@ import {ICToken} from "../interfaces/Ovix/ICToken.sol";
 
 /**
  * @title Ovix latest ICToken data.
+ *
  * @author Fujidao Labs
+ *
  * @notice This implementation is modifed from "./LibCompoundV2".
  * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound)
  */
@@ -14,18 +16,20 @@ library LibOvix {
   using LibSolmateFixedPointMath for uint256;
 
   /**
-   * @dev Returns the current collateral balance of user
-   * @param cToken ICToken 0vix's cToken associated with the user's position
+   * @param cToken {ICToken} 0vix's cToken associated with the user's position
    * @param user address of the user
+   *
+   * @dev Returns the current collateral balance of user
    */
   function viewUnderlyingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     return cToken.balanceOf(user).mulWadDown(viewExchangeRate(cToken));
   }
 
   /**
-   * @dev Returns the current borrow balance of user
-   * @param cToken ICToken 0vix's cToken associated with the user's position
+   * @param cToken {ICToken} 0vix's cToken associated with the user's position
    * @param user address of the user
+   *
+   * @dev Returns the current borrow balance of user
    */
   function viewBorrowingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     uint256 borrowIndexPrior = cToken.borrowIndex();
@@ -35,8 +39,9 @@ library LibOvix {
   }
 
   /**
+   * @param cToken {ICToken} 0vix's cToken associated with the user's position
+   *
    * @dev Returns the current exchange rate for a given cToken
-   * @param cToken ICToken 0vix's cToken associated with the user's position
    * @dev 0vix's cToken uses accrualBlockTimestamp instead of accrualBlockNumber (like compound does)
    */
   function viewExchangeRate(ICToken cToken) internal view returns (uint256) {
@@ -65,8 +70,9 @@ library LibOvix {
   }
 
   /**
+   * @param cToken {ICToken} 0vix's cToken associated with the user's position
+   *
    * @dev Returns the current borrow index for a given cToken
-   * @param cToken ICToken 0vix's cToken associated with the user's position
    * @dev 0vix's cToken uses accrualBlockTimestamp instead of accrualBlockNumber (like compound does)
    */
   function viewNewBorrowIndex(ICToken cToken) internal view returns (uint256 newBorrowIndex) {

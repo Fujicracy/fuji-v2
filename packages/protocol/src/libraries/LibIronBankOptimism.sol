@@ -6,7 +6,9 @@ import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
 
 /**
  * @title IronBank latest ICToken data on Optimisim.
+ *
  * @author Fujidao Labs
+ *
  * @notice This implementation is modifed from "./LibCompoundV2".
  * @dev Interest accrual in IronBank optimism is based on block.timestamp as opposed to block.number.
  */
@@ -14,18 +16,20 @@ library LibIronBankOptimism {
   using LibSolmateFixedPointMath for uint256;
 
   /**
-   * @dev Returns the current collateral balance of user
-   * @param cToken ICToken IronBank's cToken associated with the user's position
+   * @param cToken {ICToken} IronBank's cToken associated with the user's position
    * @param user address of the user
+   *
+   * @dev Returns the current collateral balance of user
    */
   function viewUnderlyingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     return cToken.balanceOf(user).mulWadDown(viewExchangeRate(cToken));
   }
 
   /**
-   * @dev Returns the current borrow balance of user
-   * @param cToken ICToken IronBank's cToken associated with the user's position
+   * @param cToken {ICToken} IronBank's cToken associated with the user's position
    * @param user address of the user
+   *
+   * @dev Returns the current borrow balance of user
    */
   function viewBorrowingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     uint256 borrowIndexPrior = cToken.borrowIndex();
@@ -35,9 +39,10 @@ library LibIronBankOptimism {
   }
 
   /**
-   * @dev Returns the current exchange rate for a given cToken
-   * @param cToken ICToken IronBank's cToken associated with the user's position
+   * @param cToken {ICToken} IronBank's cToken associated with the user's position
+   *
    * @dev IronBank uses block.timestamp on Optimism instead of the usual block.number. The cToken.accrualBlockNumber() function returns timestamp
+   * @dev Returns the current exchange rate for a given {ICToken}
    */
   function viewExchangeRate(ICToken cToken) internal view returns (uint256) {
     uint256 accrualBlockTimestampPrior = cToken.accrualBlockNumber(); //ironbank on optimism returns timestamp instead of block.number
@@ -65,8 +70,9 @@ library LibIronBankOptimism {
   }
 
   /**
-   * @dev Returns the current borrow index for a given cToken
-   * @param cToken ICToken IronBank's cToken associated with the user's position
+   * @param cToken {ICToken} IronBank's cToken associated with the user's position
+   *
+   * @dev Returns the current borrow index for a given {ICToken}
    * @dev IronBank uses block.timestamp on Optimism instead of the usual block.number. The cToken.accrualBlockNumber() function returns timestamp
    */
   function viewNewBorrowIndex(ICToken cToken) internal view returns (uint256 newBorrowIndex) {

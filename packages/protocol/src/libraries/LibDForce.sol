@@ -6,7 +6,9 @@ import {IGenIToken} from "../interfaces/dforce/IGenIToken.sol";
 
 /**
  * @title DForce latest IGenIToken data.
+ *
  * @author Fujidao Labs
+ *
  * @notice This implementation is modifed from "./LibCompoundV2".
  * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound)
  */
@@ -14,18 +16,20 @@ library LibDForce {
   using LibSolmateFixedPointMath for uint256;
 
   /**
-   * @dev Returns the current collateral balance of user
    * @param iToken IGenIToken DForce's iToken associated with the user's position
    * @param user address of the user
+   *
+   * @dev Returns the current collateral balance of user
    */
   function viewUnderlyingBalanceOf(IGenIToken iToken, address user) internal view returns (uint256) {
     return iToken.balanceOf(user).mulWadDown(viewExchangeRate(iToken));
   }
 
   /**
-   * @dev Returns the current borrow balance of user
    * @param iToken IGenIToken DForce's iToken associated with the user's position
    * @param user address of the user
+   *
+   * @dev Returns the current borrow balance of user
    */
   function viewBorrowingBalanceOf(IGenIToken iToken, address user) internal view returns (uint256) {
     uint256 borrowIndexPrior = iToken.borrowIndex();
@@ -37,8 +41,9 @@ library LibDForce {
   }
 
   /**
-   * @dev Returns the current exchange rate for a given iToken
    * @param iToken IGenIToken DForce's iToken associated with the user's position
+   *
+   * @dev Returns the current exchange rate for a given iToken
    */
   function viewExchangeRate(IGenIToken iToken) internal view returns (uint256) {
     uint256 accrualBlockNumberPrior = iToken.accrualBlockNumber();
@@ -65,8 +70,9 @@ library LibDForce {
   }
 
   /**
-   * @dev Returns the current borrow index for a given iToken
    * @param iToken IGenIToken DForce's iToken associated with the user's position
+   *
+   * @dev Returns the current borrow index for a given iToken
    */
   function viewNewBorrowIndex(IGenIToken iToken) internal view returns (uint256 newBorrowIndex) {
     /* Remember the initial block number */
