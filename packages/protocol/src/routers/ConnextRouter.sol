@@ -14,24 +14,25 @@ import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
   /**
    * @notice Emitted when a new destination router gets added.
-   * @param router - The router on another chain.
-   * @param domain - The destination domain identifier according Connext nomenclature.
+   * @param router The router on another chain.
+   * @param domain The destination domain identifier according Connext nomenclature.
    */
   event NewRouterAdded(address indexed router, uint256 indexed domain);
 
   /**
    * @notice Emitted when Connext `xCall` is invoked.
-   * @param transferId - The unique identifier of the crosschain transfer.
-   * @param caller - The account that called the function.
-   * @param receiver - The router on destDomain.
-   * @param destDomain - The destination domain identifier according Connext nomenclature.
-   * @param asset - The asset being transferred.
-   * @param amount - The amount of transferring asset the recipient address receives.
-   * @param callData - The calldata sent to destination router that will get decoded and executed.
+   * @param transferId The unique identifier of the crosschain transfer.
+   * @param caller The account that called the function.
+   * @param receiver The router on destDomain.
+   * @param destDomain The destination domain identifier according Connext nomenclature.
+   * @param asset The asset being transferred.
+   * @param amount The amount of transferring asset the recipient address receives.
+   * @param callData The calldata sent to destination router that will get decoded and executed.
    */
   event XCalled(
     bytes32 indexed transferId,
@@ -45,12 +46,12 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   /**
    * @notice Emitted when the router receives a cross-chain call.
-   * @param transferId - The unique identifier of the crosschain transfer.
-   * @param originDomain - The origin domain identifier according Connext nomenclature.
-   * @param success - Whether or not the xBundle call succeeds.
-   * @param asset - The asset being transferred.
-   * @param amount - The amount of transferring asset the recipient address receives.
-   * @param callData - The calldata that will get decoded and executed.
+   * @param transferId The unique identifier of the crosschain transfer.
+   * @param originDomain The origin domain identifier according Connext nomenclature.
+   * @param success Whether or not the xBundle call succeeds.
+   * @param asset The asset being transferred.
+   * @param amount The amount of transferring asset the recipient address receives.
+   * @param callData The calldata that will get decoded and executed.
    */
   event XReceived(
     bytes32 indexed transferId,
@@ -65,11 +66,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__setRouter_invalidInput();
   error ConnextRouter__xReceive_notReceivedAssetBalance();
   error ConnextRouter__xReceive_notAllowedCaller();
+  error ConnnextRouter__checkSlippage_outOfBounds();
 
-  // The connext contract on the origin domain.
+  /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
 
-  // ref: https://docs.nomad.xyz/developers/environments/domain-chain-ids
+  /// @notice A mapping of a domain of another chain and a deployed router there.
+  /// @dev For the list of domains supported by Connext, plz check: https://docs.connext.network/resources/deployments
   mapping(uint256 => address) public routerByDomain;
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
@@ -80,56 +83,138 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   // Connext specific functions
 
   /**
-   * @notice Called by Connext on the destination chain. It doesn't perform an authentification
-   * by doing a check on `originSender`. As a result of that, all txns go through the fast path.
-   * If `xBundle` fails on our side, this contract will keep the custody of the sent funds.
+   * @notice Called by Connext on the destination chain. It performs authentification of
+   * the calling address. As a result of that, all txns go through Connext's slow path.
+   * If `xBundle` fails internally, this contract will keep custody of the sent funds.
+   * Requirements:
+   * - `calldata` parameter should be encoded with the following structure:
+   *     > abi.encode(Action[] actions, bytes[] args, uint256 slippageThreshold)
+   *   • actions: array of serialized actions to execute from available enum IRouter.Action.
+   *   • args: array of encoded arguments according to each action. See
+   *     {BaseRouter-internalBundle}.
+   *   • slippageThreshold: same argument as defined in the original `xCall()`. This
+   *     argument protects and checks internally for any slippage that happens during
+   *     the bridge of assets.
    *
-   * @param transferId - The unique identifier of the crosschain transfer.
-   * @param amount - The amount of transferring asset the recipient address receives.
-   * @param asset - The asset being transferred.
-   * @param originDomain - The origin domain identifier according Connext nomenclature.
-   * @param callData - The calldata that will get decoded and executed.
+   * @param transferId The unique identifier of the crosschain transfer.
+   * @param amount The amount of transferring asset, after slippage, the recipient address receives.
+   * @param asset The asset being transferred.
+   * @param originSender The address of the contract or EOA that called xcall on the origin chain.
+   * @param originDomain The origin domain identifier according Connext nomenclature.
+   * @param callData The calldata that will get decoded and executed, see "Requirements".
    */
   function xReceive(
     bytes32 transferId,
     uint256 amount,
     address asset,
-    address, /* originSender */
+    address originSender,
     uint32 originDomain,
     bytes memory callData
   )
     external
     returns (bytes memory)
   {
-    (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
+    (Action[] memory actions, bytes[] memory args, uint256 slippageThreshold) =
+      abi.decode(callData, (Action[], bytes[], uint256));
 
     // Block callers except allowed cross callers.
-    if (!_isAllowedCaller[msg.sender]) {
+    if (
+      !_isAllowedCaller[msg.sender] || routerByDomain[originDomain] != originSender
+        || originSender == address(0)
+    ) {
       revert ConnextRouter__xReceive_notAllowedCaller();
     }
 
     // Ensure that at this entry point expected `asset` `amount` is received.
-    if (IERC20(asset).balanceOf(address(this)) < amount) {
+    uint256 balance = IERC20(asset).balanceOf(address(this));
+    if (balance < amount) {
       revert ConnextRouter__xReceive_notReceivedAssetBalance();
     } else {
-      _tokenList.push(asset);
-      BalanceChecker memory checkedToken =
-        BalanceChecker(asset, IERC20(asset).balanceOf(address(this)) - amount);
-      _tokensToCheck.push(checkedToken);
+      _tokensToCheck.push(Snapshot(asset, balance - amount));
     }
 
+    // Due to the AMM nature of Connext, there could be some slippage
+    // incurred on the amount that this contract receives after bridging.
+    // The slippage can't be calculated upfront so that's why we need to
+    // replace `amount` in the encoded args for the first action if
+    // the action is Deposit, Payback or Swap.
+    if (amount > 0) {
+      args[0] = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
+    }
+
+    // Connext will keep the custody of the bridged amount if the call
+    // to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
+    // That's why we try/catch instead of directly calling _bundleInternal(actions, args).
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      // Else:
       // ensure clear storage for token balance checks
-      delete _tokenList;
       delete _tokensToCheck;
       // keep funds in router and let them be handled by admin
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
     return "";
+  }
+
+  /**
+   * @dev Decode and replace "amount" argument in args with `receivedAmount`
+   * in Deposit, Payback or Swap action.
+   *
+   * Refer to:
+   * https://github.com/Fujicracy/fuji-v2/issues/253#issuecomment-1385995095
+   */
+  function _accountForSlippage(
+    uint256 receivedAmount,
+    Action action,
+    bytes memory args,
+    uint256 slippageThreshold
+  )
+    internal
+    pure
+    returns (bytes memory newArgs)
+  {
+    newArgs = args;
+
+    // Check first action type and replace with slippage-amount
+    if (action == Action.Deposit || action == Action.Payback) {
+      // DEPOSIT OR PAYBACK
+      (IVault vault, uint256 amount, address receiver, address sender) =
+        abi.decode(args, (IVault, uint256, address, address));
+
+      if (amount != receivedAmount) {
+        newArgs = abi.encode(vault, receivedAmount, receiver, sender);
+        _checkSlippage(amount, receivedAmount, slippageThreshold);
+      }
+    } else if (action == Action.Swap) {
+      // SWAP
+      (
+        ISwapper swapper,
+        address assetIn,
+        address assetOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        address receiver,
+        address sweeper,
+        uint256 minSweepOut
+      ) =
+        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+
+      if (amountIn != receivedAmount) {
+        newArgs = abi.encode(
+          swapper, assetIn, assetOut, receivedAmount, amountOut, receiver, sweeper, minSweepOut
+        );
+        _checkSlippage(amountIn, receivedAmount, slippageThreshold);
+      }
+    }
+  }
+
+  function _checkSlippage(uint256 original, uint256 slippage, uint256 threshold) internal pure {
+    uint256 upperBound = original * (10000 + threshold) / 10000;
+    uint256 lowerBound = original * 10000 / (10000 + threshold);
+    if (slippage > upperBound || slippage < lowerBound) {
+      revert ConnnextRouter__checkSlippage_outOfBounds();
+    }
   }
 
   function _crossTransfer(bytes memory params) internal override {
@@ -202,7 +287,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   /**
    * @notice Anyone can call this function on the origin domain to increase the relayer fee for a transfer.
-   * @param transferId - The unique identifier of the crosschain transaction
+   * @param transferId The unique identifier of the crosschain transaction
    */
   function bumpTransfer(bytes32 transferId) external payable {
     connext.bumpTransfer{value: msg.value}(transferId);
@@ -212,6 +297,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /// Admin functions ///
   ///////////////////////
 
+  /**
+   * @notice Registers an address of this contract deployed on another chain.
+   * @dev The mapping domain -> router is used in `xReceive` to verify the origin sender.
+   *
+   * @param domain Unique identifier of a chain as defined in
+   * https://docs.connext.network/resources/deployments
+   * @param router Address of a router deployed on the chain defined by its domain.
+   */
   function setRouter(uint256 domain, address router) external onlyTimelock {
     if (router == address(0)) {
       revert ConnextRouter__setRouter_invalidInput();
