@@ -17,7 +17,7 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  * See `_getMarketAndAssets`.
  */
 contract CompoundV3 is ILendingProvider {
-  // Custom errors
+  /// @dev Custom errors
   error CompoundV3__wrongMarket();
 
   /**

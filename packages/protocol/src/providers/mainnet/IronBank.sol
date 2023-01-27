@@ -21,7 +21,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
  * @dev The IAddrMapper needs to be properly configured for IronBank.
  */
 contract IronBank is ILendingProvider {
-  // Custom errors
+  /// @dev Custom errors
   error IronBank__deposit_failed(uint256 status);
   error IronBank__payback_failed(uint256 status);
   error IronBank__withdraw_failed(uint256 status);

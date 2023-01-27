@@ -25,7 +25,7 @@ import {LibOvix} from "../../libraries/LibOvix.sol";
  */
 
 contract OvixPolygon is ILendingProvider {
-  // Custom errors
+  /// @dev Custom errors
   error Ovix__deposit_failed(uint256 status);
   error Ovix__payback_failed(uint256 status);
   error Ovix__withdraw_failed(uint256 status);
