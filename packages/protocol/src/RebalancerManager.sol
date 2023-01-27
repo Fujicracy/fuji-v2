@@ -3,23 +3,22 @@ pragma solidity 0.8.15;
 
 /**
  * @title RebalancerManager
- * @author fujidao Labs
  *
- * @notice  Contract that triggers rebalancing of the FujiV2 vaults.
+ * @author Fujidao Labs
+ *
+ * @notice  Contract that faciliates rebalancing of the FujiV2 vaults.
  */
 
+import {IRebalancerManager} from "./interfaces/IRebalancerManager.sol";
 import {IVault} from "./interfaces/IVault.sol";
 import {IFlasher} from "./interfaces/IFlasher.sol";
-import {IRouter} from "./interfaces/IRouter.sol"; // TODO remove when proper operating methods in Flasher contract is defined.
 import {ILendingProvider} from "./interfaces/ILendingProvider.sol";
 import {SystemAccessControl} from "./access/SystemAccessControl.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract RebalancerManager is SystemAccessControl {
+contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   using SafeERC20 for IERC20;
-
-  event AllowExecutor(address indexed executor, bool allowed);
 
   /// @dev Custom errors
   error RebalancerManager__rebalanceVault_notValidExecutor();
@@ -38,20 +37,7 @@ contract RebalancerManager is SystemAccessControl {
 
   constructor(address chief_) SystemAccessControl(chief_) {}
 
-  /**
-   * @notice Rebalance funds of a vault between providers.
-   * Requirements:
-   * - Must only be called by a valid executor.
-   * - Must check `assets` and `debt` amounts are less than `vault`'s managed amounts.
-   *
-   * @param vault address that will be rebalanced
-   * @param assets amount to be rebalanced
-   * @param debt amount to be rebalanced; Pass zero if `vault` is a  {YieldVault}
-   * @param from provider address
-   * @param to provider address
-   * @param flasher address that will facilitate flashloan
-   * @param setToAsActiveProvider boolean if `activeProvider` should change
-   */
+  /// @inheritdoc IRebalancerManager
   function rebalanceVault(
     IVault vault,
     uint256 assets,
@@ -62,6 +48,7 @@ contract RebalancerManager is SystemAccessControl {
     bool setToAsActiveProvider
   )
     external
+    override
     returns (bool success)
   {
     if (!allowedExecutor[msg.sender]) {
@@ -82,17 +69,8 @@ contract RebalancerManager is SystemAccessControl {
     success = true;
   }
 
-  /**
-   * @notice Set `executor` as an authorized address for calling rebalancer operations
-   * or remove authorization.
-   * Requirement:
-   * - Must be called from a timelock.
-   * - Must emit a `AllowExecutor` event.
-   *
-   * @param executor address
-   * @param allowed boolean
-   */
-  function allowExecutor(address executor, bool allowed) external onlyTimelock {
+  /// @inheritdoc IRebalancerManager
+  function allowExecutor(address executor, bool allowed) external override onlyTimelock {
     if (executor == address(0)) {
       revert RebalancerManager__zeroAddress();
     }
@@ -121,7 +99,7 @@ contract RebalancerManager is SystemAccessControl {
    * @dev Checks `amount` is < than current debt balance of `vault` at provider `from`.
    *
    * @param vault address
-   * @param amount to be rebalanced to check against
+   * @param amount rebalanced to check against
    * @param from provider address
    */
   function _checkDebtAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
@@ -144,14 +122,15 @@ contract RebalancerManager is SystemAccessControl {
   }
 
   /**
-   * @dev Checks this address is the flashloan originator.
+   * @dev Checks this address is the flashloan originator. This check applies to a
+   * {BorrowingVault} only.
    *
-   * @param vault address being rebalanced
+   * @param vault being rebalanced
    * @param assets amount to rebalance
    * @param debt amount to rebalance
-   * @param from lending provider address
-   * @param to lending provider address
-   * @param flasher address used
+   * @param from provider address
+   * @param to provider address
+   * @param flasher contract address
    * @param setToAsActiveProvider boolean to define `to` as active provider
    */
   function _checkReentry(
@@ -185,12 +164,12 @@ contract RebalancerManager is SystemAccessControl {
   /**
    * @dev Initiates flashloan for a rebalancing operation.
    *
-   * @param vault address being rebalanced
+   * @param vault being rebalanced
    * @param assets amount to rebalance
    * @param debt amount to rebalance
-   * @param from lending provider address
-   * @param to lending provider address
-   * @param flasher address used
+   * @param from provider address
+   * @param to provider address
+   * @param flasher contract address
    * @param setToAsActiveProvider boolean to define `to` as active provider
    */
   function _getFlashloan(
@@ -225,17 +204,18 @@ contract RebalancerManager is SystemAccessControl {
   /**
    * @notice Callback function that completes execution logic of a rebalance
    * operation with a flashloan.
-   * Requirements:
-   * - Must check this address was the flashloan originator.
-   * - Must clear the check state variable `_entryPoint`.
    *
-   * @param vault address being rebalanced
+   * @param vault being rebalanced
    * @param assets amount to rebalance
    * @param debt amount to rebalance
-   * @param from lending provider address
-   * @param to lending provider address
-   * @param flasher address used
+   * @param from provider address
+   * @param to provider address
+   * @param flasher contract address
    * @param setToAsActiveProvider boolean to define `to` as active provider
+   *
+   * @dev Requirements:
+   * - Must check this address was the flashloan originator.
+   * - Must clear the check state variable `_entryPoint`.
    */
   function completeRebalance(
     IVault vault,
@@ -265,7 +245,7 @@ contract RebalancerManager is SystemAccessControl {
 
     debtAsset.safeTransfer(address(flasher), debt + flashloanFee);
 
-    // re-init
+    // Re-initialize the `_entryPoint`.
     _entryPoint = "";
     success = true;
   }
