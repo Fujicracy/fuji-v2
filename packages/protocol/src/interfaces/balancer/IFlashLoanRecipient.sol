@@ -18,6 +18,10 @@ pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @title IFlashLoanRecipient
+ * @author Balancer
+ */
 interface IFlashLoanRecipient {
   /**
    * @dev When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.

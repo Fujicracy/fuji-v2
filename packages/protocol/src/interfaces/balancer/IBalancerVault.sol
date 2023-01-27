@@ -6,6 +6,8 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IProtocolFeesCollector} from "./IProtocolFeesCollector.sol";
 
 /**
+ * @title IBalancerVault
+ * @author Balancer
  * @dev Partial interface for the vault, only for flash loans
  */
 interface IBalancerVault {

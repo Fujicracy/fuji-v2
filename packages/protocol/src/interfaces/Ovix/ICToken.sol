@@ -3,6 +3,10 @@ pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @title ICToken
+ * @author 0vix
+ */
 interface ICToken is IERC20 {
   function accrualBlockTimestamp() external view returns (uint256);
 

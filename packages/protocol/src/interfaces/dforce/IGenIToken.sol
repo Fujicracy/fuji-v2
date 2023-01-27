@@ -4,6 +4,10 @@ pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @title IGenIToken
+ * @author DForce
+ */
 interface IGenIToken is IERC20 {
   function redeem(address from, uint256 redeemTokens) external;
 

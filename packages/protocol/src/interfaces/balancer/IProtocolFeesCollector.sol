@@ -16,6 +16,10 @@ pragma solidity 0.8.15;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @title IProtocolFeesCollector
+ * @author Balancer
+ */
 interface IProtocolFeesCollector {
   event FlashLoanFeePercentageChanged(uint256 newFlashLoanFeePercentage);
 

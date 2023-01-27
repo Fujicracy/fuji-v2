@@ -3,6 +3,10 @@ pragma solidity 0.8.15;
 
 import {ICToken} from "./ICToken.sol";
 
+/**
+ * @title ICETH
+ * @author Compound
+ */
 interface ICETH is ICToken {
   /**
    * @notice Sender supplies assets into the market and receives cTokens in exchange
