@@ -32,9 +32,9 @@ contract HundredGnosis is ILendingProvider {
   error Hundred__borrow_failed(uint256 status);
 
   /**
-   * @param token address of the token
+   * @param token address of the 'token'
    *
-   * @dev Returns true/false wether the given token is/isn't WDAI.
+   * @dev Returns true/false wether the given 'token' is/isn't WDAI.
    */
   function _isWDAI(address token) internal pure returns (bool) {
     return token == 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
@@ -51,7 +51,7 @@ contract HundredGnosis is ILendingProvider {
   /**
    * @param asset address of the token to be used as collateral/debt.
    *
-   * @dev Returns DForce's underlying {ICToken} associated with the asset to interact with DForce.
+   * @dev Returns DForce's underlying {ICToken} associated with the 'asset' to interact with DForce.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("Hundred", asset);

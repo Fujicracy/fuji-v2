@@ -31,9 +31,9 @@ contract WePiggyPolygon is ILendingProvider {
   error WePiggy__borrow_failed(uint256 status);
 
   /**
-   * @param token address of the token
+   * @param token address of the 'token'
    *
-   * @dev Returns true/false wether the given token is/isn't WMATIC.
+   * @dev Returns true/false wether the given 'token' is/isn't WMATIC.
    */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
@@ -50,7 +50,7 @@ contract WePiggyPolygon is ILendingProvider {
   /**
    * @param asset address of the token to be used as collateral/debt.
    *
-   * @dev Returns WePiggy's underlying {ICToken} associated with the asset to interact with WePiggy.
+   * @dev Returns WePiggy's underlying {ICToken} associated with the 'asset' to interact with WePiggy.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("WePiggy", asset);

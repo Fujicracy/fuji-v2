@@ -28,9 +28,9 @@ contract IronBankOptimism is ILendingProvider {
   error IronBank__borrow_failed(uint256 status);
 
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH.
+   * @dev Returns true/false wether the given 'token' is/isn't WETH.
    *
-   * @param token address of the token
+   * @param token address of the 'token'
    */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x4200000000000000000000000000000000000006;
@@ -47,7 +47,7 @@ contract IronBankOptimism is ILendingProvider {
   /**
    * @param asset address of the token to be used as collateral/debt.
    *
-   * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
+   * @dev Returns IronBank's underlying {ICToken} associated with the 'asset' to interact with IronBank.
    */
   function _getCyToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("IronBank", asset);

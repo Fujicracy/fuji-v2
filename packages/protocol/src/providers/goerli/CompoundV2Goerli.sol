@@ -43,7 +43,7 @@ contract CompoundV2Goerli is ILendingProvider {
   }
 
   /**
-   * @param asset address of the asset to be approved as collateral.
+   * @param asset address of the 'asset' to be approved as collateral.
    *
    * @dev Approves vault's assets as collateral for Compound Protocol.
    */

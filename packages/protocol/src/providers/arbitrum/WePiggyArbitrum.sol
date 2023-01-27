@@ -33,7 +33,7 @@ contract WePiggyArbitrum is ILendingProvider {
   /**
    * @param token address of the token
    *
-   * @dev Returns true/false wether the given token is/isn't WETH.
+   * @dev Returns true/false wether the given 'token' is/isn't WETH.
    */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -50,7 +50,7 @@ contract WePiggyArbitrum is ILendingProvider {
   /**
    * @param asset address of the token to be used as collateral/debt.
    *
-   * @dev Returns WePiggy's underlying {ICToken} associated with the asset to interact with DForce.
+   * @dev Returns WePiggy's underlying {ICToken} associated with the 'asset' to interact with DForce.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("WePiggy", asset);
