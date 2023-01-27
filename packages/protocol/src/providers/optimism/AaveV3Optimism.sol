@@ -8,7 +8,9 @@ import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
 
 /**
  * @title AaveV3 Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with AaveV3.
  */
 contract AaveV3Optimism is ILendingProvider {

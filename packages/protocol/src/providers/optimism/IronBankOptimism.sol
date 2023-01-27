@@ -13,8 +13,11 @@ import {LibIronBankOptimism} from "../../libraries/LibIronBankOptimism.sol";
 
 /**
  * @title IronBank Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with IronBank .
+ *
  * @dev The IAddrMapper needs to be properly configured for IronBank.
  */
 contract IronBankOptimism is ILendingProvider {
@@ -26,6 +29,7 @@ contract IronBankOptimism is ILendingProvider {
 
   /**
    * @dev Returns true/false wether the given token is/isn't WETH.
+   *
    * @param token address of the token
    */
   function _isWETH(address token) internal pure returns (bool) {
@@ -42,6 +46,7 @@ contract IronBankOptimism is ILendingProvider {
 
   /**
    * @param asset address of the token to be used as collateral/debt.
+   *
    * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
    */
   function _getCyToken(address asset) internal view returns (address cToken) {
@@ -57,6 +62,7 @@ contract IronBankOptimism is ILendingProvider {
 
   /**
    * @param _cyTokenAddress address of the asset to be approved as collateral.
+   *
    * @dev Approves vault's assets as collateral for IronBank Protocol.
    */
   function _enterCollatMarket(address _cyTokenAddress) internal {

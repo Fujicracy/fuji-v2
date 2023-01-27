@@ -10,8 +10,11 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 /**
  * @title Morpho Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with Morpho.
+ *
  * @dev The IAddrMapper needs to be properly configured for CompoundV3
  */
 contract MorphoCompound is ILendingProvider {
@@ -35,6 +38,7 @@ contract MorphoCompound is ILendingProvider {
 
   /**
    * @param asset address of the token to be used as collateral/debt.
+   *
    * @dev Returns Compound's underlying cToken associated with the asset.
    */
   function _getCToken(address asset) internal view returns (address cToken) {

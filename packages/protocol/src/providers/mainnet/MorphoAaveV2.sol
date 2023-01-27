@@ -10,8 +10,11 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 /**
  * @title Morpho Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with Morpho.
+ *
  * @dev The IAddrMapper needs to be properly configured for AaveV2.
  */
 contract MorphoAaveV2 is ILendingProvider {
@@ -40,6 +43,7 @@ contract MorphoAaveV2 is ILendingProvider {
 
   /**
    * @param asset address of the token to deposit/borrow
+   *
    * @dev Returns AaveV2's underlying aToken associated with the given asset.
    */
   function _getAToken(address asset) internal view returns (address aToken) {

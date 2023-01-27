@@ -17,8 +17,11 @@ import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
 
 /**
  * @title Hundred Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with Hundred.
+ *
  * @dev The IAddrMapper needs to be properly configured for Hundred.
  */
 contract HundredOptimism is ILendingProvider {
@@ -30,6 +33,7 @@ contract HundredOptimism is ILendingProvider {
 
   /**
    * @param token address of the token
+   *
    * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address token) internal pure returns (bool) {
@@ -46,6 +50,7 @@ contract HundredOptimism is ILendingProvider {
 
   /**
    * @param asset address of the token to be used as collateral/debt.
+   *
    * @dev Returns Hundred's underlying {ICToken} associated with the asset to interact with Hundred.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
@@ -68,6 +73,7 @@ contract HundredOptimism is ILendingProvider {
 
   /**
    * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
+   *
    * @dev Approves vault's assets as collateral for Hundred Protocol.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {

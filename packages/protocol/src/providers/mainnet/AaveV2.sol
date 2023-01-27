@@ -8,7 +8,9 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
 /**
  * @title AaveV2 Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with AaveV2.
  */
 contract AaveV2 is ILendingProvider {

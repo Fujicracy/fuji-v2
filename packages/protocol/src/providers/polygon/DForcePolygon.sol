@@ -14,13 +14,17 @@ import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
  * @title DForce Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with DForce.
+ *
  * @dev The IAddrMapper needs to be properly configured for DForce.
  */
 contract DForcePolygon is ILendingProvider {
   /**
    * @param token address of the token
+   *
    * @dev Returns true/false wether the given token is/isn't WMATIC.
    */
   function _isWMATIC(address token) internal pure returns (bool) {
@@ -44,6 +48,7 @@ contract DForcePolygon is ILendingProvider {
 
   /**
    * @param asset address of the token to be used as collateral/debt.
+   *
    * @dev Returns DForce's underlying {IGenToken} associated with the asset to interact with DForce.
    */
   function _getiToken(address asset) internal view returns (address iToken) {
@@ -52,6 +57,7 @@ contract DForcePolygon is ILendingProvider {
 
   /**
    * @param _iTokenAddress address of the underlying {IGenToken} to be approved as collateral.
+   *
    * @dev Approves vault's assets as collateral for dForce Protocol.
    */
   function _enterCollatMarket(address _iTokenAddress) internal {

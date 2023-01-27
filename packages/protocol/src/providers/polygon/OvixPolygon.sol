@@ -16,8 +16,11 @@ import {LibOvix} from "../../libraries/LibOvix.sol";
 
 /**
  * @title 0vix Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with 0vix.
+ *
  * @dev The IAddrMapper needs to be properly configured for 0vix.
  */
 
@@ -30,6 +33,7 @@ contract OvixPolygon is ILendingProvider {
 
   /**
    * @param token address of the token
+   *
    * @dev Returns true/false wether the given token is/isn't WMATIC.
    */
   function _isWMATIC(address token) internal pure returns (bool) {
@@ -46,6 +50,7 @@ contract OvixPolygon is ILendingProvider {
 
   /**
    * @param asset address of the token to be used as collateral/debt.
+   *
    * @dev Returns 0vix's underlying {ICToken} associated with the asset to interact with 0vix.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
@@ -61,6 +66,7 @@ contract OvixPolygon is ILendingProvider {
 
   /**
    * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
+   *
    * @dev Approves vault's assets as collateral for 0vix Protocol.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {

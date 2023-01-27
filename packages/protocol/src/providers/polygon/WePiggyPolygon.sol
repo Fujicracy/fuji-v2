@@ -16,8 +16,11 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
 /**
  * @title WePiggy Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with WePiggy.
+ *
  * @dev The IAddrMapper needs to be properly configured for WePiggy.
  */
 
@@ -29,6 +32,7 @@ contract WePiggyPolygon is ILendingProvider {
 
   /**
    * @param token address of the token
+   *
    * @dev Returns true/false wether the given token is/isn't WMATIC.
    */
   function _isWMATIC(address token) internal pure returns (bool) {
@@ -45,6 +49,7 @@ contract WePiggyPolygon is ILendingProvider {
 
   /**
    * @param asset address of the token to be used as collateral/debt.
+   *
    * @dev Returns WePiggy's underlying {ICToken} associated with the asset to interact with WePiggy.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
@@ -60,6 +65,7 @@ contract WePiggyPolygon is ILendingProvider {
 
   /**
    * @param _cTokenAddress address of the asset to be approved as collateral.
+   *
    * @dev Approves vault's assets as collateral for WePiggy Protocol.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {

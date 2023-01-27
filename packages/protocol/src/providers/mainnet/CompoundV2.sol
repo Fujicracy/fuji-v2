@@ -14,8 +14,11 @@ import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 /**
  * @title Compound V2 Lending Provider
+ *
  * @author Fujidao Labs
+ *
  * @notice This contract allows interaction with CompoundV2.
+ *
  * @dev The IAddrMapper needs to be properly configured for CompoundV2
  */
 contract CompoundV2 is ILendingProvider {
@@ -42,6 +45,7 @@ contract CompoundV2 is ILendingProvider {
 
   /**
    * @param asset address of the asset to be approved as collateral.
+   *
    * @dev Approves vault's assets as collateral for Compound Protocol.
    */
   function _enterCollatMarket(address asset) internal {
@@ -54,6 +58,7 @@ contract CompoundV2 is ILendingProvider {
 
   /**
    * @param asset address of the token
+   *
    * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address asset) internal pure returns (bool) {
