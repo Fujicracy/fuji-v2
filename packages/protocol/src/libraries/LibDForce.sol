@@ -10,7 +10,7 @@ import {IGenIToken} from "../interfaces/dforce/IGenIToken.sol";
  * @author Fujidao Labs
  *
  * @notice This implementation is modifed from "./LibCompoundV2".
- * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound)
+ * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound).
  */
 library LibDForce {
   using LibSolmateFixedPointMath for uint256;
@@ -19,7 +19,7 @@ library LibDForce {
    * @param iToken IGenIToken DForce's iToken associated with the user's position
    * @param user address of the user
    *
-   * @dev Returns the current collateral balance of user
+   * @dev Returns the current collateral balance of user.
    */
   function viewUnderlyingBalanceOf(IGenIToken iToken, address user) internal view returns (uint256) {
     return iToken.balanceOf(user).mulWadDown(viewExchangeRate(iToken));
@@ -29,21 +29,21 @@ library LibDForce {
    * @param iToken IGenIToken DForce's iToken associated with the user's position
    * @param user address of the user
    *
-   * @dev Returns the current borrow balance of user
+   * @dev Returns the current borrow balance of user.
    */
   function viewBorrowingBalanceOf(IGenIToken iToken, address user) internal view returns (uint256) {
     uint256 borrowIndexPrior = iToken.borrowIndex();
     uint256 borrowIndex = viewNewBorrowIndex(iToken);
     uint256 storedBorrowBalance = iToken.borrowBalanceStored(user);
 
-    /* DForce rounds this calculation up (and Compound doesn't) */
+    // DForce rounds this calculation up (and Compound doesn't)
     return ((storedBorrowBalance * borrowIndex).divWadUp(borrowIndexPrior)).divWadUp(1e36);
   }
 
   /**
    * @param iToken IGenIToken DForce's iToken associated with the user's position
    *
-   * @dev Returns the current exchange rate for a given iToken
+   * @dev Returns the current exchange rate for a given iToken.
    */
   function viewExchangeRate(IGenIToken iToken) internal view returns (uint256) {
     uint256 accrualBlockNumberPrior = iToken.accrualBlockNumber();
@@ -56,8 +56,8 @@ library LibDForce {
 
     uint256 borrowRateMantissa = iToken.borrowRatePerBlock();
 
-    require(borrowRateMantissa <= 0.0005e16, "RATE_TOO_HIGH"); // Same as borrowRateMaxMantissa in ICTokenInterfaces.sol
-
+    // Same as borrowRateMaxMantissa in ICTokenInterfaces.sol
+    require(borrowRateMantissa <= 0.0005e16, "RATE_TOO_HIGH");
     uint256 interestAccumulated =
       (borrowRateMantissa * (block.number - accrualBlockNumberPrior)).mulWadDown(borrowsPrior);
 
@@ -72,26 +72,27 @@ library LibDForce {
   /**
    * @param iToken IGenIToken DForce's iToken associated with the user's position
    *
-   * @dev Returns the current borrow index for a given iToken
+   * @dev Returns the current borrow index for a given iToken.
    */
   function viewNewBorrowIndex(IGenIToken iToken) internal view returns (uint256 newBorrowIndex) {
-    /* Remember the initial block number */
+    // Remember the initial block number
     uint256 currentBlockNumber = block.number;
     uint256 accrualBlockNumberPrior = iToken.accrualBlockNumber();
 
-    /* Read the previous values out of storage */
+    // Read the previous values out of storage
     uint256 borrowIndexPrior = iToken.borrowIndex();
 
-    /* Short-circuit accumulating 0 interest */
+    // Short-circuit accumulating 0 interest
     if (accrualBlockNumberPrior == currentBlockNumber) {
       newBorrowIndex = borrowIndexPrior;
     }
 
-    /* Calculate the current borrow interest rate */
+    // Calculate the current borrow interest rate
     uint256 borrowRateMantissa = iToken.borrowRatePerBlock();
-    require(borrowRateMantissa <= 0.0005e16, "RATE_TOO_HIGH"); // Same as borrowRateMaxMantissa in ICTokenInterfaces.sol
 
-    /* Calculate the number of blocks elapsed since the last accrual */
+    // Same as borrowRateMaxMantissa in ICTokenInterfaces.sol
+    require(borrowRateMantissa <= 0.0005e16, "RATE_TOO_HIGH");
+    // Calculate the number of blocks elapsed since the last accrual
     uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;
 
     uint256 simpleInterestFactor = borrowRateMantissa * blockDelta;
