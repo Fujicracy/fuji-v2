@@ -15,7 +15,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
 /**
- * @title WePiggy Lending Provider
+ * @title  WePiggyPolygon
  *
  * @author Fujidao Labs
  *

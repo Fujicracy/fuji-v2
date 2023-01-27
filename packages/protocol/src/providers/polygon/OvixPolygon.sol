@@ -15,7 +15,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibOvix} from "../../libraries/LibOvix.sol";
 
 /**
- * @title 0vix Lending Provider
+ * @title OvixPolygon
  *
  * @author Fujidao Labs
  *

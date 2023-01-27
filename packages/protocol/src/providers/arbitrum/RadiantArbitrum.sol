@@ -7,7 +7,7 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
 /**
- * @title Radiant Lending Provider.
+ * @title RadiantArbitrum
  *
  * @author Fujidao Labs
  *

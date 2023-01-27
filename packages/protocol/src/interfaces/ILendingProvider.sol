@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import {IVault} from "./IVault.sol";
 
 /**
- * @title Lending provider interface.
+ * @title ILendingProvider
  *
  * @author Fujidao Labs
  *

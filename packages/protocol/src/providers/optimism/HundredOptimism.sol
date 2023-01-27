@@ -16,7 +16,7 @@ import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
 
 /**
- * @title Hundred Lending Provider
+ * @title  HundredOptimism
  *
  * @author Fujidao Labs
  *

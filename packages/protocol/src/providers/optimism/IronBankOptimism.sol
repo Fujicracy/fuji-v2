@@ -12,7 +12,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibIronBankOptimism} from "../../libraries/LibIronBankOptimism.sol";
 
 /**
- * @title IronBank Lending Provider
+ * @title IronBankOptimism
  *
  * @author Fujidao Labs
  *

@@ -13,7 +13,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 /**
- * @title Compound V2 Lending Provider
+ * @title CompoundV2Goerli
  *
  * @author Fujidao Labs
  *

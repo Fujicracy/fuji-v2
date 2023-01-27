@@ -12,7 +12,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
 /**
- * @title IronBank Lending Provider
+ * @title IronBank
  *
  * @author Fujidao Labs
  *

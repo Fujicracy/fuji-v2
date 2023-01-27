@@ -9,7 +9,7 @@ import {IEulerEToken} from "../../interfaces/euler/IEulerEToken.sol";
 import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
 
 /**
- * @title Euler Finance Lending Provider
+ * @title Euler
  *
  * @author Fujidao Labs
  *

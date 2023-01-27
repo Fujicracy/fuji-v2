@@ -7,7 +7,7 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
 
 /**
- * @title AaveV2 Lending Provider
+ * @title AaveV2Polygon
  *
  * @author Fujidao Labs
  *

@@ -9,7 +9,7 @@ import {ILens} from "../../interfaces/morpho/ILens.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 /**
- * @title Morpho Lending Provider
+ * @title  MorphoCompound
  *
  * @author Fujidao Labs
  *

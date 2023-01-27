@@ -13,7 +13,7 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibDForce} from "../../libraries/LibDForce.sol";
 
 /**
- * @title DForce Lending Provider
+ * @title DForce
  *
  * @author Fujidao Labs
  *
