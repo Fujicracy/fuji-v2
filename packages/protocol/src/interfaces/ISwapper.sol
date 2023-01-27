@@ -3,9 +3,11 @@ pragma solidity 0.8.15;
 
 /**
  * @title ISwapper
+ *
  * @author Fujidao Labs
  *
  * @notice  Defines the interface for routers to perform token swaps with DEX protocols.
+ *
  * @dev Implementation inheriting this interface should be permisionless.
  */
 
@@ -17,8 +19,8 @@ interface ISwapper {
    * @param assetOut address of the ERC-20 token to swap to
    * @param amountIn that will be pulled from msg.sender
    * @param amountOut of `assetOut` expected after the swap
-   * @param receiver address of the `amountOut` tokens
-   * @param sweeper address who receives the leftovers `assetIn` tokens after swap
+   * @param receiver of the `amountOut` tokens
+   * @param sweeper who receives the leftovers `assetIn` tokens after swap
    * @param minSweepOut  amount of `assetIn` leftover expected after swap
    *
    * @dev Slippage is controlled through `minSweepOut`. If `minSweepOut` is 0,
@@ -53,6 +55,7 @@ interface ISwapper {
 
   /**
    * @notice Estimate the amount of `assetOut` received after swap
+   *
    * @param assetIn address of the ERC-20 token to swap from
    * @param assetOut address of the ERC-20 token to swap to
    * @param amountIn of `assetIn` to perform swap

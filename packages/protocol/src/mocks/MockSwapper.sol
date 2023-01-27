@@ -1,6 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockSwapper
+ *
+ * @author Fujidao Labs
+ *
+ * @notice Mock contract of a swapper. This mock is used
+ * in tests.
+ */
+
 import {MockERC20} from "./MockERC20.sol";
 import {MockOracle} from "./MockOracle.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
@@ -12,8 +21,7 @@ contract MockSwapper is ISwapper {
     oracle = _oracle;
   }
 
-  // dummy burns input asset and mints output asset
-  // to the address "to"
+  /// @inheritdoc ISwapper
   function swap(
     address assetIn,
     address assetOut,
@@ -28,10 +36,11 @@ contract MockSwapper is ISwapper {
     slippage;
     amountIn;
     sweeper;
+    /// @dev Dummy burns input asset and mints output asset to the address "to".
 
     uint256 amountInMax = getAmountIn(assetIn, assetOut, amountOut);
 
-    // pull tokens from Router and burn them
+    // Pull tokens from Router and burn them.
     MockERC20(assetIn).transferFrom(msg.sender, address(this), amountInMax);
     MockERC20(assetIn).burn(msg.sender, amountInMax);
 
