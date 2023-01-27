@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title BorrowingVaultFactory
+ *
  * @author Fujidao Labs
  *
  * @notice A factory contract through which new borrowing vaults are created.
@@ -39,20 +40,22 @@ contract BorrowingVaultFactory is VaultDeployer {
   address private _creationAddress2;
 
   /**
-   * @notice Constructor of a new {YieldVaultFactory}.
-   * Requirements:
-   * - Must comply with {VaultDeployer} requirements.
+   * @notice Constructor of a new {BorrowingVaultFactory}.
    *
    * @param chief_ address of {Chief}
+   *
+   * @dev Requirements:
+   * - Must comply with {VaultDeployer} requirements.
    */
   constructor(address chief_) VaultDeployer(chief_) {}
 
   /**
    * @notice Deploys a new {BorrowingVault}.
-   * Requirements:
-   * - Must be called from {Chief} contract only.
    *
    * @param deployData The encoded data containing asset, debtAsset, oracle and providers
+   *
+   * @dev Requirements:
+   * - Must be called from {Chief} contract only.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
     (address asset, address debtAsset, address oracle, ILendingProvider[] memory providers) =
@@ -91,6 +94,9 @@ contract BorrowingVaultFactory is VaultDeployer {
    * @notice Sets the bytecode for the BorrowingVault.
    *
    * @param creationCode The creationCode for the vault contracts
+   *
+   * @dev Requirements:
+   * - Must be called from a timelock.
    */
   function setContractCode(bytes calldata creationCode) external onlyTimelock {
     bytes memory firstHalf = LibBytes.slice(creationCode, 0, 13000);

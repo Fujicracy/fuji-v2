@@ -3,18 +3,20 @@ pragma solidity 0.8.15;
 
 /**
  * @title IVaultFactory
+ *
  * @author Fujidao Labs
  *
- * @notice Vault deployment interface.
+ * @notice Vault factory deployment interface.
  */
 
 interface IVaultFactory {
   /**
    * @notice Deploys a new type of vault.
-   * Requirements:
-   * - Must be called from {Chief} contract only.
    *
    * @param deployData The encoded data containing constructor arguments.
+   *
+   * @dev Requirements:
+   * - Must be called from {Chief} contract only.
    */
   function deployVault(bytes calldata deployData) external returns (address vault);
 

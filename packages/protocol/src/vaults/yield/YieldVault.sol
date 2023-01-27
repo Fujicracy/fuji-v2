@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title YieldVault
+ *
  * @author Fujidao Labs
  *
  * @notice Implementation vault that handles pooled single sided asset for
@@ -27,15 +28,17 @@ contract YieldVault is BaseVault {
 
   /**
    * @notice Constructor of a new {YieldVault}.
-   * Requirements:
+   *
+   * @param asset_ this vault will handle as main asset (collateral)
+   * @param chief_ that deploys and controls this vault
+   * @param name_ string of the token-shares handled in this vault
+   * @param symbol_ string of the token-shares handled in this vault
+   * @param providers_ array that will initialize this vault
+   *
+   * @dev Requirements:
    * - Must be initialized with a set of providers.
    * - Must set first provider in `providers_` array as `activeProvider`.
    *
-   * @param asset_ address this vault will handle as main asset (collateral)
-   * @param chief_ address that deploys and controls this vault
-   * @param name_ string of the token-shares handled in this vault
-   * @param symbol_ string of the token-shares handled in this vault
-   * @param providers_ address array that will initialize this vault
    */
   constructor(
     address asset_,
@@ -53,7 +56,7 @@ contract YieldVault is BaseVault {
   receive() external payable {}
 
   /*///////////////////////////////
-  /// Debt management overrides ///
+      Debt management overrides 
   ///////////////////////////////*/
 
   /// @inheritdoc BaseVault
@@ -88,7 +91,7 @@ contract YieldVault is BaseVault {
   }
 
   /*///////////////////////
-  /// Borrow allowances ///
+      Borrow allowances
   ///////////////////////*/
 
   /// @inheritdoc BaseVault
@@ -157,7 +160,7 @@ contract YieldVault is BaseVault {
   }
 
   /*/////////////////
-  /// Rebalancing ///
+      Rebalancing
   /////////////////*/
 
   /// @inheritdoc IVault
@@ -195,7 +198,7 @@ contract YieldVault is BaseVault {
   }
 
   /*////////////////////
-  ///  Liquidate    ////
+       Liquidate
   ////////////////////*/
 
   /// @inheritdoc IVault
@@ -214,7 +217,7 @@ contract YieldVault is BaseVault {
   }
 
   /*/////////////////////////
-  /// Admin set functions ///
+      Admin set functions
   /////////////////////////*/
 
   /// @inheritdoc BaseVault

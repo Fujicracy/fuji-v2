@@ -70,19 +70,7 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
     emit AssetPriceFeedChanged(asset, priceFeed);
   }
 
-  /**
-   * @notice Returns the exchange rate of the given pair in requested decimals.
-   * Requirements:
-   * - Must check that both `currencyAsset` and `commodityAsset` are set in
-   *   usdPriceFeeds, otherwise return zero.
-   *
-   * @param currencyAsset: the currency asset, zero-address for USD
-   * @param commodityAsset: the commodity asset, zero-address for USD
-   * @param decimals: the decimals of the price output
-   *
-   * @dev Calculates the exchange rate between two assets, with price oracle given in specified decimals.
-   * Format is: (currencyAsset per unit of commodityAsset Exchange Rate).
-   */
+  /// @inheritdoc IFujiOracle
   function getPriceOf(
     address currencyAsset,
     address commodityAsset,

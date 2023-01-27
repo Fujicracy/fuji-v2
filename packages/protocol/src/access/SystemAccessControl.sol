@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title SystemAccessControl
+ *
  * @author Fujidao Labs
  *
  * @notice Abstract contract that should be inherited by contract implementations that
@@ -51,6 +52,14 @@ contract SystemAccessControl is CoreRoles {
     _;
   }
 
+  /**
+   * @notice Abstract constructor of a new {SystemAccessControl}.
+   *
+   * @param chief_ address
+   *
+   * @dev Requirements:
+   * - Must pass non-zero {Chief} address, that could be checked at child contract.
+   */
   constructor(address chief_) {
     chief = IChief(chief_);
   }

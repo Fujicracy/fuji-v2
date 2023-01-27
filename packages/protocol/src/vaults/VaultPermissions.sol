@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 /**
  * @title VaultPermissions
+ *
  * @author Fujidao Labs
  *
  * @notice An abstract contract intended to be inherited by tokenized vaults, that
@@ -50,13 +51,13 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
   /**
    * @notice Constructor of a new {VaultPermissions}.
-   * Requirements:
-   * - Must initialize using the same `name` parameter as used in {BaseVault}.
    *
    * @param name_ string used in {BaseVault}
    *
-   * @dev Initialize the {EIP712} domain separator using the `name` parameter, and
-   * setting `version` to "1".
+   * @dev Requirements:
+   * - Must initialize using the same `name` parameter
+   * - Must initialize the {EIP712} domain separator using the `name` parameter as used
+   *   in {BaseVault}. and setting `version` to "1".
    */
   constructor(string memory name_) EIP712(name_, "1") {}
 
