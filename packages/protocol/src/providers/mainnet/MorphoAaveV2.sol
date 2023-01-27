@@ -39,8 +39,8 @@ contract MorphoAaveV2 is ILendingProvider {
   }
 
   /**
-   * @dev Returns AaveV2's underlying aToken associated with the given asset.
    * @param asset address of the token to deposit/borrow
+   * @dev Returns AaveV2's underlying aToken associated with the given asset.
    */
   function _getAToken(address asset) internal view returns (address aToken) {
     aToken = _getAddrmapper().getAddressMapping("Aave_V2", asset);

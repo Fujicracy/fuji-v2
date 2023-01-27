@@ -34,8 +34,8 @@ contract MorphoCompound is ILendingProvider {
   }
 
   /**
-   * @dev Returns Compound's underlying cToken associated with the asset.
    * @param asset address of the token to be used as collateral/debt.
+   * @dev Returns Compound's underlying cToken associated with the asset.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("Compound", asset);

@@ -20,8 +20,8 @@ import {LibDForce} from "../../libraries/LibDForce.sol";
  */
 contract DForcePolygon is ILendingProvider {
   /**
-   * @dev Returns true/false wether the given token is/isn't WMATIC.
    * @param token address of the token
+   * @dev Returns true/false wether the given token is/isn't WMATIC.
    */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
@@ -43,16 +43,16 @@ contract DForcePolygon is ILendingProvider {
   }
 
   /**
-   * @dev Returns DForce's underlying {IGenToken} associated with the asset to interact with DForce.
    * @param asset address of the token to be used as collateral/debt.
+   * @dev Returns DForce's underlying {IGenToken} associated with the asset to interact with DForce.
    */
   function _getiToken(address asset) internal view returns (address iToken) {
     iToken = _getAddrmapper().getAddressMapping("DForce", asset);
   }
 
   /**
-   * @dev Approves vault's assets as collateral for dForce Protocol.
    * @param _iTokenAddress address of the underlying {IGenToken} to be approved as collateral.
+   * @dev Approves vault's assets as collateral for dForce Protocol.
    */
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller

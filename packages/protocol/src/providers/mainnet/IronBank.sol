@@ -25,8 +25,8 @@ contract IronBank is ILendingProvider {
   error IronBank__borrow_failed(uint256 status);
 
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param token address of the token
+   * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -41,8 +41,8 @@ contract IronBank is ILendingProvider {
   }
 
   /**
-   * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
    * @param asset address of the token to be used as collateral/debt.
+   * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
    */
   function _getCyToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("IronBank", asset);
@@ -56,8 +56,8 @@ contract IronBank is ILendingProvider {
   }
 
   /**
-   * @dev Approves vault's assets as collateral for IronBank Protocol.
    * @param _cyTokenAddress address of the asset to be approved as collateral.
+   * @dev Approves vault's assets as collateral for IronBank Protocol.
    */
   function _enterCollatMarket(address _cyTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller

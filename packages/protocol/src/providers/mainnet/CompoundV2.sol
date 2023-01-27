@@ -41,8 +41,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
    * @param asset address of the asset to be approved as collateral.
+   * @dev Approves vault's assets as collateral for Compound Protocol.
    */
   function _enterCollatMarket(address asset) internal {
     IComptroller comptroller = IComptroller(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B);
@@ -53,8 +53,8 @@ contract CompoundV2 is ILendingProvider {
   }
 
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param asset address of the token
+   * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address asset) internal pure returns (bool) {
     return asset == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;

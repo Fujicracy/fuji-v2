@@ -29,8 +29,8 @@ contract HundredArbitrum is ILendingProvider {
   error Hundred__borrow_failed(uint256 status);
 
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param token address of the token
+   * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -45,8 +45,8 @@ contract HundredArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns Hundred's underlying {ICToken} associated with the asset to interact with Hundred.
    * @param asset address of the token to be used as collateral/debt.
+   * @dev Returns Hundred's underlying {ICToken} associated with the asset to interact with Hundred.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("Hundred", asset);
@@ -67,8 +67,8 @@ contract HundredArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Hundred Protocol.
    * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
+   * @dev Approves vault's assets as collateral for Hundred Protocol.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller

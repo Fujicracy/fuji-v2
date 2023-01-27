@@ -41,8 +41,8 @@ contract IronBankOptimism is ILendingProvider {
   }
 
   /**
-   * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
    * @param asset address of the token to be used as collateral/debt.
+   * @dev Returns IronBank's underlying {ICToken} associated with the asset to interact with IronBank.
    */
   function _getCyToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("IronBank", asset);
@@ -56,8 +56,8 @@ contract IronBankOptimism is ILendingProvider {
   }
 
   /**
-   * @dev Approves vault's assets as collateral for IronBank Protocol.
    * @param _cyTokenAddress address of the asset to be approved as collateral.
+   * @dev Approves vault's assets as collateral for IronBank Protocol.
    */
   function _enterCollatMarket(address _cyTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller

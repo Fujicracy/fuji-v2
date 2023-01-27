@@ -20,8 +20,8 @@ import {LibDForce} from "../../libraries/LibDForce.sol";
  */
 contract DForceOptimism is ILendingProvider {
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH.
    * @param token address of the token
+   * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x4200000000000000000000000000000000000006;
@@ -43,16 +43,16 @@ contract DForceOptimism is ILendingProvider {
   }
 
   /**
-   * @dev Returns DForce's underlying {IGenToken} associated with the asset to interact with DForce.
    * @param asset address of the token to be used as collateral/debt.
+   * @dev Returns DForce's underlying {IGenToken} associated with the asset to interact with DForce.
    */
   function _getiToken(address asset) internal view returns (address iToken) {
     iToken = _getAddrmapper().getAddressMapping("DForce", asset);
   }
 
   /**
-   * @dev Approves vault's assets as collateral for dForce Protocol.
    * @param _iTokenAddress asset type to be approved as collateral.
+   * @dev Approves vault's assets as collateral for dForce Protocol.
    */
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
