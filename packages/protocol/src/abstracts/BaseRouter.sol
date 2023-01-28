@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 /**
  * @title BaseRouter
+ *
  * @author Fujidao Labs
+ *
  * @notice Abstract contract to be inherited by all routers.
  */
 
@@ -22,13 +24,18 @@ import {IWETH9} from "../abstracts/WETH9.sol";
 abstract contract BaseRouter is SystemAccessControl, IRouter {
   using SafeERC20 for ERC20;
 
+  /**
+   * @dev Contains an address of an ERC-20 and the balance the router holds
+   * at a given moment of the transaction (ref. `_tokensToCheck`).
+   */
   struct Snapshot {
     address token;
     uint256 balance;
   }
 
   /**
-   * @dev Emit when `caller` is updated according to `allowed` boolean to perform cross-chain calls.
+   * @dev Emit when `caller` is updated according to `allowed` boolean
+   * to perform cross-chain calls.
    */
   event AllowCaller(address caller, bool allowed);
 
@@ -51,7 +58,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   /**
    * @dev Store token balances of this contract at a given moment.
-   * It's used to assure that there're no changes in balances at the
+   * It's used to ensure there're no changes in balances at the
    * end of a transaction.
    */
   Snapshot[] internal _tokensToCheck;
@@ -73,11 +80,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @notice Allows cross-chain `caller` address to enter this router.
-   * @dev This function is implemented on bridge specific contracts.
+   * @notice Marks a specific caller as allowed/disallowed to call certain functions.
+   *
+   * @param caller address to allow/disallow
+   * @param allowed 'true' to allow, 'false' to disallow
+   *
+   * @dev The authorization is to be implemented on the bridge-specific contract.
    */
-  function allowCaller(address caller, bool allow) external onlyTimelock {
-    _allowCaller(caller, allow);
+  function allowCaller(address caller, bool allowed) external onlyTimelock {
+    _allowCaller(caller, allowed);
   }
 
   /// @inheritdoc IRouter
@@ -94,12 +105,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   /**
    * @dev Executes a bundle of actions.
-   *
    * Requirements:
-   * - MUST not leave any balance in this contract after all actions.
-   * - MUST call `_checkNoBalanceChange()` after all `actions` are executed.
-   * - MUST call `_addTokenToList()` in `actions` that involve tokens.
-   * - MUST clear `_beneficiary` from storage after all `actions` are executed.
+   * - Must not leave any balance in this contract after all actions.
+   * - Must call `_checkNoBalanceChange()` after all `actions` are executed.
+   * - Must call `_addTokenToList()` in `actions` that involve tokens.
+   * - Must clear `_beneficiary` from storage after all `actions` are executed.
+   *
+   * @param actions an array of actions that will be executed in a row
+   * @param args an array of encoded inputs needed to execute each action
    */
   function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
     if (actions.length != args.length) {
@@ -283,15 +296,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     ERC20(token).safeApprove(to, amount);
   }
 
-  function _allowCaller(address caller, bool allow) internal {
+  function _allowCaller(address caller, bool allowed) internal {
     if (caller == address(0)) {
       revert BaseRouter__allowCaller_zeroAddress();
     }
-    if (_isAllowedCaller[caller] == allow) {
+    if (_isAllowedCaller[caller] == allowed) {
       revert BaseRouter__allowCaller_noAllowChange();
     }
-    _isAllowedCaller[caller] = allow;
-    emit AllowCaller(caller, allow);
+    _isAllowedCaller[caller] = allowed;
+    emit AllowCaller(caller, allowed);
   }
 
   function _crossTransfer(bytes memory) internal virtual;
@@ -316,7 +329,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Adds a token and balance to `_tokensToCheck`.
    * Requirements:
-   * - MUST check if token has already been added.
+   * - Must check if token has already been added.
    */
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
@@ -328,8 +341,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Checks that `erc20-balanceOf` of `_tokensToCheck` haven't change for this address.
    * Requirements:
-   * - MUST be called in `_bundleInternal()` at the end of all executed `actions`.
-   * - MUST clear `_tokensToCheck` from storage at the end of checks.
+   * - Must be called in `_bundleInternal()` at the end of all executed `actions`.
+   * - Must clear `_tokensToCheck` from storage at the end of checks.
    */
   function _checkNoBalanceChange(Snapshot[] memory tokensToCheck, uint256 nativeBalance) private {
     uint256 len = tokensToCheck.length;
