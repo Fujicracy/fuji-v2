@@ -50,7 +50,7 @@ interface IAddrMapper {
    *
    * @param providerName string name of the provider
    * @param keyAddr address of the token associated with the underlying token
-   * @param returnedAddr address of the underlying token to be returned by the getAddressMapping
+   * @param returnedAddr address of the underlying token to be returned by the {IAddrMapper-getAddressMapping}
    */
   function setMapping(string memory providerName, address keyAddr, address returnedAddr) external;
 
@@ -60,7 +60,7 @@ interface IAddrMapper {
    * @param providerName string name of the provider
    * @param keyAddr1 address of the token provided as collateral
    * @param keyAddr2 address of the token to be borrowed
-   * @param returnedAddr address of the underlying token to be returned by the getAddressNestedMapping
+   * @param returnedAddr address of the underlying token to be returned by the {IAddrMapper-getAddressNestedMapping}
    */
   function setNestedMapping(
     string memory providerName,
