@@ -16,7 +16,7 @@ interface IAddrMapper {
   event MappingChanged(address[] keyAddress, address mappedAddress);
 
   /**
-   * @notice Returns the address of the underlying token associated with the keyAddr for the providerName protocol.
+   * @notice Returns the address of the underlying token associated with the `keyAddr` for the providerName protocol.
    *
    * @param providerName string name of the provider
    * @param keyAddr address of the token associated with the underlying token
@@ -30,7 +30,7 @@ interface IAddrMapper {
     returns (address returnedAddr);
 
   /**
-   * @notice Returns the address of the underlying token associated with both keyAddr1 and keyAddr2 tokens.
+   * @notice Returns the address of the underlying token associated with both `keyAddr1` and `keyAddr2` tokens.
    *
    * @param providerName string name of the provider
    * @param keyAddr1 address of the token (provided as collateral) associated with the underlying token
@@ -46,7 +46,7 @@ interface IAddrMapper {
     returns (address returnedAddr);
 
   /**
-   * @notice Sets the mapping of the underlying (returnedAddr) token associated with the providerName and the token (keyAddr).
+   * @notice Sets the mapping of the underlying `returnedAddr` token associated with the `providerName` and the token `keyAddr`.
    *
    * @param providerName string name of the provider
    * @param keyAddr address of the token associated with the underlying token
@@ -55,7 +55,7 @@ interface IAddrMapper {
   function setMapping(string memory providerName, address keyAddr, address returnedAddr) external;
 
   /**
-   * @notice Sets the mapping associated with the providerName and both keyAddr1 (collateral) and keyAddr2 (borrowed) tokens.
+   * @notice Sets the mapping associated with the `providerName` and both `keyAddr1` (collateral) and `keyAddr2` (borrowed) tokens.
    *
    * @param providerName string name of the provider
    * @param keyAddr1 address of the token provided as collateral
