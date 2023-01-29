@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 /**
  * @title Abstract contract for all flashloan providers
+ *
  * @author Fujidao Labs
+ *
  * @notice Defines the interface and common functions for all flashloan providers.
  */
 
@@ -59,6 +61,7 @@ abstract contract BaseFlasher is IFlasher {
   /**
    * @dev Check if a flashloan is already in course.
    * If it is, revert. If not, start the execution while preventing a new one.
+   *
    * @param data bytes representing the encoded flashloan parameters
    */
   function _checkAndSetEntryPoint(bytes memory data) internal {
@@ -70,6 +73,7 @@ abstract contract BaseFlasher is IFlasher {
 
   /**
    * @dev Check if the current flashloan is in fact the one that has been initiated previously.
+   *
    * @param data bytes representing the encoded flashloan parameters
    */
   function _checkReentryPoint(bytes calldata data)
@@ -86,6 +90,7 @@ abstract contract BaseFlasher is IFlasher {
 
   /**
    * @dev Execute the flashloan operation requested and send the amount to payback the flashloan and fee to the provider.
+   *
    * @param asset address of the asset to be borrowed
    * @param amount integer amount to be borrowed
    * @param fee integer fee to be paid required by some provider for executing a flashloan

@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 /**
  * @title FlasherAaveV3
+ *
  * @author Fujidao Labs
+ *
  * @notice Handles logic of AaveV3 as a flashloan provider.
  */
 

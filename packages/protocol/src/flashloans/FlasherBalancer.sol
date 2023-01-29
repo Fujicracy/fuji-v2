@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 /**
  * @title FlasherBalancer
+ *
  * @author Fujidao Labs
+ *
  * @notice Handles logic of Balancer as a flashloan provider.
  */
 
