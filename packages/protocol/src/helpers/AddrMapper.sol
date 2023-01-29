@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 /**
  * @title AddrMapper
+ *
  * @author Fujidao Labs
+ *
  * @notice Contract that stores and returns addresses mappings
  * Required for getting contract addresses for some providers and flashloan providers.
  */
