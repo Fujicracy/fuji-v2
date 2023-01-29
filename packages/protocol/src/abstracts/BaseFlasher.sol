@@ -19,7 +19,7 @@ abstract contract BaseFlasher is IFlasher {
   using SafeERC20 for IERC20;
   using Address for address;
 
-  /// Custom errors
+  /// @dev Custom Errors
   error BaseFlasher__notAuthorized();
   error BaseFlasher__invalidEntryPoint();
   error BaseFlasher__invalidFlashloanType();
