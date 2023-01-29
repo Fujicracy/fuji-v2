@@ -33,7 +33,7 @@ abstract contract BaseFlasher is IFlasher {
   bytes32 private _entryPoint;
 
   /**
-   * @param flasherProviderName_ string name for identifying convenience
+   * @param flasherProviderName_ name for identifying convenience
    * @param flashloanCallAddr_ address or mapping address at which flashloan
    * call is initiated for this flashloan provider
    */
@@ -90,8 +90,8 @@ abstract contract BaseFlasher is IFlasher {
 
   /**
    * @param asset address of the asset to be borrowed
-   * @param amount integer amount to be borrowed
-   * @param fee integer fee to be paid required by some provider for executing a flashloan
+   * @param amount amount to be borrowed
+   * @param fee fee to be paid required by some provider for executing a flashloan
    * @param requestor address of the contract who called the flasher
    * @param requestorCalldata bytes representing the encoded flashloan parameters
    *
