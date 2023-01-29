@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /**
- * @title IAddrMapper helper interface
+ * @title IAddrMapper
  *
  * @author Fujidao Labs
  *
