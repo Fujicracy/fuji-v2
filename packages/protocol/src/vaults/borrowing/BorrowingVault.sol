@@ -134,7 +134,7 @@ contract BorrowingVault is BaseVault {
     BaseVault(asset_, chief_, name_, symbol_)
   {
     _debtAsset = IERC20Metadata(debtAsset_);
-    _debtDecimals = _debtAsset.decimals();
+    _debtDecimals = IERC20Metadata(debtAsset_).decimals();
 
     oracle = IFujiOracle(oracle_);
     maxLtv = 75 * 1e16;

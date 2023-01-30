@@ -52,17 +52,17 @@ abstract contract EIP712 {
   /**
    * @notice Constructor to initializes the domain separator and parameter caches.
    *
-   * @param name of the signing domain, i.e. the name of the DApp or the protocol
-   * @param version of the current major version of the signing domain
+   * @param name_ of the signing domain, i.e. the name of the DApp or the protocol
+   * @param version_ of the current major version of the signing domain
    *
    * @dev The meaning of `name` and `version` is specified in
    * https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator[EIP 712]:
    * NOTE: These parameters cannot be changed except through a
    * xref:learn::upgrading-smart-contracts.adoc[smartcontract upgrade].
    */
-  constructor(string memory name, string memory version) {
-    bytes32 hashedName = keccak256(bytes(name));
-    bytes32 hashedVersion = keccak256(bytes(version));
+  constructor(string memory name_, string memory version_) {
+    bytes32 hashedName = keccak256(bytes(name_));
+    bytes32 hashedVersion = keccak256(bytes(version_));
     bytes32 typeHash =
       keccak256("EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)");
     _HASHED_NAME = hashedName;

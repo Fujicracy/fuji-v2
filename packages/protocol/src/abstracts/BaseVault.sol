@@ -99,7 +99,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__constructor_invalidInput();
     }
     _asset = IERC20Metadata(asset_);
-    _decimals = _asset.decimals();
+    _decimals = IERC20Metadata(asset_).decimals();
     depositCap = type(uint128).max;
     minAmount = 1e6;
   }
