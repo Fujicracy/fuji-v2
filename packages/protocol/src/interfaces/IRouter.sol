@@ -3,8 +3,10 @@ pragma solidity 0.8.15;
 
 /**
  * @title Router Interface
+ *
  * @author Fujidao Labs
- * @notice Defines the interface for router operations.
+ *
+ * @notice Define the interface for router operations.
  */
 
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -35,7 +37,7 @@ interface IRouter {
   function xBundle(Action[] memory actions, bytes[] memory args) external payable;
 
   /**
-   * @notice Sweeps accidental ERC-20 transfers to this contract or stuck funds due to failed
+   * @notice Sweep accidental ERC-20 transfers to this contract or stuck funds due to failed
    * cross-chain calls (cf. ConnextRouter).
    *
    * @param token the address of the ERC-20 token to sweep
@@ -44,7 +46,7 @@ interface IRouter {
   function sweepToken(ERC20 token, address receiver) external;
 
   /**
-   * @notice Sweeps accidental ETH transfers to this contract.
+   * @notice Sweep accidental ETH transfers to this contract.
    *
    * @param receiver the address that will receive the swept funds
    */

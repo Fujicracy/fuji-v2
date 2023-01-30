@@ -269,6 +269,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     _beneficiary = address(0);
   }
 
+  /**
+   * @dev Helper function to transfer ETH.
+   *
+   * @param receiver address to receive the ETH
+   * @param amount amount to be transferred
+   */
   function _safeTransferETH(address receiver, uint256 amount) internal {
     (bool success,) = receiver.call{value: amount}(new bytes(0));
     if (!success) {
@@ -276,6 +282,17 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
   }
 
+  /**
+   * @dev Helper function to pull ERC-20 token from a sender address after some checks.
+   * The checks are needed because when we bundle mulptiple actions
+   * it can happen the router already holds the assets in question;
+   * for. example when we withdraw from a vault and deposit to another one.
+   *
+   * @param token ERC-20 token address
+   * @param sender address to pull tokens from
+   * @param owner address on the behalf of which we act
+   * @param amount amount of tokens to be pulled
+   */
   function _safePullTokenFrom(
     address token,
     address sender,
@@ -284,18 +301,28 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   )
     internal
   {
-    // this check is needed because when we bundle mulptiple actions
-    // it can happen the router already holds the assets in question;
-    // for. example when we withdraw from a vault and deposit to another one
     if (sender != address(this) && (sender == owner || sender == msg.sender)) {
       ERC20(token).safeTransferFrom(sender, address(this), amount);
     }
   }
 
+  /**
+   * @dev Helper function to approve ERC-20 transfers.
+   *
+   * @param token ERC-20 address to approve
+   * @param to address to approve as a spender
+   * @param amount amount to be approved
+   */
   function _safeApprove(address token, address to, uint256 amount) internal {
     ERC20(token).safeApprove(to, amount);
   }
 
+  /**
+   * @dev Check `allowCaller()` above.
+   *
+   * @param caller address to allow/disallow
+   * @param allowed 'true' to allow, 'false' to disallow
+   */
   function _allowCaller(address caller, bool allowed) internal {
     if (caller == address(0)) {
       revert BaseRouter__allowCaller_zeroAddress();
@@ -307,12 +334,22 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     emit AllowCaller(caller, allowed);
   }
 
+  /**
+   * @dev Function to be implemented on the bridge-specific contract
+   * used to transfer funds WITHOUT calldata to a destination chain.
+   */
   function _crossTransfer(bytes memory) internal virtual;
 
+  /**
+   * @dev Function to be implemented on the bridge-specific contract
+   * used to transfer funds WITH calldata to a destination chain.
+   */
   function _crossTransferWithCalldata(bytes memory) internal virtual;
 
   /**
-   * @dev Returns true if token has already been added to `_tokensToCheck`.
+   * @dev Return true if token has already been added to `_tokensToCheck`.
+   *
+   * @param token address of ERC-20 to check
    */
   function _isInTokenList(address token) private view returns (bool value) {
     uint256 len = _tokensToCheck.length;
@@ -327,9 +364,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Adds a token and balance to `_tokensToCheck`.
+   * @dev Add a token and balance to `_tokensToCheck`.
    * Requirements:
    * - Must check if token has already been added.
+   *
+   * @param token address of ERC-20 to be pushed
    */
   function _addTokenToList(address token) private {
     if (!_isInTokenList(token)) {
@@ -339,10 +378,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Checks that `erc20-balanceOf` of `_tokensToCheck` haven't change for this address.
+   * @dev Check that `erc20-balanceOf` of `_tokensToCheck` haven't change for this address.
    * Requirements:
    * - Must be called in `_bundleInternal()` at the end of all executed `actions`.
    * - Must clear `_tokensToCheck` from storage at the end of checks.
+   *
+   * @param tokensToCheck array of 'Snapshot' elements
+   * @param nativeBalance the stored balance of ETH
    */
   function _checkNoBalanceChange(Snapshot[] memory tokensToCheck, uint256 nativeBalance) private {
     uint256 len = tokensToCheck.length;
@@ -366,10 +408,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     delete _tokensToCheck;
   }
 
+  /**
+   * @dev When bundling multiple actions assure that we act for a single beneficiary;
+   * receivers on DEPOSIT and PAYBACK and owners on WITHDRAW and BORROW
+   * must be the same user
+   *
+   * @param user address to verify is the beneficiary
+   */
   function _checkBeneficiary(address user) internal {
-    // when bundling multiple actions assure that we act for a single beneficiary;
-    // receivers on DEPOSIT and PAYBACK and owners on WITHDRAW and BORROW
-    // must be the same user
     if (_beneficiary == address(0)) {
       _beneficiary = user;
     } else {
@@ -390,7 +436,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Reverts fallback calls.
+   * @dev Revert fallback calls.
    */
   fallback() external payable {
     revert BaseRouter__fallback_notAllowed();
