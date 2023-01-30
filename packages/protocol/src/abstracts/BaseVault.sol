@@ -2,9 +2,21 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Abstract contract for all vaults.
+ * @title BaseVault
+ *
  * @author Fujidao Labs
- * @notice Defines the interface and common functions for all vaults.
+ *
+ * @notice Abstract contract that defines the basic common functions and interface
+ * for all vault types. User state is kept in vaults via tokenized shares compliant to ERC4626.
+ * BaseVault defines but does not implement the debt handling functions. Slippage protected
+ * functions are available through ERC5143 extension. The `_providers` of this vault are the
+ * liquidity source for lending, borrowing and/or yielding operations.
+ * Setter functions are controlled by timelock, and roles defined in {SystemAccessControl}.
+ * Pausability in core functions is implemented for emergency cases.
+ * Allowance and approvals for value extracting operations  is possible via
+ * signed messages defined in {VaultPermissions}.
+ * A rebalancing function is implemented to move vault's funds across providers.
+ * A `depositCap` is defined to control risk and maximum TVL of this vault.
  */
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -24,6 +36,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   using Math for uint256;
   using Address for address;
 
+  /// @dev Custom Errors
   error BaseVault__constructor_invalidInput();
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
@@ -41,12 +54,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_slippageTooHigh();
 
   /**
-   * @dev `VERSION` of this vault.
-   * Software versioning rules are followed: v-0.0.0
-   *  v-MAJOR.MINOR.PATCH
-   *  MAJOR version when you make incompatible ABI changes
-   *  MINOR version when you add functionality in a backwards compatible manner.
-   *  PATCH version when you make backwards compatible fixes.
+   *  @dev `VERSION` of this vault.
+   * Software versioning rules are followed: v-0.0.0 (v-MAJOR.MINOR.PATCH)
+   * Major version when you make incompatible ABI changes
+   * Minor version when you add functionality in a backwards compatible manner.
+   * Patch version when you make backwards compatible fixes.
    */
   string public constant VERSION = string("0.0.1");
 
@@ -60,6 +72,19 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   uint256 public minAmount;
   uint256 public depositCap;
 
+  /**
+   * @notice Constructor of a new {BaseVault}.
+   *
+   * @param asset_ this vault will handle as main asset (collateral)
+   * @param chief_ that deploys and controls this vault
+   * @param name_ of the token-shares handled in this vault
+   * @param symbol_ of the token-shares handled in this vault
+   *
+   * @dev Requirements:
+   * - Must assign `asset_` {ERC20-decimals} and `_decimals` equal.
+   * - Must check initial `minAmount` is not < 1e6. Refer to https://rokinot.github.io/hatsfinance.
+   * - Must initialize `depositCap` as type(uint256).max.
+   */
   constructor(
     address asset_,
     address chief_,
@@ -76,19 +101,23 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _asset = IERC20Metadata(asset_);
     _decimals = _asset.decimals();
     depositCap = type(uint128).max;
-    // To reduce initial deposit shares manipulation, the minimum deposit can't be < than this number.
-    // refer to https://rokinot.github.io/hatsfinance
     minAmount = 1e6;
   }
 
   /*////////////////////////////////////////////////////
-      Asset management: allowance-overrides IERC20 
-      Overrides to handle all in withdrawAllowance
+      Asset management: allowance {IERC20} overrides 
+      Overrides to handle as `withdrawAllowance`
   ///////////////////////////////////////////////////*/
 
   /**
-   * @dev Override to call {VaultPermissions-withdrawAllowance}.
-   * Returns the share amount of VaultPermissions-withdrawAllowance.
+   * @notice Returns the shares amount allowed to transfer from
+   *  `owner` to `receiver`.
+   *
+   * @param owner of the shares
+   * @param receiver that can receive the shares
+   *
+   * @dev Requirements:
+   * - Must be overriden to call {VaultPermissions-withdrawAllowance}.
    */
   function allowance(
     address owner,
@@ -104,9 +133,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Override to call {VaultPermissions-_setWithdrawAllowance}.
-   * Converts approve shares argument to assets in VaultPermissions-_withdrawAllowance.
-   * Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
+   * @notice Approve allowance of `shares` to `receiver`.
+   *
+   * @param receiver to whom share allowance is being set
+   * @param shares amount of allowance
+   *
+   * @dev Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
+   * Requirements:
+   * - Must be overriden to call {VaultPermissions-_setWithdrawAllowance}.
+   * - Must convert `shares` into `assets` amount before calling internal functions.
    */
   function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
     address owner = _msgSender();
@@ -116,36 +151,48 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Override to call {VaultPermissions-increaseWithdrawAllowance}.
-   * Converts extraShares argument to assets in VaultPermissions-increaseWithdrawAllowance.
+   * @notice Increase allowance of token-shares to `receiver` by `shares`.
+   *
+   * @param receiver to whom shares allowance is being increased
+   * @param shares amount to increase allowance
+   *
+   * @dev Requirements:
+   * - Must be overriden to call {VaultPermissions-increaseWithdrawAllowance}
+   * - Must convert `shares` to `assets` amount before calling internal functions.
+   *   VaultPermissions-increaseWithdrawAllowance.
    */
-  function increaseAllowance(address receiver, uint256 extraShares) public override returns (bool) {
+  function increaseAllowance(address receiver, uint256 shares) public override returns (bool) {
     address operator = receiver;
-    increaseWithdrawAllowance(operator, receiver, convertToAssets(extraShares));
+    increaseWithdrawAllowance(operator, receiver, convertToAssets(shares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-decreaseWithdrawAllowance}.
-   * Converts subtractedShares argument to assets in VaultPermissions-decreaseWithdrawAllowance.
+   * @notice Decrease allowance of token-shares to `receiver` by `shares`.
+   *
+   * @param receiver to whom shares allowance is decreased
+   * @param shares amount to decrease allowance
+   *
+   * @dev Requirements:
+   * - Must be overriden to call {VaultPermissions-decreaseWithdrawAllowance}.
+   * - Must convert `shares` to `assets` before calling internal functions.
    */
-  function decreaseAllowance(
-    address receiver,
-    uint256 subtractedShares
-  )
-    public
-    override
-    returns (bool)
-  {
+  function decreaseAllowance(address receiver, uint256 shares) public override returns (bool) {
     address operator = receiver;
-    decreaseWithdrawAllowance(operator, receiver, convertToAssets(subtractedShares));
+    decreaseWithdrawAllowance(operator, receiver, convertToAssets(shares));
     return true;
   }
 
   /**
-   * @dev Override to call {VaultPermissions-_spendWithdrawAllowance}.
-   * Converts shares argument to assets in VaultPermissions-_spendWithdrawAllowance.
-   * This internal function is called during ERC4626-transferFrom.
+   * @dev Called during {ERC20-transferFrom} to decrease allowance.
+   * Requirements:
+   * - Must be overriden to call {VaultPermissions-_spendWithdrawAllowance}.
+   * - Msut convert `shares` to `assets` before calling internal functions.
+   *
+   * @param owner of `shares`
+   * @param operator allowed to act on `owners` behalf
+   * @param receiver to whom `shares` will be spent
+   * @param shares amount to spend
    */
   function _spendAllowance(
     address owner,
@@ -158,10 +205,13 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _spendWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
   }
 
-  ////////////////////////////////////////////
-  /// Asset management: overrides IERC4626 ///
-  ////////////////////////////////////////////
+  /*//////////////////////////////////////////
+      Asset management: overrides IERC4626
+  //////////////////////////////////////////*/
 
+  /**
+   * @notice Returns the number of decimals used to get number representation.
+   */
   function decimals() public view virtual override(IERC20Metadata, ERC20) returns (uint8) {
     return _decimals;
   }
@@ -227,10 +277,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @notice Slippage protected `deposit` per EIP5143.
-   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * @notice Slippage protected `deposit()` per EIP5143.
+   *
+   * @param assets amount to be deposited
+   * @param receiver to whom `assets` amount will be credited
+   * @param minShares amount expected from this deposit action
+   *
+   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
    * Requirements:
-   * - MUST mint at least `minShares` when calling deposit().
+   * - Must mint at least `minShares` when calling `deposit()`.
    */
   function deposit(
     uint256 assets,
@@ -252,7 +307,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     uint256 shares = previewDeposit(assets);
 
-    // use shares because it's cheaper to get totalSupply compared to totalAssets
+    // Use shares because it's cheaper to get `totalSupply()` compared to `totalAssets()`.
     if (shares + totalSupply() > maxMint(receiver)) {
       revert BaseVault__deposit_moreThanMax();
     }
@@ -266,10 +321,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @notice Slippage protected `mint` per EIP5143.
-   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * @notice Slippage protected `mint()` per EIP5143.
+   *
+   * @param shares amount to mint
+   * @param receiver to whom `shares` amount will be credited
+   * @param maxAssets amount that Must be credited when calling mint
+   *
+   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
    * Requirements:
-   * - MUST not pull more than `maxAssets` when calling mint().
+   * - Must not pull more than `maxAssets` when calling `mint()`.
    */
   function mint(
     uint256 shares,
@@ -304,10 +364,16 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @notice Slippage protected `withdraw` per EIP5143.
-   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * @notice Slippage protected `withdraw()` per EIP5143.
+   *
+   * @param assets amount that is being withdrawn
+   * @param receiver to whom `assets` amount will be transferred
+   * @param owner to whom `assets` amount will be debited
+   * @param maxShares amount that shall be burned when calling withdraw
+   *
+   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
    * Requirements:
-   * - MUST not burn more than `maxShares` when calling withdraw().
+   * - Must not burn more than `maxShares` when calling `withdraw()`.
    */
   function withdraw(
     uint256 assets,
@@ -320,7 +386,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256)
   {
     uint256 burnedShares = withdraw(assets, receiver, owner);
-    // require(shares <= maxShares, "ERC5143: withdraw slippage protection");
     if (burnedShares > maxShares) {
       revert BaseVault__withdraw_slippageTooHigh();
     }
@@ -357,10 +422,16 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @notice Slippage protected `redeem` per EIP5143.
-   * Refer to: https://eips.ethereum.org/EIPS/eip-5143
+   * @notice Slippage protected `redeem()` per EIP5143.
+   *
+   * @param shares amount that will be redeemed
+   * @param receiver to whom asset equivalent of `shares` amount will be transferred
+   * @param owner of the shares
+   * @param minAssets amount that `receiver` must expect
+   *
+   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
    * Requirements:
-   * - MUST  receive at least `minAssets` when calling redeem().
+   * - Must  receive at least `minAssets` when calling `redeem()`.
    */
   function redeem(
     uint256 shares,
@@ -373,7 +444,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256)
   {
     uint256 receivedAssets = redeem(shares, receiver, owner);
-    // require(assets >= minAssets, "ERC5143: redeem slippage protection");
     if (receivedAssets < minAssets) {
       revert BaseVault__redeem_slippageTooHigh();
     }
@@ -410,10 +480,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Internal conversion function (from assets to shares) with support for rounding direction.
+   * @dev Conversion function from `assets` to shares equivalent with support for rounding direction.
+   * Requirements:
+   * - Must return zero if `assets` or `totalSupply()` == 0.
+   * - Must revert if `totalAssets()` is not > 0.
+   *   (Corresponds to a case where you divide by zero.)
    *
-   * Will revert if assets > 0, totalSupply > 0 and totalAssets = 0. That corresponds to a case where any asset
-   * would represent an infinite amout of shares.
+   * @param assets amount to convert to shares
+   * @param rounding direction of division remainder
    */
   function _convertToShares(
     uint256 assets,
@@ -429,7 +503,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Internal conversion function (from shares to assets) with support for rounding direction.
+   * @dev Conversion function from `shares` to asset type with support for rounding direction.
+   * Requirements:
+   * - Must return zero if `totalSupply()` == 0.
+   *
+   * @param shares amount to convert to assets
+   * @param rounding direction of division remainder
    */
   function _convertToAssets(
     uint256 shares,
@@ -445,7 +524,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Perform _deposit adding flow at provider {IERC4626-deposit}.
+   * @dev Perform `_deposit()` at provider {IERC4626-deposit}.
+   * Requirements:
+   * - Must call `activeProvider` in `_executeProviderAction()`.
+   * - Must emit a Deposit event.
+   *
+   * @param caller or {msg.sender}
+   * @param receiver to whom `assets` are credited by `shares` amount
+   * @param assets amount transferred during this deposit
+   * @param shares amount credited to `receiver` during this deposit
    */
   function _deposit(
     address caller,
@@ -464,7 +551,16 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Perform _withdraw adding flow at provider {IERC4626-withdraw}.
+   * @dev Perform `_withdraw()` at provider {IERC4626-withdraw}.
+   * Requirements:
+   * - Must call `activeProvider` in `_executeProviderAction()`.
+   * - Must emit a Withdraw event.
+   *
+   * @param caller or {msg.sender}
+   * @param receiver to whom `assets` amount will be transferred to
+   * @param owner to whom `shares` will be burned
+   * @param assets amount transferred during this withraw
+   * @param shares amount burned to `owner` during this withdraw
    */
   function _withdraw(
     address caller,
@@ -483,7 +579,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     emit Withdraw(caller, receiver, owner, assets, shares);
   }
 
-  /// @inheritdoc ERC20
+  /**
+   * @dev Hook before all token-share transfers.
+   * Requirements:
+   * - Must check `from` can move `amount` of shares.
+   *
+   * @param from address
+   * @param to address
+   * @param amount of shares
+   */
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
     to;
     if (from != address(0)) {
@@ -491,40 +595,46 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     }
   }
 
-  ////////////////////////////////////////////////////
-  /// Debt management: based on IERC4626 semantics ///
-  ////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////
+      Debt management: based on IERC4626 semantics
+  //////////////////////////////////////////////////*/
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function debtDecimals() public view virtual override returns (uint8);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function debtAsset() public view virtual returns (address);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function balanceOfDebt(address account) public view virtual override returns (uint256 debt);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function totalDebt() public view virtual returns (uint256);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view virtual returns (uint256 shares);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function convertToDebt(uint256 shares) public view virtual returns (uint256 debt);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function maxBorrow(address borrower) public view virtual returns (uint256);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function borrow(uint256 debt, address receiver, address owner) public virtual returns (uint256);
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function payback(uint256 debt, address owner) public virtual returns (uint256);
 
   /**
-   * @dev See {IVaultPermissions-borrowAllowance}.
-   * Implement in {BorrowingVault}, revert in {LendingVault}
+   * @notice Returns borrow allowance. See {IVaultPermissions-borrowAllowance}.
+   *
+   * @param owner that provides borrow allowance
+   * @param operator who can process borrow allowance on owner's behalf
+   * @param receiver who can spend borrow allowance
+   *
+   * @dev Requirements:
+   * - Must be implemented in a {BorrowingVault}, and revert in a {YieldVault}.
    */
   function borrowAllowance(
     address owner,
@@ -539,8 +649,13 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {}
 
   /**
-   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
-   * Implement in {BorrowingVault}, revert in {LendingVault}
+   * @notice Increase borrow allowance. See {IVaultPermissions-decreaseborrowAllowance}.
+   *
+   * @param operator who can process borrow allowance on owner's behalf
+   * @param receiver whom spending borrow allowance is increasing
+   *
+   * @dev Requirements:
+   * - Must be immplemented in a {BorrowingVault}, and revert in a {YieldVault}.
    */
   function increaseBorrowAllowance(
     address operator,
@@ -554,8 +669,13 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {}
 
   /**
-   * @dev See {IVaultPermissions-decreaseborrowAllowance}.
-   * Implement in {BorrowingVault}, revert in {LendingVault}
+   * @notice Decrease borrow allowance. See {IVaultPermissions-decreaseborrowAllowance}.
+   *
+   * @param operator address who can process borrow allowance on owner's behalf
+   * @param receiver address whom spending borrow allowance is decreasing
+   *
+   * @dev Requirements:
+   * - Must be implemented in a {BorrowingVault}, revert in a {YieldVault}.
    */
   function decreaseBorrowAllowance(
     address operator,
@@ -569,8 +689,18 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {}
 
   /**
-   * @dev See {IVaultPermissions-permitBorrow}.
-   * Implement in {BorrowingVault}, revert in {LendingVault}
+   * @notice Process signed permit for borrow allowance. See {IVaultPermissions-permitBorrow}.
+   *
+   * @param owner address who signed this permit
+   * @param receiver address whom spending borrow allowance will be set
+   * @param value amount of borrow allowance
+   * @param deadline timestamp at when this permit expires
+   * @param v signature value
+   * @param r signature value
+   * @param s signature value
+   *
+   * @dev Requirements:
+   * - Must be implemented in a {BorrowingVault}, revert in a {YieldVault}.
    */
   function permitBorrow(
     address owner,
@@ -587,20 +717,28 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {}
 
   /**
-   * @dev Internal function that computes how much free 'assets'
-   * a user can withdraw or transfer given their 'debt' balance.
-   *
+   * @dev Compute how much free 'assets' a user can withdraw or transfer
+   * given their `balanceOfDebt()`.
    * Requirements:
-   * - SHOULD be implemented in {BorrowingVault} contract.
-   * - SHOULD NOT be implemented in a {LendingVault} contract.
-   * - SHOULD read price from {FujiOracle}.
+   * - Must be implemented in {BorrowingVault} contract.
+   * - Must not be implemented in a {YieldVault} contract.
+   * - Must read price from {FujiOracle}.
+   *
+   * @param owner address to whom free assets is being checked
    */
   function _computeFreeAssets(address owner) internal view virtual returns (uint256);
 
-  ////////////////////////////
-  /// Fuji Vault functions ///
-  ////////////////////////////
+  /*//////////////////////////
+      Fuji Vault functions
+  //////////////////////////*/
 
+  /**
+   * @dev Execute an action at provider.
+   *
+   * @param assets amount handled in this action
+   * @param name string of the method to call
+   * @param provider to whom action is being called
+   */
   function _executeProviderAction(
     uint256 assets,
     string memory name,
@@ -616,6 +754,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     );
   }
 
+  /**
+   * @dev Returns balance of `asset` or `debtAsset` of this vault at all
+   * listed providers in `_providers` array.
+   *
+   * @param method string method to call: "getDepositBalance" or "getBorrowBalance".
+   */
   function _checkProvidersBalance(string memory method) internal view returns (uint256 assets) {
     uint256 len = _providers.length;
     bytes memory callData = abi.encodeWithSignature(
@@ -631,33 +775,38 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     }
   }
 
-  /// Public getters.
+  /*////////////////////
+      Public getters
+  /////////////////////*/
 
+  /**
+   * @notice Returns the array of providers of this vault.
+   */
   function getProviders() external view returns (ILendingProvider[] memory list) {
     list = _providers;
   }
 
-  ///////////////////////////
-  /// Admin set functions ///
-  ///////////////////////////
+  /*/////////////////////////
+       Admin set functions
+  /////////////////////////*/
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function setProviders(ILendingProvider[] memory providers) external onlyTimelock {
     _setProviders(providers);
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function setActiveProvider(ILendingProvider activeProvider_) external override onlyTimelock {
     _setActiveProvider(activeProvider_);
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function setMinAmount(uint256 amount) external override onlyTimelock {
     minAmount = amount;
     emit MinAmountChanged(amount);
   }
 
-  /// inheritdoc IVault
+  /// @inheritdoc IVault
   function setDepositCap(uint256 newCap) external override onlyTimelock {
     if (newCap == 0 || newCap <= minAmount) {
       revert BaseVault__setter_invalidInput();
@@ -666,22 +815,22 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     emit DepositCapChanged(newCap);
   }
 
-  /// inheritdoc PausableVault
+  /// @inheritdoc PausableVault
   function pauseForceAll() external override hasRole(msg.sender, PAUSER_ROLE) {
     _pauseForceAllActions();
   }
 
-  /// inheritdoc PausableVault
+  /// @inheritdoc PausableVault
   function unpauseForceAll() external override hasRole(msg.sender, UNPAUSER_ROLE) {
     _unpauseForceAllActions();
   }
 
-  /// inheritdoc PausableVault
+  /// @inheritdoc PausableVault
   function pause(VaultActions action) external virtual override hasRole(msg.sender, PAUSER_ROLE) {
     _pause(action);
   }
 
-  /// inheritdoc PausableVault
+  /// @inheritdoc PausableVault
   function unpause(VaultActions action)
     external
     virtual
@@ -692,10 +841,23 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev implement at children level.
+   * @dev Sets the providers of this vault.
+   * Requirements:
+   * - Must be implemented at {BorrowingVault} or {YieldVault} level.
+   * - Must infinite approve erc20 transfers of `asset` or `debtAsset` accordingly.
+   * - Must emit a ProvidersChanged event.
+   *
+   * @param providers array of addresses
    */
   function _setProviders(ILendingProvider[] memory providers) internal virtual;
 
+  /**
+   * @dev Sets the `activeProvider` of this vault.
+   * Requirements:
+   * - Must emit an ActiveProviderChanged event.
+   *
+   * @param activeProvider_ address to be set
+   */
   function _setActiveProvider(ILendingProvider activeProvider_) internal {
     if (!_isValidProvider(address(activeProvider_))) {
       revert BaseVault__setter_invalidInput();
@@ -705,8 +867,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev returns true if provider is in `_providers` array.
-   * Since providers are not many use of array is fine.
+   * @dev Returns true if `provider` is in `_providers` array.
+   *
+   * @param provider address
    */
   function _isValidProvider(address provider) internal view returns (bool check) {
     uint256 len = _providers.length;
@@ -721,10 +884,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev check rebalance fee is reasonable.
-   *
+   * @dev Check rebalance fee is within 10 basis points.
    * Requirements:
-   * - MUST be equal to or less than %0.10 (max 10 basis points) of `amount`.
+   * - Must be equal to or less than %0.10 (max 10 basis points) of `amount`.
+   *
+   * @param fee amount to be checked
+   * @param amount being rebalanced to check against
    */
   function _checkRebalanceFee(uint256 fee, uint256 amount) internal pure {
     uint256 reasonableFee = (amount * 10) / 10000;
