@@ -56,6 +56,7 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
     }
     _requestorExecution(asset, amount, 0, requestor, requestorCalldata);
 
-    IERC20(asset).transfer(msg.sender, amount); // repay
+    // Repay Euler.
+    IERC20(asset).transfer(msg.sender, amount);
   }
 }

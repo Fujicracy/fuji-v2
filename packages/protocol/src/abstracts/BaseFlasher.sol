@@ -33,6 +33,8 @@ abstract contract BaseFlasher is IFlasher {
   bytes32 private _entryPoint;
 
   /**
+   * @notice Constructor of {BaseFlasher}.
+   *
    * @param flasherProviderName_ name for identifying convenience
    * @param flashloanCallAddr_ address or mapping address at which flashloan
    * call is initiated for this flashloan provider

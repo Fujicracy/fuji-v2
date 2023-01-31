@@ -1,6 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockFlasher
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of the a flasher contract.
+ *
+ * @dev Mock mints the flashloaned amount,
+ * and charges no fee.
+ */
+
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
