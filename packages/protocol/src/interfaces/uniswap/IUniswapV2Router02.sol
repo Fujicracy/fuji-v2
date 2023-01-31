@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title IUniswapV2Router02
+ *
+ * @author Uniswap labs
+ *
+ * @notice Interface to interact with exchanges
+ * that are based on UniswapV2 source code with
+ * version 2 extensions.
+ */
+
 import "./IUniswapV2Router01.sol";
 
 interface IUniswapV2Router02 is IUniswapV2Router01 {

@@ -3,11 +3,13 @@ pragma solidity 0.8.15;
 
 /**
  * @title Chief
+ *
  * @author Fujidao Labs
  *
  * @notice Controls vault deploy factories, deployed flashers, vault ratings and core access control.
- * Deployments of new vaults are done through this contract that also stores the addresses of all
- * deployed vaults
+ *
+ * @dev Deployments of new vaults are done through this contract that also stores the addresses of all
+ * deployed vaults.
  */
 
 import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessControl.sol";
@@ -23,11 +25,59 @@ import {CoreRoles} from "./access/CoreRoles.sol";
 contract Chief is CoreRoles, AccessControl, IChief {
   using Address for address;
 
+  /**
+   * @dev Emitted when the deployements of new vaults is alllowed/disallowed.
+   *
+   * @param allowed "true" to allow, "false" to disallow
+   */
   event AllowPermissionlessDeployments(bool allowed);
+
+  /**
+   * @dev Emitted when a new vault gets deployed.
+   *
+   * @param factory address of the factory through which to deploy
+   * @param vault address of the newly deployed vault
+   * @param deployData encoded args used to deploy the vault
+   */
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
+
+  /**
+   * @dev Emitted when `_vaults` are set through `setVaults()`.
+   *
+   * @param previousVaults addresses
+   * @param newVaults addresses
+   */
+  event SetVaults(address[] previousVaults, address[] newVaults);
+
+  /**
+   * @dev Emitted when a new flasher is alllowed/disallowed.
+   *
+   * @param flasher address of the flasher
+   * @param allowed "true" to allow, "false" to disallow
+   */
   event AllowFlasher(address indexed flasher, bool allowed);
+
+  /**
+   * @dev Emitted when a new factory is alllowed/disallowed.
+   *
+   * @param factory address of the factory
+   * @param allowed "true" to allow, "false" to disallow
+   */
   event AllowVaultFactory(address indexed factory, bool allowed);
+
+  /**
+   * @dev Emitted when a new `timelock` is set.
+   *
+   * @param timelock address of the new timelock
+   */
   event UpdateTimelock(address indexed timelock);
+
+  /**
+   * @dev Emitted when a new rating is attributed to a vault.
+   *
+   * @param vault address of the vault
+   * @param newRating value of the new rating
+   */
   event ChangeSafetyRating(address indexed vault, uint256 newRating);
 
   /// @dev Custom Errors
@@ -40,14 +90,16 @@ contract Chief is CoreRoles, AccessControl, IChief {
   error Chief__checkRatingValue_notInRange();
   error Chief__checkValidVault_notValidVault();
 
-  /// @dev When `permissionlessDeployments` is 'false', only addresses with this role
-  /// can deploy new vaults.
+  /**
+   * @dev When `permissionlessDeployments` is "false", only addresses with this role
+   * can deploy new vaults.
+   */
   bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
 
   address public timelock;
   address public addrMapper;
 
-  /// @dev Controls who can deploy new vaults through `deployVault()`
+  /// @dev Control who can deploy new vaults through `deployVault()`
   bool public permissionlessDeployments;
 
   address[] internal _vaults;
@@ -72,19 +124,25 @@ contract Chief is CoreRoles, AccessControl, IChief {
     if (deployAddrMapper) _deployAddrMapper();
   }
 
+  /**
+   * @notice Gets an array with all deployed vaults.
+   */
   function getVaults() external view returns (address[] memory) {
     return _vaults;
   }
 
   /**
-   * @notice Sets a new Timelock.
-   * Requirements:
-   *  - Emits a `UpdateTimelock` event.
+   * @notice Sets a new timelock.
+   *
+   * @param newTimelock address of the new timelock contract
+   *
+   * @dev Requirements:
+   *  - Must be restricted to timelock.
    *  - Revokes `DEFAULT_ADMIN_ROLE` from the existing timelock.
    *  - Grants `DEFAULT_ADMIN_ROLE` to `newTimelock`.
-   *  - `newTimelock` is a non-zero address.
+   *  - `newTimelock` must be a non-zero address.
+   *  - Emits a `UpdateTimelock` event.
    *
-   * @param newTimelock Address of the new timelock contract.
    */
   function setTimelock(address newTimelock) external onlyTimelock {
     _checkInputIsNotZeroAddress(newTimelock);
@@ -98,12 +156,30 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Sets `permissionlessDeployments`.
-   * Requirements:
-   *  - Emits a `AllowPermissionlessDeployments` event.
+   * @notice Clears and sets the `vaults` recorded in this {Chief-_vaults}.
    *
-   * @param allowed Anyone can deploy a vault when `true`,
-   * otherwise only address with a DEPLOYER_ROLE can do that.
+   * @param vaults addresses that should be recorded
+   *
+   * @dev This method should only be used in extraordinary cases.
+   * Requirements:
+   *  - Must be called from a timelock.
+   */
+  function setVaults(address[] memory vaults) external onlyTimelock {
+    address[] memory previous = _vaults;
+    delete _vaults;
+    _vaults = vaults;
+    emit SetVaults(previous, _vaults);
+  }
+
+  /**
+   * @notice Sets `permissionlessDeployments`.
+   *
+   * @param allowed anyone can deploy a vault when "true",
+   * otherwise only address with a DEPLOYER_ROLE
+   *
+   * @dev Requirements:
+   *  - Must be restricted to timelock.
+   *  - Emits a `AllowPermissionlessDeployments` event.
    */
   function setPermissionlessDeployments(bool allowed) external onlyTimelock {
     permissionlessDeployments = allowed;
@@ -112,17 +188,19 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Deploys a new vault through a factory, attributes an intial rating and
-   * stores new vault's address in `_vaults`.
-   * Requirements:
-   *  - Emits a `DeployVault` event.
-   *  - Only allowed factory can be used.
-   *  - Msg.sender has `DEPLOYER_ROLE` if `permissionlessDeployments` is `false`.
-   *  - `rating` is in range [1,100].
+   * @notice Deploys a new vault through a factory, attribute an intial rating and
+   * store new vault's address in `_vaults`.
    *
-   * @param factory Allowed vault factory contract.
-   * @param deployData Encoded data that will be used in the factory to create a new vault.
-   * @param rating Initial rating attributed to the new vault.
+   * @param factory allowed vault factory contract
+   * @param deployData encoded data that will be used in the factory to create a new vault
+   * @param rating initial rating attributed to the new vault
+   *
+   * @dev Requirements:
+   *  - Must use an allowed factory.
+   *  - Msg.sender must have `DEPLOYER_ROLE` if `permissionlessDeployments` is "false".
+   *  - `rating` must be in range (1,100].
+   *  - Emits a `DeployVault` event.
+   *
    */
   function deployVault(
     address factory,
@@ -148,15 +226,16 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * Sets `vaultSafetyRating` for `vault`.
-   * Requirements:
+   * @notice Sets `vaultSafetyRating` for `vault`.
+   *
+   * @param vault address of the vault whose rating will be changed
+   * @param newRating a new value for the rating
+   *
+   * @dev Requirements:
    *  - Emits a `ChangeSafetyRating` event.
    *  - Only timelock can change rating.
-   *  - `newRating` is in range [1,100].
+   *  - `newRating` is in range (1,100].
    *  - `vault` is a non-zero address and is contained in `_vaults`.
-   *
-   * @param vault Address of the vault whose rating will be changed.
-   * @param newRating A new value for the rating.
    */
   function setSafetyRating(address vault, uint256 newRating) external onlyTimelock {
     _checkValidVault(vault);
@@ -168,11 +247,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `flasher` as an authorized address for flashloan operations.
-   * Requirements:
-   * - Emits a `AllowFlasher` event.
-   * - `flasher` is a non-zero address.
-   * - `allowed` is different the previously recorded for the same `flasher`.
+   * @notice Sets `flasher` as an authorized address for flashloan operations.
+   *
+   * @param flasher Address of the flasher to allow/disallow.
+   * @param allowed "true" to allow, "false" to disallow.
+   *
+   * @dev Requirements:
+   *  - `flasher` must be a non-zero address.
+   *  - `allowed` must be different the previously recorded for the same `flasher`.
+   *  - Emits a `AllowFlasher` event.
    */
   function allowFlasher(address flasher, bool allowed) external onlyTimelock {
     _checkInputIsNotZeroAddress(flasher);
@@ -186,8 +269,13 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   /**
    * @notice Sets `factory` as an authorized address for vault deployments.
-   * Requirements:
-   * - Emits a `AllowVaultFactory` event.
+   *
+   * @param factory address of the factory to allow/disallow
+   * @param allowed "true" to allow, "false" to disallow
+   *
+   * @dev Requirements:
+   *  - `allowed` must be different than previously recorded.
+   *  - Emits a `AllowVaultFactory` event.
    */
   function allowVaultFactory(address factory, bool allowed) external onlyTimelock {
     _checkInputIsNotZeroAddress(factory);
@@ -199,9 +287,10 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Force pauses all actions from all vaults in `_vaults`.
-   * Requirements:
-   * - Should be restricted to `PAUSER_ROLE`.
+   * @notice Force pause all actions from all vaults in `_vaults`.
+   *
+   * @dev Requirements:
+   *  - Must be restricted to `PAUSER_ROLE`.
    */
   function pauseForceAllVaults() external onlyRole(PAUSER_ROLE) {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
@@ -210,8 +299,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   /**
    * @notice Resumes all actions by force unpausing all vaults in `_vaults`.
-   * Requirements:
-   * - Should be restricted to `UNPAUSER_ROLE`.
+   *
+   * @dev Requirements:
+   *  - Must be restricted to `UNPAUSER_ROLE`.
    */
   function unpauseForceAllVaults() external onlyRole(UNPAUSER_ROLE) {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.unpauseForceAll.selector);
@@ -220,11 +310,12 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   /**
    * @notice Pauses specific action in all vaults in `_vaults`.
-   * Requirements:
-   * - `action` in all vaults' should be not paused; otherwise revert.
-   * - Should be restricted to `PAUSER_ROLE`.
    *
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @param action enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   *
+   * @dev Requirements:
+   *  - `action` in all vaults' must be not paused; otherwise revert.
+   *  - Must be restricted to `PAUSER_ROLE`.
    */
   function pauseActionInAllVaults(IPausableVault.VaultActions action)
     external
@@ -236,11 +327,12 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   /**
    * @notice Resumes specific `action` by unpausing in all vaults in `_vaults`.
-   * Requirements:
-   * - `action` in all vaults' should be in paused state; otherwise revert.
-   * - Should be restricted to `PAUSER_ROLE`.
    *
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @param action enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   *
+   * @dev Requirements:
+   *  - `action` in all vaults' must be in paused state; otherwise revert.
+   *  - Must be restricted to `PAUSER_ROLE`.
    */
   function upauseActionInAllVaults(IPausableVault.VaultActions action)
     external
@@ -251,7 +343,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Deploys 1 {TimelockController} contract during Chief deployment.
+   * @dev Deploys {TimelockController} contract during Chief deployment.
    */
   function _deployTimelockController() internal {
     address[] memory admins = new address[](1);
@@ -261,14 +353,16 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Deploys 1 {AddrMapper} contract during Chief deployment.
+   * @dev Deploys {AddrMapper} contract during Chief deployment.
    */
   function _deployAddrMapper() internal {
     addrMapper = address(new AddrMapper{salt: "0x00"}(address(this)));
   }
 
   /**
-   * @dev executes pause state changes.
+   * @dev Executes pause state changes.
+   *
+   * @param callData encoded data containing pause or unpause commands.
    */
   function _changePauseState(bytes memory callData) internal {
     uint256 alength = _vaults.length;
@@ -281,7 +375,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `input` is zero address.
+   * @dev Reverts if `input` is zero address.
+   *
+   * @param input address to verify
    */
   function _checkInputIsNotZeroAddress(address input) internal pure {
     if (input == address(0)) {
@@ -290,7 +386,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `rating` input is not in range [1,100].
+   * @dev Reverts if `rating` input is not in range (1,100].
+   *
+   * @param rating value to verify is in the accepted range
    */
   function _checkRatingValue(uint256 rating) internal pure {
     if (rating == 0 || rating > 100) {
@@ -299,7 +397,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev reverts if `vault` is not in `_vaults` array.
+   * @dev Reverts if `vault` is an zero address and is not in `_vaults` array.
+   *
+   * @param vault address of vault to check
    */
   function _checkValidVault(address vault) internal view {
     _checkInputIsNotZeroAddress(vault);

@@ -2,84 +2,28 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {DSTestPlus} from "./utils/DSTestPlus.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {TimelockController} from
-  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {MockERC20} from "../src/mocks/MockERC20.sol";
-import {MockProvider} from "../src/mocks/MockProvider.sol";
-import {MockOracle} from "../src/mocks/MockOracle.sol";
-import {Chief} from "../src/Chief.sol";
-import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {IVault} from "../src/interfaces/IVault.sol";
-import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
-import {BaseVault} from "../src/abstracts/BaseVault.sol";
+import {MockingSetup} from "../MockingSetup.sol";
+import {MockRoutines} from "../MockRoutines.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {MockOracle} from "../../../src/mocks/MockOracle.sol";
+import {IVault} from "../../../src/interfaces/IVault.sol";
+import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
-contract VaultUnitTests is DSTestPlus, CoreRoles {
+contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
   event DepositCapChanged(uint256 newDepositCap);
-
-  BorrowingVault public vault;
-  Chief public chief;
-  TimelockController public timelock;
-
-  ILendingProvider public mockProvider;
-  MockOracle public oracle;
-
-  MockERC20 public asset;
-  MockERC20 public debtAsset;
-
-  uint256 alicePkey = 0xA;
-  address alice = vm.addr(alicePkey);
-
-  uint256 bobPkey = 0xB;
-  address bob = vm.addr(bobPkey);
-
-  // These test prices should be inverse of each other.
-  uint256 public constant USD_PER_ETH_PRICE = 2000e18;
-  uint256 public constant ETH_PER_USD_PRICE = 5e14;
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
   uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
-    vm.label(alice, "Alice");
-    vm.label(bob, "Bob");
-
-    asset = new MockERC20('Test WETH', 'tWETH');
-    vm.label(address(asset), "tWETH");
-    debtAsset = new MockERC20('Test DAI', 'tDAI');
-    vm.label(address(debtAsset), "tDAI");
-
-    oracle = new MockOracle();
-    _utils_setupOracle(address(asset), address(debtAsset));
-
-    mockProvider = new MockProvider();
-
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = mockProvider;
-
-    chief = new Chief(true, true);
-    timelock = TimelockController(payable(chief.timelock()));
-
-    vault = new BorrowingVault(
-            address(asset),
-            address(debtAsset),
-            address(oracle),
-            address(chief),
-            'Fuji-V2 WETH Vault Shares',
-            'fv2WETH',
-            providers
-        );
-
-    _utils_setupTestRoles();
-
-    // _utils_setupVaultProvider();
+    _grantRoleChief(LIQUIDATOR_ROLE, BOB);
   }
 
-  function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
+  function mock_getPriceOf(address asset1, address asset2, uint256 price) internal {
     vm.mockCall(
       address(oracle),
       abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
@@ -87,70 +31,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     );
   }
 
-  function _utils_setupOracle(address asset1, address asset2) internal {
-    // WETH and DAI prices: 2000 DAI/WETH
-    _utils_setPrice(asset1, asset2, ETH_PER_USD_PRICE);
-    _utils_setPrice(asset2, asset1, USD_PER_ETH_PRICE);
-  }
-
-  function _utils_setupTestRoles() internal {
-    // Grant this test address all roles.
-    _grantRoleChief(REBALANCER_ROLE, address(this));
-    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
-    _grantRoleChief(LIQUIDATOR_ROLE, bob);
-  }
-
-  function _callWithTimelock(address target, bytes memory callData) internal {
-    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
-    vm.warp(block.timestamp + 2 days);
-    timelock.execute(target, 0, callData, 0x00, 0x00);
-    rewind(2 days);
-  }
-
-  function _grantRoleChief(bytes32 role, address account) internal {
-    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
-    _callWithTimelock(address(chief), sendData);
-  }
-
-  // function _utils_setupVaultProvider() internal {
-  //   _utils_setupTestRoles();
-  //   ILendingProvider[] memory providers = new ILendingProvider[](1);
-  //   providers[0] = mockProvider;
-  //   bytes memory encodedWithSelectorData =
-  //     abi.encodeWithSelector(vault.setProviders.selector, providers);
-  //   _callWithTimelock(address(vault), encodedWithSelectorData);
-  //   vault.setActiveProvider(mockProvider);
-  // }
-
-  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
-    mockerc20.mint(to, amount);
-  }
-
-  function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
-    dealMockERC20(asset, who, amount);
-    vm.startPrank(who);
-    SafeERC20.safeApprove(asset, address(v), amount);
-    v.deposit(amount, who);
-    vm.stopPrank();
-  }
-
-  function _utils_doDepositAndBorrow(
-    uint256 depositAmount,
-    uint256 borrowAmount,
-    IVault v,
-    address who
-  )
-    internal
-  {
-    _utils_doDeposit(depositAmount, v, who);
-    vm.prank(who);
-    v.borrow(borrowAmount, who, who);
-  }
-
   function _utils_checkMaxLTV(uint96 amount, uint96 borrowAmount) internal view returns (bool) {
     uint256 maxLtv = 75 * 1e16;
 
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
     uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
     return borrowAmount < maxBorrow;
   }
@@ -163,7 +47,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     view
     returns (uint256)
   {
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
     return (amount * LIQUIDATION_RATIO * price) / (borrowAmount * 10 ** ASSET_DECIMALS);
   }
 
@@ -176,7 +60,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     view
     returns (uint256)
   {
-    uint256 priceBefore = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 priceBefore = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
     return (amount * LIQUIDATION_RATIO * (priceBefore - priceDrop))
       / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
   }
@@ -206,7 +90,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     view
     returns (bool)
   {
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
     uint256 hf = (amount * LIQUIDATION_RATIO * (price - priceDrop))
       / (borrowAmount * 1e18 * 10 ** ASSET_DECIMALS);
 
@@ -222,7 +106,7 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     view
     returns (bool)
   {
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), DEBT_DECIMALS);
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
     uint256 hf = (amount * LIQUIDATION_RATIO * (price - priceDrop))
       / (borrowAmount * 1e18 * 10 ** ASSET_DECIMALS);
 
@@ -237,18 +121,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
   function test_deposit(uint128 amount) public {
     vm.assume(amount > vault.minAmount());
-    _utils_doDeposit(amount, vault, alice);
-    assertEq(vault.balanceOf(alice), amount);
+    do_deposit(amount, vault, ALICE);
+    assertEq(vault.balanceOf(ALICE), amount);
   }
 
   function test_withdraw(uint96 amount) public {
     vm.assume(amount > vault.minAmount());
-    _utils_doDeposit(amount, vault, alice);
+    do_deposit(amount, vault, ALICE);
 
-    vm.prank(alice);
-    vault.withdraw(amount, alice, alice);
-
-    assertEq(vault.balanceOf(alice), 0);
+    do_withdraw(amount, vault, ALICE);
   }
 
   function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
@@ -258,10 +139,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     );
 
     assertEq(vault.totalDebt(), 0);
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     assertEq(vault.totalDebt(), borrowAmount);
-    assertEq(debtAsset.balanceOf(alice), borrowAmount);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
   function test_paybackAndWithdraw(uint96 amount, uint96 borrowAmount) public {
@@ -270,17 +151,17 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    vm.startPrank(alice);
-    SafeERC20.safeApprove(debtAsset, address(vault), borrowAmount);
+    vm.startPrank(ALICE);
+    IERC20(debtAsset).approve(address(vault), borrowAmount);
     assertEq(vault.totalDebt(), borrowAmount);
-    vault.payback(borrowAmount, alice);
+    vault.payback(borrowAmount, ALICE);
     assertEq(vault.totalDebt(), 0);
-    vault.withdraw(amount, alice, alice);
+    vault.withdraw(amount, ALICE, ALICE);
     vm.stopPrank();
 
-    assertEq(vault.balanceOf(alice), 0);
+    assertEq(vault.balanceOf(ALICE), 0);
   }
 
   function test_tryBorrowWithoutCollateral(uint256 borrowAmount) public {
@@ -288,8 +169,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.assume(borrowAmount > minAmount);
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
 
-    vm.prank(alice);
-    vault.borrow(borrowAmount, alice, alice);
+    vm.prank(ALICE);
+    vault.borrow(borrowAmount, ALICE, ALICE);
   }
 
   function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
@@ -297,12 +178,12 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.assume(
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
 
-    vm.prank(alice);
-    vault.withdraw(amount, alice, alice);
+    vm.prank(ALICE);
+    vault.withdraw(amount, ALICE, ALICE);
   }
 
   function test_setMinAmount(uint256 min) public {
@@ -318,8 +199,8 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     _callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
-    vm.prank(alice);
-    vault.deposit(amount, alice);
+    vm.prank(ALICE);
+    vault.deposit(amount, ALICE);
   }
 
   function test_setMaxCap(uint256 maxCap) public {
@@ -345,11 +226,11 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.prank(address(timelock));
     vault.setDepositCap(maxCap);
 
-    _utils_doDeposit(depositAlice, vault, alice);
+    do_deposit(depositAlice, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
-    vm.prank(bob);
-    vault.deposit(depositBob, bob);
+    vm.prank(BOB);
+    vault.deposit(depositBob, BOB);
   }
 
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
@@ -358,12 +239,12 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
 
-    uint256 HF = vault.getHealthFactor(alice);
+    uint256 HF = vault.getHealthFactor(ALICE);
     assertEq(HF, type(uint256).max);
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    uint256 HF2 = vault.getHealthFactor(alice);
+    uint256 HF2 = vault.getHealthFactor(ALICE);
     uint256 HF2_ = _utils_getHealthFactor(amount, borrowAmount);
 
     assertEq(HF2, HF2_);
@@ -372,33 +253,34 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
   function test_getLiquidationFactor(uint256 priceDrop) public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
-
+    // Make price in 1e18 decimals.
+    uint256 scaledUSDPerETHPrice = USD_PER_ETH_PRICE * 1e10;
     vm.assume(
-      priceDrop > _utils_getLiquidationThresholdValue(USD_PER_ETH_PRICE, amount, borrowAmount)
+      priceDrop > _utils_getLiquidationThresholdValue(scaledUSDPerETHPrice, amount, borrowAmount)
     );
-    priceDrop = bound(priceDrop, 751e18, USD_PER_ETH_PRICE);
+    priceDrop = bound(priceDrop, 751e18, scaledUSDPerETHPrice);
 
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), 18);
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 priceDropThresholdToMaxLiq =
       price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
 
-    uint256 liquidatorFactor_0 = vault.getLiquidationFactor(alice);
+    uint256 liquidatorFactor_0 = vault.getLiquidationFactor(ALICE);
     assertEq(liquidatorFactor_0, 0);
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    uint256 liquidatorFactor_1 = vault.getLiquidationFactor(alice);
+    uint256 liquidatorFactor_1 = vault.getLiquidationFactor(ALICE);
     assertEq(liquidatorFactor_1, 0);
 
     if (priceDrop > priceDropThresholdToMaxLiq) {
       uint256 newPrice = (price - priceDrop);
-      _utils_setPrice(address(debtAsset), address(asset), newPrice);
-      uint256 liquidatorFactor = vault.getLiquidationFactor(alice);
+      mock_getPriceOf(debtAsset, collateralAsset, newPrice);
+      uint256 liquidatorFactor = vault.getLiquidationFactor(ALICE);
       assertEq(liquidatorFactor, 1e18);
     } else {
       uint256 newPrice = (price - priceDrop);
-      _utils_setPrice(address(debtAsset), address(asset), newPrice);
-      uint256 liquidatorFactor = vault.getLiquidationFactor(alice);
+      mock_getPriceOf(debtAsset, collateralAsset, newPrice);
+      uint256 liquidatorFactor = vault.getLiquidationFactor(ALICE);
       assertEq(liquidatorFactor, 0.5e18);
     }
   }
@@ -408,15 +290,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     vm.assume(
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
-    vm.prank(bob);
-    vault.liquidate(alice, bob);
+    vm.prank(BOB);
+    vault.liquidate(ALICE, BOB);
   }
 
   function test_liquidateMax(uint256 borrowAmount) public {
-    uint256 currentPrice = oracle.getPriceOf(address(debtAsset), address(asset), 18);
+    uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 minAmount = (vault.minAmount() * currentPrice) / 1e18;
 
     vm.assume(borrowAmount > minAmount && borrowAmount < USD_PER_ETH_PRICE);
@@ -424,52 +306,55 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint256 maxltv = vault.maxLtv();
     uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
 
-    _utils_doDepositAndBorrow(unsafeAmount, borrowAmount, vault, alice);
+    do_depositAndBorrow(unsafeAmount, borrowAmount, vault, ALICE);
 
     // Simulate 90% price drop
     uint256 liquidationPrice = (currentPrice * 10) / 100;
     uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
 
-    _utils_setPrice(address(asset), address(debtAsset), inversePrice);
-    _utils_setPrice(address(debtAsset), address(asset), liquidationPrice);
+    mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
+    mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
 
-    dealMockERC20(debtAsset, bob, borrowAmount);
+    _dealMockERC20(debtAsset, BOB, borrowAmount);
 
-    assertEq(asset.balanceOf(alice), 0);
-    assertEq(debtAsset.balanceOf(alice), borrowAmount);
-    assertEq(vault.balanceOf(alice), unsafeAmount);
-    assertEq(vault.balanceOfDebt(alice), borrowAmount);
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    assertEq(vault.balanceOf(ALICE), unsafeAmount);
+    assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
 
-    assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), borrowAmount);
-    assertEq(vault.balanceOf(bob), 0);
-    assertEq(vault.balanceOfDebt(bob), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(BOB), 0);
+    assertEq(IERC20(debtAsset).balanceOf(BOB), borrowAmount);
+    assertEq(vault.balanceOf(BOB), 0);
+    assertEq(vault.balanceOfDebt(BOB), 0);
 
-    vm.startPrank(bob);
-    SafeERC20.safeApprove(debtAsset, address(vault), borrowAmount);
-    vault.liquidate(alice, bob);
+    vm.startPrank(BOB);
+    IERC20(debtAsset).approve(address(vault), borrowAmount);
+    vault.liquidate(ALICE, BOB);
     vm.stopPrank();
 
-    assertEq(asset.balanceOf(alice), 0);
-    assertEq(debtAsset.balanceOf(alice), borrowAmount);
-    assertEq(vault.balanceOf(alice), 0);
-    assertEq(vault.balanceOfDebt(alice), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    assertEq(vault.balanceOf(ALICE), 0);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
 
-    assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), 0);
-    assertEq(vault.balanceOf(bob), unsafeAmount);
-    assertEq(vault.balanceOfDebt(bob), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(BOB), 0);
+    assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
+    assertEq(vault.balanceOf(BOB), unsafeAmount);
+    assertEq(vault.balanceOfDebt(BOB), 0);
   }
 
   function test_liquidateDefault(uint256 priceDrop) public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
 
+    // Make price in 1e18 decimals.
+    uint256 scaledUSDPerETHPrice = USD_PER_ETH_PRICE * 1e10;
+
     vm.assume(
-      priceDrop > _utils_getLiquidationThresholdValue(USD_PER_ETH_PRICE, amount, borrowAmount)
+      priceDrop > _utils_getLiquidationThresholdValue(scaledUSDPerETHPrice, amount, borrowAmount)
     );
 
-    uint256 price = oracle.getPriceOf(address(debtAsset), address(asset), 18);
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 priceDropThresholdToMaxLiq =
       price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
     uint256 priceDropThresholdToDiscountLiq =
@@ -479,32 +364,32 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     priceDrop =
       bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     // price drop, putting HF < 100, but above 95 and the close factor at 50%
     uint256 newPrice = price - priceDrop;
 
-    _utils_setPrice(address(asset), address(debtAsset), 1e18 / newPrice);
-    _utils_setPrice(address(debtAsset), address(asset), newPrice);
+    mock_getPriceOf(collateralAsset, debtAsset, 1e18 / newPrice);
+    mock_getPriceOf(debtAsset, collateralAsset, newPrice);
     uint256 liquidatorAmount = borrowAmount;
-    dealMockERC20(debtAsset, bob, liquidatorAmount);
+    _dealMockERC20(debtAsset, BOB, liquidatorAmount);
 
-    assertEq(asset.balanceOf(alice), 0);
-    assertEq(debtAsset.balanceOf(alice), borrowAmount);
-    assertEq(vault.balanceOf(alice), amount);
-    assertEq(vault.balanceOfDebt(alice), borrowAmount);
-    assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), liquidatorAmount);
-    assertEq(vault.balanceOf(bob), 0);
-    assertEq(vault.balanceOfDebt(bob), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+    assertEq(IERC20(collateralAsset).balanceOf(BOB), 0);
+    assertEq(IERC20(debtAsset).balanceOf(BOB), liquidatorAmount);
+    assertEq(vault.balanceOf(BOB), 0);
+    assertEq(vault.balanceOfDebt(BOB), 0);
 
-    vm.startPrank(bob);
-    SafeERC20.safeApprove(debtAsset, address(vault), liquidatorAmount);
-    vault.liquidate(alice, bob);
+    vm.startPrank(BOB);
+    IERC20(debtAsset).approve(address(vault), liquidatorAmount);
+    vault.liquidate(ALICE, BOB);
     vm.stopPrank();
 
-    assertEq(asset.balanceOf(alice), 0);
-    assertEq(debtAsset.balanceOf(alice), borrowAmount);
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
 
     uint256 discountedPrice = (newPrice * 0.9e18) / 1e18;
     uint256 amountGivenToLiquidator = (borrowAmount * 0.5e18) / discountedPrice;
@@ -513,13 +398,13 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
       amountGivenToLiquidator = amount;
     }
 
-    assertEq(vault.balanceOf(alice), amount - amountGivenToLiquidator);
-    assertEq(vault.balanceOfDebt(alice), borrowAmount / 2);
+    assertEq(vault.balanceOf(ALICE), amount - amountGivenToLiquidator);
+    assertEq(vault.balanceOfDebt(ALICE), borrowAmount / 2);
 
-    assertEq(asset.balanceOf(bob), 0);
-    assertEq(debtAsset.balanceOf(bob), liquidatorAmount - (borrowAmount / 2));
-    assertEq(vault.balanceOf(bob), amountGivenToLiquidator);
-    assertEq(vault.balanceOfDebt(bob), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(BOB), 0);
+    assertEq(IERC20(debtAsset).balanceOf(BOB), liquidatorAmount - (borrowAmount / 2));
+    assertEq(vault.balanceOf(BOB), amountGivenToLiquidator);
+    assertEq(vault.balanceOfDebt(BOB), 0);
   }
 
   //error BorrowingVault__borrow_invalidInput();
@@ -530,15 +415,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
 
     //invalid debt
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
-    vault.borrow(invalidBorrowAmount, alice, bob);
+    vault.borrow(invalidBorrowAmount, ALICE, BOB);
 
     //invalid receiver
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
-    vault.borrow(borrowAmount, invalidAddress, bob);
+    vault.borrow(borrowAmount, invalidAddress, BOB);
 
     //invalid owner
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_invalidInput.selector);
-    vault.borrow(borrowAmount, alice, invalidAddress);
+    vault.borrow(borrowAmount, ALICE, invalidAddress);
   }
 
   //error BorrowingVault__borrow_moreThanAllowed();
@@ -546,10 +431,10 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint96 amount = 1 ether;
     vm.assume(invalidBorrowAmount > 0 && !_utils_checkMaxLTV(amount, invalidBorrowAmount));
 
-    _utils_doDeposit(amount, vault, alice);
+    do_deposit(amount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__borrow_moreThanAllowed.selector);
-    vault.borrow(invalidBorrowAmount, alice, alice);
+    vault.borrow(invalidBorrowAmount, ALICE, ALICE);
   }
 
   //error BorrowingVault__payback_invalidInput();
@@ -558,11 +443,11 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint256 borrowAmount = 1000e18;
     uint256 invalidDebt = 0;
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     //invalid debt
     vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
-    vault.payback(invalidDebt, alice);
+    vault.payback(invalidDebt, ALICE);
 
     //invalid owner
     vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
@@ -575,15 +460,15 @@ contract VaultUnitTests is DSTestPlus, CoreRoles {
     uint256 borrowAmount = 1000e18;
     vm.assume(amountPayback > borrowAmount);
 
-    _utils_doDepositAndBorrow(amount, borrowAmount, vault, alice);
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__payback_moreThanMax.selector);
-    vault.payback(amountPayback, alice);
+    vault.payback(amountPayback, ALICE);
   }
 
   //error BorrowingVault__liquidate_invalidInput();
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
-    vault.liquidate(alice, address(0));
+    vault.liquidate(ALICE, address(0));
   }
 }
