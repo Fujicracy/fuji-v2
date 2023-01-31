@@ -34,7 +34,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Emit when `caller` is updated according to `allowed` boolean
+   * @dev Emitted when `caller` is updated according to `allowed` boolean
    * to perform cross-chain calls.
    *
    * @param caller permitted for cross-chain calls
@@ -60,7 +60,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   mapping(address => bool) internal _isAllowedCaller;
 
   /**
-   * @dev Store token balances of this contract at a given moment.
+   * @dev Stores token balances of this contract at a given moment.
    * It's used to ensure there're no changes in balances at the
    * end of a transaction.
    */
@@ -356,7 +356,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _crossTransferWithCalldata(bytes memory) internal virtual;
 
   /**
-   * @dev Return true if token has already been added to `_tokensToCheck`.
+   * @dev Returns "true" if token has already been added to `_tokensToCheck`.
    *
    * @param token address of ERC-20 to check
    */
@@ -373,7 +373,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Add a token and balance to `_tokensToCheck`.
+   * @dev Adds a token and balance to `_tokensToCheck`.
    * Requirements:
    * - Must check if token has already been added.
    *
@@ -387,7 +387,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Check that `erc20-balanceOf` of `_tokensToCheck` haven't change for this address.
+   * @dev Checks that `erc20-balanceOf` of `_tokensToCheck` haven't change for this address.
    * Requirements:
    * - Must be called in `_bundleInternal()` at the end of all executed `actions`.
    * - Must clear `_tokensToCheck` from storage at the end of checks.

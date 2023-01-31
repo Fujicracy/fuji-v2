@@ -37,7 +37,7 @@ interface IRouter {
   function xBundle(Action[] memory actions, bytes[] memory args) external payable;
 
   /**
-   * @notice Sweep accidental ERC-20 transfers to this contract or stuck funds due to failed
+   * @notice Sweeps accidental ERC-20 transfers to this contract or stuck funds due to failed
    * cross-chain calls (cf. ConnextRouter).
    *
    * @param token the address of the ERC-20 token to sweep
@@ -46,7 +46,7 @@ interface IRouter {
   function sweepToken(ERC20 token, address receiver) external;
 
   /**
-   * @notice Sweep accidental ETH transfers to this contract.
+   * @notice Sweeps accidental ETH transfers to this contract.
    *
    * @param receiver the address that will receive the swept funds
    */

@@ -175,7 +175,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /**
-   * @dev Decode and replace "amount" argument in args with `receivedAmount`
+   * @dev Decodes and replaces "amount" argument in args with `receivedAmount`
    * in Deposit, Payback or Swap action.
    *
    * Refer to:
@@ -227,7 +227,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /**
-   * @dev Revert if the slippage threshold is not respected.
+   * @dev Reverts if the slippage threshold is not respected.
    *
    * @param original amount send by the user from the source chain
    * @param received amount actually received on the destination
@@ -319,7 +319,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /**
-   * @notice Register an address of this contract deployed on another chain.
+   * @notice Registers an address of this contract deployed on another chain.
    *
    * @param domain unique identifier of a chain as defined in
    * https://docs.connext.network/resources/deployments

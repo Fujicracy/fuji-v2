@@ -28,7 +28,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   /**
    * @dev Emitted when the deployements of new vaults is alllowed/disallowed.
    *
-   * @param allowed `true` to allow, `false` to disallow
+   * @param allowed "true" to allow, "false" to disallow
    */
   event AllowPermissionlessDeployments(bool allowed);
 
@@ -53,7 +53,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
    * @dev Emitted when a new flasher is alllowed/disallowed.
    *
    * @param flasher address of the flasher
-   * @param allowed `true` to allow, `false` to disallow
+   * @param allowed "true" to allow, "false" to disallow
    */
   event AllowFlasher(address indexed flasher, bool allowed);
 
@@ -61,7 +61,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
    * @dev Emitted when a new factory is alllowed/disallowed.
    *
    * @param factory address of the factory
-   * @param allowed `true` to allow, `false` to disallow
+   * @param allowed "true" to allow, "false" to disallow
    */
   event AllowVaultFactory(address indexed factory, bool allowed);
 
@@ -91,7 +91,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   error Chief__checkValidVault_notValidVault();
 
   /**
-   * @dev When `permissionlessDeployments` is 'false', only addresses with this role
+   * @dev When `permissionlessDeployments` is "false", only addresses with this role
    * can deploy new vaults.
    */
   bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
@@ -125,14 +125,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Get an array with all deployed vaults.
+   * @notice Gets an array with all deployed vaults.
    */
   function getVaults() external view returns (address[] memory) {
     return _vaults;
   }
 
   /**
-   * @notice Set a new timelock.
+   * @notice Sets a new timelock.
    *
    * @param newTimelock address of the new timelock contract
    *
@@ -172,9 +172,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `permissionlessDeployments`.
+   * @notice Sets `permissionlessDeployments`.
    *
-   * @param allowed anyone can deploy a vault when `true`,
+   * @param allowed anyone can deploy a vault when "true",
    * otherwise only address with a DEPLOYER_ROLE
    *
    * @dev Requirements:
@@ -188,7 +188,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Deploy a new vault through a factory, attribute an intial rating and
+   * @notice Deploys a new vault through a factory, attribute an intial rating and
    * store new vault's address in `_vaults`.
    *
    * @param factory allowed vault factory contract
@@ -197,7 +197,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *
    * @dev Requirements:
    *  - Must use an allowed factory.
-   *  - Msg.sender must have `DEPLOYER_ROLE` if `permissionlessDeployments` is `false`.
+   *  - Msg.sender must have `DEPLOYER_ROLE` if `permissionlessDeployments` is "false".
    *  - `rating` must be in range (1,100].
    *  - Emits a `DeployVault` event.
    *
@@ -226,7 +226,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `vaultSafetyRating` for `vault`.
+   * @notice Sets `vaultSafetyRating` for `vault`.
    *
    * @param vault address of the vault whose rating will be changed
    * @param newRating a new value for the rating
@@ -247,10 +247,10 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `flasher` as an authorized address for flashloan operations.
+   * @notice Sets `flasher` as an authorized address for flashloan operations.
    *
    * @param flasher Address of the flasher to allow/disallow.
-   * @param allowed `true` to allow, `false` to disallow.
+   * @param allowed "true" to allow, "false" to disallow.
    *
    * @dev Requirements:
    *  - `flasher` must be a non-zero address.
@@ -268,10 +268,10 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Set `factory` as an authorized address for vault deployments.
+   * @notice Sets `factory` as an authorized address for vault deployments.
    *
    * @param factory address of the factory to allow/disallow
-   * @param allowed `true` to allow, `false` to disallow
+   * @param allowed "true" to allow, "false" to disallow
    *
    * @dev Requirements:
    *  - `allowed` must be different than previously recorded.
@@ -298,7 +298,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Resume all actions by force unpausing all vaults in `_vaults`.
+   * @notice Resumes all actions by force unpausing all vaults in `_vaults`.
    *
    * @dev Requirements:
    *  - Must be restricted to `UNPAUSER_ROLE`.
@@ -309,7 +309,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Pause specific action in all vaults in `_vaults`.
+   * @notice Pauses specific action in all vaults in `_vaults`.
    *
    * @param action enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
    *
@@ -343,7 +343,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Deploy {TimelockController} contract during Chief deployment.
+   * @dev Deploys {TimelockController} contract during Chief deployment.
    */
   function _deployTimelockController() internal {
     address[] memory admins = new address[](1);
@@ -353,14 +353,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Deploy {AddrMapper} contract during Chief deployment.
+   * @dev Deploys {AddrMapper} contract during Chief deployment.
    */
   function _deployAddrMapper() internal {
     addrMapper = address(new AddrMapper{salt: "0x00"}(address(this)));
   }
 
   /**
-   * @dev Execute pause state changes.
+   * @dev Executes pause state changes.
    *
    * @param callData encoded data containing pause or unpause commands.
    */
@@ -375,7 +375,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Revert if `input` is zero address.
+   * @dev Reverts if `input` is zero address.
    *
    * @param input address to verify
    */
@@ -386,7 +386,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Revert if `rating` input is not in range (1,100].
+   * @dev Reverts if `rating` input is not in range (1,100].
    *
    * @param rating value to verify is in the accepted range
    */
@@ -397,7 +397,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @dev Revert if `vault` is an zero address and is not in `_vaults` array.
+   * @dev Reverts if `vault` is an zero address and is not in `_vaults` array.
    *
    * @param vault address of vault to check
    */
