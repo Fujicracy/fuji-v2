@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title  HundredOptimism
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with Hundred.
+ *
+ * @dev The IAddrMapper needs to be properly configured for Hundred.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -15,43 +25,58 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
 
-/**
- * @title Hundred Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with Hundred.
- */
 contract HundredOptimism is ILendingProvider {
+  /// @dev Custom errors
   error Hundred__deposit_failed(uint256 status);
   error Hundred__payback_failed(uint256 status);
   error Hundred__withdraw_failed(uint256 status);
   error Hundred__borrow_failed(uint256 status);
 
+  /**
+   * @param token address of the 'token'
+   *
+   * @dev Returns true/false wether the given 'token' is/isn't WETH.
+   */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x4200000000000000000000000000000000000006;
   }
 
+  /**
+   * @dev Returns the {IAddrMapper} on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA);
   }
 
-  function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("Hundred", underlying);
+  /**
+   * @param asset address of the token to be used as collateral/debt.
+   *
+   * @dev Returns Hundred's underlying {ICToken} associated with the 'asset' to interact with Hundred.
+   */
+  function _getCToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("Hundred", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of Hundred.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0x0F390559F258eB8591C8e31Cf0905E97cf36ACE2; // Hundred Optimism
   }
 
+  /**
+   * @dev Returns the {ProxyReceiver}'s address used to withdraw from the protocol.
+   */
   function _getProxyReceiver() internal pure returns (address) {
     return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be approved as collateral.
+   * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
+   *
+   * @dev Approves vault's assets as collateral for Hundred Protocol.
    */
-
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
     IComptroller comptroller = IComptroller(_getComptrollerAddress());
@@ -61,12 +86,12 @@ contract HundredOptimism is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Hundred_Optimism";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -80,7 +105,7 @@ contract HundredOptimism is ILendingProvider {
     operator = _getCToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -106,7 +131,7 @@ contract HundredOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -126,7 +151,7 @@ contract HundredOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -155,7 +180,7 @@ contract HundredOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -178,7 +203,7 @@ contract HundredOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.asset());
 
@@ -190,7 +215,7 @@ contract HundredOptimism is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
@@ -202,7 +227,7 @@ contract HundredOptimism is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -217,7 +242,7 @@ contract HundredOptimism is ILendingProvider {
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

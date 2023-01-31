@@ -1,27 +1,33 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title AaveV3Goerli
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with AaveV3.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
 
-/**
- * @title AaveV3 Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with AaveV3.
- */
 contract AaveV3Goerli is ILendingProvider {
+  /**
+   * @dev Returns the {IV3Pool} pool to interact with AaveV3
+   */
   function _getPool() internal pure returns (IV3Pool) {
     return IV3Pool(0x368EedF3f56ad10b9bC57eed4Dac65B26Bb667f6);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Aave_V3_Goerli";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address,
@@ -35,7 +41,7 @@ contract AaveV3Goerli is ILendingProvider {
     operator = address(_getPool());
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
     address asset = vault.asset();
@@ -44,42 +50,42 @@ contract AaveV3Goerli is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
     aave.borrow(vault.debtAsset(), amount, 2, 0, address(vault));
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
     aave.withdraw(vault.asset(), amount, address(vault));
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     IV3Pool aave = _getPool();
     aave.repay(vault.debtAsset(), amount, 2, address(vault));
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
     IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.asset());
     rate = rdata.currentLiquidityRate;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     IV3Pool aaveData = _getPool();
     IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.debtAsset());
     rate = rdata.currentVariableBorrowRate;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -94,7 +100,7 @@ contract AaveV3Goerli is ILendingProvider {
     balance = IERC20(rdata.aTokenAddress).balanceOf(user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title IV2Pool
+ *
+ * @author Aave
+ *
+ * @notice Defines the interface for AaveV2 main
+ * pool contract.
+ */
 interface IV2Pool {
   struct ReserveConfigurationMap {
     //bit 0-15: LTV
