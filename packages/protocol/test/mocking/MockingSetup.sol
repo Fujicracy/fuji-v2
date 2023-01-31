@@ -32,6 +32,10 @@ contract MockingSetup is CoreRoles, Test {
   address public collateralAsset;
   address public debtAsset;
 
+  // CHainlink type prices in 8 decimals.
+  uint256 public constant USD_PER_ETH_PRICE = 2000e8;
+  uint256 public constant USD_PER_DAI_PRICE = 1e8;
+
   constructor() {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
@@ -46,9 +50,9 @@ contract MockingSetup is CoreRoles, Test {
     vm.label(debtAsset, "testDAI");
 
     oracle = new MockOracle();
-    // WETH and DAI prices by Nov 11h 2022
-    oracle.setUSDPriceOf(collateralAsset, 796341757142697);
-    oracle.setUSDPriceOf(debtAsset, 100000000);
+    // WETH and DAI prices: 2000 DAI/WETH
+    oracle.setUSDPriceOf(collateralAsset, USD_PER_ETH_PRICE);
+    oracle.setUSDPriceOf(debtAsset, USD_PER_DAI_PRICE);
 
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
@@ -68,8 +72,8 @@ contract MockingSetup is CoreRoles, Test {
       debtAsset,
       address(oracle),
       address(chief),
-      "Fuji-V2 WETH Vault Shares",
-      "fv2WETH",
+      "Fuji-V2 tWETH-tDAI BorrowingVault",
+      "fbvtWETHtDAI",
       providers
     );
   }

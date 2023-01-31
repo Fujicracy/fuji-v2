@@ -161,10 +161,7 @@ contract ReentrantFlasher is IFlasher {
 }
 
 contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
-  BorrowingVaultFactory public bVaultFactory;
   BorrowingVault public bvault;
-
-  YieldVaultFactory public yVaultFactory;
   YieldVault public yvault;
 
   Chief public chief;
@@ -222,37 +219,27 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
 
-    bVaultFactory = new BorrowingVaultFactory(address(chief));
-    bytes memory executionCall = abi.encodeWithSelector(
-      bVaultFactory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
+    bvault = new BorrowingVault(
+      address(asset),
+      address(debtAsset),
+      address(oracle),
+      address(chief),
+      "Fuji-V2 tWETH-tDAI BorrowingVault",
+      "fbvtWETHtDAI",
+      providers
     );
-    _callWithTimelock(address(bVaultFactory), executionCall);
 
-    yVaultFactory = new YieldVaultFactory(address(chief));
-
-    executionCall =
-      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
-    _callWithTimelock(address(chief), executionCall);
-
-    executionCall =
-      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(yVaultFactory), true);
-    _callWithTimelock(address(chief), executionCall);
-
-    address bvaultAddr = chief.deployVault(
-      address(bVaultFactory),
-      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
-      95
+    yvault = new YieldVault(
+      address(asset),
+      address(chief),
+      "Fuji-V2 tWETH YieldVault",
+      "fyvtWETH",
+      providers
     );
-    bvault = BorrowingVault(payable(bvaultAddr));
-    // _utils_setupVaultProviders(IVault(bvaultAddr));
-
-    address yvaultAddr =
-      chief.deployVault(address(yVaultFactory), abi.encode(address(asset), providers), 95);
-    yvault = YieldVault(payable(yvaultAddr));
-    // _utils_setupVaultProviders(IVault(yvaultAddr));
 
     flasher = new MockFlasher();
-    executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _callWithTimelock(address(chief), executionCall);
 
     rebalancer = new RebalancerManager(address(chief));
@@ -263,15 +250,15 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     executionCall = abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
     _callWithTimelock(address(rebalancer), executionCall);
 
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), alice);
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), bob);
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), charlie);
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(bvaultAddr), david);
+    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, alice);
+    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, bob);
+    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, charlie);
+    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, david);
 
-    _utils_doDeposit(DEPOSIT_AMOUNT, IVault(yvaultAddr), alice);
-    _utils_doDeposit(DEPOSIT_AMOUNT, IVault(yvaultAddr), bob);
-    _utils_doDeposit(DEPOSIT_AMOUNT, IVault(yvaultAddr), charlie);
-    _utils_doDeposit(DEPOSIT_AMOUNT, IVault(yvaultAddr), david);
+    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, alice);
+    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, bob);
+    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, charlie);
+    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, david);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {

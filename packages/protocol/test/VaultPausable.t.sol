@@ -14,7 +14,6 @@ import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
-import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
 import {BaseVault} from "../src/abstracts/BaseVault.sol";
 import {IPausableVault} from "../src/interfaces/IPausableVault.sol";
 import {PausableVault} from "../src/abstracts/PausableVault.sol";
@@ -25,7 +24,6 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
   event PausedForceAll(address account);
   event UnpausedForceAll(address account);
 
-  BorrowingVaultFactory public bVaultFactory;
   BorrowingVault public vault1;
   BorrowingVault public vault2;
   Chief public chief;
@@ -75,32 +73,33 @@ contract VaultPausableUnitTests is DSTestPlus, CoreRoles {
     timelock = TimelockController(payable(chief.timelock()));
     _utils_setupTestRoles();
 
-    bVaultFactory = new BorrowingVaultFactory(address(chief));
-    bytes memory callData =
-      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(bVaultFactory), true);
-    _callWithTimelock(address(chief), callData);
+    vault1 = new BorrowingVault(
+            address(asset),
+            address(debtAsset),
+            address(oracle),
+            address(chief),
+            'Fuji-V2 tWETH-tDAI BorrowingVault',
+            'fbvtWETHtDAI',
+            providers
+        );
 
-    callData = abi.encodeWithSelector(
-      bVaultFactory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
-    );
-    _callWithTimelock(address(bVaultFactory), callData);
+    vault2 = new BorrowingVault(
+            address(asset),
+            address(debtAsset),
+            address(oracle),
+            address(chief),
+            'Fuji-V2 tWETH-tDAI BorrowingVault',
+            'fbvtWETHtDAI',
+            providers
+        );
 
-    address vault1Addr = chief.deployVault(
-      address(bVaultFactory),
-      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
-      95
-    );
-    vault1 = BorrowingVault(payable(vault1Addr));
-    // _utils_setupVaultProvider(vault1);
+    address[] memory vaults = new address[](2);
+    vaults[0] = address(vault1);
+    vaults[1] = address(vault2);
 
-    address vault2Addr = chief.deployVault(
-      address(bVaultFactory),
-      abi.encode(address(asset), address(debtAsset), address(oracle), providers),
-      85
-    );
+    bytes memory executionCall = abi.encodeWithSelector(chief.setVaults.selector, vaults);
 
-    vault2 = BorrowingVault(payable(vault2Addr));
-    // _utils_setupVaultProvider(vault2);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function _utils_setPrice(address asset1, address asset2, uint256 price) internal {

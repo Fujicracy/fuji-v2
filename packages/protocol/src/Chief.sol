@@ -42,6 +42,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   event DeployVault(address indexed factory, address indexed vault, bytes deployData);
 
   /**
+   * @dev Emitted when `_vaults` are set through `setVaults()`.
+   *
+   * @param previousVaults addresses
+   * @param newVaults addresses
+   */
+  event SetVaults(address[] previousVaults, address[] newVaults);
+
+  /**
    * @dev Emitted when a new flasher is alllowed/disallowed.
    *
    * @param flasher address of the flasher
@@ -145,6 +153,22 @@ contract Chief is CoreRoles, AccessControl, IChief {
     // grant admin role to new timelock address
     _grantRole(DEFAULT_ADMIN_ROLE, timelock);
     emit UpdateTimelock(newTimelock);
+  }
+
+  /**
+   * @notice Clears and sets the `vaults` recorded in this {Chief-_vaults}.
+   *
+   * @param vaults addresses that should be recorded
+   *
+   * @dev This method should only be used in extraordinary cases.
+   * Requirements:
+   *  - Must be called from a timelock.
+   */
+  function setVaults(address[] memory vaults) external onlyTimelock {
+    address[] memory previous = _vaults;
+    delete _vaults;
+    _vaults = vaults;
+    emit SetVaults(previous, _vaults);
   }
 
   /**

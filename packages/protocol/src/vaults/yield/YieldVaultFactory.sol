@@ -40,11 +40,10 @@ contract YieldVaultFactory is VaultDeployer {
     (address asset, ILendingProvider[] memory providers) =
       abi.decode(deployData, (address, ILendingProvider[]));
 
-    string memory assetName = IERC20Metadata(asset).name();
     string memory assetSymbol = IERC20Metadata(asset).symbol();
 
     // Example of `name_`: "Fuji-V2 Dai Stablecoin YieldVault".
-    string memory name = string(abi.encodePacked("Fuji-V2 ", assetName, " YieldVault Shares"));
+    string memory name = string(abi.encodePacked("Fuji-V2 ", assetSymbol, " YieldVault"));
     // Example of `symbol_`: "fyvDAI".
     string memory symbol = string(abi.encodePacked("fyv", assetSymbol));
 
