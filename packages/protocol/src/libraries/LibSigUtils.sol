@@ -3,7 +3,9 @@ pragma solidity 0.8.15;
 
 /**
  * @title LibSigUtils
+ *
  * @author Fujidao Labs
+ *
  * @notice Helper library for permit signing of the vault 'permitWithdraw' and
  * 'permitBorrow'.
  */
@@ -30,6 +32,7 @@ library LibSigUtils {
     uint256 deadline;
   }
 
+  /// @notice Returns the struct type of a permit used for `borrow()` or `withdraw()`.
   function buildPermitStruct(
     address owner,
     address operator,
@@ -51,7 +54,7 @@ library LibSigUtils {
     permit.deadline = block.timestamp + 1 days;
   }
 
-  // computes the hash of a permit-withdraw
+  /// @notice Returns the hash of a permit-withdraw.
   function getStructHashWithdraw(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
@@ -67,7 +70,7 @@ library LibSigUtils {
     );
   }
 
-  // computes the hash of a permit-borrow
+  /// @notice Returns the hash of a permit-borrow.
   function getStructHashBorrow(Permit memory permit) public pure returns (bytes32) {
     return keccak256(
       abi.encode(
@@ -83,7 +86,7 @@ library LibSigUtils {
     );
   }
 
-  // computes the digest
+  /// @notice Returns the digest.
   function getHashTypedDataV4Digest(
     bytes32 domainSeperator,
     bytes32 structHash

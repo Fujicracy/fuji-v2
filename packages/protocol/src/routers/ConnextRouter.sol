@@ -165,9 +165,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      // ensure clear storage for token balance checks
+      // Ensure clear storage for token balance checks.
       delete _tokensToCheck;
-      // keep funds in router and let them be handled by admin
+      // Keep funds in router and let them be handled by admin.
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -193,9 +193,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   {
     newArgs = args;
 
-    // Check first action type and replace with slippage-amount
+    // Check first action type and replace with slippage-amount.
     if (action == Action.Deposit || action == Action.Payback) {
-      // DEPOSIT OR PAYBACK
+      // For Deposit or Payback.
       (IVault vault, uint256 amount, address receiver, address sender) =
         abi.decode(args, (IVault, uint256, address, address));
 
@@ -204,7 +204,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         _checkSlippage(amount, receivedAmount, slippageThreshold);
       }
     } else if (action == Action.Swap) {
-      // SWAP
+      // For Swap.
       (
         ISwapper swapper,
         address assetIn,
@@ -241,6 +241,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     }
   }
 
+  /// @inheritdoc BaseRouter
   function _crossTransfer(bytes memory params) internal override {
     (
       uint256 destDomain,
@@ -277,6 +278,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     emit XCalled(transferId, msg.sender, receiver, destDomain, asset, amount, "");
   }
 
+  /// @inheritdoc BaseRouter
   function _crossTransferWithCalldata(bytes memory params) internal override {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));

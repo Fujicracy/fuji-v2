@@ -36,6 +36,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Emit when `caller` is updated according to `allowed` boolean
    * to perform cross-chain calls.
+   *
+   * @param caller permitted for cross-chain calls
+   * @param allowed boolean state
    */
   event AllowCaller(address caller, bool allowed);
 
@@ -53,7 +56,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   IWETH9 public immutable WETH9;
 
-  /// @dev Apply it on entry functions as required.
+  /// @dev Apply it on entry cross-chain calls functions as required.
   mapping(address => bool) internal _isAllowedCaller;
 
   /**
@@ -70,6 +73,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    */
   address private _beneficiary;
 
+  /**
+   * @notice Constructor of a new {BaseRouter}.
+   *
+   * @param weth wrapped native token of this chain
+   * @param chief contract
+   */
   constructor(IWETH9 weth, IChief chief) SystemAccessControl(address(chief)) {
     WETH9 = weth;
   }
@@ -227,7 +236,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       } else if (actions[i] == Action.Flashloan) {
         // FLASHLOAN
 
-        // Decode params
+        // Decode params.
         (
           IFlasher flasher,
           address asset,
@@ -241,7 +250,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         }
         _addTokenToList(asset);
 
-        // Call Flasher
+        // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
       } else if (actions[i] == Action.DepositETH) {
         uint256 amount = abi.decode(args[i], (uint256));
@@ -400,7 +409,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       }
     }
 
-    // check at the end the native balnace
+    // Check at the end the native balance.
     if (nativeBalance != address(this).balance) {
       revert BaseRouter__bundleInternal_noBalanceChange();
     }
