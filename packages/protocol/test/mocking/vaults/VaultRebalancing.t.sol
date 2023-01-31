@@ -2,27 +2,20 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {DSTestPlus} from "./utils/DSTestPlus.sol";
+import {MockingSetup} from "../MockingSetup.sol";
+import {MockRoutines} from "../MockRoutines.sol";
+import {MockERC20} from "../../../src/mocks/MockERC20.sol";
+import {MockProvider} from "../../../src/mocks/MockProvider.sol";
+import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {TimelockController} from
-  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {Chief} from "../src/Chief.sol";
-import {CoreRoles} from "../src/access/CoreRoles.sol";
-import {IVault} from "../src/interfaces/IVault.sol";
-import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
-import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVaultFactory} from "../src/vaults/yield/YieldVaultFactory.sol";
-import {YieldVault} from "../src/vaults/yield/YieldVault.sol";
-import {RebalancerManager} from "../src/RebalancerManager.sol";
-import {MockERC20} from "../src/mocks/MockERC20.sol";
-import {MockProvider} from "../src/mocks/MockProvider.sol";
-import {MockOracle} from "../src/mocks/MockOracle.sol";
-import {MockFlasher} from "../src/mocks/MockFlasher.sol";
-import {IFlasher} from "../src/interfaces/IFlasher.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IVault} from "../../../src/interfaces/IVault.sol";
+import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 
 contract MockProviderIdA is MockProvider {
   function providerName() public pure override returns (string memory) {
@@ -160,68 +153,38 @@ contract ReentrantFlasher is IFlasher {
   }
 }
 
-contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
+contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   BorrowingVault public bvault;
   YieldVault public yvault;
-
-  Chief public chief;
-  TimelockController public timelock;
 
   ILendingProvider public mockProviderA;
   ILendingProvider public mockProviderB;
 
-  MockOracle public oracle;
   MockFlasher public flasher;
-  MockERC20 public asset;
-  MockERC20 public debtAsset;
 
   RebalancerManager public rebalancer;
 
-  uint256 alicePkey = 0xA;
-  address alice = vm.addr(alicePkey);
-  uint256 bobPkey = 0xB;
-  address bob = vm.addr(bobPkey);
-  uint256 charliePkey = 0xC;
-  address charlie = vm.addr(charliePkey);
-  uint256 davidPkey = 0xD;
-  address david = vm.addr(davidPkey);
+  uint256 DavidPkey = 0xD;
+  address DAVID = vm.addr(DavidPkey);
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
   uint256 public constant BORROW_AMOUNT = 1000e18;
 
-  // WETH and DAI prices: 2000 DAI/WETH
-  uint256 public constant TEST_USD_PER_ETH_PRICE = 2000e18;
-  uint256 public constant TEST_ETH_PER_USD_PRICE = 5e14;
-
   function setUp() public {
-    vm.label(alice, "Alice");
-    vm.label(bob, "Bob");
-    vm.label(charlie, "Charlie");
-    vm.label(david, "David");
-
-    asset = new MockERC20("Test WETH", "tWETH");
-    vm.label(address(asset), "tWETH");
-    debtAsset = new MockERC20("Test DAI", "tDAI");
-    vm.label(address(debtAsset), "tDAI");
-
-    oracle = new MockOracle();
-    _utils_setupOracle(address(asset), address(debtAsset));
+    vm.label(DAVID, "david");
 
     mockProviderA = new MockProviderIdA();
     mockProviderB = new MockProviderIdB();
     vm.label(address(mockProviderA), "ProviderA");
     vm.label(address(mockProviderB), "ProviderB");
+
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = mockProviderA;
     providers[1] = mockProviderB;
 
-    chief = new Chief(true, true);
-    timelock = TimelockController(payable(chief.timelock()));
-    _utils_setupTestRoles();
-
     bvault = new BorrowingVault(
-      address(asset),
-      address(debtAsset),
+      collateralAsset,
+      debtAsset,
       address(oracle),
       address(chief),
       "Fuji-V2 tWETH-tDAI BorrowingVault",
@@ -230,7 +193,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     );
 
     yvault = new YieldVault(
-      address(asset),
+      collateralAsset,
       address(chief),
       "Fuji-V2 tWETH YieldVault",
       "fyvtWETH",
@@ -250,81 +213,15 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
     executionCall = abi.encodeWithSelector(rebalancer.allowExecutor.selector, address(this), true);
     _callWithTimelock(address(rebalancer), executionCall);
 
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, alice);
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, bob);
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, charlie);
-    _utils_doDepositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, david);
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, ALICE);
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, BOB);
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, CHARLIE);
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, DAVID);
 
-    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, alice);
-    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, bob);
-    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, charlie);
-    _utils_doDeposit(DEPOSIT_AMOUNT, yvault, david);
-  }
-
-  function _utils_setPrice(address asset1, address asset2, uint256 price) internal {
-    vm.mockCall(
-      address(oracle),
-      abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
-      abi.encode(price)
-    );
-  }
-
-  function _utils_setupOracle(address asset1, address asset2) internal {
-    // WETH and DAI prices: 2000 DAI/WETH
-    _utils_setPrice(asset1, asset2, TEST_ETH_PER_USD_PRICE);
-    _utils_setPrice(asset2, asset1, TEST_USD_PER_ETH_PRICE);
-  }
-
-  function _utils_setupTestRoles() internal {
-    // Grant this test address applicable roles.
-    _grantRoleChief(REBALANCER_ROLE, address(this));
-  }
-
-  function _callWithTimelock(address target, bytes memory callData) internal {
-    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
-    vm.warp(block.timestamp + 2 days);
-    timelock.execute(target, 0, callData, 0x00, 0x00);
-    rewind(2 days);
-  }
-
-  function _grantRoleChief(bytes32 role, address account) internal {
-    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
-    _callWithTimelock(address(chief), sendData);
-  }
-
-  function _utils_setupVaultProviders(IVault vault_) internal {
-    ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = mockProviderA;
-    providers[1] = mockProviderB;
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault_.setProviders.selector, providers);
-    _callWithTimelock(address(vault_), encodedWithSelectorData);
-    vault_.setActiveProvider(mockProviderA);
-  }
-
-  function dealMockERC20(MockERC20 mockerc20, address to, uint256 amount) internal {
-    mockerc20.mint(to, amount);
-  }
-
-  function _utils_doDeposit(uint256 amount, IVault v, address who) internal {
-    dealMockERC20(MockERC20(address(asset)), who, amount);
-    vm.startPrank(who);
-    SafeERC20.safeApprove(asset, address(v), amount);
-    v.deposit(amount, who);
-    vm.stopPrank();
-  }
-
-  function _utils_doDepositAndBorrow(
-    uint256 depositAmount,
-    uint256 borrowAmount,
-    IVault v,
-    address who
-  )
-    internal
-  {
-    _utils_doDeposit(depositAmount, v, who);
-    vm.prank(who);
-    v.borrow(borrowAmount, who, who);
+    do_deposit(DEPOSIT_AMOUNT, yvault, ALICE);
+    do_deposit(DEPOSIT_AMOUNT, yvault, BOB);
+    do_deposit(DEPOSIT_AMOUNT, yvault, CHARLIE);
+    do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
   function test_assertSetUp() public {
@@ -344,12 +241,12 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_fullRebalancingBorrowingVault() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
-    uint256 debt = 4 * BORROW_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
-    dealMockERC20(MockERC20(address(debtAsset)), address(this), debt);
+    dealMockERC20(debtAsset, address(this), debt);
 
-    SafeERC20.safeApprove(debtAsset, address(bvault), debt);
+    IERC20(debtAsset).approve(address(bvault), debt);
     bvault.rebalance(assets, debt, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
@@ -360,7 +257,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_fullRebalancingYieldVault() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
     yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0, true);
 
@@ -369,14 +266,14 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_partialRebalancingBorrowingVault() public {
-    uint256 assets75 = 3 * DEPOSIT_AMOUNT; // alice, bob, charlie
-    uint256 debt75 = 3 * BORROW_AMOUNT; // alice, bob, charlie
-    uint256 assets25 = DEPOSIT_AMOUNT; // david
-    uint256 debt25 = BORROW_AMOUNT; // david
+    uint256 assets75 = 3 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE
+    uint256 debt75 = 3 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE
+    uint256 assets25 = DEPOSIT_AMOUNT; // DAVID
+    uint256 debt25 = BORROW_AMOUNT; // DAVID
 
-    dealMockERC20(MockERC20(address(debtAsset)), address(this), debt75);
+    dealMockERC20(debtAsset, address(this), debt75);
 
-    SafeERC20.safeApprove(debtAsset, address(bvault), debt75);
+    IERC20(debtAsset).approve(address(bvault), debt75);
     bvault.rebalance(assets75, debt75, mockProviderA, mockProviderB, 0, true);
 
     assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), assets25);
@@ -388,8 +285,8 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   //TODO add more test cases with RebalancerManager contract.
   function test_rebalanceBorrowingVaultWithRebalancer() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
-    uint256 debt = 4 * BORROW_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
     rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
 
@@ -401,7 +298,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_rebalanceYieldVaultWithRebalancer() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
     rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
 
@@ -412,7 +309,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   //MALICIOUS TESTS
 
   function test_rebalanceYieldVaultWithRebalancerAndInvalidDebt(uint256 debt) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
     //debt !=0
     rebalancer.rebalanceVault(yvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
@@ -422,7 +319,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   }
 
   function test_rebalanceYieldVaultWithRebalancerAndInvalidProvider() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
     //fake provider to steal funds
     ILendingProvider thiefProvider = new ThiefProvider();
@@ -435,7 +332,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
   //TEST FOR ERRORS
   // error RebalancerManager__rebalanceVault_notValidFlasher();
   function test_notValidFlasher() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     MockFlasher invalidFlasher = new MockFlasher();
 
     //rebalance with invalid flasher should fail
@@ -445,7 +342,7 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
   function test_checkAssetsAmountInvalidAmount(uint256 invalidAmount) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     vm.assume(invalidAmount > assets);
 
     //rebalance with more amount than available should revert
@@ -456,9 +353,9 @@ contract VaultRebalancingUnitTests is DSTestPlus, CoreRoles {
 
   // error RebalancerManager__checkDebtAmount_invalidAmount();
   function test_checkDebtAmountInvalidAmount(uint256 invalidAmount) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // alice, bob, charlie, david
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     uint256 debt = 4 * BORROW_AMOUNT;
-    vm.assume(invalidAmount > debt); //alice, bob, charlie, david
+    vm.assume(invalidAmount > debt); //ALICE, BOB, CHARLIE, DAVID
 
     //rebalance with more amount than available should revert
     vm.expectRevert(RebalancerManager.RebalancerManager__checkDebtAmount_invalidAmount.selector);

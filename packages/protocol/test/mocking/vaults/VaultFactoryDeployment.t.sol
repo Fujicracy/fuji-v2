@@ -3,21 +3,12 @@ pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
 import {MockingSetup} from "../MockingSetup.sol";
-// import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-// import {TimelockController} from
-//   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-// import {MockERC20} from "../src/mocks/MockERC20.sol";
-// import {MockProvider} from "../src/mocks/MockProvider.sol";
-// import {MockOracle} from "../src/mocks/MockOracle.sol";
-// import {Chief} from "../src/Chief.sol";
-// import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultFactory} from "../../../src/vaults/borrowing/BorrowingVaultFactory.sol";
 import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 import {YieldVaultFactory} from "../../../src/vaults/yield/YieldVaultFactory.sol";
-// import {BaseVault} from "../src/abstracts/BaseVault.sol";
 
 contract VaultFactoryDeploymentTests is MockingSetup {
   BorrowingVaultFactory public bVaultFactory;

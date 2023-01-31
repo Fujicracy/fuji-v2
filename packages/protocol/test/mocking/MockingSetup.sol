@@ -23,7 +23,7 @@ contract MockingSetup is CoreRoles, Test {
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
 
-  IVault public vault;
+  BorrowingVault public vault;
   Chief public chief;
   TimelockController public timelock;
   ILendingProvider public mockProvider;
