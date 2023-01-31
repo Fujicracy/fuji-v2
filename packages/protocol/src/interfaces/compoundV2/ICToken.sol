@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title ICToken
+ *
+ * @author Compound
+ *
+ * @notice General base interface to interact with CompoundV2
+ * cTokens. This interface is inherited in other Compound
+ * interfaces.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 interface ICToken is IERC20 {

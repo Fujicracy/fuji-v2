@@ -1,13 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockRebalancerManager
+ *
+ * @author Fujidao Labs
+ *
+ * @notice Mock implementation of the RebalancerManager.
+ */
+
+import {IRebalancerManager} from "../interfaces/IRebalancerManager.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 
-contract MockRebalancerManager {
-  // custom errors
+contract MockRebalancerManager is IRebalancerManager {
+  /// @dev Custom Errors
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
@@ -18,6 +27,7 @@ contract MockRebalancerManager {
 
   constructor() {}
 
+  /// @inheritdoc IRebalancerManager
   function rebalanceVault(
     IVault vault,
     uint256 assets,
@@ -43,6 +53,15 @@ contract MockRebalancerManager {
     success = true;
   }
 
+  function allowExecutor(address executor, bool allowed) external override {}
+
+  /**
+   * @dev Checks `amount` is < than current asset balance of `vault` at provider `from`.
+   *
+   * @param vault address
+   * @param amount to be rebalanced to check against
+   * @param from provider address
+   */
   function _checkAssetsAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
     uint256 assetsAtProvider = from.getDepositBalance(address(vault), vault);
     if (amount > assetsAtProvider) {
@@ -50,6 +69,13 @@ contract MockRebalancerManager {
     }
   }
 
+  /**
+   * @dev Checks `amount` is < than current debt balance of `vault` at provider `from`.
+   *
+   * @param vault address
+   * @param amount rebalanced to check against
+   * @param from provider address
+   */
   function _checkDebtAmount(IVault vault, uint256 amount, ILendingProvider from) internal view {
     uint256 debtAtProvider = from.getBorrowBalance(address(vault), vault);
     if (amount > debtAtProvider) {
@@ -57,6 +83,11 @@ contract MockRebalancerManager {
     }
   }
 
+  /**
+   * @dev Sets a checkpoint for this address as the flashloan originator.
+   *
+   * @param requestorCall bytes sent to flashloan provider
+   */
   function _checkAndSetEntryPoint(bytes memory requestorCall) internal {
     if (_entryPoint != "") {
       revert RebalancerManager__getFlashloan_notEmptyEntryPoint();
@@ -64,6 +95,18 @@ contract MockRebalancerManager {
     _entryPoint = keccak256(abi.encode(requestorCall));
   }
 
+  /**
+   * @dev Checks this address is the flashloan originator. This check applies to a
+   * {BorrowingVault} only.
+   *
+   * @param vault being rebalanced
+   * @param assets amount to rebalance
+   * @param debt amount to rebalance
+   * @param from provider address
+   * @param to provider address
+   * @param flasher contract address
+   * @param setToAsActiveProvider boolean to define `to` as active provider
+   */
   function _checkReentry(
     IVault vault,
     uint256 assets,
@@ -92,6 +135,17 @@ contract MockRebalancerManager {
     }
   }
 
+  /**
+   * @dev Initiates flashloan for a rebalancing operation.
+   *
+   * @param vault being rebalanced
+   * @param assets amount to rebalance
+   * @param debt amount to rebalance
+   * @param from provider address
+   * @param to provider address
+   * @param flasher contract address
+   * @param setToAsActiveProvider boolean to define `to` as active provider
+   */
   function _getFlashloan(
     IVault vault,
     uint256 assets,
@@ -119,6 +173,7 @@ contract MockRebalancerManager {
     flasher.initiateFlashloan(debtAsset, debt, address(this), requestorCall);
   }
 
+  /// @inheritdoc IRebalancerManager
   function completeRebalance(
     IVault vault,
     uint256 assets,
@@ -129,6 +184,7 @@ contract MockRebalancerManager {
     bool setToAsActiveProvider
   )
     external
+    override
     returns (bool success)
   {
     _checkReentry(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
@@ -147,7 +203,6 @@ contract MockRebalancerManager {
 
     debtAsset.transfer(address(flasher), debt + flashloanFee);
 
-    // re-init
     _entryPoint = "";
     success = true;
   }

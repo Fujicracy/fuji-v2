@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title DForceArbitrum
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with DForce.
+ *
+ * @dev The IAddrMapper needs to be properly configured for DForce.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -12,22 +22,18 @@ import {IIETH} from "../../interfaces/dforce/IIETH.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibDForce} from "../../libraries/LibDForce.sol";
 
-/**
- * @title DForce Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with DForce.
- */
 contract DForceArbitrum is ILendingProvider {
   /**
-   * @dev Returns true/false wether the given token is/isn't WETH
-   * @param token address of the token
+   * @param token address of the 'token'
+   *
+   * @dev Returns true/false wether the given token is/isn't WETH.
    */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
   }
 
   /**
-   * @dev Returns the IAddrMapper on this chain
+   * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
@@ -35,15 +41,16 @@ contract DForceArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns the Controller address of DForce
+   * @dev Returns the Controller address of DForce.
    */
   function _getControllerAddress() internal pure returns (address) {
     return 0x8E7e9eA9023B81457Ae7E6D2a51b003D421E5408; // dForce Arbitrum
   }
 
   /**
+   * @param _iTokenAddress address of the underlying {IGenIToken} to be approved as collateral
+   *
    * @dev Approves vault's assets as collateral for dForce Protocol.
-   * @param _iTokenAddress address of the underlying iToken to be approved as collateral.
    */
   function _enterCollatMarket(address _iTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
@@ -55,19 +62,20 @@ contract DForceArbitrum is ILendingProvider {
   }
 
   /**
-   * @dev Returns DForce's underlying iToken associated with the asset to interact with DForce
    * @param asset address of the token to be used as collateral/debt
+   *
+   * @dev Returns DForce's underlying {IGenIToken} associated with the 'asset' to interact with DForce.
    */
   function _getiToken(address asset) internal view returns (address iToken) {
     iToken = _getAddrmapper().getAddressMapping("DForce", asset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "DForce_Arbitrum";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -81,7 +89,7 @@ contract DForceArbitrum is ILendingProvider {
     operator = _getiToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
@@ -109,7 +117,7 @@ contract DForceArbitrum is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
@@ -128,7 +136,7 @@ contract DForceArbitrum is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
@@ -147,7 +155,7 @@ contract DForceArbitrum is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
@@ -170,7 +178,7 @@ contract DForceArbitrum is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address iTokenAddr = _getiToken(vault.asset());
 
@@ -182,7 +190,7 @@ contract DForceArbitrum is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address iTokenAddr = _getiToken(vault.debtAsset());
 
@@ -194,7 +202,7 @@ contract DForceArbitrum is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -209,7 +217,7 @@ contract DForceArbitrum is ILendingProvider {
     balance = LibDForce.viewUnderlyingBalanceOf(iToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

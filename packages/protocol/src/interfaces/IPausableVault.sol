@@ -2,9 +2,11 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Pausable Vault interface.
+ * @title IPausableVault
+ *
  * @author Fujidao Labs
- * @notice Defines interface for {PausableVault} operations.
+ *
+ * @notice Defines the interface {PausableVault} contract.
  */
 
 interface IPausableVault {
@@ -16,52 +18,75 @@ interface IPausableVault {
   }
 
   /**
-   * @dev Emitted when pause of `action` is triggered by `account`.
+   * @dev Emit when pause of `action` is triggered by `account`.
+   *
+   * @param account who called the pause
+   * @param action being paused
    */
-  event Paused(address account, VaultActions actions);
+  event Paused(address account, VaultActions action);
   /**
-   * @dev Emitted when the pause of `action` is lifted by `account`.
+   * @dev Emit when the pause of `action` is lifted by `account`.
+   *
+   * @param account who called the unpause
+   * @param action being paused
    */
-  event Unpaused(address account, VaultActions actions);
+  event Unpaused(address account, VaultActions action);
   /**
+   * emit
    * @dev Emitted when forced pause all `VaultActions` triggered by `account`.
+   *
+   * @param account who called all pause
    */
   event PausedForceAll(address account);
   /**
-   * @dev Emitted when forced pause is lifted to all `VaultActions` by `account`.
+   * @dev Emit when forced pause is lifted to all `VaultActions` by `account`.
+   *
+   * @param account who called the all unpause
    */
   event UnpausedForceAll(address account);
 
   /**
-   * @dev Returns true if the `action` in contract is paused, otherwise false.
+   * @notice Returns true if the `action` in contract is paused, otherwise false.
+   *
+   * @param action to check pause status
    */
   function paused(VaultActions action) external view returns (bool);
+
   /**
-   * @notice Forces stopped state for all `VaultActions`.
-   * Requirements:
-   * - Should be implemented in vault contract with access restriction.
+   * @notice Force pause state for all `VaultActions`.
+   *
+   * @dev Requirements:
+   * - Must be implemented in child contract with access restriction.
    */
   function pauseForceAll() external;
+
   /**
-   * @notice Returns force all `VaultActions` to normal state.
-   * Requirements:
-   * - Should be implemented in vault contract with access restriction.
+   * @notice Force unpause state for all `VaultActions`.
+   *
+   * @dev Requirements:
+   * - Must be implemented in child contract with access restriction.
    */
   function unpauseForceAll() external;
+
   /**
-   * @notice Triggers stopped state for `action`.
-   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback.
+   * @notice Set paused state for `action` of this vault.
+   *
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
+   *
    * Requirements:
-   * - The `VaultAction` in contract must not be paused.
-   * - Should be implemented in vault contract with access restriction.
+   * - The `action` in contract must not be unpaused.
+   * - Must be implemented in child contract with access restriction.
    */
   function pause(VaultActions action) external;
+
   /**
-   * @notice Returns `action` to normal state.
+   * @notice Set unpause state for `action` of this vault.
+   *
    * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
-   * Requirements:
-   * - The `VaultAction` in contract must be paused.
-   * - Should be implemented in child contract with access restriction.
+   *
+   * @dev Requirements:
+   * - The `action` in contract must be paused.
+   * - Must be implemented in child contract with access restriction.
    */
   function unpause(VaultActions action) external;
 }

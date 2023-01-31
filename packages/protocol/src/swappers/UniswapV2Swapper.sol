@@ -2,9 +2,12 @@
 pragma solidity 0.8.15;
 
 /**
- * @title UniswapV2Swapper.
+ * @title UniswapV2Swapper
+ *
  * @author Fujidao Labs
- * @notice Wrapper of UniswapV2 to to be called from the router.
+ *
+ * @notice UniswapV2 adaptor contract to to be called from the {BaseRouter} type
+ * contracts and perform token swaps.
  */
 
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -16,6 +19,7 @@ import {ISwapper} from "../interfaces/ISwapper.sol";
 contract UniswapV2Swapper is ISwapper {
   using SafeERC20 for ERC20;
 
+  /// @dev Custom Errors
   error UniswapV2Swapper__swap_slippageTooHigh();
   error UniswapV2Swapper__swap_notEnoughAmountIn();
 
@@ -23,12 +27,19 @@ contract UniswapV2Swapper is ISwapper {
 
   IWETH9 public immutable WETH9;
 
-  constructor(IWETH9 weth, IUniswapV2Router01 _uniswapRouter) {
-    uniswapRouter = _uniswapRouter;
+  /**
+   * @notice Creates a new {UniswapV2Swapper}
+   *
+   * @param weth wrapped native address
+   * @param uniswapRouter_ contract address
+   */
+
+  constructor(IWETH9 weth, IUniswapV2Router01 uniswapRouter_) {
+    uniswapRouter = uniswapRouter_;
     WETH9 = weth;
   }
 
-  /// inheritdoc ISwapper
+  /// @inheritdoc ISwapper
   function swap(
     address assetIn,
     address assetOut,
@@ -51,7 +62,7 @@ contract UniswapV2Swapper is ISwapper {
     address[] memory path = _buildPath(assetIn, assetOut);
 
     ERC20(assetIn).safeApprove(address(uniswapRouter), computedAmountIn);
-    // swap and transfer swapped amount to receiver (could be Flasher)
+    // Swap, then transfer the swapped amount to receiver (could be Flasher).
     uniswapRouter.swapTokensForExactTokens(
       amountOut,
       computedAmountIn,
@@ -65,11 +76,11 @@ contract UniswapV2Swapper is ISwapper {
     if (minSweepOut > 0 && minSweepOut > leftover) {
       revert UniswapV2Swapper__swap_slippageTooHigh();
     }
-    // transfer the leftovers to sweeper
+    // Transfer the leftovers to `sweeper`.
     ERC20(assetIn).safeTransfer(sweeper, leftover);
   }
 
-  /// inherit ISwapper
+  /// @inheritdoc ISwapper
   function getAmountIn(
     address assetIn,
     address assetOut,
@@ -85,7 +96,7 @@ contract UniswapV2Swapper is ISwapper {
     amountIn = amounts[0];
   }
 
-  /// inherit ISwapper
+  /// @inheritdoc ISwapper
   function getAmountOut(
     address assetIn,
     address assetOut,
@@ -101,6 +112,14 @@ contract UniswapV2Swapper is ISwapper {
     amountOut = amounts[1];
   }
 
+  /**
+   * @dev Build trade path for swap.
+   * Requirements:
+   * - Must use WETH as a path when neither `assetIn` or `assetOut` are WETH.
+   *
+   * @param assetIn address
+   * @param assetOut address
+   */
   function _buildPath(
     address assetIn,
     address assetOut
