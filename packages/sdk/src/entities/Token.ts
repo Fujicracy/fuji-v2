@@ -1,5 +1,3 @@
-import AnkrProvider from '@ankr.com/ankr.js';
-import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
 import { formatUnits } from '@ethersproject/units';
@@ -7,7 +5,6 @@ import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { FUJI_ORACLE_ADDRESS } from '../constants/addresses';
-import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
 import {
@@ -119,33 +116,19 @@ export class Token extends AbstractCurrency {
   }
 
   /**
-   * Fetch token price in USD from Ankr rpc and returns it.
+   * Fetch token price in USD.
    */
   async getPriceUSD(): Promise<number> {
-    // handle testnets differently because they are not available on Ankr
-    if (
-      [ChainId.GOERLI, ChainId.OPTIMISM_GOERLI, ChainId.MATIC_MUMBAI].includes(
-        this.chainId
-      )
-    ) {
-      invariant(this.rpcProvider, 'Connection not set!');
-      return FujiOracle__factory.connect(
-        FUJI_ORACLE_ADDRESS[this.chainId].value,
-        this.rpcProvider
-      )
-        .getPriceOf(this.address.value, AddressZero, this.decimals)
-        .then((price) =>
-          parseFloat(formatUnits(price.toString(), this.decimals))
-        );
-    }
+    invariant(this.rpcProvider, 'Connection not set!');
 
-    const provider = new AnkrProvider();
-    return provider
-      .getTokenPrice({
-        blockchain: CHAIN[this.chainId].ankrKey as Blockchain,
-        contractAddress: this.address.value,
-      })
-      .then(({ usdPrice }) => parseFloat(usdPrice));
+    return FujiOracle__factory.connect(
+      FUJI_ORACLE_ADDRESS[this.chainId].value,
+      this.rpcProvider
+    )
+      .getPriceOf(this.address.value, AddressZero, this.decimals)
+      .then((price) =>
+        parseFloat(formatUnits(price.toString(), this.decimals))
+      );
   }
 
   /**
