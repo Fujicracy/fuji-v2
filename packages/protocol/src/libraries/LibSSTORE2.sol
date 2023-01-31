@@ -45,7 +45,6 @@ library LibSSTORE2 {
       // Returns all code in the contract except for the first 11 (0B in hex) bytes.
       runtimeCode
     );
-    // The bytecode we want the contract to have after deployment. Capped at 1 byte less than the code size limit.
 
     /// @solidity memory-safe-assembly
     assembly {
@@ -101,9 +100,9 @@ library LibSSTORE2 {
        * @dev Update the free memory pointer to prevent overriding our data.
        * We use and(x, not(31)) as a cheaper equivalent to sub(x, mod(x, 32)).
        * Adding 31 to size and running the result through the logic above ensures
-       * the memory pointer remains word-aligned, following the Solidity convention.
-       * mstore(0x40, add(data, and(add(add(size, 32), 31), not(31))))
+       * he memory pointer remains word-aligned, following the Solidity convention.
        */
+      mstore(0x40, add(data, and(add(add(size, 32), 31), not(31))))
 
       // Store the size of the data in the first 32 byte chunk of free memory.
       mstore(data, size)

@@ -10,7 +10,7 @@ import {BorrowingVaultFactory} from "../../../src/vaults/borrowing/BorrowingVaul
 import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 import {YieldVaultFactory} from "../../../src/vaults/yield/YieldVaultFactory.sol";
 
-contract VaultFactoryDeploymentTests is MockingSetup {
+contract VaultFactoryDeploymentUnitTests is MockingSetup {
   BorrowingVaultFactory public bVaultFactory;
   YieldVaultFactory public yVaultFactory;
 
