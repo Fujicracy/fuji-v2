@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title DForce
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with DForce.
+ *
+ * @dev The IAddrMapper needs to be properly configured for DForce.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -12,15 +22,6 @@ import {IIETH} from "../../interfaces/dforce/IIETH.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibDForce} from "../../libraries/LibDForce.sol";
 
-/**
- * @title DForce
- *
- * @author Fujidao Labs
- *
- * @notice This contract allows interaction with DForce.
- *
- * @dev The IAddrMapper needs to be properly configured for DForce.
- */
 contract DForce is ILendingProvider {
   /**
    * @param token address of the 'token'

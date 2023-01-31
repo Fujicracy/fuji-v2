@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
 /**
  * @title ICToken
+ *
  * @author 0vix
+ *
+ * @notice Defines the interface to work with 0vix.
+ * Main interface difference with compoundv2-conctracts are:
+ * `borrowRatePerTimestamp()` and `supplyRatePerTimestamp()`
+ * methods which are timestamp based instead of block number
+ * based.
  */
+
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
 interface ICToken is IERC20 {
   function accrualBlockTimestamp() external view returns (uint256);
 

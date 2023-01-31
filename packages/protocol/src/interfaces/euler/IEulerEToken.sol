@@ -3,8 +3,13 @@ pragma solidity 0.8.15;
 
 /**
  * @title IEulerEToken
+ *
  * @author Euler
+ *
+ * @notice Interface to interact with Euler receipt
+ * tokens.
  */
+
 interface IEulerEToken {
   function underlyingAsset() external view returns (address);
 

@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IVault} from "../../interfaces/IVault.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IEulerMarkets} from "../../interfaces/euler/IEulerMarkets.sol";
-import {IEulerEToken} from "../../interfaces/euler/IEulerEToken.sol";
-import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
-
 /**
  * @title Euler
  *
@@ -15,6 +8,14 @@ import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
  *
  * @notice This contract allows interaction with Euler Finance.
  */
+
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IEulerMarkets} from "../../interfaces/euler/IEulerMarkets.sol";
+import {IEulerEToken} from "../../interfaces/euler/IEulerEToken.sol";
+import {IEulerDToken} from "../../interfaces/euler/IEulerDToken.sol";
+
 contract Euler is ILendingProvider {
   /**
    * @dev Returns the {IEulerMarkets} to interact with Euler.

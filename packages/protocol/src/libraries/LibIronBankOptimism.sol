@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
-import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
-
 /**
- * @title IronBank latest ICToken data on Optimisim.
+ * @title LibIronBankOptimism
  *
  * @author Fujidao Labs
  *
  * @notice This implementation is modifed from "./LibCompoundV2".
  * @dev Interest accrual in IronBank optimism is based on block.timestamp as opposed to block.number.
  */
+
+import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
+import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
+
 library LibIronBankOptimism {
   using LibSolmateFixedPointMath for uint256;
 

@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IVault} from "../../interfaces/IVault.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
-
 /**
  * @title RadiantArbitrum
  *
@@ -13,6 +8,12 @@ import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
  *
  * @notice This contract allows interaction with Radiant.
  */
+
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IV2Pool} from "../../interfaces/aaveV2/IV2Pool.sol";
+
 contract RadiantArbitrum is ILendingProvider {
   /**
    * @dev Returns the {IV2Pool} pool to interact with Radiant.

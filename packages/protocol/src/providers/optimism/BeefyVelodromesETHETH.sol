@@ -1,6 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title BeefyVelodromesETHETH
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with this specific vault.
+ * Beefy Velodrome sETH-ETH Optimism Lending Provider
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -11,11 +20,6 @@ import {IBeefyUniV2ZapVelodrome} from "../../interfaces/beefy/IBeefyUniV2ZapVelo
 import {IVelodromePair} from "../../interfaces/velodrome/IVelodromePair.sol";
 import {IVelodromeRouter} from "../../interfaces/velodrome/IVelodromeRouter.sol";
 
-/**
- * @title Beefy Velodrome sETH-ETH Optimism Lending Provider
- * @author Fujidao Labs
- * @notice This contract allows interaction with this specific vault.
- */
 contract BeefyVelodromesETHETH is ILendingProvider {
   /// @dev Custom errors
   error BeefyVelodromesETHETHOptimism__notImplemented();

@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IVault} from "../../interfaces/IVault.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IMorpho} from "../../interfaces/morpho/IMorpho.sol";
-import {ILens} from "../../interfaces/morpho/ILens.sol";
-import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
-
 /**
  * @title MorphoAaveV2
  *
@@ -17,6 +10,14 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  *
  * @dev The IAddrMapper needs to be properly configured for AaveV2.
  */
+
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IMorpho} from "../../interfaces/morpho/IMorpho.sol";
+import {ILens} from "../../interfaces/morpho/ILens.sol";
+import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
+
 contract MorphoAaveV2 is ILendingProvider {
   address public constant MORPHO = 0x777777c9898D384F785Ee44Acfe945efDFf5f3E0;
   address public constant LENS = 0x507fA343d0A90786d86C7cd885f5C49263A91FF4;

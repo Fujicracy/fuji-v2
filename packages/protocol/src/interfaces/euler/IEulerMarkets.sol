@@ -3,8 +3,12 @@ pragma solidity 0.8.15;
 
 /**
  * @title IEulerMarkets
+ *
  * @author Euler
+ *
+ * @notice Interface to interact with Euler markets.
  */
+
 interface IEulerMarkets {
   function activateMarket(address underlying) external returns (address);
 

@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IVault} from "../../interfaces/IVault.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
-
 /**
  * @title AaveV3Optimism
  *
@@ -13,6 +8,12 @@ import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
  *
  * @notice This contract allows interaction with AaveV3.
  */
+
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IV3Pool} from "../../interfaces/aaveV3/IV3Pool.sol";
+
 contract AaveV3Optimism is ILendingProvider {
   /**
    * @dev Returns the {IV3Pool} pool to interact with AaveV3

@@ -1,10 +1,13 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
 /**
- * @title Compound's modified Comet Main Interface (without Ext)
- * @notice Methods to interact with Compound V3 Comet
+ * @title ICompoundV3
+ *
  * @author Fujidao Labs
+ *
+ * @notice Methods to interact with Compound V3 Comet.
+ * This interface has been reduced from the Comet main interface.
  */
 interface ICompoundV3 {
   struct AssetInfo {

@@ -3,8 +3,13 @@ pragma solidity 0.8.15;
 
 /**
  * @title ILens
+ *
  * @author Morpho
+ *
+ * @notice Interface to query information at
+ * Morpho protocol.
  */
+
 interface ILens {
   function getCurrentSupplyBalanceInOf(
     address _poolToken,

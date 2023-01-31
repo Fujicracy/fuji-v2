@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
-import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
-
 /**
- * @title CompoundV2 latest ICToken data.
+ * @title LibCompoundV2
  *
  * @author Fujidao Labs
  *
- * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound)
+ * @notice This library implements workaround methods to compute
+ * the latest state (of interest accroual) without having to call
+ * change state methods directly on Compound.
+ *
+ * @dev Inspired and modified from Transmissions11
+ * (https://github.com/transmissions11/libcompound)
  */
+
+import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
+import {ICToken} from "../interfaces/compoundV2/ICToken.sol";
+
 library LibCompoundV2 {
   using LibSolmateFixedPointMath for uint256;
 

@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title IronBank
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with IronBank .
+ *
+ * @dev The IAddrMapper needs to be properly configured for IronBank.
+ */
+
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
@@ -11,15 +21,6 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
-/**
- * @title IronBank
- *
- * @author Fujidao Labs
- *
- * @notice This contract allows interaction with IronBank .
- *
- * @dev The IAddrMapper needs to be properly configured for IronBank.
- */
 contract IronBank is ILendingProvider {
   /// @dev Custom errors
   error IronBank__deposit_failed(uint256 status);

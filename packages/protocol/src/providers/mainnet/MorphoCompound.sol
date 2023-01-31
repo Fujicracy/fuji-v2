@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IVault} from "../../interfaces/IVault.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IMorpho} from "../../interfaces/morpho/IMorpho.sol";
-import {ILens} from "../../interfaces/morpho/ILens.sol";
-import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
-
 /**
  * @title  MorphoCompound
  *
@@ -17,6 +10,14 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  *
  * @dev The IAddrMapper needs to be properly configured for CompoundV3
  */
+
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IMorpho} from "../../interfaces/morpho/IMorpho.sol";
+import {ILens} from "../../interfaces/morpho/ILens.sol";
+import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
+
 contract MorphoCompound is ILendingProvider {
   address public constant LENS = 0x930f1b46e1D081Ec1524efD95752bE3eCe51EF67;
   address public constant MORPHO = 0x8888882f8f843896699869179fB6E4f7e3B58888;

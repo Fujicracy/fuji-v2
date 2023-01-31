@@ -3,7 +3,10 @@ pragma solidity 0.8.15;
 
 /**
  * @title IEulerDToken
+ *
  * @author Euler
+ *
+ * @notice Interface to interact with Euler protcocol.
  */
 interface IEulerDToken {
   function underlyingAsset() external view returns (address);

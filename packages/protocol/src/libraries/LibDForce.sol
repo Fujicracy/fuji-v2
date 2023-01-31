@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
-import {IGenIToken} from "../interfaces/dforce/IGenIToken.sol";
-
 /**
- * @title DForce latest IGenIToken data.
+ * @title LibDForce
  *
  * @author Fujidao Labs
  *
  * @notice This implementation is modifed from "./LibCompoundV2".
  * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound).
  */
+
+import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
+import {IGenIToken} from "../interfaces/dforce/IGenIToken.sol";
+
 library LibDForce {
   using LibSolmateFixedPointMath for uint256;
 

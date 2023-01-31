@@ -3,7 +3,11 @@ pragma solidity 0.8.15;
 
 /**
  * @title IV3Pool
+ *
  * @author Aave
+ *
+ * @notice Defines the interface for AaveV3 main
+ * pool contract.
  */
 interface IV3Pool {
   struct ReserveConfigurationMap {
@@ -30,35 +34,35 @@ interface IV3Pool {
   }
 
   struct ReserveData {
-    //stores the reserve configuration
+    // Stores the reserve configuration
     ReserveConfigurationMap configuration;
-    //the liquidity index. Expressed in ray
+    // The liquidity index. Expressed in ray.
     uint128 liquidityIndex;
-    //the current supply rate. Expressed in ray
+    // The current supply rate. Expressed in ray.
     uint128 currentLiquidityRate;
-    //variable borrow index. Expressed in ray
+    // Variable borrow index. Expressed in ray.
     uint128 variableBorrowIndex;
-    //the current variable borrow rate. Expressed in ray
+    // The current variable borrow rate. Expressed in ray.
     uint128 currentVariableBorrowRate;
-    //the current stable borrow rate. Expressed in ray
+    // The current stable borrow rate. Expressed in ray.
     uint128 currentStableBorrowRate;
-    //timestamp of last update
+    // Timestamp of last update.
     uint40 lastUpdateTimestamp;
-    //the id of the reserve. Represents the position in the list of the active reserves
+    // The id of the reserve. Represents the position in the list of the active reserves.
     uint16 id;
-    //aToken address
+    // aToken address.
     address aTokenAddress;
-    //stableDebtToken address
+    // StableDebtToken address.
     address stableDebtTokenAddress;
-    //variableDebtToken address
+    // VariableDebtToken address.
     address variableDebtTokenAddress;
-    //address of the interest rate strategy
+    // Address of the interest rate strategy.
     address interestRateStrategyAddress;
-    //the current treasury balance, scaled
+    // The current treasury balance, scaled.
     uint128 accruedToTreasury;
-    //the outstanding unbacked aTokens minted through the bridging feature
+    // The outstanding unbacked aTokens minted through the bridging feature.
     uint128 unbacked;
-    //the outstanding debt borrowed against this asset in isolation mode
+    // The outstanding debt borrowed against this asset in isolation mode.
     uint128 isolationModeTotalDebt;
   }
 

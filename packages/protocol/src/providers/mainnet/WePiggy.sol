@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title WePiggy
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with WePiggy.
+ *
+ * @dev The IAddrMapper needs to be properly configured for WePiggy.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -14,15 +24,6 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
-/**
- * @title WePiggy
- *
- * @author Fujidao Labs
- *
- * @notice This contract allows interaction with WePiggy.
- *
- * @dev The IAddrMapper needs to be properly configured for WePiggy.
- */
 contract WePiggy is ILendingProvider {
   /// @dev Custom errors
   error WePiggy__deposit_failed(uint256 status);

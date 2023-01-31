@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
-import {ICToken} from "../interfaces/Ovix/ICToken.sol";
-
 /**
  * @title Ovix latest ICToken data.
  *
@@ -12,6 +9,10 @@ import {ICToken} from "../interfaces/Ovix/ICToken.sol";
  * @notice This implementation is modifed from "./LibCompoundV2".
  * @notice Inspired and modified from Transmissions11 (https://github.com/transmissions11/libcompound).
  */
+
+import {LibSolmateFixedPointMath} from "./LibSolmateFixedPointMath.sol";
+import {ICToken} from "../interfaces/Ovix/ICToken.sol";
+
 library LibOvix {
   using LibSolmateFixedPointMath for uint256;
 

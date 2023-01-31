@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {IVault} from "../../interfaces/IVault.sol";
-import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
-import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
-
 /**
  * @title CompoundV3
  *
@@ -16,6 +11,12 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
  * @dev The IAddrMapper needs to be properly configured for CompoundV3.
  * See `_getMarketAndAssets`.
  */
+
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
+import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
+
 contract CompoundV3 is ILendingProvider {
   /// @dev Custom errors
   error CompoundV3__wrongMarket();

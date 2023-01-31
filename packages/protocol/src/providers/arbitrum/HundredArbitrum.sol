@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title HundredArbitrum
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with Hundred.
+ *
+ * @dev The IAddrMapper needs to be properly configured for Hundred.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -15,15 +25,6 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
 
-/**
- * @title HundredArbitrum
- *
- * @author Fujidao Labs
- *
- * @notice This contract allows interaction with Hundred.
- *
- * @dev The IAddrMapper needs to be properly configured for Hundred.
- */
 contract HundredArbitrum is ILendingProvider {
   /// @dev Custom errors
   error Hundred__deposit_failed(uint256 status);
