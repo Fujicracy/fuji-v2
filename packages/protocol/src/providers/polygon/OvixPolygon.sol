@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title OvixPolygon
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with 0vix.
+ *
+ * @dev The IAddrMapper needs to be properly configured for 0vix.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -14,38 +24,50 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibOvix} from "../../libraries/LibOvix.sol";
 
-/**
- * @title 0vix Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with 0vix.
- */
-
 contract OvixPolygon is ILendingProvider {
+  /// @dev Custom errors
   error Ovix__deposit_failed(uint256 status);
   error Ovix__payback_failed(uint256 status);
   error Ovix__withdraw_failed(uint256 status);
   error Ovix__borrow_failed(uint256 status);
 
+  /**
+   * @param token address of the 'token'
+   *
+   * @dev Returns true/false wether the given 'token' is/isn't WMATIC.
+   */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
   }
 
+  /**
+   * @dev Returns the {IAddrMapper} on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
   }
 
-  function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("0vix", underlying);
+  /**
+   * @param asset address of the token to be used as collateral/debt.
+   *
+   * @dev Returns 0vix's underlying {ICToken} associated with the 'asset' to interact with 0vix.
+   */
+  function _getCToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("0vix", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of 0vix.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xf29d0ae1A29C453df338C5eEE4f010CFe08bb3FF; // Ovix Polygon
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be approved as collateral.
+   * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
+   *
+   * @dev Approves vault's assets as collateral for 0vix Protocol.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
@@ -56,12 +78,12 @@ contract OvixPolygon is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Ovix_Polygon";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -75,7 +97,7 @@ contract OvixPolygon is ILendingProvider {
     operator = _getCToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -101,7 +123,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -121,7 +143,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -141,7 +163,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -164,7 +186,7 @@ contract OvixPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.asset());
 
@@ -176,7 +198,7 @@ contract OvixPolygon is ILendingProvider {
     rate = bRateperTimestamp * secondsPerYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
@@ -187,8 +209,8 @@ contract OvixPolygon is ILendingProvider {
     uint256 secondsPerYear = 60 * 60 * 24 * 365;
     rate = bRateperTimestamp * secondsPerYear;
   }
-  /// inheritdoc ILendingProvider
 
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -203,7 +225,7 @@ contract OvixPolygon is ILendingProvider {
     balance = LibOvix.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title  WePiggyPolygon
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with WePiggy.
+ *
+ * @dev The IAddrMapper needs to be properly configured for WePiggy.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -14,38 +24,49 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 
-/**
- * @title WePiggy Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with WePiggy.
- */
-
 contract WePiggyPolygon is ILendingProvider {
   error WePiggy__deposit_failed(uint256 status);
   error WePiggy__payback_failed(uint256 status);
   error WePiggy__withdraw_failed(uint256 status);
   error WePiggy__borrow_failed(uint256 status);
 
+  /**
+   * @param token address of the 'token'
+   *
+   * @dev Returns true/false wether the given 'token' is/isn't WMATIC.
+   */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
   }
 
+  /**
+   * @dev Returns the {IAddrMapper} on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
   }
 
-  function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("WePiggy", underlying);
+  /**
+   * @param asset address of the token to be used as collateral/debt.
+   *
+   * @dev Returns WePiggy's underlying {ICToken} associated with the 'asset' to interact with WePiggy.
+   */
+  function _getCToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("WePiggy", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of WePiggy.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xFfceAcfD39117030314A07b2C86dA36E51787948; // WePiggy Polygon
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be approved as collateral.
+   * @param _cTokenAddress address of the asset to be approved as collateral.
+   *
+   * @dev Approves vault's assets as collateral for WePiggy Protocol.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
@@ -56,12 +77,12 @@ contract WePiggyPolygon is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "WePiggy_Polygon";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -75,7 +96,7 @@ contract WePiggyPolygon is ILendingProvider {
     operator = _getCToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -101,7 +122,7 @@ contract WePiggyPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -121,7 +142,7 @@ contract WePiggyPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -141,7 +162,7 @@ contract WePiggyPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -164,7 +185,7 @@ contract WePiggyPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.asset());
 
@@ -176,7 +197,7 @@ contract WePiggyPolygon is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
@@ -187,8 +208,8 @@ contract WePiggyPolygon is ILendingProvider {
     uint256 blocksperYear = 2102400;
     rate = bRateperBlock * blocksperYear;
   }
-  /// inheritdoc ILendingProvider
 
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -203,7 +224,7 @@ contract WePiggyPolygon is ILendingProvider {
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

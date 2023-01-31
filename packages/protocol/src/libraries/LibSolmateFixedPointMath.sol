@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-/// @notice Arithmetic library with operations for fixed-point numbers.
-/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/FixedPointMathLib.sol)
-/// @author Inspired by USM (https://github.com/usmfum/USM/blob/master/contracts/WadMath.sol)
+/**
+ * @title LibSolmateFixedPointMath
+ *
+ * @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/FixedPointMathLib.sol)
+ *
+ * @notice Arithmetic library with operations for fixed-point numbers.
+ */
+
 library LibSolmateFixedPointMath {
   /*//////////////////////////////////////////////////////////////
                     SIMPLIFIED FIXED POINT OPERATIONS

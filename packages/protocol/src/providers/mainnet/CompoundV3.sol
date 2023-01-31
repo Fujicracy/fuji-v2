@@ -1,20 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title CompoundV3
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with CompoundV3.
+ *
+ * @dev The IAddrMapper needs to be properly configured for CompoundV3.
+ * See `_getMarketAndAssets`.
+ */
+
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
-/**
- * @title Compound III Comet Lending Provider.
- * @author Fujidao Labs
- * @notice This contract allows interaction with CompoundV3.
- * @dev The IAddrMapper needs to be properly configured for CompoundV3
- * See `_getMarketAndAssets`.
- */
 contract CompoundV3 is ILendingProvider {
-  // Custom errors
+  /// @dev Custom errors
   error CompoundV3__wrongMarket();
 
   /**
@@ -25,14 +29,12 @@ contract CompoundV3 is ILendingProvider {
     return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Compound_V3";
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-approveOperator}.
-   */
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address,
     address asset,
@@ -45,14 +47,14 @@ contract CompoundV3 is ILendingProvider {
     operator = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
     cMarketV3.supply(asset, amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
     // From Comet docs: "The base asset can be borrowed using the withdraw function"
@@ -60,14 +62,14 @@ contract CompoundV3 is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
     cMarketV3.withdraw(asset, amount);
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external returns (bool success) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
     // From Coment docs: 'supply' the base asset to repay an open borrow of the base asset.
@@ -75,9 +77,7 @@ contract CompoundV3 is ILendingProvider {
     success = true;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getDepositRateFor}.
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view returns (uint256 rate) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
 
@@ -92,9 +92,7 @@ contract CompoundV3 is ILendingProvider {
     }
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowRateFor}.
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view returns (uint256 rate) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
 
@@ -109,17 +107,13 @@ contract CompoundV3 is ILendingProvider {
     }
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getDepositBalance}.
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
     return cMarketV3.collateralBalanceOf(user, asset);
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowBalance}.
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3,, address debtAsset) = _getMarketAndAssets(vault);
     if (debtAsset == cMarketV3.baseToken()) {

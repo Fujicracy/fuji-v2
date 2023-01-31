@@ -20,16 +20,12 @@ contract AttackPermits is MockingSetup, Routines {
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
   uint256 public constant BORROW_AMOUNT = 200e18;
 
-  // These test prices should be inverse of each other.
-  uint256 public constant USD_PER_ETH_PRICE = 2000e18;
-  uint256 public constant ETH_PER_USD_PRICE = 5e14;
-
   function setUp() public {
     vm.label(CHARLIE, "attacker");
     attacker = CHARLIE;
 
     oracle.setUSDPriceOf(collateralAsset, USD_PER_ETH_PRICE);
-    oracle.setUSDPriceOf(debtAsset, ETH_PER_USD_PRICE);
+    oracle.setUSDPriceOf(debtAsset, USD_PER_DAI_PRICE);
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
 
