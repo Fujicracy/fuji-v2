@@ -10,11 +10,7 @@ import {
   INFURA_WSS_URL,
 } from '../constants/rpcs';
 import { ChainId, ChainType, ConnextDomain } from '../enums';
-import {
-  ChainAnkrKey,
-  ChainCoingeckoKey,
-  ChainLlamaKey,
-} from '../enums/ChainKey';
+import { ChainCoingeckoKey, ChainLlamaKey } from '../enums/ChainKey';
 import { ChainConfig } from '../types/ChainConfig';
 import { ChainConnectionDetails } from '../types/ChainConnectionDetails';
 
@@ -25,7 +21,6 @@ export class Chain {
   connextDomain?: ConnextDomain;
 
   coingeckoKey: ChainCoingeckoKey;
-  ankrKey: ChainAnkrKey;
   llamaKey: ChainLlamaKey;
 
   connection?: ChainConnectionDetails;
@@ -35,7 +30,6 @@ export class Chain {
     type: ChainType,
     connextDomain: ConnextDomain | undefined,
     coingecko: ChainCoingeckoKey,
-    ankr: ChainAnkrKey,
     llama: ChainLlamaKey
   ) {
     this.chainId = id;
@@ -44,7 +38,6 @@ export class Chain {
     this.connextDomain = connextDomain;
 
     this.coingeckoKey = coingecko;
-    this.ankrKey = ankr;
     this.llamaKey = llama;
   }
 

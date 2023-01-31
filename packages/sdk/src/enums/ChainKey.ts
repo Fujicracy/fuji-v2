@@ -10,18 +10,6 @@ export enum ChainCoingeckoKey {
   OPTIMISM_GOERLI = 'optimism-goerli',
 }
 
-// refer to https://www.ankr.com/docs/advanced-api/overview/
-export enum ChainAnkrKey {
-  ARBITRUM = 'arbitrum',
-  ETHEREUM = 'eth',
-  FANTOM = 'fantom',
-  GOERLI = 'eth_goerli',
-  MATIC = 'polygon',
-  MATIC_MUMBAI = 'polygon_mumbai',
-  OPTIMISM = 'optimism',
-  OPTIMISM_GOERLI = 'optimism_testnet',
-}
-
 export enum ChainLlamaKey {
   ARBITRUM = 'Arbitrum',
   ETHEREUM = 'Ethereum',

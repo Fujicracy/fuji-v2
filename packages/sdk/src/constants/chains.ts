@@ -1,10 +1,6 @@
 import { Chain } from '../entities/Chain';
 import { ChainId } from '../enums/ChainId';
-import {
-  ChainAnkrKey,
-  ChainCoingeckoKey,
-  ChainLlamaKey,
-} from '../enums/ChainKey';
+import { ChainCoingeckoKey, ChainLlamaKey } from '../enums/ChainKey';
 import { ChainType } from '../enums/ChainType';
 import { ConnextDomain } from '../enums/ConnextDomain';
 
@@ -14,7 +10,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.ETHEREUM,
     ChainCoingeckoKey.ETHEREUM,
-    ChainAnkrKey.ETHEREUM,
     ChainLlamaKey.ETHEREUM
   ),
   [ChainId.GOERLI]: new Chain(
@@ -22,7 +17,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.TESTNET,
     ConnextDomain.GOERLI,
     ChainCoingeckoKey.GOERLI,
-    ChainAnkrKey.GOERLI,
     ChainLlamaKey.ETHEREUM
   ),
   [ChainId.MATIC]: new Chain(
@@ -30,7 +24,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.MATIC,
     ChainCoingeckoKey.MATIC,
-    ChainAnkrKey.MATIC,
     ChainLlamaKey.MATIC
   ),
   [ChainId.MATIC_MUMBAI]: new Chain(
@@ -38,7 +31,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.TESTNET,
     ConnextDomain.MATIC_MUMBAI,
     ChainCoingeckoKey.MATIC_MUMBAI,
-    ChainAnkrKey.MATIC_MUMBAI,
     ChainLlamaKey.MATIC
   ),
   [ChainId.FANTOM]: new Chain(
@@ -46,7 +38,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     undefined,
     ChainCoingeckoKey.FANTOM,
-    ChainAnkrKey.FANTOM,
     ChainLlamaKey.FANTOM
   ),
   [ChainId.ARBITRUM]: new Chain(
@@ -54,7 +45,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.ARBITRUM,
     ChainCoingeckoKey.ARBITRUM,
-    ChainAnkrKey.ARBITRUM,
     ChainLlamaKey.ARBITRUM
   ),
   [ChainId.OPTIMISM]: new Chain(
@@ -62,7 +52,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.OPTIMISM,
     ChainCoingeckoKey.OPTIMISM,
-    ChainAnkrKey.OPTIMISM,
     ChainLlamaKey.OPTIMISM
   ),
   [ChainId.OPTIMISM_GOERLI]: new Chain(
@@ -70,7 +59,6 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.TESTNET,
     ConnextDomain.OPTIMISM_GOERLI,
     ChainCoingeckoKey.OPTIMISM_GOERLI,
-    ChainAnkrKey.OPTIMISM_GOERLI,
     ChainLlamaKey.OPTIMISM
   ),
 };
