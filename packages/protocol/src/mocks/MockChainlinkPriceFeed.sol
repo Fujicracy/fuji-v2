@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockChainlinkPriceFeed
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of a Chainlink price feed.
+ */
+
 import {IAggregatorV3} from "../interfaces/chainlink/IAggregatorV3.sol";
 
 contract MockChainlinkPriceFeed is IAggregatorV3 {
@@ -38,9 +46,11 @@ contract MockChainlinkPriceFeed is IAggregatorV3 {
     return 4;
   }
 
-  // getRoundData and latestRoundData should both raise "No data present"
-  // if they do not have data to report, instead of returning unset values
-  // which could be misinterpreted as actual reported values.
+  /**
+   * @dev getRoundData and latestRoundData should both raise "No data present"
+   * if they do not have data to report, instead of returning unset values
+   * which could be misinterpreted as actual reported values.
+   */
   function getRoundData(uint80 _roundId)
     external
     view

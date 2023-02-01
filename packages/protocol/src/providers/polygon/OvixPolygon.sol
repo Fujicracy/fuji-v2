@@ -32,9 +32,9 @@ contract OvixPolygon is ILendingProvider {
   error Ovix__borrow_failed(uint256 status);
 
   /**
-   * @param token address of the 'token'
-   *
    * @dev Returns true/false wether the given 'token' is/isn't WMATIC.
+   *
+   * @param token address of the 'token'
    */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
@@ -49,9 +49,9 @@ contract OvixPolygon is ILendingProvider {
   }
 
   /**
-   * @param asset address of the token to be used as collateral/debt.
-   *
    * @dev Returns 0vix's underlying {ICToken} associated with the 'asset' to interact with 0vix.
+   *
+   * @param asset address of the token to be used as collateral/debt.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
     cToken = _getAddrmapper().getAddressMapping("0vix", asset);
@@ -65,9 +65,9 @@ contract OvixPolygon is ILendingProvider {
   }
 
   /**
-   * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
-   *
    * @dev Approves vault's assets as collateral for 0vix Protocol.
+   *
+   * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
    */
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller

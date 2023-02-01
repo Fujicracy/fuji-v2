@@ -1,11 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockProviderV0
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of a lending provider
+ * used only in Connext forking testnets environement.
+ */
+
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {MockERC20} from "./MockERC20.sol";
 
-// used only in Connext forking testnets environement
 contract MockProviderV0 is ILendingProvider {
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {

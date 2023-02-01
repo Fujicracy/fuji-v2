@@ -44,8 +44,8 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
   }
 
   /**
+   * @notice callback enforced by an Euler flashloan
    * @param data bytes representing the encoded flashloan parameters
-   * @dev callback enforced by Euler
    */
   function onFlashLoan(bytes calldata data) external {
     (address asset, uint256 amount, address requestor, bytes memory requestorCalldata) =

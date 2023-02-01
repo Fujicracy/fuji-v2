@@ -44,9 +44,9 @@ contract CompoundV2Goerli is ILendingProvider {
   }
 
   /**
-   * @param asset address of the 'asset' to be approved as collateral.
-   *
    * @dev Approves vault's assets as collateral for Compound Protocol.
+   *
+   * @param asset address of the 'asset' to be approved as collateral.
    */
   function _enterCollatMarket(address asset) internal {
     IComptroller comptroller = IComptroller(0x05Df6C772A563FfB37fD3E04C1A279Fb30228621);
@@ -57,9 +57,9 @@ contract CompoundV2Goerli is ILendingProvider {
   }
 
   /**
-   * @param asset address of the token
-   *
    * @dev Returns true/false wether the given token is/isn't WETH.
+   *
+   * @param asset address of the token
    */
   function _isWETH(address asset) internal pure returns (bool) {
     return asset == 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
@@ -224,7 +224,6 @@ contract CompoundV2Goerli is ILendingProvider {
     bytes memory returnedBytes =
       cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
     balance = uint256(bytes32(returnedBytes));
-    // balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 
   function getBorrowBalanceTest_2(
@@ -236,11 +235,6 @@ contract CompoundV2Goerli is ILendingProvider {
     returns (uint256 balance)
   {
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
-
-    // bytes memory callData = abi.encodeWithSelector(ICToken.borrowBalanceCurrent.selector, user);
-    // bytes memory returnedBytes =
-    //   cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
-    // balance = uint256(bytes32(returnedBytes));
     balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 }

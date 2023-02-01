@@ -21,20 +21,20 @@ library LibCompoundV2 {
   using LibSolmateFixedPointMath for uint256;
 
   /**
+   * @dev Returns the current collateral balance of user.
+   *
    * @param cToken {ICToken} compound's cToken associated with the user's position
    * @param user address of the user
-   *
-   * @dev Returns the current collateral balance of user.
    */
   function viewUnderlyingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     return cToken.balanceOf(user).mulWadDown(viewExchangeRate(cToken));
   }
 
   /**
+   * @dev Returns the current borrow balance of user.
+   *
    * @param cToken {ICToken} compound's cToken associated with the user's position
    * @param user address of the user
-   *
-   * @dev Returns the current borrow balance of user.
    */
   function viewBorrowingBalanceOf(ICToken cToken, address user) internal view returns (uint256) {
     uint256 borrowIndexPrior = cToken.borrowIndex();
@@ -44,9 +44,9 @@ library LibCompoundV2 {
   }
 
   /**
-   * @param cToken {ICToken} compound's cToken associated with the user's position
-   *
    * @dev Returns the current exchange rate for a given cToken.
+   *
+   * @param cToken {ICToken} compound's cToken associated with the user's position
    */
   function viewExchangeRate(ICToken cToken) internal view returns (uint256) {
     uint256 accrualBlockNumberPrior = cToken.accrualBlockNumber();
@@ -75,9 +75,9 @@ library LibCompoundV2 {
   }
 
   /**
-   * @param cToken {ICToken} compound's cToken associated with the user's position
-   *
    * @dev Returns the current borrow index for a given cToken.
+   *
+   * @param cToken {ICToken} compound's cToken associated with the user's position
    */
   function viewNewBorrowIndex(ICToken cToken) internal view returns (uint256 newBorrowIndex) {
     // Remember the initial block number

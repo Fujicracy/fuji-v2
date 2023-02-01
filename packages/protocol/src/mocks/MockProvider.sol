@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockProvider
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of a lending provider.
+ *
+ * @dev This contract works in conjunction with
+ * {MockERC20} to allow simulation and tracking of token
+ * balances.
+ */
+
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {MockERC20} from "./MockERC20.sol";
