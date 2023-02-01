@@ -2,9 +2,12 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Helper library for bundling operations thru Connext.
+ * @title LibConnextBundler
+ *
  * @author Fujidao Labs
- * @notice Helper library to construct params to be passed to Connext Router
+ *
+ * @notice Helper library for bundling operations through Connext.
+ * It helps construct params to be passed to Connext Router
  * for the most common operations.
  */
 

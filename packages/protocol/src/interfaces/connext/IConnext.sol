@@ -2,6 +2,15 @@
 pragma solidity 0.8.15;
 
 /**
+ * @title IConnext
+ *
+ * @author Fujidao Labs
+ *
+ * @notice Defines the common interfaces and data types used
+ * to interact with Connext Amarok.
+ */
+
+/**
  * @notice These are the parameters that will remain constant between the
  * two chains. They are supplied on `xcall` and should be asserted on `execute`
  * @property to - The account that receives funds, in the event of a crosschain call,

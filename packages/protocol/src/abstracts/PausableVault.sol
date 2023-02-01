@@ -2,23 +2,27 @@
 pragma solidity 0.8.15;
 
 /**
- * @title Extended pausable contract for granular control on vault actions.
+ * @title PausableVault
+ *
  * @author Fujidao Labs
- * @notice This contract is inspired on OpenZeppelin-Pausable contract.
+ *
+ * @notice Abstract pausable contract developed for granular control over vault actions.
+ * This contract should be inherited by a vault implementation. The code is inspired on
+ * OpenZeppelin-Pausable contract.
  */
 
 import {IPausableVault} from "../interfaces/IPausableVault.sol";
 
 abstract contract PausableVault is IPausableVault {
+  /// @dev Custom Errors
   error PausableVault__requiredNotPaused_actionPaused();
   error PausableVault__requiredPaused_actionNotPaused();
 
   mapping(VaultActions => bool) private _actionsPaused;
 
   /**
-   * @dev Modifier to make a function callable only when `VaultAction` in the contract is not paused.
-   * Requirements:
-   * - The `VaultAction` in contract must not be paused.
+   * @dev Modifier to make a function callable only when `VaultAction` in the contract
+   * is not paused.
    */
   modifier whenNotPaused(VaultActions action) {
     _requireNotPaused(action);
@@ -26,34 +30,35 @@ abstract contract PausableVault is IPausableVault {
   }
 
   /**
-   * @dev Modifier to make a function callable only when `VaultAction` the contract is paused.
-   * Requirements:
-   * - The `VaultAction` in contract must be paused.
+   * @dev Modifier to make a function callable only when `VaultAction` in the contract
+   * is paused.
    */
   modifier whenPaused(VaultActions action) {
     _requirePaused(action);
     _;
   }
 
-  /// inherit IPausableVault
+  /// @inheritdoc IPausableVault
   function paused(VaultActions action) public view virtual returns (bool) {
     return _actionsPaused[action];
   }
 
-  /// inheritdoc IPausableVault
+  /// @inheritdoc IPausableVault
   function pauseForceAll() external virtual override;
 
-  /// inheritdoc IPausableVault
+  /// @inheritdoc IPausableVault
   function unpauseForceAll() external virtual override;
 
-  /// inheritdoc IPausableVault
+  /// @inheritdoc IPausableVault
   function pause(VaultActions action) external virtual override;
 
-  /// inheritdoc IPausableVault
+  /// @inheritdoc IPausableVault
   function unpause(VaultActions action) external virtual override;
 
   /**
    * @dev Throws if the `action` in contract is paused.
+   *
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _requireNotPaused(VaultActions action) private view {
     if (_actionsPaused[action]) {
@@ -63,6 +68,8 @@ abstract contract PausableVault is IPausableVault {
 
   /**
    * @dev Throws if the `action` in contract is not paused.
+   *
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _requirePaused(VaultActions action) private view {
     if (!_actionsPaused[action]) {
@@ -71,7 +78,9 @@ abstract contract PausableVault is IPausableVault {
   }
 
   /**
-   * @dev Triggers stopped state for `action`.
+   * @dev Sets pause state for `action` of this vault.
+   *
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _pause(VaultActions action) internal whenNotPaused(action) {
     _actionsPaused[action] = true;
@@ -79,7 +88,9 @@ abstract contract PausableVault is IPausableVault {
   }
 
   /**
-   * @dev Returns `action` to normal state.
+   * @dev Sets unpause state for `action` of this vault.
+   *
+   * @param action Enum: 0-deposit, 1-withdraw, 2-borrow, 3-payback
    */
   function _unpause(VaultActions action) internal whenPaused(action) {
     _actionsPaused[action] = false;
@@ -87,7 +98,7 @@ abstract contract PausableVault is IPausableVault {
   }
 
   /**
-   * @dev Forces stopped state for all `VaultActions`.
+   * @dev Forces set paused state for all `VaultActions`.
    */
   function _pauseForceAllActions() internal {
     _actionsPaused[VaultActions.Deposit] = true;
@@ -98,7 +109,7 @@ abstract contract PausableVault is IPausableVault {
   }
 
   /**
-   * @dev Returns all `VaultActions` to normal state.
+   * @dev Forces set unpause state for all `VaultActions`.
    */
   function _unpauseForceAllActions() internal {
     _actionsPaused[VaultActions.Deposit] = false;

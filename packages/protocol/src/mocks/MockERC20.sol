@@ -1,6 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockERC20
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of a ERC20 token.
+ *
+ * @dev This contract also handles lending provider-like
+ * logic to allow tracking of token balance in testing.
+ */
+
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 contract MockERC20 is ERC20 {

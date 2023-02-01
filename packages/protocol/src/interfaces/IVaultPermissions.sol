@@ -2,37 +2,50 @@
 pragma solidity 0.8.15;
 
 /**
- * @title VaultPermissions Interface.
+ * @title IVaultPermissions
+ *
  * @author Fujidao Labs
- * @notice Defines the interface for vault signed permit operations and borrow allowance.
+ *
+ * @notice Defines the interface for a vault extended with
+ * signed permit operations for `withdraw()` and `borrow()` allowance.
  */
 
 interface IVaultPermissions {
   /**
-   * @dev Emitted when the asset allowance of a `operator` for an `owner` is set by
-   * a call to {approveAsset}. `amount` is the new allowance.
-   * Allows `operator` to withdraw/transfer collateral from owner.
+   * @dev Emitted when `asset` withdraw allowance is set.
+   *
+   * @param owner who provides allowance
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
+   * @param amount of allowance given
    */
   event WithdrawApproval(address indexed owner, address operator, address receiver, uint256 amount);
 
   /**
-   * @dev Emitted when the borrow allowance of a `operator` for an `owner` is set by
-   * a call to {approveBorrow}. `amount` is the new allowance.
-   * Allows `operator` to incur debt on behalf `owner`.
+   * @dev Emitted when `debtAsset` borrow allowance is set.
+   *
+   * @param owner who provides allowance
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
+   * @param amount of allowance given
    */
   event BorrowApproval(address indexed owner, address operator, address receiver, uint256 amount);
 
-  /**
-   * @dev Based on {IERC20Permit-DOMAIN_SEPARATOR}.
-   */
+  /// @dev Based on {IERC20Permit-DOMAIN_SEPARATOR}.
   // solhint-disable-next-line func-name-mixedcase
   function DOMAIN_SEPARATOR() external returns (bytes32);
 
   /**
-   * @dev Based on {IERC20-allowance} for assets, instead of shares.
+   * @notice Returns the current amount of withdraw allowance from `owner` to `receiver` that
+   * can be executed by `operator`. This is similar to {IERC20-allowance} for BaseVault assets,
+   * instead of token-shares.
    *
-   * Requirements:
-   * - By convention this SHOULD be used over {IERC4626-allowance}.
+   * @param owner who provides allowance
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
+   *
+   * @dev Requirements:
+   * - Must replace {IERC4626-allowance} in a vault implementation.
    */
   function withdrawAllowance(
     address owner,
@@ -44,7 +57,13 @@ interface IVaultPermissions {
     returns (uint256);
 
   /**
-   * @dev Based on {IERC20-allowance} for debt.
+   * @notice Returns the current amount of borrow allowance from `owner` to `receiver` that
+   * can be executed by `operator`. This is similar to {IERC20-allowance} for
+   * BaseVault-debtAsset.
+   *
+   * @param owner who provides allowance
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
    */
   function borrowAllowance(
     address owner,
@@ -56,12 +75,16 @@ interface IVaultPermissions {
     returns (uint256);
 
   /**
-   * @dev Atomically increases the `withdrawAllowance` granted to `operator` by the caller.
-   * Based on OZ {ERC20-increaseAllowance} for assets.
-   * Emits an {WithdrawApproval} event indicating the updated asset allowance.
+   * @dev Atomically increases the `withdrawAllowance` granted to `receiver` and
+   * executable by `operator` by the caller. Based on OZ {ERC20-increaseAllowance} for assets.
    *
-   * Requirements:
-   * - `operator` cannot be the zero address.
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
+   * @param byAmount to increase withdraw allowance
+   *
+   * @dev Requirements:
+   * - Must emit a {WithdrawApproval} event indicating the updated withdraw allowance.
+   * - Must check `operator` and `receiver are not zero address.
    */
   function increaseWithdrawAllowance(
     address operator,
@@ -72,13 +95,18 @@ interface IVaultPermissions {
     returns (bool);
 
   /**
-   * @dev Atomically decrease the `withdrawAllowance` granted to `operator` by the caller.
-   * Based on OZ {ERC20-decreaseAllowance} for assets.
-   * Emits an {WithdrawApproval} event indicating the updated asset allowance.
+   * @dev Atomically decreases the `withdrawAllowance` granted to `receiver` and
+   * executable by `operator` by the caller. Based on OZ {ERC20-decreaseAllowance} for assets.
    *
-   * Requirements:
-   * - `operator` cannot be the zero address.
-   * - `operator` must have `withdrawAllowance` for the caller of at least `byAmount`
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
+   * @param byAmount to decrease withdraw allowance
+   *
+   * @dev Requirements:
+   * - Must emit a {WithdrawApproval} event indicating the updated withdraw allowance.
+   * - Must check `operator` and `receiver` are not zero address.
+   * - Must check `operator` and `receiver` have `borrowAllowance` of at least `byAmount`.
+   *
    */
   function decreaseWithdrawAllowance(
     address operator,
@@ -89,12 +117,17 @@ interface IVaultPermissions {
     returns (bool);
 
   /**
-   * @dev Atomically increases the `borrowAllowance` granted to `operator` by the caller.
-   * Based on OZ {ERC20-increaseAllowance} for assets.
-   * Emits an {BorrowApproval} event indicating the updated borrow allowance.
+   * @dev Atomically increases the `borrowAllowance` granted to `receiver` and
+   * executable by `operator` by the caller. Based on OZ {ERC20-increaseAllowance}
+   * for `debtAsset`.
    *
-   * Requirements:
-   * - `operator` cannot be the zero address.
+   * @param operator address who can execute the use of the allowance
+   * @param receiver address who can spend the allowance
+   * @param byAmount to increase borrow allowance
+   *
+   * @dev Requirements:
+   * - Must emit a {BorrowApproval} event indicating the updated borrow allowance.
+   * - Must check `operator` and `receiver` are not zero address.
    */
   function increaseBorrowAllowance(
     address operator,
@@ -105,14 +138,18 @@ interface IVaultPermissions {
     returns (bool);
 
   /**
-   * @dev Atomically decrease the `borrowAllowance` granted to `operator` by the caller.
-   * Based on OZ {ERC20-decreaseAllowance} for assets, and
-   * inspired on credit delegation by Aave.
-   * Emits an {BorrowApproval} event indicating the updated borrow allowance.
+   * @dev Atomically decrease the `borrowAllowance` granted to `receiver` and
+   * executable by `operator` by the caller. Based on OZ {ERC20-decreaseAllowance}
+   * for `debtAsset`.
+   *
+   * @param operator who can execute the use of the allowance
+   * @param receiver who can spend the allowance
+   * @param byAmount to decrease borrow allowance
    *
    * Requirements:
-   * - `operator` cannot be the zero address.
-   * - `operator` must have `borrowAllowance` for the caller of at least `byAmount`
+   * - Must emit a {BorrowApproval} event indicating the updated borrow allowance.
+   * - Must check `operator` and `receiver` are not the zero address.
+   * - Must check `operator` and `receiver` have `borrowAllowance` of at least `byAmount`.
    */
   function decreaseBorrowAllowance(
     address operator,
@@ -123,25 +160,33 @@ interface IVaultPermissions {
     returns (bool);
 
   /**
-   * @dev Based on OZ {IERC20Permit-nonces}.
+   * @notice Returns the curent used nonces for permits of `owner`.
+   * Based on OZ {IERC20Permit-nonces}.
+   *
+   * @param owner address to check nonces
    */
   function nonces(address owner) external view returns (uint256);
 
   /**
-   * @dev Inspired by {IERC20Permit-permit} for assets.
-   * Sets `amount` as the `withdrawAllowance` of `operator` over ``owner``'s tokens,
-   * given ``owner``'s signed approval.
-   * IMPORTANT: The same issues {IERC20-approve} related to transaction
-   * ordering also apply here.
+   * @notice Sets `amount` as the `withdrawAllowance` of `receiver` executable by
+   * caller over `owner`'s tokens, given the `owner`'s signed approval.
+   * Inspired by {IERC20Permit-permit} for assets.
    *
-   * Emits an {AssetsApproval} event.
+   * @param owner providing allowance
+   * @param receiver who can spend the allowance
+   * @param amount of allowance
+   * @param deadline timestamp limit for the execution of signed permit
+   * @param v signature value
+   * @param r signature value
+   * @param s signature value
    *
-   * Requirements:
-   * - `operator` cannot be the zero address.
-   * - `deadline` must be a timestamp in the future.
-   * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
-   * over the EIP712-formatted function arguments.
-   * - the signature must use ``owner``'s current nonce (see {nonces}).
+   * @dev Requirements:
+   * - Must check `deadline` is a timestamp in the future.
+   * - Must check `receiver` is a non-zero address.
+   * - Must check that `v`, `r` and `s` are valid `secp256k1` signature for `owner`
+   *   over EIP712-formatted function arguments.
+   * - Must check the signature used `owner`'s current nonce (see {nonces}).
+   * - Must emits an {AssetsApproval} event.
    */
   function permitWithdraw(
     address owner,
@@ -155,21 +200,26 @@ interface IVaultPermissions {
     external;
 
   /**
-   * @dev Inspired by {IERC20Permit-permit} for debt.
-   * Sets `amount` as the `borrowAllowance` of `operator` over ``owner``'s borrowing powwer,
-   * given ``owner``'s signed approval.
-   * IMPORTANT: The same issues {IERC20-approve} has related to transaction
-   * ordering also apply here.
+   * @notice Sets `amount` as the `borrowAllowance` of `receiver` executable by caller over
+   * `owner`'s borrowing powwer, given the `owner`'s signed approval.
+   * Inspired by {IERC20Permit-permit} for debt.
    *
-   * Emits a {BorrowApproval} event.
+   * @param owner address providing allowance
+   * @param receiver address who can spend the allowance
+   * @param amount of allowance
+   * @param deadline timestamp limit for the execution of signed permit
+   * @param v signature value
+   * @param r signature value
+   * @param s signature value
    *
-   * Requirements:
-   * - must be implemented in a BorrowingVault.
-   * - `operator` cannot be the zero address.
-   * - `deadline` must be a timestamp in the future.
-   * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
-   * over the EIP712-formatted function arguments.
-   * - the signature must use ``owner``'s current nonce (see {nonces}).
+   * @dev Requirements:
+   * - Must emit a {BorrowApproval} event.
+   * - Must be implemented in a {BorrowingVault}.
+   * - Must check `deadline` is a timestamp in the future.
+   * - Must check `receiver` is a non-zero address.
+   * - Must check that `v`, `r` and `s` are valid `secp256k1` signature for `owner`.
+   *   over EIP712-formatted function arguments.
+   * - Must check the signature used `owner`'s current nonce (see {nonces}).
    */
   function permitBorrow(
     address owner,

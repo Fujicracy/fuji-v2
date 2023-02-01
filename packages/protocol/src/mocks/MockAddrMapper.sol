@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockAddrMapper
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of the {AddrMapper}.
+ *
+ * @dev This mapper allows permisionless setting of the mappings.
+ */
+
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {IAddrMapper} from "../interfaces/IAddrMapper.sol";
 
@@ -20,6 +30,7 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     return _providerNames;
   }
 
+  /// @inheritdoc IAddrMapper
   function getAddressMapping(
     string memory providerName,
     address inputAddr
@@ -32,6 +43,7 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     return _addrMapping[providerName][inputAddr];
   }
 
+  /// @inheritdoc IAddrMapper
   function getAddressNestedMapping(
     string memory providerName,
     address inputAddr1,
@@ -45,11 +57,7 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     return _addrNestedMapping[providerName][inputAddr1][inputAddr2];
   }
 
-  /**
-   * @dev Adds an address mapping.
-   * Requirements:
-   * - ProviderName should be formatted: Name_Version or Name_Version_Asset
-   */
+  /// @inheritdoc IAddrMapper
   function setMapping(
     string memory providerName,
     address keyAddr,
@@ -67,11 +75,7 @@ contract MockAddrMapper is IAddrMapper, Ownable {
     emit MappingChanged(inputAddrs, returnedAddr);
   }
 
-  /**
-   * @dev Adds a nested address mapping.
-   * Requirements:
-   * - ProviderName should be formatted: Name_Version or Name_Version_Asset
-   */
+  /// @inheritdoc IAddrMapper
   function setNestedMapping(
     string memory providerName,
     address keyAddr1,

@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title HundredPolygon
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with Hundred.
+ *
+ * @dev The IAddrMapper needs to be properly configured for Hundred.
+ */
+
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
@@ -15,43 +25,57 @@ import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {IProxyReceiver} from "../../interfaces/compoundV2/IProxyReceiver.sol";
 
-/**
- * @title Hundred Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with Hundred.
- */
 contract HundredPolygon is ILendingProvider {
   error Hundred__deposit_failed(uint256 status);
   error Hundred__payback_failed(uint256 status);
   error Hundred__withdraw_failed(uint256 status);
   error Hundred__borrow_failed(uint256 status);
 
+  /**
+   * @dev Returns true/false wether the given 'token' is/isn't WMATIC.
+   *
+   * @param token address of the 'token'
+   */
   function _isWMATIC(address token) internal pure returns (bool) {
     return token == 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
   }
 
+  /**
+   * @dev Returns the {IAddrMapper} on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
   }
 
-  function _getCToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("Hundred", underlying);
+  /**
+   * @dev Returns Hundred's underlying {ICToken} associated with the 'asset' to interact with Hundred.
+   *
+   * @param asset address of the token to be used as collateral/debt.
+   */
+  function _getCToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("Hundred", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of Hundred.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xEdBA32185BAF7fEf9A26ca567bC4A6cbe426e499; // Hundred Polygon
   }
 
+  /**
+   * @dev Returns the {ProxyReceiver}'s address used to withdraw from the protocol.
+   */
   function _getProxyReceiver() internal pure returns (address) {
     return 0xcE04CdE2f1eB8177286F41479d753ab8B97322A9;
   }
 
   /**
-   * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param _cTokenAddress: asset type to be approved as collateral.
+   * @dev Approves vault's assets as collateral for Hundred Protocol.
+   *
+   * @param _cTokenAddress address of the underlying {ICToken} to be approved as collateral.
    */
-
   function _enterCollatMarket(address _cTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
     IComptroller comptroller = IComptroller(_getComptrollerAddress());
@@ -61,12 +85,12 @@ contract HundredPolygon is ILendingProvider {
     comptroller.enterMarkets(cTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Hundred_Polygon";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -80,7 +104,7 @@ contract HundredPolygon is ILendingProvider {
     operator = _getCToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -106,7 +130,7 @@ contract HundredPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -126,7 +150,7 @@ contract HundredPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = _getCToken(asset);
@@ -155,7 +179,7 @@ contract HundredPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = _getCToken(asset);
@@ -178,7 +202,7 @@ contract HundredPolygon is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.asset());
 
@@ -190,7 +214,7 @@ contract HundredPolygon is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address cTokenAddr = _getCToken(vault.debtAsset());
 
@@ -202,7 +226,7 @@ contract HundredPolygon is ILendingProvider {
     rate = bRateperBlock * blocksperYear;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -217,7 +241,7 @@ contract HundredPolygon is ILendingProvider {
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

@@ -1,21 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+/**
+ * @title MockProvider
+ *
+ * @author Fuijdao Labs
+ *
+ * @notice Mock implementation of a lending provider.
+ *
+ * @dev This contract works in conjunction with
+ * {MockERC20} to allow simulation and tracking of token
+ * balances.
+ */
+
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {MockERC20} from "./MockERC20.sol";
 
 contract MockProvider is ILendingProvider {
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function providerName() public pure virtual override returns (string memory) {
     return "Mock_V1";
   }
-  /**
-   * @notice See {ILendingProvider}
-   */
 
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -29,9 +37,7 @@ contract MockProvider is ILendingProvider {
     operator = keyAsset;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     MockERC20 merc20 = MockERC20(vault.asset());
     try merc20.makeDeposit(address(vault), amount, providerName()) returns (bool result) {
@@ -39,9 +45,7 @@ contract MockProvider is ILendingProvider {
     } catch {}
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     MockERC20 merc20 = MockERC20(vault.debtAsset());
     try merc20.mintDebt(address(vault), amount, providerName()) returns (bool result) {
@@ -49,9 +53,7 @@ contract MockProvider is ILendingProvider {
     } catch {}
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     MockERC20 merc20 = MockERC20(vault.asset());
     try merc20.withdrawDeposit(address(vault), amount, providerName()) returns (bool result) {
@@ -59,9 +61,7 @@ contract MockProvider is ILendingProvider {
     } catch {}
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     MockERC20 merc20 = MockERC20(vault.debtAsset());
     try merc20.burnDebt(address(vault), amount, providerName()) returns (bool result) {
@@ -69,23 +69,17 @@ contract MockProvider is ILendingProvider {
     } catch {}
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault) external pure override returns (uint256 rate) {
     rate = 1e27;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault) external pure override returns (uint256 rate) {
     rate = 1e27;
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -98,9 +92,7 @@ contract MockProvider is ILendingProvider {
     balance = MockERC20(vault.asset()).balanceOfDeposit(user, providerName());
   }
 
-  /**
-   * @notice See {ILendingProvider}
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault

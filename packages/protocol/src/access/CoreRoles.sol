@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title CoreRoles
+ *
+ * @author Fujidao Labs
+ *
+ * @notice System definition of roles used across FujiV2 contracts.
+ */
+
 contract CoreRoles {
   bytes32 public constant HOUSE_KEEPER_ROLE = keccak256("HOUSE_KEEPER_ROLE");
 

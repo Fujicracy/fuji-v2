@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title CompoundV2Goerli
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with CompoundV2.
+ *
+ * @dev The IAddrMapper needs to be properly configured for CompoundV2.
+ */
+
 import {LibCompoundV2} from "../../libraries/LibCompoundV2.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IVault} from "../../interfaces/IVault.sol";
@@ -12,15 +22,10 @@ import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
-/**
- * @title Compound V2 Lending Provider.
- * @author Fujidao Labs
- * @notice This contract allows interaction with CompoundV2.
- * @dev The IAddrMapper needs to be properly configured for CompoundV2
- */
 contract CompoundV2Goerli is ILendingProvider {
   using Address for address;
 
+  /// @dev Custom errors
   error CompoundV2__deposit_failed(uint256 status);
   error CompoundV2__borrow_failed(uint256 status);
   error CompoundV2__withdraw_failed(uint256 status);
@@ -33,14 +38,15 @@ contract CompoundV2Goerli is ILendingProvider {
     return IAddrMapper(0x98215391359e0cedb6D24baB9823C3E2Ac1D691a);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "Compound_V2";
   }
 
   /**
    * @dev Approves vault's assets as collateral for Compound Protocol.
-   * @param asset: asset to be approved as collateral.
+   *
+   * @param asset address of the 'asset' to be approved as collateral.
    */
   function _enterCollatMarket(address asset) internal {
     IComptroller comptroller = IComptroller(0x05Df6C772A563FfB37fD3E04C1A279Fb30228621);
@@ -50,13 +56,16 @@ contract CompoundV2Goerli is ILendingProvider {
     comptroller.enterMarkets(markets);
   }
 
+  /**
+   * @dev Returns true/false wether the given token is/isn't WETH.
+   *
+   * @param asset address of the token
+   */
   function _isWETH(address asset) internal pure returns (bool) {
     return asset == 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-approveOperator}.
-   */
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -69,7 +78,7 @@ contract CompoundV2Goerli is ILendingProvider {
     operator = getMapper().getAddressMapping(providerName(), keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -94,7 +103,7 @@ contract CompoundV2Goerli is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -113,7 +122,7 @@ contract CompoundV2Goerli is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -132,7 +141,7 @@ contract CompoundV2Goerli is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external returns (bool success) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -154,9 +163,7 @@ contract CompoundV2Goerli is ILendingProvider {
     success = true;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getDepositRateFor}.
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view returns (uint256 rate) {
     address asset = vault.asset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -170,9 +177,7 @@ contract CompoundV2Goerli is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowRateFor}.
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view returns (uint256 rate) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -186,18 +191,14 @@ contract CompoundV2Goerli is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getDepositBalance}.
-   */
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.asset();
     ICToken cToken = ICToken(getMapper().getAddressMapping(providerName(), asset));
     balance = LibCompoundV2.viewUnderlyingBalanceOf(cToken, user);
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowBalance}.
-   */
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(address user, IVault vault) external view returns (uint256 balance) {
     address asset = vault.debtAsset();
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
@@ -209,9 +210,6 @@ contract CompoundV2Goerli is ILendingProvider {
     // balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowBalance}.
-   */
   function getBorrowBalanceTest_1(
     address user,
     address asset
@@ -226,12 +224,8 @@ contract CompoundV2Goerli is ILendingProvider {
     bytes memory returnedBytes =
       cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
     balance = uint256(bytes32(returnedBytes));
-    // balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 
-  /**
-   * @notice Refer to {ILendingProvider-getBorrowBalance}.
-   */
   function getBorrowBalanceTest_2(
     address user,
     address asset
@@ -241,11 +235,6 @@ contract CompoundV2Goerli is ILendingProvider {
     returns (uint256 balance)
   {
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
-
-    // bytes memory callData = abi.encodeWithSelector(ICToken.borrowBalanceCurrent.selector, user);
-    // bytes memory returnedBytes =
-    //   cTokenAddr.functionStaticCall(callData, ": borrow balance call failed");
-    // balance = uint256(bytes32(returnedBytes));
     balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
 }

@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+/**
+ * @title IronBankOptimism
+ *
+ * @author Fujidao Labs
+ *
+ * @notice This contract allows interaction with IronBank .
+ *
+ * @dev The IAddrMapper needs to be properly configured for IronBank.
+ */
+
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
@@ -11,37 +21,50 @@ import {ICERC20} from "../../interfaces/compoundV2/ICERC20.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
 import {LibIronBankOptimism} from "../../libraries/LibIronBankOptimism.sol";
 
-/**
- * @title IronBank Lending Provider.
- * @author fujidao Labs
- * @notice This contract allows interaction with IronBank .
- */
 contract IronBankOptimism is ILendingProvider {
+  /// @dev Custom errors
   error IronBank__deposit_failed(uint256 status);
   error IronBank__payback_failed(uint256 status);
   error IronBank__withdraw_failed(uint256 status);
   error IronBank__borrow_failed(uint256 status);
 
+  /**
+   * @dev Returns true/false wether the given 'token' is/isn't WETH.
+   *
+   * @param token address of the 'token'
+   */
   function _isWETH(address token) internal pure returns (bool) {
     return token == 0x4200000000000000000000000000000000000006;
   }
 
+  /**
+   * @dev Returns the {IAddrMapper} on this chain.
+   */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
     // TODO Define final address after deployment strategy is set.
     return IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA);
   }
 
-  function _getCyToken(address underlying) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("IronBank", underlying);
+  /**
+   * @dev Returns IronBank's underlying {ICToken} associated with the 'asset' to interact with IronBank.
+   *
+   * @param asset address of the token to be used as collateral/debt.
+   */
+  function _getCyToken(address asset) internal view returns (address cToken) {
+    cToken = _getAddrmapper().getAddressMapping("IronBank", asset);
   }
 
+  /**
+   * @dev Returns the Controller address of IronBank.
+   */
   function _getComptrollerAddress() internal pure returns (address) {
     return 0xE0B57FEEd45e7D908f2d0DaCd26F113Cf26715BF;
   }
 
   /**
    * @dev Approves vault's assets as collateral for IronBank Protocol.
-   * @param _cyTokenAddress: asset type to be approved as collateral.
+   *
+   * @param _cyTokenAddress address of the asset to be approved as collateral.
    */
   function _enterCollatMarket(address _cyTokenAddress) internal {
     // Create a reference to the corresponding network Comptroller
@@ -52,12 +75,12 @@ contract IronBankOptimism is ILendingProvider {
     comptroller.enterMarkets(cyTokenMarkets);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
     return "IronBank_Optimism";
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function approvedOperator(
     address keyAsset,
     address,
@@ -71,7 +94,7 @@ contract IronBankOptimism is ILendingProvider {
     operator = _getCyToken(keyAsset);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     //Get cyToken address from mapping
@@ -91,7 +114,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
 
@@ -110,7 +133,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     //Get cyToken address from mapping
@@ -128,7 +151,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
 
@@ -146,7 +169,7 @@ contract IronBankOptimism is ILendingProvider {
     success = true;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
     address asset = vault.asset();
     address cyTokenAddr = _getCyToken(asset);
@@ -160,7 +183,7 @@ contract IronBankOptimism is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
     address asset = vault.debtAsset();
     address cyTokenAddr = _getCyToken(asset);
@@ -174,7 +197,7 @@ contract IronBankOptimism is ILendingProvider {
     rate = ratePerBlock * 2102400;
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getDepositBalance(
     address user,
     IVault vault
@@ -189,7 +212,7 @@ contract IronBankOptimism is ILendingProvider {
     balance = LibIronBankOptimism.viewUnderlyingBalanceOf(cyToken, user);
   }
 
-  /// inheritdoc ILendingProvider
+  /// @inheritdoc ILendingProvider
   function getBorrowBalance(
     address user,
     IVault vault
