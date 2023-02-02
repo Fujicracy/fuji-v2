@@ -103,6 +103,20 @@ interface IVault is IERC4626 {
   event DepositCapChanged(uint256 newDepositCap);
 
   /*///////////////////////////
+    Asset management functions
+  //////////////////////////*/
+
+  /**
+   * @notice Returns the amount of assets owned by `owner`.
+   *
+   * @param owner to check balance
+   *
+   * @dev This method avoids having to do external conversions from shares to
+   * assets, since {IERC4626-balanceOf} returns shares.
+   */
+  function balanceOfAsset(address owner) external view returns (uint256 assets);
+
+  /*///////////////////////////
     Debt management functions
   //////////////////////////*/
 
@@ -127,11 +141,18 @@ interface IVault is IERC4626 {
   function debtAsset() external view returns (address);
 
   /**
-   * @dev Returns the amount of debt owned by `owner`.
+   * @notice Returns the amount of debt owned by `owner`.
    *
    * @param owner to check balance
    */
   function balanceOfDebt(address owner) external view returns (uint256 debt);
+
+  /**
+   * @notice Returns the amount of `debtShares` owned by `owner`.
+   *
+   * @param owner to check balance
+   */
+  function balanceOfDebtShares(address owner) external view returns (uint256 debtShares);
 
   /**
    * @notice Returns the total amount of the underlying debt asset

@@ -69,6 +69,9 @@ contract YieldVault is BaseVault {
   function balanceOfDebt(address) public pure override returns (uint256) {}
 
   /// @inheritdoc BaseVault
+  function balanceOfDebtShares(address owner) external view override returns (uint256 debtShares) {}
+
+  /// @inheritdoc BaseVault
   function totalDebt() public pure override returns (uint256) {}
 
   /// @inheritdoc BaseVault
