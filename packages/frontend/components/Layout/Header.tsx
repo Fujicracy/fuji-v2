@@ -25,7 +25,7 @@ import { useRouter } from "next/router"
 import shallow from "zustand/shallow"
 
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
-import ChainSelect from "../Form/ChainSelect"
+import ChainSelect from "./ChainSelect"
 import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
 import { useStore } from "../../store"
