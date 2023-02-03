@@ -14,6 +14,8 @@ import {AaveV3Optimism} from "../src/providers/optimism/AaveV3Optimism.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -22,6 +24,7 @@ contract DeployOptimism is ScriptPlus {
   Chief chief;
   BorrowingVaultFactory factory;
   IConnext connextHandler;
+  TimelockController timelock;
 
   ConnextRouter connextRouter;
 
@@ -58,10 +61,10 @@ contract DeployOptimism is ScriptPlus {
     /*saveAddress("AaveV3Optimism", address(aaveV3Optimism));*/
 
     chief = Chief(getAddress("Chief"));
-    /*chief = new Chief(false, false);*/
+    /*chief = new Chief(true, false);*/
     /*saveAddress("Chief", address(chief));*/
-    /*bytes32 REBALANCER_ROLE = keccak256("REBALANCER_ROLE");*/
-    /*chief.grantRole(REBALANCER_ROLE, msg.sender);*/
+
+    timelock = TimelockController(payable(chief.timelock()));
 
     oracle = FujiOracle(getAddress("FujiOracle"));
     /*address[] memory assets = new address[](2);*/
@@ -73,31 +76,66 @@ contract DeployOptimism is ScriptPlus {
     /*oracle = new FujiOracle(assets, feeds, address(chief));*/
     /*saveAddress("FujiOracle", address(oracle));*/
 
+    connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
     /*connextRouter = new ConnextRouter(WETH, connextHandler, chief);*/
     /*saveAddress("ConnextRouter", address(connextRouter));*/
 
     factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
     /*factory = new BorrowingVaultFactory(address(chief));*/
     /*saveAddress("BorrowingVaultFactory", address(factory));*/
-    /*factory.setContractCode(vm.getCode("BorrowingVault.sol:BorrowingVault"));*/
-    /*chief.allowVaultFactory(address(factory), true);*/
+
+    /*_scheduleWithTimelock(*/
+    /*address(factory),*/
+    /*abi.encodeWithSelector(*/
+    /*factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")*/
+    /*)*/
+    /*);*/
+    /*_executeWithTimelock(*/
+    /*address(factory),*/
+    /*abi.encodeWithSelector(*/
+    /*factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")*/
+    /*)*/
+    /*);*/
+    /*_scheduleWithTimelock(*/
+    /*address(chief),*/
+    /*abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true)*/
+    /*);*/
+    /*_executeWithTimelock(*/
+    /*address(chief),*/
+    /*abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true)*/
+    /*);*/
 
     /*_deployVault(address(WETH), address(DAI), "BorrowingVault-WETHDAI");*/
-    _deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");
+    /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
+
+    /*address polygonRouter = getAddressAt("ConnextRouter", "polygon");*/
+    /*_scheduleWithTimelock(*/
+    /*address(connextRouter),*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, POLYGON_DOMAIN, polygonRouter)*/
+    /*);*/
+    /*_executeWithTimelock(*/
+    /*address(connextRouter),*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, POLYGON_DOMAIN, polygonRouter)*/
+    /*);*/
 
     vm.stopBroadcast();
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
-    address vault =
-      chief.deployVault(address(factory), abi.encode(collateral, debtAsset, address(oracle)), 95);
-    saveAddress(name, vault);
-
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aaveV3Optimism;
-    BorrowingVault(payable(vault)).setProviders(providers);
+    address vault = chief.deployVault(
+      address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
+    );
+    saveAddress(name, vault);
+  }
 
-    BorrowingVault(payable(vault)).setActiveProvider(aaveV3Optimism);
+  function _scheduleWithTimelock(address target, bytes memory callData) internal {
+    timelock.schedule(target, 0, callData, 0x00, 0x00, 1 seconds);
+  }
+
+  function _executeWithTimelock(address target, bytes memory callData) internal {
+    timelock.execute(target, 0, callData, 0x00, 0x00);
   }
 }
