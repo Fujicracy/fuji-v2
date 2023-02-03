@@ -16,23 +16,17 @@ import {IRouter} from "../../src/interfaces/IRouter.sol";
 import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
+import {ChainlinkFeeds} from "./ChainlinkFeeds.sol";
 
 // How to add a new chain with its domain?
 // 1. Add a domain ID. Domains originate from Connext (check their docs)
 // 2. Create a fork and save it in "forks" mapping
 // 3. Create a registry entry with addresses for reuiqred resources
 
-contract ForkingSetup is CoreRoles, Test {
+contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   uint32 public constant GOERLI_DOMAIN = 1735353714;
   uint32 public constant OPTIMISM_GOERLI_DOMAIN = 1735356532;
   uint32 public constant MUMBAI_DOMAIN = 9991;
-
-  uint32 public constant MAINNET_DOMAIN = 6648936;
-  uint32 public constant OPTIMISM_DOMAIN = 1869640809;
-  uint32 public constant ARBITRUM_DOMAIN = 1634886255;
-  uint32 public constant POLYGON_DOMAIN = 1886350457;
-  uint32 public constant GNOSIS_DOMAIN = 6778479;
-  //https://github.com/connext/chaindata/blob/main/crossChain.json
 
   uint256 public constant ALICE_PK = 0xA;
   address public ALICE = vm.addr(ALICE_PK);
@@ -181,25 +175,19 @@ contract ForkingSetup is CoreRoles, Test {
   }
 
   function deploy(ILendingProvider[] memory providers) public {
-    // TODO: replace with real oracle
-    mockOracle = new MockOracle();
-    /*address[] memory empty = new address[](0);*/
-    /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
-
-    // WETH and DAI prices by Nov 11h 2022
-    mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
-    mockOracle.setUSDPriceOf(debtAsset, 100000000);
-
     chief = new Chief(true, true);
     timelock = TimelockController(payable(chief.timelock()));
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
+    FujiOracle oracle =
+      new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
+
     vault = new BorrowingVault(
       collateralAsset,
       debtAsset,
-      address(mockOracle),
+      address(oracle),
       address(chief),
       "Fuji-V2 WETH-USDC Vault Shares",
       "fv2WETHUSDC",
@@ -223,15 +211,6 @@ contract ForkingSetup is CoreRoles, Test {
     vm.label(collateralAsset_, collateralAssetName);
     vm.label(debtAsset, debtAssetName);
 
-    // TODO: replace with real oracle
-    mockOracle = new MockOracle();
-    /*address[] memory empty = new address[](0);*/
-    /*FujiOracle oracle = new FujiOracle(empty, empty, address(chief));*/
-
-    //TODO only being used for wmatic and usdc, the following lines will be unecessary once real oracle is used
-    mockOracle.setUSDPriceOf(collateralAsset, collateralAssetUSDPrice);
-    mockOracle.setUSDPriceOf(debtAsset, debtAssetUSDPrice);
-
     string memory nameVault =
       string.concat("Fuji-V2 ", collateralAssetName, "-", debtAssetName, " Vault Shares");
     string memory symbolVault = string.concat("fv2", collateralAssetName, debtAssetName);
@@ -242,10 +221,13 @@ contract ForkingSetup is CoreRoles, Test {
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
+    FujiOracle oracle =
+      new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
+
     vault = new BorrowingVault(
       collateralAsset,
       debtAsset,
-      address(mockOracle),
+      address(oracle),
       address(chief),
       nameVault,
       symbolVault,
