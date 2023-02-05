@@ -10,7 +10,7 @@ import {IVault} from "../src/interfaces/IVault.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
-import {AaveV3Optimism} from "../src/providers/optimism/AaveV3Optimism.sol";
+import {AaveV3Arbitrum} from "../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -19,31 +19,31 @@ import {TimelockController} from
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract DeployOptimism is ScriptPlus {
+contract DeployArbitrum is ScriptPlus {
   Chief chief;
   BorrowingVaultFactory factory;
   TimelockController timelock;
   FujiOracle oracle;
   ConnextRouter connextRouter;
 
-  AaveV3Optimism aaveV3Optimism;
+  AaveV3Arbitrum aaveV3Arbitrum;
 
-  IConnext connextHandler = IConnext(0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA);
-  IWETH9 WETH = IWETH9(0x4200000000000000000000000000000000000006);
+  IConnext connextHandler = IConnext(0xEE9deC2712cCE65174B561151701Bf54b99C24C8);
+  IWETH9 WETH = IWETH9(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
   ERC20 DAI;
-  ERC20 USDC = ERC20(0x7F5c764cBc14f9669B88837ca1490cCa17c31607);
+  ERC20 USDC = ERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
   ERC20 USDT;
 
   function setUp() public {
-    chainName = "optimism";
+    chainName = "arbitrum";
   }
 
   function run() public {
     vm.startBroadcast();
 
-    aaveV3Optimism = AaveV3Optimism(getAddress("AaveV3Optimism"));
-    /*aaveV3Optimism = new AaveV3Optimism();*/
-    /*saveAddress("AaveV3Optimism", address(aaveV3Optimism));*/
+    aaveV3Arbitrum = AaveV3Arbitrum(getAddress("AaveV3Arbitrum"));
+    /*aaveV3Arbitrum = new AaveV3Arbitrum();*/
+    /*saveAddress("AaveV3Arbitrum", address(aaveV3Arbitrum));*/
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -56,8 +56,8 @@ contract DeployOptimism is ScriptPlus {
     /*assets[0] = address(WETH);*/
     /*assets[1] = address(USDC);*/
     /*address[] memory feeds = new address[](2);*/
-    /*feeds[0] = 0x13e3Ee699D1909E989722E753853AE30b17e08c5;*/
-    /*feeds[1] = 0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3;*/
+    /*feeds[0] = 0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612;*/
+    /*feeds[1] = 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3;*/
     /*oracle = new FujiOracle(assets, feeds, address(chief));*/
     /*saveAddress("FujiOracle", address(oracle));*/
 
@@ -75,15 +75,15 @@ contract DeployOptimism is ScriptPlus {
     /*factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")*/
     /*)*/
     /*);*/
+    /*_scheduleWithTimelock(*/
+    /*address(chief),*/
+    /*abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true)*/
+    /*);*/
     /*_executeWithTimelock(*/
     /*address(factory),*/
     /*abi.encodeWithSelector(*/
     /*factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")*/
     /*)*/
-    /*);*/
-    /*_scheduleWithTimelock(*/
-    /*address(chief),*/
-    /*abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true)*/
     /*);*/
     /*_executeWithTimelock(*/
     /*address(chief),*/
@@ -95,7 +95,7 @@ contract DeployOptimism is ScriptPlus {
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
     /*address polygonRouter = getAddressAt("ConnextRouter", "polygon");*/
-    /*address arbitrumRouter = getAddressAt("ConnextRouter", "arbitrum");*/
+    /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
     /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
     /*_scheduleWithTimelock(*/
     /*address(connextRouter),*/
@@ -103,7 +103,7 @@ contract DeployOptimism is ScriptPlus {
     /*);*/
     /*_scheduleWithTimelock(*/
     /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optimismRouter)*/
     /*);*/
     /*_scheduleWithTimelock(*/
     /*address(connextRouter),*/
@@ -116,7 +116,7 @@ contract DeployOptimism is ScriptPlus {
     /*);*/
     /*_executeWithTimelock(*/
     /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optimismRouter)*/
     /*);*/
     /*_executeWithTimelock(*/
     /*address(connextRouter),*/
@@ -128,7 +128,7 @@ contract DeployOptimism is ScriptPlus {
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = aaveV3Optimism;
+    providers[0] = aaveV3Arbitrum;
     address vault = chief.deployVault(
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
     );

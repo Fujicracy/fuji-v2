@@ -26,6 +26,7 @@ optimism = { key = "${OPTIMISM_ETHERSCAN_KEY}" }
 mumbai = { key = "${POLYGON_ETHERSCAN_KEY}" }
 polygon = { key = "${POLYGON_ETHERSCAN_KEY}" }
 arbitrum = { key = "${ARBITRUM_ETHERSCAN_KEY}" }
+gnosis = { key = "${GNOSIS_ETHERSCAN_KEY}" }
 
 [fmt]
 line_length = 100

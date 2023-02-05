@@ -20,44 +20,26 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract DeployPolygon is ScriptPlus {
-  IWETH9 WETH;
   Chief chief;
   BorrowingVaultFactory factory;
-  IConnext connextHandler;
   TimelockController timelock;
-
+  FujiOracle oracle;
   ConnextRouter connextRouter;
 
   AaveV3Polygon aaveV3Polygon;
-  FujiOracle oracle;
+
+  IConnext connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
+  IWETH9 WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
   ERC20 DAI;
-  ERC20 USDC;
+  ERC20 USDC = ERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
   ERC20 USDT;
 
   function setUp() public {
     chainName = "polygon";
-
-    WETH = IWETH9(getAddress("WETH"));
-    /*WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);*/
-    /*saveAddress("WETH", address(WETH));*/
-
-    connextHandler = IConnext(getAddress("ConnextHandler"));
-    /*connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);*/
-    /*saveAddress("ConnextHandler", address(connextHandler));*/
   }
 
   function run() public {
     vm.startBroadcast();
-
-    /*DAI = ERC20(getAddress("DAI"));*/
-    /*saveAddress("DAI", address(DAI));*/
-
-    USDC = ERC20(getAddress("USDC"));
-    /*USDC = ERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);*/
-    /*saveAddress("USDC", address(USDC));*/
-
-    /*USDT = ERC20(getAddress("USDT"));*/
-    /*saveAddress("USDT", address(USDT));*/
 
     aaveV3Polygon = AaveV3Polygon(getAddress("AaveV3Polygon"));
     /*aaveV3Polygon = new AaveV3Polygon();*/
@@ -112,14 +94,33 @@ contract DeployPolygon is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
-    /*address optRouter = getAddressAt("ConnextRouter", "optimism");*/
+    /*address arbitrumRouter = getAddressAt("ConnextRouter", "arbitrum");*/
+    /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
+    /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
     /*_scheduleWithTimelock(*/
     /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optRouter)*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
+    /*);*/
+    /*_scheduleWithTimelock(*/
+    /*address(connextRouter),*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optimismRouter)*/
+    /*);*/
+    /*_scheduleWithTimelock(*/
+    /*address(connextRouter),*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)*/
+    /*);*/
+
+    /*_executeWithTimelock(*/
+    /*address(connextRouter),*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
     /*);*/
     /*_executeWithTimelock(*/
     /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optRouter)*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optimismRouter)*/
+    /*);*/
+    /*_executeWithTimelock(*/
+    /*address(connextRouter),*/
+    /*abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)*/
     /*);*/
 
     vm.stopBroadcast();
