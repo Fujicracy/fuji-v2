@@ -221,6 +221,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return address(_asset);
   }
 
+  /// @inheritdoc IVault
+  function balanceOfAsset(address owner) external view virtual override returns (uint256 assets) {
+    return convertToAssets(balanceOf(owner));
+  }
+
   /// @inheritdoc IERC4626
   function totalAssets() public view virtual override returns (uint256 assets) {
     return _checkProvidersBalance("getDepositBalance");
@@ -607,6 +612,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IVault
   function balanceOfDebt(address account) public view virtual override returns (uint256 debt);
+
+  /// @inheritdoc IVault
+  function balanceOfDebtShares(address owner)
+    external
+    view
+    virtual
+    override
+    returns (uint256 debtShares);
 
   /// @inheritdoc IVault
   function totalDebt() public view virtual returns (uint256);

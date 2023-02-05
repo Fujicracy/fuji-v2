@@ -5,6 +5,13 @@ import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
 contract ScriptPlus is Script {
+  // https://docs.connext.network/resources/deployments
+  uint32 public constant MAINNET_DOMAIN = 6648936;
+  uint32 public constant OPTIMISM_DOMAIN = 1869640809;
+  uint32 public constant ARBITRUM_DOMAIN = 1634886255;
+  uint32 public constant POLYGON_DOMAIN = 1886350457;
+  uint32 public constant GNOSIS_DOMAIN = 6778479;
+
   string chainName;
 
   function saveAddress(string memory contractName, address addr) internal {
