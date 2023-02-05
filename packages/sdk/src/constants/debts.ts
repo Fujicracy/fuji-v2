@@ -19,4 +19,5 @@ export const DEBT_LIST: ChainTokenList = {
     USDT[ChainId.OPTIMISM_GOERLI],
     DAI[ChainId.OPTIMISM_GOERLI],
   ],
+  [ChainId.GNOSIS]: [USDC[ChainId.GNOSIS]],
 };

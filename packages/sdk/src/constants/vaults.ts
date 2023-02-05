@@ -37,7 +37,13 @@ export const VAULT_LIST: ChainVaultList = {
     ),
   ],
   [ChainId.FANTOM]: [],
-  [ChainId.ARBITRUM]: [],
+  [ChainId.ARBITRUM]: [
+    new BorrowingVault(
+      Address.from('0xCc790B043A60a0F1cfB2b638C74ea0E4a28FD745'),
+      WETH9[ChainId.ARBITRUM],
+      USDC[ChainId.ARBITRUM]
+    ),
+  ],
   [ChainId.OPTIMISM]: [
     new BorrowingVault(
       Address.from('0xDa917380247b48382674Bd159d75D75314Cb21fB'),
@@ -60,6 +66,13 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0x0C3A3A2a49CACE680011D91f7bbc01d7EC8a0788'),
       WETH9[ChainId.OPTIMISM_GOERLI],
       USDT[ChainId.OPTIMISM_GOERLI]
+    ),
+  ],
+  [ChainId.GNOSIS]: [
+    new BorrowingVault(
+      Address.from('0x4AeF47117628EbC3ae78A9EdBE558794f1500de6'),
+      WETH9[ChainId.GNOSIS],
+      USDC[ChainId.GNOSIS]
     ),
   ],
 };

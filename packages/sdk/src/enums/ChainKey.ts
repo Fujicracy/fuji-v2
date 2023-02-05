@@ -8,6 +8,7 @@ export enum ChainCoingeckoKey {
   MATIC_MUMBAI = 'matic-mumbai',
   OPTIMISM = 'optimistic-ethereum',
   OPTIMISM_GOERLI = 'optimism-goerli',
+  GNOSIS = 'gnosis',
 }
 
 export enum ChainLlamaKey {
@@ -19,4 +20,5 @@ export enum ChainLlamaKey {
   MATIC_MUMBAI = 'Polygon',
   OPTIMISM = 'Optimism',
   OPTIMISM_GOERLI = 'Optimism',
+  GNOSIS = 'gnosis',
 }

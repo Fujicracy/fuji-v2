@@ -1,3 +1,6 @@
+import { AddressZero } from '@ethersproject/constants';
+
+import { Address } from '../entities/Address';
 import { Token } from '../entities/Token';
 import { ChainId } from '../enums';
 import { TokenMap } from '../types';
@@ -66,6 +69,13 @@ export const USDC: TokenMap = {
     'USDC',
     'USD Coin'
   ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    USDC_ADDRESS[ChainId.GNOSIS],
+    6,
+    'USDC',
+    'USD Coin'
+  ),
 };
 
 export const USDT: TokenMap = {
@@ -121,6 +131,13 @@ export const USDT: TokenMap = {
   [ChainId.OPTIMISM_GOERLI]: new Token(
     ChainId.OPTIMISM_GOERLI,
     USDT_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    6,
+    'USDT',
+    'Tether'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    USDT_ADDRESS[ChainId.GNOSIS],
     6,
     'USDT',
     'Tether'
@@ -184,6 +201,13 @@ export const DAI: TokenMap = {
     'DAI',
     'Dai Stablecoin'
   ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    Address.from(AddressZero),
+    18,
+    'xDAI',
+    'xDai'
+  ),
 };
 
 export const WETH9: TokenMap = {
@@ -243,6 +267,13 @@ export const WETH9: TokenMap = {
     'WETH',
     'Wrapped Ether'
   ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    WETH9_ADDRESS[ChainId.GNOSIS],
+    18,
+    'WETH',
+    'Wrapped Ether'
+  ),
 };
 
 export const WNATIVE: TokenMap = {
@@ -271,5 +302,12 @@ export const WNATIVE: TokenMap = {
     18,
     'WMATIC',
     'Wrapped Matic'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    WNATIVE_ADDRESS[ChainId.GNOSIS],
+    18,
+    'WXDAI',
+    'Wrapped xDai'
   ),
 };

@@ -61,4 +61,11 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainCoingeckoKey.OPTIMISM_GOERLI,
     ChainLlamaKey.OPTIMISM
   ),
+  [ChainId.GNOSIS]: new Chain(
+    ChainId.GNOSIS,
+    ChainType.MAINNET,
+    ConnextDomain.GNOSIS,
+    ChainCoingeckoKey.GNOSIS,
+    ChainLlamaKey.GNOSIS
+  ),
 };
