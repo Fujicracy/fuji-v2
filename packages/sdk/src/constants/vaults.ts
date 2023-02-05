@@ -14,7 +14,7 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.MATIC]: [
     new BorrowingVault(
-      Address.from('0x95A1b20d653dE7026321C8354f1f454a8e5204BB'),
+      Address.from('0x2D932f0adEC52d3213DA5e129dafdD428068DD73'),
       WETH9[ChainId.MATIC],
       USDC[ChainId.MATIC]
     ),
@@ -40,7 +40,7 @@ export const VAULT_LIST: ChainVaultList = {
   [ChainId.ARBITRUM]: [],
   [ChainId.OPTIMISM]: [
     new BorrowingVault(
-      Address.from('0x583B1906Ed580d673A3A93a7eb972fa377Dec3E9'),
+      Address.from('0xDa917380247b48382674Bd159d75D75314Cb21fB'),
       WETH9[ChainId.OPTIMISM],
       USDC[ChainId.OPTIMISM]
     ),

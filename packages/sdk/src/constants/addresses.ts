@@ -105,10 +105,10 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(AddressZero),
   [ChainId.OPTIMISM]: Address.from(
-    '0x190B9e10c3A02896386BE180767cf6E89Df5E798'
+    '0x9DE0CE8Aaa2772f9DB00D223ce9CA17fc430943B'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from('0xA8452Ec99ce0C64f20701dB7dD3abDb607c00496'),
+  [ChainId.MATIC]: Address.from('0xcC4f2BccB7dd92b0DEa098a8D2F0eF079F68b10E'),
   [ChainId.GOERLI]: Address.from('0x4f1A1C86849104c4d92810F7CdD127FbaCF98301'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
     '0xE4903ba1b082b678bd5C935f43988811eE85aD48'
@@ -122,10 +122,10 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(AddressZero),
   [ChainId.OPTIMISM]: Address.from(
-    '0x4b62c0369A13B68F75BbbdA9FD91BA8270ca4862'
+    '0x17744B586A6E47a45Fa98d080141139f87314e82'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from('0x4b62c0369A13B68F75BbbdA9FD91BA8270ca4862'),
+  [ChainId.MATIC]: Address.from('0x403b1E6EFB00C440dDb60593255c1257f4156863'),
   [ChainId.GOERLI]: Address.from('0xa678C43f04ce286434E32731dD9Ab0721763f953'),
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x62607f1AF5980DFccB94FcbAd42afaC4dDAd32Ff'

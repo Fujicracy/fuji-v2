@@ -10,7 +10,7 @@ export const LENDING_PROVIDERS_LIST: Record<
     '0x72d763fbD586C5fF7ECc657ab884F2539eBC6a74': 'aave-v3',
   },
   [ChainId.MATIC]: {
-    '0xddadB5dca827f8d59000d610E456630695928660': 'aave-v3',
+    '0x5BDE166199Cb85323FcF0282999eaaF7BA6ab5E6': 'aave-v3',
   },
   [ChainId.MATIC_MUMBAI]: {
     '0xC69176FADFeF7A1570540a99Faf827b3138659D1': 'aave-v2',
@@ -19,7 +19,7 @@ export const LENDING_PROVIDERS_LIST: Record<
   [ChainId.FANTOM]: {},
   [ChainId.ARBITRUM]: {},
   [ChainId.OPTIMISM]: {
-    '0xddadB5dca827f8d59000d610E456630695928660': 'aave-v3',
+    '0xB5BeccF2734c97221379a6C08B718D82023b1498': 'aave-v3',
   },
   [ChainId.OPTIMISM_GOERLI]: {
     '0x03c9BA7110F17c080E1B05df507D9dcba8FB157e': 'aave-v3',
