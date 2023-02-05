@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AaveV3Goerli__factory } from "./AaveV3Goerli__factory";
+export { CompoundV2Goerli__factory } from "./CompoundV2Goerli__factory";

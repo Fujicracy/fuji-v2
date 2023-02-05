@@ -161,7 +161,7 @@ const _abi = [
         type: "tuple",
       },
     ],
-    name: "getStructHashAsset",
+    name: "getStructHashBorrow",
     outputs: [
       {
         internalType: "bytes32",
@@ -217,7 +217,7 @@ const _abi = [
         type: "tuple",
       },
     ],
-    name: "getStructHashBorrow",
+    name: "getStructHashWithdraw",
     outputs: [
       {
         internalType: "bytes32",

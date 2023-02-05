@@ -13,7 +13,17 @@ import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
-    name: "ZeroAddress",
+    name: "VaultDeployer__onlyChief_notAuthorized",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultDeployer__onlyTimelock_notAuthorized",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultDeployer__zeroAddress",
     type: "error",
   },
   {
@@ -40,6 +50,25 @@ const _abi = [
     ],
     name: "VaultRegistered",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "allVaults",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],

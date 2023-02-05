@@ -5,3 +5,4 @@ export type { ICERC20 } from "./ICERC20";
 export type { ICETH } from "./ICETH";
 export type { ICToken } from "./ICToken";
 export type { IComptroller } from "./IComptroller";
+export type { IProxyReceiver } from "./IProxyReceiver";

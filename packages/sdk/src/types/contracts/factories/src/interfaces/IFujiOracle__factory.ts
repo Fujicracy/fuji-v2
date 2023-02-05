@@ -34,17 +34,17 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_collateralAsset",
+        name: "currencyAsset",
         type: "address",
       },
       {
         internalType: "address",
-        name: "_borrowAsset",
+        name: "commodityAsset",
         type: "address",
       },
       {
         internalType: "uint8",
-        name: "_decimals",
+        name: "decimals",
         type: "uint8",
       },
     ],

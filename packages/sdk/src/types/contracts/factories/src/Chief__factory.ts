@@ -8,7 +8,18 @@ import type { Chief, ChiefInterface, ChiefMulticall } from "../../src/Chief";
 import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "bool",
+        name: "deployTimelock",
+        type: "bool",
+      },
+      {
+        internalType: "bool",
+        name: "deployAddrMapper",
+        type: "bool",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "constructor",
   },
@@ -25,6 +36,16 @@ const _abi = [
   {
     inputs: [],
     name: "Chief__checkInput_zeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Chief__checkRatingValue_notInRange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Chief__checkValidVault_notValidVault",
     type: "error",
   },
   {
@@ -76,6 +97,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "AllowPermissionlessDeployments",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "factory",
@@ -89,6 +123,25 @@ const _abi = [
       },
     ],
     name: "AllowVaultFactory",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newRating",
+        type: "uint256",
+      },
+    ],
+    name: "ChangeSafetyRating",
     type: "event",
   },
   {
@@ -114,19 +167,6 @@ const _abi = [
       },
     ],
     name: "DeployVault",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "state",
-        type: "bool",
-      },
-    ],
-    name: "OpenVaultFactory",
     type: "event",
   },
   {
@@ -208,18 +248,50 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address[]",
+        name: "previousVaults",
+        type: "address[]",
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "newVaults",
+        type: "address[]",
+      },
+    ],
+    name: "SetVaults",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "timelock",
         type: "address",
       },
     ],
-    name: "TimelockUpdated",
+    name: "UpdateTimelock",
     type: "event",
   },
   {
     inputs: [],
     name: "DEFAULT_ADMIN_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "DEPLOYER_ROLE",
     outputs: [
       {
         internalType: "bytes32",
@@ -343,7 +415,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_factory",
+        name: "factory",
         type: "address",
       },
       {
@@ -399,18 +471,18 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_factory",
+        name: "factory",
         type: "address",
       },
       {
         internalType: "bytes",
-        name: "_deployData",
+        name: "deployData",
         type: "bytes",
       },
       {
-        internalType: "string",
+        internalType: "uint256",
         name: "rating",
-        type: "string",
+        type: "uint256",
       },
     ],
     name: "deployVault",
@@ -499,19 +571,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "openVaultFactory",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "enum IPausableVault.VaultActions",
@@ -529,6 +588,19 @@ const _abi = [
     name: "pauseForceAllVaults",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "permissionlessDeployments",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -571,11 +643,29 @@ const _abi = [
     inputs: [
       {
         internalType: "bool",
-        name: "state",
+        name: "allowed",
         type: "bool",
       },
     ],
-    name: "setOpenVaultFactory",
+    name: "setPermissionlessDeployments",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "newRating",
+        type: "uint256",
+      },
+    ],
+    name: "setSafetyRating",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -589,6 +679,19 @@ const _abi = [
       },
     ],
     name: "setTimelock",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "vaults",
+        type: "address[]",
+      },
+    ],
+    name: "setVaults",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -656,9 +759,9 @@ const _abi = [
     name: "vaultSafetyRating",
     outputs: [
       {
-        internalType: "string",
+        internalType: "uint256",
         name: "",
-        type: "string",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

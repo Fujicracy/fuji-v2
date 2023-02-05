@@ -26,15 +26,30 @@ import type {
 export interface UniswapV2SwapperInterface extends utils.Interface {
   functions: {
     "WETH9()": FunctionFragment;
+    "getAmountIn(address,address,uint256)": FunctionFragment;
+    "getAmountOut(address,address,uint256)": FunctionFragment;
     "swap(address,address,uint256,uint256,address,address,uint256)": FunctionFragment;
     "uniswapRouter()": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "WETH9" | "swap" | "uniswapRouter"
+    nameOrSignatureOrTopic:
+      | "WETH9"
+      | "getAmountIn"
+      | "getAmountOut"
+      | "swap"
+      | "uniswapRouter"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getAmountIn",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAmountOut",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "swap",
     values: [
@@ -53,6 +68,14 @@ export interface UniswapV2SwapperInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getAmountIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAmountOut",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "uniswapRouter",
@@ -91,6 +114,20 @@ export interface UniswapV2Swapper extends BaseContract {
   functions: {
     WETH9(overrides?: CallOverrides): Promise<[string]>;
 
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
     swap(
       assetIn: string,
       assetOut: string,
@@ -107,6 +144,20 @@ export interface UniswapV2Swapper extends BaseContract {
 
   WETH9(overrides?: CallOverrides): Promise<string>;
 
+  getAmountIn(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getAmountOut(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   swap(
     assetIn: string,
     assetOut: string,
@@ -122,6 +173,20 @@ export interface UniswapV2Swapper extends BaseContract {
 
   callStatic: {
     WETH9(overrides?: CallOverrides): Promise<string>;
+
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     swap(
       assetIn: string,
@@ -142,6 +207,20 @@ export interface UniswapV2Swapper extends BaseContract {
   estimateGas: {
     WETH9(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     swap(
       assetIn: string,
       assetOut: string,
@@ -158,6 +237,20 @@ export interface UniswapV2Swapper extends BaseContract {
 
   populateTransaction: {
     WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     swap(
       assetIn: string,
@@ -180,6 +273,20 @@ export interface UniswapV2SwapperMulticall {
   functions: FunctionFragment[];
 
   WETH9(overrides?: CallOverrides): Call<string>;
+
+  getAmountIn(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getAmountOut(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 
   uniswapRouter(overrides?: CallOverrides): Call<string>;
 }

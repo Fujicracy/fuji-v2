@@ -34,7 +34,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes",
-        name: "_deployData",
+        name: "deployData",
         type: "bytes",
       },
     ],

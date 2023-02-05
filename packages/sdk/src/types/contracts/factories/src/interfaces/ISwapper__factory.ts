@@ -25,6 +25,64 @@ const _abi = [
       },
       {
         internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    name: "getAmountIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "assetIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "assetOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    name: "getAmountOut",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "assetIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "assetOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
         name: "amountIn",
         type: "uint256",
       },

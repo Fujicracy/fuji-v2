@@ -190,15 +190,15 @@ export interface FujiOracle extends BaseContract {
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     getPriceOf(
-      _currencyAsset: string,
-      _commodityAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { price: BigNumber }>;
 
     setPriceFeed(
-      _asset: string,
-      _priceFeed: string,
+      asset: string,
+      priceFeed: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -220,15 +220,15 @@ export interface FujiOracle extends BaseContract {
   chief(overrides?: CallOverrides): Promise<string>;
 
   getPriceOf(
-    _currencyAsset: string,
-    _commodityAsset: string,
-    _decimals: BigNumberish,
+    currencyAsset: string,
+    commodityAsset: string,
+    decimals: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   setPriceFeed(
-    _asset: string,
-    _priceFeed: string,
+    asset: string,
+    priceFeed: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -250,15 +250,15 @@ export interface FujiOracle extends BaseContract {
     chief(overrides?: CallOverrides): Promise<string>;
 
     getPriceOf(
-      _currencyAsset: string,
-      _commodityAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setPriceFeed(
-      _asset: string,
-      _priceFeed: string,
+      asset: string,
+      priceFeed: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -292,15 +292,15 @@ export interface FujiOracle extends BaseContract {
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPriceOf(
-      _currencyAsset: string,
-      _commodityAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setPriceFeed(
-      _asset: string,
-      _priceFeed: string,
+      asset: string,
+      priceFeed: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -323,15 +323,15 @@ export interface FujiOracle extends BaseContract {
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPriceOf(
-      _currencyAsset: string,
-      _commodityAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setPriceFeed(
-      _asset: string,
-      _priceFeed: string,
+      asset: string,
+      priceFeed: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -362,9 +362,9 @@ export interface FujiOracleMulticall {
   chief(overrides?: CallOverrides): Call<string>;
 
   getPriceOf(
-    _currencyAsset: string,
-    _commodityAsset: string,
-    _decimals: BigNumberish,
+    currencyAsset: string,
+    commodityAsset: string,
+    decimals: BigNumberish,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 

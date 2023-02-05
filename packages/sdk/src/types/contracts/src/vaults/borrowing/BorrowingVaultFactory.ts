@@ -30,26 +30,34 @@ import type {
 
 export interface BorrowingVaultFactoryInterface extends utils.Interface {
   functions: {
+    "allVaults(uint256)": FunctionFragment;
     "chief()": FunctionFragment;
     "configAddress(bytes32)": FunctionFragment;
     "deployVault(bytes)": FunctionFragment;
     "getVaults(address,uint256,uint256)": FunctionFragment;
     "nonce()": FunctionFragment;
+    "setContractCode(bytes)": FunctionFragment;
     "vaultsByAsset(address,uint256)": FunctionFragment;
     "vaultsCount(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "allVaults"
       | "chief"
       | "configAddress"
       | "deployVault"
       | "getVaults"
       | "nonce"
+      | "setContractCode"
       | "vaultsByAsset"
       | "vaultsCount"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "allVaults",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "configAddress",
@@ -65,11 +73,16 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "nonce", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "setContractCode",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "vaultsByAsset",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "vaultsCount", values: [string]): string;
 
+  decodeFunctionResult(functionFragment: "allVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "configAddress",
@@ -82,6 +95,10 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "setContractCode",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "vaultsByAsset",
     data: BytesLike
   ): Result;
@@ -91,11 +108,29 @@ export interface BorrowingVaultFactoryInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "DeployBorrowingVault(address,address,address,string,string,bytes32)": EventFragment;
     "VaultRegistered(address,address,bytes32)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "DeployBorrowingVault"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "VaultRegistered"): EventFragment;
 }
+
+export interface DeployBorrowingVaultEventObject {
+  vault: string;
+  asset: string;
+  debtAsset: string;
+  name: string;
+  symbol: string;
+  salt: string;
+}
+export type DeployBorrowingVaultEvent = TypedEvent<
+  [string, string, string, string, string, string],
+  DeployBorrowingVaultEventObject
+>;
+
+export type DeployBorrowingVaultEventFilter =
+  TypedEventFilter<DeployBorrowingVaultEvent>;
 
 export interface VaultRegisteredEventObject {
   vault: string;
@@ -136,6 +171,8 @@ export interface BorrowingVaultFactory extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     configAddress(
@@ -144,7 +181,7 @@ export interface BorrowingVaultFactory extends BaseContract {
     ): Promise<[string]>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -156,6 +193,11 @@ export interface BorrowingVaultFactory extends BaseContract {
     ): Promise<[string[]] & { vaults: string[] }>;
 
     nonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    setContractCode(
+      creationCode: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     vaultsByAsset(
       arg0: string,
@@ -169,12 +211,14 @@ export interface BorrowingVaultFactory extends BaseContract {
     ): Promise<[BigNumber] & { count: BigNumber }>;
   };
 
+  allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   chief(overrides?: CallOverrides): Promise<string>;
 
   configAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   deployVault(
-    _deployData: BytesLike,
+    deployData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -187,6 +231,11 @@ export interface BorrowingVaultFactory extends BaseContract {
 
   nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
+  setContractCode(
+    creationCode: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   vaultsByAsset(
     arg0: string,
     arg1: BigNumberish,
@@ -196,12 +245,14 @@ export interface BorrowingVaultFactory extends BaseContract {
   vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
     chief(overrides?: CallOverrides): Promise<string>;
 
     configAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -214,6 +265,11 @@ export interface BorrowingVaultFactory extends BaseContract {
 
     nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
+    setContractCode(
+      creationCode: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     vaultsByAsset(
       arg0: string,
       arg1: BigNumberish,
@@ -224,6 +280,23 @@ export interface BorrowingVaultFactory extends BaseContract {
   };
 
   filters: {
+    "DeployBorrowingVault(address,address,address,string,string,bytes32)"(
+      vault?: string | null,
+      asset?: string | null,
+      debtAsset?: string | null,
+      name?: null,
+      symbol?: null,
+      salt?: null
+    ): DeployBorrowingVaultEventFilter;
+    DeployBorrowingVault(
+      vault?: string | null,
+      asset?: string | null,
+      debtAsset?: string | null,
+      name?: null,
+      symbol?: null,
+      salt?: null
+    ): DeployBorrowingVaultEventFilter;
+
     "VaultRegistered(address,address,bytes32)"(
       vault?: null,
       asset?: null,
@@ -237,6 +310,11 @@ export interface BorrowingVaultFactory extends BaseContract {
   };
 
   estimateGas: {
+    allVaults(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     configAddress(
@@ -245,7 +323,7 @@ export interface BorrowingVaultFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -258,6 +336,11 @@ export interface BorrowingVaultFactory extends BaseContract {
 
     nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
+    setContractCode(
+      creationCode: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     vaultsByAsset(
       arg0: string,
       arg1: BigNumberish,
@@ -268,6 +351,11 @@ export interface BorrowingVaultFactory extends BaseContract {
   };
 
   populateTransaction: {
+    allVaults(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     configAddress(
@@ -276,7 +364,7 @@ export interface BorrowingVaultFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -288,6 +376,11 @@ export interface BorrowingVaultFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     nonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setContractCode(
+      creationCode: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     vaultsByAsset(
       arg0: string,
@@ -306,6 +399,8 @@ export interface BorrowingVaultFactoryMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  allVaults(arg0: BigNumberish, overrides?: CallOverrides): Call<string>;
 
   chief(overrides?: CallOverrides): Call<string>;
 

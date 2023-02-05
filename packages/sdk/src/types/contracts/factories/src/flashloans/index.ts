@@ -2,3 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export { FlasherAaveV3__factory } from "./FlasherAaveV3__factory";
+export { FlasherBalancer__factory } from "./FlasherBalancer__factory";
+export { FlasherEuler__factory } from "./FlasherEuler__factory";
