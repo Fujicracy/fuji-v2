@@ -125,7 +125,7 @@ export class Token extends AbstractCurrency {
       FUJI_ORACLE_ADDRESS[this.chainId].value,
       this.rpcProvider
     )
-      .getPriceOf(this.address.value, AddressZero, this.decimals)
+      .getPriceOf(AddressZero, this.address.value, this.decimals)
       .then((price) =>
         parseFloat(formatUnits(price.toString(), this.decimals))
       );
