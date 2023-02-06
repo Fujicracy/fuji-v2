@@ -3,6 +3,4 @@
 /* eslint-disable */
 import type * as borrowing from "./borrowing";
 export type { borrowing };
-import type * as yield from "./yield";
-export type { yield };
 export type { VaultPermissions } from "./VaultPermissions";
