@@ -1,4 +1,4 @@
-import { chains } from "../store/auth.store"
+import { chains } from "../services/chains"
 
 const chainsMap = new Map()
 chains.map((c) => {

@@ -27,7 +27,7 @@ import {
   useHistory,
   HistoryRoutingStep,
 } from "../../store/history.store"
-import { chainName } from "../../helpers/chainName"
+import { chainName } from "../../services/chains"
 import { useAuth } from "../../store/auth.store"
 import { transactionAddress } from "../../helpers/transactionInformations"
 

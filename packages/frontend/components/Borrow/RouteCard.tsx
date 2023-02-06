@@ -3,7 +3,7 @@ import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 
 import { useBorrow } from "../../store/borrow.store"
-import { chainName } from "../../helpers/chainName"
+import { chainName } from "../../services/chains"
 import NetworkIcon from "../NetworkIcon"
 import TokenIcon from "../TokenIcon"
 

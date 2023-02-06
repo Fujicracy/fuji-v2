@@ -19,7 +19,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
 import Balance from "../Balance"
-import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
+import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
 import TokenIcon from "../TokenIcon"
 import { useBorrow } from "../../store/borrow.store"
 

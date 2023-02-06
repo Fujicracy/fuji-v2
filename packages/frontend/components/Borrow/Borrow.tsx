@@ -22,7 +22,7 @@ import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
 import RoutingModal from "./RoutingModal"
 import { useHistory } from "../../store/history.store"
-import { chainName } from "../../helpers/chainName"
+import { chainName } from "../../services/chains"
 import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
 

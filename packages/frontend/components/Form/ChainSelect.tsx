@@ -15,9 +15,9 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
 
-import { chains, useAuth } from "../../store/auth.store"
+import { useAuth } from "../../store/auth.store"
 import NetworkIcon from "../NetworkIcon"
-import { chainName } from "../../helpers/chainName"
+import { chains, chainName } from "../../services/chains"
 
 export default function ChainSelect() {
   const theme = useTheme()
