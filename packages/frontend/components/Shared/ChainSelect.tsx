@@ -17,7 +17,7 @@ import CheckIcon from "@mui/icons-material/Check"
 
 import { useStore } from "../../store"
 import { chains } from "../../store/auth.slice"
-import NetworkIcon from "../NetworkIcon"
+import { NetworkIcon } from "./Icons"
 import { chainName } from "../../helpers/chainName"
 
 export default function ChainSelect() {

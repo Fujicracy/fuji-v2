@@ -4,8 +4,7 @@ import { Stack } from "@mui/system"
 
 import { useStore } from "../../store"
 import { chainName } from "../../helpers/chainName"
-import NetworkIcon from "../NetworkIcon"
-import TokenIcon from "../TokenIcon"
+import { NetworkIcon, TokenIcon } from "../Shared/Icons"
 
 type Step = {
   icon: React.ReactElement

@@ -2,14 +2,12 @@ import { Box, useTheme } from "@mui/material"
 import { Token } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
+import { getTokenImage } from "../../../helpers/tokenService"
 
 interface Props extends Omit<ImageProps, "src"> {
   token: Token | string
   sx?: object
 }
-
-export const getTokenImage = (symbol: string) =>
-  `/assets/images/protocol-icons/tokens/${symbol}.svg`
 
 export default function TokenIcon(props: Props) {
   const { palette } = useTheme()

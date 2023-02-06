@@ -7,7 +7,7 @@ import {
   useTheme,
 } from "@mui/material"
 import TwitterIcon from "@mui/icons-material/Twitter"
-import { DiscordIcon } from "./DiscordIcon"
+import { DiscordIcon } from "./Icons"
 
 export default function ParameterLinks() {
   const { palette } = useTheme()

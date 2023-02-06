@@ -17,10 +17,8 @@ import { useRouter } from "next/router"
 
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
-import NetworkIcon from "../NetworkIcon"
-import TokenIcon from "../TokenIcon"
+import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
 import { SizableTableCell } from "../SizableTableCell"
-import ProviderIcon from "../ProviderIcon"
 import { useStore } from "../../store"
 
 type MarketsTableRowProps = {

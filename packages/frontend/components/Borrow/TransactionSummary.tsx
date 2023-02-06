@@ -17,10 +17,10 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
 import LTVProgressBar from "./LTVProgressBar"
-import ClickableTooltip from "../Layout/ClickableTooltip"
+import ClickableTooltip from "../Shared/ClickableTooltip"
 import { useStore } from "../../store"
 import { formatUnits } from "ethers/lib/utils"
-import ProviderIcon from "../ProviderIcon"
+import { ProviderIcon } from "../Shared/Icons"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()

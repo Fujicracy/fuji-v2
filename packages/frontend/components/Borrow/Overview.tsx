@@ -23,12 +23,11 @@ import CheckIcon from "@mui/icons-material/Check"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import ClickableTooltip from "../Layout/ClickableTooltip"
+import ClickableTooltip from "../Shared/ClickableTooltip"
 import { useStore } from "../../store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import { BorrowingVault } from "@x-fuji/sdk"
-import ProviderIcon from "../ProviderIcon"
-import NetworkIcon from "../NetworkIcon"
+import { NetworkIcon, ProviderIcon } from "../Shared/Icons"
 
 export default function Overview() {
   const { palette } = useTheme()

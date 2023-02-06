@@ -2,9 +2,9 @@ import React from "react"
 import { ListItemIcon, ListItemText, MenuItem, Typography } from "@mui/material"
 
 import { chains } from "../../store/auth.slice"
-import NetworkIcon from "../NetworkIcon"
+import { NetworkIcon } from "../Shared/Icons"
 
-type Chain = typeof chains[0]
+type Chain = (typeof chains)[0]
 
 type CollateralDropdownProps = {
   chains: Chain[]

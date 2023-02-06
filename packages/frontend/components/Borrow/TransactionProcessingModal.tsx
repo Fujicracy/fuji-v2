@@ -25,7 +25,7 @@ import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 import { RoutingStep } from "@x-fuji/sdk"
 
-import NetworkIcon from "../NetworkIcon"
+import { NetworkIcon } from "../Shared/Icons"
 import { useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"

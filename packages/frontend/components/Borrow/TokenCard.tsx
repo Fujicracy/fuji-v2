@@ -21,7 +21,7 @@ import styles from "../../styles/components/Borrow.module.css"
 import Balance from "../Balance"
 import { useStore } from "../../store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
-import TokenIcon from "../TokenIcon"
+import { TokenIcon } from "../Shared/Icons"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"

@@ -6,8 +6,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import RouteCard from "./RouteCard"
 import { useStore } from "../../store"
 import { chainName } from "../../helpers/chainName"
-import NetworkIcon from "../NetworkIcon"
-import TokenIcon from "../TokenIcon"
+import { NetworkIcon, TokenIcon } from "../Shared/Icons"
 
 type RoutingModalProps = {
   open: boolean

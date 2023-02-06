@@ -2,7 +2,7 @@ import { Box, useTheme } from "@mui/material"
 import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
-import { chainName } from "../helpers/chainName"
+import { chainName } from "../../../helpers/chainName"
 
 interface Props extends Omit<ImageProps, "src"> {
   network: string | ChainId
