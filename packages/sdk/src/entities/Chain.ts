@@ -23,6 +23,8 @@ export class Chain {
   coingeckoKey: ChainCoingeckoKey;
   llamaKey: ChainLlamaKey;
 
+  isDeployed: boolean;
+
   connection?: ChainConnectionDetails;
 
   constructor(
@@ -30,7 +32,8 @@ export class Chain {
     type: ChainType,
     connextDomain: ConnextDomain | undefined,
     coingecko: ChainCoingeckoKey,
-    llama: ChainLlamaKey
+    llama: ChainLlamaKey,
+    isDeployed?: boolean
   ) {
     this.chainId = id;
     this.chainType = type;
@@ -39,6 +42,7 @@ export class Chain {
 
     this.coingeckoKey = coingecko;
     this.llamaKey = llama;
+    this.isDeployed = isDeployed as boolean;
   }
 
   getConnextDomain(): string {

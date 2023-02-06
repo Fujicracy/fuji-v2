@@ -24,7 +24,8 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.MATIC,
     ChainCoingeckoKey.MATIC,
-    ChainLlamaKey.MATIC
+    ChainLlamaKey.MATIC,
+    true
   ),
   [ChainId.MATIC_MUMBAI]: new Chain(
     ChainId.MATIC_MUMBAI,
@@ -45,14 +46,16 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.ARBITRUM,
     ChainCoingeckoKey.ARBITRUM,
-    ChainLlamaKey.ARBITRUM
+    ChainLlamaKey.ARBITRUM,
+    true
   ),
   [ChainId.OPTIMISM]: new Chain(
     ChainId.OPTIMISM,
     ChainType.MAINNET,
     ConnextDomain.OPTIMISM,
     ChainCoingeckoKey.OPTIMISM,
-    ChainLlamaKey.OPTIMISM
+    ChainLlamaKey.OPTIMISM,
+    true
   ),
   [ChainId.OPTIMISM_GOERLI]: new Chain(
     ChainId.OPTIMISM_GOERLI,
@@ -66,6 +69,7 @@ export const CHAIN: Record<ChainId, Chain> = {
     ChainType.MAINNET,
     ConnextDomain.GNOSIS,
     ChainCoingeckoKey.GNOSIS,
-    ChainLlamaKey.GNOSIS
+    ChainLlamaKey.GNOSIS,
+    true
   ),
 };
