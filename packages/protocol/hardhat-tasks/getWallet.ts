@@ -25,7 +25,6 @@ const readWallet = (walletPath: string): Wallet => {
 
 export const mnemonic = (walletPath: string): string => {
   const wallet: Wallet = readWallet(walletPath);
-  console.log('here');
   return wallet.mnemonic.phrase;
 };
 
