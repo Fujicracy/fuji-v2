@@ -100,11 +100,19 @@ Stores can and must be typed, but the way typing is implemented by `zustand` is 
 
 Read our codebase and the official zustand/typescript documentation.
 
-4. Slices
+### Structure
 
 We had some problems (like [this one](https://github.com/pmndrs/zustand/discussions/1409) and decided not to use the slice pattern at all.
 
-## Project structure
+```
+stores
+├── auth
+├── borrow
+├── history
+└── snackbar
+```
+
+## File organization
 
 After several discussions, we came up with a conclusion: the classic way of organizing files in a `next.js` app can easily lead to messy code (i.e., a folder for all components and a folder for pages).
 
@@ -134,8 +142,8 @@ To know more about it and how to use it, please read the README within `packages
 There are 4 different pages:
 
 ```
-- markets/       represent available Fuji markets
-- borrow/        represent the borrow form to create a new position
+- markets/       represents available Fuji markets
+- borrow/        represents the borrow form to create a new position
 - my-positions/  lists all of the user open positions
   - my-positions/{chainId}-{vaultAddr}  manage an open position
 ```
