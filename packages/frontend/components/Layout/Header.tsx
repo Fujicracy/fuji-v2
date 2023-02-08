@@ -22,18 +22,18 @@ import {
 import CloseIcon from "@mui/icons-material/Close"
 import Image from "next/image"
 import { useRouter } from "next/router"
-import shallow from "zustand/shallow"
+import { shallow } from "zustand/shallow"
 
 import { BurgerMenuIcon } from "./BurgerMenuIcon"
 import ChainSelect from "../Form/ChainSelect"
 import Parameters from "./Parameters"
 import styles from "../../styles/components/Header.module.css"
-import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 import { useHistory } from "../../store/history.store"
 import Balance from "../Balance"
 import ParameterLinks from "./ParameterLinks"
+import { useAuth } from "../../store/auth.store"
 
 const pages = [
   { name: "Markets", path: "markets" },
@@ -45,8 +45,8 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
   pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" page is to test design system
 }
 
-export default function Header() {
-  const { address, ens, status, balance, login } = useStore(
+const Header = () => {
+  const { address, ens, status, balance, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
@@ -275,6 +275,7 @@ export default function Header() {
     </AppBar>
   )
 }
+export default Header
 
 type BalanceAddressProps = {
   address: string

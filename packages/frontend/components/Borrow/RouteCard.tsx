@@ -2,8 +2,8 @@ import { Box, Chip, Collapse, Paper, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 
-import { useStore } from "../../store"
-import { chainName } from "../../helpers/chainName"
+import { useBorrow } from "../../store/borrow.store"
+import { chainName } from "../../services/chains"
 import NetworkIcon from "../NetworkIcon"
 import TokenIcon from "../TokenIcon"
 
@@ -28,10 +28,10 @@ type RouteCardProps = {
 
 export default function RouteCard(props: RouteCardProps) {
   const { palette } = useTheme()
-  const collateral = useStore((state) => state.position.collateral)
-  const collateralInput = useStore((state) => state.collateralInput)
-  const debt = useStore((state) => state.position.debt)
-  const debtInput = useStore((state) => state.debtInput)
+  const collateral = useBorrow((state) => state.position.collateral)
+  const collateralInput = useBorrow((state) => state.collateralInput)
+  const debt = useBorrow((state) => state.position.debt)
+  const debtInput = useBorrow((state) => state.debtInput)
 
   const bridgeStep = props.route.steps.filter((step) =>
     step.label.toLowerCase().includes("bridge")
