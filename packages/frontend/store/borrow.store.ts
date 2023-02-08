@@ -23,6 +23,7 @@ import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
+import { fetchRoutes, RouteMeta } from "../helpers/borrowService"
 
 setAutoFreeze(false)
 
@@ -58,6 +59,7 @@ type BorrowState = {
     estimateTime: number
     steps: RoutingStepDetails[]
   }
+  routesMeta: RouteMeta[]
 
   needPermit: boolean
   isSigning: boolean
@@ -147,6 +149,7 @@ const initialState: BorrowState = {
     estimateTime: 0,
     steps: [],
   },
+  routesMeta: [],
 
   needPermit: true,
   isSigning: false,
@@ -399,22 +402,34 @@ export const useBorrow = create<BorrowStore>()(
         )
 
         try {
-          const { bridgeFee, estimateTime, actions, steps } =
-            await sdk.previews.depositAndBorrow(
-              vault,
-              parseUnits(collateralInput, collateral.token.decimals),
-              parseUnits(debtInput, debt.token.decimals),
-              collateral.token,
-              debt.token,
-              new Address(address)
+          const results = await Promise.all(
+            [vault].map(async (v) =>
+              fetchRoutes(
+                v,
+                collateral.token,
+                debt.token,
+                collateralInput,
+                debtInput,
+                address
+              )
             )
+          )
+          const selectedValue = results.filter(
+            (r) => r.address === vault.address.value
+          )[0]
+
+          if (selectedValue.error) {
+            throw selectedValue.error
+          }
+          const { bridgeFee, estimateTime, actions, steps } = selectedValue.data
           if (!actions.length) {
             throw `empty action array returned by sdk.previewDepositAndBorrow with params`
           }
+          console.log("-")
           set(
             produce((state: BorrowState) => {
               state.transactionMeta.status = "ready"
-              state.transactionMeta.bridgeFees = bridgeFee.toNumber()
+              state.transactionMeta.bridgeFees = bridgeFee
               state.transactionMeta.estimateTime = estimateTime
               state.transactionMeta.steps = steps
               // state.transactionMeta.gasFees = gasPrice?.toNumber() || 0
