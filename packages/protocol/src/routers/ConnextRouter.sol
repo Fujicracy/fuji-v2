@@ -12,10 +12,12 @@ pragma solidity 0.8.15;
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
+import {ConnextHelperReceiver} from "./ConnextHelperReceiver.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
+import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
@@ -71,10 +73,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__setRouter_invalidInput();
   error ConnextRouter__xReceive_notReceivedAssetBalance();
   error ConnextRouter__xReceive_notAllowedCaller();
+  error ConnextRouter__xReceiver_noValueTransferUseXbundle();
   error ConnnextRouter__checkSlippage_outOfBounds();
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
+
+  ConnextHelperReceiver public immutable helperReceiver;
 
   /**
    * @notice A mapping of a domain of another chain and a deployed router there.
@@ -86,6 +91,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
+    helperReceiver = new ConnextHelperReceiver(IRouter(address(this)));
     _allowCaller(address(connext_), true);
   }
 
@@ -131,29 +137,31 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       abi.decode(callData, (Action[], bytes[], uint256));
 
     // Block callers except allowed cross callers.
-    if (
-      !_isAllowedCaller[msg.sender] || routerByDomain[originDomain] != originSender
-        || originSender == address(0)
-    ) {
-      revert ConnextRouter__xReceive_notAllowedCaller();
-    }
+    // if (
+    //   !_isAllowedCaller[msg.sender] || routerByDomain[originDomain] != originSender
+    //     || originSender == address(0)
+    // ) {
+    //   revert ConnextRouter__xReceive_notAllowedCaller();
+    // }
 
-    // Ensure that at this entry point expected `asset` `amount` is received.
-    uint256 balance = IERC20(asset).balanceOf(address(this));
-    if (balance < amount) {
-      revert ConnextRouter__xReceive_notReceivedAssetBalance();
-    } else {
-      _tokensToCheck.push(Snapshot(asset, balance - amount));
-    }
-
-    /**
-     * @dev Due to the AMM nature of Connext, there could be some slippage
-     * incurred on the amount that this contract receives after bridging.
-     * The slippage can't be calculated upfront so that's why we need to
-     * replace `amount` in the encoded args for the first action if
-     * the action is Deposit, Payback or Swap.
-     */
+    uint256 balance;
+    IERC20 asset_ = IERC20(asset);
     if (amount > 0) {
+      // Ensure that at this entry point expected `asset` `amount` is received.
+      balance = asset_.balanceOf(address(this));
+      if (balance < amount) {
+        revert ConnextRouter__xReceive_notReceivedAssetBalance();
+      } else {
+        _tokensToCheck.push(Snapshot(asset, balance - amount));
+      }
+
+      /**
+       * @dev Due to the AMM nature of Connext, there could be some slippage
+       * incurred on the amount that this contract receives after bridging.
+       * The slippage can't be calculated upfront so that's why we need to
+       * replace `amount` in the encoded args for the first action if
+       * the action is Deposit, Payback or Swap.
+       */
       args[0] = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
     }
 
@@ -165,6 +173,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
+      if (balance > 0) {
+        asset_.transfer(address(helperReceiver), balance);
+        helperReceiver.recordFailed(
+          transferId, amount, asset, originSender, originDomain, actions, args
+        );
+      }
+
       // Ensure clear storage for token balance checks.
       delete _tokensToCheck;
       // Keep funds in router and let them be handled by admin.

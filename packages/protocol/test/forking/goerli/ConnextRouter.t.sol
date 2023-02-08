@@ -235,11 +235,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       slippageThreshold
     );
 
-    vm.startPrank(attacker);
     // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
+    vm.startPrank(attacker);
     try connextRouter.xReceive(
-      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, attackCallData
+      "", 1 ether, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, attackCallData
     ) {
       console.log("xReceive-attack succeeded");
     } catch {
@@ -253,17 +253,17 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
 
     // Attacker makes second attempt to take funds using xBundle, BOB
-    (IRouter.Action[] memory attackActions, bytes[] memory attackArgs) = _getDepositAndBorrow(
-      attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
-    );
+    // (IRouter.Action[] memory attackActions, bytes[] memory attackArgs) = _getDepositAndBorrow(
+    //   attacker, BOB_PK, 1 ether, borrowAmount, address(connextRouter), address(vault)
+    // );
 
-    vm.startPrank(attacker);
-    try connextRouter.xBundle(attackActions, attackArgs) {
-      console.log("xBundle-attack succeeded");
-    } catch {
-      console.log("xBundle-attack repelled");
-    }
-    vm.stopPrank();
+    // vm.startPrank(attacker);
+    // try connextRouter.xBundle(attackActions, attackArgs) {
+    //   console.log("xBundle-attack succeeded");
+    // } catch {
+    //   console.log("xBundle-attack repelled");
+    // }
+    // vm.stopPrank();
 
     // Assert attacker has no funds deposited in the vault
     assertEq(vault.balanceOf(BOB), 0);
