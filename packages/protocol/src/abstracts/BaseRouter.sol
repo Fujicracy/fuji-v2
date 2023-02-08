@@ -43,6 +43,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   event AllowCaller(address caller, bool allowed);
 
   /// @dev Custom Errors
+  error BaseRouter__bundleInternal_swapNotFirstAction();
   error BaseRouter__bundleInternal_paramsMismatch();
   error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noBalanceChange();
@@ -215,6 +216,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         _crossTransferWithCalldata(args[i]);
       } else if (actions[i] == Action.Swap) {
         // SWAP
+
         (
           ISwapper swapper,
           address assetIn,
@@ -223,13 +225,16 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           uint256 amountOut,
           address receiver,
           address sweeper,
-          uint256 minSweepOut
+          uint256 minSweepOut,
+          address sender
         ) = abi.decode(
-          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
+          args[i],
+          (ISwapper, address, address, uint256, uint256, address, address, uint256, address)
         );
 
         _addTokenToList(assetIn);
         _addTokenToList(assetOut);
+        _safePullTokenFrom(assetIn, sender, receiver, amountIn);
         _safeApprove(assetIn, address(swapper), amountIn);
 
         swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);

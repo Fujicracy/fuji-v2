@@ -219,25 +219,52 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         _checkSlippage(amount, receivedAmount, slippageThreshold);
       }
     } else if (action == Action.Swap) {
-      // For Swap.
-      (
-        ISwapper swapper,
-        address assetIn,
-        address assetOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        address receiver,
-        address sweeper,
-        uint256 minSweepOut
-      ) =
-        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+      newArgs = _replaceAmountInSwapAction(receivedAmount, args, slippageThreshold);
+    }
+  }
 
-      if (amountIn != receivedAmount) {
-        newArgs = abi.encode(
-          swapper, assetIn, assetOut, receivedAmount, amountOut, receiver, sweeper, minSweepOut
-        );
-        _checkSlippage(amountIn, receivedAmount, slippageThreshold);
-      }
+  /**
+   * @dev Replaces `amountIn` argument in a `Action.Swap` argument.
+   * This function was required to avoid stack too deep error in
+   * `_accountForSlippage()`.
+   */
+  function _replaceAmountInSwapAction(
+    uint256 receivedAmount,
+    bytes memory args,
+    uint256 slippageThreshold
+  )
+    internal
+    pure
+    returns (bytes memory newArgs)
+  {
+    // For Swap.
+    (
+      ISwapper swapper,
+      address assetIn,
+      address assetOut,
+      uint256 amountIn,
+      uint256 amountOut,
+      address receiver,
+      address sweeper,
+      uint256 minSweepOut,
+      address sender
+    ) = abi.decode(
+      args, (ISwapper, address, address, uint256, uint256, address, address, uint256, address)
+    );
+
+    if (amountIn != receivedAmount) {
+      newArgs = abi.encode(
+        swapper,
+        assetIn,
+        assetOut,
+        receivedAmount,
+        amountOut,
+        receiver,
+        sweeper,
+        minSweepOut,
+        sender
+      );
+      _checkSlippage(amountIn, receivedAmount, slippageThreshold);
     }
   }
 
