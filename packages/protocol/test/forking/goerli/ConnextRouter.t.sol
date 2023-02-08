@@ -144,8 +144,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertGt(vault.balanceOf(ALICE), 0);
     // Assert ALICE received borrowAmount
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
-    // Assert router does not have collateral.
+    // Assert router or ConnextHelperReceiver does not have collateral.
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), 0);
   }
 
   function test_bridgeSlippageInbound() public {
@@ -192,8 +193,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), slippageAmount);
     // Assert ALICE received borrowAmount
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
-    // Assert router does not have collateral.
+    // Assert router or ConnextHelperReceiver does not have collateral.
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), 0);
   }
 
   function test_attackXReceive() public {
@@ -204,7 +206,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Eg. 0.05% slippage threshold will be 5.
     uint256 slippageThreshold = 5;
 
-    // This calldata has to fail and funds stay at the router.
+    // This calldata has to fail and funds handled accordingly by the router.
     bytes memory failingCallData = _getDepositAndBorrowCallData(
       ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
     );
@@ -220,8 +222,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    // Assert that funds are kept at the Router
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+    // Assert that funds are kept at the ConnextHelperReceiver
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), amount);
 
     // Attacker makes first attempt to take funds using xReceive, BOB
     address attacker = BOB;
@@ -253,17 +255,17 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(IERC20(debtAsset).balanceOf(BOB), 0);
 
     // Attacker makes second attempt to take funds using xBundle, BOB
-    // (IRouter.Action[] memory attackActions, bytes[] memory attackArgs) = _getDepositAndBorrow(
-    //   attacker, BOB_PK, 1 ether, borrowAmount, address(connextRouter), address(vault)
-    // );
+    (IRouter.Action[] memory attackActions, bytes[] memory attackArgs) = _getDepositAndBorrow(
+      attacker, BOB_PK, 1 ether, borrowAmount, address(connextRouter), address(vault)
+    );
 
-    // vm.startPrank(attacker);
-    // try connextRouter.xBundle(attackActions, attackArgs) {
-    //   console.log("xBundle-attack succeeded");
-    // } catch {
-    //   console.log("xBundle-attack repelled");
-    // }
-    // vm.stopPrank();
+    vm.startPrank(attacker);
+    try connextRouter.xBundle(attackActions, attackArgs) {
+      console.log("xBundle-attack succeeded");
+    } catch {
+      console.log("xBundle-attack repelled");
+    }
+    vm.stopPrank();
 
     // Assert attacker has no funds deposited in the vault
     assertEq(vault.balanceOf(BOB), 0);
@@ -297,8 +299,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), 0);
-    // funds are kept at the Router
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+    // funds are kept at the ConnextHelperReceiver contract
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), amount);
   }
 
   function test_depositAndBorrowaAndTransfer() public {

@@ -91,7 +91,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
-    helperReceiver = new ConnextHelperReceiver(IRouter(address(this)));
+    helperReceiver = new ConnextHelperReceiver(address(this));
     _allowCaller(address(connext_), true);
   }
 

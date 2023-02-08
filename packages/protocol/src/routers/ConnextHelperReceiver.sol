@@ -10,6 +10,7 @@ pragma solidity 0.8.15;
  * the transferred funds.
  */
 
+import {ConnextRouter} from "./ConnextRouter.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
@@ -38,7 +39,7 @@ contract ConnextHelperReceiver {
   error ConnextHelperReceiver__constructor_zeroAddress();
   error ConnextHelperReceiver__callerNotConnextRouter();
 
-  IRouter public immutable connextRouter;
+  ConnextRouter public immutable connextRouter;
 
   /// @dev Maps a failed transferId -> calldata
   mapping(bytes32 => FailedTransfer) public failedTransfers;
@@ -50,11 +51,18 @@ contract ConnextHelperReceiver {
     _;
   }
 
-  constructor(IRouter connextRouter_) {
+  modifier allowedCallerInConnextRouter() {
+    if (!connextRouter.isAllowedCaller(msg.sender)) {
+      revert ConnextHelperReceiver__callerNotConnextRouter();
+    }
+    _;
+  }
+
+  constructor(address connextRouter_) {
     if (address(connextRouter_) == address(0)) {
       revert ConnextHelperReceiver__constructor_zeroAddress();
     }
-    connextRouter = connextRouter_;
+    connextRouter = ConnextRouter(payable(connextRouter_));
   }
 
   /**
@@ -100,7 +108,7 @@ contract ConnextHelperReceiver {
       FailedTransfer(transferId, amount, asset, originSender, originDomain, data);
   }
 
-  function executeFailed(bytes32 transferId) external {
+  function executeFailed(bytes32 transferId) external allowedCallerInConnextRouter {
     FailedTransfer memory transfer = failedTransfers[transferId];
     (IRouter.Action[] memory actions, bytes[] memory args) =
       abi.decode(transfer.data, (IRouter.Action[], bytes[]));

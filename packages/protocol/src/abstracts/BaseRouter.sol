@@ -58,7 +58,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   IWETH9 public immutable WETH9;
 
   /// @dev Apply it on entry cross-chain calls functions as required.
-  mapping(address => bool) internal _isAllowedCaller;
+  mapping(address => bool) public isAllowedCaller;
 
   /**
    * @dev Stores token balances of this contract at a given moment.
@@ -341,10 +341,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     if (caller == address(0)) {
       revert BaseRouter__allowCaller_zeroAddress();
     }
-    if (_isAllowedCaller[caller] == allowed) {
+    if (isAllowedCaller[caller] == allowed) {
       revert BaseRouter__allowCaller_noAllowChange();
     }
-    _isAllowedCaller[caller] = allowed;
+    isAllowedCaller[caller] = allowed;
     emit AllowCaller(caller, allowed);
   }
 
