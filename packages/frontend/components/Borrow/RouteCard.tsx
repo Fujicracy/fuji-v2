@@ -4,8 +4,7 @@ import { Stack } from "@mui/system"
 
 import { useBorrow } from "../../store/borrow.store"
 import { chainName } from "../../services/chains"
-import NetworkIcon from "../NetworkIcon"
-import TokenIcon from "../TokenIcon"
+import { NetworkIcon, TokenIcon } from "../Shared/Icons"
 
 type Step = {
   icon: React.ReactElement

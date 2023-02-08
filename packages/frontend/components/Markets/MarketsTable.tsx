@@ -19,7 +19,7 @@ import {
 } from "@x-fuji/sdk"
 import { chainName } from "../../services/chains"
 import { sdk } from "../../services/sdk"
-import { SizableTableCell } from "../SizableTableCell"
+import { SizableTableCell } from "../Shared/SizableTableCell"
 
 export type Row = {
   borrow: string

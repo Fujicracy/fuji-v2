@@ -41,7 +41,7 @@ export type HistoryRoutingStep = Omit<
   "txHash" | "token"
 > & {
   txHash?: string
-  token: SeriazableToken
+  token: SerializableToken
 }
 
 export function toRoutingStepDetails(
@@ -81,7 +81,7 @@ export function toHistoryRoutingStep(
 /**
  * Contains all we need to instanciate a token with new Token()
  */
-export type SeriazableToken = {
+export type SerializableToken = {
   chainId: ChainId
   address: string
   decimals: number

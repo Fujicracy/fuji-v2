@@ -3,7 +3,7 @@ import { useTheme } from "@mui/material/styles"
 import { Box, Grid, Link, Typography } from "@mui/material"
 import TwitterIcon from "@mui/icons-material/Twitter"
 import TelegramIcon from "@mui/icons-material/Telegram"
-import { DiscordIcon } from "./DiscordIcon"
+import { DiscordIcon } from "./Icons"
 
 type Social = {
   id: string

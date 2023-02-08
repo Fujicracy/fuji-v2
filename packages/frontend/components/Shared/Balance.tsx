@@ -1,5 +1,3 @@
-import { Token } from "@x-fuji/sdk"
-
 type Props = {
   balance?: number
   /**

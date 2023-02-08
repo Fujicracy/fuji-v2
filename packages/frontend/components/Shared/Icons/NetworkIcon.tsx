@@ -1,29 +1,28 @@
 import { Box, useTheme } from "@mui/material"
-import { Token } from "@x-fuji/sdk"
+import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
+import { chainName, chainIcon } from "../../../services/chains"
 
 interface Props extends Omit<ImageProps, "src"> {
-  token: Token | string
+  network: string | ChainId
   sx?: object
 }
 
-export const getTokenImage = (symbol: string) =>
-  `/assets/images/protocol-icons/tokens/${symbol}.svg`
-
-export default function TokenIcon(props: Props) {
+export default function NetworkIcon(props: Props) {
   const { palette } = useTheme()
-  const { token, ...rest } = props
-  const symbol = typeof token === "string" ? token : token.symbol
-  const path = getTokenImage(symbol)
-  const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
+  const { network, ...rest } = props
 
+  const name = typeof network === "string" ? network : chainName(network)
+  const path = `/assets/images/protocol-icons/networks/${chainIcon(name)}.svg`
+
+  const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
   useEffect(() => {
     if (error)
       console.error(
-        `404 Not found. No image found for token ${symbol}. Searched in ${path}"`
+        `404 Not found. No image found for network ${name}. Searched in ${path}`
       )
-  }, [error, symbol, path])
+  }, [error, network, path, name])
 
   if (error) {
     return (
@@ -45,7 +44,7 @@ export default function TokenIcon(props: Props) {
           <Image
             {...rest}
             src={path}
-            alt={`${symbol} icon`}
+            alt={`${name} icon`}
             onError={(e) => setError(e)}
           />
         </div>
@@ -53,7 +52,7 @@ export default function TokenIcon(props: Props) {
         <Image
           {...rest}
           src={path}
-          alt={`${symbol} icon`}
+          alt={`${name} icon`}
           onError={(e) => setError(e)}
         />
       )}

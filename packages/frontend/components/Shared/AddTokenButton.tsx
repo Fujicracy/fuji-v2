@@ -1,12 +1,12 @@
 import LoadingButton from "@mui/lab/LoadingButton"
 import { useState } from "react"
-import { SeriazableToken } from "../store/history.store"
-import { getTokenImage } from "./TokenIcon"
+import { SerializableToken } from "../../store/history.store"
+import { getTokenImage } from "../../helpers/tokenService"
 
 declare const ethereum: any // eslint-disable-line
 
 type ButtonAddTokenProps = {
-  token: SeriazableToken
+  token: SerializableToken
 }
 
 export function AddTokenButton({ token }: ButtonAddTokenProps) {
@@ -38,7 +38,7 @@ export function AddTokenButton({ token }: ButtonAddTokenProps) {
   )
 }
 
-async function addTokenToMetamask(token: SeriazableToken) {
+async function addTokenToMetamask(token: SerializableToken) {
   if (!ethereum) {
     console.error("var ethereum is undefined, user may not have mmask")
     return

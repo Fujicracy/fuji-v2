@@ -24,11 +24,11 @@ import { BorrowingVault } from "@x-fuji/sdk"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import ClickableTooltip from "../Layout/ClickableTooltip"
-import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
-import ProviderIcon from "../ProviderIcon"
-import NetworkIcon from "../NetworkIcon"
+
+import ClickableTooltip from "../Shared/ClickableTooltip"
 import { useBorrow } from "../../store/borrow.store"
+import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
+import { NetworkIcon, ProviderIcon } from "../Shared/Icons"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -38,10 +38,10 @@ export default function Overview() {
   const liquidationPrice = useBorrow((state) => state.position.liquidationPrice)
   const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
   const collateral = useBorrow((state) => state.position.collateral)
-  const collateralInput = useBorrow((state) => state.collateralInput)
+  //const collateralInput = useBorrow((state) => state.collateralInput)
   // const collateralAmount = parseFloat(collateralInput)
   const debt = useBorrow((state) => state.position.debt)
-  const debtInput = useBorrow((state) => state.debtInput)
+  //const debtInput = useBorrow((state) => state.debtInput)
   // const debtAmount = parseFloat(debtInput)
   const providers = useBorrow((state) => state.position.providers)
   const vault = useBorrow((state) => state.position.vault)

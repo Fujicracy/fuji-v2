@@ -5,8 +5,8 @@ import mixpanel from "mixpanel-browser"
 import { ThemeProvider } from "@mui/material"
 
 import { theme } from "../styles/theme"
-import { Snackbar } from "../components/Snackbar"
 import { useAuth } from "../store/auth.store"
+import { Snackbar } from "../components/Shared/Snackbar"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)

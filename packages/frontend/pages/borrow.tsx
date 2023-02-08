@@ -10,8 +10,8 @@ import {
 } from "@mui/material"
 
 import Borrow from "../components/Borrow/Borrow"
-import Footer from "../components/Layout/Footer"
-import Header from "../components/Layout/Header"
+import Footer from "../components/Shared/Footer"
+import Header from "../components/Shared/Header"
 import Overview from "../components/Borrow/Overview"
 import TransactionSummary from "../components/Borrow/TransactionSummary"
 

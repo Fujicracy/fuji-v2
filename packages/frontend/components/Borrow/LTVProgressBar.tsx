@@ -10,7 +10,7 @@ import {
   Stack,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import ClickableTooltip from "../Layout/ClickableTooltip"
+import ClickableTooltip from "../Shared/ClickableTooltip"
 
 type LTVProgressBarProps = {
   borrowLimit: number

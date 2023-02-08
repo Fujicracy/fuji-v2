@@ -15,12 +15,12 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-
-import LTVProgressBar from "./LTVProgressBar"
-import ClickableTooltip from "../Layout/ClickableTooltip"
 import { formatUnits } from "ethers/lib/utils"
-import ProviderIcon from "../ProviderIcon"
+
 import { useBorrow } from "../../store/borrow.store"
+import LTVProgressBar from "./LTVProgressBar"
+import ClickableTooltip from "../Shared/ClickableTooltip"
+import { ProviderIcon } from "../Shared/Icons"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
@@ -31,12 +31,12 @@ export default function TransactionSummary() {
   const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
 
   const collateral = useBorrow((state) => state.position.collateral)
-  const collateralInput = useBorrow((state) => state.collateralInput)
-  const collateralAmount = parseFloat(collateralInput)
+  //const collateralInput = useBorrow((state) => state.collateralInput)
+  //const collateralAmount = parseFloat(collateralInput)
 
   const debt = useBorrow((state) => state.position.debt)
-  const debtInput = useBorrow((state) => state.debtInput)
-  const debtAmount = parseFloat(debtInput)
+  //const debtInput = useBorrow((state) => state.debtInput)
+  //const debtAmount = parseFloat(debtInput)
 
   const providers = useBorrow((state) => state.position.providers)
 

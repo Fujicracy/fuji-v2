@@ -5,7 +5,7 @@ type DiscordIconProps = {
   color?: string
 }
 
-export const DiscordIcon = (props: DiscordIconProps) => {
+const DiscordIcon = (props: DiscordIconProps) => {
   const { palette } = useTheme()
   console.log(props.color)
 
@@ -29,3 +29,5 @@ export const DiscordIcon = (props: DiscordIconProps) => {
     </SvgIcon>
   )
 }
+
+export default DiscordIcon
