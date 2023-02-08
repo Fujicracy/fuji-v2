@@ -18,6 +18,11 @@ export const VAULT_LIST: ChainVaultList = {
       WETH9[ChainId.MATIC],
       USDC[ChainId.MATIC]
     ),
+    new BorrowingVault(
+      Address.from('0x9fafDa0f9400856b89f6777629C0c765331B1877'),
+      WETH9[ChainId.MATIC],
+      DAI[ChainId.MATIC]
+    ),
   ],
   [ChainId.MATIC_MUMBAI]: [
     new BorrowingVault(

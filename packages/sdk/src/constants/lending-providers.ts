@@ -10,6 +10,7 @@ export const LENDING_PROVIDERS_LIST: Record<
     '0x72d763fbD586C5fF7ECc657ab884F2539eBC6a74': 'aave-v3',
   },
   [ChainId.MATIC]: {
+    '0xEBdCb08bA47e6a4EC2590140011d8707D76962B8': 'aave-v2',
     '0x5BDE166199Cb85323FcF0282999eaaF7BA6ab5E6': 'aave-v3',
   },
   [ChainId.MATIC_MUMBAI]: {
