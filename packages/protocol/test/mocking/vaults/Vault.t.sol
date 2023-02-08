@@ -343,7 +343,8 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOfDebt(BOB), 0);
   }
 
-  function test_liquidateDefault(uint256 priceDrop) public {
+  function test_liquidateDefault(uint128 priceDrop128) public {
+    uint256 priceDrop = uint256(priceDrop128);
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
 
