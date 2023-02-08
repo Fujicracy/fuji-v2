@@ -18,7 +18,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
 import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
-import Balance from "../Balance"
+import Balance from "../Shared/Balance"
 import { useStore } from "../../store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
 import { TokenIcon } from "../Shared/Icons"

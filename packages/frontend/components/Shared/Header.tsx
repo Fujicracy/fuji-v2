@@ -32,7 +32,7 @@ import { useStore } from "../../store"
 import { Balances } from "@web3-onboard/core/dist/types"
 import AccountModal from "./AccountModal"
 import { useHistory } from "../../store/history.store"
-import Balance from "../Balance"
+import Balance from "./Balance"
 import ParameterLinks from "./ParameterLinks"
 
 const pages = [

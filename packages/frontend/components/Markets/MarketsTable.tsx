@@ -21,7 +21,7 @@ import {
   LendingProviderDetails,
 } from "@x-fuji/sdk"
 import { chainName } from "../../helpers/chainName"
-import { SizableTableCell } from "../SizableTableCell"
+import { SizableTableCell } from "../Shared/SizableTableCell"
 
 export type Row = {
   borrow: string

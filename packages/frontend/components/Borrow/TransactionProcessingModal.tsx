@@ -30,7 +30,7 @@ import { useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chainName"
 import { transactionLink } from "../../helpers/transactionInformations"
-import { AddTokenButton } from "../AddTokenButton"
+import { AddTokenButton } from "../Shared/AddTokenButton"
 import { useStore } from "../../store"
 
 type InvalidStep = {
