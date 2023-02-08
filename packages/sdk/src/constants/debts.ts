@@ -5,7 +5,7 @@ import { DAI, USDC, USDT } from './tokens';
 export const DEBT_LIST: ChainTokenList = {
   [ChainId.ETHEREUM]: [USDC[ChainId.ETHEREUM]],
   [ChainId.GOERLI]: [DAI[ChainId.GOERLI]],
-  [ChainId.MATIC]: [USDC[ChainId.MATIC]],
+  [ChainId.MATIC]: [USDC[ChainId.MATIC], DAI[ChainId.MATIC]],
   [ChainId.MATIC_MUMBAI]: [
     USDC[ChainId.MATIC_MUMBAI],
     USDT[ChainId.MATIC_MUMBAI],
@@ -13,7 +13,7 @@ export const DEBT_LIST: ChainTokenList = {
   ],
   [ChainId.FANTOM]: [USDC[ChainId.FANTOM], DAI[ChainId.FANTOM]],
   [ChainId.ARBITRUM]: [USDC[ChainId.ARBITRUM]],
-  [ChainId.OPTIMISM]: [USDC[ChainId.OPTIMISM]],
+  [ChainId.OPTIMISM]: [USDC[ChainId.OPTIMISM], DAI[ChainId.OPTIMISM]],
   [ChainId.OPTIMISM_GOERLI]: [
     USDC[ChainId.OPTIMISM_GOERLI],
     USDT[ChainId.OPTIMISM_GOERLI],

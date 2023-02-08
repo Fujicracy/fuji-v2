@@ -61,6 +61,7 @@ contract DeployPolygon is ScriptPlus {
     timelock = TimelockController(payable(chief.timelock()));
 
     oracle = FujiOracle(getAddress("FujiOracle"));
+    /*_setNewPriceFeed(address(DAI), 0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D);*/
     /*address[] memory assets = new address[](2);*/
     /*assets[0] = address(WETH);*/
     /*assets[1] = address(USDC);*/
@@ -143,6 +144,16 @@ contract DeployPolygon is ScriptPlus {
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 90
     );
     saveAddress(name, vault);
+  }
+
+  function _setNewPriceFeed(address asset, address feed) internal {
+    _scheduleWithTimelock(
+      address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
+    );
+
+    _executeWithTimelock(
+      address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
+    );
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {
