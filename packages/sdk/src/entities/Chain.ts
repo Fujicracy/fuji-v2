@@ -10,11 +10,7 @@ import {
   INFURA_WSS_URL,
 } from '../constants/rpcs';
 import { ChainId, ChainType, ConnextDomain } from '../enums';
-import {
-  ChainAnkrKey,
-  ChainCoingeckoKey,
-  ChainLlamaKey,
-} from '../enums/ChainKey';
+import { ChainCoingeckoKey, ChainLlamaKey } from '../enums/ChainKey';
 import { ChainConfig } from '../types/ChainConfig';
 import { ChainConnectionDetails } from '../types/ChainConnectionDetails';
 
@@ -25,8 +21,9 @@ export class Chain {
   connextDomain?: ConnextDomain;
 
   coingeckoKey: ChainCoingeckoKey;
-  ankrKey: ChainAnkrKey;
   llamaKey: ChainLlamaKey;
+
+  isDeployed: boolean;
 
   connection?: ChainConnectionDetails;
 
@@ -35,8 +32,8 @@ export class Chain {
     type: ChainType,
     connextDomain: ConnextDomain | undefined,
     coingecko: ChainCoingeckoKey,
-    ankr: ChainAnkrKey,
-    llama: ChainLlamaKey
+    llama: ChainLlamaKey,
+    isDeployed?: boolean
   ) {
     this.chainId = id;
     this.chainType = type;
@@ -44,8 +41,8 @@ export class Chain {
     this.connextDomain = connextDomain;
 
     this.coingeckoKey = coingecko;
-    this.ankrKey = ankr;
     this.llamaKey = llama;
+    this.isDeployed = isDeployed as boolean;
   }
 
   getConnextDomain(): string {

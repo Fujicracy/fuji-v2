@@ -37,12 +37,15 @@ export interface BaseVaultInterface extends utils.Interface {
     "PAUSER_ROLE()": FunctionFragment;
     "REBALANCER_ROLE()": FunctionFragment;
     "UNPAUSER_ROLE()": FunctionFragment;
+    "VERSION()": FunctionFragment;
     "activeProvider()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "asset()": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "balanceOfAsset(address)": FunctionFragment;
     "balanceOfDebt(address)": FunctionFragment;
+    "balanceOfDebtShares(address)": FunctionFragment;
     "borrow(uint256,address,address)": FunctionFragment;
     "borrowAllowance(address,address,address)": FunctionFragment;
     "chief()": FunctionFragment;
@@ -57,6 +60,7 @@ export interface BaseVaultInterface extends utils.Interface {
     "decreaseBorrowAllowance(address,address,uint256)": FunctionFragment;
     "decreaseWithdrawAllowance(address,address,uint256)": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
+    "deposit(uint256,address,uint256)": FunctionFragment;
     "depositCap()": FunctionFragment;
     "getHealthFactor(address)": FunctionFragment;
     "getLiquidationFactor(address)": FunctionFragment;
@@ -70,7 +74,8 @@ export interface BaseVaultInterface extends utils.Interface {
     "maxMint(address)": FunctionFragment;
     "maxRedeem(address)": FunctionFragment;
     "maxWithdraw(address)": FunctionFragment;
-    "minDepositAmount()": FunctionFragment;
+    "minAmount()": FunctionFragment;
+    "mint(uint256,address,uint256)": FunctionFragment;
     "mint(uint256,address)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
@@ -84,11 +89,12 @@ export interface BaseVaultInterface extends utils.Interface {
     "previewMint(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "previewWithdraw(uint256)": FunctionFragment;
-    "rebalance(uint256,uint256,address,address,uint256)": FunctionFragment;
+    "rebalance(uint256,uint256,address,address,uint256,bool)": FunctionFragment;
+    "redeem(uint256,address,address,uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
     "setActiveProvider(address)": FunctionFragment;
     "setDepositCap(uint256)": FunctionFragment;
-    "setMinDepositAmount(uint256)": FunctionFragment;
+    "setMinAmount(uint256)": FunctionFragment;
     "setProviders(address[])": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalAssets()": FunctionFragment;
@@ -98,6 +104,7 @@ export interface BaseVaultInterface extends utils.Interface {
     "transferFrom(address,address,uint256)": FunctionFragment;
     "unpause(uint8)": FunctionFragment;
     "unpauseForceAll()": FunctionFragment;
+    "withdraw(uint256,address,address,uint256)": FunctionFragment;
     "withdraw(uint256,address,address)": FunctionFragment;
     "withdrawAllowance(address,address,address)": FunctionFragment;
   };
@@ -111,12 +118,15 @@ export interface BaseVaultInterface extends utils.Interface {
       | "PAUSER_ROLE"
       | "REBALANCER_ROLE"
       | "UNPAUSER_ROLE"
+      | "VERSION"
       | "activeProvider"
       | "allowance"
       | "approve"
       | "asset"
       | "balanceOf"
+      | "balanceOfAsset"
       | "balanceOfDebt"
+      | "balanceOfDebtShares"
       | "borrow"
       | "borrowAllowance"
       | "chief"
@@ -130,7 +140,8 @@ export interface BaseVaultInterface extends utils.Interface {
       | "decreaseAllowance"
       | "decreaseBorrowAllowance"
       | "decreaseWithdrawAllowance"
-      | "deposit"
+      | "deposit(uint256,address)"
+      | "deposit(uint256,address,uint256)"
       | "depositCap"
       | "getHealthFactor"
       | "getLiquidationFactor"
@@ -144,8 +155,9 @@ export interface BaseVaultInterface extends utils.Interface {
       | "maxMint"
       | "maxRedeem"
       | "maxWithdraw"
-      | "minDepositAmount"
-      | "mint"
+      | "minAmount"
+      | "mint(uint256,address,uint256)"
+      | "mint(uint256,address)"
       | "name"
       | "nonces"
       | "pause"
@@ -159,10 +171,11 @@ export interface BaseVaultInterface extends utils.Interface {
       | "previewRedeem"
       | "previewWithdraw"
       | "rebalance"
-      | "redeem"
+      | "redeem(uint256,address,address,uint256)"
+      | "redeem(uint256,address,address)"
       | "setActiveProvider"
       | "setDepositCap"
-      | "setMinDepositAmount"
+      | "setMinAmount"
       | "setProviders"
       | "symbol"
       | "totalAssets"
@@ -172,7 +185,8 @@ export interface BaseVaultInterface extends utils.Interface {
       | "transferFrom"
       | "unpause"
       | "unpauseForceAll"
-      | "withdraw"
+      | "withdraw(uint256,address,address,uint256)"
+      | "withdraw(uint256,address,address)"
       | "withdrawAllowance"
   ): FunctionFragment;
 
@@ -204,6 +218,7 @@ export interface BaseVaultInterface extends utils.Interface {
     functionFragment: "UNPAUSER_ROLE",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "activeProvider",
     values?: undefined
@@ -219,7 +234,15 @@ export interface BaseVaultInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "asset", values?: undefined): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
+    functionFragment: "balanceOfAsset",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "balanceOfDebt",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfDebtShares",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -266,8 +289,12 @@ export interface BaseVaultInterface extends utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "deposit",
+    functionFragment: "deposit(uint256,address)",
     values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deposit(uint256,address,uint256)",
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "depositCap",
@@ -306,12 +333,13 @@ export interface BaseVaultInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "maxMint", values: [string]): string;
   encodeFunctionData(functionFragment: "maxRedeem", values: [string]): string;
   encodeFunctionData(functionFragment: "maxWithdraw", values: [string]): string;
+  encodeFunctionData(functionFragment: "minAmount", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "minDepositAmount",
-    values?: undefined
+    functionFragment: "mint(uint256,address,uint256)",
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "mint",
+    functionFragment: "mint(uint256,address)",
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
@@ -371,10 +399,14 @@ export interface BaseVaultInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "rebalance",
-    values: [BigNumberish, BigNumberish, string, string, BigNumberish]
+    values: [BigNumberish, BigNumberish, string, string, BigNumberish, boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "redeem",
+    functionFragment: "redeem(uint256,address,address,uint256)",
+    values: [BigNumberish, string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "redeem(uint256,address,address)",
     values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
@@ -386,7 +418,7 @@ export interface BaseVaultInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setMinDepositAmount",
+    functionFragment: "setMinAmount",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -420,7 +452,11 @@ export interface BaseVaultInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "withdraw",
+    functionFragment: "withdraw(uint256,address,address,uint256)",
+    values: [BigNumberish, string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw(uint256,address,address)",
     values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
@@ -456,6 +492,7 @@ export interface BaseVaultInterface extends utils.Interface {
     functionFragment: "UNPAUSER_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "VERSION", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "activeProvider",
     data: BytesLike
@@ -465,7 +502,15 @@ export interface BaseVaultInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "asset", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "balanceOfAsset",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "balanceOfDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfDebtShares",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
@@ -508,7 +553,14 @@ export interface BaseVaultInterface extends utils.Interface {
     functionFragment: "decreaseWithdrawAllowance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "deposit(uint256,address)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "deposit(uint256,address,uint256)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "depositCap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getHealthFactor",
@@ -543,11 +595,15 @@ export interface BaseVaultInterface extends utils.Interface {
     functionFragment: "maxWithdraw",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "minAmount", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "minDepositAmount",
+    functionFragment: "mint(uint256,address,uint256)",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "mint(uint256,address)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
@@ -582,7 +638,14 @@ export interface BaseVaultInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "rebalance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "redeem(uint256,address,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "redeem(uint256,address,address)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setActiveProvider",
     data: BytesLike
@@ -592,7 +655,7 @@ export interface BaseVaultInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setMinDepositAmount",
+    functionFragment: "setMinAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -619,7 +682,14 @@ export interface BaseVaultInterface extends utils.Interface {
     functionFragment: "unpauseForceAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdraw(uint256,address,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdraw(uint256,address,address)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAllowance",
     data: BytesLike
@@ -634,7 +704,7 @@ export interface BaseVaultInterface extends utils.Interface {
     "DepositCapChanged(uint256)": EventFragment;
     "LiqRatioChanged(uint256)": EventFragment;
     "MaxLtvChanged(uint256)": EventFragment;
-    "MinDepositAmountChanged(uint256)": EventFragment;
+    "MinAmountChanged(uint256)": EventFragment;
     "OracleChanged(address)": EventFragment;
     "Paused(address,uint8)": EventFragment;
     "PausedForceAll(address)": EventFragment;
@@ -656,7 +726,7 @@ export interface BaseVaultInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "DepositCapChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiqRatioChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MaxLtvChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MinDepositAmountChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MinAmountChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OracleChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PausedForceAll"): EventFragment;
@@ -764,16 +834,16 @@ export type MaxLtvChangedEvent = TypedEvent<
 
 export type MaxLtvChangedEventFilter = TypedEventFilter<MaxLtvChangedEvent>;
 
-export interface MinDepositAmountChangedEventObject {
-  newMinDeposit: BigNumber;
+export interface MinAmountChangedEventObject {
+  newMinAmount: BigNumber;
 }
-export type MinDepositAmountChangedEvent = TypedEvent<
+export type MinAmountChangedEvent = TypedEvent<
   [BigNumber],
-  MinDepositAmountChangedEventObject
+  MinAmountChangedEventObject
 >;
 
-export type MinDepositAmountChangedEventFilter =
-  TypedEventFilter<MinDepositAmountChangedEvent>;
+export type MinAmountChangedEventFilter =
+  TypedEventFilter<MinAmountChangedEvent>;
 
 export interface OracleChangedEventObject {
   newOracle: string;
@@ -784,7 +854,7 @@ export type OracleChangedEventFilter = TypedEventFilter<OracleChangedEvent>;
 
 export interface PausedEventObject {
   account: string;
-  actions: number;
+  action: number;
 }
 export type PausedEvent = TypedEvent<[string, number], PausedEventObject>;
 
@@ -838,7 +908,7 @@ export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface UnpausedEventObject {
   account: string;
-  actions: number;
+  action: number;
 }
 export type UnpausedEvent = TypedEvent<[string, number], UnpausedEventObject>;
 
@@ -937,6 +1007,8 @@ export interface BaseVault extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
+    VERSION(overrides?: CallOverrides): Promise<[string]>;
+
     activeProvider(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
@@ -955,10 +1027,20 @@ export interface BaseVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    balanceOfAsset(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { assets: BigNumber }>;
+
     balanceOfDebt(
       account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { debt: BigNumber }>;
+
+    balanceOfDebtShares(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debtShares: BigNumber }>;
 
     borrow(
       debt: BigNumberish,
@@ -1004,7 +1086,7 @@ export interface BaseVault extends BaseContract {
 
     decreaseAllowance(
       receiver: string,
-      subtractedShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1022,9 +1104,16 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    deposit(
+    "deposit(uint256,address)"(
       assets: BigNumberish,
       receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "deposit(uint256,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      minShares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1046,7 +1135,7 @@ export interface BaseVault extends BaseContract {
 
     increaseAllowance(
       receiver: string,
-      extraShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1083,9 +1172,16 @@ export interface BaseVault extends BaseContract {
 
     maxWithdraw(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    minDepositAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
+    minAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    mint(
+    "mint(uint256,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      maxAssets: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1160,10 +1256,19 @@ export interface BaseVault extends BaseContract {
       from: string,
       to: string,
       fee: BigNumberish,
+      setToAsActiveProvider: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    redeem(
+    "redeem(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minAssets: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "redeem(uint256,address,address)"(
       shares: BigNumberish,
       receiver: string,
       owner: string,
@@ -1180,7 +1285,7 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setMinDepositAmount(
+    setMinAmount(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -1222,7 +1327,15 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    withdraw(
+    "withdraw(uint256,address,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      maxShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "withdraw(uint256,address,address)"(
       assets: BigNumberish,
       receiver: string,
       owner: string,
@@ -1251,6 +1364,8 @@ export interface BaseVault extends BaseContract {
 
   UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
+  VERSION(overrides?: CallOverrides): Promise<string>;
+
   activeProvider(overrides?: CallOverrides): Promise<string>;
 
   allowance(
@@ -1269,7 +1384,14 @@ export interface BaseVault extends BaseContract {
 
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  balanceOfAsset(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   balanceOfDebt(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  balanceOfDebtShares(
+    owner: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   borrow(
     debt: BigNumberish,
@@ -1315,7 +1437,7 @@ export interface BaseVault extends BaseContract {
 
   decreaseAllowance(
     receiver: string,
-    subtractedShares: BigNumberish,
+    shares: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1333,9 +1455,16 @@ export interface BaseVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  deposit(
+  "deposit(uint256,address)"(
     assets: BigNumberish,
     receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "deposit(uint256,address,uint256)"(
+    assets: BigNumberish,
+    receiver: string,
+    minShares: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1355,7 +1484,7 @@ export interface BaseVault extends BaseContract {
 
   increaseAllowance(
     receiver: string,
-    extraShares: BigNumberish,
+    shares: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1389,9 +1518,16 @@ export interface BaseVault extends BaseContract {
 
   maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  minDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
+  minAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  mint(
+  "mint(uint256,address,uint256)"(
+    shares: BigNumberish,
+    receiver: string,
+    maxAssets: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mint(uint256,address)"(
     shares: BigNumberish,
     receiver: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1466,10 +1602,19 @@ export interface BaseVault extends BaseContract {
     from: string,
     to: string,
     fee: BigNumberish,
+    setToAsActiveProvider: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  redeem(
+  "redeem(uint256,address,address,uint256)"(
+    shares: BigNumberish,
+    receiver: string,
+    owner: string,
+    minAssets: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "redeem(uint256,address,address)"(
     shares: BigNumberish,
     receiver: string,
     owner: string,
@@ -1486,7 +1631,7 @@ export interface BaseVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setMinDepositAmount(
+  setMinAmount(
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1526,7 +1671,15 @@ export interface BaseVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdraw(
+  "withdraw(uint256,address,address,uint256)"(
+    assets: BigNumberish,
+    receiver: string,
+    owner: string,
+    maxShares: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "withdraw(uint256,address,address)"(
     assets: BigNumberish,
     receiver: string,
     owner: string,
@@ -1555,6 +1708,8 @@ export interface BaseVault extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
+    VERSION(overrides?: CallOverrides): Promise<string>;
+
     activeProvider(overrides?: CallOverrides): Promise<string>;
 
     allowance(
@@ -1573,8 +1728,18 @@ export interface BaseVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    balanceOfAsset(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     balanceOfDebt(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfDebtShares(
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1622,7 +1787,7 @@ export interface BaseVault extends BaseContract {
 
     decreaseAllowance(
       receiver: string,
-      subtractedShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1640,9 +1805,16 @@ export interface BaseVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    deposit(
+    "deposit(uint256,address)"(
       assets: BigNumberish,
       receiver: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "deposit(uint256,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      minShares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1662,7 +1834,7 @@ export interface BaseVault extends BaseContract {
 
     increaseAllowance(
       receiver: string,
-      extraShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1696,9 +1868,16 @@ export interface BaseVault extends BaseContract {
 
     maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    minDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    minAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    mint(
+    "mint(uint256,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      maxAssets: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
       overrides?: CallOverrides
@@ -1768,10 +1947,19 @@ export interface BaseVault extends BaseContract {
       from: string,
       to: string,
       fee: BigNumberish,
+      setToAsActiveProvider: boolean,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    redeem(
+    "redeem(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minAssets: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "redeem(uint256,address,address)"(
       shares: BigNumberish,
       receiver: string,
       owner: string,
@@ -1788,7 +1976,7 @@ export interface BaseVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setMinDepositAmount(
+    setMinAmount(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1820,7 +2008,15 @@ export interface BaseVault extends BaseContract {
 
     unpauseForceAll(overrides?: CallOverrides): Promise<void>;
 
-    withdraw(
+    "withdraw(uint256,address,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      maxShares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "withdraw(uint256,address,address)"(
       assets: BigNumberish,
       receiver: string,
       owner: string,
@@ -1906,18 +2102,16 @@ export interface BaseVault extends BaseContract {
     "MaxLtvChanged(uint256)"(newMaxLtv?: null): MaxLtvChangedEventFilter;
     MaxLtvChanged(newMaxLtv?: null): MaxLtvChangedEventFilter;
 
-    "MinDepositAmountChanged(uint256)"(
-      newMinDeposit?: null
-    ): MinDepositAmountChangedEventFilter;
-    MinDepositAmountChanged(
-      newMinDeposit?: null
-    ): MinDepositAmountChangedEventFilter;
+    "MinAmountChanged(uint256)"(
+      newMinAmount?: null
+    ): MinAmountChangedEventFilter;
+    MinAmountChanged(newMinAmount?: null): MinAmountChangedEventFilter;
 
     "OracleChanged(address)"(newOracle?: null): OracleChangedEventFilter;
     OracleChanged(newOracle?: null): OracleChangedEventFilter;
 
-    "Paused(address,uint8)"(account?: null, actions?: null): PausedEventFilter;
-    Paused(account?: null, actions?: null): PausedEventFilter;
+    "Paused(address,uint8)"(account?: null, action?: null): PausedEventFilter;
+    Paused(account?: null, action?: null): PausedEventFilter;
 
     "PausedForceAll(address)"(account?: null): PausedForceAllEventFilter;
     PausedForceAll(account?: null): PausedForceAllEventFilter;
@@ -1953,9 +2147,9 @@ export interface BaseVault extends BaseContract {
 
     "Unpaused(address,uint8)"(
       account?: null,
-      actions?: null
+      action?: null
     ): UnpausedEventFilter;
-    Unpaused(account?: null, actions?: null): UnpausedEventFilter;
+    Unpaused(account?: null, action?: null): UnpausedEventFilter;
 
     "UnpausedForceAll(address)"(account?: null): UnpausedForceAllEventFilter;
     UnpausedForceAll(account?: null): UnpausedForceAllEventFilter;
@@ -2017,6 +2211,8 @@ export interface BaseVault extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+
     activeProvider(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
@@ -2035,8 +2231,18 @@ export interface BaseVault extends BaseContract {
 
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    balanceOfAsset(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     balanceOfDebt(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfDebtShares(
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2084,7 +2290,7 @@ export interface BaseVault extends BaseContract {
 
     decreaseAllowance(
       receiver: string,
-      subtractedShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2102,9 +2308,16 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    deposit(
+    "deposit(uint256,address)"(
       assets: BigNumberish,
       receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "deposit(uint256,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      minShares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2124,7 +2337,7 @@ export interface BaseVault extends BaseContract {
 
     increaseAllowance(
       receiver: string,
-      extraShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2158,9 +2371,16 @@ export interface BaseVault extends BaseContract {
 
     maxWithdraw(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    minDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    minAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    mint(
+    "mint(uint256,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      maxAssets: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2235,10 +2455,19 @@ export interface BaseVault extends BaseContract {
       from: string,
       to: string,
       fee: BigNumberish,
+      setToAsActiveProvider: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    redeem(
+    "redeem(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minAssets: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "redeem(uint256,address,address)"(
       shares: BigNumberish,
       receiver: string,
       owner: string,
@@ -2255,7 +2484,7 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setMinDepositAmount(
+    setMinAmount(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -2295,7 +2524,15 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    withdraw(
+    "withdraw(uint256,address,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      maxShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "withdraw(uint256,address,address)"(
       assets: BigNumberish,
       receiver: string,
       owner: string,
@@ -2325,6 +2562,8 @@ export interface BaseVault extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     activeProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
@@ -2346,8 +2585,18 @@ export interface BaseVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    balanceOfAsset(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     balanceOfDebt(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfDebtShares(
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2395,7 +2644,7 @@ export interface BaseVault extends BaseContract {
 
     decreaseAllowance(
       receiver: string,
-      subtractedShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2413,9 +2662,16 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    deposit(
+    "deposit(uint256,address)"(
       assets: BigNumberish,
       receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "deposit(uint256,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      minShares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2435,7 +2691,7 @@ export interface BaseVault extends BaseContract {
 
     increaseAllowance(
       receiver: string,
-      extraShares: BigNumberish,
+      shares: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2484,9 +2740,16 @@ export interface BaseVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    minDepositAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    minAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    mint(
+    "mint(uint256,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      maxAssets: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2567,10 +2830,19 @@ export interface BaseVault extends BaseContract {
       from: string,
       to: string,
       fee: BigNumberish,
+      setToAsActiveProvider: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    redeem(
+    "redeem(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minAssets: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "redeem(uint256,address,address)"(
       shares: BigNumberish,
       receiver: string,
       owner: string,
@@ -2587,7 +2859,7 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setMinDepositAmount(
+    setMinAmount(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -2627,7 +2899,15 @@ export interface BaseVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdraw(
+    "withdraw(uint256,address,address,uint256)"(
+      assets: BigNumberish,
+      receiver: string,
+      owner: string,
+      maxShares: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "withdraw(uint256,address,address)"(
       assets: BigNumberish,
       receiver: string,
       owner: string,
@@ -2662,6 +2942,8 @@ export interface BaseVaultMulticall {
 
   UNPAUSER_ROLE(overrides?: CallOverrides): Call<string>;
 
+  VERSION(overrides?: CallOverrides): Call<string>;
+
   activeProvider(overrides?: CallOverrides): Call<string>;
 
   allowance(
@@ -2674,7 +2956,14 @@ export interface BaseVaultMulticall {
 
   balanceOf(account: string, overrides?: CallOverrides): Call<BigNumber>;
 
+  balanceOfAsset(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
   balanceOfDebt(account: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  balanceOfDebtShares(
+    owner: string,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 
   borrowAllowance(
     owner: string,
@@ -2725,7 +3014,7 @@ export interface BaseVaultMulticall {
 
   maxWithdraw(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
-  minDepositAmount(overrides?: CallOverrides): Call<BigNumber>;
+  minAmount(overrides?: CallOverrides): Call<BigNumber>;
 
   name(overrides?: CallOverrides): Call<string>;
 

@@ -15,12 +15,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address[]",
-        name: "_assets",
+        name: "assets",
         type: "address[]",
       },
       {
         internalType: "address[]",
-        name: "_priceFeeds",
+        name: "priceFeeds",
         type: "address[]",
       },
       {
@@ -45,6 +45,17 @@ const _abi = [
   {
     inputs: [],
     name: "FujiOracle__noZeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "priceFeed",
+        type: "address",
+      },
+    ],
+    name: "FujiOracle_invalidPriceFeedDecimals",
     type: "error",
   },
   {
@@ -187,17 +198,17 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_currencyAsset",
+        name: "currencyAsset",
         type: "address",
       },
       {
         internalType: "address",
-        name: "_commodityAsset",
+        name: "commodityAsset",
         type: "address",
       },
       {
         internalType: "uint8",
-        name: "_decimals",
+        name: "decimals",
         type: "uint8",
       },
     ],
@@ -216,12 +227,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_asset",
+        name: "asset",
         type: "address",
       },
       {
         internalType: "address",
-        name: "_priceFeed",
+        name: "priceFeed",
         type: "address",
       },
     ],

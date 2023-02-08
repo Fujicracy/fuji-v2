@@ -86,7 +86,7 @@ export interface IVaultFactory extends BaseContract {
     ): Promise<ContractTransaction>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -97,7 +97,7 @@ export interface IVaultFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   deployVault(
-    _deployData: BytesLike,
+    deployData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -105,7 +105,7 @@ export interface IVaultFactory extends BaseContract {
     configAddress(data: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -119,7 +119,7 @@ export interface IVaultFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -131,7 +131,7 @@ export interface IVaultFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     deployVault(
-      _deployData: BytesLike,
+      deployData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

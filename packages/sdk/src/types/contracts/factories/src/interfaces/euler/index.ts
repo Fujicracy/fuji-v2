@@ -4,3 +4,4 @@
 export { IEulerDToken__factory } from "./IEulerDToken__factory";
 export { IEulerEToken__factory } from "./IEulerEToken__factory";
 export { IEulerMarkets__factory } from "./IEulerMarkets__factory";
+export { IFlashloan__factory } from "./IFlashloan__factory";

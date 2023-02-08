@@ -30,17 +30,24 @@ import type {
 
 export interface ICERC20Interface extends utils.Interface {
   functions: {
+    "accrualBlockNumber()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "borrow(uint256)": FunctionFragment;
+    "borrowBalanceCurrent(address)": FunctionFragment;
     "borrowBalanceStored(address)": FunctionFragment;
+    "borrowIndex()": FunctionFragment;
     "borrowRatePerBlock()": FunctionFragment;
     "exchangeRateStored()": FunctionFragment;
+    "getCash()": FunctionFragment;
     "mint(uint256)": FunctionFragment;
     "redeemUnderlying(uint256)": FunctionFragment;
     "repayBorrow(uint256)": FunctionFragment;
+    "reserveFactorMantissa()": FunctionFragment;
     "supplyRatePerBlock()": FunctionFragment;
+    "totalBorrows()": FunctionFragment;
+    "totalReserves()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
@@ -48,22 +55,33 @@ export interface ICERC20Interface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "accrualBlockNumber"
       | "allowance"
       | "approve"
       | "balanceOf"
       | "borrow"
+      | "borrowBalanceCurrent"
       | "borrowBalanceStored"
+      | "borrowIndex"
       | "borrowRatePerBlock"
       | "exchangeRateStored"
+      | "getCash"
       | "mint"
       | "redeemUnderlying"
       | "repayBorrow"
+      | "reserveFactorMantissa"
       | "supplyRatePerBlock"
+      | "totalBorrows"
+      | "totalReserves"
       | "totalSupply"
       | "transfer"
       | "transferFrom"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "accrualBlockNumber",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [string, string]
@@ -78,8 +96,16 @@ export interface ICERC20Interface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "borrowBalanceCurrent",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "borrowBalanceStored",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "borrowIndex",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "borrowRatePerBlock",
@@ -89,6 +115,7 @@ export interface ICERC20Interface extends utils.Interface {
     functionFragment: "exchangeRateStored",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getCash", values?: undefined): string;
   encodeFunctionData(functionFragment: "mint", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "redeemUnderlying",
@@ -99,7 +126,19 @@ export interface ICERC20Interface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "reserveFactorMantissa",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "supplyRatePerBlock",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalBorrows",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalReserves",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -115,12 +154,24 @@ export interface ICERC20Interface extends utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "accrualBlockNumber",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "borrowBalanceCurrent",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "borrowBalanceStored",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "borrowIndex",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -131,6 +182,7 @@ export interface ICERC20Interface extends utils.Interface {
     functionFragment: "exchangeRateStored",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getCash", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "redeemUnderlying",
@@ -141,7 +193,19 @@ export interface ICERC20Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "reserveFactorMantissa",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "supplyRatePerBlock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalBorrows",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalReserves",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -214,6 +278,8 @@ export interface ICERC20 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    accrualBlockNumber(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     allowance(
       owner: string,
       spender: string,
@@ -233,14 +299,23 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    borrowBalanceCurrent(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     borrowBalanceStored(
       account: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    borrowIndex(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     borrowRatePerBlock(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     exchangeRateStored(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getCash(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     mint(
       amount: BigNumberish,
@@ -257,7 +332,13 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    reserveFactorMantissa(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     supplyRatePerBlock(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    totalBorrows(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    totalReserves(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -274,6 +355,8 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  accrualBlockNumber(overrides?: CallOverrides): Promise<BigNumber>;
 
   allowance(
     owner: string,
@@ -294,14 +377,23 @@ export interface ICERC20 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  borrowBalanceCurrent(
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   borrowBalanceStored(
     account: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  borrowIndex(overrides?: CallOverrides): Promise<BigNumber>;
+
   borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
   exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getCash(overrides?: CallOverrides): Promise<BigNumber>;
 
   mint(
     amount: BigNumberish,
@@ -318,7 +410,13 @@ export interface ICERC20 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  reserveFactorMantissa(overrides?: CallOverrides): Promise<BigNumber>;
+
   supplyRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
+
+  totalBorrows(overrides?: CallOverrides): Promise<BigNumber>;
+
+  totalReserves(overrides?: CallOverrides): Promise<BigNumber>;
 
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -336,6 +434,8 @@ export interface ICERC20 extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    accrualBlockNumber(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowance(
       owner: string,
       spender: string,
@@ -352,14 +452,23 @@ export interface ICERC20 extends BaseContract {
 
     borrow(amount: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    borrowBalanceCurrent(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     borrowBalanceStored(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    borrowIndex(overrides?: CallOverrides): Promise<BigNumber>;
+
     borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getCash(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(amount: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -373,7 +482,13 @@ export interface ICERC20 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    reserveFactorMantissa(overrides?: CallOverrides): Promise<BigNumber>;
+
     supplyRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalBorrows(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalReserves(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -416,6 +531,8 @@ export interface ICERC20 extends BaseContract {
   };
 
   estimateGas: {
+    accrualBlockNumber(overrides?: CallOverrides): Promise<BigNumber>;
+
     allowance(
       owner: string,
       spender: string,
@@ -435,14 +552,23 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    borrowBalanceCurrent(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     borrowBalanceStored(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    borrowIndex(overrides?: CallOverrides): Promise<BigNumber>;
+
     borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getCash(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
       amount: BigNumberish,
@@ -459,7 +585,13 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    reserveFactorMantissa(overrides?: CallOverrides): Promise<BigNumber>;
+
     supplyRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalBorrows(overrides?: CallOverrides): Promise<BigNumber>;
+
+    totalReserves(overrides?: CallOverrides): Promise<BigNumber>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -478,6 +610,10 @@ export interface ICERC20 extends BaseContract {
   };
 
   populateTransaction: {
+    accrualBlockNumber(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     allowance(
       owner: string,
       spender: string,
@@ -500,10 +636,17 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    borrowBalanceCurrent(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     borrowBalanceStored(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    borrowIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     borrowRatePerBlock(
       overrides?: CallOverrides
@@ -512,6 +655,8 @@ export interface ICERC20 extends BaseContract {
     exchangeRateStored(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getCash(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     mint(
       amount: BigNumberish,
@@ -528,9 +673,17 @@ export interface ICERC20 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    reserveFactorMantissa(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     supplyRatePerBlock(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    totalBorrows(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    totalReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -554,6 +707,8 @@ export interface ICERC20Multicall {
   abi: Fragment[];
   functions: FunctionFragment[];
 
+  accrualBlockNumber(overrides?: CallOverrides): Call<BigNumber>;
+
   allowance(
     owner: string,
     spender: string,
@@ -567,11 +722,21 @@ export interface ICERC20Multicall {
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
+  borrowIndex(overrides?: CallOverrides): Call<BigNumber>;
+
   borrowRatePerBlock(overrides?: CallOverrides): Call<BigNumber>;
 
   exchangeRateStored(overrides?: CallOverrides): Call<BigNumber>;
 
+  getCash(overrides?: CallOverrides): Call<BigNumber>;
+
+  reserveFactorMantissa(overrides?: CallOverrides): Call<BigNumber>;
+
   supplyRatePerBlock(overrides?: CallOverrides): Call<BigNumber>;
+
+  totalBorrows(overrides?: CallOverrides): Call<BigNumber>;
+
+  totalReserves(overrides?: CallOverrides): Call<BigNumber>;
 
   totalSupply(overrides?: CallOverrides): Call<BigNumber>;
 }

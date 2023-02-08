@@ -25,7 +25,7 @@ import type {
 
 export interface EulerInterface extends utils.Interface {
   functions: {
-    "approvedOperator(address,address)": FunctionFragment;
+    "approvedOperator(address,address,address)": FunctionFragment;
     "borrow(uint256,address)": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
     "getBorrowBalance(address,address)": FunctionFragment;
@@ -53,7 +53,7 @@ export interface EulerInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "approvedOperator",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
@@ -154,6 +154,7 @@ export interface Euler extends BaseContract {
     approvedOperator(
       arg0: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
 
@@ -209,6 +210,7 @@ export interface Euler extends BaseContract {
   approvedOperator(
     arg0: string,
     arg1: string,
+    arg2: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -264,6 +266,7 @@ export interface Euler extends BaseContract {
     approvedOperator(
       arg0: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -322,6 +325,7 @@ export interface Euler extends BaseContract {
     approvedOperator(
       arg0: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -378,6 +382,7 @@ export interface Euler extends BaseContract {
     approvedOperator(
       arg0: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -439,6 +444,7 @@ export interface EulerMulticall {
   approvedOperator(
     arg0: string,
     arg1: string,
+    arg2: string,
     overrides?: CallOverrides
   ): Call<string>;
 

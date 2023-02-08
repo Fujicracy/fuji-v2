@@ -4,3 +4,4 @@
 export type { IEulerDToken } from "./IEulerDToken";
 export type { IEulerEToken } from "./IEulerEToken";
 export type { IEulerMarkets } from "./IEulerMarkets";
+export type { IFlashloan } from "./IFlashloan";

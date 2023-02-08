@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as arbitrum from "./arbitrum";
+export * as gnosis from "./gnosis";
 export * as goerli from "./goerli";
 export * as mainnet from "./mainnet";
 export * as optimism from "./optimism";

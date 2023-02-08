@@ -25,7 +25,12 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "vault",
+        name: "asset",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "debtAsset",
         type: "address",
       },
     ],

@@ -3,3 +3,7 @@
 /* eslint-disable */
 export type { AaveV3Optimism } from "./AaveV3Optimism";
 export type { BeefyVelodromesETHETH } from "./BeefyVelodromesETHETH";
+export type { DForceOptimism } from "./DForceOptimism";
+export type { HundredOptimism } from "./HundredOptimism";
+export type { IronBankOptimism } from "./IronBankOptimism";
+export type { WePiggyOptimism } from "./WePiggyOptimism";

@@ -10,19 +10,25 @@ export const LENDING_PROVIDERS_LIST: Record<
     '0x72d763fbD586C5fF7ECc657ab884F2539eBC6a74': 'aave-v3',
   },
   [ChainId.MATIC]: {
-    '0xddadB5dca827f8d59000d610E456630695928660': 'aave-v3',
+    '0xEBdCb08bA47e6a4EC2590140011d8707D76962B8': 'aave-v2',
+    '0x5BDE166199Cb85323FcF0282999eaaF7BA6ab5E6': 'aave-v3',
   },
   [ChainId.MATIC_MUMBAI]: {
     '0xC69176FADFeF7A1570540a99Faf827b3138659D1': 'aave-v2',
     '0xd8863e338cf07460c70daa7bb8ea1f9758569b45': 'aave-v3',
   },
   [ChainId.FANTOM]: {},
-  [ChainId.ARBITRUM]: {},
-  [ChainId.OPTIMISM]: {
+  [ChainId.ARBITRUM]: {
     '0xddadB5dca827f8d59000d610E456630695928660': 'aave-v3',
+  },
+  [ChainId.OPTIMISM]: {
+    '0xB5BeccF2734c97221379a6C08B718D82023b1498': 'aave-v3',
   },
   [ChainId.OPTIMISM_GOERLI]: {
     '0x03c9BA7110F17c080E1B05df507D9dcba8FB157e': 'aave-v3',
     '0xb08b4fc6b8b6cacd69d21f1c94d07fcd4753b5f1': 'aave-v2',
+  },
+  [ChainId.GNOSIS]: {
+    '0x63d20C47901f6CAe61aA3c19a21ED5f08F8c5112': 'agave',
   },
 };

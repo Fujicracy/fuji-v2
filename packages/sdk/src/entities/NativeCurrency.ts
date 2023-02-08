@@ -3,6 +3,7 @@ import { MaxUint256 } from '@ethersproject/constants';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
+import { ChainConfig } from '../types/ChainConfig';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
 
@@ -37,5 +38,24 @@ export abstract class NativeCurrency extends AbstractCurrency {
    */
   async allowance(_owner: Address, _spender: Address): Promise<BigNumber> {
     return Promise.resolve(MaxUint256);
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency.allowanceStream}
+   */
+  allowanceStream(_owner: Address, _spender: Address): Observable<BigNumber> {
+    invariant(false, 'Not implemented!');
+  }
+
+  /**
+   * {@inheritDoc AbstractCurrency._setConnection}
+   */
+  setConnection(configParams: ChainConfig): NativeCurrency {
+    if (this.rpcProvider) return this;
+
+    super._setConnection(configParams);
+    invariant(this.rpcProvider, 'Something went wrong with setting connection');
+
+    return this;
   }
 }

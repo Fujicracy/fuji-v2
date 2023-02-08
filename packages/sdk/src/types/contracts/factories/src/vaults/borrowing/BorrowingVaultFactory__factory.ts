@@ -15,7 +15,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_chief",
+        name: "chief_",
         type: "address",
       },
     ],
@@ -24,13 +24,66 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "Unauthorized",
+    name: "BorrowingVaultFactory__deployVault_failed",
     type: "error",
   },
   {
     inputs: [],
-    name: "ZeroAddress",
+    name: "VaultDeployer__onlyChief_notAuthorized",
     type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultDeployer__onlyTimelock_notAuthorized",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "VaultDeployer__zeroAddress",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "debtAsset",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "symbol",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "salt",
+        type: "bytes32",
+      },
+    ],
+    name: "DeployBorrowingVault",
+    type: "event",
   },
   {
     anonymous: false,
@@ -56,6 +109,25 @@ const _abi = [
     ],
     name: "VaultRegistered",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "allVaults",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
@@ -93,7 +165,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes",
-        name: "_deployData",
+        name: "deployData",
         type: "bytes",
       },
     ],
@@ -148,6 +220,19 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "creationCode",
+        type: "bytes",
+      },
+    ],
+    name: "setContractCode",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

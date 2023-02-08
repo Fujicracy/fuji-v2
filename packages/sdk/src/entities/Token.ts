@@ -1,20 +1,10 @@
-import AnkrProvider from '@ankr.com/ankr.js';
-import { Blockchain } from '@ankr.com/ankr.js/dist/types';
 import { BigNumber } from '@ethersproject/bignumber';
-import { AddressZero } from '@ethersproject/constants';
-import { formatUnits } from '@ethersproject/units';
 import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
-import { FUJI_ORACLE_ADDRESS } from '../constants/addresses';
-import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
-import {
-  ERC20 as ERC20Contract,
-  ERC20__factory,
-  FujiOracle__factory,
-} from '../types/contracts';
+import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
 import { ERC20Multicall } from '../types/contracts/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20';
 import { AbstractCurrency } from './AbstractCurrency';
 import { Address } from './Address';
@@ -24,8 +14,6 @@ import { Currency } from './Currency';
  * Represents an ERC20 token with a unique address and some metadata.
  */
 export class Token extends AbstractCurrency {
-  readonly address: Address;
-
   readonly isNative: false = false as const;
   readonly isToken: true = true as const;
 
@@ -50,8 +38,7 @@ export class Token extends AbstractCurrency {
     symbol: string,
     name?: string
   ) {
-    super(chainId, decimals, symbol, name);
-    this.address = address;
+    super(address, chainId, decimals, symbol, name);
   }
 
   /**
@@ -62,12 +49,12 @@ export class Token extends AbstractCurrency {
   }
 
   /**
-   * {@inheritDoc AbstractCurrency.setConnection}
+   * {@inheritDoc AbstractCurrency._setConnection}
    */
   setConnection(configParams: ChainConfig): Token {
     if (this.rpcProvider) return this;
 
-    super.setConnection(configParams);
+    super._setConnection(configParams);
     invariant(this.rpcProvider, 'Something went wrong with setting connection');
 
     this.contract = ERC20__factory.connect(
@@ -119,36 +106,6 @@ export class Token extends AbstractCurrency {
   }
 
   /**
-   * Fetch token price in USD from Ankr rpc and returns it.
-   */
-  async getPriceUSD(): Promise<number> {
-    // handle testnets differently because they are not available on Ankr
-    if (
-      [ChainId.GOERLI, ChainId.OPTIMISM_GOERLI, ChainId.MATIC_MUMBAI].includes(
-        this.chainId
-      )
-    ) {
-      invariant(this.rpcProvider, 'Connection not set!');
-      return FujiOracle__factory.connect(
-        FUJI_ORACLE_ADDRESS[this.chainId].value,
-        this.rpcProvider
-      )
-        .getPriceOf(this.address.value, AddressZero, this.decimals)
-        .then((price) =>
-          parseFloat(formatUnits(price.toString(), this.decimals))
-        );
-    }
-
-    const provider = new AnkrProvider();
-    return provider
-      .getTokenPrice({
-        blockchain: CHAIN[this.chainId].ankrKey as Blockchain,
-        contractAddress: this.address.value,
-      })
-      .then(({ usdPrice }) => parseFloat(usdPrice));
-  }
-
-  /**
    * Returns allowance that an owner has attributed to a spender as stream
    *
    * @param owner - address of currency owner, wrapped in {@link Address}
@@ -180,19 +137,6 @@ export class Token extends AbstractCurrency {
       this.chainId === other.chainId &&
       this.address === other.address
     );
-  }
-
-  /**
-   * Returns true if the address of this token sorts before the address of the other token
-   *
-   * @param other - other token to compare
-   * @throws if the tokens have the same address
-   * @throws if the tokens are on different chains
-   */
-  sortsBefore(other: Token): boolean {
-    invariant(this.chainId === other.chainId, 'CHAIN_IDS');
-    invariant(this.address !== other.address, 'ADDRESSES');
-    return this.address.value.toLowerCase() < other.address.value.toLowerCase();
   }
 }
 

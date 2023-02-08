@@ -2,3 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { FlasherAaveV3 } from "./FlasherAaveV3";
+export type { FlasherBalancer } from "./FlasherBalancer";
+export type { FlasherEuler } from "./FlasherEuler";

@@ -30,9 +30,9 @@ contract DeployOptimism is ScriptPlus {
 
   IConnext connextHandler = IConnext(0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA);
   IWETH9 WETH = IWETH9(0x4200000000000000000000000000000000000006);
-  ERC20 DAI;
+  ERC20 DAI = ERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
   ERC20 USDC = ERC20(0x7F5c764cBc14f9669B88837ca1490cCa17c31607);
-  ERC20 USDT;
+  ERC20 USDT = ERC20(0x94b008aA00579c1307B0EF2c499aD98a8ce58e58);
 
   function setUp() public {
     chainName = "optimism";
@@ -52,6 +52,7 @@ contract DeployOptimism is ScriptPlus {
     timelock = TimelockController(payable(chief.timelock()));
 
     oracle = FujiOracle(getAddress("FujiOracle"));
+    /*_setNewPriceFeed(address(DAI), 0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6);*/
     /*address[] memory assets = new address[](2);*/
     /*assets[0] = address(WETH);*/
     /*assets[1] = address(USDC);*/
@@ -124,6 +125,16 @@ contract DeployOptimism is ScriptPlus {
     /*);*/
 
     vm.stopBroadcast();
+  }
+
+  function _setNewPriceFeed(address asset, address feed) internal {
+    _scheduleWithTimelock(
+      address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
+    );
+
+    _executeWithTimelock(
+      address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
+    );
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
