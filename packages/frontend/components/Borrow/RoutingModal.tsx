@@ -4,8 +4,8 @@ import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 
 import RouteCard from "./RouteCard"
-import { useStore } from "../../store"
-import { chainName } from "../../helpers/chainName"
+import { useBorrow } from "../../store/borrow.store"
+import { chainName } from "../../services/chains"
 import { NetworkIcon, TokenIcon } from "../Shared/Icons"
 
 type RoutingModalProps = {
@@ -16,11 +16,11 @@ type RoutingModalProps = {
 export default function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
-  const collateral = useStore((state) => state.position.collateral)
-  const collateralInput = useStore((state) => state.collateralInput)
-  const debt = useStore((state) => state.position.debt)
-  const debtInput = useStore((state) => state.debtInput)
-  const providers = useStore((state) => state.position.providers)
+  const collateral = useBorrow((state) => state.position.collateral)
+  const collateralInput = useBorrow((state) => state.collateralInput)
+  const debt = useBorrow((state) => state.position.debt)
+  const debtInput = useBorrow((state) => state.debtInput)
+  const providers = useBorrow((state) => state.position.providers)
 
   const collateralChain = chainName(collateral.token.chainId)
   const debtChain = chainName(debt.token.chainId)

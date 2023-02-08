@@ -1,7 +1,7 @@
 import React from "react"
 import { ListItemIcon, ListItemText, MenuItem, Typography } from "@mui/material"
 
-import { chains } from "../../store/auth.slice"
+import { chains } from "../../services/chains"
 import { NetworkIcon } from "../Shared/Icons"
 
 type Chain = (typeof chains)[0]

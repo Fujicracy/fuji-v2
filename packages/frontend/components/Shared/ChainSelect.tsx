@@ -15,15 +15,14 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
 
-import { useStore } from "../../store"
-import { chains } from "../../store/auth.slice"
+import { useAuth } from "../../store/auth.store"
+import { chains, chainName } from "../../services/chains"
 import { NetworkIcon } from "./Icons"
-import { chainName } from "../../helpers/chainName"
 
 export default function ChainSelect() {
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const [chainId, setChainId] = useStore((state) => [
+  const [chainId, setChainId] = useAuth((state) => [
     state.chain?.id,
     state.changeChain,
   ])
