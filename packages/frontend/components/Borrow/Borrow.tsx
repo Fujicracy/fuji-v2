@@ -46,8 +46,6 @@ export default function Borrow() {
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
-  const formType = useBorrow((state) => state.formType)
-
   const collateral = useBorrow((state) => state.position.collateral)
   const collateralInput = useBorrow((state) => state.collateralInput)
   const collateralAmount = parseFloat(collateralInput)
@@ -150,7 +148,7 @@ export default function Borrow() {
         size="large"
         fullWidth
         disabled={
-          collateral.amount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
+          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
         }
         loading={
           isSigning || isBorrowing || availableVaultStatus === "fetching"
