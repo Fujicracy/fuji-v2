@@ -192,6 +192,16 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
+    // skip when data was already loaded
+    if (
+      this.maxLtv &&
+      this.liqRatio &&
+      this.name !== '' &&
+      this.activeProvider &&
+      this.allProviders
+    )
+      return;
+
     const [maxLtv, liqRatio, name, activeProvider, allProviders] =
       await this.multicallRpcProvider.all([
         this.multicallContract.maxLtv(),
