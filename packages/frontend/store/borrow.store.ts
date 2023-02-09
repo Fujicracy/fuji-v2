@@ -29,6 +29,8 @@ setAutoFreeze(false)
 
 export type BorrowStore = BorrowState & BorrowActions
 type BorrowState = {
+  positions: Position[]
+
   formType: "create" | "edit"
 
   position: Position
@@ -59,7 +61,7 @@ type BorrowState = {
     estimateTime: number
     steps: RoutingStepDetails[]
   }
-  routesMeta: RouteMeta[]
+  availableRoutes: RouteMeta[]
 
   needPermit: boolean
   isSigning: boolean
@@ -104,6 +106,8 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: BorrowState = {
+  positions: [],
+
   formType: "create",
 
   availableVaults: [],
@@ -149,7 +153,7 @@ const initialState: BorrowState = {
     estimateTime: 0,
     steps: [],
   },
-  routesMeta: [],
+  availableRoutes: [],
 
   needPermit: true,
   isSigning: false,
@@ -403,38 +407,51 @@ export const useBorrow = create<BorrowStore>()(
 
         try {
           const results = await Promise.all(
-            [vault].map(async (v) =>
-              fetchRoutes(
+            [vault].map(async (v) => {
+              const [selectedVault] = await get().availableVaults
+              const recommended =
+                vault.address.value === selectedVault.address.value
+
+              return fetchRoutes(
                 v,
                 collateral.token,
                 debt.token,
                 collateralInput,
                 debtInput,
-                address
+                address,
+                recommended
               )
-            )
+            })
           )
           const selectedValue = results.filter(
-            (r) => r.address === vault.address.value
+            (r) => r.data?.address === vault.address.value
           )[0]
-
           if (selectedValue.error) {
             throw selectedValue.error
           }
-          const { bridgeFee, estimateTime, actions, steps } = selectedValue.data
+          if (!selectedValue.data) {
+            throw "Data not found"
+          }
+          const { bridgeFees, estimateTime, actions, steps } =
+            selectedValue.data as RouteMeta
+
           if (!actions.length) {
             throw `empty action array returned by sdk.previewDepositAndBorrow with params`
           }
-          console.log("-")
+
+          const availableRoutes = results
+            .filter((r) => r.data)
+            .map((r) => r.data) as RouteMeta[]
+
           set(
             produce((state: BorrowState) => {
               state.transactionMeta.status = "ready"
-              state.transactionMeta.bridgeFees = bridgeFee
+              state.transactionMeta.bridgeFees = bridgeFees
               state.transactionMeta.estimateTime = estimateTime
               state.transactionMeta.steps = steps
-              // state.transactionMeta.gasFees = gasPrice?.toNumber() || 0
               state.needPermit = Sdk.needSignature(actions)
               state.actions = actions
+              state.availableRoutes = availableRoutes
             })
           )
         } catch (e) {

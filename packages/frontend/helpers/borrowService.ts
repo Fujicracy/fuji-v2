@@ -8,32 +8,41 @@ import {
   Token,
 } from "@x-fuji/sdk"
 import { sdk } from "../services/sdk"
-import { PositionMeta } from "../store/models/Position"
 
 export type RouteMeta = {
-  bridgeFee: number
+  //gasFees: number
+  estimateSlippage: number
+  bridgeFees: number
   estimateTime: number
-  actions: RouterActionParams[]
   steps: RoutingStepDetails[]
+  actions: RouterActionParams[]
   address: string
+  recommended: boolean
 }
 
+/*
+  I'm sure we'll refactor this at some point. Not ideal implementation. 
+  Object is, we need to grab the previews for all vaults and not stop in case one crashes,
+  plus saving the corresponding address and return everything for the caller to handle.
+*/
 export const fetchRoutes = async (
   vault: BorrowingVault,
   collateralToken: Token,
   debtToken: Token,
   collateralInput: string,
   debtInput: string,
-  address: string
+  address: string,
+  recommended: boolean
 ): Promise<{
-  address: string
-  data: RouteMeta
-  error: Error
+  data?: RouteMeta
+  error?: Error
 }> => {
-  const aaa: any = {}
-  aaa.address = vault.address.value
+  const result: {
+    data?: RouteMeta
+    error?: Error
+  } = {}
   try {
-    const a = await sdk.previews.depositAndBorrow(
+    const preview = await sdk.previews.depositAndBorrow(
       vault,
       parseUnits(collateralInput, collateralToken.decimals),
       parseUnits(debtInput, debtToken.decimals),
@@ -41,18 +50,21 @@ export const fetchRoutes = async (
       debtToken,
       new Address(address)
     )
-    const { bridgeFee, estimateTime, actions, steps } = a
+    const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
+      preview
 
-    aaa.data = {
-      bridgeFee: bridgeFee.toNumber(),
+    result.data = {
+      address: vault.address.value,
+      recommended,
+      bridgeFees: bridgeFee.toNumber(),
+      estimateSlippage: estimateSlippage.toNumber(),
       estimateTime,
       actions,
       steps,
     }
-    return aaa
+    return result
   } catch (e) {
-    aaa.error = e
-    console.log(e)
+    if (e instanceof Error) result.error = e
   }
-  return aaa
+  return result
 }
