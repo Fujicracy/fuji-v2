@@ -1,26 +1,19 @@
-import { Box, Chip, Collapse, Paper, Typography } from "@mui/material"
+import { RoutingStepDetails } from "@x-fuji/sdk"
+
+import { formatUnits } from "ethers/lib/utils"
+import { Box, Chip, Collapse, Paper, Typography, Tooltip } from "@mui/material"
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 
 import { useBorrow } from "../../store/borrow.store"
 import { chainName } from "../../services/chains"
-import { NetworkIcon, TokenIcon } from "../Shared/Icons"
-
-type Step = {
-  icon: React.ReactElement
-  label: string
-}
-
-type Route = {
-  cost: number
-  time: number
-  steps: Step[]
-  recommended: boolean
-  info: string
-}
+import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
+import { RouteMeta } from "../../helpers/borrowService"
+import { toNotSoFixed, camelize } from "../../helpers/values"
 
 type RouteCardProps = {
-  route: Route
+  route: RouteMeta
   selected: boolean
   onChange: () => void
 }
@@ -33,8 +26,38 @@ export default function RouteCard(props: RouteCardProps) {
   const debtInput = useBorrow((state) => state.debtInput)
 
   const bridgeStep = props.route.steps.filter((step) =>
-    step.label.toLowerCase().includes("bridge")
+    step.step.toLowerCase().includes("bridge")
   )
+
+  function iconForStep(step: RoutingStepDetails) {
+    if (step.lendingProvider) {
+      return (
+        <ProviderIcon
+          providerName={step.lendingProvider.name}
+          height={18}
+          width={18}
+        />
+      )
+    }
+    if (step.token) {
+      return <TokenIcon token={step.token} height={18} width={18} />
+    }
+    return <></>
+  }
+
+  function textForStep(step: RoutingStepDetails) {
+    if (step.step === "deposit") {
+      return `Deposit ${toNotSoFixed(
+        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
+      )} ${step.token?.symbol} to ${step.lendingProvider?.name}`
+    }
+    if (step.step === "borrow") {
+      return `Borrow ${toNotSoFixed(
+        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
+      )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+    }
+    return camelize(step.step)
+  }
 
   return (
     <Paper
@@ -57,14 +80,30 @@ export default function RouteCard(props: RouteCardProps) {
         <Stack direction="row" gap="0.5rem">
           <Chip
             variant="routing"
-            label={`Est Cost ~$${props.route.cost.toFixed(2)}`}
+            label={`Est Cost ~$${props.route.bridgeFees.toFixed(2)}`}
           />
           <Chip
             variant="routing"
-            label={`Est Processing Time ~${props.route.time} Mins`}
+            label={`Est Processing Time ~${props.route.estimateTime / 60} Mins`}
           />
-          {props.route.info && (
-            <Chip variant="routing" label={props.route.info} />
+          {props.route.estimateSlippage !== undefined && (
+            <>
+              <Tooltip
+                arrow
+                title={<span>The estimated price impacted by liquidity</span>}
+                placement="top"
+              >
+                <Chip
+                  icon={
+                    <InfoOutlinedIcon
+                      sx={{ fontSize: "1rem", color: palette.info.main }}
+                    />
+                  }
+                  variant="routing"
+                  label={`Price Impact ${"???"}`}
+                />
+              </Tooltip>
+            </>
           )}
         </Stack>
 
@@ -94,7 +133,7 @@ export default function RouteCard(props: RouteCardProps) {
 
           <Box>
             <Typography variant="body">
-              {collateralInput} {collateral.token.symbol}
+              {toNotSoFixed(collateralInput)} {collateral.token.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">
@@ -154,14 +193,14 @@ export default function RouteCard(props: RouteCardProps) {
               {bridgeStep.length > 0 ? (
                 <Stack direction="column" alignItems="center">
                   <>
-                    {bridgeStep[0].icon}
+                    {iconForStep(bridgeStep[0])}
                     <Typography
                       m="0.375rem"
                       variant="xsmall"
                       align="center"
                       sx={{ maxWidth: "9rem" }}
                     >
-                      {bridgeStep[0].label}
+                      {textForStep(bridgeStep[0])}
                     </Typography>
                   </>
                 </Stack>
@@ -169,14 +208,14 @@ export default function RouteCard(props: RouteCardProps) {
                 <Stack direction="row" justifyContent="space-around">
                   {props.route.steps.map((step, i) => (
                     <Stack key={i} direction="column">
-                      {step.icon}
+                      {iconForStep(step)}
                       <Typography
                         m="0.375rem"
                         align="center"
                         variant="xsmall"
                         sx={{ maxWidth: "6.5rem" }}
                       >
-                        {step.label}
+                        {textForStep(step)}
                       </Typography>
                     </Stack>
                   ))}
@@ -205,14 +244,14 @@ export default function RouteCard(props: RouteCardProps) {
             <Stack direction="row" justifyContent="space-around">
               {props.route.steps.map((step, i) => (
                 <Stack key={i} direction="column">
-                  {step.icon}
+                  {iconForStep(step)}
                   <Typography
                     m="0.375rem"
                     align="center"
                     variant="xsmall"
                     sx={{ maxWidth: "6.5rem" }}
                   >
-                    {step.label}
+                    {textForStep(step)}
                   </Typography>
                 </Stack>
               ))}

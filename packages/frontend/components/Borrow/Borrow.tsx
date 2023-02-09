@@ -89,6 +89,7 @@ export default function Borrow() {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
 
   let button: ReactNode
   if (!address) {
@@ -199,9 +200,13 @@ export default function Borrow() {
             direction="row"
             m="1rem 0"
             justifyContent="space-between"
-            onClick={() => {
-              !onMobile && address && setShowRoutingModal(true)
-            }}
+            onClick={
+              availableRoutes.length > 0
+                ? () => {
+                    !onMobile && address && setShowRoutingModal(true)
+                  }
+                : undefined
+            }
             sx={{ cursor: address && "pointer" }}
           >
             <Typography variant="small">Route</Typography>
