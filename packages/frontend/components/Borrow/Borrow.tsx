@@ -208,7 +208,9 @@ export default function Borrow() {
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
-              <u>{`${collateral.token.symbol} > ${chainName(debtChainId)}`}</u>
+              <u>{`${chainName(collateralChainId)} > ${chainName(
+                debtChainId
+              )}`}</u>
             </Typography>
           </Stack>
           <Box mb="1rem">
