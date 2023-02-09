@@ -192,6 +192,16 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
+    // skip when data was already loaded
+    if (
+      this.maxLtv &&
+      this.liqRatio &&
+      this.name !== '' &&
+      this.activeProvider &&
+      this.allProviders
+    )
+      return;
+
     const [maxLtv, liqRatio, name, activeProvider, allProviders] =
       await this.multicallRpcProvider.all([
         this.multicallContract.maxLtv(),
@@ -286,13 +296,9 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    // TODO: call both in a consistent manner after fixing issue #251
-    const [depositShares, borrow] = await this.multicallRpcProvider.all([
-      this.multicallContract.balanceOf(account.value),
+    const [deposit, borrow] = await this.multicallRpcProvider.all([
+      this.multicallContract.balanceOfAsset(account.value),
       this.multicallContract.balanceOfDebt(account.value),
-    ]);
-    const [deposit] = await this.multicallRpcProvider.all([
-      this.multicallContract.convertToAssets(depositShares),
     ]);
 
     return { deposit, borrow };

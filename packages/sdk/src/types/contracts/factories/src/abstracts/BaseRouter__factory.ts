@@ -13,6 +13,16 @@ import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
     inputs: [],
+    name: "BaseRouter__allowCaller_noAllowChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__allowCaller_zeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseRouter__bundleInternal_flashloanInvalidRequestor",
     type: "error",
   },
@@ -23,22 +33,17 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BaseRouter__bundleInternal_noRemnantBalance",
+    name: "BaseRouter__bundleInternal_noBalanceChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_notBeneficiary",
     type: "error",
   },
   {
     inputs: [],
     name: "BaseRouter__bundleInternal_paramsMismatch",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "BaseRouter__bundleInternal_withdrawETHReceiverNotOwner",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "BaseRouter__bundleInternal_withdrawETHWrongOrder",
     type: "error",
   },
   {
@@ -81,6 +86,25 @@ const _abi = [
     inputs: [],
     name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
     type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "AllowCaller",
+    type: "event",
   },
   {
     stateMutability: "payable",
@@ -175,6 +199,24 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "allowCaller",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

@@ -97,7 +97,7 @@ type BorrowActions = {
 }
 type ChainId = string // hex value as string
 
-const initialChainId = "0x1a4"
+const initialChainId = "0x89"
 const initialDebtTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
 const initialCollateralTokens = sdk.getCollateralForChain(
   parseInt(initialChainId, 16)

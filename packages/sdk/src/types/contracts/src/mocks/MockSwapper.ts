@@ -25,12 +25,24 @@ import type {
 
 export interface MockSwapperInterface extends utils.Interface {
   functions: {
+    "getAmountIn(address,address,uint256)": FunctionFragment;
+    "getAmountOut(address,address,uint256)": FunctionFragment;
     "oracle()": FunctionFragment;
     "swap(address,address,uint256,uint256,address,address,uint256)": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "oracle" | "swap"): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic: "getAmountIn" | "getAmountOut" | "oracle" | "swap"
+  ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "getAmountIn",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAmountOut",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "swap",
@@ -45,6 +57,14 @@ export interface MockSwapperInterface extends utils.Interface {
     ]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getAmountIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAmountOut",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
 
@@ -78,6 +98,20 @@ export interface MockSwapper extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
     oracle(overrides?: CallOverrides): Promise<[string]>;
 
     swap(
@@ -91,6 +125,20 @@ export interface MockSwapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  getAmountIn(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getAmountOut(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   oracle(overrides?: CallOverrides): Promise<string>;
 
@@ -106,6 +154,20 @@ export interface MockSwapper extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     oracle(overrides?: CallOverrides): Promise<string>;
 
     swap(
@@ -123,6 +185,20 @@ export interface MockSwapper extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     oracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     swap(
@@ -138,6 +214,20 @@ export interface MockSwapper extends BaseContract {
   };
 
   populateTransaction: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     swap(
@@ -157,6 +247,20 @@ export interface MockSwapperMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  getAmountIn(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getAmountOut(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 
   oracle(overrides?: CallOverrides): Call<string>;
 }

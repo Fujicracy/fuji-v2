@@ -11,6 +11,7 @@ import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
+import {AaveV2Polygon} from "../src/providers/polygon/AaveV2Polygon.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -27,23 +28,31 @@ contract DeployPolygon is ScriptPlus {
   ConnextRouter connextRouter;
 
   AaveV3Polygon aaveV3Polygon;
+  AaveV2Polygon aaveV2Polygon;
 
   IConnext connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
   IWETH9 WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
-  ERC20 DAI;
+  ERC20 DAI = ERC20(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063);
   ERC20 USDC = ERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
-  ERC20 USDT;
+  ERC20 USDT = ERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F);
 
   function setUp() public {
     chainName = "polygon";
   }
 
   function run() public {
-    vm.startBroadcast();
+    uint256 pvk = vm.envUint("DEPLOYER_PRIVATE_KEY");
+    address deployer = vm.addr(pvk);
+
+    vm.startBroadcast(deployer);
 
     aaveV3Polygon = AaveV3Polygon(getAddress("AaveV3Polygon"));
     /*aaveV3Polygon = new AaveV3Polygon();*/
     /*saveAddress("AaveV3Polygon", address(aaveV3Polygon));*/
+
+    aaveV2Polygon = AaveV2Polygon(getAddress("AaveV2Polygon"));
+    /*aaveV2Polygon = new AaveV2Polygon();*/
+    /*saveAddress("AaveV2Polygon", address(aaveV2Polygon));*/
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -52,6 +61,7 @@ contract DeployPolygon is ScriptPlus {
     timelock = TimelockController(payable(chief.timelock()));
 
     oracle = FujiOracle(getAddress("FujiOracle"));
+    /*_setNewPriceFeed(address(DAI), 0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D);*/
     /*address[] memory assets = new address[](2);*/
     /*assets[0] = address(WETH);*/
     /*assets[1] = address(USDC);*/
@@ -127,12 +137,23 @@ contract DeployPolygon is ScriptPlus {
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = aaveV3Polygon;
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
+    providers[0] = aaveV2Polygon;
+    providers[1] = aaveV3Polygon;
     address vault = chief.deployVault(
-      address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
+      address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 90
     );
     saveAddress(name, vault);
+  }
+
+  function _setNewPriceFeed(address asset, address feed) internal {
+    _scheduleWithTimelock(
+      address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
+    );
+
+    _executeWithTimelock(
+      address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
+    );
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

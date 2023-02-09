@@ -3,41 +3,46 @@ import { Chain as IChain } from "@web3-onboard/common"
 export type Chain = IChain
 
 export const chains: Chain[] = [
-  // {
-  //   id: "0x1",
-  //   token: "ETH",
-  //   label: "Ethereum",
-  //   rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
-  //   icon: "Ethereum",
-  // },
-  // {
-  //   id: "0x89",
-  //   token: "MATIC",
-  //   label: "Polygon",
-  //   rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-  //   icon: "Polygon",
-  // },
-  // {
-  //   id: "0xfa",
-  //   token: "FTM",
-  //   label: "Fantom",
-  //   rpcUrl: "https://rpc.ftm.tools/",
-  //   icon: "Fantom",
-  // },
-  // {
-  //   id: "0xa4b1",
-  //   token: "AETH",
-  //   label: "Arbitrum",
-  //   rpcUrl: "https://arb1.arbitrum.io/rpc",
-  //   icon: "Arbitrum",
-  // },
-  // {
-  //   id: "0xa",
-  //   token: "ETH",
-  //   label: "Optimism",
-  //   rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
-  //   icon: "Optimism",
-  // },
+  {
+    id: "0x1",
+    token: "ETH",
+    label: "Ethereum",
+    rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+    blockExplorerUrl: "https://etherscan.io/",
+    icon: "Ethereum",
+  },
+  {
+    id: "0x89",
+    token: "MATIC",
+    label: "Polygon",
+    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
+    blockExplorerUrl: "https://polygonscan.com/",
+    icon: "Polygon",
+  },
+  {
+    id: "0x64",
+    token: "xDai",
+    label: "Gnosis",
+    rpcUrl: "https://rpc.gnosischain.com/",
+    blockExplorerUrl: "https://gnosisscan.io/",
+    icon: "Gnosis",
+  },
+  {
+    id: "0xa4b1",
+    token: "AETH",
+    label: "Arbitrum",
+    rpcUrl: "https://arb1.arbitrum.io/rpc",
+    blockExplorerUrl: "https://arbiscan.io/",
+    icon: "Arbitrum",
+  },
+  {
+    id: "0xa",
+    token: "ETH",
+    label: "Optimism",
+    rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
+    blockExplorerUrl: "https://optimistic.etherscan.io/",
+    icon: "Optimism",
+  },
 ]
 export const testChains: Chain[] = [
   {

@@ -43,6 +43,11 @@ const _abi = [
         name: "symbol_",
         type: "string",
       },
+      {
+        internalType: "contract ILendingProvider[]",
+        name: "providers_",
+        type: "address[]",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -50,6 +55,11 @@ const _abi = [
   {
     inputs: [],
     name: "BaseVault__checkRebalanceFee_excessFee",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseVault__constructor_invalidInput",
     type: "error",
   },
   {
@@ -64,6 +74,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseVault__deposit_slippageTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__mint_lessThanMin",
     type: "error",
   },
@@ -74,12 +89,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseVault__mint_slippageTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseVault__redeem_invalidInput",
     type: "error",
   },
   {
     inputs: [],
     name: "BaseVault__redeem_moreThanMax",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseVault__redeem_slippageTooHigh",
     type: "error",
   },
   {
@@ -99,12 +124,27 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseVault__withdraw_slippageTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BorrowingVault__borrow_invalidInput",
     type: "error",
   },
   {
     inputs: [],
     name: "BorrowingVault__borrow_moreThanAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__borrow_slippageTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__burnDebtShares_amountExceedsBalance",
     type: "error",
   },
   {
@@ -130,6 +170,11 @@ const _abi = [
   {
     inputs: [],
     name: "BorrowingVault__payback_moreThanMax",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BorrowingVault__payback_slippageTooHigh",
     type: "error",
   },
   {
@@ -439,11 +484,11 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "newMinDeposit",
+        name: "newMinAmount",
         type: "uint256",
       },
     ],
-    name: "MinDepositAmountChanged",
+    name: "MinAmountChanged",
     type: "event",
   },
   {
@@ -471,7 +516,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "enum IPausableVault.VaultActions",
-        name: "actions",
+        name: "action",
         type: "uint8",
       },
     ],
@@ -572,7 +617,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "enum IPausableVault.VaultActions",
-        name: "actions",
+        name: "action",
         type: "uint8",
       },
     ],
@@ -836,6 +881,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "VERSION",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "activeProvider",
     outputs: [
       {
@@ -935,6 +993,25 @@ const _abi = [
         type: "address",
       },
     ],
+    name: "balanceOfAsset",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
     name: "balanceOfDebt",
     outputs: [
       {
@@ -944,6 +1021,59 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "balanceOfDebtShares",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "debtShares",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "maxDebtShares",
+        type: "uint256",
+      },
+    ],
+    name: "borrow",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1154,7 +1284,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "subtractedShares",
+        name: "shares",
         type: "uint256",
       },
     ],
@@ -1252,6 +1382,35 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "minShares",
+        type: "uint256",
+      },
+    ],
+    name: "deposit",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "depositCap",
     outputs: [
@@ -1324,7 +1483,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "extraShares",
+        name: "shares",
         type: "uint256",
       },
     ],
@@ -1544,7 +1703,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "minDepositAmount",
+    name: "minAmount",
     outputs: [
       {
         internalType: "uint256",
@@ -1553,6 +1712,35 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "shares",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "maxAssets",
+        type: "uint256",
+      },
+    ],
+    name: "mint",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1661,6 +1849,35 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "debt",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "minDebtShares",
+        type: "uint256",
+      },
+    ],
+    name: "payback",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1876,6 +2093,11 @@ const _abi = [
         name: "fee",
         type: "uint256",
       },
+      {
+        internalType: "bool",
+        name: "setToAsActiveProvider",
+        type: "bool",
+      },
     ],
     name: "rebalance",
     outputs: [
@@ -1883,6 +2105,40 @@ const _abi = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "shares",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "minAssets",
+        type: "uint256",
+      },
+    ],
+    name: "redeem",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -1977,7 +2233,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "setMinDepositAmount",
+    name: "setMinAmount",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -2130,6 +2386,40 @@ const _abi = [
     inputs: [],
     name: "unpauseForceAll",
     outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "assets",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "maxShares",
+        type: "uint256",
+      },
+    ],
+    name: "withdraw",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },

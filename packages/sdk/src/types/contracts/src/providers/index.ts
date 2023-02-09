@@ -3,6 +3,8 @@
 /* eslint-disable */
 import type * as arbitrum from "./arbitrum";
 export type { arbitrum };
+import type * as gnosis from "./gnosis";
+export type { gnosis };
 import type * as goerli from "./goerli";
 export type { goerli };
 import type * as mainnet from "./mainnet";

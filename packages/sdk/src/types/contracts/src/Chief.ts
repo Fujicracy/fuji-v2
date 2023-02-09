@@ -31,6 +31,7 @@ import type {
 export interface ChiefInterface extends utils.Interface {
   functions: {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "DEPLOYER_ROLE()": FunctionFragment;
     "HARVESTER_ROLE()": FunctionFragment;
     "HOUSE_KEEPER_ROLE()": FunctionFragment;
     "LIQUIDATOR_ROLE()": FunctionFragment;
@@ -42,18 +43,20 @@ export interface ChiefInterface extends utils.Interface {
     "allowVaultFactory(address,bool)": FunctionFragment;
     "allowedFlasher(address)": FunctionFragment;
     "allowedVaultFactory(address)": FunctionFragment;
-    "deployVault(address,bytes,string)": FunctionFragment;
+    "deployVault(address,bytes,uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getVaults()": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
-    "openVaultFactory()": FunctionFragment;
     "pauseActionInAllVaults(uint8)": FunctionFragment;
     "pauseForceAllVaults()": FunctionFragment;
+    "permissionlessDeployments()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "setOpenVaultFactory(bool)": FunctionFragment;
+    "setPermissionlessDeployments(bool)": FunctionFragment;
+    "setSafetyRating(address,uint256)": FunctionFragment;
     "setTimelock(address)": FunctionFragment;
+    "setVaults(address[])": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "timelock()": FunctionFragment;
     "unpauseForceAllVaults()": FunctionFragment;
@@ -64,6 +67,7 @@ export interface ChiefInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "DEFAULT_ADMIN_ROLE"
+      | "DEPLOYER_ROLE"
       | "HARVESTER_ROLE"
       | "HOUSE_KEEPER_ROLE"
       | "LIQUIDATOR_ROLE"
@@ -80,13 +84,15 @@ export interface ChiefInterface extends utils.Interface {
       | "getVaults"
       | "grantRole"
       | "hasRole"
-      | "openVaultFactory"
       | "pauseActionInAllVaults"
       | "pauseForceAllVaults"
+      | "permissionlessDeployments"
       | "renounceRole"
       | "revokeRole"
-      | "setOpenVaultFactory"
+      | "setPermissionlessDeployments"
+      | "setSafetyRating"
       | "setTimelock"
+      | "setVaults"
       | "supportsInterface"
       | "timelock"
       | "unpauseForceAllVaults"
@@ -96,6 +102,10 @@ export interface ChiefInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "DEPLOYER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -144,7 +154,7 @@ export interface ChiefInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deployVault",
-    values: [string, BytesLike, string]
+    values: [string, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -160,15 +170,15 @@ export interface ChiefInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "openVaultFactory",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "pauseActionInAllVaults",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "pauseForceAllVaults",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "permissionlessDeployments",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -180,10 +190,15 @@ export interface ChiefInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setOpenVaultFactory",
+    functionFragment: "setPermissionlessDeployments",
     values: [boolean]
   ): string;
+  encodeFunctionData(
+    functionFragment: "setSafetyRating",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "setTimelock", values: [string]): string;
+  encodeFunctionData(functionFragment: "setVaults", values: [string[]]): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
@@ -204,6 +219,10 @@ export interface ChiefInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "DEPLOYER_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -259,10 +278,6 @@ export interface ChiefInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "openVaultFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "pauseActionInAllVaults",
     data: BytesLike
   ): Result;
@@ -271,18 +286,27 @@ export interface ChiefInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "permissionlessDeployments",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "setOpenVaultFactory",
+    functionFragment: "setPermissionlessDeployments",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setSafetyRating",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "setTimelock",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setVaults", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -303,23 +327,29 @@ export interface ChiefInterface extends utils.Interface {
 
   events: {
     "AllowFlasher(address,bool)": EventFragment;
+    "AllowPermissionlessDeployments(bool)": EventFragment;
     "AllowVaultFactory(address,bool)": EventFragment;
+    "ChangeSafetyRating(address,uint256)": EventFragment;
     "DeployVault(address,address,bytes)": EventFragment;
-    "OpenVaultFactory(bool)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
-    "TimelockUpdated(address)": EventFragment;
+    "SetVaults(address[],address[])": EventFragment;
+    "UpdateTimelock(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AllowFlasher"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "AllowPermissionlessDeployments"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AllowVaultFactory"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ChangeSafetyRating"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DeployVault"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OpenVaultFactory"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TimelockUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetVaults"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "UpdateTimelock"): EventFragment;
 }
 
 export interface AllowFlasherEventObject {
@@ -333,6 +363,17 @@ export type AllowFlasherEvent = TypedEvent<
 
 export type AllowFlasherEventFilter = TypedEventFilter<AllowFlasherEvent>;
 
+export interface AllowPermissionlessDeploymentsEventObject {
+  allowed: boolean;
+}
+export type AllowPermissionlessDeploymentsEvent = TypedEvent<
+  [boolean],
+  AllowPermissionlessDeploymentsEventObject
+>;
+
+export type AllowPermissionlessDeploymentsEventFilter =
+  TypedEventFilter<AllowPermissionlessDeploymentsEvent>;
+
 export interface AllowVaultFactoryEventObject {
   factory: string;
   allowed: boolean;
@@ -345,6 +386,18 @@ export type AllowVaultFactoryEvent = TypedEvent<
 export type AllowVaultFactoryEventFilter =
   TypedEventFilter<AllowVaultFactoryEvent>;
 
+export interface ChangeSafetyRatingEventObject {
+  vault: string;
+  newRating: BigNumber;
+}
+export type ChangeSafetyRatingEvent = TypedEvent<
+  [string, BigNumber],
+  ChangeSafetyRatingEventObject
+>;
+
+export type ChangeSafetyRatingEventFilter =
+  TypedEventFilter<ChangeSafetyRatingEvent>;
+
 export interface DeployVaultEventObject {
   factory: string;
   vault: string;
@@ -356,17 +409,6 @@ export type DeployVaultEvent = TypedEvent<
 >;
 
 export type DeployVaultEventFilter = TypedEventFilter<DeployVaultEvent>;
-
-export interface OpenVaultFactoryEventObject {
-  state: boolean;
-}
-export type OpenVaultFactoryEvent = TypedEvent<
-  [boolean],
-  OpenVaultFactoryEventObject
->;
-
-export type OpenVaultFactoryEventFilter =
-  TypedEventFilter<OpenVaultFactoryEvent>;
 
 export interface RoleAdminChangedEventObject {
   role: string;
@@ -405,15 +447,26 @@ export type RoleRevokedEvent = TypedEvent<
 
 export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
 
-export interface TimelockUpdatedEventObject {
-  timelock: string;
+export interface SetVaultsEventObject {
+  previousVaults: string[];
+  newVaults: string[];
 }
-export type TimelockUpdatedEvent = TypedEvent<
-  [string],
-  TimelockUpdatedEventObject
+export type SetVaultsEvent = TypedEvent<
+  [string[], string[]],
+  SetVaultsEventObject
 >;
 
-export type TimelockUpdatedEventFilter = TypedEventFilter<TimelockUpdatedEvent>;
+export type SetVaultsEventFilter = TypedEventFilter<SetVaultsEvent>;
+
+export interface UpdateTimelockEventObject {
+  timelock: string;
+}
+export type UpdateTimelockEvent = TypedEvent<
+  [string],
+  UpdateTimelockEventObject
+>;
+
+export type UpdateTimelockEventFilter = TypedEventFilter<UpdateTimelockEvent>;
 
 export interface Chief extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -444,6 +497,8 @@ export interface Chief extends BaseContract {
   functions: {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
+    DEPLOYER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
     HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
@@ -465,7 +520,7 @@ export interface Chief extends BaseContract {
     ): Promise<ContractTransaction>;
 
     allowVaultFactory(
-      _factory: string,
+      factory: string,
       allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -478,9 +533,9 @@ export interface Chief extends BaseContract {
     ): Promise<[boolean]>;
 
     deployVault(
-      _factory: string,
-      _deployData: BytesLike,
-      rating: string,
+      factory: string,
+      deployData: BytesLike,
+      rating: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -500,8 +555,6 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    openVaultFactory(overrides?: CallOverrides): Promise<[boolean]>;
-
     pauseActionInAllVaults(
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -510,6 +563,8 @@ export interface Chief extends BaseContract {
     pauseForceAllVaults(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    permissionlessDeployments(overrides?: CallOverrides): Promise<[boolean]>;
 
     renounceRole(
       role: BytesLike,
@@ -523,13 +578,24 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setOpenVaultFactory(
-      state: boolean,
+    setPermissionlessDeployments(
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setSafetyRating(
+      vault: string,
+      newRating: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setTimelock(
       newTimelock: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -552,10 +618,12 @@ export interface Chief extends BaseContract {
     vaultSafetyRating(
       arg0: string,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[BigNumber]>;
   };
 
   DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  DEPLOYER_ROLE(overrides?: CallOverrides): Promise<string>;
 
   HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
@@ -578,7 +646,7 @@ export interface Chief extends BaseContract {
   ): Promise<ContractTransaction>;
 
   allowVaultFactory(
-    _factory: string,
+    factory: string,
     allowed: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -591,9 +659,9 @@ export interface Chief extends BaseContract {
   ): Promise<boolean>;
 
   deployVault(
-    _factory: string,
-    _deployData: BytesLike,
-    rating: string,
+    factory: string,
+    deployData: BytesLike,
+    rating: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -613,8 +681,6 @@ export interface Chief extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  openVaultFactory(overrides?: CallOverrides): Promise<boolean>;
-
   pauseActionInAllVaults(
     action: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -623,6 +689,8 @@ export interface Chief extends BaseContract {
   pauseForceAllVaults(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  permissionlessDeployments(overrides?: CallOverrides): Promise<boolean>;
 
   renounceRole(
     role: BytesLike,
@@ -636,13 +704,24 @@ export interface Chief extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setOpenVaultFactory(
-    state: boolean,
+  setPermissionlessDeployments(
+    allowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setSafetyRating(
+    vault: string,
+    newRating: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setTimelock(
     newTimelock: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setVaults(
+    vaults: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -662,10 +741,15 @@ export interface Chief extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  vaultSafetyRating(arg0: string, overrides?: CallOverrides): Promise<string>;
+  vaultSafetyRating(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   callStatic: {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    DEPLOYER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
 
@@ -688,7 +772,7 @@ export interface Chief extends BaseContract {
     ): Promise<void>;
 
     allowVaultFactory(
-      _factory: string,
+      factory: string,
       allowed: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -701,9 +785,9 @@ export interface Chief extends BaseContract {
     ): Promise<boolean>;
 
     deployVault(
-      _factory: string,
-      _deployData: BytesLike,
-      rating: string,
+      factory: string,
+      deployData: BytesLike,
+      rating: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -723,14 +807,14 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    openVaultFactory(overrides?: CallOverrides): Promise<boolean>;
-
     pauseActionInAllVaults(
       action: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     pauseForceAllVaults(overrides?: CallOverrides): Promise<void>;
+
+    permissionlessDeployments(overrides?: CallOverrides): Promise<boolean>;
 
     renounceRole(
       role: BytesLike,
@@ -744,12 +828,20 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setOpenVaultFactory(
-      state: boolean,
+    setPermissionlessDeployments(
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setSafetyRating(
+      vault: string,
+      newRating: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setTimelock(newTimelock: string, overrides?: CallOverrides): Promise<void>;
+
+    setVaults(vaults: string[], overrides?: CallOverrides): Promise<void>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -765,7 +857,10 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    vaultSafetyRating(arg0: string, overrides?: CallOverrides): Promise<string>;
+    vaultSafetyRating(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   filters: {
@@ -778,6 +873,13 @@ export interface Chief extends BaseContract {
       allowed?: null
     ): AllowFlasherEventFilter;
 
+    "AllowPermissionlessDeployments(bool)"(
+      allowed?: null
+    ): AllowPermissionlessDeploymentsEventFilter;
+    AllowPermissionlessDeployments(
+      allowed?: null
+    ): AllowPermissionlessDeploymentsEventFilter;
+
     "AllowVaultFactory(address,bool)"(
       factory?: string | null,
       allowed?: null
@@ -786,6 +888,15 @@ export interface Chief extends BaseContract {
       factory?: string | null,
       allowed?: null
     ): AllowVaultFactoryEventFilter;
+
+    "ChangeSafetyRating(address,uint256)"(
+      vault?: string | null,
+      newRating?: null
+    ): ChangeSafetyRatingEventFilter;
+    ChangeSafetyRating(
+      vault?: string | null,
+      newRating?: null
+    ): ChangeSafetyRatingEventFilter;
 
     "DeployVault(address,address,bytes)"(
       factory?: string | null,
@@ -797,9 +908,6 @@ export interface Chief extends BaseContract {
       vault?: string | null,
       deployData?: null
     ): DeployVaultEventFilter;
-
-    "OpenVaultFactory(bool)"(state?: null): OpenVaultFactoryEventFilter;
-    OpenVaultFactory(state?: null): OpenVaultFactoryEventFilter;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
@@ -834,14 +942,22 @@ export interface Chief extends BaseContract {
       sender?: string | null
     ): RoleRevokedEventFilter;
 
-    "TimelockUpdated(address)"(
+    "SetVaults(address[],address[])"(
+      previousVaults?: null,
+      newVaults?: null
+    ): SetVaultsEventFilter;
+    SetVaults(previousVaults?: null, newVaults?: null): SetVaultsEventFilter;
+
+    "UpdateTimelock(address)"(
       timelock?: string | null
-    ): TimelockUpdatedEventFilter;
-    TimelockUpdated(timelock?: string | null): TimelockUpdatedEventFilter;
+    ): UpdateTimelockEventFilter;
+    UpdateTimelock(timelock?: string | null): UpdateTimelockEventFilter;
   };
 
   estimateGas: {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    DEPLOYER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -864,7 +980,7 @@ export interface Chief extends BaseContract {
     ): Promise<BigNumber>;
 
     allowVaultFactory(
-      _factory: string,
+      factory: string,
       allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -877,9 +993,9 @@ export interface Chief extends BaseContract {
     ): Promise<BigNumber>;
 
     deployVault(
-      _factory: string,
-      _deployData: BytesLike,
-      rating: string,
+      factory: string,
+      deployData: BytesLike,
+      rating: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -902,8 +1018,6 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    openVaultFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
     pauseActionInAllVaults(
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -912,6 +1026,8 @@ export interface Chief extends BaseContract {
     pauseForceAllVaults(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    permissionlessDeployments(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceRole(
       role: BytesLike,
@@ -925,13 +1041,24 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setOpenVaultFactory(
-      state: boolean,
+    setPermissionlessDeployments(
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setSafetyRating(
+      vault: string,
+      newRating: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setTimelock(
       newTimelock: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -962,6 +1089,8 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    DEPLOYER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -983,7 +1112,7 @@ export interface Chief extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     allowVaultFactory(
-      _factory: string,
+      factory: string,
       allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -999,9 +1128,9 @@ export interface Chief extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     deployVault(
-      _factory: string,
-      _deployData: BytesLike,
-      rating: string,
+      factory: string,
+      deployData: BytesLike,
+      rating: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1024,8 +1153,6 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    openVaultFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     pauseActionInAllVaults(
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1033,6 +1160,10 @@ export interface Chief extends BaseContract {
 
     pauseForceAllVaults(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    permissionlessDeployments(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     renounceRole(
@@ -1047,13 +1178,24 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setOpenVaultFactory(
-      state: boolean,
+    setPermissionlessDeployments(
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setSafetyRating(
+      vault: string,
+      newRating: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setTimelock(
       newTimelock: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1087,6 +1229,8 @@ export interface ChiefMulticall {
 
   DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Call<string>;
 
+  DEPLOYER_ROLE(overrides?: CallOverrides): Call<string>;
+
   HARVESTER_ROLE(overrides?: CallOverrides): Call<string>;
 
   HOUSE_KEEPER_ROLE(overrides?: CallOverrides): Call<string>;
@@ -1115,7 +1259,7 @@ export interface ChiefMulticall {
     overrides?: CallOverrides
   ): Call<boolean>;
 
-  openVaultFactory(overrides?: CallOverrides): Call<boolean>;
+  permissionlessDeployments(overrides?: CallOverrides): Call<boolean>;
 
   supportsInterface(
     interfaceId: BytesLike,
@@ -1124,5 +1268,5 @@ export interface ChiefMulticall {
 
   timelock(overrides?: CallOverrides): Call<string>;
 
-  vaultSafetyRating(arg0: string, overrides?: CallOverrides): Call<string>;
+  vaultSafetyRating(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
 }

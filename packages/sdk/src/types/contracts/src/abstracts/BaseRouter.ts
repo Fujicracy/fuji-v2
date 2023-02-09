@@ -14,7 +14,12 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  Fragment,
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type { Call } from "@hovoh/ethcall";
 import type {
@@ -33,6 +38,7 @@ export interface BaseRouterInterface extends utils.Interface {
     "REBALANCER_ROLE()": FunctionFragment;
     "UNPAUSER_ROLE()": FunctionFragment;
     "WETH9()": FunctionFragment;
+    "allowCaller(address,bool)": FunctionFragment;
     "chief()": FunctionFragment;
     "sweepETH(address)": FunctionFragment;
     "sweepToken(address,address)": FunctionFragment;
@@ -48,6 +54,7 @@ export interface BaseRouterInterface extends utils.Interface {
       | "REBALANCER_ROLE"
       | "UNPAUSER_ROLE"
       | "WETH9"
+      | "allowCaller"
       | "chief"
       | "sweepETH"
       | "sweepToken"
@@ -79,6 +86,10 @@ export interface BaseRouterInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "allowCaller",
+    values: [string, boolean]
+  ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(functionFragment: "sweepETH", values: [string]): string;
   encodeFunctionData(
@@ -115,13 +126,32 @@ export interface BaseRouterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "allowCaller",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "AllowCaller(address,bool)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "AllowCaller"): EventFragment;
 }
+
+export interface AllowCallerEventObject {
+  caller: string;
+  allowed: boolean;
+}
+export type AllowCallerEvent = TypedEvent<
+  [string, boolean],
+  AllowCallerEventObject
+>;
+
+export type AllowCallerEventFilter = TypedEventFilter<AllowCallerEvent>;
 
 export interface BaseRouter extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -164,6 +194,12 @@ export interface BaseRouter extends BaseContract {
 
     WETH9(overrides?: CallOverrides): Promise<[string]>;
 
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     sweepETH(
@@ -197,6 +233,12 @@ export interface BaseRouter extends BaseContract {
   UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
   WETH9(overrides?: CallOverrides): Promise<string>;
+
+  allowCaller(
+    caller: string,
+    allowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   chief(overrides?: CallOverrides): Promise<string>;
 
@@ -232,6 +274,12 @@ export interface BaseRouter extends BaseContract {
 
     WETH9(overrides?: CallOverrides): Promise<string>;
 
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     chief(overrides?: CallOverrides): Promise<string>;
 
     sweepETH(receiver: string, overrides?: CallOverrides): Promise<void>;
@@ -249,7 +297,13 @@ export interface BaseRouter extends BaseContract {
     ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "AllowCaller(address,bool)"(
+      caller?: null,
+      allowed?: null
+    ): AllowCallerEventFilter;
+    AllowCaller(caller?: null, allowed?: null): AllowCallerEventFilter;
+  };
 
   estimateGas: {
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -265,6 +319,12 @@ export interface BaseRouter extends BaseContract {
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     WETH9(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -300,6 +360,12 @@ export interface BaseRouter extends BaseContract {
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

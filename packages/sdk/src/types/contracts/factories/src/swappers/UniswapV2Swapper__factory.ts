@@ -20,12 +20,17 @@ const _abi = [
       },
       {
         internalType: "contract IUniswapV2Router01",
-        name: "_uniswapRouter",
+        name: "uniswapRouter_",
         type: "address",
       },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "UniswapV2Swapper__swap_notEnoughAmountIn",
+    type: "error",
   },
   {
     inputs: [],
@@ -40,6 +45,64 @@ const _abi = [
         internalType: "contract IWETH9",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "assetIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "assetOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    name: "getAmountIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "assetIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "assetOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    name: "getAmountOut",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

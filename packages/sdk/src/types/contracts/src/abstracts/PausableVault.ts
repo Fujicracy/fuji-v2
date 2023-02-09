@@ -91,7 +91,7 @@ export interface PausableVaultInterface extends utils.Interface {
 
 export interface PausedEventObject {
   account: string;
-  actions: number;
+  action: number;
 }
 export type PausedEvent = TypedEvent<[string, number], PausedEventObject>;
 
@@ -109,7 +109,7 @@ export type PausedForceAllEventFilter = TypedEventFilter<PausedForceAllEvent>;
 
 export interface UnpausedEventObject {
   account: string;
-  actions: number;
+  action: number;
 }
 export type UnpausedEvent = TypedEvent<[string, number], UnpausedEventObject>;
 
@@ -207,17 +207,17 @@ export interface PausableVault extends BaseContract {
   };
 
   filters: {
-    "Paused(address,uint8)"(account?: null, actions?: null): PausedEventFilter;
-    Paused(account?: null, actions?: null): PausedEventFilter;
+    "Paused(address,uint8)"(account?: null, action?: null): PausedEventFilter;
+    Paused(account?: null, action?: null): PausedEventFilter;
 
     "PausedForceAll(address)"(account?: null): PausedForceAllEventFilter;
     PausedForceAll(account?: null): PausedForceAllEventFilter;
 
     "Unpaused(address,uint8)"(
       account?: null,
-      actions?: null
+      action?: null
     ): UnpausedEventFilter;
-    Unpaused(account?: null, actions?: null): UnpausedEventFilter;
+    Unpaused(account?: null, action?: null): UnpausedEventFilter;
 
     "UnpausedForceAll(address)"(account?: null): UnpausedForceAllEventFilter;
     UnpausedForceAll(account?: null): UnpausedForceAllEventFilter;

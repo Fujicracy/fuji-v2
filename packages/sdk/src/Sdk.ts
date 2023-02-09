@@ -15,7 +15,7 @@ import {
 import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ChainId, RouterAction } from './enums';
+import { ChainId, ChainType, RouterAction } from './enums';
 import { encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
@@ -185,9 +185,14 @@ export class Sdk {
 
   /**
    * Retruns all vaults.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
+   *
    */
-  getAllBorrowingVaults(): BorrowingVault[] {
-    return this._getAllVaults();
+  getAllBorrowingVaults(
+    chainType: ChainType = ChainType.MAINNET
+  ): BorrowingVault[] {
+    return this._getAllVaults(chainType);
   }
 
   /**
@@ -239,11 +244,13 @@ export class Sdk {
    * "experimental" mode and might be unstable. This method can return `void`
    * which indicates a problem with DefiLlama API. In that case, client should
    * fetch for each vault borrow and deposit APY manually.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
    */
-  async getAllVaultsWithFinancials(): Promise<
-    BorrowingVaultWithFinancials[] | void
-  > {
-    const vaults = this._getAllVaults();
+  async getAllVaultsWithFinancials(
+    chainType: ChainType = ChainType.MAINNET
+  ): Promise<BorrowingVaultWithFinancials[] | void> {
+    const vaults = this._getAllVaults(chainType);
 
     // TODO: inefficient when there will be many vaults
     await Promise.all(vaults.map((v) => v.preLoad()));
@@ -341,10 +348,11 @@ export class Sdk {
     steps: RoutingStepDetails[]
   ): Promise<RoutingStepDetails[]> {
     const srcChainId = steps[0].chainId;
+    const chainType = CHAIN[srcChainId].chainType;
     const transferId = await this.getTransferId(srcChainId, transactionHash);
 
     const srcTxHash = Promise.resolve(transactionHash);
-    const destTxHash = this.getDestTxHash(transferId ?? '');
+    const destTxHash = this.getDestTxHash(transferId ?? '', chainType);
 
     return steps.map((step) => ({
       ...step,
@@ -392,13 +400,17 @@ export class Sdk {
    * `transferId` can be obtained from `sdk.getTransferId`.
    *
    * @param transferId - transfer ID according to Connext numenclature.
+   * @param chainType - type of the chain: testnet or mainnet.
    */
-  getDestTxHash(transferId: string): Promise<string> {
+  getDestTxHash(
+    transferId: string,
+    chainType: ChainType = ChainType.MAINNET
+  ): Promise<string> {
+    const chainStr = chainType === ChainType.MAINNET ? 'mainnet' : 'testnet';
     return new Promise((resolve) => {
       const apiCall = () =>
-        // TODO: replace with prod API url
         axios.get(
-          `https://postgrest.testnet.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
+          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
         );
 
       const interval = () => {
@@ -467,10 +479,14 @@ export class Sdk {
       }, []);
   }
 
-  private _getAllVaults(): BorrowingVault[] {
+  private _getAllVaults(chainType: ChainType): BorrowingVault[] {
     const vaults = [];
-    for (const id of Object.keys(CHAIN)) {
-      vaults.push(...VAULT_LIST[parseInt(id) as ChainId]);
+    const chains = Object.values(CHAIN).filter(
+      (c) => c.chainType === chainType
+    );
+
+    for (const chain of chains) {
+      vaults.push(...VAULT_LIST[chain.chainId]);
     }
 
     return vaults.map((v) => v.setConnection(this._configParams));

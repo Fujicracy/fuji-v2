@@ -5,3 +5,4 @@ export { ICERC20__factory } from "./ICERC20__factory";
 export { ICETH__factory } from "./ICETH__factory";
 export { ICToken__factory } from "./ICToken__factory";
 export { IComptroller__factory } from "./IComptroller__factory";
+export { IProxyReceiver__factory } from "./IProxyReceiver__factory";
