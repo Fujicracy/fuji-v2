@@ -200,13 +200,12 @@ export default function Borrow() {
             direction="row"
             m="1rem 0"
             justifyContent="space-between"
-            onClick={
-              availableRoutes.length > 0
-                ? () => {
-                    !onMobile && address && setShowRoutingModal(true)
-                  }
-                : undefined
-            }
+            onClick={() => {
+              availableRoutes.length > 0 &&
+                !onMobile &&
+                address &&
+                setShowRoutingModal(true)
+            }}
             sx={{ cursor: address && "pointer" }}
           >
             <Typography variant="small">Route</Typography>
