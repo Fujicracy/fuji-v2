@@ -12,7 +12,7 @@ pragma solidity 0.8.15;
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
-import {ConnextHelperReceiver} from "./ConnextHelperReceiver.sol";
+import {ConnextHandler} from "./ConnextHandler.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
@@ -79,7 +79,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
 
-  ConnextHelperReceiver public immutable helperReceiver;
+  ConnextHandler public immutable handler;
 
   /**
    * @notice A mapping of a domain of another chain and a deployed router there.
@@ -91,7 +91,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
-    helperReceiver = new ConnextHelperReceiver(address(this));
+    handler = new ConnextHandler(address(this));
     _allowCaller(address(connext_), true);
   }
 
@@ -174,10 +174,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        asset_.transfer(address(helperReceiver), balance);
-        helperReceiver.recordFailed(
-          transferId, amount, asset, originSender, originDomain, actions, args
-        );
+        asset_.transfer(address(handler), balance);
+        handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
       // Ensure clear storage for token balance checks.

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /**
- * @title ConnextHelperReceiver
+ * @title ConnextHandler
  *
  * @author Fujidao Labs
  *
@@ -14,55 +14,77 @@ import {ConnextRouter} from "./ConnextRouter.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract ConnextHelperReceiver {
+contract ConnextHandler {
   /**
-   * @dev Contains an address of an ERC-20 and the balance the router holds
-   * at a given moment of the transaction (ref. `_tokensToCheck`).
+   * @dev Contains the information of a failed Connext
+   * failed transferId.
    */
   struct FailedTransfer {
-    bytes32 id;
+    bytes32 transferId;
+    address beneficiary;
     uint256 amount;
     address asset;
     address originSender;
     uint32 originDomain;
-    // actions = abi.encoded(IRouter.Action[], bytes[])
-    bytes data;
+    IRouter.Action[] actions;
+    bytes[] args;
   }
 
   /**
    * @dev Emit when calling `ExecutionFailed()` fails again.
+   *
+   * @param transferId the unique identifier of the crosschain transfer
+   * @param success boolean
+   * @param oldArgs of the failed transferId
+   * @param newArgs attemped in execution
    */
-  event Failed(bytes32 transferId);
+  event RetryTransferId(
+    bytes32 indexed transferId, bool indexed success, bytes[] oldArgs, bytes[] newArgs
+  );
 
   /// @dev Custom errors
-  error ConnextHelperReceiver__constructor_zeroAddress();
-  error ConnextHelperReceiver__callerNotConnextRouter();
+  error ConnextHandler__constructor_zeroAddress();
+  error ConnextHandler__callerNotConnextRouter();
 
   ConnextRouter public immutable connextRouter;
 
   /// @dev Maps a failed transferId -> calldata
-  mapping(bytes32 => FailedTransfer) public failedTransfers;
+  mapping(bytes32 => FailedTransfer) private _failedTransfers;
 
   modifier onlyConnextRouter() {
     if (msg.sender != address(connextRouter)) {
-      revert ConnextHelperReceiver__callerNotConnextRouter();
+      revert ConnextHandler__callerNotConnextRouter();
     }
     _;
   }
 
-  modifier allowedCallerInConnextRouter() {
+  /// @dev Modifier that checks `msg.sender` is an allowed called in {ConnextRouter}.
+  modifier onlyAllowedCaller() {
     if (!connextRouter.isAllowedCaller(msg.sender)) {
-      revert ConnextHelperReceiver__callerNotConnextRouter();
+      revert ConnextHandler__callerNotConnextRouter();
     }
     _;
   }
 
+  /**
+   * @notice Constructor that initialized
+   */
   constructor(address connextRouter_) {
     if (address(connextRouter_) == address(0)) {
-      revert ConnextHelperReceiver__constructor_zeroAddress();
+      revert ConnextHandler__constructor_zeroAddress();
     }
     connextRouter = ConnextRouter(payable(connextRouter_));
+  }
+
+  /**
+   * @notice Returns the struct of failed `transferId`.
+   *
+   * @param transferId the unique identifier of the crosschain transfer
+   */
+  function getFailedTransfer(bytes32 transferId) public view returns (FailedTransfer memory) {
+    return _failedTransfers[transferId];
   }
 
   /**
@@ -101,21 +123,39 @@ contract ConnextHelperReceiver {
      * address, if the first action is of value transfer type, sender
      * argument must be replaced.
      */
-    args[0] = _replaceSender(actions[0], args[0]);
+    address beneficiary;
+    (args[0], beneficiary) = _replaceSenderAndGetBeneficiary(actions[0], args[0]);
 
-    bytes memory data = abi.encode(actions, args);
-    failedTransfers[transferId] =
-      FailedTransfer(transferId, amount, asset, originSender, originDomain, data);
+    _failedTransfers[transferId] = FailedTransfer(
+      transferId, beneficiary, amount, asset, originSender, originDomain, actions, args
+    );
   }
 
-  function executeFailed(bytes32 transferId) external allowedCallerInConnextRouter {
-    FailedTransfer memory transfer = failedTransfers[transferId];
-    (IRouter.Action[] memory actions, bytes[] memory args) =
-      abi.decode(transfer.data, (IRouter.Action[], bytes[]));
-    try connextRouter.xBundle(actions, args) {
-      delete failedTransfers[transferId];
+  /**
+   * @notice Executes a failed transfer with update `args`
+   *
+   * @param transferId the unique identifier of the crosschain transfer
+   *
+   * @dev For security reasons only `args` in FailedTransfer can be updated with
+   * the original intended `actions`.
+   * Requirements:
+   * - Must only be called by an allowed caller in {ConnextRouter}.
+   * - Must clear the transfer from `_failedTransfers` mapping if execution succeeds.
+   */
+  function executeFailedWithUpdatedArgs(
+    bytes32 transferId,
+    bytes[] memory args_
+  )
+    external
+    onlyAllowedCaller
+  {
+    FailedTransfer memory transfer = _failedTransfers[transferId];
+    IERC20(transfer.asset).approve(address(connextRouter), transfer.amount);
+    try connextRouter.xBundle(transfer.actions, args_) {
+      delete _failedTransfers[transferId];
+      emit RetryTransferId(transferId, true, transfer.args, args_);
     } catch {
-      emit Failed(transferId);
+      emit RetryTransferId(transferId, false, transfer.args, args_);
     }
   }
 
@@ -123,13 +163,13 @@ contract ConnextHelperReceiver {
    * @dev Decodes and replaces "sender" argument in args with address(this)
    * in Deposit, Payback or Swap action.
    */
-  function _replaceSender(
+  function _replaceSenderAndGetBeneficiary(
     IRouter.Action action,
     bytes memory args
   )
     internal
     view
-    returns (bytes memory newArgs)
+    returns (bytes memory newArgs, address beneficiary)
   {
     newArgs = args;
 
@@ -140,6 +180,7 @@ contract ConnextHelperReceiver {
         abi.decode(args, (IVault, uint256, address, address));
 
       sender = address(this);
+      beneficiary = receiver;
       newArgs = abi.encode(vault, amount, receiver, sender);
     } else if (action == IRouter.Action.Swap) {
       // For Swap.
@@ -158,6 +199,7 @@ contract ConnextHelperReceiver {
       );
 
       sender = address(this);
+      beneficiary = receiver;
       newArgs = abi.encode(
         swapper, assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut, sender
       );

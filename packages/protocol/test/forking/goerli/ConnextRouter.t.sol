@@ -16,6 +16,8 @@ import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
+import {BaseRouter} from "../../../src/abstracts/BaseRouter.sol";
+import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
@@ -33,6 +35,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
   ConnextRouter public connextRouter;
+  ConnextHandler public connextHandler;
   uint32 domain;
 
   function setUp() public {
@@ -52,6 +55,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       chief
     );
 
+    connextHandler = connextRouter.handler();
+
     // addresses are supposed to be the same across different chains
     /*connextRouter.setRouter(OPTIMISM_GOERLI_DOMAIN, address(connextRouter));*/
     bytes memory callData = abi.encodeWithSelector(
@@ -63,6 +68,10 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     callData = abi.encodeWithSelector(
       ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
     );
+    _callWithTimelock(address(connextRouter), callData);
+
+    /*connextRouter.allowCaller(address(this), true);*/
+    callData = abi.encodeWithSelector(BaseRouter.allowCaller.selector, address(this), true);
     _callWithTimelock(address(connextRouter), callData);
   }
 
@@ -144,9 +153,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertGt(vault.balanceOf(ALICE), 0);
     // Assert ALICE received borrowAmount
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
-    // Assert router or ConnextHelperReceiver does not have collateral.
+    // Assert router or ConnextHandler does not have collateral.
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), 0);
   }
 
   function test_bridgeSlippageInbound() public {
@@ -193,9 +202,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), slippageAmount);
     // Assert ALICE received borrowAmount
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
-    // Assert router or ConnextHelperReceiver does not have collateral.
+    // Assert router or ConnextHandler does not have collateral.
     assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), 0);
   }
 
   function test_attackXReceive() public {
@@ -222,8 +231,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    // Assert that funds are kept at the ConnextHelperReceiver
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), amount);
+    // Assert that funds are kept at the ConnextHandler
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
 
     // Attacker makes first attempt to take funds using xReceive, BOB
     address attacker = BOB;
@@ -299,8 +308,56 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), 0);
-    // funds are kept at the ConnextHelperReceiver contract
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter.helperReceiver())), amount);
+    // funds are kept at the ConnextHandler contract
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
+  }
+
+  function test_retryFailedInboundXReceive() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 5;
+
+    // make the callData to fail
+    bytes memory badCallData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+    );
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    bytes32 transferId = 0x0000000000000000000000000000000000000000000000000000000000000001;
+    connextRouter.xReceive(
+      transferId, amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, badCallData
+    );
+    vm.stopPrank();
+
+    assertEq(vault.balanceOf(ALICE), 0);
+    // funds are kept at the ConnextHandler contract
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
+
+    // Ensure calldata is fixed
+    // In this case the badCalldata previously had sender as address(0).
+    // The ConnextHhander replaces `sender` with its address when recording the failed transfer.
+    ConnextHandler.FailedTransfer memory transfer = connextHandler.getFailedTransfer(transferId);
+    bytes memory newArg0 = transfer.args[0];
+    (,,, address sender) = abi.decode(newArg0, (IVault, uint256, address, address));
+    assert(sender == address(connextHandler));
+    transfer.args[1] = _buildPermitAsBytes(
+      ALICE, ALICE_PK, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
+    );
+
+    connextHandler.executeFailedWithUpdatedArgs(transferId, transfer.args);
+    // Assert Alice has funds deposited in the vault
+    assertGt(vault.balanceOf(ALICE), 0);
+    // Assert Alice was able to borrow from the vault
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
   function test_depositAndBorrowaAndTransfer() public {
