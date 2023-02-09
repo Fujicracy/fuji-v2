@@ -261,7 +261,10 @@ export default function Overview() {
                 <Typography variant="small">
                   {providers[0].name}:{" "}
                   <span style={{ color: palette.success.main }}>
-                    {formatUnits(providers[0].borrowRate, 27)}%
+                    {(
+                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
+                    ).toFixed(2)}
+                    %
                   </span>
                 </Typography>
               ) : (
