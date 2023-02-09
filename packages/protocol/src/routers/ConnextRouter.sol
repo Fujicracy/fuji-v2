@@ -136,14 +136,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (Action[] memory actions, bytes[] memory args, uint256 slippageThreshold) =
       abi.decode(callData, (Action[], bytes[], uint256));
 
-    // Block callers except allowed cross callers.
-    // if (
-    //   !_isAllowedCaller[msg.sender] || routerByDomain[originDomain] != originSender
-    //     || originSender == address(0)
-    // ) {
-    //   revert ConnextRouter__xReceive_notAllowedCaller();
-    // }
-
     uint256 balance;
     IERC20 asset_ = IERC20(asset);
     if (amount > 0) {
