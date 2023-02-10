@@ -42,7 +42,7 @@ const keyMetrics: Metric[] = [
     valueSym: "$",
     action: "Borrow",
   }, // TODO: tooltip & actions
-  { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
+  // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
 ]
 
 type Row = {

@@ -1,4 +1,3 @@
-import * as Sdk from "@x-fuji/sdk"
 import { sdk } from "../services/sdk"
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
@@ -11,7 +10,7 @@ type PositionsState = {
   totalAPY: number | undefined
   availableBorrowingPowerUSD: number | undefined
   positions: Position[]
-  positionsAtRisk?: Position[]
+  // positionsAtRisk?: Position[]
 }
 
 type PositionsActions = {
@@ -20,7 +19,7 @@ type PositionsActions = {
   getTotalDebtUSD: () => void
   getTotalAPY: () => void
   getTotalAvailableBorrowPowerUSD: () => void
-  getPositionsAtRisk: () => void
+  // getPositionsAtRisk: () => void
 }
 
 const initialState: PositionsState = {
@@ -29,7 +28,7 @@ const initialState: PositionsState = {
   totalAPY: undefined,
   availableBorrowingPowerUSD: undefined,
   positions: [],
-  positionsAtRisk: [],
+  // positionsAtRisk: [],
 }
 
 export type PositionsStore = PositionsState & PositionsActions
@@ -63,9 +62,9 @@ export const usePositions = create<PositionsStore>()(
         set({ availableBorrowingPowerUSD: /*fetchAndComputeTotalAPY()*/ 0 })
       },
 
-      getPositionsAtRisk: async () => {
-        set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
-      },
+      // getPositionsAtRisk: async () => {
+      //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
+      // },
     }),
     {
       enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
@@ -78,11 +77,7 @@ function getTotalSum(
   positions: Position[],
   param: "collateral" | "debt"
 ): number {
-  let sum: any
-  for (let i = 0; i < positions.length; i++) {
-    sum += positions[i][param].usdValue
-  }
-  return sum
+  return positions.reduce((acc, v) => v[param].usdValue + acc, 0)
 }
 
 async function fetchAndComputeTotalAPY() {
