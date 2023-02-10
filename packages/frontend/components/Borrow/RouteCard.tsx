@@ -29,17 +29,20 @@ export default function RouteCard(props: RouteCardProps) {
     step.step.toLowerCase().includes("bridge")
   )
 
+  const steps = props.route.steps.filter(
+    (s) => s.step !== "start" && s.step !== "end"
+  )
+
   function iconForStep(step: RoutingStepDetails) {
-    if (step.lendingProvider) {
+    if (step.step === "bridge") {
       return (
-        <ProviderIcon
-          providerName={step.lendingProvider.name}
+        <NetworkIcon
+          network={chainName(debt.token.chainId)}
           height={18}
           width={18}
         />
       )
-    }
-    if (step.token) {
+    } else if (step.token) {
       return <TokenIcon token={step.token} height={18} width={18} />
     }
     return <></>
@@ -51,10 +54,18 @@ export default function RouteCard(props: RouteCardProps) {
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
       )} ${step.token?.symbol} to ${step.lendingProvider?.name}`
     }
+    if (step.step === "withdraw") {
+      return `Withdraw ${toNotSoFixed(
+        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
+      )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+    }
     if (step.step === "borrow") {
       return `Borrow ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
       )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+    }
+    if (step.step === "bridge") {
+      return `Bridge to ${chainName(debt.token.chainId)} via Connext`
     }
     return camelize(step.step)
   }
@@ -100,7 +111,21 @@ export default function RouteCard(props: RouteCardProps) {
                     />
                   }
                   variant="routing"
-                  label={`Price Impact ${"???"}`}
+                  label={
+                    <>
+                      Price Impact:{" "}
+                      <span
+                        style={{
+                          color:
+                            props.route.estimateSlippage > 0
+                              ? palette.success.main
+                              : palette.error.main,
+                        }}
+                      >
+                        {`${props.route.estimateSlippage.toFixed(2)}%`}
+                      </span>
+                    </>
+                  }
                 />
               </Tooltip>
             </>
@@ -206,7 +231,7 @@ export default function RouteCard(props: RouteCardProps) {
                 </Stack>
               ) : (
                 <Stack direction="row" justifyContent="space-around">
-                  {props.route.steps.map((step, i) => (
+                  {steps.map((step, i) => (
                     <Stack key={i} direction="column">
                       {iconForStep(step)}
                       <Typography
@@ -242,7 +267,7 @@ export default function RouteCard(props: RouteCardProps) {
             }}
           >
             <Stack direction="row" justifyContent="space-around">
-              {props.route.steps.map((step, i) => (
+              {steps.map((step, i) => (
                 <Stack key={i} direction="column">
                   {iconForStep(step)}
                   <Typography
