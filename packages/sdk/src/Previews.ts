@@ -604,7 +604,7 @@ export class Previews {
       // so we need to account for the router fee (0.05) + slippage
       const received = r.received;
       steps.push(
-        this._step(step, srcChainId, amountOut, tokenOut, activeProvider),
+        this._step(step, srcChainId, amountOut, vaultToken, activeProvider),
         this._step(
           RoutingStep.X_TRANSFER,
           tokenOut.chainId,
@@ -704,14 +704,14 @@ export class Previews {
       steps.push(
         this._step(
           RoutingStep.DEPOSIT,
-          tokenIn.chainId,
+          vault.chainId,
           amountIn,
           vault.collateral,
           activeProvider
         ),
         this._step(
           RoutingStep.BORROW,
-          tokenOut.chainId,
+          vault.chainId,
           amountOut,
           vault.debt,
           activeProvider
@@ -838,14 +838,14 @@ export class Previews {
       steps.push(
         this._step(
           RoutingStep.PAYBACK,
-          tokenIn.chainId,
+          vault.chainId,
           amountIn,
           vault.debt,
           activeProvider
         ),
         this._step(
           RoutingStep.WITHDRAW,
-          tokenOut.chainId,
+          vault.chainId,
           amountOut,
           vault.collateral,
           activeProvider
