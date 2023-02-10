@@ -1,6 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
+import { AddressZero } from '@ethersproject/constants';
 import { TransactionRequest } from '@ethersproject/providers';
+import { formatUnits } from '@ethersproject/units';
 import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
 import invariant from 'tiny-invariant';
@@ -10,6 +12,7 @@ import {
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
+  FUJI_ORACLE_ADDRESS,
   VAULT_LIST,
 } from './constants';
 import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
@@ -27,13 +30,27 @@ import {
   RouterActionParams,
   RoutingStepDetails,
 } from './types';
-import { ConnextRouter__factory } from './types/contracts';
+import {
+  ConnextRouter__factory,
+  FujiOracle__factory,
+  ILendingProvider__factory,
+} from './types/contracts';
 import {
   GetLlamaAssetPoolsResponse,
   GetLlamaBorrowPoolsResponse,
   LlamaAssetPool,
   LlamaBorrowPool,
 } from './types/LlamaResponses';
+
+type AccountDetailsPerVault = {
+  vault: BorrowingVault;
+  depositBalance: BigNumber;
+  borrowBalance: BigNumber;
+  collateralPriceUSD: BigNumber;
+  debtPriceUSD: BigNumber;
+  depositApyBase: number;
+  borrowApyBase: number;
+};
 
 export class Sdk {
   /**
@@ -181,6 +198,88 @@ export class Sdk {
       );
 
     return multicallRpcProvider.all(balances);
+  }
+
+  /**
+   * Retruns details for all vaults on all chains for a given account.
+   *
+   * @remarks
+   * `depositApyBase` and `borrowApyBase` are returned in %,
+   * `collateralPriceUSD` and `debtPriceUSD` have to be formatted
+   * with their respective token decimals.
+   *
+   * @param account - {@link Account} for the user
+   * @param chainType - for what chain types to query
+   */
+  async getAllAccountDetailsPerVaultFor(
+    account: Address,
+    chainType: ChainType = ChainType.MAINNET
+  ): Promise<AccountDetailsPerVault[]> {
+    // { vault, depositBalance, borrowBalance, collateralPriceUSD, debtPriceUSD, depositApyBase, borrowApyBase }
+    const res: AccountDetailsPerVault[] = [];
+
+    const chains = Object.values(CHAIN)
+      .filter((c) => c.chainType === chainType && c.isDeployed)
+      .map((c) => c.setConnection(this._configParams));
+
+    for (const chain of chains) {
+      const chainId = chain.chainId;
+      const vaults = VAULT_LIST[chainId].map((v) =>
+        v.setConnection(this._configParams)
+      );
+      const { multicallRpcProvider } = this.getConnectionFor(chainId);
+      const oracle = FujiOracle__factory.multicall(
+        FUJI_ORACLE_ADDRESS[chainId].value
+      );
+
+      const firstBatch: Call<BigNumber | string>[] = [];
+      vaults.forEach((v) => {
+        firstBatch.push(
+          v.multicallContract?.balanceOfAsset(account.value) as Call<BigNumber>,
+          v.multicallContract?.balanceOfDebt(account.value) as Call<BigNumber>,
+          v.multicallContract?.activeProvider() as Call<string>,
+          oracle.getPriceOf(
+            v.collateral.address.value,
+            AddressZero,
+            v.collateral.decimals
+          ),
+          oracle.getPriceOf(v.debt.address.value, AddressZero, v.debt.decimals)
+        );
+      });
+      const firstBatchResults = await multicallRpcProvider.all(firstBatch);
+
+      const secondBatch: Call<BigNumber>[] = [];
+      vaults.forEach((v, i) => {
+        // multiply by 5 becasue there 5 calls per vault in the firstBatch
+        const activeProvider = firstBatchResults[5 * i + 2] as string;
+        secondBatch.push(
+          ILendingProvider__factory.multicall(activeProvider).getDepositRateFor(
+            v.address.value
+          ),
+          ILendingProvider__factory.multicall(activeProvider).getBorrowRateFor(
+            v.address.value
+          )
+        );
+      });
+      const secondBatchResults = await multicallRpcProvider.all(secondBatch);
+
+      vaults.forEach((vault, i) => {
+        // multiply by 2 becasue there 2 calls per vault in the firstBatch
+        const depositRate = secondBatchResults[2 * i].toString();
+        const borrowRate = secondBatchResults[2 * i + 1].toString();
+        res.push({
+          vault,
+          depositBalance: firstBatchResults[5 * i] as BigNumber,
+          borrowBalance: firstBatchResults[5 * i + 1] as BigNumber,
+          collateralPriceUSD: firstBatchResults[5 * i + 3] as BigNumber,
+          debtPriceUSD: firstBatchResults[5 * i + 4] as BigNumber,
+          depositApyBase: parseFloat(formatUnits(depositRate, 27)) * 100,
+          borrowApyBase: parseFloat(formatUnits(borrowRate, 27)) * 100,
+        });
+      });
+    }
+
+    return res;
   }
 
   /**
