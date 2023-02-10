@@ -53,7 +53,7 @@ export default function RoutingModal(props: RoutingModalProps) {
           }}
           onClick={props.handleClose}
         />
-        <Typography variant="body2">Best Route</Typography>
+        <Typography variant="body2">Available Routes</Typography>
 
         {availableRoutes.map((route, i) => (
           <RouteCard

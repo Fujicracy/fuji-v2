@@ -8,7 +8,7 @@ import { Stack } from "@mui/system"
 
 import { useBorrow } from "../../store/borrow.store"
 import { chainName } from "../../services/chains"
-import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
+import { NetworkIcon, TokenIcon } from "../Shared/Icons"
 import { RouteMeta } from "../../helpers/borrowService"
 import { toNotSoFixed, camelize } from "../../helpers/values"
 
@@ -27,7 +27,7 @@ export default function RouteCard(props: RouteCardProps) {
 
   const bridgeStep = props.route.steps.filter((step) =>
     step.step.toLowerCase().includes("bridge")
-  )
+  )[0]
 
   const steps = props.route.steps.filter(
     (s) => s.step !== "start" && s.step !== "end"
@@ -70,6 +70,19 @@ export default function RouteCard(props: RouteCardProps) {
     return camelize(step.step)
   }
 
+  function slippageText() {
+    const actionStep = props.route.steps.filter(
+      (step) => step.step.toLowerCase().includes("borrow") // We should add the rest once we manage positions
+    )[0]
+
+    if (!bridgeStep || !actionStep) {
+      return ""
+    }
+    const bridgeIndex = props.route.steps.indexOf(actionStep)
+    const actionIndex = 1
+    return ` On ${bridgeIndex < actionIndex ? "Collateral" : "Borrow"}`
+  }
+
   return (
     <Paper
       sx={{
@@ -97,7 +110,7 @@ export default function RouteCard(props: RouteCardProps) {
             variant="routing"
             label={`Est Processing Time ~${props.route.estimateTime / 60} Mins`}
           />
-          {props.route.estimateSlippage !== undefined && (
+          {bridgeStep && props.route.estimateSlippage !== undefined && (
             <>
               <Tooltip
                 arrow
@@ -113,11 +126,11 @@ export default function RouteCard(props: RouteCardProps) {
                   variant="routing"
                   label={
                     <>
-                      Price Impact:{" "}
+                      Price Impact{slippageText()}:{" "}
                       <span
                         style={{
                           color:
-                            props.route.estimateSlippage > 0
+                            props.route.estimateSlippage >= 0
                               ? palette.success.main
                               : palette.error.main,
                         }}
@@ -215,17 +228,17 @@ export default function RouteCard(props: RouteCardProps) {
                 bottom: ".3rem",
               }}
             >
-              {bridgeStep.length > 0 ? (
+              {bridgeStep ? (
                 <Stack direction="column" alignItems="center">
                   <>
-                    {iconForStep(bridgeStep[0])}
+                    {iconForStep(bridgeStep)}
                     <Typography
                       m="0.375rem"
                       variant="xsmall"
                       align="center"
                       sx={{ maxWidth: "9rem" }}
                     >
-                      {textForStep(bridgeStep[0])}
+                      {textForStep(bridgeStep)}
                     </Typography>
                   </>
                 </Stack>
