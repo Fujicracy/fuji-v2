@@ -345,7 +345,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Ensure calldata is fixed
     // In this case the badCalldata previously had sender as address(0).
     // The ConnextHhander replaces `sender` with its address when recording the failed transfer.
-    ConnextHandler.FailedTransfer memory transfer = connextHandler.getFailedTransfer(transferId);
+    ConnextHandler.FailedTxn memory transfer = connextHandler.getFailedTransaction(transferId);
     bytes memory newArg0 = transfer.args[0];
     (,,, address sender) = abi.decode(newArg0, (IVault, uint256, address, address));
     assert(sender == address(connextHandler));
