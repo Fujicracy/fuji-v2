@@ -176,7 +176,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         vault.payback(amount, receiver);
       } else if (actions[i] == Action.PermitWithdraw) {
-        // PERMIT ASSETS
+        // PERMIT WITHDRAW
         (
           IVaultPermissions vault,
           address owner,
@@ -217,6 +217,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       } else if (actions[i] == Action.Swap) {
         // SWAP
 
+        if (i == 0) {
+          /// @dev swap cannot be actions[0].
+          revert BaseRouter__bundleInternal_swapNotFirstAction();
+        }
+
         (
           ISwapper swapper,
           address assetIn,
@@ -225,16 +230,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           uint256 amountOut,
           address receiver,
           address sweeper,
-          uint256 minSweepOut,
-          address sender
+          uint256 minSweepOut
         ) = abi.decode(
-          args[i],
-          (ISwapper, address, address, uint256, uint256, address, address, uint256, address)
+          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
         );
 
         _addTokenToList(assetIn);
         _addTokenToList(assetOut);
-        _safePullTokenFrom(assetIn, sender, receiver, amountIn);
         _safeApprove(assetIn, address(swapper), amountIn);
 
         swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
