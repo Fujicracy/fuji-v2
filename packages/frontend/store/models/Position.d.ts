@@ -8,12 +8,14 @@ export class Position {
     amount: number
     token: Token
     usdValue: number
+    baseAPR?: number
   }
 
   debt: {
     amount: number
     token: Token
     usdValue: number
+    baseAPR?: number
   }
 
   ltv: number
