@@ -48,8 +48,10 @@ type AccountDetailsPerVault = {
   borrowBalance: BigNumber;
   collateralPriceUSD: BigNumber;
   debtPriceUSD: BigNumber;
-  depositApyBase: number;
-  borrowApyBase: number;
+  // If read from smart contract interest rate is APR.
+  depositAprBase: number;
+  // If read from smart contract interest rate is APR.
+  borrowAprBase: number;
 };
 
 export class Sdk {
@@ -273,8 +275,8 @@ export class Sdk {
           borrowBalance: firstBatchResults[5 * i + 1] as BigNumber,
           collateralPriceUSD: firstBatchResults[5 * i + 3] as BigNumber,
           debtPriceUSD: firstBatchResults[5 * i + 4] as BigNumber,
-          depositApyBase: parseFloat(formatUnits(depositRate, 27)) * 100,
-          borrowApyBase: parseFloat(formatUnits(borrowRate, 27)) * 100,
+          depositAprBase: parseFloat(formatUnits(depositRate, 27)) * 100,
+          borrowAprBase: parseFloat(formatUnits(borrowRate, 27)) * 100,
         });
       });
     }
