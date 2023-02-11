@@ -315,6 +315,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
+    address beneficiary = _getBeneficiaryFromCalldata(callData);
+    _checkBeneficiary(beneficiary);
+
     _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
     _safeApprove(asset, address(connext), amount);
 
@@ -339,6 +342,31 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
       );
+  }
+
+  /**
+   * @dev Returns who is the first receiver of value in `callData`
+   * Requirements:
+   * - Must revert if "swap" is fist action
+   *
+   * @param callData encoded to execute in {BaseRouter-xBundle}
+   */
+  function _getBeneficiaryFromCalldata(bytes memory callData)
+    internal
+    pure
+    returns (address receiver)
+  {
+    (Action[] memory actions, bytes[] memory args,) =
+      abi.decode(callData, (Action[], bytes[], uint256));
+    if (actions[0] == Action.Deposit || actions[0] == Action.Payback) {
+      // For Deposit or Payback.
+      (,, address receiver_,) = abi.decode(args[0], (IVault, uint256, address, address));
+
+      receiver = receiver_;
+    } else if (actions[0] == Action.Swap) {
+      /// @dev swap cannot be actions[0].
+      revert BaseRouter__bundleInternal_swapNotFirstAction();
+    }
   }
 
   /**
