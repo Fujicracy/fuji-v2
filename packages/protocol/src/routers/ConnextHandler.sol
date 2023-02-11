@@ -49,7 +49,7 @@ contract ConnextHandler {
   ConnextRouter public immutable connextRouter;
 
   /// @dev Maps a failed transferId -> calldata
-  mapping(bytes32 => FailedTxn) private _failedTransfers;
+  mapping(bytes32 => FailedTxn) private _failedTxns;
 
   modifier onlyConnextRouter() {
     if (msg.sender != address(connextRouter)) {
@@ -79,7 +79,7 @@ contract ConnextHandler {
    * @param transferId the unique identifier of the cross-chain txn
    */
   function getFailedTransaction(bytes32 transferId) public view returns (FailedTxn memory) {
-    return _failedTransfers[transferId];
+    return _failedTxns[transferId];
   }
 
   /**
@@ -121,7 +121,7 @@ contract ConnextHandler {
     address beneficiary;
     (args[0], beneficiary) = _replaceSenderAndGetBeneficiary(actions[0], args[0]);
 
-    _failedTransfers[transferId] =
+    _failedTxns[transferId] =
       FailedTxn(transferId, beneficiary, amount, asset, originSender, originDomain, actions, args);
   }
 
@@ -134,7 +134,7 @@ contract ConnextHandler {
    * the original intended `actions`.
    * Requirements:
    * - Must only be called by an allowed caller in {ConnextRouter}.
-   * - Must clear the txn from `_failedTransfers` mapping if execution succeeds.
+   * - Must clear the txn from `_failedTxns` mapping if execution succeeds.
    */
   function executeFailedWithUpdatedArgs(
     bytes32 transferId,
@@ -143,10 +143,10 @@ contract ConnextHandler {
     external
     onlyAllowedCaller
   {
-    FailedTxn memory txn = _failedTransfers[transferId];
+    FailedTxn memory txn = _failedTxns[transferId];
     IERC20(txn.asset).approve(address(connextRouter), txn.amount);
     try connextRouter.xBundle(txn.actions, args) {
-      delete _failedTransfers[transferId];
+      delete _failedTxns[transferId];
       emit FailedTxnExecuted(transferId, true, txn.args, args);
     } catch {
       emit FailedTxnExecuted(transferId, false, txn.args, args);
