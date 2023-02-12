@@ -18,6 +18,7 @@ import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
+import {IFlasher} from "../interfaces/IFlasher.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
@@ -354,15 +355,26 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function _getBeneficiaryFromCalldata(bytes memory callData)
     internal
     pure
-    returns (address receiver)
+    returns (address beneficiary)
   {
     (Action[] memory actions, bytes[] memory args,) =
       abi.decode(callData, (Action[], bytes[], uint256));
     if (actions[0] == Action.Deposit || actions[0] == Action.Payback) {
       // For Deposit or Payback.
-      (,, address receiver_,) = abi.decode(args[0], (IVault, uint256, address, address));
-
-      receiver = receiver_;
+      (,, address receiver,) = abi.decode(args[0], (IVault, uint256, address, address));
+      beneficiary = receiver;
+    } else if (actions[0] == Action.Withdraw || actions[0] == Action.Borrow) {
+      // For Withdraw or Borrow
+      (,,, address owner) = abi.decode(args[0], (IVault, uint256, address, address));
+      beneficiary = owner;
+    } else if (actions[0] == Action.WithdrawETH) {
+      // For WithdrawEth
+      (, address receiver) = abi.decode(args[0], (uint256, address));
+      beneficiary = receiver;
+    } else if (actions[0] == Action.Flashloan) {
+      (,,,, bytes memory requestorCalldata) =
+        abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
+      _getBeneficiaryFromCalldata(requestorCalldata);
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
       revert BaseRouter__bundleInternal_swapNotFirstAction();

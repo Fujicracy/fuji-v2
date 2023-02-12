@@ -114,12 +114,10 @@ contract ConnextHandler {
     onlyConnextRouter
   {
     /**
-     * @dev Since re-execution of the failed txn will happen from this
-     * contract, if the first action is of value transfer type, sender
-     * argument must be replaced.
+     * @dev Get address who claims ownership of the "value" in
+     * the actions of this failed txn.
      */
-    address beneficiary;
-    (args[0], beneficiary) = _replaceSenderAndGetBeneficiary(actions[0], args[0]);
+    address beneficiary = _getBeneficiary(actions[0], args[0]);
 
     _failedTxns[transferId] =
       FailedTxn(transferId, beneficiary, amount, asset, originSender, originDomain, actions, args);
@@ -135,6 +133,7 @@ contract ConnextHandler {
    * Requirements:
    * - Must only be called by an allowed caller in {ConnextRouter}.
    * - Must clear the txn from `_failedTxns` mapping if execution succeeds.
+   * - Must replace `sender` in `args` for value tranfer type actions (Deposit-Payback-Swap}.
    */
   function executeFailedWithUpdatedArgs(
     bytes32 transferId,
@@ -154,29 +153,25 @@ contract ConnextHandler {
   }
 
   /**
-   * @dev Decodes and replaces "sender" argument in args with address(this)
-   * in Deposit, Payback or Swap action.
+   * @dev Returns address who claims ownership of the "value" in
+   * the `action` of failed txn.
    */
-  function _replaceSenderAndGetBeneficiary(
+  function _getBeneficiary(
     IRouter.Action action,
     bytes memory args
   )
     internal
     view
-    returns (bytes memory newArgs, address beneficiary)
+    returns (address beneficiary)
   {
-    newArgs = args;
-
     if (action == IRouter.Action.Deposit || action == IRouter.Action.Payback) {
       // For Deposit or Payback
-      (IVault vault, uint256 amount, address receiver, address sender) =
-        abi.decode(args, (IVault, uint256, address, address));
+      (,, address receiver,) = abi.decode(args, (IVault, uint256, address, address));
 
-      sender = address(this);
       beneficiary = receiver;
-      newArgs = abi.encode(vault, amount, receiver, sender);
-    } else if (action == IRouter.Action.Swap) {
-      // For Swap
+    } else if (action == IRouter.Action.PermitWithdraw || action == IRouter.Action.PermitBorrow) {}
+    else if (action == IRouter.Action.Swap) {
+      // For Swap we record who was the intended receiver
       (
         ISwapper swapper,
         address assetIn,
@@ -185,17 +180,10 @@ contract ConnextHandler {
         uint256 amountOut,
         address receiver,
         address sweeper,
-        uint256 minSweepOut,
-        address sender
-      ) = abi.decode(
-        args, (ISwapper, address, address, uint256, uint256, address, address, uint256, address)
-      );
+      ) =
+        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
 
-      sender = address(this);
       beneficiary = receiver;
-      newArgs = abi.encode(
-        swapper, assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut, sender
-      );
     }
   }
 }
