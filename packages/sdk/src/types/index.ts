@@ -4,7 +4,7 @@ export * from './ChainConfig';
 export * from './ChainConnectionDetails';
 export * from './ChainTokenList';
 export * from './ChainVaultList';
-export * from './LendingProviderDetails';
+export * from './LendingProvider';
 export * from './NativeMap';
 export * from './RouterActionParams';
 export * from './RoutingStepDetails';
