@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { Token } from '../entities/Token';
 import { ChainId, RoutingStep } from '../enums';
-import { LendingProviderDetails } from './LendingProviderDetails';
+import { LendingProviderDetails } from './LendingProvider';
 
 /**
  * @remarks
