@@ -16,6 +16,7 @@ import {ConnextHandler} from "./ConnextHandler.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {IVault} from "../interfaces/IVault.sol";
+import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
@@ -371,10 +372,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // For WithdrawEth
       (, address receiver) = abi.decode(args[0], (uint256, address));
       beneficiary = receiver;
+    } else if (actions[0] == Action.PermitBorrow || actions[0] == Action.PermitWithdraw) {
+      (, address owner,,,,,,) = abi.decode(
+        args[0], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+      );
+      beneficiary = owner;
     } else if (actions[0] == Action.Flashloan) {
       (,,,, bytes memory requestorCalldata) =
         abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-      _getBeneficiaryFromCalldata(requestorCalldata);
+      beneficiary = _getBeneficiaryFromCalldata(requestorCalldata);
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
       revert BaseRouter__bundleInternal_swapNotFirstAction();

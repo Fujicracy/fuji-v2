@@ -22,7 +22,6 @@ contract ConnextHandler {
    */
   struct FailedTxn {
     bytes32 transferId;
-    address beneficiary;
     uint256 amount;
     address asset;
     address originSender;
@@ -40,7 +39,12 @@ contract ConnextHandler {
    * @param newArgs attemped in execution
    */
   event FailedTxnExecuted(
-    bytes32 indexed transferId, bool indexed success, bytes[] oldArgs, bytes[] newArgs
+    bytes32 indexed transferId,
+    bool indexed success,
+    IRouter.Action[] oldActions,
+    IRouter.Action[] newActions,
+    bytes[] oldArgs,
+    bytes[] newArgs
   );
 
   /// @dev Custom errors
@@ -97,9 +101,6 @@ contract ConnextHandler {
    * It has already been verified that `amount` of `asset` is >= to balance sent.
    * This function does not need to emit an event since {ConnextRouter} already emit
    * a failed `XReceived` event.
-   *
-   * Requirements:
-   * - Must replace `sender` in args for value tranfer type (Deposit-Payback-Swap) `actions`.
    */
   function recordFailed(
     bytes32 transferId,
@@ -113,30 +114,25 @@ contract ConnextHandler {
     external
     onlyConnextRouter
   {
-    /**
-     * @dev Get address who claims ownership of the "value" in
-     * the actions of this failed txn.
-     */
-    address beneficiary = _getBeneficiary(actions[0], args[0]);
-
     _failedTxns[transferId] =
-      FailedTxn(transferId, beneficiary, amount, asset, originSender, originDomain, actions, args);
+      FailedTxn(transferId, amount, asset, originSender, originDomain, actions, args);
   }
 
   /**
    * @notice Executes a failed transaction with update `args`
    *
    * @param transferId the unique identifier of the cross-chain txn
+   * @param actions  that will replace actions of failed txn
+   * @param args taht will replace args of failed txn
    *
-   * @dev For security reasons only `args` in FailedTxn can be updated with
-   * the original intended `actions`.
-   * Requirements:
+   * @dev Requirements:
    * - Must only be called by an allowed caller in {ConnextRouter}.
    * - Must clear the txn from `_failedTxns` mapping if execution succeeds.
    * - Must replace `sender` in `args` for value tranfer type actions (Deposit-Payback-Swap}.
    */
   function executeFailedWithUpdatedArgs(
     bytes32 transferId,
+    IRouter.Action[] memory actions,
     bytes[] memory args
   )
     external
@@ -146,44 +142,9 @@ contract ConnextHandler {
     IERC20(txn.asset).approve(address(connextRouter), txn.amount);
     try connextRouter.xBundle(txn.actions, args) {
       delete _failedTxns[transferId];
-      emit FailedTxnExecuted(transferId, true, txn.args, args);
+      emit FailedTxnExecuted(transferId, true, txn.actions, actions, txn.args, args);
     } catch {
-      emit FailedTxnExecuted(transferId, false, txn.args, args);
-    }
-  }
-
-  /**
-   * @dev Returns address who claims ownership of the "value" in
-   * the `action` of failed txn.
-   */
-  function _getBeneficiary(
-    IRouter.Action action,
-    bytes memory args
-  )
-    internal
-    view
-    returns (address beneficiary)
-  {
-    if (action == IRouter.Action.Deposit || action == IRouter.Action.Payback) {
-      // For Deposit or Payback
-      (,, address receiver,) = abi.decode(args, (IVault, uint256, address, address));
-
-      beneficiary = receiver;
-    } else if (action == IRouter.Action.PermitWithdraw || action == IRouter.Action.PermitBorrow) {}
-    else if (action == IRouter.Action.Swap) {
-      // For Swap we record who was the intended receiver
-      (
-        ISwapper swapper,
-        address assetIn,
-        address assetOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        address receiver,
-        address sweeper,
-      ) =
-        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
-
-      beneficiary = receiver;
+      emit FailedTxnExecuted(transferId, false, txn.actions, actions, txn.args, args);
     }
   }
 }

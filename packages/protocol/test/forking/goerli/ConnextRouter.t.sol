@@ -353,7 +353,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       ALICE, ALICE_PK, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
     );
 
-    connextHandler.executeFailedWithUpdatedArgs(transferId, transfer.args);
+    connextHandler.executeFailedWithUpdatedArgs(transferId, transfer.actions, transfer.args);
     // Assert Alice has funds deposited in the vault
     assertGt(vault.balanceOf(ALICE), 0);
     // Assert Alice was able to borrow from the vault
