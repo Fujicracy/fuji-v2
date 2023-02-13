@@ -69,10 +69,10 @@ type BorrowState = {
 type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type BorrowActions = {
-  changeBorrowChain: (chainId: ChainId) => void
+  changeBorrowChain: (chainId: ChainId, token?: Token) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
-  changeCollateralChain: (chainId: ChainId) => void
+  changeCollateralChain: (chainId: ChainId, token?: Token) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   changeActiveVault: (v: BorrowingVault) => void
@@ -158,14 +158,17 @@ export const useBorrow = create<BorrowStore>()(
     (set, get) => ({
       ...initialState,
 
-      async changeCollateralChain(chainId) {
+      async changeCollateralChain(chainId, token) {
+        if (token && Number(chainId) !== token.chainId)
+          throw "changeCollateralChain: mismatch of chain ids"
+
         const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
         set(
           produce((state: BorrowState) => {
             state.collateralChainId = chainId
             state.collateralTokens = tokens
-            state.position.collateral.token = tokens[0]
+            state.position.collateral.token = token ?? tokens[0]
           })
         )
         get().updateTokenPrice("collateral")
@@ -192,14 +195,17 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      async changeBorrowChain(chainId) {
+      async changeBorrowChain(chainId, token) {
+        if (token && Number(chainId) !== token.chainId)
+          throw "changeBorrowChain: mismatch of chain ids"
+
         const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
 
         set(
           produce((state: BorrowState) => {
             state.debtChainId = chainId
             state.debtTokens = tokens
-            state.position.debt.token = tokens[0]
+            state.position.debt.token = token ?? tokens[0]
           })
         )
 
@@ -260,8 +266,7 @@ export const useBorrow = create<BorrowStore>()(
 
         const tokens =
           type === "debt" ? get().debtTokens : get().collateralTokens
-        const token = get().position[type].token
-        const chainId = token.chainId
+        const chainId = get().position[type].token.chainId
 
         const rawBalances = await sdk.getTokenBalancesFor(
           tokens,

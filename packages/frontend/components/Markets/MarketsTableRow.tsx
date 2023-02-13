@@ -15,13 +15,15 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
 import { useRouter } from "next/router"
 
-//import { useBorrow } from "../../store/borrow.store"
-//import { useAuth } from "../../store/auth.store"
+import { sdk } from "../../services/sdk"
+import { useBorrow } from "../../store/borrow.store"
+import { useAuth } from "../../store/auth.store"
 
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
 import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
 import { SizableTableCell } from "../Shared/SizableTableCell"
+import { BorrowingVault, Token } from "@x-fuji/sdk"
 
 type MarketsTableRowProps = {
   row: Row
@@ -33,18 +35,32 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
 
   const router = useRouter()
 
-  //const walletChain = useAuth((state) => state.chain)
-  //const changeCollateralChain = useBorrow((state) => state.changeCollateralChain)
-  //const changeVault = useBorrow((state) => state.changeActiveVault)
+  const walletChain = useAuth((state) => state.chain)
+  const changeCollateralChain = useBorrow(
+    (state) => state.changeCollateralChain
+  )
+
+  const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
+  const changeVault = useBorrow((state) => state.changeActiveVault)
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation()
     setExpandRow(!expandRow)
   }
 
-  const handleClick = async () => {
-    //changeVault(row.vault)
-    //changeCollateralChain(walletChain?.id ?? "0x" + row.vault.chainId.toString(16))
+  const handleClick = async (vault: BorrowingVault) => {
+    const vaultChainId = `0x${vault.chainId.toString(16)}`
+    const walletChainId = walletChain?.id as string
+
+    const collaterals = sdk.getCollateralForChain(Number(walletChainId))
+    const collateralToken = collaterals.find(
+      (t: Token) => t.symbol === vault.collateral.symbol
+    )
+
+    changeCollateralChain(walletChainId, collateralToken)
+    changeBorrowChain(vaultChainId, vault.debt)
+    changeVault(vault)
+
     router.push("/borrow")
   }
 
@@ -66,7 +82,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   return (
     <>
       <TableRow
-        onClick={handleClick}
+        onClick={() => handleClick(row.vault)}
         sx={{ height: "3.438rem", cursor: "pointer" }}
       >
         <SizableTableCell
