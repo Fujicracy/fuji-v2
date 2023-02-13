@@ -111,9 +111,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param originDomain the origin domain identifier according Connext nomenclature
    * @param callData the calldata that will get decoded and executed, see "Requirements"
    *
-   * @dev It performs authentification of the calling address. As a result of that,
-   * all txns go through Connext's slow path.
-   * If `xBundle` fails internally, this contract will keep custody of the sent funds.
+   * @dev It does not perform authentification of the calling address. As a result of that,
+   * all txns go through Connext's fast path.
+   * If `xBundle` fails internally, this contract will send the received funds to {ConnextHandler}.
    *
    * Requirements:
    * - `calldata` parameter must be encoded with the following structure:
@@ -152,6 +152,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       /**
        * @dev Due to the AMM nature of Connext, there could be some slippage
        * incurred on the amount that this contract receives after bridging.
+       * There is also a routing fee of 0.05% of the bridged amount.
        * The slippage can't be calculated upfront so that's why we need to
        * replace `amount` in the encoded args for the first action if
        * the action is Deposit, Payback or Swap.
@@ -174,7 +175,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
       // Ensure clear storage for token balance checks.
       delete _tokensToCheck;
-      // Keep funds in router and let them be handled by admin.
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
