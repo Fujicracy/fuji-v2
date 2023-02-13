@@ -15,12 +15,12 @@ import Overview from "../../components/Borrow/Overview"
 import TransactionSummary from "../../components/Borrow/TransactionSummary"
 
 type BorrowWrapperProps = {
-  position: boolean
+  managePosition: boolean
   pid?: string | undefined
 }
 
 export default function BorrowWrapper(
-  props: BorrowWrapperProps = { position: false }
+  props: BorrowWrapperProps = { managePosition: false }
 ) {
   const { breakpoints } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
@@ -28,11 +28,13 @@ export default function BorrowWrapper(
   return (
     <>
       <Head>
-        <title>{`${props.position ? "Position" : "Borrow"} - xFuji`}</title>
+        <title>{`${
+          props.managePosition ? "Position" : "Borrow"
+        } - xFuji`}</title>
         <meta
           name="description"
           content={`${
-            props.position
+            props.managePosition
               ? "position detail"
               : "borrow at the best rate on any chain"
           }`}
@@ -60,7 +62,7 @@ export default function BorrowWrapper(
       >
         <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
           <Grid item xs={12} md={5}>
-            <Borrow />
+            <Borrow managePosition={props.managePosition} />
           </Grid>
           <Grid item sm={12} md={7}>
             {isMobile ? <TransactionSummary /> : <Overview />}
@@ -74,5 +76,5 @@ export default function BorrowWrapper(
 }
 
 BorrowWrapper.defaultProps = {
-  position: false,
+  managePosition: false,
 }

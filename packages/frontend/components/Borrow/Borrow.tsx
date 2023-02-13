@@ -25,8 +25,13 @@ import { useHistory } from "../../store/history.store"
 import { chainName } from "../../services/chains"
 import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
+import { NetworkIcon } from "../Shared/Icons"
+import TabChip from "../Shared/TabChip"
 
-export default function Borrow() {
+type BorrowProps = {
+  managePosition: boolean
+}
+export default function Borrow(props: BorrowProps) {
   const address = useAuth((state) => state.address)
   const walletChain = useAuth((state) => state.chain)
   const changeChain = useAuth((state) => state.changeChain)
@@ -89,6 +94,7 @@ export default function Borrow() {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const [managingAction, setManagingAction] = useState(0)
 
   let button: ReactNode
   if (!address) {
@@ -167,12 +173,53 @@ export default function Borrow() {
     <>
       <Card sx={{ maxWidth: "500px", margin: "auto" }}>
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
-          <Typography variant="body2" height="40px" lineHeight="40px">
-            Borrow
-          </Typography>
-
+          {props.managePosition ? (
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              height="40px"
+            >
+              <Typography variant="body2" height="40px" lineHeight="40px">
+                Manage your position
+              </Typography>
+              <NetworkIcon
+                network={chainName(debtChainId)}
+                height={18}
+                width={18}
+              />
+            </Stack>
+          ) : (
+            <Typography variant="body2" height="40px" lineHeight="40px">
+              Borrow
+            </Typography>
+          )}
           <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
-
+          {props.managePosition && (
+            <Stack
+              direction="row"
+              sx={{
+                marginTop: 3,
+                marginBottom: 3,
+              }}
+            >
+              <TabChip
+                selected={managingAction === 0}
+                label={"Add Position"}
+                onClick={() => {
+                  setManagingAction(0)
+                }}
+              />
+              <TabChip
+                selected={managingAction === 1}
+                label={"Remove Position"}
+                sx={{ marginLeft: 1 }}
+                onClick={() => {
+                  setManagingAction(1)
+                }}
+              />
+            </Stack>
+          )}
           <Box mb="1rem">
             <ChainSelect
               label="Collateral from"
@@ -181,7 +228,7 @@ export default function Borrow() {
               disabled={isBorrowing}
               onChange={(chainId) => changeCollateralChain(chainId)}
             />
-            <TokenCard type="collateral" />
+            <TokenCard type="collateral" disabled={props.managePosition} />
           </Box>
 
           <Box>
@@ -192,7 +239,7 @@ export default function Borrow() {
               disabled={isBorrowing}
               onChange={(chainId) => changeBorrowChain(chainId)}
             />
-            <TokenCard type="debt" />
+            <TokenCard type="debt" disabled={props.managePosition} />
           </Box>
 
           <Stack
@@ -254,4 +301,8 @@ export default function Borrow() {
       />
     </>
   )
+}
+
+Borrow.defaultProps = {
+  position: false,
 }

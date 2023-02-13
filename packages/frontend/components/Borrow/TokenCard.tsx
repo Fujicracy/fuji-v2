@@ -26,9 +26,10 @@ import { TokenIcon } from "../Shared/Icons"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
+  disabled: boolean
 }
 
-export default function TokenCard({ type }: SelectTokenCardProps) {
+export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   const { palette } = useTheme()
 
   const changeCollateralToken = useBorrow(
@@ -115,10 +116,17 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
         />
         <ButtonBase
           id={`select-${type}-button`}
-          disabled={isBorrowing}
+          disabled={isBorrowing || disabled}
           onClick={open}
         >
-          {token && (
+          {token && disabled ? (
+            <>
+              <TokenIcon token={token} height={24} width={24} />
+              <Typography ml={1} variant="h6">
+                {token.symbol}
+              </Typography>
+            </>
+          ) : (
             <TokenItem
               token={token}
               prepend={<KeyboardArrowDownIcon />}
@@ -248,4 +256,8 @@ const TokenItem = (props: TokenItem) => {
       {prepend}
     </MenuItem>
   )
+}
+
+TokenCard.defaultProps = {
+  disabled: false,
 }
