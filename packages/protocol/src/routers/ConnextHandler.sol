@@ -6,7 +6,7 @@ pragma solidity 0.8.15;
  *
  * @author Fujidao Labs
  *
- * @notice Handles failed transfers from Connext and keeps custody of
+ * @notice Handles failed transactions from Connext and keeps custody of
  * the transferred funds.
  */
 
@@ -18,12 +18,10 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract ConnextHandler {
   /**
-   * @dev Contains the information of a failed Connext
-   * failed transferId.
+   * @dev Contains the information of a failed transaction.
    */
-  struct FailedTransfer {
+  struct FailedTxn {
     bytes32 transferId;
-    address beneficiary;
     uint256 amount;
     address asset;
     address originSender;
@@ -33,25 +31,29 @@ contract ConnextHandler {
   }
 
   /**
-   * @dev Emit when calling `ExecutionFailed()` fails again.
+   * @dev Emitted when a failed transaction gets retried.
    *
-   * @param transferId the unique identifier of the crosschain transfer
+   * @param transferId the unique identifier of the cross-chain txn
    * @param success boolean
-   * @param oldArgs of the failed transferId
+   * @param oldArgs of the failed transaction
    * @param newArgs attemped in execution
    */
-  event RetryTransferId(
-    bytes32 indexed transferId, bool indexed success, bytes[] oldArgs, bytes[] newArgs
+  event FailedTxnExecuted(
+    bytes32 indexed transferId,
+    bool indexed success,
+    IRouter.Action[] oldActions,
+    IRouter.Action[] newActions,
+    bytes[] oldArgs,
+    bytes[] newArgs
   );
 
   /// @dev Custom errors
-  error ConnextHandler__constructor_zeroAddress();
   error ConnextHandler__callerNotConnextRouter();
 
   ConnextRouter public immutable connextRouter;
 
   /// @dev Maps a failed transferId -> calldata
-  mapping(bytes32 => FailedTransfer) private _failedTransfers;
+  mapping(bytes32 => FailedTxn) private _failedTxns;
 
   modifier onlyConnextRouter() {
     if (msg.sender != address(connextRouter)) {
@@ -72,25 +74,22 @@ contract ConnextHandler {
    * @notice Constructor that initialized
    */
   constructor(address connextRouter_) {
-    if (address(connextRouter_) == address(0)) {
-      revert ConnextHandler__constructor_zeroAddress();
-    }
     connextRouter = ConnextRouter(payable(connextRouter_));
   }
 
   /**
-   * @notice Returns the struct of failed `transferId`.
+   * @notice Returns the struct of failed transaction by `transferId`.
    *
-   * @param transferId the unique identifier of the crosschain transfer
+   * @param transferId the unique identifier of the cross-chain txn
    */
-  function getFailedTransfer(bytes32 transferId) public view returns (FailedTransfer memory) {
-    return _failedTransfers[transferId];
+  function getFailedTransaction(bytes32 transferId) public view returns (FailedTxn memory) {
+    return _failedTxns[transferId];
   }
 
   /**
    * @notice Records a failed {ConnextRouter-xReceive} call.
    *
-   * @param transferId the unique identifier of the crosschain transfer
+   * @param transferId the unique identifier of the cross-chain txn
    * @param amount the amount of transferring asset, after slippage, the recipient address receives
    * @param asset the asset being transferred
    * @param originSender the address of the contract or EOA that called xcall on the origin chain
@@ -102,9 +101,6 @@ contract ConnextHandler {
    * It has already been verified that `amount` of `asset` is >= to balance sent.
    * This function does not need to emit an event since {ConnextRouter} already emit
    * a failed `XReceived` event.
-   *
-   * Requirements:
-   * - Must replace `sender` in args for value tranfer type (Deposit-Payback-Swap) `actions`.
    */
   function recordFailed(
     bytes32 transferId,
@@ -118,91 +114,37 @@ contract ConnextHandler {
     external
     onlyConnextRouter
   {
-    /**
-     * @dev Since execution of this failed transfer will happen from this
-     * address, if the first action is of value transfer type, sender
-     * argument must be replaced.
-     */
-    address beneficiary;
-    (args[0], beneficiary) = _replaceSenderAndGetBeneficiary(actions[0], args[0]);
-
-    _failedTransfers[transferId] = FailedTransfer(
-      transferId, beneficiary, amount, asset, originSender, originDomain, actions, args
-    );
+    _failedTxns[transferId] =
+      FailedTxn(transferId, amount, asset, originSender, originDomain, actions, args);
   }
 
   /**
-   * @notice Executes a failed transfer with update `args`
+   * @notice Executes a failed transaction with update `args`
    *
-   * @param transferId the unique identifier of the crosschain transfer
+   * @param transferId the unique identifier of the cross-chain txn
+   * @param actions  that will replace actions of failed txn
+   * @param args taht will replace args of failed txn
    *
-   * @dev For security reasons only `args` in FailedTransfer can be updated with
-   * the original intended `actions`.
-   * Requirements:
+   * @dev Requirements:
    * - Must only be called by an allowed caller in {ConnextRouter}.
-   * - Must clear the transfer from `_failedTransfers` mapping if execution succeeds.
+   * - Must clear the txn from `_failedTxns` mapping if execution succeeds.
+   * - Must replace `sender` in `args` for value tranfer type actions (Deposit-Payback-Swap}.
    */
   function executeFailedWithUpdatedArgs(
     bytes32 transferId,
-    bytes[] memory args_
+    IRouter.Action[] memory actions,
+    bytes[] memory args
   )
     external
     onlyAllowedCaller
   {
-    FailedTransfer memory transfer = _failedTransfers[transferId];
-    IERC20(transfer.asset).approve(address(connextRouter), transfer.amount);
-    try connextRouter.xBundle(transfer.actions, args_) {
-      delete _failedTransfers[transferId];
-      emit RetryTransferId(transferId, true, transfer.args, args_);
+    FailedTxn memory txn = _failedTxns[transferId];
+    IERC20(txn.asset).approve(address(connextRouter), txn.amount);
+    try connextRouter.xBundle(txn.actions, args) {
+      delete _failedTxns[transferId];
+      emit FailedTxnExecuted(transferId, true, txn.actions, actions, txn.args, args);
     } catch {
-      emit RetryTransferId(transferId, false, transfer.args, args_);
-    }
-  }
-
-  /**
-   * @dev Decodes and replaces "sender" argument in args with address(this)
-   * in Deposit, Payback or Swap action.
-   */
-  function _replaceSenderAndGetBeneficiary(
-    IRouter.Action action,
-    bytes memory args
-  )
-    internal
-    view
-    returns (bytes memory newArgs, address beneficiary)
-  {
-    newArgs = args;
-
-    // Check first action type and replace with slippage-amount.
-    if (action == IRouter.Action.Deposit || action == IRouter.Action.Payback) {
-      // For Deposit or Payback.
-      (IVault vault, uint256 amount, address receiver, address sender) =
-        abi.decode(args, (IVault, uint256, address, address));
-
-      sender = address(this);
-      beneficiary = receiver;
-      newArgs = abi.encode(vault, amount, receiver, sender);
-    } else if (action == IRouter.Action.Swap) {
-      // For Swap.
-      (
-        ISwapper swapper,
-        address assetIn,
-        address assetOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        address receiver,
-        address sweeper,
-        uint256 minSweepOut,
-        address sender
-      ) = abi.decode(
-        args, (ISwapper, address, address, uint256, uint256, address, address, uint256, address)
-      );
-
-      sender = address(this);
-      beneficiary = receiver;
-      newArgs = abi.encode(
-        swapper, assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut, sender
-      );
+      emit FailedTxnExecuted(transferId, false, txn.actions, actions, txn.args, args);
     }
   }
 }
