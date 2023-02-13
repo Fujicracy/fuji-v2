@@ -1,7 +1,7 @@
 import { sdk } from "../services/sdk"
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import { Position } from "./models/Position"
+import { Position } from "./models/Position.d.ts"
 import { useAuth } from "./auth.store"
 import { Address } from "@x-fuji/sdk"
 import { BigNumberish, ethers } from "ethers"
@@ -42,6 +42,7 @@ export const usePositions = create<PositionsStore>()(
 
       fetchUserPositions: async () => {
         const account = useAuth.getState().address
+        console.log(`position store- account ${account || "-"}`)
         const fetched = await getPositionsWithBalance(account)
         set({ positions: fetched })
       },

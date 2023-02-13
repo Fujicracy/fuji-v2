@@ -25,25 +25,7 @@ import Footer from "../components/Shared/Footer"
 import Header from "../components/Shared/Header"
 import { useState } from "react"
 import { TokenIcon } from "../components/Shared/Icons"
-
-type Metric = {
-  name: string
-  value: number
-  valueSym?: "$" | "%"
-  action?: string
-}
-const keyMetrics: Metric[] = [
-  { name: "Total Deposits", value: 120000, valueSym: "$" },
-  { name: "Total Debt", value: 20000, valueSym: "$" },
-  { name: "Net APY", value: 1.93, valueSym: "%", action: "View" }, // TODO: tooltip & actions
-  {
-    name: "Available to Borrow",
-    value: 60000,
-    valueSym: "$",
-    action: "Borrow",
-  }, // TODO: tooltip & actions
-  // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
-]
+import { PositionSummary } from "../components/Positions/PositionSummary"
 
 type Row = {
   borrow: { sym: string; amount: number; usdValue: number }
@@ -73,11 +55,6 @@ const MyPositionPage: NextPage = () => {
   const { breakpoints, palette } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
-  // We want to display only 4 metrics in mobile, so we leave positions at risk aside.
-  const metrics = keyMetrics.filter((m) =>
-    isMobile ? m.name !== "Positions at Risk" : true
-  )
-
   const [currentTab, setCurrentTab] = useState(0)
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
@@ -85,7 +62,7 @@ const MyPositionPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>My positions - xFuji</title>
+        <title>My positions - Fuji-v2</title>
         <meta name="description" content="See and manage your open positions" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -108,22 +85,7 @@ const MyPositionPage: NextPage = () => {
           The protocol manage your borrowing and lending position for maximum
           capital efficiency
         </Typography>
-
-        <Box mt={4}>
-          <Card
-            variant="outlined"
-            sx={{ background: palette.secondary.contrastText }}
-          >
-            <Grid container>
-              {metrics.map((m, i) => (
-                <Grid item padding={{ xs: 1, md: 0 }} key={m.name} xs={6} md>
-                  <Metric metric={m} borderLeft={!isMobile && i > 0} />
-                </Grid>
-              ))}
-            </Grid>
-          </Card>
-        </Box>
-
+        <PositionSummary />
         <Box mt={2} mb={3}>
           <Tabs
             value={currentTab}
@@ -270,53 +232,3 @@ const MyPositionPage: NextPage = () => {
 }
 
 export default MyPositionPage
-
-type MetricProps = { metric: Metric; borderLeft: boolean }
-const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
-  const { palette, breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
-
-  const borderColor = palette.secondary.light // TODO: should use a palette border color instead
-  const nameColor = palette.info.main
-  const buttonSx = {
-    padding: "6px 16px 5px",
-    lineHeight: "0.875rem",
-    fontSize: "0.875rem",
-    backgroundColor: palette.secondary.main,
-    border: "none",
-    color: palette.text.primary,
-  }
-
-  return (
-    <Box
-      borderLeft={leftBorder ? `1px solid ${borderColor}` : ""}
-      pl={leftBorder ? 4 : ""}
-    >
-      <Typography color={nameColor} fontSize="0.875rem">
-        {metric.name}
-      </Typography>
-      {/* TODO: use helper to format balance */}
-      <Typography
-        fontSize="1.5rem"
-        color={metric.name === "Positions at Risk" ? "error" : "inherit"}
-      >
-        {metric.valueSym === "$"
-          ? `${metric.value.toLocaleString("en-US", {
-              style: "currency",
-              currency: "usd",
-              maximumFractionDigits: 0,
-            })}`
-          : metric.valueSym === "%"
-          ? `${metric.value}%`
-          : metric.value}{" "}
-        {isMobile && <br />}
-        {metric.action && (
-          // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
-          <Button variant="secondary" sx={buttonSx}>
-            {metric.action}
-          </Button>
-        )}
-      </Typography>
-    </Box>
-  )
-}
