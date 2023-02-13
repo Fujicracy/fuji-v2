@@ -198,8 +198,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   function deployVault(
     address collateralAsset_,
     address debtAsset_,
-    uint256 collateralAssetUSDPrice,
-    uint256 debtAssetUSDPrice,
     string memory collateralAssetName,
     string memory debtAssetName,
     ILendingProvider[] memory providers
