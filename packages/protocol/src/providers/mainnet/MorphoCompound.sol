@@ -94,7 +94,7 @@ contract MorphoCompound is ILendingProvider {
     (uint256 ratePerBlock,,) = ILens(LENS).getAverageSupplyRatePerBlock(_getCToken(vault.asset()));
     //no. of blocks per year
     //convert from 1e18 to 1e27
-    rate = ratePerBlock * 2102400 * 10 ** 9;
+    rate = ratePerBlock * 2612670 * 10 ** 9;
   }
 
   /// @inheritdoc ILendingProvider
@@ -103,7 +103,7 @@ contract MorphoCompound is ILendingProvider {
       ILens(LENS).getAverageBorrowRatePerBlock(_getCToken(vault.debtAsset()));
     //no. of blocks per year
     //convert from 1e18 to 1e27
-    rate = ratePerBlock * 2102400 * 10 ** 9;
+    rate = ratePerBlock * 2612670 * 10 ** 9;
   }
 
   /// @inheritdoc ILendingProvider
@@ -116,9 +116,7 @@ contract MorphoCompound is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    (uint256 suppliedOnPool, uint256 suppliedP2P,) =
-      ILens(LENS).getCurrentSupplyBalanceInOf(_getCToken(vault.asset()), user);
-    balance = suppliedOnPool + suppliedP2P;
+    (,, balance) = ILens(LENS).getCurrentSupplyBalanceInOf(_getCToken(vault.asset()), user);
   }
 
   /// @inheritdoc ILendingProvider
@@ -131,8 +129,6 @@ contract MorphoCompound is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    (uint256 borrowedOnPool, uint256 borrowedP2P,) =
-      ILens(LENS).getCurrentBorrowBalanceInOf(_getCToken(vault.debtAsset()), user);
-    balance = borrowedOnPool + borrowedP2P;
+    (,, balance) = ILens(LENS).getCurrentBorrowBalanceInOf(_getCToken(vault.debtAsset()), user);
   }
 }
