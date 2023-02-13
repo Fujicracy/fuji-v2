@@ -104,9 +104,6 @@ export default function MarketsTable() {
               Chain with the best rate
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
-              Supply APY
-            </SizableTableCell>
-            <SizableTableCell width="140px" align="right">
               <Stack
                 direction="row"
                 spacing="0.25rem"
@@ -131,6 +128,9 @@ export default function MarketsTable() {
                   />
                 )} */}
               </Stack>
+            </SizableTableCell>
+            <SizableTableCell width="140px" align="right">
+              Supply APY
             </SizableTableCell>
             <SizableTableCell align="right" width="140px">
               <Stack

@@ -152,27 +152,6 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
         <SizableTableCell
           align="right"
           width="140px"
-          sx={{ color: palette.success.main }}
-        >
-          <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.depositApyReward > 0 && (
-              <Tooltip
-                title={`${row.depositApyBase.toFixed(
-                  2
-                )}% (base) + ${row.depositApyReward.toFixed(2)}% (reward)`}
-                arrow
-              >
-                <IconButton>
-                  <DropletIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {row.depositApy.toFixed(2)} %
-          </Stack>
-        </SizableTableCell>
-        <SizableTableCell
-          align="right"
-          width="140px"
           sx={{ color: palette.warning.main }}
         >
           <Stack direction="row" alignItems="center" justifyContent="right">
@@ -189,6 +168,27 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
               </Tooltip>
             )}
             {row.borrowApy.toFixed(2)}%
+          </Stack>
+        </SizableTableCell>
+        <SizableTableCell
+          align="right"
+          width="140px"
+          sx={{ color: palette.success.main }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            {row.depositApyReward > 0 && (
+              <Tooltip
+                title={`${row.depositApyBase.toFixed(
+                  2
+                )}% (base) + ${row.depositApyReward.toFixed(2)}% (reward)`}
+                arrow
+              >
+                <IconButton>
+                  <DropletIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {row.depositApy.toFixed(2)} %
           </Stack>
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
