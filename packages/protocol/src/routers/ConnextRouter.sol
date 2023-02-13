@@ -93,7 +93,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
     handler = new ConnextHandler(address(this));
-    _allowCaller(address(connext_), true);
+    _allowCaller(msg.sender, true);
   }
 
   /*////////////////////////////////////
@@ -162,7 +162,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
-     * That's why we try/catch instead of directly calling _bundleInternal(actions, args).
+     * Therefore we try/catch instead of directly calling _bundleInternal(actions, args).
      */
     try this.xBundle(actions, args) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
