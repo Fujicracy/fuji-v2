@@ -7,7 +7,6 @@ type DiscordIconProps = {
 
 const DiscordIcon = (props: DiscordIconProps) => {
   const { palette } = useTheme()
-  console.log(props.color)
 
   return (
     <SvgIcon

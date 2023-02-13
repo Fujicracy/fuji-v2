@@ -15,6 +15,9 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
 import { useRouter } from "next/router"
 
+//import { useBorrow } from "../../store/borrow.store"
+//import { useAuth } from "../../store/auth.store"
+
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
 import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
@@ -27,20 +30,37 @@ type MarketsTableRowProps = {
 export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
+
+  const router = useRouter()
+
+  //const walletChain = useAuth((state) => state.chain)
+  //const changeCollateralChain = useBorrow((state) => state.changeCollateralChain)
+  //const changeVault = useBorrow((state) => state.changeActiveVault)
+
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation()
     setExpandRow(!expandRow)
   }
 
-  const router = useRouter()
-  // const change = useBorrow((s) => s.change)
   const handleClick = async () => {
-    // TODO: Missing: should also select the vault
-    // change(
-    //   { chain: row.chain, token: row.collateral },
-    //   { chain: row.chain, token: row.borrow }
-    // )
+    //changeVault(row.vault)
+    //changeCollateralChain(walletChain?.id ?? "0x" + row.vault.chainId.toString(16))
     router.push("/borrow")
+  }
+
+  const displayLiquidity = (liquidity: number | "loading" | "error") => {
+    if (liquidity === "loading") {
+      return "loading..."
+    } else if (liquidity === "error") {
+      return "error loading"
+    }
+
+    return liquidity.toLocaleString("en-US", {
+      maximumSignificantDigits: 3,
+      notation: "compact",
+      style: "currency",
+      currency: "usd",
+    })
   }
 
   return (
@@ -119,11 +139,11 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           sx={{ color: palette.success.main }}
         >
           <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.supplyApyReward > 0 && (
+            {row.depositApyReward > 0 && (
               <Tooltip
-                title={`${row.supplyApyBase.toFixed(
+                title={`${row.depositApyBase.toFixed(
                   2
-                )}% (base) + ${row.supplyApyReward.toFixed(2)}% (reward)`}
+                )}% (base) + ${row.depositApyReward.toFixed(2)}% (reward)`}
                 arrow
               >
                 <IconButton>
@@ -131,7 +151,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
                 </IconButton>
               </Tooltip>
             )}
-            {row.supplyApy.toFixed(2)} %
+            {row.depositApy.toFixed(2)} %
           </Stack>
         </SizableTableCell>
         <SizableTableCell
@@ -140,11 +160,11 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           sx={{ color: palette.warning.main }}
         >
           <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.borrowAprReward > 0 && (
+            {row.borrowApyReward > 0 && (
               <Tooltip
-                title={`${row.borrowAprBase.toFixed(
+                title={`${row.borrowApyBase.toFixed(
                   2
-                )}% (base) - ${row.borrowAprReward.toFixed(2)}% (reward)`}
+                )}% (base) - ${row.borrowApyReward.toFixed(2)}% (reward)`}
                 arrow
               >
                 <IconButton>
@@ -152,7 +172,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
                 </IconButton>
               </Tooltip>
             )}
-            {row.borrowApr.toFixed(2)}%
+            {row.borrowApy.toFixed(2)}%
           </Stack>
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
@@ -197,10 +217,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           />
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          $
-          {row.availableLiquidity
-            .toString()
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          {displayLiquidity(row.liquidity)}
         </SizableTableCell>
       </TableRow>
 

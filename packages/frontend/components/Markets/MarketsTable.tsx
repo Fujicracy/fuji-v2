@@ -13,66 +13,51 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import {
-  BorrowingVaultWithFinancials,
-  LendingProviderDetails,
-} from "@x-fuji/sdk"
+import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
 import { chainName } from "../../services/chains"
 import { sdk } from "../../services/sdk"
 import { SizableTableCell } from "../Shared/SizableTableCell"
 
 export type Row = {
+  vault: BorrowingVault
+
   borrow: string
   collateral: string
 
   chain: string
 
-  supplyApy: number
-  supplyApyBase: number
-  supplyApyReward: number
+  depositApy: number
+  depositApyBase: number
+  depositApyReward: number
 
-  borrowApr: number
-  borrowAprBase: number
-  borrowAprReward: number
+  borrowApy: number
+  borrowApyBase: number
+  borrowApyReward: number
 
   integratedProtocols: string[]
   safetyRating: string
-  availableLiquidity: number
+  liquidity: number | "loading" | "error"
   children?: Row[]
   isChild: boolean
   isGrandChild: boolean // TODO: Not handled
 }
 
 type SortBy = "descending" | "ascending"
-// Map a vault address to its providers
-type ProvidersMap = Record<string, LendingProviderDetails[]>
 
 export default function MarketsTable() {
   const { palette } = useTheme()
-  const [appSorting] = useState<SortBy>("descending")
-  const [vaults, setVaults] = useState<BorrowingVaultWithFinancials[]>([])
-  const [providers, setProviders] = useState<ProvidersMap>({})
+  // const [appSorting] = useState<SortBy>("descending")
+  const [vaults, setVaults] = useState<VaultWithFinancials[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchVaults() {
       try {
-        const vaults = await sdk.getAllVaultsWithFinancials()
-        if (!vaults) throw "error on sdk: empty resoponse"
-
-        console.time("getProviders")
-        const allProviders = await Promise.all(
-          vaults.map((v) => v.vault.getProviders())
-        )
-        const providers: ProvidersMap = {}
-        for (let i = 0; i < allProviders.length; i++) {
-          const address = vaults[i].vault.address.value
-          providers[address] = allProviders[i]
-        }
-        console.timeEnd("getProviders")
+        let vaults = await sdk.getBorrowingVaultsFinancials()
         setVaults(vaults)
-        setProviders(providers)
         setLoading(false)
+        vaults = await sdk.getLlamaFinancials(vaults)
+        setVaults(vaults)
       } catch (e) {
         // TODO: What if error
         setLoading(false)
@@ -81,10 +66,7 @@ export default function MarketsTable() {
     fetchVaults()
   }, [])
 
-  const rawRows = vaults.map((v) =>
-    vaultToRow(v, providers[v.vault.address.value])
-  )
-  const rows: Row[] = groupByPair(rawRows)
+  const rows: Row[] = groupByPair(vaults.map(vaultToRow))
 
   if (loading) {
     return (
@@ -138,7 +120,7 @@ export default function MarketsTable() {
                 //   )
                 // }
               >
-                <span>Borrow APR</span>
+                <span>Borrow APY</span>
                 {/* {appSorting === "descending" ? (
                   <KeyboardArrowUpIcon
                     sx={{ color: palette.info.main, fontSize: "0.875rem" }}
@@ -216,36 +198,36 @@ export default function MarketsTable() {
   )
 }
 
-function vaultToRow(
-  vault: BorrowingVaultWithFinancials,
-  providers: LendingProviderDetails[]
-): Row {
-  // TODO: here only to test on dev mode, we need to mock this cuz we don't have any rewards on testnets
-  if (
-    vault.vault.address.value === "0xDdd86428204f12f296954c9CdFC73F3275f0D8a0"
-  ) {
-    vault.borrowApyReward = 0.42
-    vault.depositApyReward = 0.42
-    vault.depositApy = vault.depositApyReward + vault.depositApyBase
-    console.warn("Adding fake reward into vault", vault)
-  }
-
+function vaultToRow(v: VaultWithFinancials): Row {
+  const activeProvider = v.activeProvider
+  const liquidity = activeProvider.availableToBorrowUSD
+  const depositApyBase = activeProvider.depositApyBase ?? 0
+  const depositApyReward = activeProvider.depositApyReward ?? 0
+  const borrowApyBase = activeProvider.borrowApyBase ?? 0
+  const borrowApyReward = activeProvider.borrowApyReward ?? 0
   return {
-    borrow: vault.vault.debt.symbol,
-    collateral: vault.vault.collateral.symbol,
-    chain: chainName(vault.vault.chainId),
+    vault: v.vault,
 
-    supplyApy: vault.depositApy,
-    supplyApyBase: vault.depositApyBase,
-    supplyApyReward: vault.depositApyReward,
+    borrow: v.vault.debt.symbol,
+    collateral: v.vault.collateral.symbol,
+    chain: chainName(v.vault.chainId),
 
-    borrowApr: vault.borrowApyBase - vault.borrowApyReward,
-    borrowAprBase: vault.borrowApyBase,
-    borrowAprReward: vault.borrowApyReward,
+    depositApy: depositApyBase + depositApyReward,
+    depositApyBase,
+    depositApyReward,
 
-    integratedProtocols: providers.map((p) => p.name),
-    safetyRating: "A+",
-    availableLiquidity: vault.availableToBorrowUSD,
+    borrowApy: borrowApyBase - borrowApyReward,
+    borrowApyBase,
+    borrowApyReward,
+
+    integratedProtocols: v.allProviders.map((p) => p.name),
+    safetyRating: "A",
+    liquidity:
+      liquidity === undefined
+        ? "loading"
+        : liquidity === 0
+        ? "error"
+        : liquidity,
     isChild: false,
     isGrandChild: false,
   }
@@ -304,6 +286,6 @@ function groupByChain(rows: Row[]): Row[] {
 type CompareFn = (r1: Row, r2: Row) => 1 | -1
 
 const sortBy: Record<SortBy, CompareFn> = {
-  ascending: (a, b) => (a.borrowApr < b.borrowApr ? 1 : -1),
-  descending: (a, b) => (a.borrowApr > b.borrowApr ? 1 : -1),
+  ascending: (a, b) => (a.borrowApy < b.borrowApy ? 1 : -1),
+  descending: (a, b) => (a.borrowApy > b.borrowApy ? 1 : -1),
 }
