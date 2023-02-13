@@ -179,6 +179,9 @@ export class BorrowingVault extends StreamManager {
       this.address.value
     );
 
+    this.collateral.setConnection(configParams);
+    this.debt.setConnection(configParams);
+
     return this;
   }
 
