@@ -25,7 +25,7 @@ import type {
 
 export interface CompoundV3Interface extends utils.Interface {
   functions: {
-    "approvedOperator(address,address)": FunctionFragment;
+    "approvedOperator(address,address,address)": FunctionFragment;
     "borrow(uint256,address)": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
     "getBorrowBalance(address,address)": FunctionFragment;
@@ -55,7 +55,7 @@ export interface CompoundV3Interface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "approvedOperator",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
@@ -157,7 +157,8 @@ export interface CompoundV3 extends BaseContract {
   functions: {
     approvedOperator(
       arg0: string,
-      vault: string,
+      asset: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
 
@@ -214,7 +215,8 @@ export interface CompoundV3 extends BaseContract {
 
   approvedOperator(
     arg0: string,
-    vault: string,
+    asset: string,
+    debtAsset: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -271,7 +273,8 @@ export interface CompoundV3 extends BaseContract {
   callStatic: {
     approvedOperator(
       arg0: string,
-      vault: string,
+      asset: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -331,7 +334,8 @@ export interface CompoundV3 extends BaseContract {
   estimateGas: {
     approvedOperator(
       arg0: string,
-      vault: string,
+      asset: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -389,7 +393,8 @@ export interface CompoundV3 extends BaseContract {
   populateTransaction: {
     approvedOperator(
       arg0: string,
-      vault: string,
+      asset: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -452,7 +457,8 @@ export interface CompoundV3Multicall {
 
   approvedOperator(
     arg0: string,
-    vault: string,
+    asset: string,
+    debtAsset: string,
     overrides?: CallOverrides
   ): Call<string>;
 

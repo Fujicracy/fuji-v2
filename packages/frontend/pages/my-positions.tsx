@@ -21,10 +21,10 @@ import {
   Chip,
 } from "@mui/material"
 
-import Footer from "../components/Layout/Footer"
-import Header from "../components/Layout/Header"
+import Footer from "../components/Shared/Footer"
+import Header from "../components/Shared/Header"
 import { useState } from "react"
-import TokenIcon from "../components/TokenIcon"
+import { TokenIcon } from "../components/Shared/Icons"
 
 type Metric = {
   name: string

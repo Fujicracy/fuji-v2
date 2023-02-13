@@ -26,10 +26,11 @@ export interface IComptrollerInterface extends utils.Interface {
   functions: {
     "claimComp(address)": FunctionFragment;
     "enterMarkets(address[])": FunctionFragment;
+    "exitMarket(address)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "claimComp" | "enterMarkets"
+    nameOrSignatureOrTopic: "claimComp" | "enterMarkets" | "exitMarket"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "claimComp", values: [string]): string;
@@ -37,12 +38,14 @@ export interface IComptrollerInterface extends utils.Interface {
     functionFragment: "enterMarkets",
     values: [string[]]
   ): string;
+  encodeFunctionData(functionFragment: "exitMarket", values: [string]): string;
 
   decodeFunctionResult(functionFragment: "claimComp", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "enterMarkets",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "exitMarket", data: BytesLike): Result;
 
   events: {};
 }
@@ -83,6 +86,11 @@ export interface IComptroller extends BaseContract {
       arg0: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    exitMarket(
+      cyTokenAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   claimComp(
@@ -95,6 +103,11 @@ export interface IComptroller extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  exitMarket(
+    cyTokenAddress: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     claimComp(holder: string, overrides?: CallOverrides): Promise<void>;
 
@@ -102,6 +115,11 @@ export interface IComptroller extends BaseContract {
       arg0: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
+
+    exitMarket(
+      cyTokenAddress: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   filters: {};
@@ -116,6 +134,11 @@ export interface IComptroller extends BaseContract {
       arg0: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    exitMarket(
+      cyTokenAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -126,6 +149,11 @@ export interface IComptroller extends BaseContract {
 
     enterMarkets(
       arg0: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    exitMarket(
+      cyTokenAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

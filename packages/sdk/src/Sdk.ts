@@ -1,6 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
+import { AddressZero } from '@ethersproject/constants';
 import { TransactionRequest } from '@ethersproject/providers';
+import { formatUnits } from '@ethersproject/units';
 import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
 import invariant from 'tiny-invariant';
@@ -10,12 +12,13 @@ import {
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
+  FUJI_ORACLE_ADDRESS,
   VAULT_LIST,
 } from './constants';
 import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ChainId, RouterAction } from './enums';
+import { ChainId, ChainType, RouterAction } from './enums';
 import { encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
@@ -27,13 +30,27 @@ import {
   RouterActionParams,
   RoutingStepDetails,
 } from './types';
-import { ConnextRouter__factory } from './types/contracts';
+import {
+  ConnextRouter__factory,
+  FujiOracle__factory,
+  ILendingProvider__factory,
+} from './types/contracts';
 import {
   GetLlamaAssetPoolsResponse,
   GetLlamaBorrowPoolsResponse,
   LlamaAssetPool,
   LlamaBorrowPool,
 } from './types/LlamaResponses';
+
+type AccountDetailsPerVault = {
+  vault: BorrowingVault;
+  depositBalance: BigNumber;
+  borrowBalance: BigNumber;
+  collateralPriceUSD: BigNumber;
+  debtPriceUSD: BigNumber;
+  depositApyBase: number;
+  borrowApyBase: number;
+};
 
 export class Sdk {
   /**
@@ -184,10 +201,97 @@ export class Sdk {
   }
 
   /**
-   * Retruns all vaults.
+   * Retruns details for all vaults on all chains for a given account.
+   *
+   * @remarks
+   * `depositApyBase` and `borrowApyBase` are returned in %,
+   * `collateralPriceUSD` and `debtPriceUSD` have to be formatted
+   * with their respective token decimals.
+   *
+   * @param account - {@link Account} for the user
+   * @param chainType - for what chain types to query
    */
-  getAllBorrowingVaults(): BorrowingVault[] {
-    return this._getAllVaults();
+  async getAllAccountDetailsPerVaultFor(
+    account: Address,
+    chainType: ChainType = ChainType.MAINNET
+  ): Promise<AccountDetailsPerVault[]> {
+    // { vault, depositBalance, borrowBalance, collateralPriceUSD, debtPriceUSD, depositApyBase, borrowApyBase }
+    const res: AccountDetailsPerVault[] = [];
+
+    const chains = Object.values(CHAIN)
+      .filter((c) => c.chainType === chainType && c.isDeployed)
+      .map((c) => c.setConnection(this._configParams));
+
+    for (const chain of chains) {
+      const chainId = chain.chainId;
+      const vaults = VAULT_LIST[chainId].map((v) =>
+        v.setConnection(this._configParams)
+      );
+      const { multicallRpcProvider } = this.getConnectionFor(chainId);
+      const oracle = FujiOracle__factory.multicall(
+        FUJI_ORACLE_ADDRESS[chainId].value
+      );
+
+      const firstBatch: Call<BigNumber | string>[] = [];
+      vaults.forEach((v) => {
+        firstBatch.push(
+          v.multicallContract?.balanceOfAsset(account.value) as Call<BigNumber>,
+          v.multicallContract?.balanceOfDebt(account.value) as Call<BigNumber>,
+          v.multicallContract?.activeProvider() as Call<string>,
+          oracle.getPriceOf(
+            v.collateral.address.value,
+            AddressZero,
+            v.collateral.decimals
+          ),
+          oracle.getPriceOf(v.debt.address.value, AddressZero, v.debt.decimals)
+        );
+      });
+      const firstBatchResults = await multicallRpcProvider.all(firstBatch);
+
+      const secondBatch: Call<BigNumber>[] = [];
+      vaults.forEach((v, i) => {
+        // multiply by 5 becasue there 5 calls per vault in the firstBatch
+        const activeProvider = firstBatchResults[5 * i + 2] as string;
+        secondBatch.push(
+          ILendingProvider__factory.multicall(activeProvider).getDepositRateFor(
+            v.address.value
+          ),
+          ILendingProvider__factory.multicall(activeProvider).getBorrowRateFor(
+            v.address.value
+          )
+        );
+      });
+      const secondBatchResults = await multicallRpcProvider.all(secondBatch);
+
+      vaults.forEach((vault, i) => {
+        // multiply by 2 becasue there 2 calls per vault in the firstBatch
+        const depositRate = secondBatchResults[2 * i].toString();
+        const borrowRate = secondBatchResults[2 * i + 1].toString();
+        res.push({
+          vault,
+          depositBalance: firstBatchResults[5 * i] as BigNumber,
+          borrowBalance: firstBatchResults[5 * i + 1] as BigNumber,
+          collateralPriceUSD: firstBatchResults[5 * i + 3] as BigNumber,
+          debtPriceUSD: firstBatchResults[5 * i + 4] as BigNumber,
+          depositApyBase: parseFloat(formatUnits(depositRate, 27)) * 100,
+          borrowApyBase: parseFloat(formatUnits(borrowRate, 27)) * 100,
+        });
+      });
+    }
+
+    return res;
+  }
+
+  /**
+   * Retruns all vaults.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
+   *
+   */
+  getAllBorrowingVaults(
+    chainType: ChainType = ChainType.MAINNET
+  ): BorrowingVault[] {
+    return this._getAllVaults(chainType);
   }
 
   /**
@@ -239,11 +343,13 @@ export class Sdk {
    * "experimental" mode and might be unstable. This method can return `void`
    * which indicates a problem with DefiLlama API. In that case, client should
    * fetch for each vault borrow and deposit APY manually.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
    */
-  async getAllVaultsWithFinancials(): Promise<
-    BorrowingVaultWithFinancials[] | void
-  > {
-    const vaults = this._getAllVaults();
+  async getAllVaultsWithFinancials(
+    chainType: ChainType = ChainType.MAINNET
+  ): Promise<BorrowingVaultWithFinancials[] | void> {
+    const vaults = this._getAllVaults(chainType);
 
     // TODO: inefficient when there will be many vaults
     await Promise.all(vaults.map((v) => v.preLoad()));
@@ -341,10 +447,11 @@ export class Sdk {
     steps: RoutingStepDetails[]
   ): Promise<RoutingStepDetails[]> {
     const srcChainId = steps[0].chainId;
+    const chainType = CHAIN[srcChainId].chainType;
     const transferId = await this.getTransferId(srcChainId, transactionHash);
 
     const srcTxHash = Promise.resolve(transactionHash);
-    const destTxHash = this.getDestTxHash(transferId ?? '');
+    const destTxHash = this.getDestTxHash(transferId ?? '', chainType);
 
     return steps.map((step) => ({
       ...step,
@@ -392,13 +499,17 @@ export class Sdk {
    * `transferId` can be obtained from `sdk.getTransferId`.
    *
    * @param transferId - transfer ID according to Connext numenclature.
+   * @param chainType - type of the chain: testnet or mainnet.
    */
-  getDestTxHash(transferId: string): Promise<string> {
+  getDestTxHash(
+    transferId: string,
+    chainType: ChainType = ChainType.MAINNET
+  ): Promise<string> {
+    const chainStr = chainType === ChainType.MAINNET ? 'mainnet' : 'testnet';
     return new Promise((resolve) => {
       const apiCall = () =>
-        // TODO: replace with prod API url
         axios.get(
-          `https://postgrest.testnet.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
+          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
         );
 
       const interval = () => {
@@ -467,10 +578,14 @@ export class Sdk {
       }, []);
   }
 
-  private _getAllVaults(): BorrowingVault[] {
+  private _getAllVaults(chainType: ChainType): BorrowingVault[] {
     const vaults = [];
-    for (const id of Object.keys(CHAIN)) {
-      vaults.push(...VAULT_LIST[parseInt(id) as ChainId]);
+    const chains = Object.values(CHAIN).filter(
+      (c) => c.chainType === chainType
+    );
+
+    for (const chain of chains) {
+      vaults.push(...VAULT_LIST[chain.chainId]);
     }
 
     return vaults.map((v) => v.setConnection(this._configParams));

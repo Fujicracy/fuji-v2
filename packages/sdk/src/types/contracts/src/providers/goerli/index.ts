@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AaveV3Goerli } from "./AaveV3Goerli";
+export type { CompoundV2Goerli } from "./CompoundV2Goerli";

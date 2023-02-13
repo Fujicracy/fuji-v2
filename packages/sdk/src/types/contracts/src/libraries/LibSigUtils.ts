@@ -55,16 +55,16 @@ export interface LibSigUtilsInterface extends utils.Interface {
   functions: {
     "buildPermitStruct(address,address,address,uint256,uint256,address)": FunctionFragment;
     "getHashTypedDataV4Digest(bytes32,bytes32)": FunctionFragment;
-    "getStructHashAsset((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
     "getStructHashBorrow((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
+    "getStructHashWithdraw((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "buildPermitStruct"
       | "getHashTypedDataV4Digest"
-      | "getStructHashAsset"
       | "getStructHashBorrow"
+      | "getStructHashWithdraw"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -76,11 +76,11 @@ export interface LibSigUtilsInterface extends utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getStructHashAsset",
+    functionFragment: "getStructHashBorrow",
     values: [LibSigUtils.PermitStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "getStructHashBorrow",
+    functionFragment: "getStructHashWithdraw",
     values: [LibSigUtils.PermitStruct]
   ): string;
 
@@ -93,11 +93,11 @@ export interface LibSigUtilsInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getStructHashAsset",
+    functionFragment: "getStructHashBorrow",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getStructHashBorrow",
+    functionFragment: "getStructHashWithdraw",
     data: BytesLike
   ): Result;
 
@@ -151,12 +151,12 @@ export interface LibSigUtils extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getStructHashAsset(
+    getStructHashBorrow(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getStructHashBorrow(
+    getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -178,12 +178,12 @@ export interface LibSigUtils extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getStructHashAsset(
+  getStructHashBorrow(
     permit: LibSigUtils.PermitStruct,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getStructHashBorrow(
+  getStructHashWithdraw(
     permit: LibSigUtils.PermitStruct,
     overrides?: CallOverrides
   ): Promise<string>;
@@ -205,12 +205,12 @@ export interface LibSigUtils extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getStructHashAsset(
+    getStructHashBorrow(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getStructHashBorrow(
+    getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -235,12 +235,12 @@ export interface LibSigUtils extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getStructHashAsset(
+    getStructHashBorrow(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getStructHashBorrow(
+    getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -263,12 +263,12 @@ export interface LibSigUtils extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getStructHashAsset(
+    getStructHashBorrow(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getStructHashBorrow(
+    getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -296,12 +296,12 @@ export interface LibSigUtilsMulticall {
     overrides?: CallOverrides
   ): Call<string>;
 
-  getStructHashAsset(
+  getStructHashBorrow(
     permit: LibSigUtils.PermitStruct,
     overrides?: CallOverrides
   ): Call<string>;
 
-  getStructHashBorrow(
+  getStructHashWithdraw(
     permit: LibSigUtils.PermitStruct,
     overrides?: CallOverrides
   ): Call<string>;

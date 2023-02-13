@@ -6,13 +6,13 @@ import {
   Token,
 } from "@x-fuji/sdk"
 import produce from "immer"
-import create from "zustand"
+import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
-import { useStore } from "."
-import { sdk } from "./auth.slice"
+import { sdk } from "../services/sdk"
 import ethers from "ethers"
 import { useSnack } from "./snackbar.store"
 import { formatUnits } from "ethers/lib/utils"
+import { useBorrow } from "./borrow.store"
 
 export type HistoryStore = HistoryState & HistoryActions
 
@@ -41,7 +41,7 @@ export type HistoryRoutingStep = Omit<
   "txHash" | "token"
 > & {
   txHash?: string
-  token: SeriazableToken
+  token: SerializableToken
 }
 
 export function toRoutingStepDetails(
@@ -81,7 +81,7 @@ export function toHistoryRoutingStep(
 /**
  * Contains all we need to instanciate a token with new Token()
  */
-export type SeriazableToken = {
+export type SerializableToken = {
   chainId: ChainId
   address: string
   decimals: number
@@ -177,11 +177,11 @@ export const useHistory = create<HistoryStore>()(
               )
               console.debug(step.step, txHash)
               if (step.step === RoutingStep.DEPOSIT) {
-                useStore.getState().updateBalances("collateral")
-                useStore.getState().updateAllowance()
+                useBorrow.getState().updateBalances("collateral")
+                useBorrow.getState().updateAllowance()
               }
               if (step.step === RoutingStep.BORROW) {
-                useStore.getState().updateBalances("collateral")
+                useBorrow.getState().updateBalances("collateral")
               }
               // TODO: can we have error ? if yes mark the tx as failed. Design ? Retry ?
             }

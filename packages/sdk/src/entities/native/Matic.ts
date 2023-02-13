@@ -1,13 +1,20 @@
 import invariant from 'tiny-invariant';
 
 import { WNATIVE } from '../../constants/tokens';
+import { Address } from '../Address';
 import { Currency } from '../Currency';
 import { NativeCurrency } from '../NativeCurrency';
 import { Token } from '../Token';
 
 export class Matic extends NativeCurrency {
   protected constructor(chainId: number) {
-    super(chainId, 18, 'MATIC', 'Matic');
+    super(
+      Address.from('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'),
+      chainId,
+      18,
+      'MATIC',
+      'Matic'
+    );
   }
 
   public get wrapped(): Token {

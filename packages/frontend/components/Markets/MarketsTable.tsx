@@ -10,18 +10,16 @@ import {
   Tooltip,
   useTheme,
 } from "@mui/material"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import { sdk } from "../../store/auth.slice"
 import {
   BorrowingVaultWithFinancials,
   LendingProviderDetails,
 } from "@x-fuji/sdk"
-import { chainName } from "../../helpers/chainName"
-import { SizableTableCell } from "../SizableTableCell"
+import { chainName } from "../../services/chains"
+import { sdk } from "../../services/sdk"
+import { SizableTableCell } from "../Shared/SizableTableCell"
 
 export type Row = {
   borrow: string

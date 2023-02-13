@@ -14,7 +14,6 @@ import {
 } from "@mui/material"
 import Image from "next/image"
 
-import { useStore } from "../../store"
 import TransactionProcessingModal from "./TransactionProcessingModal"
 import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
@@ -23,16 +22,17 @@ import ApprovalModal from "./ApprovalModal"
 import LoadingButton from "@mui/lab/LoadingButton"
 import RoutingModal from "./RoutingModal"
 import { useHistory } from "../../store/history.store"
-import { chainName } from "../../helpers/chainName"
+import { chainName } from "../../services/chains"
+import { useBorrow } from "../../store/borrow.store"
+import { useAuth } from "../../store/auth.store"
 
 export default function Borrow() {
-  const theme = useTheme()
-  const address = useStore((state) => state.address)
-  const walletChain = useStore((state) => state.chain)
-  const changeChain = useStore((state) => state.changeChain)
-  const updateBalance = useStore((state) => state.updateBalances)
-  const updateVault = useStore((state) => state.updateVault)
-  const updateAllowance = useStore((state) => state.updateAllowance)
+  const address = useAuth((state) => state.address)
+  const walletChain = useAuth((state) => state.chain)
+  const changeChain = useAuth((state) => state.changeChain)
+  const updateBalance = useBorrow((state) => state.updateBalances)
+  const updateVault = useBorrow((state) => state.updateVault)
+  const updateAllowance = useBorrow((state) => state.updateAllowance)
   useEffect(() => {
     if (address) {
       updateBalance("collateral")
@@ -42,44 +42,53 @@ export default function Borrow() {
     }
   }, [address, updateBalance, updateAllowance, updateVault])
 
-  const login = useStore((state) => state.login)
+  const login = useAuth((state) => state.login)
+  const theme = useTheme()
+  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
-  const collateral = useStore((state) => state.position.collateral)
-  const collateralChainId = useStore((state) => state.collateralChainId)
-  const collateralAllowance = useStore((state) => state.collateralAllowance)
-  const debt = useStore((state) => state.position.debt)
-  const debtChainId = useStore((state) => state.debtChainId)
-  const changeBorrowChain = useStore((state) => state.changeBorrowChain)
-  const changeCollateralChain = useStore((state) => state.changeCollateralChain)
+  const collateral = useBorrow((state) => state.position.collateral)
+  const collateralInput = useBorrow((state) => state.collateralInput)
+  const collateralAmount = parseFloat(collateralInput)
+  const collateralChainId = useBorrow((state) => state.collateralChainId)
+  const collateralAllowance = useBorrow((state) => state.collateralAllowance)
+
+  const debtInput = useBorrow((state) => state.debtInput)
+  const debtAmount = parseFloat(debtInput)
+  const debtChainId = useBorrow((state) => state.debtChainId)
+
+  // const vaultChainId = useBorrow((state) => state.position.vault?.chainId)
+
+  const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
+  const changeCollateralChain = useBorrow(
+    (state) => state.changeCollateralChain
+  )
 
   // TODO: refacto with a "status" in store (i.e status = "editing, approving, signing, borrowing...") ?
   const [showApprovalModal, setShowApprovalModal] = useState(false)
 
-  const value = useStore((state) => state.position.collateral.amount)
-  const balance = useStore(
+  const balance = useBorrow(
     (state) => state.collateralBalances[state.position.collateral.token.symbol]
   )
 
-  const updateTokenPrice = useStore((state) => state.updateTokenPrice)
+  const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
   useEffect(() => {
     updateTokenPrice("collateral")
     updateTokenPrice("debt")
   }, [updateTokenPrice])
 
-  const ltv = useStore((state) => state.position.ltv)
-  const ltvMax = useStore((state) => state.position.ltvMax)
+  const ltv = useBorrow((state) => state.position.ltv)
+  const ltvMax = useBorrow((state) => state.position.ltvMax)
 
-  const signAndBorrow = useStore((state) => state.signAndBorrow)
-  const isSigning = useStore((state) => state.isSigning)
-  const isBorrowing = useStore((state) => state.isBorrowing)
+  const signAndBorrow = useBorrow((state) => state.signAndBorrow)
+  const isSigning = useBorrow((state) => state.isSigning)
+  const isBorrowing = useBorrow((state) => state.isBorrowing)
 
   const currentTxHash = useHistory((state) => state.inModal)
   const closeModal = useHistory((state) => state.closeModal)
-  const metaStatus = useStore((state) => state.transactionMeta.status)
-  const availableVaultStatus = useStore((state) => state.availableVaultsStatus)
+  const metaStatus = useBorrow((state) => state.transactionMeta.status)
+  const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
   let button: ReactNode
   if (!address) {
@@ -105,7 +114,7 @@ export default function Borrow() {
         Switch network
       </Button>
     )
-  } else if (value > 0 && value > balance) {
+  } else if (collateralAmount > 0 && collateralAmount > balance) {
     button = (
       <Button variant="gradient" size="large" disabled fullWidth>
         Insufficient {collateral.token.symbol} balance
@@ -139,7 +148,7 @@ export default function Borrow() {
         size="large"
         fullWidth
         disabled={
-          collateral.amount <= 0 || debt.amount <= 0 || metaStatus !== "ready"
+          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
         }
         loading={
           isSigning || isBorrowing || availableVaultStatus === "fetching"
@@ -197,11 +206,9 @@ export default function Borrow() {
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
-              <u>
-                {`${collateral.token.symbol} > ${chainName(
-                  debt.token.chainId
-                )}`}
-              </u>
+              <u>{`${chainName(collateralChainId)} > ${chainName(
+                debtChainId
+              )}`}</u>
             </Typography>
           </Stack>
           <Box mb="1rem">

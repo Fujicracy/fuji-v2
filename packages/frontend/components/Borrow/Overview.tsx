@@ -20,27 +20,32 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
+import { BorrowingVault } from "@x-fuji/sdk"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
-import ClickableTooltip from "../Layout/ClickableTooltip"
-import { useStore } from "../../store"
-import { DEFAULT_LTV_RECOMMENDED } from "../../consts/borrow"
-import { BorrowingVault } from "@x-fuji/sdk"
-import ProviderIcon from "../ProviderIcon"
-import NetworkIcon from "../NetworkIcon"
+
+import ClickableTooltip from "../Shared/ClickableTooltip"
+import { useBorrow } from "../../store/borrow.store"
+import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
+import { NetworkIcon, ProviderIcon } from "../Shared/Icons"
 
 export default function Overview() {
   const { palette } = useTheme()
-  const ltv = useStore((state) => state.position.ltv)
-  const ltvMax = useStore((state) => state.position.ltvMax)
-  const ltvThreshold = useStore((state) => state.position.ltvThreshold)
-  const liquidationPrice = useStore((state) => state.position.liquidationPrice)
-  const liquidationDiff = useStore((state) => state.position.liquidationDiff)
-  const collateral = useStore((state) => state.position.collateral)
-  const debt = useStore((state) => state.position.debt)
-  const providers = useStore((state) => state.position.providers)
-  const vault = useStore((state) => state.position.vault)
+  const ltv = useBorrow((state) => state.position.ltv)
+  const ltvMax = useBorrow((state) => state.position.ltvMax)
+  const ltvThreshold = useBorrow((state) => state.position.ltvThreshold)
+  const liquidationPrice = useBorrow((state) => state.position.liquidationPrice)
+  const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
+  const collateral = useBorrow((state) => state.position.collateral)
+  //const collateralInput = useBorrow((state) => state.collateralInput)
+  // const collateralAmount = parseFloat(collateralInput)
+  const debt = useBorrow((state) => state.position.debt)
+  //const debtInput = useBorrow((state) => state.debtInput)
+  // const debtAmount = parseFloat(debtInput)
+  const providers = useBorrow((state) => state.position.providers)
+  const vault = useBorrow((state) => state.position.vault)
+  // const formType = useBorrow((state) => state.formType)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -256,7 +261,10 @@ export default function Overview() {
                 <Typography variant="small">
                   {providers[0].name}:{" "}
                   <span style={{ color: palette.success.main }}>
-                    {formatUnits(providers[0].borrowRate, 27)}%
+                    {(
+                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
+                    ).toFixed(2)}
+                    %
                   </span>
                 </Typography>
               ) : (
@@ -274,10 +282,10 @@ function VaultsMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   // TODO: use vaults instead of provider.
   // use provider only to display pictures
-  const providers = useStore((state) => state.position.providers)
-  const vault = useStore((state) => state.position.vault)
-  const vaults = useStore((state) => state.availableVaults)
-  const changeVault = useStore((state) => state.changeActiveVault)
+  const providers = useBorrow((state) => state.position.providers)
+  const vault = useBorrow((state) => state.position.vault)
+  const vaults = useBorrow((state) => state.availableVaults)
+  const changeVault = useBorrow((state) => state.changeActiveVault)
 
   const open = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -365,7 +373,9 @@ type VaultMenuItemProps = {
   onClick: (p: BorrowingVault) => void
 }
 const VaultMenuItem = ({ vault, selected, onClick }: VaultMenuItemProps) => {
-  const providers = useStore((state) => state.allProviders[vault.address.value])
+  const providers = useBorrow(
+    (state) => state.allProviders[vault.address.value]
+  )
 
   return (
     <MenuItem onClick={() => onClick(vault)}>

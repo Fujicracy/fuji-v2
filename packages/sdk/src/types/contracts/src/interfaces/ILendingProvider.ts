@@ -25,7 +25,7 @@ import type {
 
 export interface ILendingProviderInterface extends utils.Interface {
   functions: {
-    "approvedOperator(address,address)": FunctionFragment;
+    "approvedOperator(address,address,address)": FunctionFragment;
     "borrow(uint256,address)": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
     "getBorrowBalance(address,address)": FunctionFragment;
@@ -53,7 +53,7 @@ export interface ILendingProviderInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "approvedOperator",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
@@ -152,8 +152,9 @@ export interface ILendingProvider extends BaseContract {
 
   functions: {
     approvedOperator(
+      keyAsset: string,
       asset: string,
-      vault: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
 
@@ -207,8 +208,9 @@ export interface ILendingProvider extends BaseContract {
   };
 
   approvedOperator(
+    keyAsset: string,
     asset: string,
-    vault: string,
+    debtAsset: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -262,8 +264,9 @@ export interface ILendingProvider extends BaseContract {
 
   callStatic: {
     approvedOperator(
+      keyAsset: string,
       asset: string,
-      vault: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -320,8 +323,9 @@ export interface ILendingProvider extends BaseContract {
 
   estimateGas: {
     approvedOperator(
+      keyAsset: string,
       asset: string,
-      vault: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -376,8 +380,9 @@ export interface ILendingProvider extends BaseContract {
 
   populateTransaction: {
     approvedOperator(
+      keyAsset: string,
       asset: string,
-      vault: string,
+      debtAsset: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -437,8 +442,9 @@ export interface ILendingProviderMulticall {
   functions: FunctionFragment[];
 
   approvedOperator(
+    keyAsset: string,
     asset: string,
-    vault: string,
+    debtAsset: string,
     overrides?: CallOverrides
   ): Call<string>;
 

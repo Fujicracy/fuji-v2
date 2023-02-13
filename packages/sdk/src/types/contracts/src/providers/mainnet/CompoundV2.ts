@@ -25,7 +25,7 @@ import type {
 
 export interface CompoundV2Interface extends utils.Interface {
   functions: {
-    "approvedOperator(address,address)": FunctionFragment;
+    "approvedOperator(address,address,address)": FunctionFragment;
     "borrow(uint256,address)": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
     "getBorrowBalance(address,address)": FunctionFragment;
@@ -55,7 +55,7 @@ export interface CompoundV2Interface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "approvedOperator",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "borrow",
@@ -156,8 +156,9 @@ export interface CompoundV2 extends BaseContract {
 
   functions: {
     approvedOperator(
-      asset: string,
+      keyAsset: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
 
@@ -213,8 +214,9 @@ export interface CompoundV2 extends BaseContract {
   };
 
   approvedOperator(
-    asset: string,
+    keyAsset: string,
     arg1: string,
+    arg2: string,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -270,8 +272,9 @@ export interface CompoundV2 extends BaseContract {
 
   callStatic: {
     approvedOperator(
-      asset: string,
+      keyAsset: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -330,8 +333,9 @@ export interface CompoundV2 extends BaseContract {
 
   estimateGas: {
     approvedOperator(
-      asset: string,
+      keyAsset: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -388,8 +392,9 @@ export interface CompoundV2 extends BaseContract {
 
   populateTransaction: {
     approvedOperator(
-      asset: string,
+      keyAsset: string,
       arg1: string,
+      arg2: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -451,8 +456,9 @@ export interface CompoundV2Multicall {
   functions: FunctionFragment[];
 
   approvedOperator(
-    asset: string,
+    keyAsset: string,
     arg1: string,
+    arg2: string,
     overrides?: CallOverrides
   ): Call<string>;
 

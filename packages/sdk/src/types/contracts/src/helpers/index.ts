@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AddrMapper } from "./AddrMapper";
+export type { ProxyReceiver } from "./ProxyReceiver";

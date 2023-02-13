@@ -8,4 +8,5 @@ export { MockFlasher__factory } from "./MockFlasher__factory";
 export { MockOracle__factory } from "./MockOracle__factory";
 export { MockProvider__factory } from "./MockProvider__factory";
 export { MockProviderV0__factory } from "./MockProviderV0__factory";
+export { MockRebalancerManager__factory } from "./MockRebalancerManager__factory";
 export { MockSwapper__factory } from "./MockSwapper__factory";

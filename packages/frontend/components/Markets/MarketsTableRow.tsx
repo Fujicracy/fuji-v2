@@ -17,11 +17,8 @@ import { useRouter } from "next/router"
 
 import { DropletIcon } from "./DropletIcon"
 import { Row } from "./MarketsTable"
-import NetworkIcon from "../NetworkIcon"
-import TokenIcon from "../TokenIcon"
-import { SizableTableCell } from "../SizableTableCell"
-import ProviderIcon from "../ProviderIcon"
-import { useStore } from "../../store"
+import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
+import { SizableTableCell } from "../Shared/SizableTableCell"
 
 type MarketsTableRowProps = {
   row: Row
@@ -36,13 +33,13 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   }
 
   const router = useRouter()
-  const change = useStore((s) => s.change)
+  // const change = useBorrow((s) => s.change)
   const handleClick = async () => {
     // TODO: Missing: should also select the vault
-    change(
-      { chain: row.chain, token: row.collateral },
-      { chain: row.chain, token: row.borrow }
-    )
+    // change(
+    //   { chain: row.chain, token: row.collateral },
+    //   { chain: row.chain, token: row.borrow }
+    // )
     router.push("/borrow")
   }
 

@@ -28,6 +28,7 @@ import type {
 
 export interface VaultDeployerInterface extends utils.Interface {
   functions: {
+    "allVaults(uint256)": FunctionFragment;
     "chief()": FunctionFragment;
     "configAddress(bytes32)": FunctionFragment;
     "getVaults(address,uint256,uint256)": FunctionFragment;
@@ -37,6 +38,7 @@ export interface VaultDeployerInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "allVaults"
       | "chief"
       | "configAddress"
       | "getVaults"
@@ -44,6 +46,10 @@ export interface VaultDeployerInterface extends utils.Interface {
       | "vaultsCount"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "allVaults",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "configAddress",
@@ -59,6 +65,7 @@ export interface VaultDeployerInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "vaultsCount", values: [string]): string;
 
+  decodeFunctionResult(functionFragment: "allVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "configAddress",
@@ -120,6 +127,8 @@ export interface VaultDeployer extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     configAddress(
@@ -146,6 +155,8 @@ export interface VaultDeployer extends BaseContract {
     ): Promise<[BigNumber] & { count: BigNumber }>;
   };
 
+  allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   chief(overrides?: CallOverrides): Promise<string>;
 
   configAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -166,6 +177,8 @@ export interface VaultDeployer extends BaseContract {
   vaultsCount(asset: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
+    allVaults(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
     chief(overrides?: CallOverrides): Promise<string>;
 
     configAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -200,6 +213,11 @@ export interface VaultDeployer extends BaseContract {
   };
 
   estimateGas: {
+    allVaults(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     configAddress(
@@ -224,6 +242,11 @@ export interface VaultDeployer extends BaseContract {
   };
 
   populateTransaction: {
+    allVaults(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     configAddress(
@@ -255,6 +278,8 @@ export interface VaultDeployerMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  allVaults(arg0: BigNumberish, overrides?: CallOverrides): Call<string>;
 
   chief(overrides?: CallOverrides): Call<string>;
 

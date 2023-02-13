@@ -25,13 +25,13 @@ import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 import { RoutingStep } from "@x-fuji/sdk"
 
-import NetworkIcon from "../NetworkIcon"
+import { NetworkIcon } from "../Shared/Icons"
 import { useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
-import { chainName } from "../../helpers/chainName"
+import { chainName } from "../../services/chains"
 import { transactionLink } from "../../helpers/transactionInformations"
-import { AddTokenButton } from "../AddTokenButton"
-import { useStore } from "../../store"
+import { useAuth } from "../../store/auth.store"
+import { AddTokenButton } from "../Shared/AddTokenButton"
 
 type InvalidStep = {
   label: "Invalid"
@@ -58,7 +58,7 @@ export default function TransactionProcessingModal({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
   const entry = useHistory((state) => state.byHash[hash || ""])
-  const activeChainId = useStore((state) => parseInt(state.chain?.id || ""))
+  const activeChainId = useAuth((state) => parseInt(state.chain?.id || ""))
 
   const borrow = entry?.steps.find((s) => s.step === RoutingStep.BORROW)
   const chainId = borrow?.chainId
