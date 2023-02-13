@@ -69,15 +69,15 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
     );
     _callWithTimelock(address(connextRouter), callData);
-
-    /*connextRouter.allowCaller(address(this), true);*/
-    callData = abi.encodeWithSelector(BaseRouter.allowCaller.selector, address(this), true);
-    _callWithTimelock(address(connextRouter), callData);
   }
 
   function test_bridgeOutbound() public {
     uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
 
     uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
 
@@ -89,23 +89,15 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     bytes[] memory args = new bytes[](1);
 
     actions[0] = IRouter.Action.XTransferWithCall;
-    bytes memory randomData = abi.encode(keccak256("data_data"));
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, randomData);
 
-    /*bytes4 selector =*/
-    /*bytes4(keccak256("xCall(uint32,address,address,address,uint256,uint256,bytes)"));*/
-    /*bytes memory callData = abi.encodeWithSelector(*/
-    /*selector,*/
-    /*destDomain,*/
-    /*connextRouter.routerByDomain(destDomain),*/
-    /*collateralAsset,*/
-    /*ALICE,*/
-    /*amount,*/
-    /*30,*/
-    /*randomData*/
-    /*);*/
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    bytes[] memory destArgs = new bytes[](1);
 
-    /*vm.expectCall(address(connext), "");*/
+    destActions[0] = IRouter.Action.Deposit;
+    destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
+
+    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -346,12 +338,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // In this case the badCalldata previously had sender as address(0).
     // The ConnextHhander replaces `sender` with its address when recording the failed transfer.
     ConnextHandler.FailedTxn memory transfer = connextHandler.getFailedTransaction(transferId);
-    bytes memory newArg0 = transfer.args[0];
-    (,,, address sender) = abi.decode(newArg0, (IVault, uint256, address, address));
-    assert(sender == address(connextHandler));
+
+    // Fix the args that failed.
+    transfer.args[0] = abi.encode(address(vault), amount, ALICE, address(connextHandler));
     transfer.args[1] = _buildPermitAsBytes(
       ALICE, ALICE_PK, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
     );
+    transfer.args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
 
     connextHandler.executeFailedWithUpdatedArgs(transferId, transfer.actions, transfer.args);
     // Assert Alice has funds deposited in the vault
