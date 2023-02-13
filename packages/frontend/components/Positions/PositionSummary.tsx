@@ -25,10 +25,12 @@ export function PositionSummary() {
   usePositions((state) => state.getTotalDepositUSD)
   usePositions((state) => state.getTotalDebtUSD)
   usePositions((state) => state.getTotalAPY)
+  usePositions((state) => state.getAvailableBorrowPowerUSD)
 
   const totalDeposits = usePositions((state) => state.totalDepositsUSD)
   const totalDebt = usePositions((state) => state.totalDebtUSD)
   const totalAPY = usePositions((state) => state.totalAPY)
+  const availableBorrow = usePositions((state) => state.availableBorrowPowerUSD)
 
   const keyMetrics: Metric[] = [
     { name: "Total Deposits", value: totalDeposits || "-", valueSym: "$" },
@@ -36,7 +38,7 @@ export function PositionSummary() {
     { name: "Net APY", value: totalAPY || "-", valueSym: "%", action: "View" }, // TODO: tooltip & actions
     {
       name: "Available to Borrow",
-      value: 0,
+      value: availableBorrow || "-",
       valueSym: "$",
       action: "Borrow",
     }, // TODO: tooltip & actions

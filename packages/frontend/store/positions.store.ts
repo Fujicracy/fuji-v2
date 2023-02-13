@@ -10,7 +10,7 @@ type PositionsState = {
   totalDepositsUSD: number | undefined
   totalDebtUSD: number | undefined
   totalAPY: number | undefined
-  availableBorrowingPowerUSD: number | undefined
+  availableBorrowPowerUSD: number | undefined
   positions: Position[]
   // positionsAtRisk?: Position[]
 }
@@ -20,7 +20,7 @@ type PositionsActions = {
   getTotalDepositUSD: () => void
   getTotalDebtUSD: () => void
   getTotalAPY: () => void
-  getTotalAvailableBorrowPowerUSD: () => void
+  getAvailableBorrowPowerUSD: () => void
   // getPositionsAtRisk: () => void
 }
 
@@ -28,7 +28,7 @@ const initialState: PositionsState = {
   totalDepositsUSD: undefined,
   totalDebtUSD: undefined,
   totalAPY: undefined,
-  availableBorrowingPowerUSD: undefined,
+  availableBorrowPowerUSD: undefined,
   positions: [],
   // positionsAtRisk: [],
 }
@@ -77,8 +77,10 @@ export const usePositions = create<PositionsStore>()(
         set({ totalAPY: parseFloat(totalAPY_.toFixed(2)) })
       },
 
-      getTotalAvailableBorrowPowerUSD: async () => {
-        set({ availableBorrowingPowerUSD: /*fetchAndComputeTotalAPY()*/ 0 })
+      getAvailableBorrowPowerUSD: async () => {
+        const positions_ = get().positions
+        const available = getCurrentAvailableBorrowingPower(positions_)
+        set({ availableBorrowPowerUSD: available })
       },
 
       // getPositionsAtRisk: async () => {
@@ -104,7 +106,7 @@ function getTotalSum(
   positions: Position[],
   param: "collateral" | "debt"
 ): number {
-  return positions.reduce((acc, p) => p[param].usdValue + acc, 0)
+  return positions.reduce((s, p) => p[param].usdValue + s, 0)
 }
 
 async function getPositionsWithBalance(account_: string | undefined) {
@@ -164,4 +166,11 @@ function getAccrual(
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
   const apy = (1 + aprDecimal / 365) ^ (365 - 1)
   return factor * balance * (apy + 1)
+}
+
+function getCurrentAvailableBorrowingPower(positions: Position[]): number {
+  return positions.reduce(
+    (b, pos) => pos.collateral.usdValue * pos.ltvMax - pos.debt.usdValue + b,
+    0
+  )
 }
