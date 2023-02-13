@@ -20,7 +20,6 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
-import {ISwapper} from "../interfaces/ISwapper.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
   /**
@@ -155,7 +154,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
        * There is also a routing fee of 0.05% of the bridged amount.
        * The slippage can't be calculated upfront so that's why we need to
        * replace `amount` in the encoded args for the first action if
-       * the action is Deposit, Payback or Swap.
+       * the action is Deposit, or Payback.
        */
       args[0] = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
     }
@@ -183,7 +182,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   /**
    * @dev Decodes and replaces "amount" argument in args with `receivedAmount`
-   * in Deposit, Payback or Swap action.
+   * in Deposit, or Payback.
    *
    * Refer to:
    * https://github.com/Fujicracy/fuji-v2/issues/253#issuecomment-1385995095
@@ -210,53 +209,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         newArgs = abi.encode(vault, receivedAmount, receiver, sender);
         _checkSlippage(amount, receivedAmount, slippageThreshold);
       }
-    } else if (action == Action.Swap) {
-      newArgs = _replaceAmountInSwapAction(receivedAmount, args, slippageThreshold);
-    }
-  }
-
-  /**
-   * @dev Replaces `amountIn` argument in a `Action.Swap` argument.
-   * This function was required to avoid stack too deep error in
-   * `_accountForSlippage()`.
-   */
-  function _replaceAmountInSwapAction(
-    uint256 receivedAmount,
-    bytes memory args,
-    uint256 slippageThreshold
-  )
-    internal
-    pure
-    returns (bytes memory newArgs)
-  {
-    // For Swap.
-    (
-      ISwapper swapper,
-      address assetIn,
-      address assetOut,
-      uint256 amountIn,
-      uint256 amountOut,
-      address receiver,
-      address sweeper,
-      uint256 minSweepOut,
-      address sender
-    ) = abi.decode(
-      args, (ISwapper, address, address, uint256, uint256, address, address, uint256, address)
-    );
-
-    if (amountIn != receivedAmount) {
-      newArgs = abi.encode(
-        swapper,
-        assetIn,
-        assetOut,
-        receivedAmount,
-        amountOut,
-        receiver,
-        sweeper,
-        minSweepOut,
-        sender
-      );
-      _checkSlippage(amountIn, receivedAmount, slippageThreshold);
     }
   }
 
