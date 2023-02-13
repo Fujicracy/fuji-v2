@@ -24,6 +24,7 @@ import { Row } from "./MarketsTable"
 import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
 import { SizableTableCell } from "../Shared/SizableTableCell"
 import { BorrowingVault, Token } from "@x-fuji/sdk"
+import { chainName } from "../../services/chains"
 
 type MarketsTableRowProps = {
   row: Row
@@ -51,13 +52,17 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   const handleClick = async (vault: BorrowingVault) => {
     const vaultChainId = `0x${vault.chainId.toString(16)}`
     const walletChainId = walletChain?.id as string
+    const isSupported = chainName(walletChainId) !== ""
 
-    const collaterals = sdk.getCollateralForChain(Number(walletChainId))
-    const collateralToken = collaterals.find(
-      (t: Token) => t.symbol === vault.collateral.symbol
-    )
+    if (isSupported) {
+      const collaterals = sdk.getCollateralForChain(Number(walletChainId))
+      const collateralToken = collaterals.find(
+        (t: Token) => t.symbol === vault.collateral.symbol
+      )
 
-    changeCollateralChain(walletChainId, collateralToken)
+      changeCollateralChain(walletChainId, collateralToken)
+    }
+
     changeBorrowChain(vaultChainId, vault.debt)
     changeVault(vault)
 
