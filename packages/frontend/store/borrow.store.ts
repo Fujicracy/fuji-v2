@@ -85,8 +85,8 @@ type BorrowActions = {
   updateTokenPrice: (type: "debt" | "collateral") => void
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
-  updateVault: () => void
-  updateTransactionMeta: () => void
+  updateVault: (route: RouteMeta | undefined) => void
+  updateTransactionMeta: (route: RouteMeta | undefined) => void
   updateTransactionMetaDebounced: () => void
   updateLtv: () => void
   updateLiquidation: () => void
@@ -177,7 +177,7 @@ export const useBorrow = create<BorrowStore>()(
         )
         get().updateTokenPrice("collateral")
         get().updateBalances("collateral")
-        get().updateVault()
+        get().updateVault(undefined)
         get().updateAllowance()
       },
 
@@ -188,7 +188,7 @@ export const useBorrow = create<BorrowStore>()(
           })
         )
         get().updateTokenPrice("collateral")
-        get().updateVault()
+        get().updateVault(undefined)
         get().updateAllowance()
       },
 
@@ -212,7 +212,7 @@ export const useBorrow = create<BorrowStore>()(
 
         get().updateTokenPrice("debt")
         get().updateBalances("debt")
-        get().updateVault()
+        get().updateVault(undefined)
       },
 
       changeBorrowToken(token) {
@@ -222,8 +222,8 @@ export const useBorrow = create<BorrowStore>()(
           })
         )
         get().updateTokenPrice("debt")
-        get().updateVault()
-        get().updateTransactionMeta()
+        get().updateVault(undefined)
+        get().updateTransactionMeta(undefined) // updateVault already calls updateTransactionMeta
       },
 
       changeBorrowValue(value) {
@@ -342,30 +342,38 @@ export const useBorrow = create<BorrowStore>()(
         }
       },
 
-      async updateVault() {
-        set({ availableVaultsStatus: "fetching" })
+      async updateVault(route = undefined) {
+        let newVault = get().availableVaults.filter(
+          (v) => v.address.value === route?.address
+        )[0]
+        const shouldFetch = !newVault
+        if (shouldFetch) {
+          set({ availableVaultsStatus: "fetching" })
 
-        const collateral = get().position.collateral.token
-        const debt = get().position.debt.token
-        const availableVaults = await sdk.getBorrowingVaultsFor(
-          collateral,
-          debt
-        )
-        const [vault] = availableVaults
-        if (!vault) {
-          // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
-          console.error("No available vault")
-          set({ availableVaultsStatus: "error" })
-          return
+          const collateral = get().position.collateral.token
+          const debt = get().position.debt.token
+          const availableVaults = await sdk.getBorrowingVaultsFor(
+            collateral,
+            debt
+          )
+          const [vault] = availableVaults
+          if (!vault) {
+            // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
+            console.error("No available vault")
+            set({ availableVaultsStatus: "error" })
+            return
+          }
+          set({ availableVaults })
+          newVault = vault
         }
-        set({ availableVaults })
-
-        await get().changeActiveVault(vault)
+        await get().changeActiveVault(newVault)
         await Promise.all([
           get().updateAllProviders(),
-          get().updateTransactionMeta(),
+          get().updateTransactionMeta(route),
         ])
-        set({ availableVaultsStatus: "ready" })
+        if (shouldFetch) {
+          set({ availableVaultsStatus: "ready" })
+        }
       },
 
       async updateAllProviders() {
@@ -381,9 +389,44 @@ export const useBorrow = create<BorrowStore>()(
         set({ allProviders })
       },
 
-      async updateTransactionMeta() {
+      async updateTransactionMeta(route) {
         const address = useAuth.getState().address
         if (!address) {
+          return
+        }
+
+        const doUpdateTxMeta = (
+          status: FetchStatus,
+          bridgeFees: number,
+          estimateTime: number,
+          steps: RoutingStepDetails[],
+          actions: RouterActionParams[],
+          routes: RouteMeta[] | undefined
+        ) => {
+          set(
+            produce((state: BorrowState) => {
+              state.transactionMeta.status = status
+              state.transactionMeta.bridgeFees = bridgeFees
+              state.transactionMeta.estimateTime = estimateTime
+              state.transactionMeta.steps = steps
+              state.needPermit = Sdk.needSignature(actions)
+              state.actions = actions
+              if (routes) {
+                state.availableRoutes = routes
+              }
+            })
+          )
+        }
+
+        if (route) {
+          doUpdateTxMeta(
+            "ready",
+            route.bridgeFees,
+            route.estimateTime,
+            route.steps,
+            route.actions,
+            undefined
+          )
           return
         }
 
@@ -443,16 +486,13 @@ export const useBorrow = create<BorrowStore>()(
             .filter((r) => r.data)
             .map((r) => r.data) as RouteMeta[]
 
-          set(
-            produce((state: BorrowState) => {
-              state.transactionMeta.status = "ready"
-              state.transactionMeta.bridgeFees = bridgeFees
-              state.transactionMeta.estimateTime = estimateTime
-              state.transactionMeta.steps = steps
-              state.needPermit = Sdk.needSignature(actions)
-              state.actions = actions
-              state.availableRoutes = availableRoutes
-            })
+          doUpdateTxMeta(
+            "ready",
+            bridgeFees,
+            estimateTime,
+            steps,
+            actions,
+            availableRoutes
           )
         } catch (e) {
           set(
@@ -465,7 +505,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       updateTransactionMetaDebounced: debounce(
-        () => get().updateTransactionMeta(),
+        () => get().updateTransactionMeta(undefined),
         500
       ),
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Dialog, DialogContent, Typography } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
@@ -15,19 +15,13 @@ export default function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
   const availableRoutes = useBorrow((state) => state.availableRoutes)
-
-  useEffect(() => {
-    if (selectedRoute) {
-      window.alert("-mmm")
-    }
-  }, [selectedRoute])
+  const updateVault = useBorrow((state) => state.updateVault)
 
   function didSelectRoute(i: number) {
     if (selectedRoute !== i) {
-      // Update the store
+      updateVault(availableRoutes[i])
     }
     setSelectedRoute(i)
-    window.alert(i)
   }
 
   return (
