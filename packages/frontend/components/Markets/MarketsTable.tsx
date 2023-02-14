@@ -51,7 +51,7 @@ export default function MarketsTable() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchVaults() {
+    ;(async () => {
       try {
         let vaults = await sdk.getBorrowingVaultsFinancials()
         setVaults(vaults)
@@ -62,8 +62,7 @@ export default function MarketsTable() {
         // TODO: What if error
         setLoading(false)
       }
-    }
-    fetchVaults()
+    })()
   }, [])
 
   const rows: Row[] = groupByPair(vaults.map(vaultToRow))
