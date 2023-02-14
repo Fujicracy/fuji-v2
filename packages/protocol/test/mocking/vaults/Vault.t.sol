@@ -213,6 +213,25 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     _callWithTimelock(address(vault), encodedWithSelectorData);
   }
 
+  function test_newMaxDepositPreventsDeposits() public {
+    //First we simulate a deposit
+    uint256 amount = 1e18;
+    do_deposit(amount, vault, ALICE);
+    assertEq(vault.balanceOf(ALICE), amount);
+    //Now we check maxDeposit(), ensuring it works
+    vault.maxDeposit(address(0));
+    //Now we change the cap to below the totalAssets()
+    vm.prank(address(timelock));
+    vault.setDepositCap(amount - 1);
+    //Future calls will fail due to underflow
+    vm.expectRevert();
+    vault.maxDeposit(address(0));
+    //Finally, we try depositing again, however it fails this time
+    vm.prank(ALICE);
+    vm.expectRevert();
+    vault.deposit(amount, ALICE);
+  }
+  
   function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
     uint256 minAmount = vault.minAmount();
     vm.assume(
