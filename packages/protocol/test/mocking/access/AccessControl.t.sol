@@ -78,4 +78,36 @@ contract AccessControlUnitTests is MockingSetup {
     addrMapper.setNestedMapping("MockProvider_V2", keyAddr1, keyAddr2, returnedAddr);
     vm.stopPrank();
   }
+
+  function test_stale_data_chainlink() public {
+    /// chainlink of KNC / USDC 
+    MockERC20 knc = new MockERC20("KNC", "knc");
+    MockChainlinkPriceFeed kncPriceFeed = new MockChainlinkPriceFeed(
+      "KNC / USD",
+      8,
+      1000
+    );
+
+    /// set price feed for knc 
+    _callWithTimelock(
+      address(fujiOracle),
+      abi.encodeWithSelector(
+        FujiOracle.setPriceFeed.selector, 
+        address(knc),
+        address(kncPriceFeed)
+      )
+    );
+    assertEq(fujiOracle.usdPriceFeeds(address(knc)), address(kncPriceFeed));
+    
+    // knc price feed has met a problem (the one described in chainlink docs) which made data stale
+    kncPriceFeed.toggleStaleData(true);
+    (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) 
+      = kncPriceFeed.latestRoundData();
+    
+    /// stale data 
+    assertLt(answeredInRound, roundId);
+    
+    /// this should revert since the data is stale, but this function still return the price 
+    uint price = fujiOracle.getPriceOf(address(knc), address(asset), 8);
+  }
 }

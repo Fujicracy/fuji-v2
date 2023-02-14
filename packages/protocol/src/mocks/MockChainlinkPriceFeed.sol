@@ -15,6 +15,7 @@ contract MockChainlinkPriceFeed is IAggregatorV3 {
   string simulatedDescription;
   uint8 simulatedDecimals;
   int256 fakePrice;
+  bool staleDataFlag;
 
   constructor(string memory description_, uint8 decimals_, int256 fakePrice_) {
     simulatedDescription = description_;
@@ -70,6 +71,10 @@ contract MockChainlinkPriceFeed is IAggregatorV3 {
     answeredInRound = _roundId;
   }
 
+  function toggleStaleData(bool value) external {
+    staleDataFlag = value;
+  }
+
   function latestRoundData()
     external
     view
@@ -86,6 +91,6 @@ contract MockChainlinkPriceFeed is IAggregatorV3 {
     answer = fakePrice;
     startedAt = block.timestamp;
     updatedAt = block.timestamp;
-    answeredInRound = roundId;
+    answeredInRound = (staleDataFlag) ? roundId - 1 : roundId;
   }
 }
