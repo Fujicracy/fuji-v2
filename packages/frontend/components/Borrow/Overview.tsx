@@ -20,7 +20,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
-import { BorrowingVault } from "@x-fuji/sdk"
+import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
@@ -29,6 +29,7 @@ import ClickableTooltip from "../Shared/ClickableTooltip"
 import { useBorrow } from "../../store/borrow.store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
 import { NetworkIcon, ProviderIcon } from "../Shared/Icons"
+import { providersForRoute, RouteMeta } from "../../helpers/borrowService"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -38,14 +39,12 @@ export default function Overview() {
   const liquidationPrice = useBorrow((state) => state.position.liquidationPrice)
   const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
   const collateral = useBorrow((state) => state.position.collateral)
-  //const collateralInput = useBorrow((state) => state.collateralInput)
-  // const collateralAmount = parseFloat(collateralInput)
   const debt = useBorrow((state) => state.position.debt)
-  //const debtInput = useBorrow((state) => state.debtInput)
-  // const debtAmount = parseFloat(debtInput)
   const providers = useBorrow((state) => state.position.providers)
   const vault = useBorrow((state) => state.position.vault)
-  // const formType = useBorrow((state) => state.formType)
+  const availableVaults = useBorrow((state) => state.availableVaults)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
+  const changeActiveVault = useBorrow((state) => state.changeActiveVault)
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -65,7 +64,7 @@ export default function Overview() {
             height="40px"
           >
             <Typography variant="body2">Overview</Typography>
-            {vault && (
+            {availableRoutes.length > 0 && vault && (
               <Stack direction="row" alignItems="center">
                 <Tooltip
                   arrow
@@ -92,7 +91,16 @@ export default function Overview() {
                 <Typography variant="smallDark" ml={0.5} mr={1}>
                   Safety rating:
                 </Typography>
-                <VaultsMenu />
+                <VaultsMenu
+                  vault={vault}
+                  routes={availableRoutes}
+                  onSelection={(route) => {
+                    const v = availableVaults.filter(
+                      (v) => v.address.value === route.address
+                    )[0]
+                    changeActiveVault(v)
+                  }}
+                />
               </Stack>
             )}
           </Stack>
@@ -278,32 +286,28 @@ export default function Overview() {
   )
 }
 
-function VaultsMenu() {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  // TODO: use vaults instead of provider.
-  // use provider only to display pictures
-  const providers = useBorrow((state) => state.position.providers)
-  const vault = useBorrow((state) => state.position.vault)
-  const availableVaults = useBorrow((state) => state.availableVaults)
-  const changeVault = useBorrow((state) => state.changeActiveVault)
+type VaultsMenuProps = {
+  vault: BorrowingVault
+  routes: RouteMeta[]
+  onSelection: (route: RouteMeta) => void
+}
 
+function VaultsMenu(props: VaultsMenuProps) {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const open = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
   }
-  const select = (v: BorrowingVault) => {
-    changeVault(v)
+  const select = (route: RouteMeta) => {
+    props.onSelection(route)
     setAnchorEl(null)
   }
 
-  if (!availableVaults || !vault) {
-    return <></>
-  }
-
-  if (availableVaults.length < 2) {
+  if (props.routes.length < 2) {
     return (
       <Stack direction="row" alignItems="center" spacing={1}>
+        <Chip variant="success" label="A+" />
         <Box display="flex" alignItems="center">
-          {providers?.map((p) => (
+          {providersForRoute(props.routes[0]).map((p) => (
             <ProviderIcon
               key={p.name}
               providerName={p.name}
@@ -312,7 +316,6 @@ function VaultsMenu() {
             />
           ))}
         </Box>
-        <Chip variant="success" label="A+" />
       </Stack>
     )
   }
@@ -326,8 +329,13 @@ function VaultsMenu() {
         style={{ position: "relative" }}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
+          <Chip
+            variant="success"
+            label="A+"
+            sx={{ ".MuiChip-label": { textOverflow: "clip" } }}
+          />
           <Box display="flex" alignItems="center">
-            {providers?.map((p) => (
+            {providersForRoute(props.routes[0])?.map((p) => (
               <ProviderIcon
                 key={p.name}
                 providerName={p.name}
@@ -336,12 +344,6 @@ function VaultsMenu() {
               />
             ))}
           </Box>
-          {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
-          <Chip
-            variant="success"
-            label="A+"
-            sx={{ ".MuiChip-label": { textOverflow: "clip" } }}
-          />
           <KeyboardArrowDownIcon width={16} height={16} />
         </Stack>
       </Button>
@@ -354,12 +356,13 @@ function VaultsMenu() {
         MenuListProps={{ "aria-labelledby": "button-vaults-menu" }}
         TransitionComponent={Fade}
       >
-        {vaults.map((v: BorrowingVault) => (
+        {props.routes.map((r: RouteMeta) => (
           <VaultMenuItem
-            key={v.address.value}
-            selected={v.address.value === vault.address.value}
-            vault={v}
-            onClick={() => select(v)}
+            key={r.address}
+            providers={providersForRoute(r)}
+            selected={r.address === props.vault.address.value}
+            route={r}
+            onClick={() => select(r)}
           />
         ))}
       </Menu>
@@ -368,18 +371,21 @@ function VaultsMenu() {
 }
 
 type VaultMenuItemProps = {
-  vault: BorrowingVault
+  route: RouteMeta
+  providers: LendingProviderDetails[]
   selected: boolean
-  onClick: (p: BorrowingVault) => void
+  onClick: (route: RouteMeta) => void
 }
-const VaultMenuItem = ({ vault, selected, onClick }: VaultMenuItemProps) => {
-  const providers = useBorrow(
-    (state) => state.allProviders[vault.address.value]
-  )
-
+const VaultMenuItem = ({
+  route,
+  providers,
+  selected,
+  onClick,
+}: VaultMenuItemProps) => {
   return (
-    <MenuItem onClick={() => onClick(vault)}>
+    <MenuItem onClick={() => onClick(route)}>
       <Stack direction="row" alignItems="center" spacing={1}>
+        <Chip variant="success" label="A+" />
         <Box display="flex" alignItems="center">
           {providers.map((p, i) => (
             <Box
@@ -388,13 +394,15 @@ const VaultMenuItem = ({ vault, selected, onClick }: VaultMenuItemProps) => {
               key={p.name}
               sx={{ right: `${i * 4}px`, position: "relative" }}
             >
-              <ProviderIcon providerName={p.name} height={16} width={16} />
+              <ProviderIcon
+                key={p.name}
+                providerName={p.name}
+                height={16}
+                width={16}
+              />
             </Box>
           ))}
         </Box>
-        {/* TODO: safety rating? */}
-        {/* variant={row.safetyRating === "A+" ? "success" : "warning"} */}
-        <Chip variant="success" label="A+" />
         {selected && <CheckIcon />}
       </Stack>
     </MenuItem>
