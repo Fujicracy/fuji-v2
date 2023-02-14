@@ -66,7 +66,7 @@ type BorrowState = {
 
   isBorrowing: boolean
 }
-type FetchStatus = "initial" | "fetching" | "ready" | "error"
+export type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type BorrowActions = {
   changeBorrowChain: (chainId: ChainId) => void

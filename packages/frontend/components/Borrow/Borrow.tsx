@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from "react"
 import {
   Divider,
-  Button,
   Typography,
   CardContent,
   Card,
@@ -19,7 +18,6 @@ import { ChainSelect } from "./ChainSelect"
 import TokenCard from "./TokenCard"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
-import LoadingButton from "@mui/lab/LoadingButton"
 import RoutingModal from "./RoutingModal"
 import { useHistory } from "../../store/history.store"
 import { chainName } from "../../services/chains"
@@ -27,6 +25,7 @@ import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
 import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
+import BorrowButton from "./Button"
 
 type BorrowProps = {
   managePosition: boolean
@@ -95,79 +94,6 @@ export default function Borrow(props: BorrowProps) {
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
   const [managingAction, setManagingAction] = useState(0)
-
-  let button: ReactNode
-  if (!address) {
-    button = (
-      <Button
-        variant="gradient"
-        size="large"
-        onClick={() => login()}
-        fullWidth
-        data-cy="borrow-login"
-      >
-        Connect wallet
-      </Button>
-    )
-  } else if (collateralChainId !== walletChain?.id) {
-    button = (
-      <Button
-        variant="gradient"
-        size="large"
-        fullWidth
-        onClick={() => changeChain(collateral.token.chainId)}
-      >
-        Switch network
-      </Button>
-    )
-  } else if (collateralAmount > 0 && collateralAmount > balance) {
-    button = (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        Insufficient {collateral.token.symbol} balance
-      </Button>
-    )
-  } else if (ltv > ltvMax) {
-    button = (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        Not enough collateral
-      </Button>
-    )
-  } else if (
-    collateralAllowance?.value !== undefined &&
-    collateralAllowance.value < collateral.amount
-  ) {
-    button = (
-      <Button
-        variant="gradient"
-        fullWidth
-        size="large"
-        onClick={() => setShowApprovalModal(true)}
-      >
-        Allow
-      </Button>
-    )
-  } else {
-    button = (
-      <LoadingButton
-        variant="gradient"
-        onClick={signAndBorrow}
-        size="large"
-        fullWidth
-        disabled={
-          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
-        }
-        loading={
-          isSigning || isBorrowing || availableVaultStatus === "fetching"
-        }
-        loadingPosition="start"
-        startIcon={<></>}
-      >
-        {(isSigning && "(1/2) Signing...") ||
-          (isBorrowing && "(2/2) Borrowing...") ||
-          "Sign & Borrow"}
-      </LoadingButton>
-    )
-  }
 
   return (
     <>
@@ -262,7 +188,33 @@ export default function Borrow(props: BorrowProps) {
             <Fees />
           </Box>
 
-          {button}
+          <BorrowButton
+            address={address}
+            collateralChainId={collateralChainId}
+            walletChain={walletChain}
+            collateralAmount={collateralAmount}
+            debtAmount={debtAmount}
+            balance={balance}
+            ltv={ltv}
+            ltvMax={ltvMax}
+            collateralAllowance={collateralAllowance?.value}
+            collateral={collateral}
+            metaStatus={metaStatus}
+            isSigning={isSigning}
+            isBorrowing={isBorrowing}
+            availableVaultStatus={availableVaultStatus}
+            onClick={(action) => {
+              if (action === "login") {
+                login()
+              } else if (action === "change_chain") {
+                changeChain(collateral.token.chainId)
+              } else if (action === "approve") {
+                setShowApprovalModal(true)
+              } else {
+                signAndBorrow()
+              }
+            }}
+          />
 
           <Link
             href="https://www.connext.network/"
