@@ -25,6 +25,8 @@ type BorrowButtonProps = {
   isSigning: boolean
   isBorrowing: boolean
   availableVaultStatus: FetchStatus
+  managePosition: boolean
+  managingAction: number
   onClick: (action: BorrowButtonActions) => void
 }
 
@@ -102,8 +104,19 @@ const BorrowButton = (props: BorrowButtonProps) => {
         startIcon={<></>}
       >
         {(props.isSigning && "(1/2) Signing...") ||
-          (props.isBorrowing && "(2/2) Borrowing...") ||
-          "Sign & Borrow"}
+        (props.isBorrowing &&
+          `(2/2) ${
+            props.managePosition
+              ? props.managingAction === 0
+                ? "Adding"
+                : "Removing"
+              : "Borrowing"
+          }...`) ||
+        props.managePosition
+          ? props.managingAction === 0
+            ? "Add Collateral"
+            : "Remove Collateral"
+          : "Sign & Borrow"}
       </LoadingButton>
     )
   }

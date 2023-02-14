@@ -7,7 +7,7 @@ const PositionPage: NextPage = () => {
   const router = useRouter()
   const { pid } = router.query // Contains chain-vault, need to separate into two and grab the right data
 
-  // Router.push("/borrow") // If pid is invalid, redirect to borrow
+  // Router.push("/borrow") // If pid is invalid or if vault balance is null, redirect to borrow
 
   return <BorrowWrapper managePosition />
 }

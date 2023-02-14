@@ -203,6 +203,8 @@ export default function Borrow(props: BorrowProps) {
             isSigning={isSigning}
             isBorrowing={isBorrowing}
             availableVaultStatus={availableVaultStatus}
+            managePosition={props.managePosition}
+            managingAction={managingAction}
             onClick={(action) => {
               if (action === "login") {
                 login()
