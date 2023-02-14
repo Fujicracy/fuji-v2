@@ -106,7 +106,8 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       flashAmount + fee,
       address(flasher),
       ALICE,
-      0
+      0,
+      address(router)
     );
     // ------------
 
@@ -180,7 +181,8 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       borrowAmount + fee,
       address(flasher),
       ALICE,
-      0
+      0,
+      address(router)
     );
     // ------------
 
