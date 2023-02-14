@@ -80,13 +80,14 @@ type BorrowActions = {
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   changeActiveVault: (v: BorrowingVault) => void
+  changeTransactionMeta: (route: RouteMeta) => void
 
   updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
   updateBalances: (type: "debt" | "collateral") => void
   updateAllowance: () => void
-  updateVault: (route: RouteMeta | undefined) => void
-  updateTransactionMeta: (route: RouteMeta | undefined) => void
+  updateVault: () => void
+  updateTransactionMeta: () => void
   updateTransactionMetaDebounced: () => void
   updateLtv: () => void
   updateLiquidation: () => void
@@ -177,7 +178,7 @@ export const useBorrow = create<BorrowStore>()(
         )
         get().updateTokenPrice("collateral")
         get().updateBalances("collateral")
-        get().updateVault(undefined)
+        get().updateVault()
         get().updateAllowance()
       },
 
@@ -188,7 +189,7 @@ export const useBorrow = create<BorrowStore>()(
           })
         )
         get().updateTokenPrice("collateral")
-        get().updateVault(undefined)
+        get().updateVault()
         get().updateAllowance()
       },
 
@@ -212,7 +213,7 @@ export const useBorrow = create<BorrowStore>()(
 
         get().updateTokenPrice("debt")
         get().updateBalances("debt")
-        get().updateVault(undefined)
+        get().updateVault()
       },
 
       changeBorrowToken(token) {
@@ -222,8 +223,8 @@ export const useBorrow = create<BorrowStore>()(
           })
         )
         get().updateTokenPrice("debt")
-        get().updateVault(undefined)
-        get().updateTransactionMeta(undefined) // updateVault already calls updateTransactionMeta
+        get().updateVault()
+        get().updateTransactionMeta() // updateVault already calls updateTransactionMeta
       },
 
       changeBorrowValue(value) {
@@ -255,8 +256,26 @@ export const useBorrow = create<BorrowStore>()(
             s.position.activeProvider = providers[0]
           })
         )
-
+        const route = get().availableRoutes.filter(
+          (r) => r.address === vault.address.value
+        )[0]
+        if (route) {
+          get().changeTransactionMeta(route)
+        }
         await get().updateVaultBalance()
+      },
+
+      async changeTransactionMeta(route) {
+        set(
+          produce((state: BorrowState) => {
+            state.transactionMeta.status = "ready"
+            state.transactionMeta.bridgeFees = route.bridgeFees
+            state.transactionMeta.estimateTime = route.estimateTime
+            state.transactionMeta.steps = route.steps
+            state.needPermit = Sdk.needSignature(route.actions)
+            state.actions = route.actions
+          })
+        )
       },
 
       async updateBalances(type) {
@@ -342,38 +361,30 @@ export const useBorrow = create<BorrowStore>()(
         }
       },
 
-      async updateVault(route = undefined) {
-        let newVault = get().availableVaults.filter(
-          (v) => v.address.value === route?.address
-        )[0]
-        const shouldFetch = !newVault
-        if (shouldFetch) {
-          set({ availableVaultsStatus: "fetching" })
+      async updateVault() {
+        set({ availableVaultsStatus: "fetching" })
 
-          const collateral = get().position.collateral.token
-          const debt = get().position.debt.token
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          )
-          const [vault] = availableVaults
-          if (!vault) {
-            // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
-            console.error("No available vault")
-            set({ availableVaultsStatus: "error" })
-            return
-          }
-          set({ availableVaults })
-          newVault = vault
+        const collateral = get().position.collateral.token
+        const debt = get().position.debt.token
+        const availableVaults = await sdk.getBorrowingVaultsFor(
+          collateral,
+          debt
+        )
+        const [vault] = availableVaults
+        if (!vault) {
+          // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
+          console.error("No available vault")
+          set({ availableVaultsStatus: "error" })
+          return
         }
-        await get().changeActiveVault(newVault)
+        set({ availableVaults })
+
+        await get().changeActiveVault(vault)
         await Promise.all([
           get().updateAllProviders(),
-          get().updateTransactionMeta(route),
+          get().updateTransactionMeta(),
         ])
-        if (shouldFetch) {
-          set({ availableVaultsStatus: "ready" })
-        }
+        set({ availableVaultsStatus: "ready" })
       },
 
       async updateAllProviders() {
@@ -389,47 +400,11 @@ export const useBorrow = create<BorrowStore>()(
         set({ allProviders })
       },
 
-      async updateTransactionMeta(route) {
+      async updateTransactionMeta() {
         const address = useAuth.getState().address
         if (!address) {
           return
         }
-
-        const doUpdateTxMeta = (
-          status: FetchStatus,
-          bridgeFees: number,
-          estimateTime: number,
-          steps: RoutingStepDetails[],
-          actions: RouterActionParams[],
-          routes: RouteMeta[] | undefined
-        ) => {
-          set(
-            produce((state: BorrowState) => {
-              state.transactionMeta.status = status
-              state.transactionMeta.bridgeFees = bridgeFees
-              state.transactionMeta.estimateTime = estimateTime
-              state.transactionMeta.steps = steps
-              state.needPermit = Sdk.needSignature(actions)
-              state.actions = actions
-              if (routes) {
-                state.availableRoutes = routes
-              }
-            })
-          )
-        }
-
-        if (route) {
-          doUpdateTxMeta(
-            "ready",
-            route.bridgeFees,
-            route.estimateTime,
-            route.steps,
-            route.actions,
-            undefined
-          )
-          return
-        }
-
         const { vault, collateral, debt } = get().position
         const { collateralInput, debtInput } = get()
         if (!vault || !collateralInput || !debtInput) {
@@ -439,7 +414,6 @@ export const useBorrow = create<BorrowStore>()(
             })
           )
         }
-
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "fetching"
@@ -447,14 +421,12 @@ export const useBorrow = create<BorrowStore>()(
             state.actions = undefined
           })
         )
-
         try {
           const results = await Promise.all(
             [vault].map(async (v) => {
               const [selectedVault] = await get().availableVaults
               const recommended =
                 vault.address.value === selectedVault.address.value
-
               return fetchRoutes(
                 v,
                 collateral.token,
@@ -475,25 +447,16 @@ export const useBorrow = create<BorrowStore>()(
           if (!selectedValue.data) {
             throw "Data not found"
           }
-          const { bridgeFees, estimateTime, actions, steps } =
-            selectedValue.data as RouteMeta
-
-          if (!actions.length) {
+          const selectedRoute = selectedValue.data as RouteMeta
+          if (!selectedRoute.actions.length) {
             throw `empty action array returned by sdk.previewDepositAndBorrow with params`
           }
-
           const availableRoutes = results
             .filter((r) => r.data)
             .map((r) => r.data) as RouteMeta[]
 
-          doUpdateTxMeta(
-            "ready",
-            bridgeFees,
-            estimateTime,
-            steps,
-            actions,
-            availableRoutes
-          )
+          set({ availableRoutes })
+          get().changeTransactionMeta(selectedRoute)
         } catch (e) {
           set(
             produce((state: BorrowState) => {
@@ -505,7 +468,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       updateTransactionMetaDebounced: debounce(
-        () => get().updateTransactionMeta(undefined),
+        () => get().updateTransactionMeta(),
         500
       ),
 

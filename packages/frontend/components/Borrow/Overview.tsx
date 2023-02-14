@@ -284,7 +284,7 @@ function VaultsMenu() {
   // use provider only to display pictures
   const providers = useBorrow((state) => state.position.providers)
   const vault = useBorrow((state) => state.position.vault)
-  const vaults = useBorrow((state) => state.availableVaults)
+  const availableVaults = useBorrow((state) => state.availableVaults)
   const changeVault = useBorrow((state) => state.changeActiveVault)
 
   const open = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -295,11 +295,11 @@ function VaultsMenu() {
     setAnchorEl(null)
   }
 
-  if (!vaults || !vault) {
+  if (!availableVaults || !vault) {
     return <></>
   }
 
-  if (vaults.length < 2) {
+  if (availableVaults.length < 2) {
     return (
       <Stack direction="row" alignItems="center" spacing={1}>
         <Box display="flex" alignItems="center">
