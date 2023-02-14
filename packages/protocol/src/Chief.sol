@@ -401,7 +401,6 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *
    * @param vault address of vault to check
    */
-   /// [$audit-med] out-of-gas here 
   function _checkValidVault(address vault) internal view {
     _checkInputIsNotZeroAddress(vault);
     uint256 len = _vaults.length;
