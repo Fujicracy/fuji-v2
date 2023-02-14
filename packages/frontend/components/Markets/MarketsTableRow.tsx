@@ -37,12 +37,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   const router = useRouter()
 
   const walletChain = useAuth((state) => state.chain)
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  )
-
-  const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
-  const changeVault = useBorrow((state) => state.changeActiveVault)
+  const changeAll = useBorrow((state) => state.changeAll)
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation()
@@ -50,7 +45,6 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   }
 
   const handleClick = async (vault: BorrowingVault) => {
-    const vaultChainId = `0x${vault.chainId.toString(16)}`
     const walletChainId = walletChain?.id as string
     const isSupported = chainName(walletChainId) !== ""
 
@@ -59,12 +53,10 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
       const collateralToken = collaterals.find(
         (t: Token) => t.symbol === vault.collateral.symbol
       )
-
-      changeCollateralChain(walletChainId, collateralToken)
+      changeAll(collateralToken ?? vault.collateral, vault.debt, vault)
+    } else {
+      changeAll(vault.collateral, vault.debt, vault)
     }
-
-    changeBorrowChain(vaultChainId, vault.debt)
-    changeVault(vault)
 
     router.push("/borrow")
   }

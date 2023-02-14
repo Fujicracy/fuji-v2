@@ -29,18 +29,23 @@ import { useAuth } from "../../store/auth.store"
 export default function Borrow() {
   const address = useAuth((state) => state.address)
   const walletChain = useAuth((state) => state.chain)
+  const activeVault = useBorrow((state) => state.position.vault)
   const changeChain = useAuth((state) => state.changeChain)
   const updateBalance = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)
   const updateAllowance = useBorrow((state) => state.updateAllowance)
+
   useEffect(() => {
     if (address) {
       updateBalance("collateral")
       updateBalance("debt")
       updateAllowance()
-      updateVault()
     }
-  }, [address, updateBalance, updateAllowance, updateVault])
+    // updateVault only if there's no active vault already set
+    // because if we want to set it from somewhere else (as from the markets page)
+    // this will overwrite what was set beforehand
+    if (!activeVault) updateVault()
+  }, [address, updateBalance, updateAllowance, updateVault, activeVault])
 
   const login = useAuth((state) => state.login)
   const theme = useTheme()
@@ -55,8 +60,6 @@ export default function Borrow() {
   const debtInput = useBorrow((state) => state.debtInput)
   const debtAmount = parseFloat(debtInput)
   const debtChainId = useBorrow((state) => state.debtChainId)
-
-  // const vaultChainId = useBorrow((state) => state.position.vault?.chainId)
 
   const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
   const changeCollateralChain = useBorrow(

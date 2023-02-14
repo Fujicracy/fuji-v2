@@ -1,4 +1,5 @@
 import { Chain as IChain } from "@web3-onboard/common"
+import { ChainId } from "@x-fuji/sdk"
 
 export type Chain = IChain
 
@@ -100,4 +101,8 @@ export function chainName(id?: string | number): string {
 export function chainIcon(name: string): string {
   const icon = chains.filter((c) => c.label === name)[0].icon
   return icon || ""
+}
+
+export function chainIdToHex(id: ChainId): string {
+  return `0x${id.toString(16)}`
 }
