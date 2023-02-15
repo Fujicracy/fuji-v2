@@ -173,7 +173,7 @@ export default function Overview() {
             borrowLimit={0} // TODO: should be dynamic
             value={ltv > ltvMax ? ltvMax : ltv}
             maxLTV={ltvMax}
-            recommendedLTV={recommendedLTV(ltvMax)} // TODO: Should be dynamic thanks to SDK method
+            recommendedLTV={recommendedLTV(ltvMax)}
           />
 
           <Divider sx={{ mt: 2, mb: 2 }} />
