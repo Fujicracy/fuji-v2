@@ -57,7 +57,7 @@ type BorrowState = {
   transactionMeta: {
     status: FetchStatus
     gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
-    bridgeFees: number
+    bridgeFee: number
     estimateTime: number
     steps: RoutingStepDetails[]
   }
@@ -149,7 +149,7 @@ const initialState: BorrowState = {
 
   transactionMeta: {
     status: "initial",
-    bridgeFees: 0,
+    bridgeFee: 0,
     gasFees: 0,
     estimateTime: 0,
     steps: [],
@@ -269,7 +269,7 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "ready"
-            state.transactionMeta.bridgeFees = route.bridgeFees
+            state.transactionMeta.bridgeFee = route.bridgeFee
             state.transactionMeta.estimateTime = route.estimateTime
             state.transactionMeta.steps = route.steps
             state.needPermit = Sdk.needSignature(route.actions)
@@ -405,6 +405,7 @@ export const useBorrow = create<BorrowStore>()(
         if (!address) {
           return
         }
+
         const { vault, collateral, debt } = get().position
         const { collateralInput, debtInput } = get()
         if (!vault || !collateralInput || !debtInput) {
@@ -422,11 +423,11 @@ export const useBorrow = create<BorrowStore>()(
           })
         )
         try {
+          const vaults = get().availableVaults
           const results = await Promise.all(
-            [vault].map(async (v) => {
-              const [selectedVault] = await get().availableVaults
-              const recommended =
-                vault.address.value === selectedVault.address.value
+            vaults.map((v, i) => {
+              const recommended = i === 0
+
               return fetchRoutes(
                 v,
                 collateral.token,

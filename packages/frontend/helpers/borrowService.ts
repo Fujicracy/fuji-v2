@@ -1,10 +1,11 @@
-import { parseUnits } from "ethers/lib/utils"
+import { formatUnits, parseUnits } from "ethers/lib/utils"
 
 import {
   Address,
   BorrowingVault,
   LendingProviderDetails,
   RouterActionParams,
+  RoutingStep,
   RoutingStepDetails,
   Token,
 } from "@x-fuji/sdk"
@@ -13,7 +14,7 @@ import { sdk } from "../services/sdk"
 export type RouteMeta = {
   //gasFees: number
   estimateSlippage: number
-  bridgeFees: number
+  bridgeFee: number
   estimateTime: number
   steps: RoutingStepDetails[]
   actions: RouterActionParams[]
@@ -54,11 +55,17 @@ export const fetchRoutes = async (
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
       preview
 
+    const bridgeStep = steps.filter((s) => s.step === RoutingStep.X_TRANSFER)[0]
+    const _bridgeFee = bridgeStep
+      ? formatUnits(bridgeFee, bridgeStep.token?.decimals ?? 18)
+      : "0"
+
     result.data = {
       address: vault.address.value,
       recommended,
-      bridgeFees: bridgeFee.toNumber(),
-      estimateSlippage: estimateSlippage.toNumber(),
+      bridgeFee: Number(_bridgeFee),
+      // slippage is in basis points
+      estimateSlippage: estimateSlippage.toNumber() / 100,
       estimateTime,
       actions,
       steps,
