@@ -679,6 +679,13 @@ export const useBorrow = create<BorrowStore>()(
           get().changeBorrowValue("")
         } catch (e) {
           console.error(e)
+          if (e instanceof Error) {
+            useSnack.getState().display({
+              icon: "error",
+              title: "Error",
+              body: "There was a problem making the transaction, please try again later", // TODO: Improve
+            })
+          }
         }
       },
     }),
