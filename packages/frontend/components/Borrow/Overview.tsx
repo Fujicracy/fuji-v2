@@ -2,25 +2,17 @@ import React from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box,
-  Button,
   Card,
   CardContent,
-  Chip,
   Divider,
-  Fade,
   Grid,
   Link,
-  Menu,
-  MenuItem,
   Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import CheckIcon from "@mui/icons-material/Check"
-import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
 
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
@@ -28,8 +20,8 @@ import LTVProgressBar from "./LTVProgressBar"
 import ClickableTooltip from "../Shared/ClickableTooltip"
 import { useBorrow } from "../../store/borrow.store"
 import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
-import { NetworkIcon, ProviderIcon } from "../Shared/Icons"
-import { providersForRoute, RouteMeta } from "../../helpers/borrowService"
+import { NetworkIcon } from "../Shared/Icons"
+import VaultsMenu from "./VaultsMenu"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -64,45 +56,47 @@ export default function Overview() {
             height="40px"
           >
             <Typography variant="body2">Overview</Typography>
-            {availableRoutes.length > 0 && vault && (
-              <Stack direction="row" alignItems="center">
-                <Tooltip
-                  arrow
-                  title={
-                    <span>
-                      We take into account variables such as liquidity, audits
-                      and team behind each protocol, you can read more on our
-                      risk framework{" "}
-                      <Link
-                        href="https://docs.fujidao.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <u> here</u>
-                      </Link>
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: "1rem", color: palette.info.main }}
+            {availableRoutes.length > 0 &&
+              availableRoutes.find((r) => r.address === vault?.address.value) &&
+              vault && (
+                <Stack direction="row" alignItems="center">
+                  <Tooltip
+                    arrow
+                    title={
+                      <span>
+                        We take into account variables such as liquidity, audits
+                        and team behind each protocol, you can read more on our
+                        risk framework{" "}
+                        <Link
+                          href="https://docs.fujidao.org/"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <u> here</u>
+                        </Link>
+                      </span>
+                    }
+                    placement="top"
+                  >
+                    <InfoOutlinedIcon
+                      sx={{ fontSize: "1rem", color: palette.info.main }}
+                    />
+                  </Tooltip>
+                  <Typography variant="smallDark" ml={0.5} mr={1}>
+                    Safety rating:
+                  </Typography>
+                  <VaultsMenu
+                    vault={vault}
+                    routes={availableRoutes}
+                    onSelection={(route) => {
+                      const v = availableVaults.filter(
+                        (v) => v.address.value === route.address
+                      )[0]
+                      changeActiveVault(v)
+                    }}
                   />
-                </Tooltip>
-                <Typography variant="smallDark" ml={0.5} mr={1}>
-                  Safety rating:
-                </Typography>
-                <VaultsMenu
-                  vault={vault}
-                  routes={availableRoutes}
-                  onSelection={(route) => {
-                    const v = availableVaults.filter(
-                      (v) => v.address.value === route.address
-                    )[0]
-                    changeActiveVault(v)
-                  }}
-                />
-              </Stack>
-            )}
+                </Stack>
+              )}
           </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
@@ -283,128 +277,5 @@ export default function Overview() {
         </CardContent>
       </Card>
     </Grid>
-  )
-}
-
-type VaultsMenuProps = {
-  vault: BorrowingVault
-  routes: RouteMeta[]
-  onSelection: (route: RouteMeta) => void
-}
-
-function VaultsMenu(props: VaultsMenuProps) {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const open = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const select = (route: RouteMeta) => {
-    props.onSelection(route)
-    setAnchorEl(null)
-  }
-
-  if (props.routes.length < 2) {
-    return (
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <Chip variant="success" label="A+" />
-        <Box display="flex" alignItems="center">
-          {providersForRoute(props.routes[0]).map((p) => (
-            <ProviderIcon
-              key={p.name}
-              providerName={p.name}
-              height={16}
-              width={16}
-            />
-          ))}
-        </Box>
-      </Stack>
-    )
-  }
-
-  return (
-    <>
-      <Button
-        id="button-vaults-menu"
-        variant="secondary"
-        onClick={open}
-        style={{ position: "relative" }}
-      >
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Chip
-            variant="success"
-            label="A+"
-            sx={{ ".MuiChip-label": { textOverflow: "clip" } }}
-          />
-          <Box display="flex" alignItems="center">
-            {providersForRoute(props.routes[0])?.map((p) => (
-              <ProviderIcon
-                key={p.name}
-                providerName={p.name}
-                height={16}
-                width={16}
-              />
-            ))}
-          </Box>
-          <KeyboardArrowDownIcon width={16} height={16} />
-        </Stack>
-      </Button>
-      <Menu
-        id="vaults-menu"
-        anchorEl={anchorEl}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
-        MenuListProps={{ "aria-labelledby": "button-vaults-menu" }}
-        TransitionComponent={Fade}
-      >
-        {props.routes.map((r: RouteMeta) => (
-          <VaultMenuItem
-            key={r.address}
-            providers={providersForRoute(r)}
-            selected={r.address === props.vault.address.value}
-            route={r}
-            onClick={() => select(r)}
-          />
-        ))}
-      </Menu>
-    </>
-  )
-}
-
-type VaultMenuItemProps = {
-  route: RouteMeta
-  providers: LendingProviderDetails[]
-  selected: boolean
-  onClick: (route: RouteMeta) => void
-}
-const VaultMenuItem = ({
-  route,
-  providers,
-  selected,
-  onClick,
-}: VaultMenuItemProps) => {
-  return (
-    <MenuItem onClick={() => onClick(route)}>
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <Chip variant="success" label="A+" />
-        <Box display="flex" alignItems="center">
-          {providers.map((p, i) => (
-            <Box
-              display="flex"
-              alignItems="center"
-              key={p.name}
-              sx={{ right: `${i * 4}px`, position: "relative" }}
-            >
-              <ProviderIcon
-                key={p.name}
-                providerName={p.name}
-                height={16}
-                width={16}
-              />
-            </Box>
-          ))}
-        </Box>
-        {selected && <CheckIcon />}
-      </Stack>
-    </MenuItem>
   )
 }

@@ -35,7 +35,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
   const amount = infiniteApproval
     ? Number.MAX_SAFE_INTEGER
     : collateral.amount +
-      meta.bridgeFees / collateral.usdValue +
+      meta.bridgeFee / collateral.usdValue +
       meta.gasFees / collateral.usdValue
 
   const allow = useBorrow((state) => state.allow)

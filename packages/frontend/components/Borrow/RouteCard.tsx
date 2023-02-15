@@ -8,7 +8,7 @@ import { Stack } from "@mui/system"
 
 import { chainName } from "../../services/chains"
 import { NetworkIcon, TokenIcon } from "../Shared/Icons"
-import { RouteMeta } from "../../helpers/borrowService"
+import { RouteMeta } from "../../helpers/borrow"
 import { toNotSoFixed, camelize } from "../../helpers/values"
 import { BigNumber } from "ethers"
 
@@ -21,13 +21,11 @@ type RouteCardProps = {
 export default function RouteCard(props: RouteCardProps) {
   const { palette } = useTheme()
 
-  const bridgeStep = props.route.steps.filter(
+  const bridgeStep = props.route.steps.find(
     (s) => s.step === RoutingStep.X_TRANSFER
-  )[0]
-  const startStep = props.route.steps.filter(
-    (s) => s.step === RoutingStep.START
-  )[0]
-  const endStep = props.route.steps.filter((s) => s.step === RoutingStep.END)[0]
+  )
+  const startStep = props.route.steps.find((s) => s.step === RoutingStep.START)
+  const endStep = props.route.steps.find((s) => s.step === RoutingStep.END)
 
   const steps = props.route.steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END

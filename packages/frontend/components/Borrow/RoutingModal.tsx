@@ -20,9 +20,10 @@ export default function RoutingModal(props: RoutingModalProps) {
 
   function didSelectRoute(i: number) {
     if (selectedRoute !== i) {
-      const vault = availableVaults.filter(
+      const vault = availableVaults.find(
         (v) => v.address.value === availableRoutes[i].address
-      )[0]
+      )
+      if (!vault) return
       changeActiveVault(vault)
     }
     setSelectedRoute(i)

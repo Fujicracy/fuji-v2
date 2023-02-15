@@ -1,7 +1,7 @@
 import LoadingButton from "@mui/lab/LoadingButton"
 import { useState } from "react"
 import { SerializableToken } from "../../store/history.store"
-import { getTokenImage } from "../../helpers/tokenService"
+import { getTokenImage } from "../../helpers/token"
 
 declare const ethereum: any // eslint-disable-line
 

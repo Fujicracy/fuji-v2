@@ -55,7 +55,7 @@ export const fetchRoutes = async (
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
       preview
 
-    const bridgeStep = steps.filter((s) => s.step === RoutingStep.X_TRANSFER)[0]
+    const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER)
     const _bridgeFee = bridgeStep
       ? formatUnits(bridgeFee, bridgeStep.token?.decimals ?? 18)
       : "0"

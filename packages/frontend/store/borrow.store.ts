@@ -23,7 +23,7 @@ import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
-import { fetchRoutes, RouteMeta } from "../helpers/borrowService"
+import { fetchRoutes, RouteMeta } from "../helpers/borrow"
 
 setAutoFreeze(false)
 
@@ -256,9 +256,9 @@ export const useBorrow = create<BorrowStore>()(
             s.position.activeProvider = providers[0]
           })
         )
-        const route = get().availableRoutes.filter(
+        const route = get().availableRoutes.find(
           (r) => r.address === vault.address.value
-        )[0]
+        )
         if (route) {
           get().changeTransactionMeta(route)
         }
@@ -439,14 +439,14 @@ export const useBorrow = create<BorrowStore>()(
               )
             })
           )
-          const selectedValue = results.filter(
+          const selectedValue = results.find(
             (r) => r.data?.address === vault.address.value
-          )[0]
+          )
+          if (!selectedValue || (!selectedValue.error && !selectedValue.data)) {
+            throw "Data not found"
+          }
           if (selectedValue.error) {
             throw selectedValue.error
-          }
-          if (!selectedValue.data) {
-            throw "Data not found"
           }
           const selectedRoute = selectedValue.data as RouteMeta
           if (!selectedRoute.actions.length) {
