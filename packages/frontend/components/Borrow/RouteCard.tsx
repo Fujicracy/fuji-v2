@@ -46,22 +46,22 @@ export default function RouteCard(props: RouteCardProps) {
     if (step.step === RoutingStep.DEPOSIT) {
       return `Deposit ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol} to ${step.lendingProvider?.name}`
+      )} ${step.token?.symbol}`
     }
     if (step.step === RoutingStep.WITHDRAW) {
       return `Withdraw ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+      )} ${step.token?.symbol}`
     }
     if (step.step === RoutingStep.BORROW) {
       return `Borrow ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+      )} ${step.token?.symbol}`
     }
     if (step.step === RoutingStep.PAYBACK) {
       return `Payback ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+      )} ${step.token?.symbol}`
     }
     if (step.step === RoutingStep.X_TRANSFER) {
       return `Bridge to ${chainName(step.chainId)} via Connext`
@@ -70,6 +70,7 @@ export default function RouteCard(props: RouteCardProps) {
   }
 
   function slippageText() {
+    if (!bridgeStep) return ""
     const bridgeIndex = steps.indexOf(bridgeStep)
     const step =
       bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1]
@@ -78,6 +79,7 @@ export default function RouteCard(props: RouteCardProps) {
   }
 
   function slippageTextTooltip() {
+    if (!bridgeStep) return ""
     const bridgeIndex = steps.indexOf(bridgeStep)
     const step =
       bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1]
@@ -91,7 +93,8 @@ export default function RouteCard(props: RouteCardProps) {
       than the requested amount due to a ${sign} slippage.`
   }
 
-  function roundStepAmount(step: RoutingStepDetails) {
+  function roundStepAmount(step: RoutingStepDetails | undefined) {
+    if (!step) return 0
     const formatted = formatUnits(
       step.amount ?? BigNumber.from("0"),
       step.token?.decimals ?? 18
@@ -186,9 +189,9 @@ export default function RouteCard(props: RouteCardProps) {
 
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
-          <TokenIcon token={startStep.token as Token} height={32} width={32} />
+          <TokenIcon token={startStep?.token as Token} height={32} width={32} />
           <NetworkIcon
-            network={chainName(startStep.chainId)}
+            network={chainName(startStep?.chainId)}
             height={16}
             width={16}
             sx={{
@@ -204,11 +207,11 @@ export default function RouteCard(props: RouteCardProps) {
 
           <Box>
             <Typography variant="body">
-              {roundStepAmount(startStep)} {startStep.token?.symbol}
+              {roundStepAmount(startStep)} {startStep?.token?.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">
-              on {chainName(startStep.chainId)}
+              on {chainName(startStep?.chainId)}
             </Typography>
           </Box>
         </Stack>
@@ -216,17 +219,17 @@ export default function RouteCard(props: RouteCardProps) {
         <Stack direction="row">
           <Box textAlign="right" mr="0.75rem">
             <Typography variant="body">
-              {roundStepAmount(endStep)} {endStep.token?.symbol}
+              {roundStepAmount(endStep)} {endStep?.token?.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">
-              on {chainName(endStep.chainId)}
+              on {chainName(endStep?.chainId)}
             </Typography>
           </Box>
 
-          <TokenIcon token={endStep.token as Token} height={32} width={32} />
+          <TokenIcon token={endStep?.token as Token} height={32} width={32} />
           <NetworkIcon
-            network={chainName(endStep.chainId)}
+            network={chainName(endStep?.chainId)}
             height={16}
             width={16}
             sx={{

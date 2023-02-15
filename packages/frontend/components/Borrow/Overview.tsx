@@ -19,9 +19,9 @@ import LTVProgressBar from "./LTVProgressBar"
 
 import ClickableTooltip from "../Shared/ClickableTooltip"
 import { useBorrow } from "../../store/borrow.store"
-import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
 import { NetworkIcon } from "../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
+import { recommendedLTV } from "../../helpers/borrow"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -173,7 +173,7 @@ export default function Overview() {
             borrowLimit={0} // TODO: should be dynamic
             value={ltv > ltvMax ? ltvMax : ltv}
             maxLTV={ltvMax}
-            recommendedLTV={DEFAULT_LTV_RECOMMENDED} // TODO: Should be dynamic thanks to SDK method
+            recommendedLTV={recommendedLTV(ltvMax)} // TODO: Should be dynamic thanks to SDK method
           />
 
           <Divider sx={{ mt: 2, mb: 2 }} />

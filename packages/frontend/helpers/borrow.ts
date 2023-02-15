@@ -90,3 +90,7 @@ export const providersForRoute = (
   })
   return unique
 }
+
+export const recommendedLTV = (ltvMax: number): number => {
+  return ltvMax > 20 ? ltvMax - 20 : 0
+}
