@@ -34,7 +34,7 @@ export const Fees = () => {
         {transactionMeta.status === "ready" && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
-              {`~$${transactionMeta.bridgeFees} + gas`}
+              {`~$${transactionMeta.bridgeFee.toFixed(2)} + gas`}
             </Typography>
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
@@ -53,7 +53,10 @@ export const Fees = () => {
       </Stack>
 
       <Collapse in={show} sx={{ width: "100%" }}>
-        <Fee label="Bridges fees" value={`~$${transactionMeta.bridgeFees}`} />
+        <Fee
+          label="Bridge fee"
+          value={`~$${transactionMeta.bridgeFee.toFixed(2)}`}
+        />
         <Fee
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}

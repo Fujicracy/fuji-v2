@@ -57,7 +57,7 @@ type BorrowState = {
   transactionMeta: {
     status: FetchStatus
     gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
-    bridgeFees: number
+    bridgeFee: number
     estimateTime: number
     steps: RoutingStepDetails[]
   }
@@ -148,7 +148,7 @@ const initialState: BorrowState = {
 
   transactionMeta: {
     status: "initial",
-    bridgeFees: 0,
+    bridgeFee: 0,
     gasFees: 0,
     estimateTime: 0,
     steps: [],
@@ -397,7 +397,7 @@ export const useBorrow = create<BorrowStore>()(
 
         const doUpdateTxMeta = (
           status: FetchStatus,
-          bridgeFees: number,
+          bridgeFee: number,
           estimateTime: number,
           steps: RoutingStepDetails[],
           actions: RouterActionParams[],
@@ -406,7 +406,7 @@ export const useBorrow = create<BorrowStore>()(
           set(
             produce((state: BorrowState) => {
               state.transactionMeta.status = status
-              state.transactionMeta.bridgeFees = bridgeFees
+              state.transactionMeta.bridgeFee = bridgeFee
               state.transactionMeta.estimateTime = estimateTime
               state.transactionMeta.steps = steps
               state.needPermit = Sdk.needSignature(actions)
@@ -421,7 +421,7 @@ export const useBorrow = create<BorrowStore>()(
         if (route) {
           doUpdateTxMeta(
             "ready",
-            route.bridgeFees,
+            route.bridgeFee,
             route.estimateTime,
             route.steps,
             route.actions,
@@ -449,11 +449,10 @@ export const useBorrow = create<BorrowStore>()(
         )
 
         try {
+          const vaults = get().availableVaults
           const results = await Promise.all(
-            [vault].map(async (v) => {
-              const [selectedVault] = await get().availableVaults
-              const recommended =
-                vault.address.value === selectedVault.address.value
+            vaults.map((v, i) => {
+              const recommended = i === 0
 
               return fetchRoutes(
                 v,
@@ -475,7 +474,7 @@ export const useBorrow = create<BorrowStore>()(
           if (!selectedValue.data) {
             throw "Data not found"
           }
-          const { bridgeFees, estimateTime, actions, steps } =
+          const { bridgeFee, estimateTime, actions, steps } =
             selectedValue.data as RouteMeta
 
           if (!actions.length) {
@@ -488,7 +487,7 @@ export const useBorrow = create<BorrowStore>()(
 
           doUpdateTxMeta(
             "ready",
-            bridgeFees,
+            bridgeFee,
             estimateTime,
             steps,
             actions,

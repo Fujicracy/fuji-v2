@@ -1,4 +1,4 @@
-import { RoutingStepDetails } from "@x-fuji/sdk"
+import { RoutingStep, RoutingStepDetails, Token } from "@x-fuji/sdk"
 
 import { formatUnits } from "ethers/lib/utils"
 import { Box, Chip, Collapse, Paper, Typography, Tooltip } from "@mui/material"
@@ -6,11 +6,11 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 
-import { useBorrow } from "../../store/borrow.store"
 import { chainName } from "../../services/chains"
 import { NetworkIcon, TokenIcon } from "../Shared/Icons"
 import { RouteMeta } from "../../helpers/borrowService"
 import { toNotSoFixed, camelize } from "../../helpers/values"
+import { BigNumber } from "ethers"
 
 type RouteCardProps = {
   route: RouteMeta
@@ -20,27 +20,23 @@ type RouteCardProps = {
 
 export default function RouteCard(props: RouteCardProps) {
   const { palette } = useTheme()
-  const collateral = useBorrow((state) => state.position.collateral)
-  const collateralInput = useBorrow((state) => state.collateralInput)
-  const debt = useBorrow((state) => state.position.debt)
-  const debtInput = useBorrow((state) => state.debtInput)
 
-  const bridgeStep = props.route.steps.filter((step) =>
-    step.step.toLowerCase().includes("bridge")
+  const bridgeStep = props.route.steps.filter(
+    (s) => s.step === RoutingStep.X_TRANSFER
   )[0]
+  const startStep = props.route.steps.filter(
+    (s) => s.step === RoutingStep.START
+  )[0]
+  const endStep = props.route.steps.filter((s) => s.step === RoutingStep.END)[0]
 
   const steps = props.route.steps.filter(
-    (s) => s.step !== "start" && s.step !== "end"
+    (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   )
 
   function iconForStep(step: RoutingStepDetails) {
-    if (step.step === "bridge") {
+    if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <NetworkIcon
-          network={chainName(debt.token.chainId)}
-          height={18}
-          width={18}
-        />
+        <NetworkIcon network={chainName(step.chainId)} height={18} width={18} />
       )
     } else if (step.token) {
       return <TokenIcon token={step.token} height={18} width={18} />
@@ -49,38 +45,60 @@ export default function RouteCard(props: RouteCardProps) {
   }
 
   function textForStep(step: RoutingStepDetails) {
-    if (step.step === "deposit") {
+    if (step.step === RoutingStep.DEPOSIT) {
       return `Deposit ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
       )} ${step.token?.symbol} to ${step.lendingProvider?.name}`
     }
-    if (step.step === "withdraw") {
+    if (step.step === RoutingStep.WITHDRAW) {
       return `Withdraw ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
       )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
     }
-    if (step.step === "borrow") {
+    if (step.step === RoutingStep.BORROW) {
       return `Borrow ${toNotSoFixed(
         formatUnits(step.amount ?? 0, step.token?.decimals || 18)
       )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
     }
-    if (step.step === "bridge") {
-      return `Bridge to ${chainName(debt.token.chainId)} via Connext`
+    if (step.step === RoutingStep.PAYBACK) {
+      return `Payback ${toNotSoFixed(
+        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
+      )} ${step.token?.symbol} from ${step.lendingProvider?.name}`
+    }
+    if (step.step === RoutingStep.X_TRANSFER) {
+      return `Bridge to ${chainName(step.chainId)} via Connext`
     }
     return camelize(step.step)
   }
 
   function slippageText() {
-    const actionStep = props.route.steps.filter(
-      (step) => step.step.toLowerCase().includes("borrow") // We should add the rest once we manage positions
-    )[0]
+    const bridgeIndex = steps.indexOf(bridgeStep)
+    const step =
+      bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1]
 
-    if (!bridgeStep || !actionStep) {
-      return ""
-    }
-    const bridgeIndex = props.route.steps.indexOf(actionStep)
-    const actionIndex = 1
-    return ` On ${bridgeIndex < actionIndex ? "Collateral" : "Borrow"}`
+    return ` On ${camelize(step.step)}`
+  }
+
+  function slippageTextTooltip() {
+    const bridgeIndex = steps.indexOf(bridgeStep)
+    const step =
+      bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1]
+    const slippage = props.route.estimateSlippage
+    const direction = slippage >= 0 ? "less" : "more"
+    const sign = slippage < 0 ? "positive" : "negative"
+
+    return `You are expected to ${step.step} ~${Math.abs(slippage).toFixed(
+      2
+    )}% ${direction}
+      than the requested amount due to a ${sign} slippage.`
+  }
+
+  function roundStepAmount(step: RoutingStepDetails) {
+    const formatted = formatUnits(
+      step.amount ?? BigNumber.from("0"),
+      step.token?.decimals ?? 18
+    )
+    return Number(formatted).toFixed(3)
   }
 
   return (
@@ -102,19 +120,36 @@ export default function RouteCard(props: RouteCardProps) {
 
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
-          <Chip
-            variant="routing"
-            label={`Est Cost ~$${props.route.bridgeFees.toFixed(2)}`}
-          />
-          <Chip
-            variant="routing"
-            label={`Est Processing Time ~${props.route.estimateTime / 60} Mins`}
-          />
+          {bridgeStep && (
+            <>
+              <Chip
+                variant="routing"
+                label={`Est Processing Time ~${
+                  props.route.estimateTime / 60
+                } Mins`}
+              />
+              <Tooltip
+                arrow
+                title={<span>0.05% from the bridged amount</span>}
+                placement="top"
+              >
+                <Chip
+                  icon={
+                    <InfoOutlinedIcon
+                      sx={{ fontSize: "1rem", color: palette.info.main }}
+                    />
+                  }
+                  variant="routing"
+                  label={`Bridge Fee ~$${props.route.bridgeFee.toFixed(2)}`}
+                />
+              </Tooltip>
+            </>
+          )}
           {bridgeStep && props.route.estimateSlippage !== undefined && (
             <>
               <Tooltip
                 arrow
-                title={<span>The estimated price impacted by liquidity</span>}
+                title={<span>{slippageTextTooltip()}</span>}
                 placement="top"
               >
                 <Chip
@@ -130,12 +165,12 @@ export default function RouteCard(props: RouteCardProps) {
                       <span
                         style={{
                           color:
-                            props.route.estimateSlippage >= 0
+                            props.route.estimateSlippage < 0
                               ? palette.success.main
                               : palette.error.main,
                         }}
                       >
-                        {`${props.route.estimateSlippage.toFixed(2)}%`}
+                        {`${(-props.route.estimateSlippage).toFixed(2)}%`}
                       </span>
                     </>
                   }
@@ -153,9 +188,9 @@ export default function RouteCard(props: RouteCardProps) {
 
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
-          <TokenIcon token={collateral.token} height={32} width={32} />
+          <TokenIcon token={startStep.token as Token} height={32} width={32} />
           <NetworkIcon
-            network={chainName(collateral.token.chainId)}
+            network={chainName(startStep.chainId)}
             height={16}
             width={16}
             sx={{
@@ -171,11 +206,11 @@ export default function RouteCard(props: RouteCardProps) {
 
           <Box>
             <Typography variant="body">
-              {toNotSoFixed(collateralInput)} {collateral.token.symbol}
+              {roundStepAmount(startStep)} {startStep.token?.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">
-              on {chainName(collateral.token.chainId)}
+              on {chainName(startStep.chainId)}
             </Typography>
           </Box>
         </Stack>
@@ -183,17 +218,17 @@ export default function RouteCard(props: RouteCardProps) {
         <Stack direction="row">
           <Box textAlign="right" mr="0.75rem">
             <Typography variant="body">
-              {debtInput} {debt.token.symbol}
+              {roundStepAmount(endStep)} {endStep.token?.symbol}
             </Typography>
             <br />
             <Typography variant="xsmall">
-              on {chainName(debt.token.chainId)}
+              on {chainName(endStep.chainId)}
             </Typography>
           </Box>
 
-          <TokenIcon token={debt.token} height={32} width={32} />
+          <TokenIcon token={endStep.token as Token} height={32} width={32} />
           <NetworkIcon
-            network={chainName(debt.token.chainId)}
+            network={chainName(endStep.chainId)}
             height={16}
             width={16}
             sx={{
