@@ -45,11 +45,13 @@ export function PositionSummary() {
   const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics)
 
   useEffect(() => {
-    if (totalDeposits) {
-      // TODO: Once we have data, update keyMetrics
-      window.alert(totalDeposits)
+    if (totalDeposits && totalDebt && totalAPY && availableBorrow) {
+      keyMetrics[0].value = totalDeposits
+      keyMetrics[1].value = totalDebt
+      keyMetrics[2].value = totalAPY
+      keyMetrics[3].value = availableBorrow
     }
-  }, [totalDeposits])
+  }, [totalDeposits, totalDebt, totalAPY, availableBorrow])
 
   // TODO: refactor changed on the keyMetrics/state change
   // We want to display only 4 metrics in mobile, so we leave positions at risk aside.

@@ -6,66 +6,6 @@ import { useAuth } from "./auth.store"
 import { Address, Token } from "@x-fuji/sdk"
 import { BigNumberish, ethers } from "ethers"
 
-// const wethAddr = new Address('0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2');
-// const daiAddr = new Address('0x6B175474E89094C44Da98b954EedeAC495271d0F');
-
-// const fakeWeth = new Token(
-//   1,
-//   wethAddr,
-//   18,
-//   'fake WETH',
-//   'fkWETH'
-// );
-
-// const fakeDai = new Token(
-//   1,
-//   daiAddr,
-//   18,
-//   'fake DAI',
-//   'fkDAI'
-// );
-
-// export const fake_positions: Position[] = [
-//   {
-//     collateral: {
-//       amount: 15.1,
-//       token: fakeWeth,
-//       usdValue: 30200,
-//       baseApr: 3.48953357
-//     },
-//     debt: {
-//       amount: 12589,
-//       token: fakeDai,
-//       usdValue: 12589,
-//       baseAPR: 6.898746
-//     },
-//     ltv: 0.41685430463576156,
-//     maxLTV: 0.8,
-//     ltvThreshold: 0.85,
-//     liquidationPrice: 980.833657966498,
-//     liquidationDiff: 1019.166342033502
-//   },
-//   {
-//     collateral: {
-//       amount: 30.2,
-//       token: fakeWeth,
-//       usdValue: 60400,
-//       baseApr: 6.48953357
-//     },
-//     debt: {
-//       amount: 25000,
-//       token: fakeDai,
-//       usdValue: 25000,
-//       baseAPR: 9.898746
-//     },
-//     ltv: 0.4139072847682119,
-//     maxLTV: 0.8,
-//     ltvThreshold: 0.85,
-//     liquidationPrice: 973.8994935722634,
-//     liquidationDiff: 1026.1005064277365
-//   },
-// ]
-
 type PositionsState = {
   totalDepositsUSD: number | undefined
   totalDebtUSD: number | undefined
@@ -98,7 +38,6 @@ export const usePositions = create<PositionsStore>()(
 
     fetchUserPositions: async () => {
       const account = useAuth.getState().address
-      console.log(`position store- account ${account || "-"}`)
       const positions = await getPositionsWithBalance(account)
 
       const totalDepositsUSD = getTotalSum(positions, "collateral")
@@ -113,13 +52,23 @@ export const usePositions = create<PositionsStore>()(
         const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
         return accrueCollateral + accrueDebt + acc
       }, 0)
-      const totalDeposits_ = totalDepositsUSD
-      const totalAPY = totalDeposits_
-        ? (totalAccrued * 100) / totalDeposits_
+      // `totalAPY` is scaled up by 100 to express in percentage %.
+      const totalAPY = totalDepositsUSD
+        ? (totalAccrued * 100) / totalDepositsUSD
         : 0
 
       const availableBorrowPowerUSD =
         getCurrentAvailableBorrowingPower(positions)
+
+      console.log(`position store- account ${account || "-"}`) // TODO daigaro
+      console.log("usePositions-positions", positions.length, positions) // TODO daigaro
+      console.log("usePositions-totalDepositsUSD", totalDepositsUSD) // TODO daigaro
+      console.log("usePositions-totalDebtUSD", totalDebtUSD) // TODO daigaro
+      console.log("usePositions-totalAPY", totalAPY) // TODO daigaro
+      console.log(
+        "usePositions-availableBorrowPowerUSD",
+        availableBorrowPowerUSD
+      ) // TODO daigaro
 
       set({
         positions,
@@ -176,7 +125,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
           )
         },
         get baseAPR() {
-          return v.depositApyBase
+          return v.depositAprBase
         },
       }
       p.debt = {
@@ -186,16 +135,21 @@ async function getPositionsWithBalance(account_: string | undefined) {
           return this.amount * bigToFloat(v.debtPriceUSD, v.vault.debt.decimals)
         },
         get baseAPR() {
-          return v.borrowApyBase
+          return v.borrowAprBase
         },
       }
       p.ltv = p.debt.usdValue / p.collateral.usdValue
       p.ltvMax = bigToFloat(v.vault.maxLtv, 18)
       p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18)
       p.liquidationPrice =
-        p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
+        p.debt.usdValue == 0
+          ? 0
+          : p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
       p.liquidationDiff =
-        bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) - p.liquidationPrice
+        p.liquidationPrice == 0
+          ? 0
+          : bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) -
+            p.liquidationPrice
       return p
     })
   } else {
@@ -209,15 +163,15 @@ function getAccrual(
   param: "collateral" | "debt"
 ): number {
   const factor = param == "debt" ? -1 : 1
+  // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
   const aprDecimal = baseAPR ? baseAPR / 100 : 0
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
-  const apy = (1 + aprDecimal / 365) ^ (365 - 1)
-  return factor * balance * (apy + 1)
+  const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1
+  return factor * balance * apyDecimal
 }
 
 function getCurrentAvailableBorrowingPower(positions: Position[]): number {
-  return positions.reduce(
-    (b, pos) => pos.collateral.usdValue * pos.ltvMax - pos.debt.usdValue + b,
-    0
-  )
+  return positions.reduce((b, pos) => {
+    return pos.collateral.usdValue * pos.ltvMax - pos.debt.usdValue + b
+  }, 0)
 }

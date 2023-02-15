@@ -241,8 +241,11 @@ export class Sdk {
           v.multicallContract?.balanceOfDebt(account.value) as Call<BigNumber>,
           v.multicallContract?.activeProvider() as Call<string>,
           oracle.getPriceOf(
-            v.collateral.address.value,
+            // currency asset, if address(0) defaults to usd.
             AddressZero,
+            // commodity asset, must be token to get price.
+            v.collateral.address.value,
+            // desired decimals to get price in.
             v.collateral.decimals
           ),
           oracle.getPriceOf(v.debt.address.value, AddressZero, v.debt.decimals)
@@ -252,7 +255,7 @@ export class Sdk {
 
       const secondBatch: Call<BigNumber>[] = [];
       vaults.forEach((v, i) => {
-        // multiply by 5 becasue there 5 calls per vault in the firstBatch
+        // multiply by 5 because there 5 calls per vault in the firstBatch
         const activeProvider = firstBatchResults[5 * i + 2] as string;
         secondBatch.push(
           ILendingProvider__factory.multicall(activeProvider).getDepositRateFor(
@@ -265,7 +268,9 @@ export class Sdk {
       });
       const secondBatchResults = await multicallRpcProvider.all(secondBatch);
 
-      vaults.forEach((vault, i) => {
+      vaults.forEach(async (vault, i) => {
+        // Preload basic data
+        await vault.preLoad();
         // multiply by 2 becasue there 2 calls per vault in the firstBatch
         const depositRate = secondBatchResults[2 * i].toString();
         const borrowRate = secondBatchResults[2 * i + 1].toString();
