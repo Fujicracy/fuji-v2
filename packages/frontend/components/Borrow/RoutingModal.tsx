@@ -15,11 +15,15 @@ export default function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
   const availableRoutes = useBorrow((state) => state.availableRoutes)
-  const updateVault = useBorrow((state) => state.updateVault)
+  const availableVaults = useBorrow((state) => state.availableVaults)
+  const changeActiveVault = useBorrow((state) => state.changeActiveVault)
 
   function didSelectRoute(i: number) {
     if (selectedRoute !== i) {
-      updateVault(availableRoutes[i])
+      const vault = availableVaults.filter(
+        (v) => v.address.value === availableRoutes[i].address
+      )[0]
+      changeActiveVault(vault)
     }
     setSelectedRoute(i)
   }
