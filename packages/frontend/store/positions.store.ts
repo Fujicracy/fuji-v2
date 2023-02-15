@@ -77,10 +77,6 @@ type PositionsState = {
 
 type PositionsActions = {
   fetchUserPositions: () => void
-  getTotalDepositUSD: () => void
-  getTotalDebtUSD: () => void
-  getTotalAPY: () => void
-  getAvailableBorrowPowerUSD: () => void
   // getPositionsAtRisk: () => void
 }
 
@@ -96,62 +92,53 @@ const initialState: PositionsState = {
 export type PositionsStore = PositionsState & PositionsActions
 
 export const usePositions = create<PositionsStore>()(
-  devtools(
-    (set, get) => ({
-      ...initialState,
+  // devtools(
+  (set, get) => ({
+    ...initialState,
 
-      fetchUserPositions: async () => {
-        const account = useAuth.getState().address
-        console.log(`position store- account ${account || "-"}`)
-        const fetched = await getPositionsWithBalance(account)
-        set({ positions: fetched })
-      },
+    fetchUserPositions: async () => {
+      const account = useAuth.getState().address
+      console.log(`position store- account ${account || "-"}`)
+      const positions = await getPositionsWithBalance(account)
 
-      getTotalDepositUSD: async () => {
-        const positions_ = get().positions
-        const totalSum = getTotalSum(positions_, "collateral")
-        set({ totalDepositsUSD: parseFloat(totalSum.toFixed(2)) })
-      },
+      const totalDepositsUSD = getTotalSum(positions, "collateral")
+      const totalDebtUSD = getTotalSum(positions, "debt")
 
-      getTotalDebtUSD: async () => {
-        const positions_ = get().positions
-        const totalSum = getTotalSum(positions_, "debt")
-        set({ totalDebtUSD: parseFloat(totalSum.toFixed(2)) })
-      },
+      const totalAccrued = positions.reduce((acc, p) => {
+        const accrueCollateral = getAccrual(
+          p.collateral.usdValue,
+          p.collateral.baseAPR,
+          "collateral"
+        )
+        const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
+        return accrueCollateral + accrueDebt + acc
+      }, 0)
+      const totalDeposits_ = totalDepositsUSD
+      const totalAPY = totalDeposits_
+        ? (totalAccrued * 100) / totalDeposits_
+        : 0
 
-      getTotalAPY: async () => {
-        const positions_ = get().positions
-        const totalAccrued = positions_.reduce((acc, p) => {
-          const accrueCollateral = getAccrual(
-            p.collateral.usdValue,
-            p.collateral.baseAPR,
-            "collateral"
-          )
-          const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
-          return accrueCollateral + accrueDebt + acc
-        }, 0)
-        const totalDeposits_ = get().totalDepositsUSD
-        const totalAPY_ = totalDeposits_
-          ? (totalAccrued * 100) / totalDeposits_
-          : 0
-        set({ totalAPY: parseFloat(totalAPY_.toFixed(2)) })
-      },
+      const availableBorrowPowerUSD =
+        getCurrentAvailableBorrowingPower(positions)
 
-      getAvailableBorrowPowerUSD: async () => {
-        const positions_ = get().positions
-        const available = getCurrentAvailableBorrowingPower(positions_)
-        set({ availableBorrowPowerUSD: available })
-      },
+      set({
+        positions,
+        totalDepositsUSD,
+        totalDebtUSD,
+        totalAPY: parseFloat(totalAPY.toFixed(2)),
+        availableBorrowPowerUSD,
+      })
+    },
 
-      // getPositionsAtRisk: async () => {
-      //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
-      // },
-    }),
-    {
-      enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
-      name: "fuji-v2/positions",
-    }
-  )
+    // getPositionsAtRisk: async () => {
+    //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
+    // },
+  })
+  // {
+  //   enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
+  //   name: "fuji-v2/positions",
+  // }
+  // )
 )
 
 function bigToFloat(
@@ -189,7 +176,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
           )
         },
         get baseAPR() {
-          return v.depositAprBase
+          return v.depositApyBase
         },
       }
       p.debt = {
@@ -199,7 +186,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
           return this.amount * bigToFloat(v.debtPriceUSD, v.vault.debt.decimals)
         },
         get baseAPR() {
-          return v.borrowAprBase
+          return v.borrowApyBase
         },
       }
       p.ltv = p.debt.usdValue / p.collateral.usdValue

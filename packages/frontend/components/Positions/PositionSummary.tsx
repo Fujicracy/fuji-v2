@@ -7,6 +7,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material"
+import { useEffect, useState } from "react"
 
 import { usePositions } from "../../store/positions.store"
 
@@ -17,33 +18,40 @@ type Metric = {
   action?: string
 }
 
+const initialKeyMetrics: Metric[] = [
+  { name: "Total Deposits", value: "-", valueSym: "$" },
+  { name: "Total Debt", value: "-", valueSym: "$" },
+  { name: "Net APY", value: "-", valueSym: "%", action: "View" }, // TODO: tooltip & actions
+  {
+    name: "Available to Borrow",
+    value: "-",
+    valueSym: "$",
+    action: "Borrow",
+  }, // TODO: tooltip & actions
+  // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
+]
+
 export function PositionSummary() {
   const { breakpoints, palette } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
-  usePositions((state) => state.fetchUserPositions)
-  usePositions((state) => state.getTotalDepositUSD)
-  usePositions((state) => state.getTotalDebtUSD)
-  usePositions((state) => state.getTotalAPY)
-  usePositions((state) => state.getAvailableBorrowPowerUSD)
+  const fetchPositions = usePositions((state) => state.fetchUserPositions)
 
   const totalDeposits = usePositions((state) => state.totalDepositsUSD)
   const totalDebt = usePositions((state) => state.totalDebtUSD)
   const totalAPY = usePositions((state) => state.totalAPY)
   const availableBorrow = usePositions((state) => state.availableBorrowPowerUSD)
 
-  const keyMetrics: Metric[] = [
-    { name: "Total Deposits", value: totalDeposits || "-", valueSym: "$" },
-    { name: "Total Debt", value: totalDebt || "-", valueSym: "$" },
-    { name: "Net APY", value: totalAPY || "-", valueSym: "%", action: "View" }, // TODO: tooltip & actions
-    {
-      name: "Available to Borrow",
-      value: availableBorrow || "-",
-      valueSym: "$",
-      action: "Borrow",
-    }, // TODO: tooltip & actions
-    // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
-  ]
+  const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics)
+
+  useEffect(() => {
+    if (totalDeposits) {
+      // TODO: Once we have data, update keyMetrics
+      window.alert(totalDeposits)
+    }
+  }, [totalDeposits])
+
+  // TODO: refactor changed on the keyMetrics/state change
   // We want to display only 4 metrics in mobile, so we leave positions at risk aside.
   const metrics = keyMetrics.filter((m) =>
     isMobile ? m.name !== "Positions at Risk" : true
@@ -109,7 +117,11 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
         {isMobile && <br />}
         {metric.action && (
           // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
-          <Button variant="secondary" sx={buttonSx}>
+          <Button
+            variant="secondary"
+            sx={buttonSx}
+            disabled={metric.value === "-"}
+          >
             {metric.action}
           </Button>
         )}
