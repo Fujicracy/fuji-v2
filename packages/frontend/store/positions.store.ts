@@ -3,8 +3,68 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import { Position } from "./models/Position.d.ts"
 import { useAuth } from "./auth.store"
-import { Address } from "@x-fuji/sdk"
+import { Address, Token } from "@x-fuji/sdk"
 import { BigNumberish, ethers } from "ethers"
+
+// const wethAddr = new Address('0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2');
+// const daiAddr = new Address('0x6B175474E89094C44Da98b954EedeAC495271d0F');
+
+// const fakeWeth = new Token(
+//   1,
+//   wethAddr,
+//   18,
+//   'fake WETH',
+//   'fkWETH'
+// );
+
+// const fakeDai = new Token(
+//   1,
+//   daiAddr,
+//   18,
+//   'fake DAI',
+//   'fkDAI'
+// );
+
+// export const fake_positions: Position[] = [
+//   {
+//     collateral: {
+//       amount: 15.1,
+//       token: fakeWeth,
+//       usdValue: 30200,
+//       baseApr: 3.48953357
+//     },
+//     debt: {
+//       amount: 12589,
+//       token: fakeDai,
+//       usdValue: 12589,
+//       baseAPR: 6.898746
+//     },
+//     ltv: 0.41685430463576156,
+//     maxLTV: 0.8,
+//     ltvThreshold: 0.85,
+//     liquidationPrice: 980.833657966498,
+//     liquidationDiff: 1019.166342033502
+//   },
+//   {
+//     collateral: {
+//       amount: 30.2,
+//       token: fakeWeth,
+//       usdValue: 60400,
+//       baseApr: 6.48953357
+//     },
+//     debt: {
+//       amount: 25000,
+//       token: fakeDai,
+//       usdValue: 25000,
+//       baseAPR: 9.898746
+//     },
+//     ltv: 0.4139072847682119,
+//     maxLTV: 0.8,
+//     ltvThreshold: 0.85,
+//     liquidationPrice: 973.8994935722634,
+//     liquidationDiff: 1026.1005064277365
+//   },
+// ]
 
 type PositionsState = {
   totalDepositsUSD: number | undefined
