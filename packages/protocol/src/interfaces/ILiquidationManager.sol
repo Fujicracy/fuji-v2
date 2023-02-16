@@ -10,7 +10,7 @@ pragma solidity 0.8.15;
  */
 
 import {IVault} from "./IVault.sol";
-// import {IFlasher} from "./IFlasher.sol";
+import {IFlasher} from "./IFlasher.sol";
 
 interface ILiquidationManager {
   /**
@@ -38,20 +38,13 @@ interface ILiquidationManager {
    * @notice Liquidates the position of a given user.
    *
    * @param users to be liquidated
+   * @param vault who holds the `users` positions
+   * @param flasher to be used in liquidation
    *
    * @dev Requirement:
    * - Must be called from a keeper.
    * - Must emit a `AllowExecutor` event.
    * - Must not revert if at least one user is liquidated.
    */
-  function liquidate(address[] memory users, IVault vault) external;
-
-  /**
-   * @notice Swaps a token for another one.
-   *
-   * @param originAsset the asset provided
-   * @param destinationAsset the asset to be received
-   *
-   */
-  function swap(address originAsset, address destinationAsset) external;
+  function liquidate(address[] memory users, IVault vault, IFlasher flasher) external;
 }
