@@ -85,7 +85,7 @@ const Header = () => {
         <Toolbar disableGutters>
           <Grid container justifyContent="space-between" alignItems="center">
             <Grid item>
-              <Link href="/">
+              <Link href="/" legacyBehavior>
                 <a className={styles.logoTitle}>
                   <Image
                     src="/assets/images/logo/logo-title.svg"

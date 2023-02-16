@@ -8,6 +8,9 @@ import { theme } from "../styles/theme"
 import { useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
 
+import { Inter } from "@next/font/google"
+const inter = Inter({ subsets: ["latin"] })
+
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)
 
@@ -19,11 +22,18 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [initAuth])
 
   return (
-    <ThemeProvider theme={theme}>
-      <div className="backdrop"></div>
-      <Component {...pageProps} />
-      <Snackbar />
-    </ThemeProvider>
+    <>
+      <style jsx global>{`
+        html {
+          font-family: ${inter.style.fontFamily};
+        }
+      `}</style>
+      <ThemeProvider theme={theme}>
+        <div className="backdrop"></div>
+        <Component {...pageProps} />
+        <Snackbar />
+      </ThemeProvider>
+    </>
   )
 }
 
