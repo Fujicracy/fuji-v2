@@ -9,6 +9,8 @@ interface Props extends Omit<ImageProps, "src"> {
   sx?: object
 }
 
+// export interface Icon {}
+
 export default function NetworkIcon(props: Props) {
   const { palette } = useTheme()
   const { network, ...rest } = props
