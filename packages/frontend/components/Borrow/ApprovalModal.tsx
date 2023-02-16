@@ -24,8 +24,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const collateralAllowance = useBorrow((state) => state.collateralAllowance)
-  const collateral = useBorrow((state) => state.position.collateral)
-  const meta = useBorrow((state) => state.transactionMeta)
+  const collateralInput = useBorrow((state) => state.collateralInput)
 
   const [infiniteApproval, setInfiniteApproval] = useState(false)
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,9 +33,7 @@ export default function ApprovalModal(props: ApprovalModalProps) {
 
   const amount = infiniteApproval
     ? Number.MAX_SAFE_INTEGER
-    : collateral.amount +
-      meta.bridgeFee / collateral.usdValue +
-      meta.gasFees / collateral.usdValue
+    : parseFloat(collateralInput)
 
   const allow = useBorrow((state) => state.allow)
   const handleAllow = () => allow(amount, props.handleClose)
@@ -83,8 +80,8 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         </Typography>
 
         <Typography mt="1rem">
-          Otherwise only the exact amount for this transaction will be allowed
-          to be transfered from your wallet
+          Otherwise, only the exact amount for this transaction will be allowed
+          to be transfered from your wallet.
         </Typography>
         <Stack
           direction="row"
