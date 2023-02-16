@@ -4,24 +4,28 @@ import {
   Grid,
   Typography,
   Button,
+  Tooltip,
+  Link,
   useMediaQuery,
   useTheme,
 } from "@mui/material"
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { useEffect, useState } from "react"
 
 import { usePositions } from "../../store/positions.store"
 
-type Metric = {
+type MetricSummary = {
   name: string
   value: number | "-"
   valueSym?: "$" | "%"
   action?: string
+  tooltip?: boolean
 }
 
-const initialKeyMetrics: Metric[] = [
+const initialKeyMetrics: MetricSummary[] = [
   { name: "Total Deposits", value: "-", valueSym: "$" },
   { name: "Total Debt", value: "-", valueSym: "$" },
-  { name: "Net APY", value: "-", valueSym: "%", action: "View" }, // TODO: tooltip & actions
+  { name: "Net APY", value: "-", valueSym: "%" /*action: "View"*/ }, // TODO: tooltip & actions
   {
     name: "Available to Borrow",
     value: "-",
@@ -30,6 +34,39 @@ const initialKeyMetrics: Metric[] = [
   }, // TODO: tooltip & actions
   // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
 ]
+
+function updateKeyMetricsSummary(
+  totalDeposits_: number | undefined,
+  totalDebt_: number | undefined,
+  totalAPY_: number | undefined,
+  availableBorrow_: number | undefined
+): MetricSummary[] {
+  return [
+    {
+      name: "Total Deposits",
+      value: totalDeposits_ == undefined ? "-" : totalDeposits_,
+      valueSym: "$",
+    },
+    {
+      name: "Total Debt",
+      value: totalDebt_ == undefined ? "-" : totalDebt_,
+      valueSym: "$",
+    },
+    {
+      name: "Net APY",
+      value: totalAPY_ == undefined ? "-" : totalAPY_,
+      valueSym: "%",
+      // action: "View",
+      tooltip: true,
+    }, // TODO: tooltip & actions
+    {
+      name: "Available to Borrow",
+      value: availableBorrow_ == undefined ? "-" : availableBorrow_,
+      valueSym: "$",
+      action: "Go Borrow",
+    },
+  ]
+}
 
 export function PositionSummary() {
   const { breakpoints, palette } = useTheme()
@@ -43,20 +80,14 @@ export function PositionSummary() {
   const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics)
 
   useEffect(() => {
-    if (totalDeposits && totalDebt && totalAPY && availableBorrow) {
-      keyMetrics[0].value = totalDeposits
-      keyMetrics[1].value = totalDebt
-      keyMetrics[2].value = totalAPY
-      keyMetrics[3].value = availableBorrow
-      setKeyMetrics(keyMetrics)
-    }
+    const updatedKeyMetrics = updateKeyMetricsSummary(
+      totalDeposits,
+      totalDebt,
+      totalAPY,
+      availableBorrow
+    )
+    setKeyMetrics(updatedKeyMetrics)
   }, [totalDeposits, totalDebt, totalAPY, availableBorrow])
-
-  // TODO: refactor changed on the keyMetrics/state change
-  // We want to display only 4 metrics in mobile, so we leave positions at risk aside.
-  const metrics = keyMetrics.filter((m) =>
-    isMobile ? m.name !== "Positions at Risk" : true
-  )
 
   return (
     <Box mt={4}>
@@ -65,7 +96,7 @@ export function PositionSummary() {
         sx={{ background: palette.secondary.contrastText }}
       >
         <Grid container>
-          {metrics.map((m, i) => (
+          {keyMetrics.map((m, i) => (
             <Grid item padding={{ xs: 1, md: 0 }} key={m.name} xs={6} md>
               <Metric metric={m} borderLeft={!isMobile && i > 0} />
             </Grid>
@@ -76,7 +107,7 @@ export function PositionSummary() {
   )
 }
 
-type MetricProps = { metric: Metric; borderLeft: boolean }
+type MetricProps = { metric: MetricSummary; borderLeft: boolean }
 
 const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
   const { palette, breakpoints } = useTheme()
@@ -99,8 +130,26 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
       pl={leftBorder ? 4 : ""}
     >
       <Typography color={nameColor} fontSize="0.875rem">
-        {metric.name}
+        {metric.name}{" "}
+        {metric.tooltip && (
+          // TODO: tooltip
+          <Tooltip
+            arrow
+            title={
+              <span>
+                Net APY accounts for all positions, APR earned by collateral
+                minus APR accrued by debt
+              </span>
+            }
+            placement="top"
+          >
+            <InfoOutlinedIcon
+              sx={{ fontSize: "1rem", color: palette.info.main }}
+            />
+          </Tooltip>
+        )}
       </Typography>
+
       {/* TODO: use helper to format balance */}
       <Typography
         fontSize="1.5rem"

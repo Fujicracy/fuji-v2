@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import {
   Box,
   Table,
@@ -12,36 +13,22 @@ import {
 } from "@mui/material"
 import { TokenIcon } from "../Shared/Icons"
 import { Position } from "../../store/models/Position"
-import { usePositions } from "../../store/positions.store"
+import { usePositions, getAccrual } from "../../store/positions.store"
 
 type Row = {
   borrow: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }
   collateral: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }
-  apy: number | "-"
+  apr: number | "-"
   liquidationPrice: number | "-"
   oraclePrice: number | "-"
+  percentPriceDiff: number | "-"
 }
 
-const fakeRows: Row[] = [
-  {
-    borrow: { sym: "DAI", amount: 8500, usdValue: 8500 },
-    collateral: { sym: "ETH", amount: 10, usdValue: 20000 },
-    apy: 2.25,
-    liquidationPrice: 1500,
-    oraclePrice: 2000,
-  },
-  {
-    borrow: { sym: "USDT", amount: 6000, usdValue: 6000 },
-    collateral: { sym: "ETH", amount: 10, usdValue: 20000 },
-    apy: 2.25,
-    liquidationPrice: 1501,
-    oraclePrice: 2000,
-  },
-]
+const emptyRows: Row[] = []
 
 function getRows(positions: Position[]): Row[] {
   if (positions.length == 0) {
-    return fakeRows
+    return emptyRows
   } else {
     const rows: Row[] = positions.map((pos: Position) => ({
       borrow: {
@@ -54,19 +41,97 @@ function getRows(positions: Position[]): Row[] {
         amount: pos.collateral.amount,
         usdValue: pos.collateral.usdValue,
       },
-      apy: 2.25,
-      liquidationPrice: 1500,
-      oraclePrice: 2000,
+      apr: formatNumber(pos.debt.baseAPR, 2),
+      liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
+      oraclePrice: formatNumber(
+        pos.collateral.usdValue / pos.collateral.amount,
+        0
+      ),
+      get percentPriceDiff() {
+        if (this.liquidationPrice == "-" || this.oraclePrice == "-") {
+          return 0
+        } else {
+          return formatNumber(
+            ((this.oraclePrice - this.liquidationPrice) * 100) /
+              this.oraclePrice,
+            0
+          )
+        }
+      },
     }))
     return rows
   }
+}
+
+function handleDisplayLiquidationPrice(liqPrice_: number | undefined) {
+  if (liqPrice_ == undefined || liqPrice_ == 0) {
+    return "-"
+  } else {
+    return formatNumber(liqPrice_, 0)
+  }
+}
+
+function formatNumber(
+  num: number | undefined,
+  decimals_: number
+): number | "-" {
+  if (num == undefined) {
+    return "-"
+  } else {
+    return parseFloat(num.toFixed(decimals_))
+  }
+}
+
+function LiquidationBox(props: {
+  liquidationPrice: number | "-"
+  percentPriceDiff: number | "-"
+}) {
+  const { palette } = useTheme()
+  const displayPercent = () => {
+    if (props.liquidationPrice == 0 || props.liquidationPrice == "-") {
+      return <span>No debt</span>
+    } else {
+      return (
+        <span>
+          <Typography variant="small" color={palette.success.main}>
+            ~{props.percentPriceDiff}%{" "}
+          </Typography>
+          <Typography variant="small" color={palette.info.main}>
+            above
+          </Typography>
+        </span>
+      )
+    }
+  }
+  return (
+    <TableCell align="right">
+      <Box pt={1} pb={1}>
+        <Typography variant="small">
+          {props.liquidationPrice.toLocaleString("en-US", {
+            style: "currency",
+            currency: "usd",
+            minimumFractionDigits: 0,
+          })}
+        </Typography>
+        <br />
+        {displayPercent()}
+      </Box>
+    </TableCell>
+  )
 }
 
 export function PositionsBorrowTable() {
   const { palette } = useTheme()
 
   const positions = usePositions((state) => state.positions)
-  const rows: Row[] = getRows(positions)
+  const [rows, setRows] = useState(emptyRows)
+
+  useEffect(() => {
+    if (positions.length > 0) {
+      const fetchedRows = getRows(positions)
+      setRows(fetchedRows)
+    }
+  }, [positions])
 
   return (
     <TableContainer>
@@ -75,7 +140,7 @@ export function PositionsBorrowTable() {
           <TableRow sx={{ height: "2.625rem" }}>
             <TableCell>Borrow</TableCell>
             <TableCell>Collateral</TableCell>
-            <TableCell align="right">Variable APR</TableCell>
+            <TableCell align="right">Debt APR</TableCell>
             <TableCell align="right">Borrowed</TableCell>
             <TableCell align="right">Collateral value</TableCell>
             <TableCell align="right">Oracle price</TableCell>
@@ -104,7 +169,7 @@ export function PositionsBorrowTable() {
               </TableCell>
               <TableCell align="right">
                 <Typography variant="small" color={palette.warning.main}>
-                  {row.apy}%
+                  {row.apr}%
                 </Typography>
               </TableCell>
               <TableCell align="right">
@@ -145,24 +210,10 @@ export function PositionsBorrowTable() {
                   minimumFractionDigits: 0,
                 })}
               </TableCell>
-              <TableCell align="right">
-                <Box pt={1} pb={1}>
-                  <Typography variant="small">
-                    {row.liquidationPrice.toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "usd",
-                      minimumFractionDigits: 0,
-                    })}
-                  </Typography>
-                  <br />
-                  <Typography variant="small" color={palette.success.main}>
-                    ~15%{" "}
-                  </Typography>
-                  <Typography variant="small" color={palette.info.main}>
-                    above
-                  </Typography>
-                </Box>
-              </TableCell>
+              <LiquidationBox
+                liquidationPrice={row.liquidationPrice}
+                percentPriceDiff={row.percentPriceDiff}
+              />
             </TableRow>
           ))}
         </TableBody>

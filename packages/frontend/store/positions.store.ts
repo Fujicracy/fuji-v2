@@ -157,7 +157,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
   }
 }
 
-function getAccrual(
+export function getAccrual(
   balance: number,
   baseAPR: number | undefined,
   param: "collateral" | "debt"
