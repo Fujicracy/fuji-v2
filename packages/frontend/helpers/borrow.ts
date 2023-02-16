@@ -10,6 +10,7 @@ import {
   Token,
 } from "@x-fuji/sdk"
 import { sdk } from "../services/sdk"
+import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 
 export type RouteMeta = {
   //gasFees: number
@@ -83,14 +84,14 @@ export const providersForRoute = (
   const unique: LendingProviderDetails[] = []
   const providers: Record<string, boolean> = {}
   route.steps.forEach((s) => {
-    if (s.lendingProvider && !providers[s.lendingProvider!.name]) {
-      unique.push(s.lendingProvider!)
-      providers[s.lendingProvider!.name] = true
+    if (s.lendingProvider && !providers[s.lendingProvider?.name]) {
+      unique.push(s.lendingProvider)
+      providers[s.lendingProvider?.name] = true
     }
   })
   return unique
 }
 
 export const recommendedLTV = (ltvMax: number): number => {
-  return ltvMax > 20 ? ltvMax - 20 : 0
+  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0
 }
