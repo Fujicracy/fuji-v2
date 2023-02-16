@@ -36,10 +36,10 @@ import ParameterLinks from "./ParameterLinks"
 import { useAuth } from "../../store/auth.store"
 
 const pages = [
-  { name: "Markets", path: "markets" },
-  { name: "Borrow", path: "borrow" },
-  { name: "Lend", path: "lend" },
-  { name: "My positions", path: "my-positions" },
+  { name: "Markets", path: "/markets" },
+  { name: "Borrow", path: "/borrow" },
+  { name: "Lend", path: "/lend" },
+  { name: "My positions", path: "/my-positions" },
 ]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
   pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" page is to test design system
