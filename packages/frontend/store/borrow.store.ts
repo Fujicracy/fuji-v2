@@ -346,9 +346,7 @@ export const useBorrow = create<BorrowStore>()(
         )
         try {
           const res = await sdk.getAllowanceFor(token, new Address(address))
-          const value = parseFloat(
-            ethers.utils.formatUnits(res, token.decimals)
-          )
+          const value = parseFloat(formatUnits(res, token.decimals))
           set({ collateralAllowance: { status: "ready", value } })
         } catch (e) {
           // TODO: how to handle the case where we can't fetch allowance ?
@@ -574,8 +572,9 @@ export const useBorrow = create<BorrowStore>()(
           const approval = await contracts.ERC20__factory.connect(
             token.address.value,
             owner
-          ).approve(spender, parseUnits(amount.toString()))
+          ).approve(spender, parseUnits(amount.toString(), token.decimals))
           await approval.wait()
+
           set({ collateralAllowance: { status: "ready", value: amount } })
           afterSuccess && afterSuccess()
         } catch (e) {

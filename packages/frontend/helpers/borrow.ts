@@ -3,7 +3,6 @@ import { formatUnits, parseUnits } from "ethers/lib/utils"
 import {
   Address,
   BorrowingVault,
-  LendingProviderDetails,
   RouterActionParams,
   RoutingStep,
   RoutingStepDetails,
@@ -76,20 +75,6 @@ export const fetchRoutes = async (
     if (e instanceof Error) result.error = e
   }
   return result
-}
-
-export const providersForRoute = (
-  route: RouteMeta
-): LendingProviderDetails[] => {
-  const unique: LendingProviderDetails[] = []
-  const providers: Record<string, boolean> = {}
-  route.steps.forEach((s) => {
-    if (s.lendingProvider && !providers[s.lendingProvider?.name]) {
-      unique.push(s.lendingProvider)
-      providers[s.lendingProvider?.name] = true
-    }
-  })
-  return unique
 }
 
 export const recommendedLTV = (ltvMax: number): number => {

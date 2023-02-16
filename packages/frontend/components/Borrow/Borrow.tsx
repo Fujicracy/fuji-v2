@@ -129,7 +129,7 @@ export default function Borrow() {
     )
   } else if (
     collateralAllowance?.value !== undefined &&
-    collateralAllowance.value < collateral.amount
+    collateralAllowance.value < collateralAmount
   ) {
     button = (
       <Button
