@@ -1,13 +1,13 @@
-import { useState } from "react"
 import { Divider, Typography, Stack } from "@mui/material"
+import { PositionAction } from "../../helpers/borrow"
 import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
 
 type BorrowHeaderProps = {
   managePosition: boolean
-  action: number
+  action: PositionAction
   chainName: string
-  onPositionActionChange: (action: number) => void
+  onPositionActionChange: (action: PositionAction) => void
 }
 
 function BorrowHeader(props: BorrowHeaderProps) {
@@ -39,21 +39,17 @@ function BorrowHeader(props: BorrowHeaderProps) {
             marginBottom: 3,
           }}
         >
-          <TabChip
-            selected={props.action === 0}
-            label={"Add Position"}
-            onClick={() => {
-              props.onPositionActionChange(0)
-            }}
-          />
-          <TabChip
-            selected={props.action === 1}
-            label={"Remove Position"}
-            sx={{ marginLeft: 1 }}
-            onClick={() => {
-              props.onPositionActionChange(1)
-            }}
-          />
+          {[PositionAction.ADD, PositionAction.REMOVE].map((p) => (
+            <TabChip
+              key={`${p}`}
+              sx={p === PositionAction.REMOVE ? { marginLeft: 1 } : {}}
+              selected={props.action === p}
+              label={`${p === PositionAction.ADD ? "Add" : "Remove"} Position`}
+              onClick={() => {
+                props.onPositionActionChange(p)
+              }}
+            />
+          ))}
         </Stack>
       )}
     </>

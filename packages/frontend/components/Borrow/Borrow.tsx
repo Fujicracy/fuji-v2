@@ -21,6 +21,7 @@ import BorrowButton from "./Button"
 import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
 import ConnextFooter from "./ConnextFooter"
+import { Mode, modeForContext, PositionAction } from "../../helpers/borrow"
 
 type BorrowProps = {
   managePosition: boolean
@@ -88,7 +89,19 @@ export default function Borrow(props: BorrowProps) {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const [managingPositionAction, setManagingPositionAction] = useState(0)
+
+  const [positionAction, setPositionAction] = useState(PositionAction.ADD)
+  const [mode, setMode] = useState(Mode.DEPOSIT_AND_BORROW)
+
+  useEffect(() => {
+    const mode = modeForContext(
+      props.managePosition,
+      positionAction,
+      Number(collateralInput),
+      Number(debtInput)
+    )
+    setMode(mode)
+  }, [props.managePosition, collateralInput, debtInput, positionAction])
 
   return (
     <>
@@ -97,10 +110,8 @@ export default function Borrow(props: BorrowProps) {
           <BorrowHeader
             chainName={chainName(debtChainId)}
             managePosition={props.managePosition}
-            action={managingPositionAction}
-            onPositionActionChange={(action) =>
-              setManagingPositionAction(action)
-            }
+            action={positionAction}
+            onPositionActionChange={(action) => setPositionAction(action)}
           />
           <BorrowBox
             mb="1rem"
@@ -156,7 +167,7 @@ export default function Borrow(props: BorrowProps) {
             isBorrowing={isBorrowing}
             availableVaultStatus={availableVaultStatus}
             managePosition={props.managePosition}
-            managingAction={managingPositionAction}
+            managingAction={positionAction}
             onClick={(action) => {
               if (action === "login") {
                 login()

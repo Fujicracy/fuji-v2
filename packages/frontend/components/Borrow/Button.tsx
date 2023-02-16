@@ -3,6 +3,7 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { PositionTypeMeta } from "../../store/models/Position"
 import { FetchStatus } from "../../store/borrow.store"
+import { useEffect } from "react"
 
 export type BorrowButtonActions =
   | "login"
