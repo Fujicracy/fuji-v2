@@ -1,45 +1,45 @@
 import React from "react"
-import { Box, Button, Chip, Fade, Menu, MenuItem, Stack } from "@mui/material"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import CheckIcon from "@mui/icons-material/Check"
+import { Box, Chip, Stack } from "@mui/material"
+// import { Box, Button, Chip, Fade, Menu, MenuItem, Stack } from "@mui/material"
+// import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+// import CheckIcon from "@mui/icons-material/Check"
 import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
 
 import { ProviderIcon } from "../Shared/Icons"
-import { providersForRoute, RouteMeta } from "../../helpers/borrow"
 
 type VaultsMenuProps = {
   vault: BorrowingVault
-  routes: RouteMeta[]
-  onSelection: (route: RouteMeta) => void
+  providers: LendingProviderDetails[]
 }
 
 function VaultsMenu(props: VaultsMenuProps) {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const open = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const select = (route: RouteMeta) => {
-    props.onSelection(route)
-    setAnchorEl(null)
-  }
+  // const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  // const open = (event: React.MouseEvent<HTMLButtonElement>) => {
+  // setAnchorEl(event.currentTarget)
+  // }
+  // const select = (route: RouteMeta) => {
+  // props.onSelection(route)
+  // setAnchorEl(null)
+  // }
 
-  const selectedRoute = props.routes.find(
-    (r) => r.address === props.vault.address.value
-  )
-  if (!selectedRoute) return <></>
+  //const selectedRoute = props.routes.find(
+  //(r) => r.address === props.vault.address.value
+  //)
+  //if (!selectedRoute) return <></>
   // if (props.routes.length < 2) {
   return (
     <Stack direction="row" alignItems="center" spacing={1}>
       <Chip variant="success" label="A+" />
       <Box display="flex" alignItems="center">
-        {providersForRoute(selectedRoute).map((p) => (
-          <ProviderIcon
-            key={p.name}
-            providerName={p.name}
-            height={16}
-            width={16}
-          />
-        ))}
+        {props.providers &&
+          props.providers.map((p) => (
+            <ProviderIcon
+              key={p.name}
+              providerName={p.name}
+              height={16}
+              width={16}
+            />
+          ))}
       </Box>
     </Stack>
   )

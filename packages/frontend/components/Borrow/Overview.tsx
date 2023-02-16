@@ -32,11 +32,10 @@ export default function Overview() {
   const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
   const collateral = useBorrow((state) => state.position.collateral)
   const debt = useBorrow((state) => state.position.debt)
-  const providers = useBorrow((state) => state.position.providers)
+  const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.position.vault)
-  const availableVaults = useBorrow((state) => state.availableVaults)
-  const availableRoutes = useBorrow((state) => state.availableRoutes)
-  const changeActiveVault = useBorrow((state) => state.changeActiveVault)
+  const providers =
+    allProviders && vault ? allProviders[vault.address.value] : []
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -56,47 +55,36 @@ export default function Overview() {
             height="40px"
           >
             <Typography variant="body2">Overview</Typography>
-            {availableRoutes.length > 0 &&
-              availableRoutes.find((r) => r.address === vault?.address.value) &&
-              vault && (
-                <Stack direction="row" alignItems="center">
-                  <Tooltip
-                    arrow
-                    title={
-                      <span>
-                        We take into account variables such as liquidity, audits
-                        and team behind each protocol, you can read more on our
-                        risk framework{" "}
-                        <Link
-                          href="https://docs.fujidao.org/"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <u> here</u>
-                        </Link>
-                      </span>
-                    }
-                    placement="top"
-                  >
-                    <InfoOutlinedIcon
-                      sx={{ fontSize: "1rem", color: palette.info.main }}
-                    />
-                  </Tooltip>
-                  <Typography variant="smallDark" ml={0.5} mr={1}>
-                    Safety rating:
-                  </Typography>
-                  <VaultsMenu
-                    vault={vault}
-                    routes={availableRoutes}
-                    onSelection={(route) => {
-                      const v = availableVaults.filter(
-                        (v) => v.address.value === route.address
-                      )[0]
-                      changeActiveVault(v)
-                    }}
+            {providers && vault && (
+              <Stack direction="row" alignItems="center">
+                <Tooltip
+                  arrow
+                  title={
+                    <span>
+                      We take into account variables such as liquidity, audits
+                      and team behind each protocol, you can read more on our
+                      risk framework{" "}
+                      <Link
+                        href="https://docs.fujidao.org/"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <u> here</u>
+                      </Link>
+                    </span>
+                  }
+                  placement="top"
+                >
+                  <InfoOutlinedIcon
+                    sx={{ fontSize: "1rem", color: palette.info.main }}
                   />
-                </Stack>
-              )}
+                </Tooltip>
+                <Typography variant="smallDark" ml={0.5} mr={1}>
+                  Safety rating:
+                </Typography>
+                <VaultsMenu vault={vault} providers={providers} />
+              </Stack>
+            )}
           </Stack>
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
@@ -205,7 +193,7 @@ export default function Overview() {
           <Grid container justifyContent="space-between">
             <Grid item>
               <Typography variant="smallDark">
-                Collateral will be deposit into
+                Collateral will be deposited into
               </Typography>
             </Grid>
             <Grid item>
@@ -218,7 +206,7 @@ export default function Overview() {
                   />
 
                   <Typography ml="0.375rem" variant="small">
-                    {providers[0].name}
+                    {providers.find((p) => p.active)?.name}
                   </Typography>
                 </Grid>
               ) : (
