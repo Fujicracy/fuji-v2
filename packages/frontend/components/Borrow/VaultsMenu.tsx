@@ -12,6 +12,11 @@ type VaultsMenuProps = {
   providers: LendingProviderDetails[]
 }
 
+// Commenting out most of this component and let it
+// display only the rating and the providers of the activeVault.
+// In the future, it should be turned again into a menu and made
+// responsible to select vaults according their safety rating.
+
 function VaultsMenu(props: VaultsMenuProps) {
   // const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   // const open = (event: React.MouseEvent<HTMLButtonElement>) => {
