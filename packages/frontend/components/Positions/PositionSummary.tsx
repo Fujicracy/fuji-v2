@@ -35,8 +35,6 @@ export function PositionSummary() {
   const { breakpoints, palette } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
-  const fetchPositions = usePositions((state) => state.fetchUserPositions)
-
   const totalDeposits = usePositions((state) => state.totalDepositsUSD)
   const totalDebt = usePositions((state) => state.totalDebtUSD)
   const totalAPY = usePositions((state) => state.totalAPY)
@@ -50,6 +48,7 @@ export function PositionSummary() {
       keyMetrics[1].value = totalDebt
       keyMetrics[2].value = totalAPY
       keyMetrics[3].value = availableBorrow
+      setKeyMetrics(keyMetrics)
     }
   }, [totalDeposits, totalDebt, totalAPY, availableBorrow])
 

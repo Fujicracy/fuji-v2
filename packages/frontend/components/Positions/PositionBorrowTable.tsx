@@ -22,24 +22,6 @@ type Row = {
   oraclePrice: number | "-"
 }
 
-const emptyRows: Row[] = [
-  {
-    borrow: {
-      sym: "-",
-      amount: "-",
-      usdValue: "-",
-    },
-    collateral: {
-      sym: "-",
-      amount: "-",
-      usdValue: "-",
-    },
-    apy: "-",
-    liquidationPrice: "-",
-    oraclePrice: "-",
-  },
-]
-
 const fakeRows: Row[] = [
   {
     borrow: { sym: "DAI", amount: 8500, usdValue: 8500 },
@@ -61,14 +43,14 @@ function getRows(positions: Position[]): Row[] {
   if (positions.length == 0) {
     return fakeRows
   } else {
-    const rows = positions.map((pos: Position) => ({
+    const rows: Row[] = positions.map((pos: Position) => ({
       borrow: {
-        sym: pos.vault.debt.symbol,
+        sym: pos.vault?.debt.symbol || "",
         amount: pos.debt.amount,
         usdValue: pos.debt.usdValue,
       },
       collateral: {
-        sym: pos.vault.collateral.symbol,
+        sym: pos.vault?.collateral.symbol || "",
         amount: pos.collateral.amount,
         usdValue: pos.collateral.usdValue,
       },
@@ -81,7 +63,7 @@ function getRows(positions: Position[]): Row[] {
 }
 
 export function PositionsBorrowTable() {
-  const { breakpoints, palette } = useTheme()
+  const { palette } = useTheme()
 
   const positions = usePositions((state) => state.positions)
   const rows: Row[] = getRows(positions)

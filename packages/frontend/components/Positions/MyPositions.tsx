@@ -16,7 +16,7 @@ import { useAuth } from "../../store/auth.store"
 import { PositionSummary } from "./PositionSummary"
 import { PositionsBorrowTable } from "./PositionBorrowTable"
 
-export default function Position() {
+function MyPositions() {
   const { breakpoints } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
@@ -71,3 +71,5 @@ export default function Position() {
     </>
   )
 }
+
+export default MyPositions

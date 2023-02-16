@@ -5,7 +5,7 @@ import { Container, useTheme, useMediaQuery } from "@mui/material"
 import Footer from "../components/Shared/Footer"
 import Header from "../components/Shared/Header"
 
-import Position from "../components/Positions/Position"
+import MyPositions from "../components/Positions/MyPositions"
 
 const MyPositionPage: NextPage = () => {
   const { breakpoints } = useTheme()
@@ -30,7 +30,7 @@ const MyPositionPage: NextPage = () => {
           minHeight: "75vh",
         }}
       >
-        <Position />
+        <MyPositions />
       </Container>
 
       {!isMobile && <Footer />}
