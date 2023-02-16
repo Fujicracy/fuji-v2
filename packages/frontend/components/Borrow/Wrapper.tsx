@@ -11,7 +11,7 @@ import {
 import Borrow from "../../components/Borrow/Borrow"
 import Footer from "../../components/Shared/Footer"
 import Header from "../../components/Shared/Header"
-import Overview from "../../components/Borrow/Overview"
+import Overview from "./Overview/Overview"
 import TransactionSummary from "../../components/Borrow/TransactionSummary"
 
 type BorrowWrapperProps = {

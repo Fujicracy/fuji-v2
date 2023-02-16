@@ -1,31 +1,26 @@
-import { ReactNode, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import {
-  Divider,
   Typography,
   CardContent,
   Card,
-  Grid,
   Stack,
   useMediaQuery,
   useTheme,
   Box,
-  Link,
 } from "@mui/material"
-import Image from "next/image"
 
 import TransactionProcessingModal from "./TransactionProcessingModal"
-import { ChainSelect } from "./ChainSelect"
-import TokenCard from "./TokenCard"
 import { Fees } from "./Fees"
 import ApprovalModal from "./ApprovalModal"
-import RoutingModal from "./RoutingModal"
+import RoutingModal from "./Routing/RoutingModal"
 import { useHistory } from "../../store/history.store"
 import { chainName } from "../../services/chains"
 import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
-import { NetworkIcon } from "../Shared/Icons"
-import TabChip from "../Shared/TabChip"
 import BorrowButton from "./Button"
+import BorrowHeader from "./Header"
+import BorrowBox from "./Box/Box"
+import ConnextFooter from "./ConnextFooter"
 
 type BorrowProps = {
   managePosition: boolean
@@ -93,80 +88,37 @@ export default function Borrow(props: BorrowProps) {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const [managingAction, setManagingAction] = useState(0)
+  const [managingPositionAction, setManagingPositionAction] = useState(0)
 
   return (
     <>
       <Card sx={{ maxWidth: "500px", margin: "auto" }}>
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
-          {props.managePosition ? (
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              height="40px"
-            >
-              <Typography variant="body2" height="40px" lineHeight="40px">
-                Manage your position
-              </Typography>
-              <NetworkIcon
-                network={chainName(debtChainId)}
-                height={18}
-                width={18}
-              />
-            </Stack>
-          ) : (
-            <Typography variant="body2" height="40px" lineHeight="40px">
-              Borrow
-            </Typography>
-          )}
-          <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
-          {props.managePosition && (
-            <Stack
-              direction="row"
-              sx={{
-                marginTop: 3,
-                marginBottom: 3,
-              }}
-            >
-              <TabChip
-                selected={managingAction === 0}
-                label={"Add Position"}
-                onClick={() => {
-                  setManagingAction(0)
-                }}
-              />
-              <TabChip
-                selected={managingAction === 1}
-                label={"Remove Position"}
-                sx={{ marginLeft: 1 }}
-                onClick={() => {
-                  setManagingAction(1)
-                }}
-              />
-            </Stack>
-          )}
-          <Box mb="1rem">
-            <ChainSelect
-              label="Collateral from"
-              type="collateral"
-              value={collateralChainId}
-              disabled={isBorrowing}
-              onChange={(chainId) => changeCollateralChain(chainId)}
-            />
-            <TokenCard type="collateral" disabled={props.managePosition} />
-          </Box>
-
-          <Box>
-            <ChainSelect
-              label="Borrow to"
-              type="borrow"
-              value={debtChainId}
-              disabled={isBorrowing}
-              onChange={(chainId) => changeBorrowChain(chainId)}
-            />
-            <TokenCard type="debt" disabled={props.managePosition} />
-          </Box>
+          <BorrowHeader
+            chainName={chainName(debtChainId)}
+            managePosition={props.managePosition}
+            action={managingPositionAction}
+            onPositionActionChange={(action) =>
+              setManagingPositionAction(action)
+            }
+          />
+          <BorrowBox
+            mb="1rem"
+            managePosition={props.managePosition}
+            label="Collateral from"
+            type="collateral"
+            chainId={collateralChainId}
+            disableChainChange={isBorrowing}
+            onChainChange={(chainId) => changeCollateralChain(chainId)}
+          />
+          <BorrowBox
+            managePosition={props.managePosition}
+            label="Borrow to"
+            type="borrow"
+            chainId={debtChainId}
+            disableChainChange={isBorrowing}
+            onChainChange={(chainId) => changeBorrowChain(chainId)}
+          />
 
           <Stack
             direction="row"
@@ -204,7 +156,7 @@ export default function Borrow(props: BorrowProps) {
             isBorrowing={isBorrowing}
             availableVaultStatus={availableVaultStatus}
             managePosition={props.managePosition}
-            managingAction={managingAction}
+            managingAction={managingPositionAction}
             onClick={(action) => {
               if (action === "login") {
                 login()
@@ -218,26 +170,7 @@ export default function Borrow(props: BorrowProps) {
             }}
           />
 
-          <Link
-            href="https://www.connext.network/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Grid
-              container
-              justifyContent="center"
-              alignItems="center"
-              mt="2rem"
-            >
-              <Typography variant="small">Powered by</Typography>
-              <Image
-                src="/assets/images/logo/connext-title.svg"
-                height={16}
-                width={95}
-                alt="Connext logo"
-              />
-            </Grid>
-          </Link>
+          <ConnextFooter />
         </CardContent>
       </Card>
       {/* TODO: Move txprocessing outside of borrow */}

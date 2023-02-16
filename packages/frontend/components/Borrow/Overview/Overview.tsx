@@ -25,10 +25,10 @@ import { BorrowingVault } from "@x-fuji/sdk"
 import CurrencyCard from "./CurrencyCard"
 import LTVProgressBar from "./LTVProgressBar"
 
-import ClickableTooltip from "../Shared/ClickableTooltip"
-import { useBorrow } from "../../store/borrow.store"
-import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
-import { NetworkIcon, ProviderIcon } from "../Shared/Icons"
+import ClickableTooltip from "../../Shared/ClickableTooltip"
+import { useBorrow } from "../../../store/borrow.store"
+import { DEFAULT_LTV_RECOMMENDED } from "../../../constants/borrow"
+import { NetworkIcon, ProviderIcon } from "../../Shared/Icons"
 
 export default function Overview() {
   const { palette } = useTheme()
