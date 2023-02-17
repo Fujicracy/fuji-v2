@@ -185,6 +185,27 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vm.prank(ALICE);
     vault.withdraw(amount, ALICE, ALICE);
   }
+  
+  function test_undercollateralizedLoan() public {
+    uint96 amount = 1 ether;
+    //give 1 ether to Alice
+    dealMockERC20(collateralAsset, ALICE, amount);
+    //deposit 1 ether in the vault
+    vm.startPrank(ALICE);
+    IERC20(collateralAsset).approve(address(vault), amount);
+    vault.deposit(amount, ALICE);
+    vm.stopPrank();
+    //Timelock setting LTV as 150%
+    vm.prank(address(timelock));
+    vault.setMaxLtv(1.5e18);
+    //the invalid borrow amount is equivalent to a 110% LTV loan, or 2.2k DAI
+    uint96 invalidBorrowAmount = 2200e18;
+    vm.prank(ALICE);
+    vault.borrow(invalidBorrowAmount, ALICE, ALICE);
+    uint256 debtBalance = IERC20(debtAsset).balanceOf(ALICE);
+    //the assertion below shows that more was borrowed than given as collateral
+    assert(amount * USD_PER_ETH_PRICE < debtBalance * USD_PER_DAI_PRICE);
+  }
 
   function test_setMinAmount(uint256 min) public {
     vm.expectEmit(true, false, false, false);
