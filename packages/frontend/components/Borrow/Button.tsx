@@ -1,9 +1,8 @@
 import { Button } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
-import { PositionTypeMeta } from "../../store/models/Position"
+import { Token } from "@x-fuji/sdk"
 import { FetchStatus } from "../../store/borrow.store"
-import { useEffect } from "react"
 
 export type BorrowButtonActions =
   | "login"
@@ -21,7 +20,7 @@ type BorrowButtonProps = {
   ltv: number
   ltvMax: number
   collateralAllowance: number | undefined
-  collateral: PositionTypeMeta
+  collateralToken: Token
   metaStatus: FetchStatus
   isSigning: boolean
   isBorrowing: boolean
@@ -61,7 +60,7 @@ const BorrowButton = (props: BorrowButtonProps) => {
   ) {
     return (
       <Button variant="gradient" size="large" disabled fullWidth>
-        Insufficient {props.collateral.token.symbol} balance
+        Insufficient {props.collateralToken.symbol} balance
       </Button>
     )
   } else if (props.ltv > props.ltvMax) {
@@ -72,7 +71,7 @@ const BorrowButton = (props: BorrowButtonProps) => {
     )
   } else if (
     props.collateralAllowance !== undefined &&
-    props.collateralAllowance < props.collateral.amount
+    props.collateralAllowance < props.collateralAmount
   ) {
     return (
       <Button

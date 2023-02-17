@@ -5,7 +5,7 @@ import { Box, Chip, Stack } from "@mui/material"
 // import CheckIcon from "@mui/icons-material/Check"
 import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
 
-import { ProviderIcon } from "../Shared/Icons"
+import { ProviderIcon } from "../../Shared/Icons"
 
 type VaultsMenuProps = {
   vault: BorrowingVault
