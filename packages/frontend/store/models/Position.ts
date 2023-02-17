@@ -1,5 +1,11 @@
 import { BorrowingVault, LendingProviderDetails, Token } from "@x-fuji/sdk"
 
+type PositionMeta = {
+  amount: number
+  token: Token
+  usdValue: number
+}
+
 // reprensent an open position on fuji
 export type Position = {
   vault?: BorrowingVault /*| LendingVault // Contain chainId */
@@ -10,7 +16,6 @@ export type Position = {
     usdValue: number
     baseAPR?: number
   }
-
   debt: {
     amount: number
     token: Token

@@ -89,6 +89,7 @@ export default function Borrow() {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
 
   let button: ReactNode
   if (!address) {
@@ -128,7 +129,7 @@ export default function Borrow() {
     )
   } else if (
     collateralAllowance?.value !== undefined &&
-    collateralAllowance.value < collateral.amount
+    collateralAllowance.value < collateralAmount
   ) {
     button = (
       <Button
@@ -200,7 +201,10 @@ export default function Borrow() {
             m="1rem 0"
             justifyContent="space-between"
             onClick={() => {
-              !onMobile && address && setShowRoutingModal(true)
+              availableRoutes.length > 0 &&
+                !onMobile &&
+                address &&
+                setShowRoutingModal(true)
             }}
             sx={{ cursor: address && "pointer" }}
           >
