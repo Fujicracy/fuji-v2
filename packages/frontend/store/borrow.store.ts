@@ -22,13 +22,14 @@ import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
-import { PositionType, fetchRoutes, RouteMeta } from "../helpers/borrow"
+import { PositionType, fetchRoutes, RouteMeta, Mode } from "../helpers/borrow"
 
 setAutoFreeze(false)
 
 export type BorrowStore = BorrowState & BorrowActions
 type BorrowState = {
   formType: "create" | "edit"
+  mode: Mode
 
   availableVaults: BorrowingVault[]
   availableVaultsStatus: FetchStatus
@@ -66,6 +67,7 @@ type BorrowState = {
 export type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type BorrowActions = {
+  changeMode: (mode: Mode) => void
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
@@ -101,6 +103,7 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 
 const initialState: BorrowState = {
   formType: "create",
+  mode: Mode.DEPOSIT_AND_BORROW,
 
   availableVaults: [],
   availableVaultsStatus: "initial",
@@ -158,6 +161,14 @@ export const useBorrow = create<BorrowStore>()(
   devtools(
     (set, get) => ({
       ...initialState,
+
+      async changeMode(mode) {
+        set(
+          produce((state: BorrowState) => {
+            state.mode = mode
+          })
+        )
+      },
 
       async changeCollateralChain(chainId) {
         const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
@@ -415,7 +426,7 @@ export const useBorrow = create<BorrowStore>()(
           return
         }
 
-        const { activeVault, collateral, debt } = get()
+        const { activeVault, collateral, debt, mode } = get()
         if (!activeVault || !collateral.input || !debt.input) {
           return set(
             produce((state: BorrowState) => {
@@ -437,6 +448,7 @@ export const useBorrow = create<BorrowStore>()(
               const recommended = i === 0
 
               return fetchRoutes(
+                mode,
                 v,
                 collateral.token,
                 debt.token,

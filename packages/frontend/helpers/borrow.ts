@@ -74,6 +74,7 @@ export type RouteMeta = {
   plus saving the corresponding address and return everything for the caller to handle.
 */
 export const fetchRoutes = async (
+  mode: Mode,
   vault: BorrowingVault,
   collateralToken: Token,
   debtToken: Token,
@@ -90,6 +91,40 @@ export const fetchRoutes = async (
     error?: Error
   } = {}
   try {
+    // sdk.previews.deposit(vault, parseUnits(collateralInput, collateralToken.decimals), collateralToken, new Address(address))
+
+    // sdk.previews.borrow(
+    //   vault,
+    //   collateralToken.chainId,
+    //   parseUnits(debtInput, debtToken.decimals),
+    //   debtToken,
+    //   new Address(address)
+    // )
+
+    // sdk.previews.paybackAndWithdraw(
+    //   vault,
+    //   parseUnits(collateralInput, collateralToken.decimals),
+    //   parseUnits(debtInput, debtToken.decimals),
+    //   collateralToken,
+    //   debtToken,
+    //   new Address(address)
+    // )
+
+    // sdk.previews.withdraw(
+    //   vault,
+    //   collateralToken.chainId,
+    //   parseUnits(collateralInput, collateralToken.decimals),
+    //   collateralToken,
+    //   new Address(address)
+    // )
+
+    // sdk.previews.payback(
+    //   vault,
+    //   parseUnits(debtInput, debtToken.decimals),
+    //   collateralToken,
+    //   new Address(address)
+    // )
+
     const preview = await sdk.previews.depositAndBorrow(
       vault,
       parseUnits(collateralInput, collateralToken.decimals),

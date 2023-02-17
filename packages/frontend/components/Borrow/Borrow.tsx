@@ -75,7 +75,11 @@ export default function Borrow(props: BorrowProps) {
   const availableRoutes = useBorrow((state) => state.availableRoutes)
 
   const [positionAction, setPositionAction] = useState(PositionAction.ADD)
-  const [mode, setMode] = useState(Mode.DEPOSIT_AND_BORROW)
+
+  // TODO: Need to make sure to update mode when changing page, chains, collateral, debt, etc.
+  const mode = useBorrow((state) => state.mode)
+  const changeMode = useBorrow((state) => state.changeMode)
+
   const vault = useBorrow((state) => state.activeVault)
   const [hasBalance, setHasBalance] = useState(false)
 
@@ -112,8 +116,14 @@ export default function Borrow(props: BorrowProps) {
       Number(collateral.input),
       Number(debt.input)
     )
-    setMode(mode)
-  }, [props.managePosition, collateral.input, debt.input, positionAction])
+    changeMode(mode)
+  }, [
+    changeMode,
+    props.managePosition,
+    collateral.input,
+    debt.input,
+    positionAction,
+  ])
 
   return (
     <>
