@@ -22,6 +22,7 @@ import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
 import ConnextFooter from "./ConnextFooter"
 import { Mode, modeForContext, PositionAction } from "../../helpers/borrow"
+import { Address } from "@x-fuji/sdk"
 
 type BorrowProps = {
   managePosition: boolean
@@ -33,14 +34,6 @@ export default function Borrow(props: BorrowProps) {
   const updateBalance = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)
   const updateAllowance = useBorrow((state) => state.updateAllowance)
-  useEffect(() => {
-    if (address) {
-      updateBalance("collateral")
-      updateBalance("debt")
-      updateAllowance()
-      updateVault()
-    }
-  }, [address, updateBalance, updateAllowance, updateVault])
 
   const login = useAuth((state) => state.login)
   const theme = useTheme()
@@ -65,10 +58,6 @@ export default function Borrow(props: BorrowProps) {
   )
 
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
-  useEffect(() => {
-    updateTokenPrice("collateral")
-    updateTokenPrice("debt")
-  }, [updateTokenPrice])
 
   const ltv = useBorrow((state) => state.ltv)
   const ltvMax = useBorrow((state) => state.ltvMax)
@@ -87,6 +76,34 @@ export default function Borrow(props: BorrowProps) {
 
   const [positionAction, setPositionAction] = useState(PositionAction.ADD)
   const [mode, setMode] = useState(Mode.DEPOSIT_AND_BORROW)
+  const vault = useBorrow((state) => state.activeVault)
+  const [hasBalance, setHasBalance] = useState(false)
+
+  useEffect(() => {
+    if (address) {
+      updateBalance("collateral")
+      updateBalance("debt")
+      updateAllowance()
+      updateVault()
+    }
+  }, [address, updateBalance, updateAllowance, updateVault])
+
+  useEffect(() => {
+    updateTokenPrice("collateral")
+    updateTokenPrice("debt")
+  }, [updateTokenPrice])
+
+  useEffect(() => {
+    ;(async () => {
+      if (address && vault && !props.managePosition) {
+        // Poor implementation, needs to be more complex and probably grab the associated position
+        const balance = await vault.getBalances(Address.from(address))
+        const hasBalance =
+          balance.deposit.toNumber() > 0 || balance.borrow.toNumber() > 0
+        setHasBalance(hasBalance)
+      }
+    })()
+  }, [address, vault, props.managePosition])
 
   useEffect(() => {
     const mode = modeForContext(
@@ -165,17 +182,13 @@ export default function Borrow(props: BorrowProps) {
             isExecuting={isBorrowing}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            onClick={(action) => {
-              if (action === "login") {
-                login()
-              } else if (action === "change_chain") {
-                changeChain(collateral.token.chainId)
-              } else if (action === "approve") {
-                setShowApprovalModal(true)
-              } else {
-                signAndBorrow()
-              }
-            }}
+            managePosition={props.managePosition}
+            hasBalance={hasBalance}
+            onLoginClick={login}
+            onChainChangeClick={() => changeChain(collateral.token.chainId)}
+            onApproveClick={() => setShowApprovalModal(true)}
+            onPositionClick={() => console.log("redirect to position")}
+            onClick={signAndBorrow}
           />
 
           <ConnextFooter />

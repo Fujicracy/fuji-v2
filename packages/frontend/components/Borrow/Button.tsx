@@ -5,12 +5,6 @@ import { Token } from "@x-fuji/sdk"
 import { FetchStatus } from "../../store/borrow.store"
 import { Mode } from "../../helpers/borrow"
 
-export type BorrowButtonActions =
-  | "login"
-  | "change_chain"
-  | "approve"
-  | "execute"
-
 type BorrowButtonProps = {
   address: string | undefined
   collateralChainId: string
@@ -27,7 +21,13 @@ type BorrowButtonProps = {
   isExecuting: boolean
   availableVaultStatus: FetchStatus
   mode: Mode
-  onClick: (action: BorrowButtonActions) => void
+  managePosition: boolean
+  hasBalance: boolean
+  onLoginClick: () => void
+  onChainChangeClick: () => void
+  onApproveClick: () => void
+  onPositionClick: () => void
+  onClick: () => void
 }
 
 const BorrowButton = (props: BorrowButtonProps) => {
@@ -61,7 +61,7 @@ const BorrowButton = (props: BorrowButtonProps) => {
       <Button
         variant="gradient"
         size="large"
-        onClick={() => props.onClick("login")}
+        onClick={() => props.onLoginClick()}
         fullWidth
         data-cy="borrow-login"
       >
@@ -74,7 +74,7 @@ const BorrowButton = (props: BorrowButtonProps) => {
         variant="gradient"
         size="large"
         fullWidth
-        onClick={() => props.onClick("change_chain")}
+        onClick={() => props.onChainChangeClick()}
       >
         Switch network
       </Button>
@@ -103,16 +103,27 @@ const BorrowButton = (props: BorrowButtonProps) => {
         variant="gradient"
         fullWidth
         size="large"
-        onClick={() => props.onClick("approve")}
+        onClick={() => props.onApproveClick()}
       >
         Allow
+      </Button>
+    )
+  } else if (!props.managePosition && props.hasBalance) {
+    return (
+      <Button
+        variant="gradient"
+        fullWidth
+        size="large"
+        onClick={() => props.onPositionClick()}
+      >
+        Manage position
       </Button>
     )
   } else {
     return (
       <LoadingButton
         variant="gradient"
-        onClick={() => props.onClick("execute")}
+        onClick={() => props.onClick()}
         size="large"
         fullWidth
         disabled={
