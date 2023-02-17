@@ -13,10 +13,12 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
+import { Address, BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
+import { useAuth } from "../../store/auth.store"
 import { chainName } from "../../services/chains"
 import { sdk } from "../../services/sdk"
 import { SizableTableCell } from "../Shared/SizableTableCell"
+import { BigNumber } from "ethers"
 
 export type Row = {
   vault: BorrowingVault
@@ -46,6 +48,7 @@ type SortBy = "descending" | "ascending"
 
 export default function MarketsTable() {
   const { palette } = useTheme()
+  const address = useAuth((state) => state.address)
   // const [appSorting] = useState<SortBy>("descending")
   const [vaults, setVaults] = useState<VaultWithFinancials[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,17 +56,27 @@ export default function MarketsTable() {
   useEffect(() => {
     ;(async () => {
       try {
-        let vaults = await sdk.getBorrowingVaultsFinancials()
+        const addr = address ? Address.from(address) : undefined
+        let vaults = await sdk.getBorrowingVaultsFinancials(addr)
         setVaults(vaults)
         setLoading(false)
         vaults = await sdk.getLlamaFinancials(vaults)
         setVaults(vaults)
       } catch (e) {
-        // TODO: What if error
+        const vaults = sdk.getAllBorrowingVaults().map((v) => ({
+          vault: v,
+          allProviders: [],
+          activeProvider: { name: "", llamaKey: "" },
+          depositBalance: BigNumber.from(0),
+          borrowBalance: BigNumber.from(0),
+          collateralPriceUSD: BigNumber.from(0),
+          debtPriceUSD: BigNumber.from(0),
+        }))
+        setVaults(vaults)
         setLoading(false)
       }
     })()
-  }, [])
+  }, [address])
 
   const rows: Row[] = groupByPair(vaults.map(vaultToRow))
 
@@ -140,7 +153,7 @@ export default function MarketsTable() {
               >
                 <Tooltip
                   arrow
-                  title="FujiV2 refinances between these protocols to find the best yield"
+                  title="Fuji refinances between these protocols to find the best yield"
                   placement="top"
                 >
                   <InfoOutlinedIcon
