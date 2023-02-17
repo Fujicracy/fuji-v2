@@ -14,12 +14,12 @@ export type LendingProviderBase = {
 };
 
 export type LendingProviderWithFinancials = LendingProviderBase & {
-  depositApyBase?: number;
-  depositApyReward?: number;
-  depositApy?: number;
+  depositAprBase?: number;
+  depositAprReward?: number;
+  depositApr?: number;
   depositRewardTokens?: string[];
-  borrowApyBase?: number;
-  borrowApyReward?: number;
+  borrowAprBase?: number;
+  borrowAprReward?: number;
   borrowRewardTokens?: string[];
   availableToBorrowUSD?: number;
 };

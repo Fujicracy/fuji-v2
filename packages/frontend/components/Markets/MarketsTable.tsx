@@ -28,13 +28,13 @@ export type Row = {
 
   chain: string
 
-  depositApy: number
-  depositApyBase: number
-  depositApyReward: number
+  depositApr: number
+  depositAprBase: number
+  depositAprReward: number
 
-  borrowApy: number
-  borrowApyBase: number
-  borrowApyReward: number
+  borrowApr: number
+  borrowAprBase: number
+  borrowAprReward: number
 
   integratedProtocols: string[]
   safetyRating: string
@@ -129,7 +129,7 @@ export default function MarketsTable() {
                 //   )
                 // }
               >
-                <span>Borrow APY</span>
+                <span>Borrow APR</span>
                 {/* {appSorting === "descending" ? (
                   <KeyboardArrowUpIcon
                     sx={{ color: palette.info.main, fontSize: "0.875rem" }}
@@ -142,7 +142,7 @@ export default function MarketsTable() {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
-              Supply APY
+              Supply APR
             </SizableTableCell>
             <SizableTableCell align="right" width="140px">
               <Stack
@@ -213,10 +213,10 @@ export default function MarketsTable() {
 function vaultToRow(v: VaultWithFinancials): Row {
   const activeProvider = v.activeProvider
   const liquidity = activeProvider.availableToBorrowUSD
-  const depositApyBase = activeProvider.depositApyBase ?? 0
-  const depositApyReward = activeProvider.depositApyReward ?? 0
-  const borrowApyBase = activeProvider.borrowApyBase ?? 0
-  const borrowApyReward = activeProvider.borrowApyReward ?? 0
+  const depositAprBase = activeProvider.depositAprBase ?? 0
+  const depositAprReward = activeProvider.depositAprReward ?? 0
+  const borrowAprBase = activeProvider.borrowAprBase ?? 0
+  const borrowAprReward = activeProvider.borrowAprReward ?? 0
   return {
     vault: v.vault,
 
@@ -224,13 +224,13 @@ function vaultToRow(v: VaultWithFinancials): Row {
     collateral: v.vault.collateral.symbol,
     chain: chainName(v.vault.chainId),
 
-    depositApy: depositApyBase + depositApyReward,
-    depositApyBase,
-    depositApyReward,
+    depositApr: depositAprBase + depositAprReward,
+    depositAprBase,
+    depositAprReward,
 
-    borrowApy: borrowApyBase - borrowApyReward,
-    borrowApyBase,
-    borrowApyReward,
+    borrowApr: borrowAprBase - borrowAprReward,
+    borrowAprBase,
+    borrowAprReward,
 
     integratedProtocols: v.allProviders.map((p) => p.name),
     safetyRating: "A",
@@ -298,6 +298,6 @@ function groupByChain(rows: Row[]): Row[] {
 type CompareFn = (r1: Row, r2: Row) => 1 | -1
 
 const sortBy: Record<SortBy, CompareFn> = {
-  ascending: (a, b) => (a.borrowApy < b.borrowApy ? 1 : -1),
-  descending: (a, b) => (a.borrowApy > b.borrowApy ? 1 : -1),
+  ascending: (a, b) => (a.borrowApr < b.borrowApr ? 1 : -1),
+  descending: (a, b) => (a.borrowApr > b.borrowApr ? 1 : -1),
 }

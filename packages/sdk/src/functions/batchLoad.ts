@@ -83,8 +83,8 @@ const setResults = (
   const providers = v.allProviders.map((addr, i) => {
     return {
       ...LENDING_PROVIDERS[v.chainId][addr],
-      depositApyBase: rateToFloat(rates[2 * i]),
-      borrowApyBase: rateToFloat(rates[2 * i + 1]),
+      depositAprBase: rateToFloat(rates[2 * i]),
+      borrowAprBase: rateToFloat(rates[2 * i + 1]),
     };
   });
   return {

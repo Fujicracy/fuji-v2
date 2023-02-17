@@ -303,8 +303,8 @@ export class Sdk {
   }
 
   /**
-   * Retruns all vaults with financial data such as base deposit APYs and
-   * base borrow APYs fetched on-chain.
+   * Retruns all vaults with financial data such as base deposit APRs and
+   * base borrow APRs fetched on-chain.
    *
    * @remarks
    * This methods serves to pre-fetch and loads only partially the financials.
@@ -642,10 +642,9 @@ export class Sdk {
       ...v,
       activeProvider: {
         ...v.activeProvider,
-        depositApyReward: depositData?.apyReward ?? 0,
-        depositApy: depositData?.apy ?? 0,
+        depositAprReward: depositData?.apyReward ?? 0,
         depositRewardTokens: depositData?.rewardTokens ?? [],
-        borrowApyReward: borrowData?.apyRewardBorrow ?? 0,
+        borrowAprReward: borrowData?.apyRewardBorrow ?? 0,
         borrowRewardTokens: borrowData?.rewardTokens ?? [],
         availableToBorrowUSD: borrowData
           ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd

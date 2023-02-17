@@ -152,11 +152,11 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           sx={{ color: palette.warning.main }}
         >
           <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.borrowApyReward > 0 && (
+            {row.borrowAprReward > 0 && (
               <Tooltip
-                title={`${row.borrowApyBase.toFixed(
+                title={`${row.borrowAprBase.toFixed(
                   2
-                )}% (base) - ${row.borrowApyReward.toFixed(2)}% (reward)`}
+                )}% (base) - ${row.borrowAprReward.toFixed(2)}% (reward)`}
                 arrow
               >
                 <IconButton>
@@ -164,7 +164,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
                 </IconButton>
               </Tooltip>
             )}
-            {row.borrowApy.toFixed(2)}%
+            {row.borrowApr.toFixed(2)}%
           </Stack>
         </SizableTableCell>
         <SizableTableCell
@@ -173,11 +173,11 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           sx={{ color: palette.success.main }}
         >
           <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.depositApyReward > 0 && (
+            {row.depositAprReward > 0 && (
               <Tooltip
-                title={`${row.depositApyBase.toFixed(
+                title={`${row.depositAprBase.toFixed(
                   2
-                )}% (base) + ${row.depositApyReward.toFixed(2)}% (reward)`}
+                )}% (base) + ${row.depositAprReward.toFixed(2)}% (reward)`}
                 arrow
               >
                 <IconButton>
@@ -185,7 +185,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
                 </IconButton>
               </Tooltip>
             )}
-            {row.depositApy.toFixed(2)} %
+            {row.depositApr.toFixed(2)} %
           </Stack>
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
