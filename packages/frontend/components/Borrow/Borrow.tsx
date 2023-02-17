@@ -89,6 +89,7 @@ export default function Borrow(props: BorrowProps) {
   const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
   const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
 
   const [positionAction, setPositionAction] = useState(PositionAction.ADD)
   const [mode, setMode] = useState(Mode.DEPOSIT_AND_BORROW)
@@ -136,7 +137,10 @@ export default function Borrow(props: BorrowProps) {
             m="1rem 0"
             justifyContent="space-between"
             onClick={() => {
-              !onMobile && address && setShowRoutingModal(true)
+              availableRoutes.length > 0 &&
+                !onMobile &&
+                address &&
+                setShowRoutingModal(true)
             }}
             sx={{ cursor: address && "pointer" }}
           >
@@ -161,7 +165,7 @@ export default function Borrow(props: BorrowProps) {
             ltv={ltv}
             ltvMax={ltvMax}
             collateralAllowance={collateralAllowance?.value}
-            collateral={collateral}
+            collateralToken={collateral.token}
             metaStatus={metaStatus}
             isSigning={isSigning}
             isBorrowing={isBorrowing}

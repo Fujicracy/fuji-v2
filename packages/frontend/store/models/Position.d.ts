@@ -5,6 +5,7 @@ type PositionTypeMeta = {
   token: Token
   usdValue: number
 }
+
 // reprensent an open position on fuji
 export class Position {
   vault?: BorrowingVault // Contain chainId

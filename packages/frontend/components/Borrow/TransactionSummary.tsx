@@ -21,6 +21,7 @@ import { useBorrow } from "../../store/borrow.store"
 import LTVProgressBar from "./Overview/LTVProgressBar"
 import ClickableTooltip from "../Shared/ClickableTooltip"
 import { ProviderIcon } from "../Shared/Icons"
+import { recommendedLTV } from "../../helpers/borrow"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
@@ -197,10 +198,10 @@ export default function TransactionSummary() {
               <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
               <LTVProgressBar
-                borrowLimit={0}
+                borrowLimit={0} // TODO: should be dynamic
                 value={ltv > ltvMax ? ltvMax : ltv}
                 maxLTV={ltvMax}
-                recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
+                recommendedLTV={recommendedLTV(ltvMax)}
               />
 
               <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />

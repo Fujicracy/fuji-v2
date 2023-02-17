@@ -120,7 +120,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             height: "0.813rem",
             borderRight: `0.063rem solid`,
             borderBottom: 0,
-            width: "60%",
+            width: `${(props.recommendedLTV * 100) / props.maxLTV}%`,
             margin: 0,
           }}
         />
@@ -129,7 +129,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
             height: "0.813rem",
             borderRight: `0.063rem solid`,
             borderBottom: 0,
-            width: "40%",
+            width: `${100 - (props.recommendedLTV * 100) / props.maxLTV}%`,
             margin: 0,
           }}
         />
@@ -150,9 +150,7 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
           },
         }}
         value={
-          props.value > props.maxLTV
-            ? props.value
-            : (props.value * 100) / props.maxLTV
+          props.value > props.maxLTV ? 100 : (props.value * 100) / props.maxLTV
         }
         variant="determinate"
       />
