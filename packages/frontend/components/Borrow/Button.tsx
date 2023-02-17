@@ -3,6 +3,7 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { Token } from "@x-fuji/sdk"
 import { FetchStatus } from "../../store/borrow.store"
+import { Mode } from "../../helpers/borrow"
 
 export type BorrowButtonActions =
   | "login"
@@ -23,14 +24,38 @@ type BorrowButtonProps = {
   collateralToken: Token
   metaStatus: FetchStatus
   isSigning: boolean
-  isBorrowing: boolean
+  isExecuting: boolean
   availableVaultStatus: FetchStatus
-  managePosition: boolean
-  managingAction: number
+  mode: Mode
   onClick: (action: BorrowButtonActions) => void
 }
 
 const BorrowButton = (props: BorrowButtonProps) => {
+  const loadingButtonTitle =
+    (props.isSigning && "(1/2) Signing...") ||
+    (props.isExecuting &&
+      `(2/2) ${
+        props.mode === Mode.DEPOSIT_AND_BORROW || props.mode === Mode.BORROW
+          ? "Borrowing"
+          : props.mode === Mode.DEPOSIT
+          ? "Depositing"
+          : props.mode === Mode.PAYBACK_AND_WITHDRAW ||
+            props.mode === Mode.WITHDRAW
+          ? "Withdrawing"
+          : "Repaying"
+      }...`) ||
+    props.mode === Mode.DEPOSIT_AND_BORROW
+      ? "Sign & Borrow"
+      : props.mode === Mode.BORROW
+      ? "Borrow"
+      : props.mode === Mode.DEPOSIT
+      ? "Deposit"
+      : props.mode === Mode.PAYBACK_AND_WITHDRAW
+      ? "Repay & Withdraw"
+      : props.mode === Mode.WITHDRAW
+      ? "Withdraw"
+      : "Repay"
+
   if (!props.address) {
     return (
       <Button
@@ -97,26 +122,13 @@ const BorrowButton = (props: BorrowButtonProps) => {
         }
         loading={
           props.isSigning ||
-          props.isBorrowing ||
+          props.isExecuting ||
           props.availableVaultStatus === "fetching"
         }
         loadingPosition="start"
         startIcon={<></>}
       >
-        {(props.isSigning && "(1/2) Signing...") ||
-        (props.isBorrowing &&
-          `(2/2) ${
-            props.managePosition
-              ? props.managingAction === 0
-                ? "Adding"
-                : "Removing"
-              : "Borrowing"
-          }...`) ||
-        props.managePosition
-          ? props.managingAction === 0
-            ? "Add Collateral"
-            : "Remove Collateral"
-          : "Sign & Borrow"}
+        {loadingButtonTitle}
       </LoadingButton>
     )
   }

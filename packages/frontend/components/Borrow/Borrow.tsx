@@ -168,10 +168,10 @@ export default function Borrow(props: BorrowProps) {
             collateralToken={collateral.token}
             metaStatus={metaStatus}
             isSigning={isSigning}
-            isBorrowing={isBorrowing}
+            isExecuting={isBorrowing}
             availableVaultStatus={availableVaultStatus}
             managePosition={props.managePosition}
-            managingAction={positionAction}
+            mode={mode}
             onClick={(action) => {
               if (action === "login") {
                 login()
