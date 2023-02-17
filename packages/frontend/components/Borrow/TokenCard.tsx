@@ -20,9 +20,9 @@ import { Token } from "@x-fuji/sdk"
 import styles from "../../styles/components/Borrow.module.css"
 
 import { useBorrow } from "../../store/borrow.store"
-import { DEFAULT_LTV_RECOMMENDED } from "../../constants/borrow"
 import Balance from "../Shared/Balance"
 import { TokenIcon } from "../Shared/Icons"
+import { recommendedLTV } from "../../helpers/borrow"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
@@ -198,7 +198,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                     ? ""
                     : ltv > ltvMax
                     ? palette.error.main
-                    : ltv > DEFAULT_LTV_RECOMMENDED // TODO: should this be dynamic ?
+                    : ltv > recommendedLTV(ltvMax)
                     ? palette.warning.main
                     : palette.success.main
                 }
@@ -207,7 +207,7 @@ export default function TokenCard({ type }: SelectTokenCardProps) {
                 LTV {ltv <= 100 ? `${ltv}%` : "n/a"}
               </Typography>
               <Typography variant="smallDark">
-                (Recommended: {DEFAULT_LTV_RECOMMENDED}%)
+                (Recommended: {recommendedLTV(ltvMax)}%)
               </Typography>
             </Stack>
           </>

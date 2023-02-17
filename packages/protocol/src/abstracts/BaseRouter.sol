@@ -43,6 +43,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   event AllowCaller(address caller, bool allowed);
 
   /// @dev Custom Errors
+  error BaseRouter__bundleInternal_swapNotFirstAction();
   error BaseRouter__bundleInternal_paramsMismatch();
   error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noBalanceChange();
@@ -57,7 +58,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   IWETH9 public immutable WETH9;
 
   /// @dev Apply it on entry cross-chain calls functions as required.
-  mapping(address => bool) internal _isAllowedCaller;
+  mapping(address => bool) public isAllowedCaller;
 
   /**
    * @dev Stores token balances of this contract at a given moment.
@@ -175,7 +176,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         vault.payback(amount, receiver);
       } else if (actions[i] == Action.PermitWithdraw) {
-        // PERMIT ASSETS
+        // PERMIT WITHDRAW
         (
           IVaultPermissions vault,
           address owner,
@@ -215,6 +216,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         _crossTransferWithCalldata(args[i]);
       } else if (actions[i] == Action.Swap) {
         // SWAP
+
+        if (i == 0) {
+          /// @dev swap cannot be actions[0].
+          revert BaseRouter__bundleInternal_swapNotFirstAction();
+        }
+
         (
           ISwapper swapper,
           address assetIn,
@@ -336,10 +343,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     if (caller == address(0)) {
       revert BaseRouter__allowCaller_zeroAddress();
     }
-    if (_isAllowedCaller[caller] == allowed) {
+    if (isAllowedCaller[caller] == allowed) {
       revert BaseRouter__allowCaller_noAllowChange();
     }
-    _isAllowedCaller[caller] = allowed;
+    isAllowedCaller[caller] = allowed;
     emit AllowCaller(caller, allowed);
   }
 

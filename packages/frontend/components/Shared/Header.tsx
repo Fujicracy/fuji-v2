@@ -261,8 +261,6 @@ const Header = () => {
                     address={address as string}
                     formattedAddress={formattedAddress as string}
                     ens={ens}
-                    // TODO: should be coming from store
-                    transactionStatus={false}
                   />
                 </Grid>
                 <Grid item>
@@ -283,7 +281,6 @@ type BalanceAddressProps = {
   formattedAddress: string
   balance?: Balances
   ens?: string
-  transactionStatus: boolean
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
