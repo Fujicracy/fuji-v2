@@ -60,16 +60,6 @@ export const usePositions = create<PositionsStore>()(
       const availableBorrowPowerUSD =
         getCurrentAvailableBorrowingPower(positions)
 
-      console.log(`position store- account ${account || "-"}`) // TODO daigaro
-      console.log("usePositions-positions", positions.length, positions) // TODO daigaro
-      console.log("usePositions-totalDepositsUSD", totalDepositsUSD) // TODO daigaro
-      console.log("usePositions-totalDebtUSD", totalDebtUSD) // TODO daigaro
-      console.log("usePositions-totalAPY", totalAPY) // TODO daigaro
-      console.log(
-        "usePositions-availableBorrowPowerUSD",
-        availableBorrowPowerUSD
-      ) // TODO daigaro
-
       set({
         positions,
         totalDepositsUSD,

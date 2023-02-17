@@ -29,7 +29,7 @@ const initialKeyMetrics: MetricSummary[] = [
     name: "Available to Borrow",
     value: "-",
     valueSym: "$",
-    action: "Borrow",
+    action: "Borrow Now",
   }, // TODO: tooltip & actions
   // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
 ]
@@ -62,7 +62,7 @@ function updateKeyMetricsSummary(
       name: "Available to Borrow",
       value: availableBorrow_ == undefined ? "-" : availableBorrow_,
       valueSym: "$",
-      action: "Go Borrow",
+      action: "Borrow Now",
     },
   ]
 }
@@ -167,7 +167,7 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
         {metric.action && (
           // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
           <Button
-            variant="secondary"
+            variant="gradient"
             sx={buttonSx}
             disabled={metric.value === "-"}
           >
