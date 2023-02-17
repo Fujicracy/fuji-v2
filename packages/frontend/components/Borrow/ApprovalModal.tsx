@@ -23,8 +23,8 @@ type ApprovalModalProps = {
 export default function ApprovalModal(props: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const collateralAllowance = useBorrow((state) => state.collateralAllowance)
-  const collateralInput = useBorrow((state) => state.collateralInput)
+  const collateralAllowance = useBorrow((state) => state.collateral.allowance)
+  const collateralInput = useBorrow((state) => state.collateral.input)
 
   const [infiniteApproval, setInfiniteApproval] = useState(false)
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -10,6 +10,20 @@ import { sdk } from "../services/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 
+export type PositionType = {
+  allTokens: Token[]
+  balances: Record<string, number>
+  allowance: {
+    status: "initial" | "fetching" | "allowing" | "ready" | "error"
+    value: number | undefined
+  }
+  input: string
+  chainId: string
+  token: Token
+  amount: number
+  usdValue: number
+}
+
 export enum PositionAction {
   ADD = 0,
   REMOVE = 1,

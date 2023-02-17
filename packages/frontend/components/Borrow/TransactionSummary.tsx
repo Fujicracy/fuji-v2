@@ -26,20 +26,18 @@ import { recommendedLTV } from "../../helpers/borrow"
 export default function TransactionSummary() {
   const { palette } = useTheme()
 
-  const ltv = useBorrow((state) => state.position.ltv)
-  const ltvMax = useBorrow((state) => state.position.ltvMax)
-  const liquidationPrice = useBorrow((state) => state.position.liquidationPrice)
-  const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
+  const ltv = useBorrow((state) => state.ltv)
+  const ltvMax = useBorrow((state) => state.ltvMax)
+  const liquidationPrice = useBorrow((state) => state.liquidationPrice)
+  const liquidationDiff = useBorrow((state) => state.liquidationDiff)
 
-  const collateral = useBorrow((state) => state.position.collateral)
-  //const collateralInput = useBorrow((state) => state.collateralInput)
-  //const collateralAmount = parseFloat(collateralInput)
+  const collateral = useBorrow((state) => state.collateral)
+  const debt = useBorrow((state) => state.debt)
 
-  const debt = useBorrow((state) => state.position.debt)
-  //const debtInput = useBorrow((state) => state.debtInput)
-  //const debtAmount = parseFloat(debtInput)
-
-  const providers = useBorrow((state) => state.position.providers)
+  const allProviders = useBorrow((state) => state.allProviders)
+  const vault = useBorrow((state) => state.activeVault)
+  const providers =
+    allProviders && vault ? allProviders[vault.address.value] : []
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)

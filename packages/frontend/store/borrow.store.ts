@@ -15,7 +15,6 @@ import { create } from "zustand"
 import { debounce } from "debounce"
 
 import { useAuth } from "./auth.store"
-import { Position } from "./models/Position"
 import { testChains } from "../services/chains"
 import { sdk } from "../services/sdk"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
@@ -23,36 +22,30 @@ import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
-import { fetchRoutes, RouteMeta } from "../helpers/borrow"
+import { PositionType, fetchRoutes, RouteMeta } from "../helpers/borrow"
 
 setAutoFreeze(false)
 
 export type BorrowStore = BorrowState & BorrowActions
 type BorrowState = {
-  positions: Position[]
-
   formType: "create" | "edit"
 
-  position: Position
   availableVaults: BorrowingVault[]
   availableVaultsStatus: FetchStatus
   // Providers are mapped with their vault address
   allProviders: Record<string, LendingProviderDetails[]>
 
-  collateralTokens: Token[]
-  collateralBalances: Record<string, number>
-  collateralAllowance: {
-    status: "initial" | "fetching" | "allowing" | "ready" | "error"
-    value: number | undefined
-  }
-  collateralInput: string
-  collateralChainId: ChainId
+  activeVault: BorrowingVault | undefined
+  activeProvider: LendingProviderDetails | undefined
 
-  debtTokens: Token[]
-  debtBalances: Record<string, number>
-  debtAllowance: number
-  debtInput: string
-  debtChainId: ChainId
+  collateral: PositionType
+  debt: PositionType
+
+  ltv: number
+  liquidationDiff: number
+  liquidationPrice: number
+  ltvMax: number
+  ltvThreshold: number
 
   transactionMeta: {
     status: FetchStatus
@@ -107,45 +100,45 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: BorrowState = {
-  positions: [],
-
   formType: "create",
 
   availableVaults: [],
   availableVaultsStatus: "initial",
   allProviders: {},
-  position: {
-    collateral: {
-      amount: 0,
-      token: initialCollateralTokens[0],
-      usdValue: 0,
+
+  activeVault: undefined,
+  activeProvider: undefined,
+
+  collateral: {
+    allTokens: initialCollateralTokens,
+    balances: {},
+    input: "",
+    chainId: initialChainId,
+    allowance: {
+      status: "initial",
+      value: undefined,
     },
-    debt: {
-      amount: 0,
-      token: initialDebtTokens[0],
-      usdValue: 0,
-    },
-    ltv: 0,
-    liquidationDiff: 0,
-    liquidationPrice: 0,
-    ltvMax: DEFAULT_LTV_MAX,
-    ltvThreshold: DEFAULT_LTV_TRESHOLD,
+    token: initialCollateralTokens[0],
+    amount: 0,
+    usdValue: 0,
   },
 
-  collateralTokens: initialCollateralTokens,
-  collateralBalances: {},
-  collateralInput: "",
-  collateralChainId: initialChainId,
-  collateralAllowance: {
-    status: "initial",
-    value: undefined,
+  debt: {
+    allTokens: initialDebtTokens,
+    balances: {},
+    allowance: { status: "initial", value: 0 },
+    input: "",
+    chainId: initialChainId,
+    token: initialDebtTokens[0],
+    amount: 0,
+    usdValue: 0,
   },
 
-  debtTokens: initialDebtTokens,
-  debtBalances: {},
-  debtAllowance: 0,
-  debtInput: "",
-  debtChainId: initialChainId,
+  ltv: 0,
+  liquidationDiff: 0,
+  liquidationPrice: 0,
+  ltvMax: DEFAULT_LTV_MAX,
+  ltvThreshold: DEFAULT_LTV_TRESHOLD,
 
   transactionMeta: {
     status: "initial",
@@ -171,9 +164,9 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((state: BorrowState) => {
-            state.collateralChainId = chainId
-            state.collateralTokens = tokens
-            state.position.collateral.token = tokens[0]
+            state.collateral.chainId = chainId
+            state.collateral.allTokens = tokens
+            state.collateral.token = tokens[0]
           })
         )
         get().updateTokenPrice("collateral")
@@ -185,7 +178,7 @@ export const useBorrow = create<BorrowStore>()(
       changeCollateralToken(token) {
         set(
           produce((state: BorrowState) => {
-            state.position.collateral.token = token
+            state.collateral.token = token
           })
         )
         get().updateTokenPrice("collateral")
@@ -194,7 +187,11 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       changeCollateralValue(value) {
-        set({ collateralInput: value })
+        set(
+          produce((state: BorrowState) => {
+            state.collateral.input = value
+          })
+        )
         get().updateTransactionMetaDebounced()
         get().updateLtv()
         get().updateLiquidation()
@@ -205,9 +202,9 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((state: BorrowState) => {
-            state.debtChainId = chainId
-            state.debtTokens = tokens
-            state.position.debt.token = tokens[0]
+            state.debt.chainId = chainId
+            state.debt.allTokens = tokens
+            state.debt.token = tokens[0]
           })
         )
 
@@ -219,7 +216,7 @@ export const useBorrow = create<BorrowStore>()(
       changeBorrowToken(token) {
         set(
           produce((state: BorrowState) => {
-            state.position.debt.token = token
+            state.debt.token = token
           })
         )
         get().updateTokenPrice("debt")
@@ -228,7 +225,11 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       changeBorrowValue(value) {
-        set({ debtInput: value })
+        set(
+          produce((state: BorrowState) => {
+            state.debt.input = value
+          })
+        )
         get().updateTransactionMetaDebounced()
         get().updateLtv()
         get().updateLiquidation()
@@ -249,11 +250,10 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.position.vault = vault
-            s.position.ltvMax = ltvMax
-            s.position.ltvThreshold = ltvThreshold
-            s.position.providers = providers
-            s.position.activeProvider = providers[0]
+            s.activeVault = vault
+            s.ltvMax = ltvMax
+            s.ltvThreshold = ltvThreshold
+            s.activeProvider = providers[0]
           })
         )
         const route = get().availableRoutes.find(
@@ -285,8 +285,9 @@ export const useBorrow = create<BorrowStore>()(
         }
 
         const tokens =
-          type === "debt" ? get().debtTokens : get().collateralTokens
-        const token = get().position[type].token
+          type === "debt" ? get().debt.allTokens : get().collateral.allTokens
+        const token =
+          type === "debt" ? get().debt.token : get().collateral.token
         const chainId = token.chainId
 
         const rawBalances = await sdk.getTokenBalancesFor(
@@ -303,28 +304,33 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             if (type === "debt") {
-              state.debtBalances = balances
+              state.debt.balances = balances
             } else if (type === "collateral") {
-              state.collateralBalances = balances
+              state.collateral.balances = balances
             }
           })
         )
       },
 
       async updateTokenPrice(type) {
-        const token = get().position[type].token
+        const token =
+          type === "debt" ? get().debt.token : get().collateral.token
 
         let tokenValue = await token.getPriceUSD()
         const isTestNet = testChains.find(
           (c) => parseInt(c.id) === token.chainId
         )
         if (token.symbol === "WETH" && isTestNet) {
-          tokenValue = 1242.42 // fix bc weth have no value on testnet
+          tokenValue = 1242.42 // fix bc weth has no value on testnet
         }
 
         set(
           produce((state: BorrowState) => {
-            state.position[type].usdValue = tokenValue
+            if (type === "debt") {
+              state.debt.usdValue = tokenValue
+            } else {
+              state.collateral.usdValue = tokenValue
+            }
           })
         )
         get().updateLtv()
@@ -332,7 +338,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async updateAllowance() {
-        const token = get().position.collateral.token
+        const token = get().collateral.token
         const address = useAuth.getState().address
 
         if (!address) {
@@ -341,19 +347,24 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.collateralAllowance.status = "fetching"
+            s.collateral.allowance.status = "fetching"
           })
         )
         try {
           const res = await sdk.getAllowanceFor(token, new Address(address))
           const value = parseFloat(formatUnits(res, token.decimals))
-          set({ collateralAllowance: { status: "ready", value } })
+          set(
+            produce((s: BorrowState) => {
+              s.collateral.allowance.status = "ready"
+              s.collateral.allowance.value = value
+            })
+          )
         } catch (e) {
           // TODO: how to handle the case where we can't fetch allowance ?
           console.error(e)
           set(
             produce((s: BorrowState) => {
-              s.collateralAllowance.status = "error"
+              s.collateral.allowance.status = "error"
             })
           )
         }
@@ -362,8 +373,8 @@ export const useBorrow = create<BorrowStore>()(
       async updateVault() {
         set({ availableVaultsStatus: "fetching" })
 
-        const collateral = get().position.collateral.token
-        const debt = get().position.debt.token
+        const collateral = get().collateral.token
+        const debt = get().debt.token
         const availableVaults = await sdk.getBorrowingVaultsFor(
           collateral,
           debt
@@ -404,9 +415,8 @@ export const useBorrow = create<BorrowStore>()(
           return
         }
 
-        const { vault, collateral, debt } = get().position
-        const { collateralInput, debtInput } = get()
-        if (!vault || !collateralInput || !debtInput) {
+        const { activeVault, collateral, debt } = get()
+        if (!activeVault || !collateral.input || !debt.input) {
           return set(
             produce((state: BorrowState) => {
               state.transactionMeta.status = "error"
@@ -430,15 +440,15 @@ export const useBorrow = create<BorrowStore>()(
                 v,
                 collateral.token,
                 debt.token,
-                collateralInput,
-                debtInput,
+                collateral.input,
+                debt.input,
                 address,
                 recommended
               )
             })
           )
           const selectedValue = results.find(
-            (r) => r.data?.address === vault.address.value
+            (r) => r.data?.address === activeVault.address.value
           )
           if (!selectedValue || (!selectedValue.error && !selectedValue.data)) {
             throw "Data not found"
@@ -472,12 +482,12 @@ export const useBorrow = create<BorrowStore>()(
       ),
 
       updateLtv() {
-        const collateralValue = parseFloat(get().collateralInput)
-        const collateralUsdValue = get().position.collateral.usdValue
+        const collateralValue = parseFloat(get().collateral.input)
+        const collateralUsdValue = get().collateral.usdValue
         const collateral = collateralValue * collateralUsdValue
 
-        const debtValue = parseFloat(get().debtInput)
-        const debtUsdValue = get().position.debt.usdValue
+        const debtValue = parseFloat(get().debt.input)
+        const debtUsdValue = get().debt.usdValue
         const debt = debtValue * debtUsdValue
 
         const ltv =
@@ -485,29 +495,29 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.position.ltv = ltv
+            s.ltv = ltv
           })
         )
       },
 
       updateLiquidation() {
-        const collateralAmount = parseFloat(get().collateralInput)
-        const collateralUsdValue = get().position.collateral.usdValue
+        const collateralAmount = parseFloat(get().collateral.input)
+        const collateralUsdValue = get().collateral.usdValue
 
-        const debtValue = parseFloat(get().debtInput)
-        const debtUsdValue = get().position.debt.usdValue
+        const debtValue = parseFloat(get().debt.input)
+        const debtUsdValue = get().debt.usdValue
         const debt = debtValue * debtUsdValue
 
         if (!debt || !collateralAmount) {
           return set(
             produce((s: BorrowState) => {
-              s.position.liquidationPrice = 0
-              s.position.liquidationDiff = 0
+              s.liquidationPrice = 0
+              s.liquidationDiff = 0
             })
           )
         }
 
-        const liquidationTreshold = get().position.ltvThreshold
+        const liquidationTreshold = get().ltvThreshold
 
         const liquidationPrice =
           debt / (collateralAmount * (liquidationTreshold / 100))
@@ -517,14 +527,14 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.position.liquidationPrice = liquidationPrice
-            s.position.liquidationDiff = liquidationDiff
+            s.liquidationPrice = liquidationPrice
+            s.liquidationDiff = liquidationDiff
           })
         )
       },
 
       async updateVaultBalance() {
-        const vault = get().position.vault
+        const vault = get().activeVault
         const address = useAuth.getState().address
         if (!vault || !address) {
           return
@@ -537,11 +547,11 @@ export const useBorrow = create<BorrowStore>()(
           produce((s: BorrowState) => {
             s.formType = deposit.gt(0) || borrow.gt(0) ? "edit" : "create"
 
-            const dec = s.position.collateral.token.decimals
-            s.position.collateral.amount = parseFloat(formatUnits(deposit, dec))
+            const dec = s.collateral.token.decimals
+            s.collateral.amount = parseFloat(formatUnits(deposit, dec))
 
-            const dec2 = s.position.debt.token.decimals
-            s.position.debt.amount = parseFloat(formatUnits(borrow, dec2))
+            const dec2 = s.debt.token.decimals
+            s.debt.amount = parseFloat(formatUnits(borrow, dec2))
           })
         )
       },
@@ -553,7 +563,7 @@ export const useBorrow = create<BorrowStore>()(
        * @param afterSuccess
        */
       async allow(amount, afterSuccess?) {
-        const token = get().position.collateral.token
+        const token = get().collateral.token
         const userAddress = useAuth.getState().address
         const provider = useAuth.getState().provider
         const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value
@@ -564,7 +574,7 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.collateralAllowance.status = "allowing"
+            s.collateral.allowance.status = "allowing"
           })
         )
         const owner = provider.getSigner()
@@ -575,12 +585,17 @@ export const useBorrow = create<BorrowStore>()(
           ).approve(spender, parseUnits(amount.toString(), token.decimals))
           await approval.wait()
 
-          set({ collateralAllowance: { status: "ready", value: amount } })
+          set(
+            produce((s: BorrowState) => {
+              s.collateral.allowance.status = "ready"
+              s.collateral.allowance.value = amount
+            })
+          )
           afterSuccess && afterSuccess()
         } catch (e) {
           set(
             produce((s: BorrowState) => {
-              s.collateralAllowance.status = "error"
+              s.collateral.allowance.status = "error"
             })
           )
         }
@@ -588,7 +603,7 @@ export const useBorrow = create<BorrowStore>()(
 
       async signPermit() {
         const actions = get().actions
-        const vault = get().position.vault
+        const vault = get().activeVault
         const provider = useAuth.getState().provider
         if (!actions || !vault || !provider) {
           throw "Unexpected undefined value"
@@ -630,11 +645,11 @@ export const useBorrow = create<BorrowStore>()(
       async borrow() {
         const address = useAuth.getState().address
         const provider = useAuth.getState().provider
-        const { actions, signature, position } = get()
+        const { actions, signature, collateral } = get()
         if (!actions || !address || !signature || !provider) {
           throw "Unexpected undefined param"
         }
-        const srcChainId = position.collateral.token.chainId
+        const srcChainId = collateral.token.chainId
 
         try {
           set({ isBorrowing: true })
@@ -649,9 +664,9 @@ export const useBorrow = create<BorrowStore>()(
           const t = await signer.sendTransaction(txRequest)
           set(
             produce((s: BorrowState) => {
-              if (s.collateralAllowance.value) {
+              if (s.collateral.allowance.value) {
                 // optimistic: we assume transaction will success and update allowance according to that
-                s.collateralAllowance.value -= parseFloat(s.collateralInput)
+                s.collateral.allowance.value -= parseFloat(s.collateral.input)
               }
             })
           )

@@ -46,17 +46,11 @@ export default function Borrow(props: BorrowProps) {
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
-  const collateral = useBorrow((state) => state.position.collateral)
-  const collateralInput = useBorrow((state) => state.collateralInput)
-  const collateralAmount = parseFloat(collateralInput)
-  const collateralChainId = useBorrow((state) => state.collateralChainId)
-  const collateralAllowance = useBorrow((state) => state.collateralAllowance)
+  const collateral = useBorrow((state) => state.collateral)
+  const collateralAmount = parseFloat(collateral.input)
 
-  const debtInput = useBorrow((state) => state.debtInput)
-  const debtAmount = parseFloat(debtInput)
-  const debtChainId = useBorrow((state) => state.debtChainId)
-
-  // const vaultChainId = useBorrow((state) => state.position.vault?.chainId)
+  const debt = useBorrow((state) => state.debt)
+  const debtAmount = parseFloat(debt.input)
 
   const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
   const changeCollateralChain = useBorrow(
@@ -67,7 +61,7 @@ export default function Borrow(props: BorrowProps) {
   const [showApprovalModal, setShowApprovalModal] = useState(false)
 
   const balance = useBorrow(
-    (state) => state.collateralBalances[state.position.collateral.token.symbol]
+    (state) => state.collateral.balances[state.collateral.token.symbol]
   )
 
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
@@ -76,8 +70,8 @@ export default function Borrow(props: BorrowProps) {
     updateTokenPrice("debt")
   }, [updateTokenPrice])
 
-  const ltv = useBorrow((state) => state.position.ltv)
-  const ltvMax = useBorrow((state) => state.position.ltvMax)
+  const ltv = useBorrow((state) => state.ltv)
+  const ltvMax = useBorrow((state) => state.ltvMax)
 
   const signAndBorrow = useBorrow((state) => state.signAndBorrow)
   const isSigning = useBorrow((state) => state.isSigning)
@@ -98,18 +92,18 @@ export default function Borrow(props: BorrowProps) {
     const mode = modeForContext(
       props.managePosition,
       positionAction,
-      Number(collateralInput),
-      Number(debtInput)
+      Number(collateral.input),
+      Number(debt.input)
     )
     setMode(mode)
-  }, [props.managePosition, collateralInput, debtInput, positionAction])
+  }, [props.managePosition, collateral.input, debt.input, positionAction])
 
   return (
     <>
       <Card sx={{ maxWidth: "500px", margin: "auto" }}>
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <BorrowHeader
-            chainName={chainName(debtChainId)}
+            chainName={chainName(debt.chainId)}
             managePosition={props.managePosition}
             action={positionAction}
             onPositionActionChange={(action) => setPositionAction(action)}
@@ -119,7 +113,7 @@ export default function Borrow(props: BorrowProps) {
             managePosition={props.managePosition}
             label="Collateral from"
             type="collateral"
-            chainId={collateralChainId}
+            chainId={collateral.chainId}
             disableChainChange={isBorrowing}
             onChainChange={(chainId) => changeCollateralChain(chainId)}
           />
@@ -127,7 +121,7 @@ export default function Borrow(props: BorrowProps) {
             managePosition={props.managePosition}
             label="Borrow to"
             type="borrow"
-            chainId={debtChainId}
+            chainId={debt.chainId}
             disableChainChange={isBorrowing}
             onChainChange={(chainId) => changeBorrowChain(chainId)}
           />
@@ -146,8 +140,8 @@ export default function Borrow(props: BorrowProps) {
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
-              <u>{`${chainName(collateralChainId)} > ${chainName(
-                debtChainId
+              <u>{`${chainName(collateral.chainId)} > ${chainName(
+                debt.chainId
               )}`}</u>
             </Typography>
           </Stack>
@@ -157,14 +151,14 @@ export default function Borrow(props: BorrowProps) {
 
           <BorrowButton
             address={address}
-            collateralChainId={collateralChainId}
+            collateralChainId={collateral.chainId}
             walletChain={walletChain}
             collateralAmount={collateralAmount}
             debtAmount={debtAmount}
             balance={balance}
             ltv={ltv}
             ltvMax={ltvMax}
-            collateralAllowance={collateralAllowance?.value}
+            collateralAllowance={collateral.allowance?.value}
             collateralToken={collateral.token}
             metaStatus={metaStatus}
             isSigning={isSigning}

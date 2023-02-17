@@ -25,15 +25,15 @@ import { recommendedLTV } from "../../../helpers/borrow"
 
 export default function Overview() {
   const { palette } = useTheme()
-  const ltv = useBorrow((state) => state.position.ltv)
-  const ltvMax = useBorrow((state) => state.position.ltvMax)
-  const ltvThreshold = useBorrow((state) => state.position.ltvThreshold)
-  const liquidationPrice = useBorrow((state) => state.position.liquidationPrice)
-  const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
-  const collateral = useBorrow((state) => state.position.collateral)
-  const debt = useBorrow((state) => state.position.debt)
+  const ltv = useBorrow((state) => state.ltv)
+  const ltvMax = useBorrow((state) => state.ltvMax)
+  const ltvThreshold = useBorrow((state) => state.ltvThreshold)
+  const liquidationPrice = useBorrow((state) => state.liquidationPrice)
+  const liquidationDiff = useBorrow((state) => state.liquidationDiff)
+  const collateral = useBorrow((state) => state.collateral)
+  const debt = useBorrow((state) => state.debt)
   const allProviders = useBorrow((state) => state.allProviders)
-  const vault = useBorrow((state) => state.position.vault)
+  const vault = useBorrow((state) => state.activeVault)
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : []
 

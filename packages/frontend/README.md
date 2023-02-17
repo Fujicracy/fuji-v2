@@ -68,9 +68,9 @@ The major drawback is, compared to writing logic in a component: when an action 
 
     set(
       produce((state: TransactionState) => {
-        state.collateralChainId = chainId
-        state.collateralTokens = tokens
-        state.position.collateral.token = tokens[0]
+        state.collateral.chainId = chainId
+        state.collateral.allTokens = tokens
+        state.collateral.token = tokens[0]
       })
     )
     return Promise.all([

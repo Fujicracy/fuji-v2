@@ -42,9 +42,11 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   )
 
   const tokens = useBorrow((state) =>
-    type === "debt" ? state.debtTokens : state.collateralTokens
+    type === "debt" ? state.debt.allTokens : state.collateral.allTokens
   )
-  const debtOrCollateral = useBorrow((state) => state.position[type])
+  const debtOrCollateral = useBorrow((state) =>
+    type === "debt" ? state.debt : state.collateral
+  )
   const { token } = debtOrCollateral
   // const input = useBorrow((state) =>
   //   type === "debt" ? state.debtInput : state.collateralInput
@@ -52,14 +54,14 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   // const amount = parseFloat(input)
   const tokenValue = debtOrCollateral.usdValue
   const balances = useBorrow((state) =>
-    type === "debt" ? state.debtBalances : state.collateralBalances
+    type === "debt" ? state.debt.balances : state.collateral.balances
   )
   const balance = balances[token.symbol]
   const value = useBorrow((state) =>
-    type === "debt" ? state.debtInput : state.collateralInput
+    type === "debt" ? state.debt.input : state.collateral.input
   )
-  const ltv = useBorrow((state) => state.position.ltv)
-  const ltvMax = useBorrow((state) => state.position.ltvMax)
+  const ltv = useBorrow((state) => state.ltv)
+  const ltvMax = useBorrow((state) => state.ltvMax)
 
   const isBorrowing = useBorrow((state) => state.isBorrowing)
 
