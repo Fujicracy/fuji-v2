@@ -215,6 +215,16 @@ export class BorrowingVault extends StreamManager {
         this.multicallContract.getProviders(),
       ]);
 
+    this.setPreLoads(maxLtv, liqRatio, name, activeProvider, allProviders);
+  }
+
+  setPreLoads(
+    maxLtv: BigNumber,
+    liqRatio: BigNumber,
+    name: string,
+    activeProvider: string,
+    allProviders: string[]
+  ) {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
     this.name = name;
