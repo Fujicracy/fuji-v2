@@ -310,9 +310,11 @@ export class Sdk {
    * This methods serves to pre-fetch and loads only partially the financials.
    * It's recommended to call afterwards "getLlamaFinancials()".
    *
+   * @param account - {@link Address} for the user
    * @param chainType - for type of chains: mainnet or testnet
    */
   async getBorrowingVaultsFinancials(
+    account?: Address,
     chainType: ChainType = ChainType.MAINNET
   ): Promise<VaultWithFinancials[]> {
     const res: VaultWithFinancials[] = [];
@@ -325,7 +327,7 @@ export class Sdk {
       const vaults = VAULT_LIST[chainId].map((v) =>
         v.setConnection(this._configParams)
       );
-      const v = await batchLoad(vaults, undefined, chain);
+      const v = await batchLoad(vaults, account, chain);
       res.push(...v);
     }
 
