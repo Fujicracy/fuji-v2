@@ -31,7 +31,7 @@ function MyPositions() {
     if (address) {
       fetchPositions()
     }
-  }, [address])
+  }, [address, fetchPositions])
 
   return (
     <>

@@ -13,7 +13,7 @@ import {
 } from "@mui/material"
 import { TokenIcon } from "../Shared/Icons"
 import { Position } from "../../store/models/Position"
-import { usePositions, getAccrual } from "../../store/positions.store"
+import { usePositions } from "../../store/positions.store"
 
 type Row = {
   borrow: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }

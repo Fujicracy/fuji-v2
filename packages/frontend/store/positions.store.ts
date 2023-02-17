@@ -1,7 +1,7 @@
 import { sdk } from "../services/sdk"
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import { Position } from "./models/Position.d.ts"
+import { Position } from "./models/Position"
 import { useAuth } from "./auth.store"
 import { Address, Token } from "@x-fuji/sdk"
 import { BigNumberish, ethers } from "ethers"
@@ -113,7 +113,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
       v.depositBalance.gt(ethers.BigNumber.from("0"))
     )
     return vaultsWithBalance.map((v) => {
-      const p = new Position()
+      const p = {} as Position
       p.vault = v.vault
       p.collateral = {
         amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
