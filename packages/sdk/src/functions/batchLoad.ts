@@ -14,11 +14,13 @@ import {
 } from '../types/contracts';
 import { FujiOracleMulticall } from '../types/contracts/src/FujiOracle';
 
+// number of details calls per vault
 const N_CALLS = 9;
 
 type Detail = BigNumber | string | string[];
 type Rate = BigNumber;
 
+// rates are with 27 decimals
 const rateToFloat = (n: BigNumber) =>
   parseFloat(formatUnits(n.toString(), 27)) * 100;
 
@@ -130,6 +132,12 @@ export async function batchLoad(
   });
 
   const ratesBatch: Call<Rate>[][] = vaults.map((v) => getProvidersCalls(v));
+
+  // Every vault has a different amount of lending providers.
+  // We can't use the same mechanics as for detailsBatch
+  // where every vault has a fixed number of attributes.
+  // We have to pass a flattened array of calls and
+  // that's why for the rates we need to set offsets and length for each vault.
   let memo = 0;
   const offsets: { offset: number; len: number }[] = ratesBatch.map(
     (batch: Call<Rate>[]) => {

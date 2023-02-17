@@ -15,11 +15,10 @@ import {
   FUJI_ORACLE_ADDRESS,
   VAULT_LIST,
 } from './constants';
-import { LENDING_PROVIDERS } from './constants/lending-providers';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, ChainType, RouterAction } from './enums';
-import { encodeActionArgs } from './functions';
+import { batchLoad, encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
@@ -326,53 +325,8 @@ export class Sdk {
       const vaults = VAULT_LIST[chainId].map((v) =>
         v.setConnection(this._configParams)
       );
-      const { multicallRpcProvider } = this.getConnectionFor(chainId);
-
-      const firstBatch: Call<string[] | string>[] = [];
-      vaults.forEach((v) => {
-        firstBatch.push(
-          v.multicallContract?.activeProvider() as Call<string>,
-          v.multicallContract?.getProviders() as Call<string[]>
-        );
-      });
-      const firstBatchResults = await multicallRpcProvider.all(firstBatch);
-
-      const secondBatch: Call<BigNumber>[] = [];
-      vaults.forEach((v, i) => {
-        // multiply by 2 becasue there 2 calls per vault in the firstBatch
-        const activeProvider = firstBatchResults[2 * i] as string;
-        secondBatch.push(
-          ILendingProvider__factory.multicall(activeProvider).getDepositRateFor(
-            v.address.value
-          ),
-          ILendingProvider__factory.multicall(activeProvider).getBorrowRateFor(
-            v.address.value
-          )
-        );
-      });
-      const secondBatchResults = await multicallRpcProvider.all(secondBatch);
-
-      vaults.forEach((vault, i) => {
-        // multiply by 2 becasue there 2 calls per vault in the firstBatch and the secondBatch
-        const activeAddr = firstBatchResults[2 * i] as string;
-        const activeProvider = LENDING_PROVIDERS[vault.chainId][activeAddr];
-        const allProviders = firstBatchResults[2 * i + 1] as string[];
-
-        const depositRate = secondBatchResults[2 * i].toString();
-        const borrowRate = secondBatchResults[2 * i + 1].toString();
-        res.push({
-          vault,
-          activeProvider: {
-            name: activeProvider.name,
-            llamaKey: activeProvider.llamaKey,
-            depositApyBase: parseFloat(formatUnits(depositRate, 27)) * 100,
-            borrowApyBase: parseFloat(formatUnits(borrowRate, 27)) * 100,
-          },
-          allProviders: allProviders.map(
-            (addr) => LENDING_PROVIDERS[vault.chainId][addr]
-          ),
-        });
-      });
+      const v = await batchLoad(vaults, undefined, chain);
+      res.push(...v);
     }
 
     return res;
@@ -683,7 +637,7 @@ export class Sdk {
     );
 
     return {
-      vault: v.vault,
+      ...v,
       activeProvider: {
         ...v.activeProvider,
         depositApyReward: depositData?.apyReward ?? 0,
@@ -695,7 +649,6 @@ export class Sdk {
           ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
           : 0,
       },
-      allProviders: v.allProviders,
     };
   }
 }
