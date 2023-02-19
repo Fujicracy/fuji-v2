@@ -1,5 +1,4 @@
 import {
-  CircularProgress,
   Link,
   Stack,
   Table,
@@ -31,7 +30,6 @@ export default function MarketsTable() {
   const address = useAuth((state) => state.address)
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const addr = address ? Address.from(address) : undefined
@@ -39,7 +37,6 @@ export default function MarketsTable() {
     const vaults = sdk.getAllBorrowingVaults()
     const rowsBase = vaults.map(setBase)
     setRows(groupByPair(rowsBase))
-    setLoading(false)
     ;(async () => {
       try {
         // try both calls
@@ -74,13 +71,6 @@ export default function MarketsTable() {
     })()
   }, [address])
 
-  if (loading) {
-    return (
-      <Stack direction="row" justifyContent="center">
-        <CircularProgress sx={{ color: palette.primary.main }} />
-      </Stack>
-    )
-  }
   return (
     <TableContainer>
       <Table

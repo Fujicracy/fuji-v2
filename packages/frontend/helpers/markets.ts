@@ -13,7 +13,10 @@ export type MarketRow = {
   borrow: string
   collateral: string
 
-  chain: string
+  chain: {
+    status: Status
+    value: string
+  }
 
   depositApr: {
     status: Status
@@ -62,7 +65,10 @@ export type MarketRow = {
 const defaultRow: MarketRow = {
   borrow: "",
   collateral: "",
-  chain: "",
+  chain: {
+    status: Status.Loading,
+    value: "",
+  },
   depositApr: {
     status: Status.Loading,
     value: 0,
@@ -108,7 +114,6 @@ export const setBase = (v: BorrowingVault): MarketRow => ({
   entity: v,
   collateral: v.collateral.symbol,
   borrow: v.debt.symbol,
-  chain: chainName(v.chainId),
 })
 
 // set apr and aprBase as being equal
@@ -119,6 +124,11 @@ export const setFinancials = (
   f?: VaultWithFinancials
 ): MarketRow => ({
   ...r,
+  chain: {
+    // chain is always available
+    status: Status.Ready,
+    value: chainName((r.entity as BorrowingVault).chainId),
+  },
   depositApr: {
     status,
     value: f?.activeProvider.depositAprBase ?? 0,
@@ -238,7 +248,7 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
   const grouped: MarketRow[] = []
 
   for (const row of rows) {
-    const key = row.chain
+    const key = row.chain.value
     if (done.has(key)) continue
     done.add(key)
 

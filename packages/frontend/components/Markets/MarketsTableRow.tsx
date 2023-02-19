@@ -136,19 +136,22 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell width="200px">
-          <Stack direction="row" gap={0.5} alignItems="center">
-            <Toggle
-              expandRow={expandRow}
-              isVisible={Boolean(row.isChild && row.children)}
-              onClick={handleExpand}
-            />
-            <Stack direction="row" alignItems="center" flexWrap="nowrap">
-              <NetworkIcon network={row.chain} width={24} height={24} />
-              <Typography ml="0.5rem" variant="small">
-                {row.chain}
-              </Typography>
+          {loaderOrError(row.chain.status)}
+          {row.chain.status === Status.Ready && (
+            <Stack direction="row" gap={0.5} alignItems="center">
+              <Toggle
+                expandRow={expandRow}
+                isVisible={Boolean(row.isChild && row.children)}
+                onClick={handleExpand}
+              />
+              <Stack direction="row" alignItems="center" flexWrap="nowrap">
+                <NetworkIcon network={row.chain.value} width={24} height={24} />
+                <Typography ml="0.5rem" variant="small">
+                  {row.chain.value}
+                </Typography>
+              </Stack>
             </Stack>
-          </Stack>
+          )}
         </SizableTableCell>
         <SizableTableCell
           align="right"
