@@ -3,13 +3,16 @@ import {
   Chip,
   Collapse,
   IconButton,
+  Skeleton,
   Stack,
   Table,
+  TableBody,
   TableRow,
   Tooltip,
   Typography,
   useTheme,
 } from "@mui/material"
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
@@ -20,14 +23,14 @@ import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
 
 import { DropletIcon } from "./DropletIcon"
-import { Row } from "./MarketsTable"
 import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
 import { SizableTableCell } from "../Shared/SizableTableCell"
-import { BorrowingVault, Token } from "@x-fuji/sdk"
+import { BorrowingVault, Token, VaultWithFinancials } from "@x-fuji/sdk"
 import { chainName } from "../../services/chains"
+import { MarketRow, Status } from "../../helpers/markets"
 
 type MarketsTableRowProps = {
-  row: Row
+  row: MarketRow
 }
 
 export default function MarketsTableRow({ row }: MarketsTableRowProps) {
@@ -44,9 +47,14 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
     setExpandRow(!expandRow)
   }
 
-  const handleClick = async (vault: BorrowingVault) => {
+  const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
+    const vault = entity instanceof BorrowingVault ? entity : entity?.vault
+    if (!vault) return
+
     const walletChainId = walletChain?.id as string
     const isSupported = chainName(walletChainId) !== ""
+
+    // TODO: if user has a balance in vault, redirect to manage position
 
     if (isSupported) {
       const collaterals = sdk.getCollateralForChain(Number(walletChainId))
@@ -61,25 +69,21 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
     router.push("/borrow")
   }
 
-  const displayLiquidity = (liquidity: number | "loading" | "error") => {
-    if (liquidity === "loading") {
-      return "loading..."
-    } else if (liquidity === "error") {
-      return "error loading"
-    }
-
-    return liquidity.toLocaleString("en-US", {
-      maximumSignificantDigits: 3,
-      notation: "compact",
-      style: "currency",
-      currency: "usd",
-    })
-  }
+  const loaderOrError = (status: Status) =>
+    status === Status.Loading ? (
+      <Skeleton />
+    ) : status === Status.Error ? (
+      <Tooltip title="Error loading data" arrow>
+        <ErrorOutlineIcon />
+      </Tooltip>
+    ) : (
+      <></>
+    )
 
   return (
     <>
       <TableRow
-        onClick={() => handleClick(row.vault)}
+        onClick={() => handleClick(row.entity)}
         sx={{ height: "3.438rem", cursor: "pointer" }}
       >
         <SizableTableCell
@@ -151,86 +155,110 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           width="140px"
           sx={{ color: palette.warning.main }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.borrowAprReward > 0 && (
-              <Tooltip
-                title={`${row.borrowAprBase.toFixed(
-                  2
-                )}% (base) - ${row.borrowAprReward.toFixed(2)}% (reward)`}
-                arrow
-              >
-                <IconButton>
-                  <DropletIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {row.borrowApr.toFixed(2)}%
-          </Stack>
+          {loaderOrError(row.borrowApr.status)}
+          {row.borrowApr.status === Status.Ready && (
+            <Stack direction="row" alignItems="center" justifyContent="right">
+              {row.borrowAprReward?.value > 0 && (
+                <Tooltip
+                  title={`${row.borrowAprBase.value.toFixed(
+                    2
+                  )}% (base) - ${row.borrowAprReward.value.toFixed(
+                    2
+                  )}% (reward)`}
+                  arrow
+                >
+                  <IconButton>
+                    <DropletIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {row.borrowApr.value.toFixed(2)} %
+            </Stack>
+          )}
         </SizableTableCell>
         <SizableTableCell
           align="right"
           width="140px"
           sx={{ color: palette.success.main }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="right">
-            {row.depositAprReward > 0 && (
-              <Tooltip
-                title={`${row.depositAprBase.toFixed(
-                  2
-                )}% (base) + ${row.depositAprReward.toFixed(2)}% (reward)`}
-                arrow
-              >
-                <IconButton>
-                  <DropletIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {row.depositApr.toFixed(2)} %
-          </Stack>
+          {loaderOrError(row.depositApr.status)}
+          {row.depositApr.status === Status.Ready && (
+            <Stack direction="row" alignItems="center" justifyContent="right">
+              {row.depositAprReward?.value > 0 && (
+                <Tooltip
+                  title={`${row.depositAprBase.value.toFixed(
+                    2
+                  )}% (base) + ${row.depositAprReward.value.toFixed(
+                    2
+                  )}% (reward)`}
+                  arrow
+                >
+                  <IconButton>
+                    <DropletIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {row.depositApr.value.toFixed(2)} %
+            </Stack>
+          )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          <Stack
-            direction="row"
-            justifyContent="right"
-            alignItems="center"
-            flexWrap="nowrap"
-          >
-            {row.integratedProtocols.map((name, i) => (
-              <Tooltip key={name} title={name} arrow>
-                <Box
-                  sx={{
-                    position: "relative",
-                    right: `${i * 0.25}rem`,
-                    zIndex: 4 - i,
-                    height: "24px",
-                  }}
-                >
-                  {i <= 2 && (
-                    <ProviderIcon providerName={name} height={24} width={24} />
-                  )}
-                </Box>
-              </Tooltip>
-            ))}
-            {row.integratedProtocols.length >= 4 && (
-              <Chip
-                label={
-                  <Stack direction="row" justifyContent="center">
-                    +{row.integratedProtocols.length - 3}
-                  </Stack>
-                }
-                variant="number"
-              />
-            )}
-          </Stack>
+          {loaderOrError(row.integratedProtocols.status)}
+          {row.integratedProtocols.status === Status.Ready && (
+            <Stack
+              direction="row"
+              justifyContent="right"
+              alignItems="center"
+              flexWrap="nowrap"
+            >
+              {row.integratedProtocols.value.map((name, i) => (
+                <Tooltip key={name} title={name} arrow>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      right: `${i * 0.25}rem`,
+                      zIndex: 4 - i,
+                      height: "24px",
+                    }}
+                  >
+                    {i <= 2 && (
+                      <ProviderIcon
+                        providerName={name}
+                        height={24}
+                        width={24}
+                      />
+                    )}
+                  </Box>
+                </Tooltip>
+              ))}
+              {row.integratedProtocols.value.length >= 4 && (
+                <Chip
+                  label={
+                    <Stack direction="row" justifyContent="center">
+                      +{row.integratedProtocols.value.length - 3}
+                    </Stack>
+                  }
+                  variant="number"
+                />
+              )}
+            </Stack>
+          )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           <Chip
-            variant={row.safetyRating === "A+" ? "success" : "warning"}
-            label={row.safetyRating}
+            variant={row.safetyRating.value === "A+" ? "success" : "warning"}
+            label={row.safetyRating.value}
           />
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          {displayLiquidity(row.liquidity)}
+          {loaderOrError(row.liquidity.status)}
+          {row.liquidity.status === Status.Ready &&
+            row.liquidity.value?.toLocaleString("en-US", {
+              maximumSignificantDigits: 3,
+              notation: "compact",
+              style: "currency",
+              currency: "usd",
+            })}
         </SizableTableCell>
       </TableRow>
 
@@ -251,7 +279,9 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
           >
             {row.children?.map((collaspsedRow, i) => (
               <Table key={i} sx={{ borderCollapse: "initial" }}>
-                <MarketsTableRow row={collaspsedRow} />
+                <TableBody>
+                  <MarketsTableRow row={collaspsedRow} />
+                </TableBody>
               </Table>
             ))}
           </Collapse>
@@ -260,11 +290,13 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
     </>
   )
 }
+
 type ToggleProps = {
   expandRow: boolean
   isVisible: boolean
   onClick: (e: MouseEvent) => void
 }
+
 function Toggle(props: ToggleProps) {
   const { expandRow, isVisible, onClick } = props
 

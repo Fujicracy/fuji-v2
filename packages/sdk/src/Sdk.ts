@@ -642,13 +642,13 @@ export class Sdk {
       ...v,
       activeProvider: {
         ...v.activeProvider,
-        depositAprReward: depositData?.apyReward ?? 0,
-        depositRewardTokens: depositData?.rewardTokens ?? [],
-        borrowAprReward: borrowData?.apyRewardBorrow ?? 0,
-        borrowRewardTokens: borrowData?.rewardTokens ?? [],
+        depositAprReward: depositData?.apyReward,
+        depositRewardTokens: depositData?.rewardTokens,
+        borrowAprReward: borrowData?.apyRewardBorrow,
+        borrowRewardTokens: borrowData?.rewardTokens,
         availableToBorrowUSD: borrowData
           ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
-          : 0,
+          : undefined,
       },
     };
   }

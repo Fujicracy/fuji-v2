@@ -13,72 +13,66 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import { Address, BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
+import { Address } from "@x-fuji/sdk"
 import { useAuth } from "../../store/auth.store"
-import { chainName } from "../../services/chains"
 import { sdk } from "../../services/sdk"
 import { SizableTableCell } from "../Shared/SizableTableCell"
-import { BigNumber } from "ethers"
-
-export type Row = {
-  vault: BorrowingVault
-
-  borrow: string
-  collateral: string
-
-  chain: string
-
-  depositApr: number
-  depositAprBase: number
-  depositAprReward: number
-
-  borrowApr: number
-  borrowAprBase: number
-  borrowAprReward: number
-
-  integratedProtocols: string[]
-  safetyRating: string
-  liquidity: number | "loading" | "error"
-  children?: Row[]
-  isChild: boolean
-  isGrandChild: boolean // TODO: Not handled
-}
-
-type SortBy = "descending" | "ascending"
+import {
+  groupByPair,
+  MarketRow,
+  setBase,
+  setFinancials,
+  setLlamas,
+  Status,
+} from "../../helpers/markets"
 
 export default function MarketsTable() {
   const { palette } = useTheme()
   const address = useAuth((state) => state.address)
   // const [appSorting] = useState<SortBy>("descending")
-  const [vaults, setVaults] = useState<VaultWithFinancials[]>([])
+  const [rows, setRows] = useState<MarketRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const addr = address ? Address.from(address) : undefined
+
+    const vaults = sdk.getAllBorrowingVaults()
+    const rowsBase = vaults.map(setBase)
+    setRows(groupByPair(rowsBase))
+    setLoading(false)
     ;(async () => {
       try {
-        const addr = address ? Address.from(address) : undefined
-        let vaults = await sdk.getBorrowingVaultsFinancials(addr)
-        setVaults(vaults)
-        setLoading(false)
-        vaults = await sdk.getLlamaFinancials(vaults)
-        setVaults(vaults)
+        // try both calls
+        const financials = await sdk.getBorrowingVaultsFinancials(addr)
+        const rowsFin = financials.map((fin, i) =>
+          setFinancials(rowsBase[i], Status.Ready, fin)
+        )
+        setRows(groupByPair(rowsFin))
+
+        const llamas = await sdk.getLlamaFinancials(financials)
+        const rowsLlama = llamas.map((llama, i) =>
+          setLlamas(rowsFin[i], Status.Ready, llama)
+        )
+        setRows(groupByPair(rowsLlama))
       } catch (e) {
-        const vaults = sdk.getAllBorrowingVaults().map((v) => ({
-          vault: v,
-          allProviders: [],
-          activeProvider: { name: "", llamaKey: "" },
-          depositBalance: BigNumber.from(0),
-          borrowBalance: BigNumber.from(0),
-          collateralPriceUSD: BigNumber.from(0),
-          debtPriceUSD: BigNumber.from(0),
-        }))
-        setVaults(vaults)
-        setLoading(false)
+        try {
+          // re-try the first one
+          // set llamas to error, assuming in the first try llama failed
+          const financials = await sdk.getBorrowingVaultsFinancials(addr)
+          const rows = financials
+            .map((fin, i) => setFinancials(rowsBase[i], Status.Ready, fin))
+            .map((r) => setLlamas(r, Status.Error))
+          setRows(groupByPair(rows))
+        } catch (e) {
+          // set both to errors
+          const rows = rowsBase
+            .map((r) => setFinancials(r, Status.Error))
+            .map((r) => setLlamas(r, Status.Error))
+          setRows(groupByPair(rows))
+        }
       }
     })()
   }, [address])
-
-  const rows: Row[] = groupByPair(vaults.map(vaultToRow))
 
   if (loading) {
     return (
@@ -142,7 +136,7 @@ export default function MarketsTable() {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
-              Supply APR
+              Collateral APR
             </SizableTableCell>
             <SizableTableCell align="right" width="140px">
               <Stack
@@ -208,96 +202,4 @@ export default function MarketsTable() {
       </Table>
     </TableContainer>
   )
-}
-
-function vaultToRow(v: VaultWithFinancials): Row {
-  const activeProvider = v.activeProvider
-  const liquidity = activeProvider.availableToBorrowUSD
-  const depositAprBase = activeProvider.depositAprBase ?? 0
-  const depositAprReward = activeProvider.depositAprReward ?? 0
-  const borrowAprBase = activeProvider.borrowAprBase ?? 0
-  const borrowAprReward = activeProvider.borrowAprReward ?? 0
-  return {
-    vault: v.vault,
-
-    borrow: v.vault.debt.symbol,
-    collateral: v.vault.collateral.symbol,
-    chain: chainName(v.vault.chainId),
-
-    depositApr: depositAprBase + depositAprReward,
-    depositAprBase,
-    depositAprReward,
-
-    borrowApr: borrowAprBase - borrowAprReward,
-    borrowAprBase,
-    borrowAprReward,
-
-    integratedProtocols: v.allProviders.map((p) => p.name),
-    safetyRating: "A",
-    liquidity:
-      liquidity === undefined
-        ? "loading"
-        : liquidity === 0
-        ? "error"
-        : liquidity,
-    isChild: false,
-    isGrandChild: false,
-  }
-}
-
-function groupByPair(rows: Row[]): Row[] {
-  const done = new Set<string>() // Pair is symbol/symbol i.e WETH/USDC
-  const grouped: Row[] = []
-
-  for (const row of rows) {
-    const key = `${row.borrow}/${row.collateral}`
-    if (done.has(key)) continue
-    done.add(key)
-
-    const entries = rows.filter(
-      (r) => r.borrow === row.borrow && r.collateral === row.collateral
-    )
-    if (entries.length > 1) {
-      // TODO: array should be sorted before being grouped
-      const sorted = entries.sort(sortBy.descending)
-      const children = groupByChain(
-        sorted.map((r) => ({ ...r, isChild: true }))
-      )
-      grouped.push({ ...sorted[0], children })
-    } else {
-      grouped.push(entries[0])
-    }
-  }
-
-  return grouped
-}
-
-function groupByChain(rows: Row[]): Row[] {
-  const done = new Set<string>() // Pair is symbol/symbol i.e WETH/USDC
-  const grouped: Row[] = []
-
-  for (const row of rows) {
-    const key = row.chain
-    if (done.has(key)) continue
-    done.add(key)
-
-    const entries = rows.filter((r) => r.chain === row.chain)
-    if (entries.length > 1) {
-      // TODO: array should be sorted before being grouped
-      const sorted = entries.sort(sortBy.descending)
-      const children = sorted.map((r) => ({ ...r, isChild: true }))
-      grouped.push({ ...sorted[0], children })
-    } else {
-      grouped.push(entries[0])
-    }
-  }
-
-  return grouped
-}
-
-type CompareFn = (r1: Row, r2: Row) => 1 | -1
-
-const sortBy: Record<SortBy, CompareFn> = {
-  ascending: (a, b) => (a.borrowApr < b.borrowApr ? 1 : -1),
-  descending: (a, b) => (a.borrowApr > b.borrowApr ? 1 : -1),
 }
