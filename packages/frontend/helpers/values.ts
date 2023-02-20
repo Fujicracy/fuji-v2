@@ -1,3 +1,14 @@
+export function formatNumber(
+  num: number | undefined,
+  decimals_: number
+): number | "-" {
+  if (num == undefined) {
+    return "-"
+  } else {
+    return parseFloat(num.toFixed(decimals_))
+  }
+}
+
 /*
   Format the balance depending of the token.
   If no token is specified, 5 digits are used.
