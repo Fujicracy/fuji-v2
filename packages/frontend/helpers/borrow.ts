@@ -7,6 +7,7 @@ import {
   Token,
 } from "@x-fuji/sdk"
 import { sdk } from "../services/sdk"
+import { BigNumber } from "ethers"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 
@@ -91,48 +92,63 @@ export const fetchRoutes = async (
     error?: Error
   } = {}
   try {
-    // sdk.previews.deposit(vault, parseUnits(collateralInput, collateralToken.decimals), collateralToken, new Address(address))
-
-    // sdk.previews.borrow(
-    //   vault,
-    //   collateralToken.chainId,
-    //   parseUnits(debtInput, debtToken.decimals),
-    //   debtToken,
-    //   new Address(address)
-    // )
-
-    // sdk.previews.paybackAndWithdraw(
-    //   vault,
-    //   parseUnits(collateralInput, collateralToken.decimals),
-    //   parseUnits(debtInput, debtToken.decimals),
-    //   collateralToken,
-    //   debtToken,
-    //   new Address(address)
-    // )
-
-    // sdk.previews.withdraw(
-    //   vault,
-    //   collateralToken.chainId,
-    //   parseUnits(collateralInput, collateralToken.decimals),
-    //   collateralToken,
-    //   new Address(address)
-    // )
-
-    // sdk.previews.payback(
-    //   vault,
-    //   parseUnits(debtInput, debtToken.decimals),
-    //   collateralToken,
-    //   new Address(address)
-    // )
-
-    const preview = await sdk.previews.depositAndBorrow(
-      vault,
-      parseUnits(collateralInput, collateralToken.decimals),
-      parseUnits(debtInput, debtToken.decimals),
-      collateralToken,
-      debtToken,
-      new Address(address)
-    )
+    let preview: {
+      actions: RouterActionParams[]
+      steps: RoutingStepDetails[]
+      bridgeFee: BigNumber
+      estimateSlippage: BigNumber
+      estimateTime: number
+    }
+    switch (mode) {
+      case Mode.DEPOSIT_AND_BORROW:
+        preview = await sdk.previews.depositAndBorrow(
+          vault,
+          parseUnits(collateralInput, collateralToken.decimals),
+          parseUnits(debtInput, debtToken.decimals),
+          collateralToken,
+          debtToken,
+          new Address(address)
+        )
+      case Mode.DEPOSIT:
+        preview = await sdk.previews.deposit(
+          vault,
+          parseUnits(collateralInput, collateralToken.decimals),
+          collateralToken,
+          new Address(address)
+        )
+      case Mode.BORROW:
+        preview = await sdk.previews.borrow(
+          vault,
+          collateralToken.chainId,
+          parseUnits(debtInput, debtToken.decimals),
+          debtToken,
+          new Address(address)
+        )
+      case Mode.PAYBACK_AND_WITHDRAW:
+        preview = await sdk.previews.paybackAndWithdraw(
+          vault,
+          parseUnits(collateralInput, collateralToken.decimals),
+          parseUnits(debtInput, debtToken.decimals),
+          collateralToken,
+          debtToken,
+          new Address(address)
+        )
+      case Mode.WITHDRAW:
+        preview = await sdk.previews.withdraw(
+          vault,
+          collateralToken.chainId,
+          parseUnits(collateralInput, collateralToken.decimals),
+          collateralToken,
+          new Address(address)
+        )
+      case Mode.REPAY:
+        preview = await sdk.previews.payback(
+          vault,
+          parseUnits(debtInput, debtToken.decimals),
+          collateralToken,
+          new Address(address)
+        )
+    }
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
       preview
 
