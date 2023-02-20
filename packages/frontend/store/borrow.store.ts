@@ -16,7 +16,7 @@ import { debounce } from "debounce"
 
 import { useAuth } from "./auth.store"
 import { Position } from "./models/Position"
-import { testChains } from "../services/chains"
+import { chainIdToHex, testChains } from "../services/chains"
 import { sdk } from "../services/sdk"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
 import { ethers, Signature } from "ethers"
@@ -73,6 +73,7 @@ type BorrowState = {
 type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type BorrowActions = {
+  changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
@@ -166,7 +167,36 @@ export const useBorrow = create<BorrowStore>()(
     (set, get) => ({
       ...initialState,
 
-      async changeCollateralChain(chainId) {
+      async changeAll(collateral, debt, vault) {
+        const collaterals = sdk.getCollateralForChain(collateral.chainId)
+        const debts = sdk.getDebtForChain(debt.chainId)
+        set(
+          produce((state: BorrowState) => {
+            state.collateralChainId = chainIdToHex(collateral.chainId)
+            state.collateralTokens = collaterals
+            state.position.collateral.token = collateral
+
+            state.debtChainId = chainIdToHex(debt.chainId)
+            state.debtTokens = debts
+            state.position.debt.token = debt
+          })
+        )
+
+        get().updateTokenPrice("collateral")
+        get().updateBalances("collateral")
+        get().updateTokenPrice("debt")
+        get().updateBalances("debt")
+        get().updateAllowance()
+
+        await get().changeActiveVault(vault)
+        await Promise.all([
+          get().updateAllProviders(),
+          get().updateTransactionMeta(),
+        ])
+        set({ availableVaultsStatus: "ready" })
+      },
+
+      changeCollateralChain(chainId) {
         const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
         set(
@@ -200,7 +230,7 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      async changeBorrowChain(chainId) {
+      changeBorrowChain(chainId) {
         const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
 
         set(
@@ -235,10 +265,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async changeActiveVault(vault) {
-        const [providers] = await Promise.all([
-          vault.getProviders(),
-          vault.preLoad(),
-        ])
+        const providers = await vault.getProviders()
 
         const ltvMax = vault.maxLtv
           ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
@@ -253,7 +280,7 @@ export const useBorrow = create<BorrowStore>()(
             s.position.ltvMax = ltvMax
             s.position.ltvThreshold = ltvThreshold
             s.position.providers = providers
-            s.position.activeProvider = providers[0]
+            s.position.activeProvider = providers.find((p) => p.active)
           })
         )
         const route = get().availableRoutes.find(
@@ -286,8 +313,7 @@ export const useBorrow = create<BorrowStore>()(
 
         const tokens =
           type === "debt" ? get().debtTokens : get().collateralTokens
-        const token = get().position[type].token
-        const chainId = token.chainId
+        const chainId = get().position[type].token.chainId
 
         const rawBalances = await sdk.getTokenBalancesFor(
           tokens,
