@@ -155,7 +155,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell
           align="right"
-          width="140px"
+          width="130px"
           sx={{ color: palette.warning.main }}
         >
           {loaderOrError(row.borrowApr.status)}
@@ -181,7 +181,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell
           align="right"
-          width="140px"
+          width="130px"
           sx={{ color: palette.success.main }}
         >
           {loaderOrError(row.depositApr.status)}
@@ -253,7 +253,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
             label={row.safetyRating.value}
           />
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
+        <SizableTableCell align="right" width="130px">
           {loaderOrError(row.liquidity.status)}
           {row.liquidity.status === Status.Ready &&
             row.liquidity.value?.toLocaleString("en-US", {
