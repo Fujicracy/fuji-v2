@@ -102,7 +102,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
     const vaultsWithBalance = allVaults.filter((v) =>
       v.depositBalance.gt(ethers.BigNumber.from("0"))
     )
-    return vaultsWithBalance.map((v) => {
+    const vaults = vaultsWithBalance.map((v) => {
       const p = {} as Position
       p.vault = v.vault
       p.collateral = {
@@ -142,6 +142,7 @@ async function getPositionsWithBalance(account_: string | undefined) {
             p.liquidationPrice
       return p
     })
+    return vaults || []
   } else {
     return []
   }

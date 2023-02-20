@@ -18,7 +18,7 @@ import { Position } from "../../store/models/Position"
 import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
 
-type Row = {
+type PositionRow = {
   chainId: number | undefined
   borrow: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }
   collateral: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }
@@ -28,123 +28,25 @@ type Row = {
   percentPriceDiff: number | "-"
 }
 
-const emptyRows: Row[] = []
+const emptyRows: PositionRow[] = []
 
-function getRows(positions: Position[]): Row[] {
-  if (positions.length == 0) {
-    return emptyRows
-  } else {
-    const rows: Row[] = positions.map((pos: Position) => ({
-      chainId: pos.vault?.chainId,
-      borrow: {
-        sym: pos.vault?.debt.symbol || "",
-        amount: pos.debt.amount,
-        usdValue: pos.debt.usdValue,
-      },
-      collateral: {
-        sym: pos.vault?.collateral.symbol || "",
-        amount: pos.collateral.amount,
-        usdValue: pos.collateral.usdValue,
-      },
-      apr: formatNumber(pos.debt.baseAPR, 2),
-      liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
-      oraclePrice: formatNumber(
-        pos.collateral.usdValue / pos.collateral.amount,
-        0
-      ),
-      get percentPriceDiff() {
-        if (this.liquidationPrice == "-" || this.oraclePrice == "-") {
-          return 0
-        } else {
-          return formatNumber(
-            ((this.oraclePrice - this.liquidationPrice) * 100) /
-              this.oraclePrice,
-            0
-          )
-        }
-      },
-    }))
-    return rows
-  }
+type PositionsBorrowTableProps = {
+  loading: boolean
 }
 
-function handleDisplayLiquidationPrice(liqPrice_: number | undefined) {
-  if (liqPrice_ == undefined || liqPrice_ == 0) {
-    return "-"
-  } else {
-    return formatNumber(liqPrice_, 0)
-  }
-}
-
-function formatNumber(
-  num: number | undefined,
-  decimals_: number
-): number | "-" {
-  if (num == undefined) {
-    return "-"
-  } else {
-    return parseFloat(num.toFixed(decimals_))
-  }
-}
-
-function LiquidationBox(props: {
-  liquidationPrice: number | "-"
-  percentPriceDiff: number | "-"
-}) {
-  const { palette } = useTheme()
-  const displayPercent = () => {
-    if (props.liquidationPrice == 0 || props.liquidationPrice == "-") {
-      return <span>No debt</span>
-    } else {
-      return (
-        <span>
-          <Typography variant="small" color={palette.success.main}>
-            ~{props.percentPriceDiff}%{" "}
-          </Typography>
-          <Typography variant="small" color={palette.info.main}>
-            above
-          </Typography>
-        </span>
-      )
-    }
-  }
-  return (
-    <TableCell align="right">
-      <Box pt={1} pb={1}>
-        <Typography variant="small">
-          {props.liquidationPrice.toLocaleString("en-US", {
-            style: "currency",
-            currency: "usd",
-            minimumFractionDigits: 0,
-          })}
-        </Typography>
-        <br />
-        {displayPercent()}
-      </Box>
-    </TableCell>
-  )
-}
-
-export function PositionsBorrowTable() {
+export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const { palette } = useTheme()
 
   const account = useAuth((state) => state.address)
   const positions = usePositions((state) => state.positions)
-  const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState(emptyRows)
 
   useEffect(() => {
-    async function fetchRows() {
-      if (positions.length > 0) {
-        const fetchedRows = getRows(positions)
-        setLoading(false)
-        setRows(fetchedRows)
-      } else if (positions.length == 0) {
-        setRows(emptyRows)
-      }
-    }
-    fetchRows()
-  }, [account, positions])
+    ;(() => {
+      if (loading) return
+      setRows(positions.length > 0 ? getRows(positions) : emptyRows)
+    })()
+  }, [loading, account, positions])
 
   if (loading) {
     return (
@@ -262,4 +164,99 @@ export function PositionsBorrowTable() {
       </TableContainer>
     )
   }
+}
+
+function getRows(positions: Position[]): PositionRow[] {
+  if (positions.length == 0) {
+    return emptyRows
+  } else {
+    const rows: PositionRow[] = positions.map((pos: Position) => ({
+      chainId: pos.vault?.chainId,
+      borrow: {
+        sym: pos.vault?.debt.symbol || "",
+        amount: pos.debt.amount,
+        usdValue: pos.debt.usdValue,
+      },
+      collateral: {
+        sym: pos.vault?.collateral.symbol || "",
+        amount: pos.collateral.amount,
+        usdValue: pos.collateral.usdValue,
+      },
+      apr: formatNumber(pos.debt.baseAPR, 2),
+      liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
+      oraclePrice: formatNumber(
+        pos.collateral.usdValue / pos.collateral.amount,
+        0
+      ),
+      get percentPriceDiff() {
+        if (this.liquidationPrice == "-" || this.oraclePrice == "-") {
+          return 0
+        } else {
+          return formatNumber(
+            ((this.oraclePrice - this.liquidationPrice) * 100) /
+              this.oraclePrice,
+            0
+          )
+        }
+      },
+    }))
+    return rows
+  }
+}
+
+function handleDisplayLiquidationPrice(liqPrice_: number | undefined) {
+  if (liqPrice_ == undefined || liqPrice_ == 0) {
+    return "-"
+  } else {
+    return formatNumber(liqPrice_, 0)
+  }
+}
+
+function formatNumber(
+  num: number | undefined,
+  decimals_: number
+): number | "-" {
+  if (num == undefined) {
+    return "-"
+  } else {
+    return parseFloat(num.toFixed(decimals_))
+  }
+}
+
+function LiquidationBox(props: {
+  liquidationPrice: number | "-"
+  percentPriceDiff: number | "-"
+}) {
+  const { palette } = useTheme()
+  const displayPercent = () => {
+    if (props.liquidationPrice == 0 || props.liquidationPrice == "-") {
+      return <span>No debt</span>
+    } else {
+      return (
+        <span>
+          <Typography variant="small" color={palette.success.main}>
+            ~{props.percentPriceDiff}%{" "}
+          </Typography>
+          <Typography variant="small" color={palette.info.main}>
+            above
+          </Typography>
+        </span>
+      )
+    }
+  }
+  return (
+    <TableCell align="right">
+      <Box pt={1} pb={1}>
+        <Typography variant="small">
+          {props.liquidationPrice.toLocaleString("en-US", {
+            style: "currency",
+            currency: "usd",
+            minimumFractionDigits: 0,
+          })}
+        </Typography>
+        <br />
+        {displayPercent()}
+      </Box>
+    </TableCell>
+  )
 }

@@ -26,10 +26,15 @@ function MyPositions() {
 
   const address = useAuth((state) => state.address)
   const fetchPositions = usePositions((state) => state.fetchUserPositions)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (address) {
-      fetchPositions()
+      setLoading(true)
+      ;(async () => {
+        await fetchPositions()
+        setLoading(false)
+      })()
     }
   }, [address, fetchPositions])
 
@@ -67,7 +72,7 @@ function MyPositions() {
           />
         </Tabs>
       </Box>
-      {currentTab === 0 && <PositionsBorrowTable />}
+      {currentTab === 0 && <PositionsBorrowTable loading={loading} />}
     </>
   )
 }
