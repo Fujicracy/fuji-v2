@@ -8,6 +8,8 @@ import { Address, BorrowingVault, Token } from './entities';
 import { Chain } from './entities/Chain';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { Nxtp } from './Nxtp';
+import { DetailsResult } from './types/DetailsResult';
+import { PreviewResult } from './types/PreviewResult';
 import {
   BorrowParams,
   DepositParams,
@@ -29,13 +31,7 @@ export class Previews {
     tokenIn: Token,
     account: Address,
     slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
     const _slippage = slippage ?? 30;
@@ -80,13 +76,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<PreviewResult> {
     const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
@@ -156,13 +146,7 @@ export class Previews {
     tokenIn: Token,
     account: Address,
     slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
     const _slippage = slippage ?? 30;
@@ -207,13 +191,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<PreviewResult> {
     const _slippage = slippage ?? 30;
 
     let actions: RouterActionParams[] = [];
@@ -322,13 +300,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
@@ -423,13 +395,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<{
-    actions: RouterActionParams[];
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
@@ -505,12 +471,7 @@ export class Previews {
     vault: BorrowingVault,
     amountIn: BigNumber,
     tokenIn: Token
-  ): Promise<{
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<DetailsResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -561,12 +522,7 @@ export class Previews {
     srcChainId: ChainId,
     amountOut: BigNumber,
     tokenOut: Token
-  ): Promise<{
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<DetailsResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -647,12 +603,7 @@ export class Previews {
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<{
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<DetailsResult> {
     const activeProvider = vault.activeProvider;
 
     // TODO: estimate time
@@ -781,12 +732,7 @@ export class Previews {
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<{
-    steps: RoutingStepDetails[];
-    bridgeFee: BigNumber;
-    estimateSlippage: BigNumber;
-    estimateTime: number;
-  }> {
+  ): Promise<DetailsResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
