@@ -12,6 +12,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { useEffect, useState } from "react"
 
 import { usePositions } from "../../store/positions.store"
+import { useRouter } from "next/router"
 
 type MetricSummary = {
   name: string
@@ -70,6 +71,7 @@ function updateKeyMetricsSummary(
 export function PositionSummary() {
   const { breakpoints, palette } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const router = useRouter()
 
   const totalDeposits = usePositions((state) => state.totalDepositsUSD)
   const totalDebt = usePositions((state) => state.totalDebtUSD)
@@ -97,7 +99,15 @@ export function PositionSummary() {
         <Grid container>
           {keyMetrics.map((m, i) => (
             <Grid item padding={{ xs: 1, md: 0 }} key={m.name} xs={6} md>
-              <Metric metric={m} borderLeft={!isMobile && i > 0} />
+              <Metric
+                metric={m}
+                borderLeft={!isMobile && i > 0}
+                onClick={() => {
+                  if (m.action == "Borrow Now") {
+                    router.push("/borrow")
+                  }
+                }}
+              />
             </Grid>
           ))}
         </Grid>
@@ -106,9 +116,13 @@ export function PositionSummary() {
   )
 }
 
-type MetricProps = { metric: MetricSummary; borderLeft: boolean }
+type MetricProps = {
+  metric: MetricSummary
+  borderLeft: boolean
+  onClick: () => void
+}
 
-const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
+const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
   const { palette, breakpoints } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
@@ -170,6 +184,7 @@ const Metric = ({ metric, borderLeft: leftBorder }: MetricProps) => {
             variant="gradient"
             sx={buttonSx}
             disabled={metric.value === "-"}
+            onClick={onClick}
           >
             {metric.action}
           </Button>
