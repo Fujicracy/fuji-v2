@@ -31,7 +31,7 @@ const initialKeyMetrics: MetricSummary[] = [
     name: "Available to Borrow",
     value: "-",
     valueSym: "$",
-    action: "Borrow Now",
+    action: "Borrow more",
   }, // TODO: tooltip & actions
   // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
 ]
@@ -64,7 +64,7 @@ function updateKeyMetricsSummary(
       name: "Available to Borrow",
       value: availableBorrow_ == undefined ? "-" : availableBorrow_,
       valueSym: "$",
-      action: "Borrow Now",
+      action: "Borrow more",
     },
   ]
 }
@@ -109,7 +109,7 @@ export function PositionSummary() {
                 metric={m}
                 borderLeft={!isMobile && i > 0}
                 onClick={() => {
-                  if (m.action == "Borrow Now") {
+                  if (m.action == "Borrow more") {
                     router.push("/borrow")
                   }
                 }}
@@ -140,7 +140,6 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
     fontSize: "0.875rem",
     backgroundColor: palette.secondary.main,
     border: "none",
-    color: palette.text.primary,
   }
 
   return (
@@ -184,10 +183,10 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
           ? `${metric.value}%`
           : metric.value}{" "}
         {isMobile && <br />}
-        {metric.action && (
+        {metric.action && metric.value > 0 && (
           // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
           <Button
-            variant="gradient"
+            variant="secondary2"
             sx={buttonSx}
             disabled={metric.value === "-"}
             onClick={onClick}

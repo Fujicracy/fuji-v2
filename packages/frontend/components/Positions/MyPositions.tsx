@@ -24,19 +24,19 @@ function MyPositions() {
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
-  const address = useAuth((state) => state.address)
+  const account = useAuth((state) => state.address)
   const fetchPositions = usePositions((state) => state.fetchUserPositions)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (address) {
+    if (account) {
       setLoading(true)
       ;(async () => {
         await fetchPositions()
         setLoading(false)
       })()
     }
-  }, [address, fetchPositions])
+  }, [account, fetchPositions])
 
   return (
     <>

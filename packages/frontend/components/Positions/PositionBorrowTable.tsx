@@ -11,7 +11,9 @@ import {
   TableBody,
   Stack,
   LinearProgress,
+  Button,
 } from "@mui/material"
+import { useRouter } from "next/router"
 import { TokenIcon, NetworkIcon } from "../Shared/Icons"
 import { chainName } from "../../services/chains"
 import { Position } from "../../store/models/Position"
@@ -39,7 +41,17 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   const account = useAuth((state) => state.address)
   const positions = usePositions((state) => state.positions)
+  const router = useRouter()
+
   const [rows, setRows] = useState(emptyRows)
+
+  const buttonSx = {
+    padding: "6px 16px 5px",
+    lineHeight: "0.875rem",
+    fontSize: "0.875rem",
+    backgroundColor: palette.secondary.main,
+    border: "none",
+  }
 
   useEffect(() => {
     ;(() => {
@@ -214,7 +226,17 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                 <TableCell colSpan={5} align="center">
                   No Open Positions
                 </TableCell>
-                <TableCell></TableCell>
+                <TableCell align="right">
+                  <Button
+                    variant="secondary2"
+                    sx={buttonSx}
+                    onClick={() => {
+                      router.push("/borrow")
+                    }}
+                  >
+                    Go open a position
+                  </Button>
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
