@@ -21,7 +21,7 @@ import BorrowButton from "./Button"
 import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
 import ConnextFooter from "./ConnextFooter"
-import { Mode, modeForContext, PositionAction } from "../../helpers/borrow"
+import { modeForContext, PositionAction } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 
 type BorrowProps = {
@@ -30,6 +30,7 @@ type BorrowProps = {
 export default function Borrow(props: BorrowProps) {
   const address = useAuth((state) => state.address)
   const walletChain = useAuth((state) => state.chain)
+
   const changeChain = useAuth((state) => state.changeChain)
   const updateBalance = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)

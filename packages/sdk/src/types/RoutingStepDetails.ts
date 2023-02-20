@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { Token } from '../entities/Token';
 import { ChainId, RoutingStep } from '../enums';
-import { LendingProviderDetails } from './LendingProviderDetails';
+import { LendingProviderBase } from './LendingProvider';
 
 /**
  * @remarks
@@ -17,5 +17,5 @@ export type RoutingStepDetails = {
   amount?: BigNumber;
   token?: Token;
   txHash?: Promise<string>;
-  lendingProvider?: LendingProviderDetails;
+  lendingProvider?: LendingProviderBase;
 };

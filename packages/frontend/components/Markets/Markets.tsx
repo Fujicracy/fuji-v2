@@ -21,12 +21,12 @@ export default function Markets() {
   /* const [filterValue, setFilterValue] = useState("") */
   /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
   return (
     <Box>
-      <Typography variant="h4">X-Fuji Markets</Typography>
+      <Typography variant="h4">Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile ? (
           "Fuji aggregates the best borrowing interest rates available across the markets"
