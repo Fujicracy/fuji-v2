@@ -10,7 +10,7 @@ import {
   useTheme,
   TableBody,
   Stack,
-  CircularProgress,
+  LinearProgress,
 } from "@mui/material"
 import { TokenIcon, NetworkIcon } from "../Shared/Icons"
 import { chainName } from "../../services/chains"
@@ -48,11 +48,59 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     })()
   }, [loading, account, positions])
 
-  if (loading) {
+  if (account == undefined) {
     return (
-      <Stack direction="row" justifyContent="center">
-        <CircularProgress sx={{ color: palette.secondary.main }} />
-      </Stack>
+      <TableContainer>
+        <Table aria-label="Positions table" size="small">
+          <TableHead>
+            <TableRow sx={{ height: "2.625rem" }}>
+              <TableCell>Borrow</TableCell>
+              <TableCell>Collateral</TableCell>
+              <TableCell align="right">Debt APR</TableCell>
+              <TableCell align="right">Borrowed</TableCell>
+              <TableCell align="right">Collateral value</TableCell>
+              <TableCell align="right">Oracle price</TableCell>
+              <TableCell align="right">Liquidation Price</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow sx={{ height: "2.625rem" }}>
+              <TableCell></TableCell>
+              <TableCell colSpan={5} align="center">
+                No wallet detected
+              </TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    )
+  } else if (loading && account != undefined) {
+    return (
+      <TableContainer>
+        <Table aria-label="Positions table" size="small">
+          <TableHead>
+            <TableRow sx={{ height: "2.625rem" }}>
+              <TableCell>Borrow</TableCell>
+              <TableCell>Collateral</TableCell>
+              <TableCell align="right">Debt APR</TableCell>
+              <TableCell align="right">Borrowed</TableCell>
+              <TableCell align="right">Collateral value</TableCell>
+              <TableCell align="right">Oracle price</TableCell>
+              <TableCell align="right">Liquidation Price</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow sx={{ height: "2.625rem" }}>
+              <TableCell></TableCell>
+              <TableCell colSpan={5}>
+                <LinearProgress sx={{ height: "1.5rem" }} color="secondary" />
+              </TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
     )
   } else {
     return (
@@ -70,95 +118,105 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              // TODO: key should  be smth else unique to a row, maybe the vault address ?
-              <TableRow key={row.liquidationPrice}>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <Stack direction="row">
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                // TODO: key should  be smth else unique to a row, maybe the vault address ?
+                <TableRow key={row.liquidationPrice}>
+                  <TableCell>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <Stack direction="row">
+                        <TokenIcon
+                          token={row.borrow.sym}
+                          width={32}
+                          height={32}
+                        />
+                        <NetworkIcon
+                          network={chainName(row.chainId)}
+                          height={16}
+                          width={16}
+                          sx={{
+                            position: "relative",
+                            right: "0.75rem",
+                            top: "1.5rem",
+                            border: "0.5px solid white",
+                            borderRadius: "100%",
+                            height: "17px",
+                            width: "17px",
+                          }}
+                        />
+                      </Stack>
+                      {row.borrow.sym}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" alignItems="center" gap={1}>
                       <TokenIcon
-                        token={row.borrow.sym}
+                        token={row.collateral.sym}
                         width={32}
                         height={32}
                       />
-                      <NetworkIcon
-                        network={chainName(row.chainId)}
-                        height={16}
-                        width={16}
-                        sx={{
-                          position: "relative",
-                          right: "0.75rem",
-                          top: "1.5rem",
-                          border: "0.5px solid white",
-                          borderRadius: "100%",
-                          height: "17px",
-                          width: "17px",
-                        }}
-                      />
-                    </Stack>
-                    {row.borrow.sym}
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <TokenIcon
-                      token={row.collateral.sym}
-                      width={32}
-                      height={32}
-                    />
-                    {row.collateral.sym}
-                  </Stack>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="small" color={palette.warning.main}>
-                    {row.apr}%
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Box pt={1} pb={1}>
-                    <Typography variant="small">
-                      {row.borrow.usdValue.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "usd",
-                        minimumFractionDigits: 0,
-                      })}
-                    </Typography>
-                    <br />
-                    <Typography variant="small" color={palette.info.main}>
-                      {row.borrow.amount.toLocaleString("en-US")}{" "}
-                      {row.borrow.sym}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  <Box pt={1} pb={1}>
-                    <Typography variant="small">
-                      {row.collateral.usdValue.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "usd",
-                        maximumFractionDigits: 0,
-                      })}
-                    </Typography>
-                    <br />
-                    <Typography variant="small" color={palette.info.main}>
-                      {row.collateral.amount.toLocaleString("en-US")}{" "}
                       {row.collateral.sym}
+                    </Stack>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="small" color={palette.warning.main}>
+                      {row.apr}%
                     </Typography>
-                  </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Box pt={1} pb={1}>
+                      <Typography variant="small">
+                        {row.borrow.usdValue.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "usd",
+                          minimumFractionDigits: 0,
+                        })}
+                      </Typography>
+                      <br />
+                      <Typography variant="small" color={palette.info.main}>
+                        {row.borrow.amount.toLocaleString("en-US")}{" "}
+                        {row.borrow.sym}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Box pt={1} pb={1}>
+                      <Typography variant="small">
+                        {row.collateral.usdValue.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "usd",
+                          maximumFractionDigits: 0,
+                        })}
+                      </Typography>
+                      <br />
+                      <Typography variant="small" color={palette.info.main}>
+                        {row.collateral.amount.toLocaleString("en-US")}{" "}
+                        {row.collateral.sym}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    {row.oraclePrice.toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "usd",
+                      minimumFractionDigits: 0,
+                    })}
+                  </TableCell>
+                  <LiquidationBox
+                    liquidationPrice={row.liquidationPrice}
+                    percentPriceDiff={row.percentPriceDiff}
+                  />
+                </TableRow>
+              ))
+            ) : (
+              <TableRow sx={{ height: "2.625rem" }}>
+                <TableCell></TableCell>
+                <TableCell colSpan={5} align="center">
+                  No Open Positions
                 </TableCell>
-                <TableCell align="right">
-                  {row.oraclePrice.toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "usd",
-                    minimumFractionDigits: 0,
-                  })}
-                </TableCell>
-                <LiquidationBox
-                  liquidationPrice={row.liquidationPrice}
-                  percentPriceDiff={row.percentPriceDiff}
-                />
+                <TableCell></TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>

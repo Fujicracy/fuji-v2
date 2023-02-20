@@ -11,6 +11,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { useEffect, useState } from "react"
 
+import { useAuth } from "../../store/auth.store"
 import { usePositions } from "../../store/positions.store"
 import { useRouter } from "next/router"
 
@@ -73,6 +74,7 @@ export function PositionSummary() {
   const isMobile = useMediaQuery(breakpoints.down("sm"))
   const router = useRouter()
 
+  const account = useAuth((state) => state.address)
   const totalDeposits = usePositions((state) => state.totalDepositsUSD)
   const totalDebt = usePositions((state) => state.totalDebtUSD)
   const totalAPY = usePositions((state) => state.totalAPY)
@@ -81,14 +83,18 @@ export function PositionSummary() {
   const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics)
 
   useEffect(() => {
-    const updatedKeyMetrics = updateKeyMetricsSummary(
-      totalDeposits,
-      totalDebt,
-      totalAPY,
-      availableBorrow
-    )
-    setKeyMetrics(updatedKeyMetrics)
-  }, [totalDeposits, totalDebt, totalAPY, availableBorrow])
+    if (account == undefined) {
+      setKeyMetrics(initialKeyMetrics)
+    } else {
+      const updatedKeyMetrics = updateKeyMetricsSummary(
+        totalDeposits,
+        totalDebt,
+        totalAPY,
+        availableBorrow
+      )
+      setKeyMetrics(updatedKeyMetrics)
+    }
+  }, [account, totalDeposits, totalDebt, totalAPY, availableBorrow])
 
   return (
     <Box mt={4}>
