@@ -3,11 +3,11 @@ import { AddressZero } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
 
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
+import { LENDING_PROVIDERS } from './constants/lending-providers';
 import { Address, BorrowingVault, Token } from './entities';
 import { Chain } from './entities/Chain';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { Nxtp } from './Nxtp';
-import { LendingProviderDetails } from './types';
 import {
   BorrowParams,
   DepositParams,
@@ -511,7 +511,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
     // TODO: estimate time
@@ -567,7 +567,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
     // TODO: estimate time
@@ -653,7 +653,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     // TODO: estimate time
     const estimateTime = 3 * 60;
@@ -787,7 +787,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
     // TODO: estimate time
@@ -1047,14 +1047,16 @@ export class Previews {
     chainId: ChainId,
     amount?: BigNumber,
     token?: Token,
-    lendingProvider?: LendingProviderDetails
+    lendingProvider?: string
   ): RoutingStepDetails {
     return {
       step,
       amount,
       chainId,
       token,
-      lendingProvider,
+      lendingProvider: lendingProvider
+        ? LENDING_PROVIDERS[chainId][lendingProvider]
+        : undefined,
     };
   }
 

@@ -16,18 +16,21 @@ import { debounce } from "debounce"
 
 import { useAuth } from "./auth.store"
 import { Position } from "./models/Position"
-import { testChains } from "../services/chains"
+import { chainIdToHex, testChains } from "../services/chains"
 import { sdk } from "../services/sdk"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
 import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
+import { fetchRoutes, RouteMeta } from "../helpers/borrow"
 
 setAutoFreeze(false)
 
 export type BorrowStore = BorrowState & BorrowActions
 type BorrowState = {
+  positions: Position[]
+
   formType: "create" | "edit"
 
   position: Position
@@ -54,10 +57,11 @@ type BorrowState = {
   transactionMeta: {
     status: FetchStatus
     gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
-    bridgeFees: number
+    bridgeFee: number
     estimateTime: number
     steps: RoutingStepDetails[]
   }
+  availableRoutes: RouteMeta[]
 
   needPermit: boolean
   isSigning: boolean
@@ -69,6 +73,7 @@ type BorrowState = {
 type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type BorrowActions = {
+  changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
@@ -76,6 +81,7 @@ type BorrowActions = {
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
   changeActiveVault: (v: BorrowingVault) => void
+  changeTransactionMeta: (route: RouteMeta) => void
 
   updateAllProviders: () => void
   updateTokenPrice: (type: "debt" | "collateral") => void
@@ -102,6 +108,8 @@ const initialCollateralTokens = sdk.getCollateralForChain(
 )
 
 const initialState: BorrowState = {
+  positions: [],
+
   formType: "create",
 
   availableVaults: [],
@@ -142,11 +150,12 @@ const initialState: BorrowState = {
 
   transactionMeta: {
     status: "initial",
-    bridgeFees: 0,
+    bridgeFee: 0,
     gasFees: 0,
     estimateTime: 0,
     steps: [],
   },
+  availableRoutes: [],
 
   needPermit: true,
   isSigning: false,
@@ -158,7 +167,44 @@ export const useBorrow = create<BorrowStore>()(
     (set, get) => ({
       ...initialState,
 
-      async changeCollateralChain(chainId) {
+      async changeAll(collateral, debt, vault) {
+        const collaterals = sdk.getCollateralForChain(collateral.chainId)
+        const debts = sdk.getDebtForChain(debt.chainId)
+        set(
+          produce((state: BorrowState) => {
+            state.position.vault = vault
+
+            state.collateralChainId = chainIdToHex(collateral.chainId)
+            state.collateralTokens = collaterals
+            state.position.collateral.token = collateral
+
+            state.debtChainId = chainIdToHex(debt.chainId)
+            state.debtTokens = debts
+            state.position.debt.token = debt
+          })
+        )
+        get().updateTokenPrice("collateral")
+        get().updateBalances("collateral")
+        get().updateTokenPrice("debt")
+        get().updateBalances("debt")
+        get().updateAllowance()
+
+        await get().changeActiveVault(vault)
+
+        const availableVaults = await sdk.getBorrowingVaultsFor(
+          collateral,
+          debt
+        )
+        set({ availableVaults })
+
+        await Promise.all([
+          get().updateAllProviders(),
+          get().updateTransactionMeta(),
+        ])
+        set({ availableVaultsStatus: "ready" })
+      },
+
+      changeCollateralChain(chainId) {
         const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
 
         set(
@@ -192,7 +238,7 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      async changeBorrowChain(chainId) {
+      changeBorrowChain(chainId) {
         const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
 
         set(
@@ -216,7 +262,7 @@ export const useBorrow = create<BorrowStore>()(
         )
         get().updateTokenPrice("debt")
         get().updateVault()
-        get().updateTransactionMeta()
+        get().updateTransactionMeta() // updateVault already calls updateTransactionMeta
       },
 
       changeBorrowValue(value) {
@@ -227,10 +273,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async changeActiveVault(vault) {
-        const [providers] = await Promise.all([
-          vault.getProviders(),
-          vault.preLoad(),
-        ])
+        const providers = await vault.getProviders()
 
         const ltvMax = vault.maxLtv
           ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
@@ -245,11 +288,29 @@ export const useBorrow = create<BorrowStore>()(
             s.position.ltvMax = ltvMax
             s.position.ltvThreshold = ltvThreshold
             s.position.providers = providers
-            s.position.activeProvider = providers[0]
+            s.position.activeProvider = providers.find((p) => p.active)
           })
         )
-
+        const route = get().availableRoutes.find(
+          (r) => r.address === vault.address.value
+        )
+        if (route) {
+          get().changeTransactionMeta(route)
+        }
         await get().updateVaultBalance()
+      },
+
+      async changeTransactionMeta(route) {
+        set(
+          produce((state: BorrowState) => {
+            state.transactionMeta.status = "ready"
+            state.transactionMeta.bridgeFee = route.bridgeFee
+            state.transactionMeta.estimateTime = route.estimateTime
+            state.transactionMeta.steps = route.steps
+            state.needPermit = Sdk.needSignature(route.actions)
+            state.actions = route.actions
+          })
+        )
       },
 
       async updateBalances(type) {
@@ -260,8 +321,7 @@ export const useBorrow = create<BorrowStore>()(
 
         const tokens =
           type === "debt" ? get().debtTokens : get().collateralTokens
-        const token = get().position[type].token
-        const chainId = token.chainId
+        const chainId = get().position[type].token.chainId
 
         const rawBalances = await sdk.getTokenBalancesFor(
           tokens,
@@ -320,9 +380,7 @@ export const useBorrow = create<BorrowStore>()(
         )
         try {
           const res = await sdk.getAllowanceFor(token, new Address(address))
-          const value = parseFloat(
-            ethers.utils.formatUnits(res, token.decimals)
-          )
+          const value = parseFloat(formatUnits(res, token.decimals))
           set({ collateralAllowance: { status: "ready", value } })
         } catch (e) {
           // TODO: how to handle the case where we can't fetch allowance ?
@@ -389,7 +447,6 @@ export const useBorrow = create<BorrowStore>()(
             })
           )
         }
-
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "fetching"
@@ -397,31 +454,42 @@ export const useBorrow = create<BorrowStore>()(
             state.actions = undefined
           })
         )
-
         try {
-          const { bridgeFee, estimateTime, actions, steps } =
-            await sdk.previews.depositAndBorrow(
-              vault,
-              parseUnits(collateralInput, collateral.token.decimals),
-              parseUnits(debtInput, debt.token.decimals),
-              collateral.token,
-              debt.token,
-              new Address(address)
-            )
-          if (!actions.length) {
-            throw `empty action array returned by sdk.previewDepositAndBorrow with params`
-          }
-          set(
-            produce((state: BorrowState) => {
-              state.transactionMeta.status = "ready"
-              state.transactionMeta.bridgeFees = bridgeFee.toNumber()
-              state.transactionMeta.estimateTime = estimateTime
-              state.transactionMeta.steps = steps
-              // state.transactionMeta.gasFees = gasPrice?.toNumber() || 0
-              state.needPermit = Sdk.needSignature(actions)
-              state.actions = actions
+          const vaults = get().availableVaults
+          const results = await Promise.all(
+            vaults.map((v, i) => {
+              const recommended = i === 0
+
+              return fetchRoutes(
+                v,
+                collateral.token,
+                debt.token,
+                collateralInput,
+                debtInput,
+                address,
+                recommended
+              )
             })
           )
+          const selectedValue = results.find(
+            (r) => r.data?.address === vault.address.value
+          )
+          if (!selectedValue || (!selectedValue.error && !selectedValue.data)) {
+            throw "Data not found"
+          }
+          if (selectedValue.error) {
+            throw selectedValue.error
+          }
+          const selectedRoute = selectedValue.data as RouteMeta
+          if (!selectedRoute.actions.length) {
+            throw `empty action array returned by sdk.previewDepositAndBorrow with params`
+          }
+          const availableRoutes = results
+            .filter((r) => r.data)
+            .map((r) => r.data) as RouteMeta[]
+
+          set({ availableRoutes })
+          get().changeTransactionMeta(selectedRoute)
         } catch (e) {
           set(
             produce((state: BorrowState) => {
@@ -538,8 +606,9 @@ export const useBorrow = create<BorrowStore>()(
           const approval = await contracts.ERC20__factory.connect(
             token.address.value,
             owner
-          ).approve(spender, parseUnits(amount.toString()))
+          ).approve(spender, parseUnits(amount.toString(), token.decimals))
           await approval.wait()
+
           set({ collateralAllowance: { status: "ready", value: amount } })
           afterSuccess && afterSuccess()
         } catch (e) {
@@ -643,6 +712,13 @@ export const useBorrow = create<BorrowStore>()(
           get().changeBorrowValue("")
         } catch (e) {
           console.error(e)
+          if (e instanceof Error) {
+            useSnack.getState().display({
+              icon: "error",
+              title: "Error",
+              body: "There was a problem making the transaction, please try again later", // TODO: Improve
+            })
+          }
         }
       },
     }),

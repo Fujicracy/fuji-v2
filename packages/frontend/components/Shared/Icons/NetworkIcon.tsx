@@ -2,6 +2,7 @@ import { Box, useTheme } from "@mui/material"
 import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
+import { getNetworkImage } from "../../../helpers/paths"
 import { chainName, chainIcon } from "../../../services/chains"
 
 interface Props extends Omit<ImageProps, "src"> {
@@ -9,12 +10,14 @@ interface Props extends Omit<ImageProps, "src"> {
   sx?: object
 }
 
+// export interface Icon {}
+
 export default function NetworkIcon(props: Props) {
   const { palette } = useTheme()
   const { network, ...rest } = props
 
   const name = typeof network === "string" ? network : chainName(network)
-  const path = `/assets/images/protocol-icons/networks/${chainIcon(name)}.svg`
+  const path = getNetworkImage(chainIcon(name))
 
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
   useEffect(() => {

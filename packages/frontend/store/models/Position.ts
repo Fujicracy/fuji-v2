@@ -1,19 +1,20 @@
 import { BorrowingVault, LendingProviderDetails, Token } from "@x-fuji/sdk"
 
 // reprensent an open position on fuji
-export class Position {
-  vault?: BorrowingVault // Contain chainId
+export type Position = {
+  vault?: BorrowingVault /*| LendingVault // Contain chainId */
 
   collateral: {
     amount: number
     token: Token
     usdValue: number
+    baseAPR?: number
   }
-
   debt: {
     amount: number
     token: Token
     usdValue: number
+    baseAPR?: number
   }
 
   ltv: number
