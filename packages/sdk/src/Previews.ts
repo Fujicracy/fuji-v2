@@ -8,7 +8,7 @@ import { Address, BorrowingVault, Token } from './entities';
 import { Chain } from './entities/Chain';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { Nxtp } from './Nxtp';
-import { DetailsResult } from './types/DetailsResult';
+import { MetaRoutingResult } from './types/MetaRoutingResult';
 import { PreviewResult } from './types/PreviewResult';
 import {
   BorrowParams,
@@ -471,7 +471,7 @@ export class Previews {
     vault: BorrowingVault,
     amountIn: BigNumber,
     tokenIn: Token
-  ): Promise<DetailsResult> {
+  ): Promise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -522,7 +522,7 @@ export class Previews {
     srcChainId: ChainId,
     amountOut: BigNumber,
     tokenOut: Token
-  ): Promise<DetailsResult> {
+  ): Promise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -603,7 +603,7 @@ export class Previews {
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<DetailsResult> {
+  ): Promise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     // TODO: estimate time
@@ -732,7 +732,7 @@ export class Previews {
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<DetailsResult> {
+  ): Promise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);

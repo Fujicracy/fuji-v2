@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { RoutingStepDetails } from './RoutingStepDetails';
 
-export type DetailsResult = {
+export type MetaRoutingResult = {
   steps: RoutingStepDetails[];
   bridgeFee: BigNumber;
   estimateSlippage: BigNumber;

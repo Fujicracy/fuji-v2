@@ -4,10 +4,10 @@ import {
   RouterActionParams,
   RoutingStep,
   RoutingStepDetails,
+  PreviewResult,
   Token,
 } from "@x-fuji/sdk"
 import { sdk } from "../services/sdk"
-import { BigNumber } from "ethers"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 
@@ -92,13 +92,7 @@ export const fetchRoutes = async (
     error?: Error
   } = {}
   try {
-    let preview: {
-      actions: RouterActionParams[]
-      steps: RoutingStepDetails[]
-      bridgeFee: BigNumber
-      estimateSlippage: BigNumber
-      estimateTime: number
-    }
+    let preview: PreviewResult
     switch (mode) {
       case Mode.DEPOSIT_AND_BORROW:
         preview = await sdk.previews.depositAndBorrow(
@@ -136,7 +130,7 @@ export const fetchRoutes = async (
       case Mode.WITHDRAW:
         preview = await sdk.previews.withdraw(
           vault,
-          collateralToken.chainId,
+          collateralToken.chainId, // TODO: wallet chain id
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
           new Address(address)
@@ -145,7 +139,7 @@ export const fetchRoutes = async (
         preview = await sdk.previews.payback(
           vault,
           parseUnits(debtInput, debtToken.decimals),
-          collateralToken,
+          debtToken,
           new Address(address)
         )
     }
