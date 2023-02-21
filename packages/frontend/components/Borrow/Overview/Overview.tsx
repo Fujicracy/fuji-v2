@@ -33,6 +33,7 @@ export default function Overview() {
   const collateral = useBorrow((state) => state.collateral)
   const collateralAmount = Number(collateral.input)
   const debt = useBorrow((state) => state.debt)
+  const debtAmount = Number(debt.input)
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
   const providers =
@@ -92,66 +93,58 @@ export default function Overview() {
           <Grid container columnSpacing="1rem">
             <Grid item xs={6}>
               <CurrencyCard
-                informations={{
-                  title: "Collateral Provided",
-                  amount: `${collateralAmount.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })} ${collateral.token.symbol}`,
-                  footer: (
-                    collateralAmount * collateral.usdValue
-                  ).toLocaleString("en-US", {
+                title="Collateral Provided"
+                amount={`${collateralAmount.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })} ${collateral.token.symbol}`}
+                footer={(collateralAmount * collateral.usdValue).toLocaleString(
+                  "en-US",
+                  {
                     style: "currency",
                     currency: "usd",
-                  }),
-                }}
+                  }
+                )}
               />
             </Grid>
             <Grid item xs={6}>
               <CurrencyCard
-                informations={{
-                  title: "Borrowed Value",
-                  amount: (debt.amount * debt.usdValue).toLocaleString(
-                    "en-US",
-                    {
-                      style: "currency",
-                      currency: "usd",
-                    }
-                  ),
-                  footer: `${debt.amount.toLocaleString("en-US", {
-                    maximumFractionDigits: 2,
-                  })} ${debt.token.symbol}`,
-                }}
+                title="Borrowed Value"
+                amount={(debtAmount * debt.usdValue).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "usd",
+                })}
+                footer={`${debtAmount.toLocaleString("en-US", {
+                  maximumFractionDigits: 2,
+                })} ${debt.token.symbol}`}
               />
             </Grid>
 
             <Grid item xs={6}>
               <CurrencyCard
-                informations={{
-                  title: "Liquidation Price",
-                  amount:
-                    liquidationDiff >= 0
-                      ? liquidationPrice.toLocaleString("en-US", {
-                          style: "currency",
-                          currency: "usd",
-                        })
-                      : "$0",
-                  footer:
-                    liquidationDiff >= 0
-                      ? `~${liquidationDiff}% below current price`
-                      : `n/a`,
-                }}
+                title="Liquidation Price"
+                amount={
+                  liquidationDiff >= 0
+                    ? liquidationPrice.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "usd",
+                      })
+                    : "$0"
+                }
+                footer={
+                  liquidationDiff >= 0
+                    ? `~${liquidationDiff}% below current price`
+                    : `n/a`
+                }
               />
             </Grid>
             <Grid item xs={6}>
               <CurrencyCard
-                informations={{
-                  title: "Current Price",
-                  amount: collateral.usdValue.toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "usd",
-                  }),
-                  footer: collateral.token.symbol,
-                }}
+                title="Current Price"
+                amount={collateral.usdValue.toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "usd",
+                })}
+                footer={collateral.token.symbol}
               />
             </Grid>
           </Grid>

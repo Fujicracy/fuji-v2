@@ -21,6 +21,7 @@ declare module "@mui/material/Chip" {
     routing: true
     recommended: true
     selected: true
+    currency: true
   }
 }
 
@@ -529,6 +530,19 @@ const theme = createTheme(colorTheme, {
             height: "22px",
             color: colorTheme.palette.primary.main,
             border: `1px solid ${colorTheme.palette.primary.main}`,
+          },
+        },
+
+        {
+          props: {
+            variant: "currency",
+          },
+          style: {
+            height: "28px",
+            fontSize: "0.9rem",
+            lineHeight: "100%",
+            backgroundColor: colorTheme.palette.secondary.light,
+            color: "white",
           },
         },
       ],
