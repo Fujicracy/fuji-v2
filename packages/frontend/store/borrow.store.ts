@@ -15,7 +15,6 @@ import { create } from "zustand"
 import { debounce } from "debounce"
 
 import { useAuth } from "./auth.store"
-import { Position } from "./models/Position"
 import { chainIdToHex, testChains } from "../services/chains"
 import { sdk } from "../services/sdk"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
@@ -177,6 +176,8 @@ export const useBorrow = create<BorrowStore>()(
         const debts = sdk.getDebtForChain(debt.chainId)
         set(
           produce((state: BorrowState) => {
+            state.activeVault = vault // Need to test this
+
             state.collateral.chainId = chainIdToHex(collateral.chainId)
             state.collateral.allTokens = collaterals
             state.collateral.token = collateral
@@ -186,7 +187,6 @@ export const useBorrow = create<BorrowStore>()(
             state.debt.token = debt
           })
         )
-
         get().updateTokenPrice("collateral")
         get().updateBalances("collateral")
         get().updateTokenPrice("debt")
@@ -194,6 +194,13 @@ export const useBorrow = create<BorrowStore>()(
         get().updateAllowance()
 
         await get().changeActiveVault(vault)
+
+        const availableVaults = await sdk.getBorrowingVaultsFor(
+          collateral,
+          debt
+        )
+        set({ availableVaults })
+
         await Promise.all([
           get().updateAllProviders(),
           get().updateTransactionMeta(),

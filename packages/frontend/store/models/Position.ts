@@ -4,11 +4,12 @@ type PositionTypeMeta = {
   amount: number
   token: Token
   usdValue: number
+  baseAPR?: number
 }
 
 // reprensent an open position on fuji
-export class Position {
-  vault?: BorrowingVault // Contain chainId
+export type Position = {
+  vault?: BorrowingVault /*| LendingVault // Contain chainId */
 
   collateral: PositionTypeMeta
   debt: PositionTypeMeta
