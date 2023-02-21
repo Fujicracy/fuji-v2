@@ -1,10 +1,10 @@
 import { sdk } from "../services/sdk"
 import { create } from "zustand"
-import { devtools } from "zustand/middleware"
 import { Position } from "./models/Position"
 import { useAuth } from "./auth.store"
-import { Address, Token } from "@x-fuji/sdk"
-import { BigNumberish, ethers } from "ethers"
+import { Address } from "@x-fuji/sdk"
+import { BigNumberish, BigNumber } from "ethers"
+import { formatUnits, parseUnits } from "ethers/lib/utils"
 
 type PositionsState = {
   totalDepositsUSD: number | undefined
@@ -33,12 +33,12 @@ export type PositionsStore = PositionsState & PositionsActions
 
 export const usePositions = create<PositionsStore>()(
   // devtools(
-  (set, get) => ({
+  (set) => ({
     ...initialState,
 
     fetchUserPositions: async () => {
-      const account = useAuth.getState().address
-      const positions = await getPositionsWithBalance(account)
+      const addr = useAuth.getState().address
+      const positions = await getPositionsWithBalance(addr)
 
       const totalDepositsUSD = getTotalSum(positions, "collateral")
       const totalDebtUSD = getTotalSum(positions, "debt")
@@ -84,8 +84,8 @@ function bigToFloat(
   big: BigNumberish | undefined,
   decimals: number | BigNumberish
 ): number {
-  const big_ = big ? big : ethers.utils.parseUnits("0", 18)
-  return parseFloat(ethers.utils.formatUnits(big_, decimals))
+  const value = big ?? parseUnits("0", 18)
+  return parseFloat(formatUnits(value, decimals))
 }
 
 function getTotalSum(
@@ -95,57 +95,56 @@ function getTotalSum(
   return positions.reduce((s, p) => p[param].usdValue + s, 0)
 }
 
-async function getPositionsWithBalance(account_: string | undefined) {
-  if (account_) {
-    const account = new Address(account_)
-    const allVaults = await sdk.getAllAccountDetailsPerVaultFor(account)
-    const vaultsWithBalance = allVaults.filter((v) =>
-      v.depositBalance.gt(ethers.BigNumber.from("0"))
-    )
-    const vaults = vaultsWithBalance.map((v) => {
-      const p = {} as Position
-      p.vault = v.vault
-      p.collateral = {
-        amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
-        token: v.vault.collateral,
-        get usdValue() {
-          return (
-            this.amount *
-            bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals)
-          )
-        },
-        get baseAPR() {
-          return v.depositAprBase
-        },
-      }
-      p.debt = {
-        amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
-        token: v.vault.debt,
-        get usdValue() {
-          return this.amount * bigToFloat(v.debtPriceUSD, v.vault.debt.decimals)
-        },
-        get baseAPR() {
-          return v.borrowAprBase
-        },
-      }
-      p.ltv = p.debt.usdValue / p.collateral.usdValue
-      p.ltvMax = bigToFloat(v.vault.maxLtv, 18)
-      p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18)
-      p.liquidationPrice =
-        p.debt.usdValue == 0
-          ? 0
-          : p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
-      p.liquidationDiff =
-        p.liquidationPrice == 0
-          ? 0
-          : bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) -
-            p.liquidationPrice
-      return p
-    })
-    return vaults || []
-  } else {
-    return []
-  }
+async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
+  if (!addr) return []
+
+  const account = Address.from(addr)
+  const allVaults = await sdk.getBorrowingVaultsFinancials(account)
+  const vaultsWithBalance = allVaults.filter((v) =>
+    v.depositBalance.gt(BigNumber.from("0"))
+  )
+
+  const vaults = vaultsWithBalance.map((v) => {
+    const p = {} as Position
+    p.vault = v.vault
+    p.collateral = {
+      amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
+      token: v.vault.collateral,
+      get usdValue() {
+        return (
+          this.amount *
+          bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals)
+        )
+      },
+      get baseAPR() {
+        return v.activeProvider.depositAprBase
+      },
+    }
+    p.debt = {
+      amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
+      token: v.vault.debt,
+      get usdValue() {
+        return this.amount * bigToFloat(v.debtPriceUSD, v.vault.debt.decimals)
+      },
+      get baseAPR() {
+        return v.activeProvider.borrowAprBase
+      },
+    }
+    p.ltv = p.debt.usdValue / p.collateral.usdValue
+    p.ltvMax = bigToFloat(v.vault.maxLtv, 18)
+    p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18)
+    p.liquidationPrice =
+      p.debt.usdValue == 0
+        ? 0
+        : p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
+    p.liquidationDiff =
+      p.liquidationPrice == 0
+        ? 0
+        : bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) - p.liquidationPrice
+    return p
+  })
+
+  return vaults
 }
 
 export function getAccrual(
