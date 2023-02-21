@@ -31,6 +31,7 @@ export default function Overview() {
   const liquidationPrice = useBorrow((state) => state.liquidationPrice)
   const liquidationDiff = useBorrow((state) => state.liquidationDiff)
   const collateral = useBorrow((state) => state.collateral)
+  const collateralAmount = Number(collateral.input)
   const debt = useBorrow((state) => state.debt)
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
@@ -93,11 +94,11 @@ export default function Overview() {
               <CurrencyCard
                 informations={{
                   title: "Collateral Provided",
-                  amount: `${collateral.amount.toLocaleString("en-US", {
+                  amount: `${collateralAmount.toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })} ${collateral.token.symbol}`,
                   footer: (
-                    collateral.amount * collateral.usdValue
+                    collateralAmount * collateral.usdValue
                   ).toLocaleString("en-US", {
                     style: "currency",
                     currency: "usd",
