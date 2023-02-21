@@ -2,7 +2,7 @@ import { Box, useTheme } from "@mui/material"
 import { Token } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
-import { getTokenImage } from "../../../helpers/token"
+import { getTokenImage } from "../../../helpers/paths"
 
 interface Props extends Omit<ImageProps, "src"> {
   token: Token | string
