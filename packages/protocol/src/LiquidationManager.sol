@@ -12,6 +12,7 @@ pragma solidity 0.8.15;
 import {ILiquidationManager} from "./interfaces/ILiquidationManager.sol";
 import {IVault} from "./interfaces/IVault.sol";
 import {IFlasher} from "./interfaces/IFlasher.sol";
+import {ISwapper} from "./interfaces/ISwapper.sol";
 import {SystemAccessControl} from "./access/SystemAccessControl.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -28,16 +29,21 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   error LiquidationManager__completeLiquidation_invalidEntryPoint();
   error LiquidationManager__getFlashloan_notEmptyEntryPoint();
   error LiquidationManager__liquidate_notValidExecutor();
+  error LiquidationManager__liquidate_noUsersToLiquidate();
 
   address public immutable treasury;
+
+  //TODO check safety
+  ISwapper public swapper;
 
   //keepers
   mapping(address => bool) public allowedExecutor;
 
   bytes32 private _entryPoint;
 
-  constructor(address chief_, address treasury_) SystemAccessControl(chief_) {
+  constructor(address chief_, address treasury_, address swapper_) SystemAccessControl(chief_) {
     treasury = treasury_;
+    swapper = ISwapper(swapper_);
   }
 
   /// @inheritdoc ILiquidationManager
@@ -57,18 +63,25 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     if (!allowedExecutor[msg.sender]) {
       revert LiquidationManager__liquidate_notValidExecutor();
     }
-
-    uint256 collectedAmount;
+    bool liquidatedUsers = false;
 
     for (uint256 i = 0; i < users.length; i++) {
       //check user's health before borrowing to avoid paying unecessary fees from flashloan
       if (vault.getHealthFactor(users[i]) < 1e18) {
+        liquidatedUsers = true;
         //calculate how much to borrow from flasher
         uint256 liquidationFactor = vault.getLiquidationFactor(users[i]);
+
+        //TODO check flashloan multiple calls reentry protection
+        // if necessary, switch to calculate all users total debt and then flashloan once
         uint256 debtAmount = vault.balanceOfDebt(users[i]);
         uint256 debtToCover = Math.mulDiv(debtAmount, liquidationFactor, 1e18);
-        _getFlashloan(vault, users[i], debtAmount, flasher);
+        _getFlashloan(vault, users[i], debtToCover, flasher);
       }
+    }
+
+    if (!liquidatedUsers) {
+      revert LiquidationManager__liquidate_noUsersToLiquidate();
     }
   }
 
@@ -156,6 +169,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     _checkReentry(vault, user, debtAmount, flasher);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
+    IERC20 collateralAsset = IERC20(vault.asset());
 
     if (debtAsset.balanceOf(address(this)) != debtAmount) {
       revert LiquidationManager__getFlashloan_flashloanFailed();
@@ -165,33 +179,33 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debtAmount);
 
+    debtAsset.approve(address(vault), debtAmount);
     vault.liquidate(user, address(this));
 
-    //TODO
-
+    //save amount to send to treasury
     uint256 collateralAmount = vault.liquidate(user, address(this));
 
-    //swap collateralAsset to debtAsset
-
-    //calc += collectedAmount
+    //swap only the necessary amount to avoid paying unecessary fees
+    uint256 amountIn =
+      swapper.getAmountIn(address(collateralAsset), address(debtAsset), debtAmount + flashloanFee);
+    swapper.swap(
+      address(collateralAsset),
+      address(debtAsset),
+      amountIn,
+      debtAmount + flashloanFee,
+      address(this),
+      treasury,
+      0
+    );
 
     //repay flashloan
     debtAsset.safeTransfer(address(flasher), debtAmount + flashloanFee);
+
+    //send the rest to treasury
+    collateralAsset.safeTransfer(treasury, collateralAmount - amountIn);
 
     // Re-initialize the `_entryPoint`.
     _entryPoint = "";
     success = true;
   }
-
-  /**
-   * @notice Swaps a token for another one.
-   *
-   * @param originAsset the asset provided
-   * @param destinationAsset the asset to be received
-   *
-   * @dev Used when liquidating someone to
-   * swap the received collateralAsset to debtAsset to repay the flashloan
-   *
-   */
-  function swap(address originAsset, address destinationAsset) internal {}
 }
