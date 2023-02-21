@@ -172,6 +172,8 @@ export const useBorrow = create<BorrowStore>()(
         const debts = sdk.getDebtForChain(debt.chainId)
         set(
           produce((state: BorrowState) => {
+            state.position.vault = vault
+
             state.collateralChainId = chainIdToHex(collateral.chainId)
             state.collateralTokens = collaterals
             state.position.collateral.token = collateral
@@ -181,7 +183,6 @@ export const useBorrow = create<BorrowStore>()(
             state.position.debt.token = debt
           })
         )
-
         get().updateTokenPrice("collateral")
         get().updateBalances("collateral")
         get().updateTokenPrice("debt")
@@ -189,6 +190,13 @@ export const useBorrow = create<BorrowStore>()(
         get().updateAllowance()
 
         await get().changeActiveVault(vault)
+
+        const availableVaults = await sdk.getBorrowingVaultsFor(
+          collateral,
+          debt
+        )
+        set({ availableVaults })
+
         await Promise.all([
           get().updateAllProviders(),
           get().updateTransactionMeta(),
