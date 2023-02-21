@@ -4,6 +4,7 @@ import { ConnectedChain } from "@web3-onboard/core"
 import { Token } from "@x-fuji/sdk"
 import { FetchStatus } from "../../store/borrow.store"
 import { Mode } from "../../helpers/borrow"
+import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -77,6 +78,18 @@ const BorrowButton = (props: BorrowButtonProps) => {
         onClick={() => props.onChainChangeClick()}
       >
         Switch network
+      </Button>
+    )
+  } else if (
+    props.debtAmount !== 0 &&
+    props.debtAmount <= MINIMUM_DEBT_AMOUNT
+  ) {
+    return (
+      <Button variant="gradient" size="large" disabled fullWidth>
+        {
+          // TODO: need to figure this one out
+        }
+        {"Borrowing amount too low"}{" "}
       </Button>
     )
   } else if (
