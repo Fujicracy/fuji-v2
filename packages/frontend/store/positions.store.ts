@@ -7,11 +7,11 @@ import { BigNumberish, BigNumber } from "ethers"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 
 type PositionsState = {
-  totalDepositsUSD: number | undefined
-  totalDebtUSD: number | undefined
-  totalAPY: number | undefined
-  availableBorrowPowerUSD: number | undefined
   positions: Position[]
+  totalDepositsUSD?: number
+  totalDebtUSD?: number
+  totalAPY?: number
+  availableBorrowPowerUSD?: number
   // positionsAtRisk?: Position[]
 }
 
@@ -21,10 +21,6 @@ type PositionsActions = {
 }
 
 const initialState: PositionsState = {
-  totalDepositsUSD: undefined,
-  totalDebtUSD: undefined,
-  totalAPY: undefined,
-  availableBorrowPowerUSD: undefined,
   positions: [],
   // positionsAtRisk: [],
 }
@@ -134,11 +130,11 @@ async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
     p.ltvMax = bigToFloat(v.vault.maxLtv, 18)
     p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18)
     p.liquidationPrice =
-      p.debt.usdValue == 0
+      p.debt.usdValue === 0
         ? 0
         : p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
     p.liquidationDiff =
-      p.liquidationPrice == 0
+      p.liquidationPrice === 0
         ? 0
         : bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) - p.liquidationPrice
     return p
@@ -152,7 +148,7 @@ export function getAccrual(
   baseAPR: number | undefined,
   param: "collateral" | "debt"
 ): number {
-  const factor = param == "debt" ? -1 : 1
+  const factor = param === "debt" ? -1 : 1
   // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
   const aprDecimal = baseAPR ? baseAPR / 100 : 0
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY

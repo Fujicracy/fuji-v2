@@ -1,12 +1,10 @@
 export function formatNumber(
   num: number | undefined,
-  decimals_: number
+  decimals: number
 ): number | "-" {
-  if (num == undefined) {
-    return "-"
-  } else {
-    return parseFloat(num.toFixed(decimals_))
-  }
+  if (!num) return "-"
+
+  return parseFloat(num.toFixed(decimals))
 }
 
 /*

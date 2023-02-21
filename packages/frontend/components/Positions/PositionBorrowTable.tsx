@@ -171,7 +171,7 @@ function PositionBorrowTableRow({
         {children}
       </TableCell>
       <TableCell align="right">
-        {account != undefined && (
+        {account && (
           <Button
             variant="primary"
             sx={buttonSx}
@@ -222,7 +222,7 @@ function LiquidationBox(props: {
 }) {
   const { palette } = useTheme()
   const displayPercent = () => {
-    if (props.liquidationPrice == 0 || props.liquidationPrice == "-") {
+    if (props.liquidationPrice === 0 || props.liquidationPrice === "-") {
       return <span>No debt</span>
     } else {
       return (
