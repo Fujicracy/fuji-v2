@@ -11,11 +11,9 @@ export type PositionRow = {
   percentPriceDiff: number | "-"
 }
 
-export const emptyRows: PositionRow[] = []
-
 export function getRows(positions: Position[]): PositionRow[] {
   if (positions.length == 0) {
-    return emptyRows
+    return []
   } else {
     const rows: PositionRow[] = positions.map((pos: Position) => ({
       chainId: pos.vault?.chainId,
@@ -51,10 +49,10 @@ export function getRows(positions: Position[]): PositionRow[] {
   }
 }
 
-function handleDisplayLiquidationPrice(liqPrice_: number | undefined) {
-  if (liqPrice_ == undefined || liqPrice_ == 0) {
+function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
+  if (liqPrice == undefined || liqPrice == 0) {
     return "-"
   } else {
-    return formatNumber(liqPrice_, 0)
+    return formatNumber(liqPrice, 0)
   }
 }

@@ -10,15 +10,15 @@ import {
   useTheme,
   TableBody,
   Stack,
-  LinearProgress,
   Button,
+  Skeleton,
 } from "@mui/material"
 import { useRouter } from "next/router"
 import { TokenIcon, NetworkIcon } from "../Shared/Icons"
 import { chainName } from "../../services/chains"
 import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
-import { emptyRows, getRows } from "../../helpers/positions"
+import { getRows, PositionRow } from "../../helpers/positions"
 
 type PositionsBorrowTableProps = {
   loading: boolean
@@ -29,12 +29,12 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   const account = useAuth((state) => state.address)
   const positions = usePositions((state) => state.positions)
-  const [rows, setRows] = useState(emptyRows)
+  const [rows, setRows] = useState<PositionRow[]>([])
 
   useEffect(() => {
     ;(() => {
       if (loading) return
-      setRows(positions.length > 0 ? getRows(positions) : emptyRows)
+      setRows(getRows(positions))
     })()
   }, [loading, account, positions])
 
@@ -50,7 +50,7 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
       <PositionBorrowTableContainer>
         <TableRow sx={{ height: "2.625rem" }}>
           <TableCell colSpan={10} align="center">
-            <LinearProgress sx={{ height: "1.5rem" }} color="secondary" />
+            <Skeleton height={40} />
           </TableCell>
         </TableRow>
       </PositionBorrowTableContainer>
@@ -59,11 +59,10 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   return (
     <PositionBorrowTableContainer>
       {rows.length > 0 ? (
-        rows.map((row) => (
-          // TODO: key should  be smth else unique to a row, maybe the vault address ?
-          <TableRow key={row.liquidationPrice}>
+        rows.map((row, i) => (
+          <TableRow key={i}>
             <TableCell>
-              <Stack direction="row" alignItems="center" gap={1}>
+              <Stack direction="row" alignItems="center">
                 <Stack direction="row">
                   <TokenIcon token={row.borrow.sym} width={32} height={32} />
                   <NetworkIcon
@@ -174,13 +173,13 @@ function PositionBorrowTableRow({
       <TableCell align="right">
         {account != undefined && (
           <Button
-            variant="secondary2"
+            variant="primary"
             sx={buttonSx}
             onClick={() => {
               router.push("/borrow")
             }}
           >
-            Go open a position
+            Open position
           </Button>
         )}
       </TableCell>

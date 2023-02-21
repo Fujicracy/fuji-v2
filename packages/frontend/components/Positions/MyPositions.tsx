@@ -21,7 +21,7 @@ function MyPositions() {
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
   const [currentTab, setCurrentTab] = useState(0)
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) =>
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
   const account = useAuth((state) => state.address)
@@ -44,8 +44,8 @@ function MyPositions() {
         My Positions
       </Typography>
       <Typography variant="body">
-        The protocol manage your borrowing and lending position for maximum
-        capital efficiency
+        Fuji manages your borrowing and lending positions for maximum capital
+        efficiency
       </Typography>
       <PositionSummary />
       <Box mt={2} mb={3}>
