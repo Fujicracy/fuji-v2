@@ -1,0 +1,16 @@
+# package directories
+node_modules
+jspm_packages
+dist
+
+# Serverless directories
+.serverless
+
+# Other
+.env
+*.log
+.DS_Store
+
+# Defender
+secrets*.yml
+.defender
