@@ -14,7 +14,7 @@ import {
   Skeleton,
 } from "@mui/material"
 import { useRouter } from "next/router"
-import { TokenIcon, NetworkIcon } from "../Shared/Icons"
+import { TokenIcon, TokenWithNetworkIcon } from "../Shared/Icons"
 import { chainName } from "../../services/chains"
 import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
@@ -63,23 +63,11 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
           <TableRow key={i}>
             <TableCell>
               <Stack direction="row" alignItems="center">
-                <Stack direction="row">
-                  <TokenIcon token={row.borrow.sym} width={32} height={32} />
-                  <NetworkIcon
-                    network={chainName(row.chainId)}
-                    height={16}
-                    width={16}
-                    sx={{
-                      position: "relative",
-                      right: "0.75rem",
-                      top: "1.5rem",
-                      border: "0.5px solid white",
-                      borderRadius: "100%",
-                      height: "17px",
-                      width: "17px",
-                    }}
-                  />
-                </Stack>
+                <TokenWithNetworkIcon
+                  token={row.borrow.sym}
+                  network={chainName(row.chainId)}
+                  innertTop="1.1rem"
+                />
                 {row.borrow.sym}
               </Stack>
             </TableCell>

@@ -8,7 +8,11 @@ import { Stack } from "@mui/system"
 import { BigNumber } from "ethers"
 
 import { chainName } from "../../../services/chains"
-import { NetworkIcon, TokenIcon } from "../../Shared/Icons"
+import {
+  NetworkIcon,
+  TokenIcon,
+  TokenWithNetworkIcon,
+} from "../../Shared/Icons"
 import { RouteMeta } from "../../../helpers/borrow"
 import { toNotSoFixed, camelize } from "../../../helpers/values"
 
@@ -189,22 +193,10 @@ export default function RouteCard(props: RouteCardProps) {
 
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
-          <TokenIcon token={startStep?.token as Token} height={32} width={32} />
-          <NetworkIcon
+          <TokenWithNetworkIcon
+            token={startStep?.token as Token}
             network={chainName(startStep?.chainId)}
-            height={16}
-            width={16}
-            sx={{
-              position: "relative",
-              right: "0.75rem",
-              top: "1.5rem",
-              border: "0.5px solid white",
-              borderRadius: "100%",
-              height: "17px",
-              width: "17px",
-            }}
           />
-
           <Box>
             <Typography variant="body">
               {roundStepAmount(startStep)} {startStep?.token?.symbol}
@@ -227,20 +219,9 @@ export default function RouteCard(props: RouteCardProps) {
             </Typography>
           </Box>
 
-          <TokenIcon token={endStep?.token as Token} height={32} width={32} />
-          <NetworkIcon
+          <TokenWithNetworkIcon
+            token={endStep?.token as Token}
             network={chainName(endStep?.chainId)}
-            height={16}
-            width={16}
-            sx={{
-              position: "relative",
-              right: "0.75rem",
-              top: "1.5rem",
-              border: "0.5px solid white",
-              borderRadius: "100%",
-              height: "17px",
-              width: "17px",
-            }}
           />
         </Stack>
       </Stack>
