@@ -5,7 +5,7 @@ import BorrowWrapper from "../../components/Borrow/Wrapper"
 
 const PositionPage: NextPage = () => {
   const router = useRouter()
-  const { pid } = router.query // Contains chain-vault, need to separate into two and grab the right data
+  const { address } = router.query // Contains chain-vault, need to separate into two and grab the right data
 
   // Router.push("/borrow") // If pid is invalid or if vault balance is null, redirect to borrow
 

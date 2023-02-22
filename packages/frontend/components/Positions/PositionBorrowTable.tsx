@@ -20,6 +20,8 @@ import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow } from "../../helpers/positions"
 import { formatValue } from "../../helpers/values"
+import { useBorrow } from "../../store/borrow.store"
+import { navigateToVault } from "../../helpers/navigation"
 
 type PositionsBorrowTableProps = {
   loading: boolean
@@ -27,9 +29,11 @@ type PositionsBorrowTableProps = {
 
 export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const { palette } = useTheme()
-
+  const router = useRouter()
   const account = useAuth((state) => state.address)
   const positions = usePositions((state) => state.positions)
+  const vaults = useBorrow((state) => state.availableVaults)
+  const changeAll = useBorrow((state) => state.changeAll)
   const [rows, setRows] = useState<PositionRow[]>([])
 
   useEffect(() => {
@@ -57,11 +61,28 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
       </PositionBorrowTableContainer>
     )
   }
+
+  function handleClick(row: PositionRow) {
+    const entity = vaults.find((v) => v.address.value === row.address)
+    // TODO: This is collateral's chain id. How do we get it here?
+    navigateToVault(
+      router,
+      String(entity?.chainId),
+      positions,
+      changeAll,
+      entity
+    )
+  }
+
   return (
     <PositionBorrowTableContainer>
       {rows.length > 0 ? (
         rows.map((row, i) => (
-          <TableRow key={i}>
+          <TableRow
+            key={i}
+            sx={{ cursor: "pointer" }}
+            onClick={() => handleClick(row)}
+          >
             <TableCell>
               <Stack direction="row" alignItems="center">
                 <TokenWithNetworkIcon
@@ -149,8 +170,13 @@ function PositionBorrowTableRow({
     border: "none",
   }
 
+  // handleClick =
+
   return (
-    <TableRow sx={{ height: "2.625rem" }}>
+    <TableRow
+      sx={{ height: "2.625rem" }}
+      onClick={() => handleClick(row.entity)}
+    >
       <TableCell></TableCell>
       <TableCell colSpan={5} align="center">
         {children}

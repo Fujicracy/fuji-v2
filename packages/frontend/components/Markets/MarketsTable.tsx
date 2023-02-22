@@ -12,7 +12,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import { Address } from "@x-fuji/sdk"
+import { Address, BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
 import { useAuth } from "../../store/auth.store"
 import { sdk } from "../../services/sdk"
 import { SizableTableCell } from "../Shared/SizableTableCell"
@@ -24,12 +24,21 @@ import {
   setLlamas,
   Status,
 } from "../../helpers/markets"
+import { navigateToVault } from "../../helpers/navigation"
+import { useRouter } from "next/router"
+import { useBorrow } from "../../store/borrow.store"
+import { usePositions } from "../../store/positions.store"
 
 export default function MarketsTable() {
   const { palette } = useTheme()
   const address = useAuth((state) => state.address)
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([])
+  const router = useRouter()
+
+  const walletChain = useAuth((state) => state.chain)
+  const positions = usePositions((state) => state.positions)
+  const changeAll = useBorrow((state) => state.changeAll)
 
   useEffect(() => {
     const addr = address ? Address.from(address) : undefined
@@ -70,6 +79,16 @@ export default function MarketsTable() {
       }
     })()
   }, [address])
+
+  const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
+    navigateToVault(
+      router,
+      walletChain?.id as string,
+      positions,
+      changeAll,
+      entity
+    )
+  }
 
   return (
     <TableContainer>
@@ -186,7 +205,7 @@ export default function MarketsTable() {
         </TableHead>
         <TableBody>
           {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} />
+            <MarketsTableRow key={i} row={row} onClick={handleClick} />
           ))}
         </TableBody>
       </Table>

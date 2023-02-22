@@ -9,6 +9,7 @@ export type PositionRow = {
   liquidationPrice: number | "-"
   oraclePrice: number | "-"
   percentPriceDiff: number | "-"
+  address: string | undefined
 }
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -16,6 +17,7 @@ export function getRows(positions: Position[]): PositionRow[] {
     return []
   } else {
     const rows: PositionRow[] = positions.map((pos: Position) => ({
+      address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
       borrow: {
         sym: pos.vault?.debt.symbol || "",

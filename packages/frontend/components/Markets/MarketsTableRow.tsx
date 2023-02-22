@@ -25,49 +25,25 @@ import { useAuth } from "../../store/auth.store"
 import { DropletIcon } from "./DropletIcon"
 import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
 import { SizableTableCell } from "../Shared/SizableTableCell"
-import { BorrowingVault, Token, VaultWithFinancials } from "@x-fuji/sdk"
-import { chainName } from "../../services/chains"
+import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
 import { MarketRow, Status } from "../../helpers/markets"
 import { formatValue } from "../../helpers/values"
 
 type MarketsTableRowProps = {
   row: MarketRow
+  onClick: (entity?: BorrowingVault | VaultWithFinancials) => void
 }
 
-export default function MarketsTableRow({ row }: MarketsTableRowProps) {
+export default function MarketsTableRow({
+  row,
+  onClick,
+}: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
-
-  const router = useRouter()
-
-  const walletChain = useAuth((state) => state.chain)
-  const changeAll = useBorrow((state) => state.changeAll)
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation()
     setExpandRow(!expandRow)
-  }
-
-  const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    const vault = entity instanceof BorrowingVault ? entity : entity?.vault
-    if (!vault) return
-
-    const walletChainId = walletChain?.id as string
-    const isSupported = chainName(walletChainId) !== ""
-
-    // TODO: if user has a balance in vault, redirect to manage position
-
-    if (isSupported) {
-      const collaterals = sdk.getCollateralForChain(Number(walletChainId))
-      const collateralToken = collaterals.find(
-        (t: Token) => t.symbol === vault.collateral.symbol
-      )
-      changeAll(collateralToken ?? vault.collateral, vault.debt, vault)
-    } else {
-      changeAll(vault.collateral, vault.debt, vault)
-    }
-
-    router.push("/borrow")
   }
 
   const loaderOrError = (status: Status) =>
@@ -84,7 +60,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
   return (
     <>
       <TableRow
-        onClick={() => handleClick(row.entity)}
+        onClick={() => onClick(row.entity)}
         sx={{ height: "3.438rem", cursor: "pointer" }}
       >
         <SizableTableCell
