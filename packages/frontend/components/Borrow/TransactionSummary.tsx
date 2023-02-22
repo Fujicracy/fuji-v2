@@ -22,6 +22,7 @@ import LTVProgressBar from "./Overview/LTVProgressBar"
 import ClickableTooltip from "../Shared/ClickableTooltip"
 import { ProviderIcon } from "../Shared/Icons"
 import { recommendedLTV } from "../../helpers/borrow"
+import { formatValue } from "../../helpers/values"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
@@ -144,10 +145,9 @@ export default function TransactionSummary() {
                     Collateral Provided
                   </Typography>
                   <Typography variant="small" sx={{ width: "100%" }}>
-                    {collateral.amount.toLocaleString()}{" "}
-                    {collateral.token.symbol} (~
-                    {(collateral.amount * collateral.usdValue).toLocaleString()}
-                    )
+                    {formatValue(collateral.amount)} {collateral.token.symbol}{" "}
+                    (~
+                    {formatValue(collateral.amount * collateral.usdValue)})
                   </Typography>
                 </Grid>
 
@@ -157,8 +157,8 @@ export default function TransactionSummary() {
                 >
                   <Typography variant="smallDark">Borrowed Value</Typography>
                   <Typography variant="small" sx={{ width: "100%" }}>
-                    ${(debt.amount * debt.usdValue).toLocaleString()} (
-                    {debt.amount.toLocaleString()} {debt.token.symbol})
+                    ${formatValue(debt.amount * debt.usdValue)} (
+                    {formatValue(debt.amount)} {debt.token.symbol})
                   </Typography>
                 </Grid>
 
@@ -188,7 +188,7 @@ export default function TransactionSummary() {
                     Current Price ({collateral.token.symbol})
                   </Typography>
                   <Typography variant="small" sx={{ width: "100%" }}>
-                    ${collateral.usdValue.toLocaleString()}
+                    ${formatValue(collateral.usdValue)}
                   </Typography>
                 </Grid>
               </Grid>

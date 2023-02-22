@@ -1,3 +1,7 @@
+export function formatValue(value: string | number): string {
+  return value.toLocaleString()
+}
+
 export function formatNumber(
   num: number | undefined,
   decimals: number
