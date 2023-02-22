@@ -23,6 +23,7 @@ import BorrowBox from "./Box/Box"
 import ConnextFooter from "./ConnextFooter"
 import { modeForContext, PositionAction } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
+import { useRouter } from "next/router"
 
 type BorrowProps = {
   managePosition: boolean
@@ -30,6 +31,7 @@ type BorrowProps = {
 export default function Borrow(props: BorrowProps) {
   const address = useAuth((state) => state.address)
   const walletChain = useAuth((state) => state.chain)
+  const router = useRouter()
 
   const changeChain = useAuth((state) => state.changeChain)
   const updateBalance = useBorrow((state) => state.updateBalances)
@@ -198,7 +200,10 @@ export default function Borrow(props: BorrowProps) {
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
-            onPositionClick={() => console.log("redirect to position")}
+            onPositionClick={() => {
+              // TODO: Should set all data in store and redirect to /my-positions
+              if (vault) router.push(`/my-positions/${vault.address.value}`)
+            }}
             onClick={signAndBorrow}
           />
 

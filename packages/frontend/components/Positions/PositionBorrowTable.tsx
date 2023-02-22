@@ -170,8 +170,6 @@ function PositionBorrowTableRow({
     border: "none",
   }
 
-  // handleClick =
-
   return (
     <TableRow sx={{ height: "2.625rem" }}>
       <TableCell></TableCell>

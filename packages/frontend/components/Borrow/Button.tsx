@@ -80,6 +80,17 @@ const BorrowButton = (props: BorrowButtonProps) => {
         Switch network
       </Button>
     )
+  } else if (!props.managePosition && props.hasBalance) {
+    return (
+      <Button
+        variant="gradient"
+        fullWidth
+        size="large"
+        onClick={() => props.onPositionClick()}
+      >
+        Manage position
+      </Button>
+    )
   } else if (
     props.debtAmount !== 0 &&
     props.debtAmount <= MINIMUM_DEBT_AMOUNT
@@ -119,17 +130,6 @@ const BorrowButton = (props: BorrowButtonProps) => {
         onClick={() => props.onApproveClick()}
       >
         Allow
-      </Button>
-    )
-  } else if (!props.managePosition && props.hasBalance) {
-    return (
-      <Button
-        variant="gradient"
-        fullWidth
-        size="large"
-        onClick={() => props.onPositionClick()}
-      >
-        Manage position
       </Button>
     )
   } else {

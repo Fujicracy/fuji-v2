@@ -16,7 +16,7 @@ import TransactionSummary from "../../components/Borrow/TransactionSummary"
 
 type BorrowWrapperProps = {
   managePosition: boolean
-  pid?: string | undefined
+  address?: string | undefined
 }
 
 export default function BorrowWrapper(
