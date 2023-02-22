@@ -12,7 +12,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV2Pool} from "../../../src/interfaces/aaveV2/IV2Pool.sol";
 import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
-contract AaveV2ForkingTestMainnet is Routines, ForkingSetup {
+contract AaveV2ForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
