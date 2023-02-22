@@ -23,6 +23,7 @@ import { useBorrow } from "../../../store/borrow.store"
 import Balance from "../../Shared/Balance"
 import { TokenIcon } from "../../Shared/Icons"
 import { recommendedLTV } from "../../../helpers/borrow"
+import { formatValue } from "../../../helpers/values"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
@@ -158,10 +159,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
         {type === "collateral" ? (
           <>
             <Typography variant="small" sx={{ width: "11rem" }}>
-              {(tokenValue * +value).toLocaleString("en-US", {
-                style: "currency",
-                currency: "usd",
-              })}
+              {formatValue(tokenValue * +value, { style: "currency" })}
             </Typography>
             <div
               style={{
@@ -194,10 +192,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
         ) : (
           <>
             <Typography variant="small" sx={{ width: "7rem" }}>
-              {(tokenValue * +value).toLocaleString("en-US", {
-                style: "currency",
-                currency: "usd",
-              })}
+              {formatValue(tokenValue * +value)}
             </Typography>
 
             <Stack direction="row">

@@ -19,6 +19,7 @@ import { chainName } from "../../services/chains"
 import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow } from "../../helpers/positions"
+import { formatValue } from "../../helpers/values"
 
 type PositionsBorrowTableProps = {
   loading: boolean
@@ -85,38 +86,34 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <TableCell align="right">
               <Box pt={1} pb={1}>
                 <Typography variant="small">
-                  {row.borrow.usdValue.toLocaleString("en-US", {
+                  {formatValue(row.borrow.usdValue, {
                     style: "currency",
-                    currency: "usd",
                     minimumFractionDigits: 0,
                   })}
                 </Typography>
                 <br />
                 <Typography variant="small" color={palette.info.main}>
-                  {row.borrow.amount.toLocaleString("en-US")} {row.borrow.sym}
+                  {formatValue(row.borrow.amount)} {row.borrow.sym}
                 </Typography>
               </Box>
             </TableCell>
             <TableCell align="right">
               <Box pt={1} pb={1}>
                 <Typography variant="small">
-                  {row.collateral.usdValue.toLocaleString("en-US", {
+                  {formatValue(row.collateral.usdValue, {
                     style: "currency",
-                    currency: "usd",
                     maximumFractionDigits: 0,
                   })}
                 </Typography>
                 <br />
                 <Typography variant="small" color={palette.info.main}>
-                  {row.collateral.amount.toLocaleString("en-US")}{" "}
-                  {row.collateral.sym}
+                  {formatValue(row.collateral.amount)} {row.collateral.sym}
                 </Typography>
               </Box>
             </TableCell>
             <TableCell align="right">
-              {row.oraclePrice.toLocaleString("en-US", {
+              {formatValue(row.oraclePrice, {
                 style: "currency",
-                currency: "usd",
                 minimumFractionDigits: 0,
               })}
             </TableCell>
@@ -229,9 +226,8 @@ function LiquidationBox(props: {
     <TableCell align="right">
       <Box pt={1} pb={1}>
         <Typography variant="small">
-          {props.liquidationPrice.toLocaleString("en-US", {
+          {formatValue(props.liquidationPrice, {
             style: "currency",
-            currency: "usd",
             minimumFractionDigits: 0,
           })}
         </Typography>

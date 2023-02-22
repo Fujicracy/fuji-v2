@@ -14,6 +14,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../store/auth.store"
 import { usePositions } from "../../store/positions.store"
 import { useRouter } from "next/router"
+import { formatValue } from "../../helpers/values"
 
 type MetricSummary = {
   name: string
@@ -174,9 +175,8 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
         color={metric.name === "Positions at Risk" ? "error" : "inherit"}
       >
         {metric.valueSym === "$"
-          ? `${metric.value.toLocaleString("en-US", {
+          ? `${formatValue(metric.value, {
               style: "currency",
-              currency: "usd",
               maximumFractionDigits: 0,
             })}`
           : metric.valueSym === "%"

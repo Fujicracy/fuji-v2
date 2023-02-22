@@ -28,6 +28,7 @@ import { SizableTableCell } from "../Shared/SizableTableCell"
 import { BorrowingVault, Token, VaultWithFinancials } from "@x-fuji/sdk"
 import { chainName } from "../../services/chains"
 import { MarketRow, Status } from "../../helpers/markets"
+import { formatValue } from "../../helpers/values"
 
 type MarketsTableRowProps = {
   row: MarketRow
@@ -256,11 +257,10 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
         <SizableTableCell align="right" width="130px">
           {loaderOrError(row.liquidity.status)}
           {row.liquidity.status === Status.Ready &&
-            row.liquidity.value?.toLocaleString("en-US", {
+            formatValue(row.liquidity.value, {
               maximumSignificantDigits: 3,
               notation: "compact",
               style: "currency",
-              currency: "usd",
             })}
         </SizableTableCell>
       </TableRow>

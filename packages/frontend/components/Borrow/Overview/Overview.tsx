@@ -22,6 +22,7 @@ import { useBorrow } from "../../../store/borrow.store"
 import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
+import { formatValue } from "../../../helpers/values"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -94,26 +95,21 @@ export default function Overview() {
             <Grid item xs={6}>
               <CurrencyCard
                 title="Collateral Provided"
-                amount={`${collateralAmount.toLocaleString("en-US", {
+                amount={`${formatValue(collateralAmount, {
                   maximumFractionDigits: 2,
                 })} ${collateral.token.symbol}`}
-                footer={(collateralAmount * collateral.usdValue).toLocaleString(
-                  "en-US",
-                  {
-                    style: "currency",
-                    currency: "usd",
-                  }
-                )}
+                footer={formatValue(collateralAmount * collateral.usdValue, {
+                  style: "currency",
+                })}
               />
             </Grid>
             <Grid item xs={6}>
               <CurrencyCard
                 title="Borrowed Value"
-                amount={(debtAmount * debt.usdValue).toLocaleString("en-US", {
+                amount={formatValue(debtAmount * debt.usdValue, {
                   style: "currency",
-                  currency: "usd",
                 })}
-                footer={`${debtAmount.toLocaleString("en-US", {
+                footer={`${formatValue(debtAmount, {
                   maximumFractionDigits: 2,
                 })} ${debt.token.symbol}`}
               />
@@ -124,10 +120,7 @@ export default function Overview() {
                 title="Liquidation Price"
                 amount={
                   liquidationDiff >= 0
-                    ? liquidationPrice.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "usd",
-                      })
+                    ? formatValue(liquidationPrice, { style: "currency" })
                     : "$0"
                 }
                 footer={
@@ -140,10 +133,7 @@ export default function Overview() {
             <Grid item xs={6}>
               <CurrencyCard
                 title="Current Price"
-                amount={collateral.usdValue.toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "usd",
-                })}
+                amount={formatValue(collateral.usdValue, { style: "currency" })}
                 footer={collateral.token.symbol}
               />
             </Grid>

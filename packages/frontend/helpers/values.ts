@@ -1,14 +1,11 @@
-export function formatValue(value: string | number): string {
-  return value.toLocaleString()
-}
-
-export function formatNumber(
-  num: number | undefined,
-  decimals: number
-): number | "-" {
-  if (!num) return "-"
-
-  return parseFloat(num.toFixed(decimals))
+export function formatValue(
+  value: string | number | undefined,
+  params: Intl.NumberFormatOptions = {}
+): string {
+  if (params.style === "currency") {
+    params.currency = "USD"
+  }
+  return value?.toLocaleString("en-US", params) || ""
 }
 
 /*
@@ -21,10 +18,16 @@ export const formatBalance = (
   rounding: boolean | undefined = undefined
 ): string => {
   return (
-    balance?.toLocaleString("en-US", {
-      notation: rounding ? "compact" : "standard",
-    }) ?? "0"
+    formatValue(balance, { notation: rounding ? "compact" : "standard" }) ?? "0"
   )
+}
+
+export function formatNumber(
+  num: number | undefined,
+  decimals: number
+): number | "-" {
+  if (!num) return "-"
+  return parseFloat(num.toFixed(decimals))
 }
 
 export const toNotSoFixed = (v: number | string): string => {
