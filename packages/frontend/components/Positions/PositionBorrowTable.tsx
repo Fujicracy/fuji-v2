@@ -173,10 +173,7 @@ function PositionBorrowTableRow({
   // handleClick =
 
   return (
-    <TableRow
-      sx={{ height: "2.625rem" }}
-      onClick={() => handleClick(row.entity)}
-    >
+    <TableRow sx={{ height: "2.625rem" }}>
       <TableCell></TableCell>
       <TableCell colSpan={5} align="center">
         {children}
