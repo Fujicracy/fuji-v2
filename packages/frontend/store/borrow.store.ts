@@ -338,7 +338,7 @@ export const useBorrow = create<BorrowStore>()(
 
         const rawBalances = await sdk.getTokenBalancesFor(
           tokens,
-          new Address(address),
+          Address.from(address),
           chainId
         )
         const balances: Record<string, number> = {}
@@ -397,7 +397,7 @@ export const useBorrow = create<BorrowStore>()(
           })
         )
         try {
-          const res = await sdk.getAllowanceFor(token, new Address(address))
+          const res = await sdk.getAllowanceFor(token, Address.from(address))
           const value = parseFloat(formatUnits(res, token.decimals))
           set(
             produce((s: BorrowState) => {
@@ -588,7 +588,7 @@ export const useBorrow = create<BorrowStore>()(
         }
 
         const { deposit, borrow } = await vault.getBalances(
-          new Address(address)
+          Address.from(address)
         )
         set(
           produce((s: BorrowState) => {

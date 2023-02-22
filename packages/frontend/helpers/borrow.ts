@@ -101,14 +101,14 @@ export const fetchRoutes = async (
           parseUnits(debtInput, debtToken.decimals),
           collateralToken,
           debtToken,
-          new Address(address)
+          Address.from(address)
         )
       case Mode.DEPOSIT:
         preview = await sdk.previews.deposit(
           vault,
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
-          new Address(address)
+          Address.from(address)
         )
       case Mode.BORROW:
         preview = await sdk.previews.borrow(
@@ -116,7 +116,7 @@ export const fetchRoutes = async (
           collateralToken.chainId,
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
-          new Address(address)
+          Address.from(address)
         )
       case Mode.PAYBACK_AND_WITHDRAW:
         preview = await sdk.previews.paybackAndWithdraw(
@@ -125,7 +125,7 @@ export const fetchRoutes = async (
           parseUnits(debtInput, debtToken.decimals),
           collateralToken,
           debtToken,
-          new Address(address)
+          Address.from(address)
         )
       case Mode.WITHDRAW:
         preview = await sdk.previews.withdraw(
@@ -133,14 +133,14 @@ export const fetchRoutes = async (
           collateralToken.chainId, // TODO: wallet chain id
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
-          new Address(address)
+          Address.from(address)
         )
       case Mode.REPAY:
         preview = await sdk.previews.payback(
           vault,
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
-          new Address(address)
+          Address.from(address)
         )
     }
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
