@@ -13,6 +13,11 @@
   },
   "devDependencies": {
     "defender-serverless": "^1.0.4",
+    "eslint": "^8.24.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-simple-import-sort": "^8.0.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "serverless": "^3.20.0",
     "tsup": "^6.2.3",
     "typescript": "^4.9.5"
