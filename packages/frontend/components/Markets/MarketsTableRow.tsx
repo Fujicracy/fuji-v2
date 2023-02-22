@@ -205,7 +205,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
+        <SizableTableCell align="right" width="130px">
           {loaderOrError(row.integratedProtocols.status)}
           {row.integratedProtocols.status === Status.Ready && (
             <Stack
@@ -247,7 +247,7 @@ export default function MarketsTableRow({ row }: MarketsTableRowProps) {
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
+        <SizableTableCell align="right" width="130px">
           <Chip
             variant={row.safetyRating.value === "A+" ? "success" : "warning"}
             label={row.safetyRating.value}

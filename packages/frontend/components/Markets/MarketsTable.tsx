@@ -125,10 +125,10 @@ export default function MarketsTable() {
                 )} */}
               </Stack>
             </SizableTableCell>
-            <SizableTableCell width="140px" align="right">
+            <SizableTableCell width="130px" align="right">
               Collateral APR
             </SizableTableCell>
-            <SizableTableCell align="right" width="140px">
+            <SizableTableCell align="right" width="130px">
               <Stack
                 direction="row"
                 alignItems="center"
