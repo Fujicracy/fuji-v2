@@ -5,6 +5,7 @@ import { useAuth } from "./auth.store"
 import { Address } from "@x-fuji/sdk"
 import { BigNumberish, BigNumber } from "ethers"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
+import { devtools } from "zustand/middleware"
 
 type PositionsState = {
   positions: Position[]
@@ -28,52 +29,52 @@ const initialState: PositionsState = {
 export type PositionsStore = PositionsState & PositionsActions
 
 export const usePositions = create<PositionsStore>()(
-  // devtools(
-  (set) => ({
-    ...initialState,
+  devtools(
+    (set) => ({
+      ...initialState,
 
-    fetchUserPositions: async () => {
-      const addr = useAuth.getState().address
-      const positions = await getPositionsWithBalance(addr)
+      fetchUserPositions: async () => {
+        const addr = useAuth.getState().address
+        const positions = await getPositionsWithBalance(addr)
 
-      const totalDepositsUSD = getTotalSum(positions, "collateral")
-      const totalDebtUSD = getTotalSum(positions, "debt")
+        const totalDepositsUSD = getTotalSum(positions, "collateral")
+        const totalDebtUSD = getTotalSum(positions, "debt")
 
-      const totalAccrued = positions.reduce((acc, p) => {
-        const accrueCollateral = getAccrual(
-          p.collateral.usdValue,
-          p.collateral.baseAPR,
-          "collateral"
-        )
-        const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
-        return accrueCollateral + accrueDebt + acc
-      }, 0)
-      // `totalAPY` is scaled up by 100 to express in percentage %.
-      const totalAPY = totalDepositsUSD
-        ? (totalAccrued * 100) / totalDepositsUSD
-        : 0
+        const totalAccrued = positions.reduce((acc, p) => {
+          const accrueCollateral = getAccrual(
+            p.collateral.usdValue,
+            p.collateral.baseAPR,
+            "collateral"
+          )
+          const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
+          return accrueCollateral + accrueDebt + acc
+        }, 0)
+        // `totalAPY` is scaled up by 100 to express in percentage %.
+        const totalAPY = totalDepositsUSD
+          ? (totalAccrued * 100) / totalDepositsUSD
+          : 0
 
-      const availableBorrowPowerUSD =
-        getCurrentAvailableBorrowingPower(positions)
+        const availableBorrowPowerUSD =
+          getCurrentAvailableBorrowingPower(positions)
 
-      set({
-        positions,
-        totalDepositsUSD,
-        totalDebtUSD,
-        totalAPY: parseFloat(totalAPY.toFixed(2)),
-        availableBorrowPowerUSD,
-      })
-    },
+        set({
+          positions,
+          totalDepositsUSD,
+          totalDebtUSD,
+          totalAPY: parseFloat(totalAPY.toFixed(2)),
+          availableBorrowPowerUSD,
+        })
+      },
 
-    // getPositionsAtRisk: async () => {
-    //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
-    // },
-  })
-  // {
-  //   enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
-  //   name: "fuji-v2/positions",
-  // }
-  // )
+      // getPositionsAtRisk: async () => {
+      //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
+      // },
+    }),
+    {
+      enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
+      name: "fuji-v2/positions",
+    }
+  )
 )
 
 function bigToFloat(
