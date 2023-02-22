@@ -15,33 +15,48 @@ defender:
   secret: "${env:TEAM_API_SECRET}"
 
 functions:
-  autotask-example-1:
-    name: 'Hello world from serverless'
+  autotask-polygon:
+    name: 'Bump relayer fees on Polygon'
+    # where the index file is located
     path: './dist'
-    relayer: ${self:resources.Resources.relayers.relayer-1}
+    relayer: ${self:resources.Resources.relayers.bumper-polygon}
     trigger:
-      type: "schedule"
-      frequency: 1500
+      type: webhook
     paused: false
 
 resources:
   Resources:
     policies:
       policy-1:
-        gas-price-cap: 1000
-        whitelist-receivers:
-          - "0x0f06aB75c7DD497981b75CD82F6566e3a5CAd8f2"
         eip1559-pricing: true
         private-transactions: true
 
     relayers:
-      relayer-1:
-        name: "My Relayer"
-        network: "goerli"
+      bumper-polygon:
+        name: Bumper Polygon
+        # list of networks can be found at:
+        # https://github.com/OpenZeppelin/defender-serverless/blob/main/src/types/docs/definitions-definitions-network.md
+        network: matic
         min-balance: 1000
         policy: ${self:resources.Resources.policies.policy-1}
         api-keys:
           - key1
+
+    sentinels:
+      watcher-polygon:
+        name: Watcher Polygon
+        type: BLOCK
+        network: matic
+        addresses:
+          - '0x403b1E6EFB00C440dDb60593255c1257f4156863'
+        paused: false
+        autotask-condition: ${self:functions.autotask-polygon}
+        autotask-trigger: ${self:functions.autotask-polygon}
+        confirm-level: 1
+        conditions:
+          event:
+            - expression: null
+              signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
 
 plugins:
   - defender-serverless
