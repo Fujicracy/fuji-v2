@@ -6,7 +6,7 @@ type CurrencyCardProps = {
   title: string
   amount: string
   footer: string
-  extra: string | undefined
+  extra: string | number | undefined
 }
 
 export default function CurrencyCard(props: CurrencyCardProps) {

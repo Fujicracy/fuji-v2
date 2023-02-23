@@ -62,8 +62,7 @@ export default function Borrow(props: BorrowProps) {
 
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
 
-  const ltv = useBorrow((state) => state.ltv)
-  const ltvMax = useBorrow((state) => state.ltvMax)
+  const { ltv, ltvMax } = useBorrow((state) => state.ltv)
 
   const signAndBorrow = useBorrow((state) => state.signAndBorrow)
   const isSigning = useBorrow((state) => state.isSigning)

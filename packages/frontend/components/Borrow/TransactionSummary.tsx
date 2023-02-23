@@ -27,10 +27,10 @@ import { formatValue } from "../../helpers/values"
 export default function TransactionSummary() {
   const { palette } = useTheme()
 
-  const ltv = useBorrow((state) => state.ltv)
-  const ltvMax = useBorrow((state) => state.ltvMax)
-  const liquidationPrice = useBorrow((state) => state.liquidationPrice)
-  const liquidationDiff = useBorrow((state) => state.liquidationDiff)
+  const { ltv, ltvMax } = useBorrow((state) => state.ltv)
+  const { liquidationPrice, liquidationDiff } = useBorrow(
+    (state) => state.liquidationMeta
+  )
 
   const collateral = useBorrow((state) => state.collateral)
   const debt = useBorrow((state) => state.debt)

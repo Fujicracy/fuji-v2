@@ -22,7 +22,14 @@ import { ethers, Signature } from "ethers"
 import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
-import { PositionType, fetchRoutes, RouteMeta, Mode } from "../helpers/borrow"
+import {
+  PositionType,
+  fetchRoutes,
+  RouteMeta,
+  Mode,
+  LtvMeta,
+  LiquidationMeta,
+} from "../helpers/borrow"
 
 setAutoFreeze(false)
 
@@ -42,11 +49,8 @@ type BorrowState = {
   collateral: PositionType
   debt: PositionType
 
-  ltv: number
-  liquidationDiff: number
-  liquidationPrice: number
-  ltvMax: number
-  ltvThreshold: number
+  ltv: LtvMeta
+  liquidationMeta: LiquidationMeta
 
   transactionMeta: {
     status: FetchStatus
@@ -138,11 +142,15 @@ const initialState: BorrowState = {
     usdValue: 0,
   },
 
-  ltv: 0,
-  liquidationDiff: 0,
-  liquidationPrice: 0,
-  ltvMax: DEFAULT_LTV_MAX,
-  ltvThreshold: DEFAULT_LTV_TRESHOLD,
+  ltv: {
+    ltv: 0,
+    ltvMax: DEFAULT_LTV_MAX,
+    ltvThreshold: DEFAULT_LTV_TRESHOLD,
+  },
+  liquidationMeta: {
+    liquidationPrice: 0,
+    liquidationDiff: 0,
+  },
 
   transactionMeta: {
     status: "initial",
@@ -297,9 +305,9 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((s: BorrowState) => {
             s.activeVault = vault
-            s.ltvMax = ltvMax
-            s.ltvThreshold = ltvThreshold
             s.activeProvider = providers.find((p) => p.active)
+            s.ltv.ltvMax = ltvMax
+            s.ltv.ltvThreshold = ltvThreshold
           })
         )
         const route = get().availableRoutes.find(
@@ -542,7 +550,7 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.ltv = ltv
+            s.ltv.ltv = ltv
           })
         )
       },
@@ -558,13 +566,13 @@ export const useBorrow = create<BorrowStore>()(
         if (!debt || !collateralAmount) {
           return set(
             produce((s: BorrowState) => {
-              s.liquidationPrice = 0
-              s.liquidationDiff = 0
+              s.liquidationMeta.liquidationPrice = 0
+              s.liquidationMeta.liquidationDiff = 0
             })
           )
         }
 
-        const liquidationTreshold = get().ltvThreshold
+        const liquidationTreshold = get().ltv.ltvThreshold
 
         const liquidationPrice =
           debt / (collateralAmount * (liquidationTreshold / 100))
@@ -574,8 +582,8 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.liquidationPrice = liquidationPrice
-            s.liquidationDiff = liquidationDiff
+            s.liquidationMeta.liquidationPrice = liquidationPrice
+            s.liquidationMeta.liquidationDiff = liquidationDiff
           })
         )
       },

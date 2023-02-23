@@ -61,8 +61,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   const value = useBorrow((state) =>
     type === "debt" ? state.debt.input : state.collateral.input
   )
-  const ltv = useBorrow((state) => state.ltv)
-  const ltvMax = useBorrow((state) => state.ltvMax)
+  const { ltv, ltvMax } = useBorrow((state) => state.ltv)
 
   const isBorrowing = useBorrow((state) => state.isBorrowing)
 

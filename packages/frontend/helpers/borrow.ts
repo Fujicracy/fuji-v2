@@ -25,6 +25,17 @@ export type PositionType = {
   usdValue: number
 }
 
+export type LtvMeta = {
+  ltv: number
+  ltvMax: number
+  ltvThreshold: number
+}
+
+export type LiquidationMeta = {
+  liquidationPrice: number
+  liquidationDiff: number
+}
+
 export enum PositionAction {
   ADD = 0,
   REMOVE = 1,

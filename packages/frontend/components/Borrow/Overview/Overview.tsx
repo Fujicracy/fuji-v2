@@ -23,18 +23,28 @@ import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
+import { positionInformation } from "../../../helpers/positions"
 
 export default function Overview() {
   const { palette } = useTheme()
-  const ltv = useBorrow((state) => state.ltv)
-  const ltvMax = useBorrow((state) => state.ltvMax)
-  const ltvThreshold = useBorrow((state) => state.ltvThreshold)
-  const liquidationPrice = useBorrow((state) => state.liquidationPrice)
-  const liquidationDiff = useBorrow((state) => state.liquidationDiff)
-  const collateral = useBorrow((state) => state.collateral)
-  const collateralAmount = Number(collateral.input)
-  const debt = useBorrow((state) => state.debt)
-  const debtAmount = Number(debt.input)
+
+  const baseCollateral = useBorrow((state) => state.collateral)
+  const baseDebt = useBorrow((state) => state.debt)
+
+  const collateral = positionInformation(baseCollateral)
+  const debt = positionInformation(baseDebt)
+
+  // TODO: Both ltv and liquidation need to be updated like collateral and debt
+  const { ltv, ltvMax, ltvThreshold } = useBorrow((state) => state.ltv)
+  const { liquidationPrice, liquidationDiff } = useBorrow(
+    (state) => state.liquidationMeta
+  )
+
+  const collateralAmount = collateral.amount
+
+  console.log(collateralAmount)
+  const debtAmount = debt.amount
+
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
   const providers =
@@ -96,11 +106,12 @@ export default function Overview() {
               <CurrencyCard
                 title="Collateral Provided"
                 amount={`${formatValue(collateralAmount, {
-                  maximumFractionDigits: 2,
+                  maximumFractionDigits: 3,
                 })} ${collateral.token.symbol}`}
                 footer={formatValue(collateralAmount * collateral.usdValue, {
                   style: "currency",
                 })}
+                extra={collateral.estimate?.amount} // TODO: not even the right field?
               />
             </Grid>
             <Grid item xs={6}>
@@ -112,6 +123,7 @@ export default function Overview() {
                 footer={`${formatValue(debtAmount, {
                   maximumFractionDigits: 2,
                 })} ${debt.token.symbol}`}
+                extra={debt.estimate?.amount} // TODO: not even the right field?
               />
             </Grid>
 
