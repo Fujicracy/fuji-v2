@@ -106,3 +106,7 @@ export function chainIcon(name: string): string {
 export function chainIdToHex(id: ChainId): string {
   return `0x${id.toString(16)}`
 }
+
+export function isChain(id: string | number): boolean {
+  return chainsMap.has(id)
+}

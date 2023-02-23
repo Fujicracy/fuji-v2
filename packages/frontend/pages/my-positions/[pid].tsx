@@ -3,16 +3,22 @@ import { NextPage } from "next"
 
 import { useRouter } from "next/router"
 import BorrowWrapper from "../../components/Borrow/Wrapper"
+import { isChain } from "../../services/chains"
 
 const PositionPage: NextPage = () => {
   const router = useRouter()
-  const { address } = router.query
+  const { pid } = router.query
 
-  const addr = address instanceof String ? (address as string) : undefined
+  const query = typeof pid === "string" ? pid.split("-") : []
+  const vault = query[0]
+  const chain = query[1]
 
-  if (!addr || !ethers.utils.isAddress(addr)) {
-    router.push("/borrow")
+  if (!vault || !chain) {
     return <></>
+  }
+
+  if ((vault && !ethers.utils.isAddress(vault)) || (chain && !isChain(chain))) {
+    router.push("/borrow")
   }
 
   // If we want to make sure that the address corresponds to a vault, we need to
@@ -20,7 +26,7 @@ const PositionPage: NextPage = () => {
   // 2) if there's no data yet, fetch it
   // Meaning we need to show a loader and in case it fails, redirect to /borrow
 
-  return <BorrowWrapper managePosition address={addr} />
+  return <BorrowWrapper managePosition />
 }
 
 export default PositionPage
