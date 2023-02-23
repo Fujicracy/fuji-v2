@@ -41,7 +41,6 @@ resources:
         policy: ${self:resources.Resources.policies.policy-1}
         api-keys:
           - key1
-
     sentinels:
       watcher-polygon:
         name: Watcher Polygon
@@ -53,10 +52,10 @@ resources:
         autotask-condition: ${self:functions.autotask-polygon}
         autotask-trigger: ${self:functions.autotask-polygon}
         confirm-level: 1
+        notify-config:
+          channels: []
         conditions:
           event:
-            - expression: null
-              signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
-
+            - signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
 plugins:
   - defender-serverless
