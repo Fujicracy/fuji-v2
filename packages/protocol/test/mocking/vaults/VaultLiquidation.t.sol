@@ -24,6 +24,8 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
   uint256 public constant TREASURY_PK = 0xF;
   address public TREASURY = vm.addr(TREASURY_PK);
+  uint256 public constant KEEPER_PK = 0xE;
+  address public KEEPER = vm.addr(KEEPER_PK);
 
   MockFlasher public flasher;
 
@@ -34,32 +36,6 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
   uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
-    // _grantRoleChief(LIQUIDATOR_ROLE, BOB);
-
-    // mockProviderA = new MockProviderIdA();
-    // vm.label(address(mockProviderA), "ProviderA");
-    //
-    // ILendingProvider[] memory providers = new ILendingProvider[](1);
-    // providers[0] = mockProviderA;
-
-    // bvault = new BorrowingVault(
-    //   collateralAsset,
-    //   debtAsset,
-    //   address(oracle),
-    //   address(chief),
-    //   "Fuji-V2 tWETH-tDAI BorrowingVault",
-    //   "fbvtWETHtDAI",
-    //   providers
-    // );
-
-    // yvault = new YieldVault(
-    //   collateralAsset,
-    //   address(chief),
-    //   "Fuji-V2 tWETH YieldVault",
-    //   "fyvtWETH",
-    //   providers
-    // );
-
     flasher = new MockFlasher();
     // bytes memory executionCall =
     //   abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
@@ -68,23 +44,14 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     ISwapper swapper = new MockSwapper(oracle);
     liquidationManager = new LiquidationManager(address(chief), TREASURY, address(swapper));
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
-    // executionCall =
-    //   abi.encodeWithSelector(chief.grantRole.selector, LIQUIDATOR_ROLE, address(liquidationManager));
-    // _callWithTimelock(address(chief), executionCall);
 
+    //TODO decide on the approach
     bytes memory executionCall =
       abi.encodeWithSelector(liquidationManager.allowExecutor.selector, address(this), true);
     _callWithTimelock(address(liquidationManager), executionCall);
-
-    // do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, ALICE);
-    // do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, BOB);
-    // do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, CHARLIE);
-    // do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, DAVID);
-    //
-    // do_deposit(DEPOSIT_AMOUNT, yvault, ALICE);
-    // do_deposit(DEPOSIT_AMOUNT, yvault, BOB);
-    // do_deposit(DEPOSIT_AMOUNT, yvault, CHARLIE);
-    // do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
+    executionCall =
+      abi.encodeWithSelector(liquidationManager.allowExecutor.selector, address(KEEPER), true);
+    _callWithTimelock(address(liquidationManager), executionCall);
   }
 
   function mock_getPriceOf(address asset1, address asset2, uint256 price) internal {
@@ -119,27 +86,25 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     return borrowAmount < maxBorrow;
   }
 
-  function test_liquidateMax( /*uint256 borrowAmount*/ ) public {
+  function test_liquidateMax(uint256 borrowAmount) public {
     uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 minAmount = (vault.minAmount() * currentPrice) / 1e18;
 
-    uint256 borrowAmount = USD_PER_ETH_PRICE - 1;
-    // vm.assume(borrowAmount > minAmount && borrowAmount < USD_PER_ETH_PRICE);
+    vm.assume(borrowAmount > minAmount && borrowAmount < USD_PER_ETH_PRICE);
 
     uint256 maxltv = vault.maxLtv();
     uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
 
     do_depositAndBorrow(unsafeAmount, borrowAmount, vault, ALICE);
 
-    // Simulate 90% price drop
-    uint256 liquidationPrice = (currentPrice * 10) / 100;
+    // Simulate 25% price drop
+    // enough for user to be liquidated
+    // liquidation is still profitable
+    uint256 liquidationPrice = (currentPrice * 75) / 100;
     uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
 
     mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
     mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
-
-    address[] memory users = new address[](1);
-    users[0] = ALICE;
 
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
@@ -147,10 +112,16 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOf(ALICE), unsafeAmount);
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
 
-    //TODO
     //check balance of treasury
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
 
+    //liquidate ALICE
+    address[] memory users = new address[](1);
+    users[0] = ALICE;
+    vm.startPrank(address(KEEPER));
     liquidationManager.liquidate(users, vault, flasher);
+    vm.stopPrank();
 
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
@@ -158,8 +129,13 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOf(ALICE), 0);
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
-    //TODO
     //check balance of treasury
+    // debtAmount = slippage = 0 because we are using MockSwapper
+    // collectedAmount = collateralAmount - debtAmount * price
+    uint256 collectedAmount = unsafeAmount - (borrowAmount * 1e18 / liquidationPrice);
+
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 
   function test_liquidateDefault(uint256 priceDrop) public {
@@ -254,4 +230,6 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
   //should not revert if at one user is liquidatable
   function test_liquidateOnlyOneUserHealthy() public {}
+
+  function test_unauthorizedKeeper() public {}
 }
