@@ -27,7 +27,7 @@ export const navigateToVault = async (
   }
 
   if (positions?.find((p) => p.vault?.address.value === vault.address.value)) {
-    router.push(`/my-positions/${vault.address.value}}`)
+    router.push(`/my-positions/${vault.address.value}-${vault.chainId}`)
   } else {
     router.push("/borrow")
   }
