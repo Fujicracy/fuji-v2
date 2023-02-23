@@ -140,6 +140,7 @@ export default function Overview() {
                     ? `~${liquidationDiff}% below current price`
                     : `n/a`
                 }
+                value={liquidationDiff}
               />
             </Grid>
             <Grid item xs={6}>
