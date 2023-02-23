@@ -54,8 +54,26 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     return (
       <PositionBorrowTableContainer>
         <TableRow sx={{ height: "2.625rem" }}>
-          <TableCell colSpan={10} align="center">
-            <Skeleton height={40} />
+          <TableCell>
+            <Skeleton />
+          </TableCell>
+          <TableCell>
+            <Skeleton />
+          </TableCell>
+          <TableCell>
+            <Skeleton />
+          </TableCell>
+          <TableCell>
+            <Skeleton />
+          </TableCell>
+          <TableCell>
+            <Skeleton />
+          </TableCell>
+          <TableCell>
+            <Skeleton />
+          </TableCell>
+          <TableCell>
+            <Skeleton />
           </TableCell>
         </TableRow>
       </PositionBorrowTableContainer>

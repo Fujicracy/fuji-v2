@@ -16,11 +16,6 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
-import { useRouter } from "next/router"
-
-import { sdk } from "../../services/sdk"
-import { useBorrow } from "../../store/borrow.store"
-import { useAuth } from "../../store/auth.store"
 
 import { DropletIcon } from "./DropletIcon"
 import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
@@ -259,7 +254,7 @@ export default function MarketsTableRow({
             {row.children?.map((collaspsedRow, i) => (
               <Table key={i} sx={{ borderCollapse: "initial" }}>
                 <TableBody>
-                  <MarketsTableRow row={collaspsedRow} />
+                  <MarketsTableRow row={collaspsedRow} onClick={onClick} />
                 </TableBody>
               </Table>
             ))}
