@@ -175,19 +175,20 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       revert LiquidationManager__getFlashloan_flashloanFailed();
     }
 
-    debtAsset.safeApprove(address(vault), debtAmount);
-
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debtAmount);
 
-    debtAsset.approve(address(vault), debtAmount);
-    vault.liquidate(user, address(this));
-
-    //save amount to send to treasury
+    //liquidate user and receive shares
+    debtAsset.safeApprove(address(vault), debtAmount);
     uint256 collateralAmount = vault.liquidate(user, address(this));
 
-    //swap only the necessary amount to avoid paying unecessary fees
+    //sell shares for collateralAsset
+    vault.withdraw(collateralAmount, address(this), address(this));
+
+    //swap amount to payback the flashloan
     uint256 amountIn =
       swapper.getAmountIn(address(collateralAsset), address(debtAsset), debtAmount + flashloanFee);
+
+    collateralAsset.safeApprove(address(swapper), amountIn);
     swapper.swap(
       address(collateralAsset),
       address(debtAsset),
