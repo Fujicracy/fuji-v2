@@ -1,18 +1,25 @@
 import { BorrowingVault, LendingProviderDetails, Token } from "@x-fuji/sdk"
 
-type PositionTypeMeta = {
-  amount: number
+/**
+ * @remarks
+ * Type that represents detail data about an asset (collateral or debt) within a `Position` type.
+ */
+type AssetMeta = {
   token: Token
+  amount: number
   usdValue: number
   baseAPR?: number
 }
 
-// reprensent an open position on fuji
+/**
+ * @remarks
+ * Type representing an open position at a Fuji-V2 vault.
+ */
 export type Position = {
   vault?: BorrowingVault /*| LendingVault // Contain chainId */
 
-  collateral: PositionTypeMeta
-  debt: PositionTypeMeta
+  collateral: AssetMeta
+  debt: AssetMeta
 
   ltv: number
   ltvMax: number

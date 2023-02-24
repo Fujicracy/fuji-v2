@@ -23,7 +23,7 @@ import { toHistoryRoutingStep, useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
 import {
-  PositionType,
+  AssetChange,
   fetchRoutes,
   RouteMeta,
   Mode,
@@ -46,8 +46,8 @@ type BorrowState = {
   activeVault: BorrowingVault | undefined
   activeProvider: LendingProviderDetails | undefined
 
-  collateral: PositionType
-  debt: PositionType
+  collateral: AssetChange
+  debt: AssetChange
 
   ltv: LtvMeta
   liquidationMeta: LiquidationMeta
@@ -118,7 +118,7 @@ const initialState: BorrowState = {
   activeProvider: undefined,
 
   collateral: {
-    allTokens: initialCollateralTokens,
+    selectableTokens: initialCollateralTokens,
     balances: {},
     input: "",
     chainId: initialChainId,
@@ -132,7 +132,7 @@ const initialState: BorrowState = {
   },
 
   debt: {
-    allTokens: initialDebtTokens,
+    selectableTokens: initialDebtTokens,
     balances: {},
     allowance: { status: "initial", value: 0 },
     input: "",
@@ -187,11 +187,11 @@ export const useBorrow = create<BorrowStore>()(
             state.activeVault = vault // Need to test this
 
             state.collateral.chainId = chainIdToHex(collateral.chainId)
-            state.collateral.allTokens = collaterals
+            state.collateral.selectableTokens = collaterals
             state.collateral.token = collateral
 
             state.debt.chainId = chainIdToHex(debt.chainId)
-            state.debt.allTokens = debts
+            state.debt.selectableTokens = debts
             state.debt.token = debt
           })
         )
@@ -222,7 +222,7 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             state.collateral.chainId = chainId
-            state.collateral.allTokens = tokens
+            state.collateral.selectableTokens = tokens
             state.collateral.token = tokens[0]
           })
         )
@@ -260,7 +260,7 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             state.debt.chainId = chainId
-            state.debt.allTokens = tokens
+            state.debt.selectableTokens = tokens
             state.debt.token = tokens[0]
           })
         )
@@ -339,7 +339,9 @@ export const useBorrow = create<BorrowStore>()(
         }
 
         const tokens =
-          type === "debt" ? get().debt.allTokens : get().collateral.allTokens
+          type === "debt"
+            ? get().debt.selectableTokens
+            : get().collateral.selectableTokens
         const token =
           type === "debt" ? get().debt.token : get().collateral.token
         const chainId = token.chainId

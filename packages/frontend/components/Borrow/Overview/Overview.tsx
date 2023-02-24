@@ -23,7 +23,7 @@ import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
-import { positionInformation } from "../../../helpers/positions"
+import { viewFuturePosition } from "../../../helpers/positions"
 
 export default function Overview() {
   const { palette } = useTheme()
@@ -31,8 +31,11 @@ export default function Overview() {
   const baseCollateral = useBorrow((state) => state.collateral)
   const baseDebt = useBorrow((state) => state.debt)
 
-  const collateral = positionInformation(baseCollateral)
-  const debt = positionInformation(baseDebt)
+  const collateral = baseCollateral //  TODO replace see: 'viewFuturePosition`
+  const debt = baseDebt // TODO replace see: see 'viewFuturePosition`
+
+  // NOTE: `viewFuturePosition` will essentially return all the info
+  // needed for the overview. But need to pass arguments differently
 
   // TODO: Both ltv and liquidation need to be updated like collateral and debt
   const { ltv, ltvMax, ltvThreshold } = useBorrow((state) => state.ltv)

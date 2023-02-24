@@ -43,7 +43,9 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   )
 
   const tokens = useBorrow((state) =>
-    type === "debt" ? state.debt.allTokens : state.collateral.allTokens
+    type === "debt"
+      ? state.debt.selectableTokens
+      : state.collateral.selectableTokens
   )
   const debtOrCollateral = useBorrow((state) =>
     type === "debt" ? state.debt : state.collateral

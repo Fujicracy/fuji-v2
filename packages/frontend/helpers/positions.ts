@@ -1,6 +1,8 @@
 import { Token } from "@x-fuji/sdk"
+import { useDebugValue } from "react"
+import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 import { Position } from "../store/models/Position"
-import { PositionType } from "./borrow"
+import { AssetChange, Mode } from "./borrow"
 import { formatNumber } from "./values"
 
 export type PositionRow = {
@@ -78,18 +80,75 @@ function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
   In that case, it needs to also calculate all estimates for that position +
   the user inputted data.
 */
-export function positionInformation(collateral: PositionType): {
-  amount: number
-  token: Token
-  usdValue: number
-  estimate?: {
-    amount: number
-    usdValue: number
+
+/**
+ * @returns The future position according to intended changes in `collateral` or `debt`.
+ *
+ * @param collateral input changes as `AssetChange`
+ * @param debt input changes as `AssetChange`
+ * @param position
+ * @param mode
+ */
+export function viewFuturePosition(
+  collateral: AssetChange,
+  debt: AssetChange,
+  current: Position,
+  mode: Mode
+): Position {
+  const future = current
+
+  const collateralPrice =
+    current.collateral.usdValue / current.collateral.amount
+  const debtPrice = current.debt.usdValue / current.debt.amount
+
+  switch (mode) {
+    case Mode.DEPOSIT:
+      future.collateral.amount =
+        current.collateral.amount + Number(collateral.input)
+
+      future.collateral.usdValue = future.collateral.amount * collateralPrice
+
+    case Mode.BORROW:
+      future.debt.amount = current.debt.amount + Number(debt.input)
+
+      future.debt.usdValue = future.debt.amount * debtPrice
+
+    case Mode.WITHDRAW:
+      future.collateral.amount =
+        current.collateral.amount - Number(collateral.input)
+
+      future.collateral.usdValue = future.collateral.amount * collateralPrice
+
+    case Mode.REPAY:
+      future.debt.amount = current.debt.amount - Number(debt.input)
+
+      future.debt.usdValue = future.debt.amount * debtPrice
+
+    case Mode.DEPOSIT_AND_BORROW:
+      future.collateral.amount =
+        current.collateral.amount + Number(collateral.input)
+
+      future.debt.amount = current.debt.amount + Number(debt.input)
+
+      future.collateral.usdValue = future.collateral.amount * collateralPrice
+
+      future.debt.usdValue = future.debt.amount * debtPrice
+
+    case Mode.PAYBACK_AND_WITHDRAW:
+      future.collateral.amount =
+        current.collateral.amount - Number(collateral.input)
+
+      future.debt.amount = current.debt.amount - Number(debt.input)
+
+      future.collateral.usdValue = future.collateral.amount * collateralPrice
+
+      future.debt.usdValue = future.debt.amount * debtPrice
   }
-} {
-  return {
-    amount: Number(collateral.input),
-    token: collateral.token,
-    usdValue: collateral.usdValue,
-  }
+  future.ltv = future.debt.usdValue / future.collateral.usdValue
+
+  future.liquidationPrice =
+    future.debt.usdValue / (future.ltvThreshold * future.collateral.amount)
+
+  future.liquidationDiff = collateralPrice - future.liquidationPrice
+  return future
 }
