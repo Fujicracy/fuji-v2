@@ -18,7 +18,7 @@ functions:
   autotask-polygon:
     name: 'Bump relayer fees on Polygon'
     # where the index file is located
-    path: './dist'
+    path: './dist/polygon'
     relayer: ${self:resources.Resources.relayers.bumper-polygon}
     trigger:
       type: webhook
