@@ -10,7 +10,7 @@ const nextConfig = {
     ]
   },
   reactStrictMode: true,
-  swcMinify: false,
+  swcMinify: true,
   rewrites: () => [
     {
       source: "/proxy/defillama/:path",

@@ -3,6 +3,9 @@
   "description": "X-Fuji web application",
   "version": "0.1.0",
   "license": "CC-BY-NC-4.0",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "predev": "yarn workspace @x-fuji/sdk prepare",
     "prebuild": "yarn workspace @x-fuji/sdk prepare",
@@ -27,7 +30,6 @@
     "@web3-onboard/walletconnect": "^2.2.2",
     "@x-fuji/sdk": "0.1.0",
     "debounce": "^1.2.1",
-    "eslint-config-next": "^13.1.6",
     "ethers": "^5.7.0",
     "immer": "^9.0.16",
     "mixpanel-browser": "^2.45.0",
@@ -48,7 +50,7 @@
     "@typescript-eslint/parser": "^5.40.0",
     "env-cmd": "^10.1.0",
     "eslint": "8.22.0",
-    "eslint-config-next": "12.2.5",
+    "eslint-config-next": "^13.2.1",
     "eslint-config-prettier": "^8.5.0",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
