@@ -1,0 +1,9 @@
+# package directories
+node_modules
+jspm_packages
+dist
+
+# Other
+.env
+*.log
+.DS_Store

@@ -1,0 +1,23 @@
+{
+  "name": "@x-fuji/connext-api",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Fujidao Labs OÜ",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">14.16"
+  },
+  "dependencies": {
+    "@connext/sdk": "^0.2.7-alpha.3",
+    "@google-cloud/functions-framework": "^3.1.0",
+    "ethers": "^6.0.8"
+  },
+  "devDependencies": {
+    "gaxios": "^5.0.1",
+    "mocha": "^10.0.0",
+    "promise-retry": "^2.0.0",
+    "supertest": "^6.0.0",
+    "wait-port": "^1.0.4"
+  }
+}
