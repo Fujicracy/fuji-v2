@@ -5,8 +5,9 @@ import mixpanel from "mixpanel-browser"
 import { ThemeProvider } from "@mui/material"
 
 import { theme } from "../styles/theme"
-import { useAuth } from "../store/auth.store"
+import { onboard, useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
+import { Web3OnboardProvider } from "@web3-onboard/react"
 
 import { Inter } from "@next/font/google"
 const inter = Inter({ subsets: ["latin"] })
@@ -28,11 +29,14 @@ function MyApp({ Component, pageProps }: AppProps) {
           font-family: ${inter.style.fontFamily};
         }
       `}</style>
-      <ThemeProvider theme={theme}>
-        <div className="backdrop"></div>
-        <Component {...pageProps} />
-        <Snackbar />
-      </ThemeProvider>
+
+      <Web3OnboardProvider web3Onboard={onboard}>
+        <ThemeProvider theme={theme}>
+          <div className="backdrop"></div>
+          <Component {...pageProps} />
+          <Snackbar />
+        </ThemeProvider>
+      </Web3OnboardProvider>
     </>
   )
 }
