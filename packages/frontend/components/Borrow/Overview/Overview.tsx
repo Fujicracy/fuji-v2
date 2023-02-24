@@ -24,34 +24,25 @@ import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 import { Position } from "../../../store/models/Position"
+import { BasePosition } from "../../../helpers/positions"
 
 type OverviewProps = {
-  position?: Position
+  position: BasePosition
   futurePosition?: Position
 }
 
 export default function Overview({ position, futurePosition }: OverviewProps) {
   const { palette } = useTheme()
-
-  const baseCollateral = useBorrow((state) => state.collateral)
-  const baseDebt = useBorrow((state) => state.debt)
-
-  const collateral = baseCollateral //  TODO replace see: 'viewFuturePosition`
-  const debt = baseDebt // TODO replace see: see 'viewFuturePosition`
+  const { collateral, debt, ltv, ltvMax, ltvThreshold } = position
 
   // NOTE: `viewFuturePosition` will essentially return all the info
   // needed for the overview. But need to pass arguments differently
 
   // TODO: Both ltv and liquidation need to be updated like collateral and debt
-  const { ltv, ltvMax, ltvThreshold } = useBorrow((state) => state.ltv)
+  // const { ltv, ltvMax, ltvThreshold } = useBorrow((state) => state.ltv)
   const { liquidationPrice, liquidationDiff } = useBorrow(
     (state) => state.liquidationMeta
   )
-
-  const collateralAmount = position
-    ? collateral.amount
-    : Number(collateral.input)
-  const debtAmount = position ? debt.amount : Number(debt.input)
 
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
@@ -113,10 +104,10 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
             <Grid item xs={6}>
               <CurrencyCard
                 title="Collateral Provided"
-                amount={`${formatValue(collateralAmount, {
+                amount={`${formatValue(collateral.amount, {
                   maximumFractionDigits: 3,
                 })} ${collateral.token.symbol}`}
-                footer={formatValue(collateralAmount * collateral.usdValue, {
+                footer={formatValue(collateral.amount * collateral.usdValue, {
                   style: "currency",
                 })}
                 // extra={collateral.estimate?.amount} // TODO: not even the right field?
@@ -125,10 +116,10 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
             <Grid item xs={6}>
               <CurrencyCard
                 title="Borrowed Value"
-                amount={formatValue(debtAmount * debt.usdValue, {
+                amount={formatValue(debt.amount * debt.usdValue, {
                   style: "currency",
                 })}
-                footer={`${formatValue(debtAmount, {
+                footer={`${formatValue(debt.usdValue, {
                   maximumFractionDigits: 2,
                 })} ${debt.token.symbol}`}
                 // extra={debt.estimate?.amount} // TODO: debt.estimate?.amount

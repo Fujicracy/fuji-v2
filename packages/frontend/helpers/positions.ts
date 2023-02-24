@@ -1,8 +1,8 @@
 import { Token } from "@x-fuji/sdk"
 import { useDebugValue } from "react"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
-import { Position } from "../store/models/Position"
-import { AssetChange, Mode } from "./borrow"
+import { AssetMeta, Position } from "../store/models/Position"
+import { AssetChange, LtvMeta, Mode } from "./borrow"
 import { formatNumber } from "./values"
 
 export type PositionRow = {
@@ -151,4 +151,39 @@ export function viewFuturePosition(
 
   future.liquidationDiff = collateralPrice - future.liquidationPrice
   return future
+}
+
+export function viewDynamicPosition(
+  dynamic: boolean,
+  baseCollateral: AssetChange,
+  baseDebt: AssetChange,
+  baseLtv: LtvMeta,
+  position: Position | undefined = undefined
+): Position {
+  return {
+    collateral: dynamicPositionMeta(
+      dynamic,
+      baseCollateral,
+      position?.collateral
+    ),
+    debt: dynamicPositionMeta(dynamic, baseDebt, position?.debt),
+    ltv: position ? position.ltv : baseLtv.ltv,
+    ltvMax: position ? position.ltvMax : baseLtv.ltvMax,
+    ltvThreshold: position ? position.ltvThreshold : baseLtv.ltvThreshold,
+    liquidationDiff: 0,
+    liquidationPrice: 0,
+  }
+}
+
+export function dynamicPositionMeta(
+  dynamic: boolean, // If tue, it means we need to show data the user is inputting
+  source: AssetChange,
+  positionMeta: AssetMeta | undefined = undefined
+): AssetMeta {
+  if (positionMeta) return positionMeta
+  return {
+    amount: dynamic ? Number(source.input) : source.amount,
+    usdValue: source.usdValue, // TODO: This can't just be a copy, it needs to be calculated per the above
+    token: source.token,
+  }
 }

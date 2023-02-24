@@ -4,7 +4,7 @@ import { BorrowingVault, LendingProviderDetails, Token } from "@x-fuji/sdk"
  * @remarks
  * Type that represents detail data about an asset (collateral or debt) within a `Position` type.
  */
-type AssetMeta = {
+export type AssetMeta = {
   token: Token
   amount: number
   usdValue: number

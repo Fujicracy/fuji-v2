@@ -18,7 +18,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../store/auth.store"
 import { usePositions } from "../../store/positions.store"
 import { Position } from "../../store/models/Position"
-import { viewFuturePosition } from "../../helpers/positions"
+import { viewDynamicPosition } from "../../helpers/positions"
 
 type BorrowWrapperProps = {
   managePosition: boolean
@@ -38,28 +38,46 @@ export default function BorrowWrapper(
   const positions = usePositions((state) => state.positions)
   const baseCollateral = useBorrow((state) => state.collateral)
   const baseDebt = useBorrow((state) => state.debt)
+  const baseLtv = useBorrow((state) => state.ltv)
   const mode = useBorrow((state) => state.mode)
 
-  const [position, setPosition] = useState<Position | undefined>(undefined)
+  const [position, setPosition] = useState<Position>(
+    viewDynamicPosition(!managePosition, baseCollateral, baseDebt, baseLtv)
+  )
   const [futurePosition, setFuturePosition] = useState<Position | undefined>(
     undefined
   )
 
   useEffect(() => {
+    let matchPosition: Position | undefined
     if (address && positions.length > 0 && query) {
-      const position = positions.find(
+      matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       )
 
-      const futurePosition = position
-        ? viewFuturePosition(baseCollateral, baseDebt, position, mode)
-        : undefined
-      setPosition(position)
-      setFuturePosition(futurePosition)
+      // setFuturePosition(futurePosition)
+      window.alert(matchPosition?.debt.usdValue)
     }
-  }, [baseCollateral, baseDebt, address, positions, mode, query])
+    const basePosition = viewDynamicPosition(
+      !managePosition,
+      baseCollateral,
+      baseDebt,
+      baseLtv,
+      matchPosition
+    )
+    setPosition(basePosition)
+  }, [
+    baseCollateral,
+    baseDebt,
+    baseLtv,
+    address,
+    positions,
+    mode,
+    query,
+    managePosition,
+  ])
 
   return (
     <>
@@ -99,7 +117,11 @@ export default function BorrowWrapper(
             <Borrow managePosition={managePosition} />
           </Grid>
           <Grid item sm={12} md={7}>
-            {isMobile ? <TransactionSummary /> : <Overview />}
+            {isMobile ? (
+              <TransactionSummary />
+            ) : (
+              <Overview position={position} />
+            )}
           </Grid>
         </Grid>
       </Container>
