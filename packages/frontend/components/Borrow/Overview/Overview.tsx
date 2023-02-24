@@ -106,7 +106,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
                 amount={`${formatValue(collateral.amount, {
                   maximumFractionDigits: 3,
                 })} ${collateral.token.symbol}`}
-                footer={formatValue(collateral.amount * collateral.usdValue, {
+                footer={formatValue(collateral.amount * collateral.usdPrice, {
                   style: "currency",
                 })}
                 // extra={collateral.estimate?.amount} // TODO: not even the right field?
@@ -115,10 +115,10 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
             <Grid item xs={6}>
               <CurrencyCard
                 title="Borrowed Value"
-                amount={formatValue(debt.amount * debt.usdValue, {
+                amount={formatValue(debt.amount * debt.usdPrice, {
                   style: "currency",
                 })}
-                footer={`${formatValue(debt.usdValue, {
+                footer={`${formatValue(debt.usdPrice, {
                   maximumFractionDigits: 2,
                 })} ${debt.token.symbol}`}
                 // extra={debt.estimate?.amount} // TODO: debt.estimate?.amount
@@ -144,7 +144,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
             <Grid item xs={6}>
               <CurrencyCard
                 title="Current Price"
-                amount={formatValue(collateral.usdValue, { style: "currency" })}
+                amount={formatValue(collateral.usdPrice, { style: "currency" })}
                 footer={collateral.token.symbol}
               />
             </Grid>

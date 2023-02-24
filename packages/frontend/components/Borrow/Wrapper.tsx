@@ -58,7 +58,7 @@ export default function BorrowWrapper(
       )
 
       // setFuturePosition(futurePosition)
-      window.alert(matchPosition?.debt.usdValue)
+      // window.alert(matchPosition?.debt.usdPrice)
     }
     const basePosition = viewDynamicPosition(
       !managePosition,
