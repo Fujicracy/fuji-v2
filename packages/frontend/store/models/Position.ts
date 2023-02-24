@@ -7,7 +7,7 @@ import { BorrowingVault, LendingProviderDetails, Token } from "@x-fuji/sdk"
 export type AssetMeta = {
   token: Token
   amount: number
-  usdValue: number
+  usdPrice: number
   baseAPR?: number
 }
 

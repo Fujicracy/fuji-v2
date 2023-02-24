@@ -128,7 +128,7 @@ const initialState: BorrowState = {
     },
     token: initialCollateralTokens[0],
     amount: 0,
-    usdValue: 0,
+    usdPrice: 0,
   },
 
   debt: {
@@ -139,7 +139,7 @@ const initialState: BorrowState = {
     chainId: initialChainId,
     token: initialDebtTokens[0],
     amount: 0,
-    usdValue: 0,
+    usdPrice: 0,
   },
 
   ltv: {
@@ -383,9 +383,9 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             if (type === "debt") {
-              state.debt.usdValue = tokenValue
+              state.debt.usdPrice = tokenValue
             } else {
-              state.collateral.usdValue = tokenValue
+              state.collateral.usdPrice = tokenValue
             }
           })
         )
@@ -539,16 +539,18 @@ export const useBorrow = create<BorrowStore>()(
       ),
 
       updateLtv() {
-        const collateralValue = parseFloat(get().collateral.input)
-        const collateralUsdValue = get().collateral.usdValue
-        const collateral = collateralValue * collateralUsdValue
+        const collateralAmount = parseFloat(get().collateral.input)
+        const collateralPrice = get().collateral.usdPrice
+        const collateralValue = collateralAmount * collateralPrice
 
-        const debtValue = parseFloat(get().debt.input)
-        const debtUsdValue = get().debt.usdValue
-        const debt = debtValue * debtUsdValue
+        const debtAmount = parseFloat(get().debt.input)
+        const debtPrice = get().debt.usdPrice
+        const debtValue = debtAmount * debtPrice
 
         const ltv =
-          collateral && debt ? Math.round((debt / collateral) * 100) : 0
+          collateralValue && debtValue
+            ? Math.round((debtValue / collateralValue) * 100)
+            : 0
 
         set(
           produce((s: BorrowState) => {
@@ -559,13 +561,13 @@ export const useBorrow = create<BorrowStore>()(
 
       updateLiquidation() {
         const collateralAmount = parseFloat(get().collateral.input)
-        const collateralUsdValue = get().collateral.usdValue
+        const collateralPrice = get().collateral.usdPrice
 
-        const debtValue = parseFloat(get().debt.input)
-        const debtUsdValue = get().debt.usdValue
-        const debt = debtValue * debtUsdValue
+        const debtAmount = parseFloat(get().debt.input)
+        const debtPrice = get().debt.usdPrice
+        const debtValue = debtAmount * debtPrice
 
-        if (!debt || !collateralAmount) {
+        if (!debtValue || !collateralAmount) {
           return set(
             produce((s: BorrowState) => {
               s.liquidationMeta.liquidationPrice = 0
@@ -577,9 +579,9 @@ export const useBorrow = create<BorrowStore>()(
         const liquidationTreshold = get().ltv.ltvThreshold
 
         const liquidationPrice =
-          debt / (collateralAmount * (liquidationTreshold / 100))
+          debtValue / (collateralAmount * (liquidationTreshold / 100))
         const liquidationDiff = Math.round(
-          (1 - liquidationPrice / collateralUsdValue) * 100
+          (1 - liquidationPrice / collateralPrice) * 100
         )
 
         set(

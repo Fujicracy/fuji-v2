@@ -55,7 +55,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   //   type === "debt" ? state.debtInput : state.collateralInput
   // )
   // const amount = parseFloat(input)
-  const tokenValue = debtOrCollateral.usdValue
+  const tokenValue = debtOrCollateral.usdPrice
   const balances = useBorrow((state) =>
     type === "debt" ? state.debt.balances : state.collateral.balances
   )

@@ -26,30 +26,17 @@ export function getRows(positions: Position[]): PositionRow[] {
       borrow: {
         sym: pos.vault?.debt.symbol || "",
         amount: pos.debt.amount,
-        usdValue: pos.debt.usdValue,
+        usdValue: pos.debt.amount * pos.debt.usdPrice,
       },
       collateral: {
         sym: pos.vault?.collateral.symbol || "",
         amount: pos.collateral.amount,
-        usdValue: pos.collateral.usdValue,
+        usdValue: pos.collateral.amount * pos.collateral.usdPrice,
       },
       apr: formatNumber(pos.debt.baseAPR, 2),
       liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
-      oraclePrice: formatNumber(
-        pos.collateral.usdValue / pos.collateral.amount,
-        0
-      ),
-      get percentPriceDiff() {
-        if (this.liquidationPrice === "-" || this.oraclePrice === "-") {
-          return 0
-        } else {
-          return formatNumber(
-            ((this.oraclePrice - this.liquidationPrice) * 100) /
-              this.oraclePrice,
-            0
-          )
-        }
-      },
+      oraclePrice: pos.collateral.usdPrice,
+      percentPriceDiff: pos.liquidationDiff,
     }))
     return rows
   }
@@ -97,32 +84,20 @@ export function viewFuturePosition(
 ): Position {
   const future = current
 
-  const collateralPrice =
-    current.collateral.usdValue / current.collateral.amount
-  const debtPrice = current.debt.usdValue / current.debt.amount
-
   switch (mode) {
     case Mode.DEPOSIT:
       future.collateral.amount =
         current.collateral.amount + Number(collateral.input)
 
-      future.collateral.usdValue = future.collateral.amount * collateralPrice
-
     case Mode.BORROW:
       future.debt.amount = current.debt.amount + Number(debt.input)
-
-      future.debt.usdValue = future.debt.amount * debtPrice
 
     case Mode.WITHDRAW:
       future.collateral.amount =
         current.collateral.amount - Number(collateral.input)
 
-      future.collateral.usdValue = future.collateral.amount * collateralPrice
-
     case Mode.REPAY:
       future.debt.amount = current.debt.amount - Number(debt.input)
-
-      future.debt.usdValue = future.debt.amount * debtPrice
 
     case Mode.DEPOSIT_AND_BORROW:
       future.collateral.amount =
@@ -130,26 +105,23 @@ export function viewFuturePosition(
 
       future.debt.amount = current.debt.amount + Number(debt.input)
 
-      future.collateral.usdValue = future.collateral.amount * collateralPrice
-
-      future.debt.usdValue = future.debt.amount * debtPrice
-
     case Mode.PAYBACK_AND_WITHDRAW:
       future.collateral.amount =
         current.collateral.amount - Number(collateral.input)
 
       future.debt.amount = current.debt.amount - Number(debt.input)
-
-      future.collateral.usdValue = future.collateral.amount * collateralPrice
-
-      future.debt.usdValue = future.debt.amount * debtPrice
   }
-  future.ltv = future.debt.usdValue / future.collateral.usdValue
+
+  const debtUsdValue = future.debt.amount * future.debt.usdPrice
+  const collatUsdValue = future.collateral.amount * future.collateral.usdPrice
+
+  future.ltv = debtUsdValue / collatUsdValue
 
   future.liquidationPrice =
-    future.debt.usdValue / (future.ltvThreshold * future.collateral.amount)
+    debtUsdValue / (future.ltvThreshold * future.collateral.amount)
 
-  future.liquidationDiff = collateralPrice - future.liquidationPrice
+  future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice
+
   return future
 }
 
@@ -183,7 +155,7 @@ export function dynamicPositionMeta(
   if (positionMeta) return positionMeta
   return {
     amount: dynamic ? Number(source.input) : source.amount,
-    usdValue: source.usdValue, // TODO: This can't just be a copy, it needs to be calculated per the above
+    usdPrice: source.usdPrice, // TODO: This can't just be a copy, it needs to be calculated per the above
     token: source.token,
   }
 }

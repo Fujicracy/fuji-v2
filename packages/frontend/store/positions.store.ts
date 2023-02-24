@@ -45,11 +45,15 @@ export const usePositions = create<PositionsStore>()(
 
         const totalAccrued = positions.reduce((acc, p) => {
           const accrueCollateral = getAccrual(
-            p.collateral.usdValue,
+            p.collateral.amount * p.collateral.usdPrice,
             p.collateral.baseAPR,
             "collateral"
           )
-          const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
+          const accrueDebt = getAccrual(
+            p.debt.amount * p.debt.usdPrice,
+            p.debt.baseAPR,
+            "debt"
+          )
           return accrueCollateral + accrueDebt + acc
         }, 0)
         // `totalAPY` is scaled up by 100 to express in percentage %.
@@ -93,7 +97,7 @@ function getTotalSum(
   positions: Position[],
   param: "collateral" | "debt"
 ): number {
-  return positions.reduce((s, p) => p[param].usdValue + s, 0)
+  return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0)
 }
 
 async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
@@ -111,12 +115,7 @@ async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
     p.collateral = {
       amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
       token: v.vault.collateral,
-      get usdValue() {
-        return (
-          this.amount *
-          bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals)
-        )
-      },
+      usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
       get baseAPR() {
         return v.activeProvider.depositAprBase
       },
@@ -124,24 +123,25 @@ async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
     p.debt = {
       amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
       token: v.vault.debt,
-      get usdValue() {
-        return this.amount * bigToFloat(v.debtPriceUSD, v.vault.debt.decimals)
-      },
+      usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
       get baseAPR() {
         return v.activeProvider.borrowAprBase
       },
     }
-    p.ltv = p.debt.usdValue / p.collateral.usdValue
+    p.ltv =
+      (p.debt.amount * p.debt.usdPrice) /
+      (p.collateral.amount * p.collateral.usdPrice)
     p.ltvMax = bigToFloat(v.vault.maxLtv, 18)
     p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18)
     p.liquidationPrice =
-      p.debt.usdValue === 0
+      p.debt.usdPrice === 0
         ? 0
-        : p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
+        : (p.debt.amount * p.debt.usdPrice) /
+          (p.ltvThreshold * p.collateral.amount)
     p.liquidationDiff =
       p.liquidationPrice === 0
         ? 0
-        : bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) - p.liquidationPrice
+        : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100)
     return p
   })
 
@@ -149,7 +149,7 @@ async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
 }
 
 export function getAccrual(
-  balance: number,
+  usdBalance: number,
   baseAPR: number | undefined,
   param: "collateral" | "debt"
 ): number {
@@ -158,11 +158,13 @@ export function getAccrual(
   const aprDecimal = baseAPR ? baseAPR / 100 : 0
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
   const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1
-  return factor * balance * apyDecimal
+  return factor * usdBalance * apyDecimal
 }
 
 function getCurrentAvailableBorrowingPower(positions: Position[]): number {
   return positions.reduce((b, pos) => {
-    return pos.collateral.usdValue * pos.ltvMax - pos.debt.usdValue + b
+    const collateralUsdValue = pos.collateral.amount * pos.collateral.usdPrice
+    const debtUsdValue = pos.debt.amount * pos.debt.usdPrice
+    return collateralUsdValue * pos.ltvMax - debtUsdValue + b
   }, 0)
 }

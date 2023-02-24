@@ -22,7 +22,7 @@ export type AssetChange = {
   chainId: string
   token: Token
   amount: number
-  usdValue: number
+  usdPrice: number
 }
 
 export type LtvMeta = {
