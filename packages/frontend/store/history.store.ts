@@ -24,14 +24,11 @@ type HistoryState = {
   inModal?: string // The tx hash displayed in modal
 }
 
-/**
- * ⚠️ DO NOT STORE CLASSE INSTANCE because they are persisted in localstorage
- * and all methods will be lost. Also POO can be heavy to stringify because
- * of inheriting other classes
- */
+export type HistoryEntryType = "borrow" | "withdraw" | "repay" | "deposit"
+
 export type HistoryEntry = {
   hash: string
-  type: "borrow" // || withdraw || flashclose...
+  type: HistoryEntryType
   steps: HistoryRoutingStep[]
   status: "ongoing" | "error" | "done"
 }

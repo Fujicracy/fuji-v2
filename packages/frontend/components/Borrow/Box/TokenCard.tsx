@@ -65,7 +65,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   )
   const { ltv, ltvMax } = useBorrow((state) => state.ltv)
 
-  const isBorrowing = useBorrow((state) => state.isBorrowing)
+  const isExecuting = useBorrow((state) => state.isExecuting)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -111,7 +111,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
           type="number"
           placeholder="0"
           value={value}
-          disabled={isBorrowing}
+          disabled={isExecuting}
           onChange={(e) => handleInput(e.target.value)}
           variant="standard"
           InputProps={{
@@ -120,7 +120,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
         />
         <ButtonBase
           id={`select-${type}-button`}
-          disabled={isBorrowing || disabled}
+          disabled={isExecuting || disabled}
           onClick={open}
         >
           {token && disabled ? (

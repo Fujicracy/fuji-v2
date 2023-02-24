@@ -10,6 +10,7 @@ import {
 import { sdk } from "../services/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
+import { HistoryEntryType } from "../store/history.store"
 
 export type AssetChange = {
   selectableTokens: Token[]
@@ -67,6 +68,19 @@ export function modeForContext(
     return PositionAction.ADD === action ? Mode.BORROW : Mode.REPAY
   }
   return Mode.DEPOSIT_AND_BORROW
+}
+
+export function entryTypeForMode(mode: Mode): HistoryEntryType {
+  switch (mode) {
+    case Mode.DEPOSIT:
+      return "deposit"
+    case Mode.PAYBACK_AND_WITHDRAW || Mode.WITHDRAW:
+      return "withdraw"
+    case Mode.REPAY:
+      return "repay"
+    default:
+      return "borrow"
+  }
 }
 
 export type RouteMeta = {

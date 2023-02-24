@@ -29,6 +29,7 @@ import {
   Mode,
   LtvMeta,
   LiquidationMeta,
+  entryTypeForMode,
 } from "../helpers/borrow"
 
 setAutoFreeze(false)
@@ -66,7 +67,7 @@ type BorrowState = {
   signature?: Signature
   actions?: RouterActionParams[]
 
-  isBorrowing: boolean
+  isExecuting: boolean
 }
 export type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
@@ -95,8 +96,8 @@ type BorrowActions = {
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
-  borrow: () => Promise<ethers.providers.TransactionResponse>
-  signAndBorrow: () => void
+  execute: () => Promise<ethers.providers.TransactionResponse>
+  signAndExecute: () => void
 }
 type ChainId = string // hex value as string
 
@@ -163,7 +164,7 @@ const initialState: BorrowState = {
 
   needPermit: true,
   isSigning: false,
-  isBorrowing: false,
+  isExecuting: false,
 }
 
 export const useBorrow = create<BorrowStore>()(
@@ -699,7 +700,7 @@ export const useBorrow = create<BorrowStore>()(
         set({ signature, isSigning: false })
       },
 
-      async borrow() {
+      async execute() {
         const address = useAuth.getState().address
         const provider = useAuth.getState().provider
         const { actions, signature, collateral } = get()
@@ -709,7 +710,7 @@ export const useBorrow = create<BorrowStore>()(
         const srcChainId = collateral.token.chainId
 
         try {
-          set({ isBorrowing: true })
+          set({ isExecuting: true })
 
           const txRequest = sdk.getTxDetails(
             actions,
@@ -732,17 +733,17 @@ export const useBorrow = create<BorrowStore>()(
           // TODO: user cancel tx
           throw e
         } finally {
-          set({ isBorrowing: false })
+          set({ isExecuting: false })
         }
       },
 
-      async signAndBorrow() {
+      async signAndExecute() {
         try {
           await get().signPermit()
-          const t = await get().borrow()
+          const t = await get().execute()
           useHistory.getState().add({
             hash: t.hash,
-            type: "borrow",
+            type: entryTypeForMode(get().mode),
             steps: toHistoryRoutingStep(get().transactionMeta.steps),
             status: "ongoing",
           })
