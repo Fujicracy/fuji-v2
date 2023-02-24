@@ -10,14 +10,17 @@ const PositionPage: NextPage = () => {
   const { pid } = router.query
 
   const query = typeof pid === "string" ? pid.split("-") : []
-  const vault = query[0]
+  const address = query[0]
   const chain = query[1]
 
-  if (!vault || !chain) {
+  if (!address || !chain) {
     return <></>
   }
 
-  if ((vault && !ethers.utils.isAddress(vault)) || (chain && !isChain(chain))) {
+  if (
+    (address && !ethers.utils.isAddress(address)) ||
+    (chain && !isChain(Number(chain)))
+  ) {
     router.push("/borrow")
   }
 
@@ -26,7 +29,15 @@ const PositionPage: NextPage = () => {
   // 2) if there's no data yet, fetch it
   // Meaning we need to show a loader and in case it fails, redirect to /borrow
 
-  return <BorrowWrapper managePosition />
+  return (
+    <BorrowWrapper
+      managePosition
+      query={{
+        address,
+        chain,
+      }}
+    />
+  )
 }
 
 export default PositionPage

@@ -13,6 +13,7 @@ type PositionsState = {
   totalDebtUSD?: number
   totalAPY?: number
   availableBorrowPowerUSD?: number
+  loading: boolean
   // positionsAtRisk?: Position[]
 }
 
@@ -23,6 +24,7 @@ type PositionsActions = {
 
 const initialState: PositionsState = {
   positions: [],
+  loading: false,
   // positionsAtRisk: [],
 }
 
@@ -34,6 +36,7 @@ export const usePositions = create<PositionsStore>()(
       ...initialState,
 
       fetchUserPositions: async () => {
+        set({ loading: true })
         const addr = useAuth.getState().address
         const positions = await getPositionsWithBalance(addr)
 
@@ -63,6 +66,7 @@ export const usePositions = create<PositionsStore>()(
           totalDebtUSD,
           totalAPY: parseFloat(totalAPY.toFixed(2)),
           availableBorrowPowerUSD,
+          loading: false,
         })
       },
 

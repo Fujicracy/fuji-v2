@@ -11,7 +11,6 @@ import {
 } from "@mui/material"
 
 import { usePositions } from "../../store/positions.store"
-import { useAuth } from "../../store/auth.store"
 
 import { PositionSummary } from "./PositionSummary"
 import { PositionsBorrowTable } from "./PositionBorrowTable"
@@ -24,19 +23,7 @@ function MyPositions() {
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
-  const account = useAuth((state) => state.address)
-  const fetchPositions = usePositions((state) => state.fetchUserPositions)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (account) {
-      setLoading(true)
-      ;(async () => {
-        await fetchPositions()
-        setLoading(false)
-      })()
-    }
-  }, [account, fetchPositions])
+  const loading = usePositions((state) => state.loading)
 
   return (
     <>

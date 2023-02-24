@@ -13,28 +13,62 @@ import Footer from "../../components/Shared/Footer"
 import Header from "../../components/Shared/Header"
 import Overview from "./Overview/Overview"
 import TransactionSummary from "../../components/Borrow/TransactionSummary"
+import { useBorrow } from "../../store/borrow.store"
+import { useEffect, useState } from "react"
+import { useAuth } from "../../store/auth.store"
+import { usePositions } from "../../store/positions.store"
+import { Position } from "../../store/models/Position"
+import { viewFuturePosition } from "../../helpers/positions"
 
 type BorrowWrapperProps = {
   managePosition: boolean
-  address?: string | undefined
+  query?: {
+    address: string
+    chain: string
+  }
 }
 
 export default function BorrowWrapper(
-  props: BorrowWrapperProps = { managePosition: false }
+  { managePosition, query }: BorrowWrapperProps = { managePosition: false }
 ) {
   const { breakpoints } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
+  const address = useAuth((state) => state.address)
+  const positions = usePositions((state) => state.positions)
+  const baseCollateral = useBorrow((state) => state.collateral)
+  const baseDebt = useBorrow((state) => state.debt)
+  const mode = useBorrow((state) => state.mode)
+
+  const [position, setPosition] = useState<Position | undefined>(undefined)
+  const [futurePosition, setFuturePosition] = useState<Position | undefined>(
+    undefined
+  )
+
+  useEffect(() => {
+    if (address && positions.length > 0 && query) {
+      const position = positions.find(
+        (position) =>
+          position.vault?.address.value === query.address &&
+          position.vault?.chainId.toString() === query.chain
+      )
+
+      const futurePosition = position
+        ? viewFuturePosition(baseCollateral, baseDebt, position, mode)
+        : undefined
+      setPosition(position)
+      setFuturePosition(futurePosition)
+    }
+  }, [baseCollateral, baseDebt, address, positions, mode, query])
+
   return (
     <>
       <Head>
-        <title>{`${
-          props.managePosition ? "Position" : "Borrow"
-        } - xFuji`}</title>
+        <title>{`${managePosition ? "Position" : "Borrow"} - xFuji`}</title>
         <meta
           name="description"
           content={`${
-            props.managePosition
+            managePosition
               ? "position detail"
               : "borrow at the best rate on any chain"
           }`}
@@ -62,7 +96,7 @@ export default function BorrowWrapper(
       >
         <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
           <Grid item xs={12} md={5}>
-            <Borrow managePosition={props.managePosition} />
+            <Borrow managePosition={managePosition} />
           </Grid>
           <Grid item sm={12} md={7}>
             {isMobile ? <TransactionSummary /> : <Overview />}

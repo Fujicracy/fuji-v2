@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import {
   Box,
@@ -23,9 +23,14 @@ import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
-import { viewFuturePosition } from "../../../helpers/positions"
+import { Position } from "../../../store/models/Position"
 
-export default function Overview() {
+type OverviewProps = {
+  position?: Position
+  futurePosition?: Position
+}
+
+export default function Overview({ position, futurePosition }: OverviewProps) {
   const { palette } = useTheme()
 
   const baseCollateral = useBorrow((state) => state.collateral)
@@ -43,10 +48,10 @@ export default function Overview() {
     (state) => state.liquidationMeta
   )
 
-  const collateralAmount = collateral.amount
-
-  console.log(collateralAmount)
-  const debtAmount = debt.amount
+  const collateralAmount = position
+    ? collateral.amount
+    : Number(collateral.input)
+  const debtAmount = position ? debt.amount : Number(debt.input)
 
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
@@ -114,7 +119,7 @@ export default function Overview() {
                 footer={formatValue(collateralAmount * collateral.usdValue, {
                   style: "currency",
                 })}
-                extra={collateral.estimate?.amount} // TODO: not even the right field?
+                // extra={collateral.estimate?.amount} // TODO: not even the right field?
               />
             </Grid>
             <Grid item xs={6}>
@@ -126,7 +131,7 @@ export default function Overview() {
                 footer={`${formatValue(debtAmount, {
                   maximumFractionDigits: 2,
                 })} ${debt.token.symbol}`}
-                extra={debt.estimate?.amount} // TODO: not even the right field?
+                // extra={debt.estimate?.amount} // TODO: debt.estimate?.amount
               />
             </Grid>
 
