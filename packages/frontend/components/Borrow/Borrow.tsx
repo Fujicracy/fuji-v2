@@ -64,9 +64,9 @@ export default function Borrow(props: BorrowProps) {
 
   const { ltv, ltvMax } = useBorrow((state) => state.ltv)
 
-  const signAndBorrow = useBorrow((state) => state.signAndBorrow)
+  const signAndExecute = useBorrow((state) => state.signAndExecute)
   const isSigning = useBorrow((state) => state.isSigning)
-  const isBorrowing = useBorrow((state) => state.isBorrowing)
+  const isExecuting = useBorrow((state) => state.isExecuting)
 
   const currentTxHash = useHistory((state) => state.inModal)
   const closeModal = useHistory((state) => state.closeModal)
@@ -143,7 +143,7 @@ export default function Borrow(props: BorrowProps) {
             label="Collateral from"
             type="collateral"
             chainId={collateral.chainId}
-            disableChainChange={isBorrowing}
+            disableChainChange={isExecuting}
             onChainChange={(chainId) => changeCollateralChain(chainId)}
           />
           <BorrowBox
@@ -151,7 +151,7 @@ export default function Borrow(props: BorrowProps) {
             label="Borrow to"
             type="borrow"
             chainId={debt.chainId}
-            disableChainChange={isBorrowing}
+            disableChainChange={isExecuting}
             onChainChange={(chainId) => changeBorrowChain(chainId)}
           />
 
@@ -191,7 +191,7 @@ export default function Borrow(props: BorrowProps) {
             collateralToken={collateral.token}
             metaStatus={metaStatus}
             isSigning={isSigning}
-            isExecuting={isBorrowing}
+            isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
             managePosition={props.managePosition}
@@ -203,7 +203,7 @@ export default function Borrow(props: BorrowProps) {
               // TODO: Should set all data in store and redirect to /my-positions
               if (vault) router.push(`/my-positions/${vault.address.value}`)
             }}
-            onClick={signAndBorrow}
+            onClick={signAndExecute}
           />
 
           <ConnextFooter />

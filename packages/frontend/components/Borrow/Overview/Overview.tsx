@@ -24,10 +24,9 @@ import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 import { Position } from "../../../store/models/Position"
-import { BasePosition } from "../../../helpers/positions"
 
 type OverviewProps = {
-  position: BasePosition
+  position: Position
   futurePosition?: Position
 }
 
