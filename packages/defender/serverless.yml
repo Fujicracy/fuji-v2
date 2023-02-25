@@ -8,7 +8,7 @@ provider:
   stackName: 'bumpers'
   # SSOT: use this template as a single source of truth. 
   # This will delete Defender resources (with the exception of Relayers) not found in this template upon deployment.
-  ssot: true
+  ssot: false
 
 defender:
   key: "${env:TEAM_API_KEY}"
@@ -41,21 +41,22 @@ resources:
         policy: ${self:resources.Resources.policies.policy-1}
         api-keys:
           - key1
-    sentinels:
-      watcher-polygon:
-        name: Watcher Polygon
-        type: BLOCK
-        network: matic
-        addresses:
-          - '0x403b1E6EFB00C440dDb60593255c1257f4156863'
-        paused: false
-        autotask-condition: ${self:functions.autotask-polygon}
-        autotask-trigger: ${self:functions.autotask-polygon}
-        confirm-level: 1
-        notify-config:
-          channels: []
-        conditions:
-          event:
-            - signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
+    #sentinels:
+      #watcher-polygon:
+        #name: Watcher Polygon
+        #type: BLOCK
+        #network: matic
+        #addresses:
+          #- '0x403b1E6EFB00C440dDb60593255c1257f4156863'
+        #paused: false
+        #autotask-condition: ${self:functions.autotask-polygon}
+        #autotask-trigger: ${self:functions.autotask-polygon}
+        #confirm-level: 1
+        #notify-config:
+          #channels: []
+        #conditions:
+          #event:
+            #- expression: null
+              #signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
 plugins:
   - defender-serverless
