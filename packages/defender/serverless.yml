@@ -23,6 +23,14 @@ functions:
     trigger:
       type: webhook
     paused: false
+  autotask-optimism:
+    name: 'Bump relayer fees on Optimism'
+    # where the index file is located
+    path: './dist/optimism'
+    relayer: ${self:resources.Resources.relayers.bumper-optimism}
+    trigger:
+      type: webhook
+    paused: false
 
 resources:
   Resources:
@@ -37,6 +45,15 @@ resources:
         # list of networks can be found at:
         # https://github.com/OpenZeppelin/defender-serverless/blob/main/src/types/docs/definitions-definitions-network.md
         network: matic
+        min-balance: 1000
+        policy: ${self:resources.Resources.policies.policy-1}
+        api-keys:
+          - key1
+      bumper-optimism:
+        name: Bumper Optimism
+        # list of networks can be found at:
+        # https://github.com/OpenZeppelin/defender-serverless/blob/main/src/types/docs/definitions-definitions-network.md
+        network: optimism
         min-balance: 1000
         policy: ${self:resources.Resources.policies.policy-1}
         api-keys:

@@ -4,7 +4,6 @@
   "author": "Fujidao Labs OÜ",
   "license": "MIT",
   "description": "OZ Defender resources for smart contracts task automation.",
-  "main": "handler.js",
   "type": "module",
   "engines": {
     "node": ">14.16"

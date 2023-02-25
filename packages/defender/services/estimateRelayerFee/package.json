@@ -1,5 +1,5 @@
 {
-  "name": "@x-fuji/connext-api",
+  "name": "@x-fuji/defender/services/estimateRelayerFee",
   "version": "0.0.1",
   "main": "index.js",
   "author": "Fujidao Labs OÜ",
