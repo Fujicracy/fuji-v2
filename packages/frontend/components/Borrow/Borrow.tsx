@@ -24,6 +24,7 @@ import ConnextFooter from "./ConnextFooter"
 import { modeForContext, PositionAction } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
+import { navigateToVault } from "../../helpers/navigation"
 
 type BorrowProps = {
   managePosition: boolean
@@ -200,8 +201,7 @@ export default function Borrow(props: BorrowProps) {
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
             onPositionClick={() => {
-              // TODO: Should set all data in store and redirect to /my-positions
-              if (vault) router.push(`/my-positions/${vault.address.value}`)
+              navigateToVault(router, walletChain?.id, true, undefined, vault)
             }}
             onClick={signAndExecute}
           />

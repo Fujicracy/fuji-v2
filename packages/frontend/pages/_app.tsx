@@ -9,10 +9,13 @@ import { useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
 import { usePositions } from "../store/positions.store"
 import { useBorrow } from "../store/borrow.store"
+import { useRouter } from "next/router"
+import { isTopLevelUrl, TopLevelUrl } from "../helpers/navigation"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)
   const address = useAuth((state) => state.address)
+  const router = useRouter()
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions)
   const updateVault = useBorrow((state) => state.updateVault)
@@ -24,13 +27,26 @@ function MyApp({ Component, pageProps }: AppProps) {
     initAuth()
   }, [initAuth])
 
-  // TODO: Need to trigger this every time the user changes a page
   useEffect(() => {
     if (address) {
       fetchPositions()
       updateVault()
     }
   }, [address, fetchPositions, updateVault])
+
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      const isTop = isTopLevelUrl(url)
+      if (isTop && address) {
+        fetchPositions()
+        updateVault()
+      }
+    }
+    router.events.on("routeChangeStart", handleRouteChange)
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange)
+    }
+  })
 
   return (
     <ThemeProvider theme={theme}>
