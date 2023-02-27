@@ -142,8 +142,8 @@ export function viewDynamicPosition(
     ltv: position ? position.ltv : baseLtv.ltv,
     ltvMax: position ? position.ltvMax : baseLtv.ltvMax,
     ltvThreshold: position ? position.ltvThreshold : baseLtv.ltvThreshold,
-    liquidationDiff: 0,
-    liquidationPrice: 0,
+    liquidationDiff: position ? position.liquidationDiff : 0,
+    liquidationPrice: position ? position.liquidationPrice : 0,
   }
 }
 
@@ -155,7 +155,7 @@ export function dynamicPositionMeta(
   if (positionMeta) return positionMeta
   return {
     amount: dynamic ? Number(source.input) : source.amount,
-    usdPrice: source.usdPrice, // TODO: This can't just be a copy, it needs to be calculated per the above
+    usdPrice: source.usdPrice,
     token: source.token,
   }
 }

@@ -340,7 +340,7 @@ const theme = createTheme(colorTheme, {
         },
         {
           props: {
-            variant: "currency",
+            variant: "position",
           },
           style: {
             borderRadius: "0.5rem",

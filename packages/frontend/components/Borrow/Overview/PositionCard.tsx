@@ -2,15 +2,15 @@ import React from "react"
 import { Card, Chip, Typography, useTheme } from "@mui/material"
 import { Stack } from "@mui/system"
 
-type CurrencyCardProps = {
+type PositionCardProps = {
   title: string
   amount: string
   footer: string
-  value: number | undefined
-  extra: string | number | undefined
+  value?: number
+  extra?: string | number
 }
 
-export default function CurrencyCard(props: CurrencyCardProps) {
+export default function PositionCard(props: PositionCardProps) {
   const { palette } = useTheme()
 
   const footerValue = Number(
@@ -20,7 +20,7 @@ export default function CurrencyCard(props: CurrencyCardProps) {
   )
 
   return (
-    <Card variant="currency">
+    <Card variant="position">
       <Typography variant="smallDark">{props.title}</Typography>
       <Stack
         direction={"row"}
@@ -47,7 +47,7 @@ export default function CurrencyCard(props: CurrencyCardProps) {
               ? props.value > 50 // TODO: use recommendedLTV?
                 ? palette.success.main
                 : palette.warning.main
-              : palette.error.main,
+              : palette.info.dark,
           }}
         >
           {props.footer.split("below current price")[0]}
@@ -64,7 +64,7 @@ export default function CurrencyCard(props: CurrencyCardProps) {
   )
 }
 
-CurrencyCard.defaultProps = {
+PositionCard.defaultProps = {
   extra: undefined,
   value: undefined,
 }

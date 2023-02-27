@@ -14,7 +14,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 
-import CurrencyCard from "./CurrencyCard"
+import PositionCard from "./PositionCard"
 import LTVProgressBar from "./LTVProgressBar"
 
 import ClickableTooltip from "../../Shared/ClickableTooltip"
@@ -32,16 +32,15 @@ type OverviewProps = {
 
 export default function Overview({ position, futurePosition }: OverviewProps) {
   const { palette } = useTheme()
-  const { collateral, debt, ltv, ltvMax, ltvThreshold } = position
-
-  // NOTE: `viewFuturePosition` will essentially return all the info
-  // needed for the overview. But need to pass arguments differently
-
-  // TODO: Both ltv and liquidation need to be updated like collateral and debt
-  // const { ltv, ltvMax, ltvThreshold } = useBorrow((state) => state.ltv)
-  const { liquidationPrice, liquidationDiff } = useBorrow(
-    (state) => state.liquidationMeta
-  )
+  const {
+    collateral,
+    debt,
+    ltv,
+    ltvMax,
+    ltvThreshold,
+    liquidationDiff,
+    liquidationPrice,
+  } = position
 
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
@@ -101,7 +100,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
 
           <Grid container columnSpacing="1rem">
             <Grid item xs={6}>
-              <CurrencyCard
+              <PositionCard
                 title="Collateral Provided"
                 amount={`${formatValue(collateral.amount, {
                   maximumFractionDigits: 3,
@@ -113,7 +112,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
               />
             </Grid>
             <Grid item xs={6}>
-              <CurrencyCard
+              <PositionCard
                 title="Borrowed Value"
                 amount={formatValue(debt.amount * debt.usdPrice, {
                   style: "currency",
@@ -126,7 +125,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
             </Grid>
 
             <Grid item xs={6}>
-              <CurrencyCard
+              <PositionCard
                 title="Liquidation Price"
                 amount={
                   liquidationDiff >= 0
@@ -142,7 +141,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
               />
             </Grid>
             <Grid item xs={6}>
-              <CurrencyCard
+              <PositionCard
                 title="Current Price"
                 amount={formatValue(collateral.usdPrice, { style: "currency" })}
                 footer={collateral.token.symbol}
