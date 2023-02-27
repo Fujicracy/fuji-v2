@@ -74,6 +74,7 @@ export type FetchStatus = "initial" | "fetching" | "ready" | "error"
 type BorrowActions = {
   changeMode: (mode: Mode) => void
   changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
+  changeInputValues: (collateral: string, borrow: string) => void
   changeBorrowChain: (chainId: ChainId) => void
   changeBorrowToken: (token: Token) => void
   changeBorrowValue: (val: string) => void
@@ -215,6 +216,13 @@ export const useBorrow = create<BorrowStore>()(
           get().updateTransactionMeta(),
         ])
         set({ availableVaultsStatus: "ready" })
+      },
+
+      async changeInputValues(collateral, borrow) {
+        await Promise.all([
+          get().changeCollateralValue(collateral),
+          get().changeBorrowValue(borrow),
+        ])
       },
 
       changeCollateralChain(chainId) {
@@ -749,8 +757,7 @@ export const useBorrow = create<BorrowStore>()(
             steps: toHistoryRoutingStep(get().transactionMeta.steps),
             status: "ongoing",
           })
-          get().changeCollateralValue("")
-          get().changeBorrowValue("")
+          get().changeInputValues("", "")
         } catch (e) {
           console.error(e)
           if (e instanceof Error) {

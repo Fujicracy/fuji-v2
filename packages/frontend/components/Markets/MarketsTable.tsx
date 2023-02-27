@@ -81,13 +81,7 @@ export default function MarketsTable() {
   }, [address])
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    navigateToVault(
-      router,
-      walletChain?.id as string,
-      positions,
-      changeAll,
-      entity
-    )
+    navigateToVault(router, walletChain?.id as string, entity)
   }
 
   return (

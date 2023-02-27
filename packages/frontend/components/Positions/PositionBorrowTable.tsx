@@ -82,14 +82,7 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   function handleClick(row: PositionRow) {
     const entity = vaults.find((v) => v.address.value === row.address)
-    // TODO: This is collateral's chain id. How do we get it here?
-    navigateToVault(
-      router,
-      String(entity?.chainId),
-      positions,
-      changeAll,
-      entity
-    )
+    navigateToVault(router, String(entity?.chainId), entity)
   }
 
   return (

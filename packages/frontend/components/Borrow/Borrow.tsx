@@ -201,7 +201,7 @@ export default function Borrow(props: BorrowProps) {
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
             onPositionClick={() => {
-              navigateToVault(router, walletChain?.id, true, undefined, vault)
+              navigateToVault(router, walletChain?.id, vault)
             }}
             onClick={signAndExecute}
           />
