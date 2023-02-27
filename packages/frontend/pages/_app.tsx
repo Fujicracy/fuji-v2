@@ -7,6 +7,7 @@ import { ThemeProvider } from "@mui/material"
 import { theme } from "../styles/theme"
 import { useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
+import { GuildAccess } from "../components/Access/GuildAccess"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)
@@ -23,6 +24,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <div className="backdrop"></div>
       <Component {...pageProps} />
       <Snackbar />
+      <GuildAccess />
     </ThemeProvider>
   )
 }
