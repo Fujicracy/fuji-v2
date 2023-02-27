@@ -17,6 +17,7 @@ import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
 import {ChainlinkFeeds} from "./ChainlinkFeeds.sol";
+import {IFujiOracle} from "../../src/interfaces/IFujiOracle.sol";
 
 // How to add a new chain with its domain?
 // 1. Add a domain ID. Domains originate from Connext (check their docs)
@@ -54,6 +55,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   Chief public chief;
   TimelockController public timelock;
   MockOracle mockOracle;
+  IFujiOracle public oracle;
 
   address public dummy;
 
@@ -156,6 +158,8 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     originDomain = domain;
 
+    oracle = new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
+
     if (reg.connext != address(0)) {
       vm.label(reg.connext, "Connext");
     }
@@ -180,9 +184,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
-
-    FujiOracle oracle =
-      new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
 
     vault = new BorrowingVault(
       collateralAsset,
@@ -218,9 +219,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     // Grant this address all roles.
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
-
-    FujiOracle oracle =
-      new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
 
     vault = new BorrowingVault(
       collateralAsset,
