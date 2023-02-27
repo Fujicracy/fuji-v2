@@ -14,14 +14,10 @@ import {MockSwapper} from "../../../src/mocks/MockSwapper.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {LiquidationManager} from "../../../src/LiquidationManager.sol";
 
 contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
-  // BorrowingVault public vault;
-  // YieldVault public yieldVault;
-
   uint256 public constant TREASURY_PK = 0xF;
   address public TREASURY = vm.addr(TREASURY_PK);
   uint256 public constant KEEPER_PK = 0xE;
@@ -37,6 +33,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
   function setUp() public {
     flasher = new MockFlasher();
+    // TODO make sure only allowed flashers can flash
     // bytes memory executionCall =
     //   abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     // _callWithTimelock(address(chief), executionCall);
@@ -45,11 +42,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     liquidationManager = new LiquidationManager(address(chief), TREASURY, address(swapper));
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
-    //TODO decide on the approach
     bytes memory executionCall =
-      abi.encodeWithSelector(liquidationManager.allowExecutor.selector, address(this), true);
-    _callWithTimelock(address(liquidationManager), executionCall);
-    executionCall =
       abi.encodeWithSelector(liquidationManager.allowExecutor.selector, address(KEEPER), true);
     _callWithTimelock(address(liquidationManager), executionCall);
   }
@@ -130,8 +123,6 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
     //check balance of treasury
-    // debtAmount = slippage = 0 because we are using MockSwapper
-    // collectedAmount = collateralAmount - debtAmount * price
     uint256 collectedAmount = unsafeAmount - (borrowAmount * 1e18 / liquidationPrice);
 
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
@@ -166,22 +157,28 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     mock_getPriceOf(collateralAsset, debtAsset, 1e18 / newPrice);
     mock_getPriceOf(debtAsset, collateralAsset, newPrice);
-    // uint256 liquidatorAmount = borrowAmount;
-    // _dealMockERC20(debtAsset, BOB, liquidatorAmount);
 
+    //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
     assertEq(vault.balanceOf(ALICE), amount);
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
 
-    //TODO
     //check balance of treasury
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+    assertEq(vault.balanceOf(TREASURY), 0);
+    assertEq(vault.balanceOfDebt(TREASURY), 0);
 
+    //liquidate ALICE
     address[] memory users = new address[](1);
     users[0] = ALICE;
 
+    vm.startPrank(address(KEEPER));
     liquidationManager.liquidate(users, vault, flasher);
+    vm.stopPrank();
 
+    //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
 
@@ -195,25 +192,20 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOf(ALICE), amount - amountGivenToLiquidator);
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount / 2);
 
-    //TODO
-    //check balance of treasury
-    // assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
-    // assertEq(IERC20(debtAsset).balanceOf(TREASURY), liquidatorAmount - (borrowAmount / 2));
-    // assertEq(vault.balanceOf(TREASURY), amountGivenToLiquidator);
-    // assertEq(vault.balanceOfDebt(TREASURY), 0);
-  }
+    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18 / newPrice);
 
-  function test_fail_liquidateYieldVault() public {}
+    //check balance of treasury
+    assertEq(
+      IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountToRepayFlashloan
+    );
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+    assertEq(vault.balanceOf(TREASURY), 0);
+    assertEq(vault.balanceOfDebt(TREASURY), 0);
+  }
 
   function test_liquidateOnlyHealthyUsers() public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
-
-    uint256 minAmount = vault.minAmount();
-
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
     do_depositAndBorrow(amount, borrowAmount, vault, BOB);
@@ -224,12 +216,80 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[1] = BOB;
     users[2] = CHARLIE;
 
-    liquidationManager.liquidate(users, vault, flasher);
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
+    vm.startPrank(address(KEEPER));
+    liquidationManager.liquidate(users, vault, flasher);
+    vm.stopPrank();
   }
 
   //should not revert if at one user is liquidatable
-  function test_liquidateOnlyOneUserHealthy() public {}
+  function test_liquidateOnlyOneUserLiquidatable(uint256 borrowAmount) public {
+    uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
+    uint256 minAmount = (vault.minAmount() * currentPrice) / 1e18;
 
-  function test_unauthorizedKeeper() public {}
+    vm.assume(borrowAmount > minAmount && borrowAmount < USD_PER_ETH_PRICE);
+
+    uint256 maxltv = vault.maxLtv();
+    uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
+
+    do_depositAndBorrow(unsafeAmount, borrowAmount, vault, ALICE);
+    do_depositAndBorrow(unsafeAmount * 10, borrowAmount, vault, BOB);
+    do_depositAndBorrow(unsafeAmount * 10, borrowAmount, vault, CHARLIE);
+
+    // Simulate 25% price drop
+    // enough for user to be liquidated
+    // liquidation is still profitable
+    uint256 liquidationPrice = (currentPrice * 75) / 100;
+    uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
+
+    mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
+    mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
+
+    //check balance of alice
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    assertEq(vault.balanceOf(ALICE), unsafeAmount);
+    assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+
+    //check balance of treasury
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+
+    //try liquidate all
+    //only ALICE will be liquidated
+    address[] memory users = new address[](3);
+    users[0] = ALICE;
+    users[1] = BOB;
+    users[2] = CHARLIE;
+    vm.startPrank(address(KEEPER));
+    liquidationManager.liquidate(users, vault, flasher);
+    vm.stopPrank();
+
+    //check balance of alice
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    assertEq(vault.balanceOf(ALICE), 0);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+
+    //check balance of treasury
+    uint256 collectedAmount = unsafeAmount - (borrowAmount * 1e18 / liquidationPrice);
+
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+  }
+
+  function test_unauthorizedKeeper() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    address[] memory users = new address[](1);
+    users[0] = ALICE;
+
+    vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
+    vm.startPrank(address(CHARLIE));
+    liquidationManager.liquidate(users, vault, flasher);
+    vm.stopPrank();
+  }
 }
