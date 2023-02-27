@@ -9,6 +9,8 @@ pragma solidity 0.8.15;
  * @notice  Contract that facilitates liquidation of the FujiV2 vaults' users.
  */
 
+//TODO
+import "forge-std/console.sol";
 import {ILiquidationManager} from "./interfaces/ILiquidationManager.sol";
 import {IVault} from "./interfaces/IVault.sol";
 import {IFlasher} from "./interfaces/IFlasher.sol";
@@ -59,11 +61,24 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   }
 
   /// @inheritdoc ILiquidationManager
-  function liquidate(address[] memory users, IVault vault, IFlasher flasher) external {
+  function liquidate(
+    address[] memory users,
+    IVault vault,
+    IFlasher flasher /*, uint256 totalDebtToCover*/
+  )
+    external
+  {
     if (!allowedExecutor[msg.sender]) {
       revert LiquidationManager__liquidate_notValidExecutor();
     }
+
+    //TODO limit size of the array of users
+    //TODO check gas consumption per block limit
+    //TODO also check in the forking environment
+    //TODO use total debt to cover to avoid multiple calls to flashloan
+
     bool liquidatedUsers = false;
+    uint256 totalAmount = 0;
 
     for (uint256 i = 0; i < users.length; i++) {
       //check user's health before borrowing to avoid paying unecessary fees from flashloan
@@ -174,6 +189,8 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     if (debtAsset.balanceOf(address(this)) != debtAmount) {
       revert LiquidationManager__getFlashloan_flashloanFailed();
     }
+
+    //TODO do loop of users here
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debtAmount);
 
