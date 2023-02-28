@@ -33,7 +33,7 @@ import AccountModal from "./AccountModal"
 import { useHistory } from "../../store/history.store"
 import Balance from "./Balance"
 import ParameterLinks from "./ParameterLinks"
-import { useAuth } from "../../store/auth.store"
+import { AuthStatus, useAuth } from "../../store/auth.store"
 
 const pages = [
   { name: "Markets", path: "markets" },
@@ -105,7 +105,7 @@ const Header = () => {
                   alignItems: "center",
                 }}
               >
-                {status === "disconnected" && (
+                {status === AuthStatus.Disconnected && (
                   <>
                     <Chip
                       label="Connect wallet"
@@ -122,7 +122,7 @@ const Header = () => {
                     </Button>
                   </>
                 )}
-                {status === "connected" && <ChainSelect />}
+                {status === AuthStatus.Connected && <ChainSelect />}
 
                 <IconButton
                   aria-label="account of current user"
@@ -233,7 +233,7 @@ const Header = () => {
             alignItems="center"
             sx={{ display: { xs: "none", md: "flex" } }}
           >
-            {status === "disconnected" && (
+            {status === AuthStatus.Disconnected && (
               <>
                 <Chip
                   label="Connect wallet"
@@ -250,7 +250,7 @@ const Header = () => {
                 </Button>
               </>
             )}
-            {status === "connected" && (
+            {status === AuthStatus.Connected && (
               <>
                 <Grid item>
                   <ChainSelect />

@@ -44,8 +44,23 @@ const onboard = Onboard({
   },
 })
 
+export enum AuthStatus {
+  Disconnected,
+  Connecting,
+  Connected,
+}
+
+type ConnectingState = {
+  status: AuthStatus.Connecting
+  address: undefined
+  ens: undefined
+  balance: undefined
+  chain: undefined
+  provider: undefined
+  walletName: undefined
+}
 type ConnectedState = {
-  status: "connected"
+  status: AuthStatus.Connected
   address: string
   ens: string | undefined
   balance: Balances
@@ -53,17 +68,8 @@ type ConnectedState = {
   provider: ethers.providers.Web3Provider
   walletName: string
 }
-type InitialState = {
-  status: "initial"
-  address: undefined
-  ens: undefined
-  balance: undefined
-  chain: undefined
-  provider: undefined
-  walletName: undefined
-}
 type DisconnectedState = {
-  status: "disconnected"
+  status: AuthStatus.Disconnected
   address: undefined
   ens: undefined
   balance: undefined
@@ -71,7 +77,7 @@ type DisconnectedState = {
   provider: undefined
   walletName: undefined
 }
-type State = InitialState | ConnectedState | DisconnectedState
+type State = ConnectingState | ConnectedState | DisconnectedState
 
 type Action = {
   login: (options?: ConnectOptions) => void
@@ -82,8 +88,8 @@ type Action = {
 
 type AuthStore = State & Action
 
-const initialState: InitialState = {
-  status: "initial",
+const initialState: DisconnectedState = {
+  status: AuthStatus.Disconnected,
   address: undefined,
   ens: undefined,
   balance: undefined,
@@ -106,7 +112,7 @@ export const useAuth = create<AuthStore>()(
         const wallets = await onboard.connectWallet(options)
 
         if (!wallets[0]) {
-          set({ status: "disconnected" })
+          set({ status: AuthStatus.Disconnected })
           throw "Cannot login"
         }
 
@@ -118,7 +124,7 @@ export const useAuth = create<AuthStore>()(
         const chain = wallets[0].chains[0]
         const provider = new ethers.providers.Web3Provider(wallets[0].provider)
 
-        set({ status: "connected", address, balance, chain, provider })
+        set({ status: AuthStatus.Connected, address, balance, chain, provider })
       },
 
       logout: async () => {
@@ -129,7 +135,7 @@ export const useAuth = create<AuthStore>()(
 
         localStorage.removeItem("connectedWallets")
 
-        set({ ...initialState, status: "disconnected" })
+        set({ ...initialState, status: AuthStatus.Disconnected })
       },
 
       changeChain: async (chainId) => {
@@ -150,7 +156,7 @@ async function reconnect(
   const previouslyConnectedWallets = localStorage.getItem("connectedWallets")
 
   if (!previouslyConnectedWallets) {
-    return set({ status: "disconnected" })
+    return set({ status: AuthStatus.Disconnected })
   }
   const wallets = JSON.parse(previouslyConnectedWallets)
   await get().login({
@@ -165,7 +171,7 @@ function onOnboardChange(
   onboard.state.select("wallets").subscribe((w: WalletState[]) => {
     const updates: Partial<ConnectedState> = {}
 
-    if (!w[0] && get().status === "disconnected") {
+    if (!w[0] && get().status === AuthStatus.Disconnected) {
       return
     } else if (!w[0]) {
       // Triggered when user disconnect from its wallet
