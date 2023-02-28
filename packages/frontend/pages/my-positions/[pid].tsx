@@ -3,7 +3,7 @@ import { NextPage } from "next"
 
 import { useRouter } from "next/router"
 import BorrowWrapper from "../../components/Borrow/Wrapper"
-import { isChain } from "../../services/chains"
+import { isChain } from "../../helpers/chains"
 
 const PositionPage: NextPage = () => {
   const router = useRouter()

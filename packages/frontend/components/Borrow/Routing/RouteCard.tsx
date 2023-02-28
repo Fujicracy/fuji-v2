@@ -7,7 +7,7 @@ import { useTheme } from "@mui/material/styles"
 import { Stack } from "@mui/system"
 import { BigNumber } from "ethers"
 
-import { chainName } from "../../../services/chains"
+import { chainName } from "../../../helpers/chains"
 import {
   NetworkIcon,
   TokenIcon,

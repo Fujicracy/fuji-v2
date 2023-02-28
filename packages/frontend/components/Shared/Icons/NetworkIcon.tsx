@@ -3,7 +3,7 @@ import { ChainId } from "@x-fuji/sdk"
 import Image, { ImageProps } from "next/image"
 import { SyntheticEvent, useEffect, useState } from "react"
 import { getNetworkImage } from "../../../helpers/paths"
-import { chainName, chainIcon } from "../../../services/chains"
+import { chainName, chainIcon } from "../../../helpers/chains"
 
 interface Props extends Omit<ImageProps, "src"> {
   network: string | ChainId

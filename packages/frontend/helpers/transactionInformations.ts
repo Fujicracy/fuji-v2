@@ -1,4 +1,4 @@
-import { chains } from "../services/chains"
+import { chains } from "./chains"
 
 const chainsMap = new Map()
 chains.map((c) => {

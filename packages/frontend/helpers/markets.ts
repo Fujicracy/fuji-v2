@@ -1,5 +1,5 @@
 import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
-import { chainName } from "../services/chains"
+import { chainName } from "./chains"
 
 export enum Status {
   Ready,

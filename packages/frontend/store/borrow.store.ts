@@ -15,7 +15,7 @@ import { create } from "zustand"
 import { debounce } from "debounce"
 
 import { useAuth } from "./auth.store"
-import { chainIdToHex, testChains } from "../services/chains"
+import { chainIdToHex, testChains } from "../helpers/chains"
 import { sdk } from "../services/sdk"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
 import { ethers, Signature } from "ethers"

@@ -1,6 +1,6 @@
 import { BorrowingVault, VaultWithFinancials, Token } from "@x-fuji/sdk"
 import { NextRouter } from "next/router"
-import { chainName } from "../services/chains"
+import { chainName } from "./chains"
 import { sdk } from "../services/sdk"
 import { useBorrow } from "../store/borrow.store"
 import { usePositions } from "../store/positions.store"

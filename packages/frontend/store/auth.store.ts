@@ -9,7 +9,7 @@ import {
 } from "@web3-onboard/core/dist/types"
 import { ethers, utils } from "ethers"
 import { devtools } from "zustand/middleware"
-import { chains } from "../services/chains"
+import { chains } from "../helpers/chains"
 import { fujiLogo } from "../constants/ui"
 
 const walletConnect = walletConnectModule({

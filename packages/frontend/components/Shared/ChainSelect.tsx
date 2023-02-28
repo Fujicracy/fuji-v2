@@ -16,7 +16,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
 
 import { useAuth } from "../../store/auth.store"
-import { chains, chainName } from "../../services/chains"
+import { chains, chainName } from "../../helpers/chains"
 import { NetworkIcon } from "./Icons"
 
 export default function ChainSelect() {

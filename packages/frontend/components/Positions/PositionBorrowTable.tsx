@@ -15,7 +15,7 @@ import {
 } from "@mui/material"
 import { useRouter } from "next/router"
 import { TokenIcon, TokenWithNetworkIcon } from "../Shared/Icons"
-import { chainName } from "../../services/chains"
+import { chainName } from "../../helpers/chains"
 import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow } from "../../helpers/positions"
