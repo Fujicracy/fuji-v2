@@ -1,6 +1,3 @@
-import { Token } from "@x-fuji/sdk"
-import { useDebugValue } from "react"
-import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 import { AssetMeta, Position } from "../store/models/Position"
 import { AssetChange, LtvMeta, Mode } from "./borrow"
 import { formatNumber } from "./values"
@@ -87,33 +84,33 @@ export function viewFuturePosition(
   mode: Mode
 ): Position {
   const future = current
-
   switch (mode) {
     case Mode.DEPOSIT:
       future.collateral.amount =
         current.collateral.amount + Number(collateral.input)
-
+      break
     case Mode.BORROW:
       future.debt.amount = current.debt.amount + Number(debt.input)
-
+      break
     case Mode.WITHDRAW:
       future.collateral.amount =
         current.collateral.amount - Number(collateral.input)
-
+      break
     case Mode.REPAY:
       future.debt.amount = current.debt.amount - Number(debt.input)
-
+      break
     case Mode.DEPOSIT_AND_BORROW:
       future.collateral.amount =
         current.collateral.amount + Number(collateral.input)
 
       future.debt.amount = current.debt.amount + Number(debt.input)
-
+      break
     case Mode.PAYBACK_AND_WITHDRAW:
       future.collateral.amount =
         current.collateral.amount - Number(collateral.input)
 
       future.debt.amount = current.debt.amount - Number(debt.input)
+      break
   }
 
   const debtUsdValue = future.debt.amount * future.debt.usdPrice

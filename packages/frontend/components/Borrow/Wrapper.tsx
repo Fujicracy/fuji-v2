@@ -18,7 +18,10 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../store/auth.store"
 import { usePositions } from "../../store/positions.store"
 import { Position } from "../../store/models/Position"
-import { viewDynamicPosition } from "../../helpers/positions"
+import {
+  viewDynamicPosition,
+  viewFuturePosition,
+} from "../../helpers/positions"
 
 type BorrowWrapperProps = {
   managePosition: boolean
@@ -56,7 +59,10 @@ function BorrowWrapper(
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       )
-      setFuturePosition(matchPosition)
+      const futurePosition = matchPosition
+        ? viewFuturePosition(baseCollateral, baseDebt, matchPosition, mode)
+        : undefined
+      setFuturePosition(futurePosition)
     }
     const basePosition = viewDynamicPosition(
       !managePosition,
