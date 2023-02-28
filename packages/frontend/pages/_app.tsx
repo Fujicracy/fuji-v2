@@ -10,7 +10,7 @@ import { Snackbar } from "../components/Shared/Snackbar"
 import { usePositions } from "../store/positions.store"
 import { useBorrow } from "../store/borrow.store"
 import { useRouter } from "next/router"
-import { isTopLevelUrl, TopLevelUrl } from "../helpers/navigation"
+import { isTopLevelUrl } from "../helpers/navigation"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)

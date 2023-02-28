@@ -33,7 +33,6 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const account = useAuth((state) => state.address)
   const positions = usePositions((state) => state.positions)
   const vaults = useBorrow((state) => state.availableVaults)
-  const changeAll = useBorrow((state) => state.changeAll)
   const [rows, setRows] = useState<PositionRow[]>([])
 
   useEffect(() => {

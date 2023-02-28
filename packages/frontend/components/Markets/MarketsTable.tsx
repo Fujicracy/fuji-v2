@@ -26,8 +26,6 @@ import {
 } from "../../helpers/markets"
 import { navigateToVault } from "../../helpers/navigation"
 import { useRouter } from "next/router"
-import { useBorrow } from "../../store/borrow.store"
-import { usePositions } from "../../store/positions.store"
 
 export default function MarketsTable() {
   const { palette } = useTheme()
@@ -37,8 +35,6 @@ export default function MarketsTable() {
   const router = useRouter()
 
   const walletChain = useAuth((state) => state.chain)
-  const positions = usePositions((state) => state.positions)
-  const changeAll = useBorrow((state) => state.changeAll)
 
   useEffect(() => {
     const addr = address ? Address.from(address) : undefined

@@ -13,12 +13,6 @@ type PositionCardProps = {
 export default function PositionCard(props: PositionCardProps) {
   const { palette } = useTheme()
 
-  const footerValue = Number(
-    props.footer.includes("below current price")
-      ? props.footer.split("below current price")[0]
-      : ""
-  )
-
   return (
     <Card variant="position">
       <Typography variant="smallDark">{props.title}</Typography>

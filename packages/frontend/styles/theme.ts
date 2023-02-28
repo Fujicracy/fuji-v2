@@ -27,7 +27,7 @@ declare module "@mui/material/Chip" {
 
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
-    currency: true
+    position: true
     lending: true
   }
 }
