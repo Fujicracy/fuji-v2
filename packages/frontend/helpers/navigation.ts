@@ -18,7 +18,8 @@ export const isTopLevelUrl = (url: string) =>
 export const navigateToVault = async (
   router: NextRouter,
   walletChainId: string | undefined,
-  entity?: BorrowingVault | VaultWithFinancials
+  entity?: BorrowingVault | VaultWithFinancials,
+  reset = true
 ) => {
   const vault = entity instanceof BorrowingVault ? entity : entity?.vault
   if (!vault) return
@@ -35,8 +36,9 @@ export const navigateToVault = async (
     changeAll(vault.collateral, vault.debt, vault)
   }
 
-  // Reset inputs unless passed as param (comming from borrow?)
-  useBorrow.getState().changeInputValues("0", "0")
+  if (reset) {
+    useBorrow.getState().changeInputValues("0", "0")
+  }
 
   const positions = usePositions.getState().positions
   if (positions?.find((p) => p.vault?.address.value === vault.address.value)) {
