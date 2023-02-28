@@ -11,7 +11,7 @@ type RoutingModalProps = {
   handleClose: () => void
 }
 
-export default function RoutingModal(props: RoutingModalProps) {
+function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
   const availableRoutes = useBorrow((state) => state.availableRoutes)
@@ -66,3 +66,5 @@ export default function RoutingModal(props: RoutingModalProps) {
     </Dialog>
   )
 }
+
+export default RoutingModal

@@ -10,7 +10,7 @@ import {
 } from "@mui/material"
 
 import TransactionProcessingModal from "./TransactionProcessingModal"
-import { Fees } from "./Fees"
+import Fees from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import RoutingModal from "./Routing/RoutingModal"
 import { useHistory } from "../../store/history.store"
@@ -29,7 +29,7 @@ import { navigateToVault } from "../../helpers/navigation"
 type BorrowProps = {
   managePosition: boolean
 }
-export default function Borrow(props: BorrowProps) {
+function Borrow(props: BorrowProps) {
   const address = useAuth((state) => state.address)
   const walletChain = useAuth((state) => state.chain)
   const router = useRouter()
@@ -225,6 +225,8 @@ export default function Borrow(props: BorrowProps) {
     </>
   )
 }
+
+export default Borrow
 
 Borrow.defaultProps = {
   position: false,

@@ -10,7 +10,7 @@ type ChainSelectProps = {
   disabled?: boolean
   onChange: (chainId: string) => void
 }
-export const ChainSelect = ({
+const ChainSelect = ({
   value,
   label,
   type,
@@ -51,3 +51,5 @@ export const ChainSelect = ({
     </Stack>
   )
 }
+
+export default ChainSelect

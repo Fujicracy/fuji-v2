@@ -24,7 +24,7 @@ import { ProviderIcon } from "../Shared/Icons"
 import { recommendedLTV } from "../../helpers/borrow"
 import { formatValue } from "../../helpers/values"
 
-export default function TransactionSummary() {
+function TransactionSummary() {
   const { palette } = useTheme()
 
   const { ltv, ltvMax } = useBorrow((state) => state.ltv)
@@ -310,3 +310,5 @@ export default function TransactionSummary() {
     </>
   )
 }
+
+export default TransactionSummary

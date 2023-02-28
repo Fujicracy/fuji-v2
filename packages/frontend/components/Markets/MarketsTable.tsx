@@ -15,7 +15,7 @@ import { useEffect, useState } from "react"
 import { Address, BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
 import { useAuth } from "../../store/auth.store"
 import { sdk } from "../../services/sdk"
-import { SizableTableCell } from "../Shared/SizableTableCell"
+import SizableTableCell from "../Shared/SizableTableCell"
 import {
   groupByPair,
   MarketRow,
@@ -27,7 +27,7 @@ import {
 import { navigateToVault } from "../../helpers/navigation"
 import { useRouter } from "next/router"
 
-export default function MarketsTable() {
+function MarketsTable() {
   const { palette } = useTheme()
   const address = useAuth((state) => state.address)
   // const [appSorting] = useState<SortBy>("descending")
@@ -202,3 +202,5 @@ export default function MarketsTable() {
     </TableContainer>
   )
 }
+
+export default MarketsTable

@@ -8,7 +8,7 @@ interface Props extends Omit<ImageProps, "src"> {
 }
 const defaultImage = "/assets/images/protocol-icons/providers/Aave V3.svg"
 
-export default function ProviderIcon(props: Props) {
+function ProviderIcon(props: Props) {
   const { providerName, ...rest } = props
   const path = getProviderImage(providerName)
 
@@ -42,3 +42,5 @@ export default function ProviderIcon(props: Props) {
     </>
   )
 }
+
+export default ProviderIcon

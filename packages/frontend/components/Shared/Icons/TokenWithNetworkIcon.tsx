@@ -9,7 +9,7 @@ type TokenWithNetworkIconProps = {
   innertTop: string
 }
 
-export default function TokenWithNetworkIcon({
+function TokenWithNetworkIcon({
   token,
   network,
   innertTop,
@@ -34,6 +34,8 @@ export default function TokenWithNetworkIcon({
     </Stack>
   )
 }
+
+export default TokenWithNetworkIcon
 
 TokenWithNetworkIcon.defaultProps = {
   innertTop: "1.5rem",

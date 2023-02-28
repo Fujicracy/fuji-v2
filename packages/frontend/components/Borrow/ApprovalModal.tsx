@@ -20,7 +20,7 @@ type ApprovalModalProps = {
   handleClose: () => void
 }
 
-export default function ApprovalModal(props: ApprovalModalProps) {
+function ApprovalModal(props: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const collateralAllowance = useBorrow((state) => state.collateral.allowance)
@@ -116,3 +116,5 @@ export default function ApprovalModal(props: ApprovalModalProps) {
     </Dialog>
   )
 }
+
+export default ApprovalModal

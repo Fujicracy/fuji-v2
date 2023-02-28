@@ -10,7 +10,7 @@ type PositionCardProps = {
   extra?: string | number
 }
 
-export default function PositionCardGradItem(props: PositionCardProps) {
+function PositionCardGradItem(props: PositionCardProps) {
   return (
     <Grid item xs={6}>
       <PositionCard
@@ -22,6 +22,9 @@ export default function PositionCardGradItem(props: PositionCardProps) {
     </Grid>
   )
 }
+
+export default PositionCardGradItem
+
 function PositionCard(props: PositionCardProps) {
   const { palette } = useTheme()
 

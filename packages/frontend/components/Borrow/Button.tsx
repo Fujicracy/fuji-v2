@@ -31,7 +31,7 @@ type BorrowButtonProps = {
   onClick: () => void
 }
 
-const BorrowButton = (props: BorrowButtonProps) => {
+function BorrowButton(props: BorrowButtonProps) {
   const loadingButtonTitle =
     (props.isSigning && "(1/2) Signing...") ||
     (props.isExecuting &&

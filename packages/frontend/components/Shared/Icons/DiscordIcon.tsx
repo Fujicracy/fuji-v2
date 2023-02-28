@@ -5,7 +5,7 @@ type DiscordIconProps = {
   color?: string
 }
 
-const DiscordIcon = (props: DiscordIconProps) => {
+function DiscordIcon(props: DiscordIconProps) {
   const { palette } = useTheme()
 
   return (

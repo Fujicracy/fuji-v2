@@ -70,7 +70,7 @@ function updateKeyMetricsSummary(
   ]
 }
 
-export function PositionSummary() {
+function MyPositionsSummary() {
   const { breakpoints, palette } = useTheme()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
   const router = useRouter()
@@ -122,6 +122,8 @@ export function PositionSummary() {
     </Box>
   )
 }
+
+export default MyPositionsSummary
 
 type MetricProps = {
   metric: MetricSummary

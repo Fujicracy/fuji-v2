@@ -9,7 +9,7 @@ interface Props extends Omit<ImageProps, "src"> {
   sx?: object
 }
 
-export default function TokenIcon(props: Props) {
+function TokenIcon(props: Props) {
   const { palette } = useTheme()
   const { token, ...rest } = props
   const symbol = typeof token === "string" ? token : token.symbol
@@ -58,3 +58,5 @@ export default function TokenIcon(props: Props) {
     </>
   )
 }
+
+export default TokenIcon

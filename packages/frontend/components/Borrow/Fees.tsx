@@ -10,7 +10,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import { useBorrow } from "../../store/borrow.store"
 
-export const Fees = () => {
+function Fees() {
   const transactionMeta = useBorrow((state) => state.transactionMeta)
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
   const show = showTransactionDetails && transactionMeta.status === "ready"
@@ -66,10 +66,13 @@ export const Fees = () => {
   )
 }
 
+export default Fees
+
 type FeeProps = {
   label: string
   value: string | ReactNode
 }
+
 const Fee = ({ label, value }: FeeProps) => (
   <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
     <Typography variant="small">{label}</Typography>

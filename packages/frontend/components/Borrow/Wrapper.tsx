@@ -28,7 +28,7 @@ type BorrowWrapperProps = {
   }
 }
 
-export default function BorrowWrapper(
+function BorrowWrapper(
   { managePosition, query }: BorrowWrapperProps = { managePosition: false }
 ) {
   const { breakpoints } = useTheme()
@@ -128,6 +128,8 @@ export default function BorrowWrapper(
     </>
   )
 }
+
+export default BorrowWrapper
 
 BorrowWrapper.defaultProps = {
   managePosition: false,

@@ -1,6 +1,6 @@
 import { SvgIcon } from "@mui/material"
 
-export const DropletIcon = () => {
+function DropletIcon() {
   return (
     <SvgIcon
       role="img"
@@ -36,3 +36,5 @@ export const DropletIcon = () => {
     </SvgIcon>
   )
 }
+
+export default DropletIcon

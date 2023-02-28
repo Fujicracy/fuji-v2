@@ -16,7 +16,7 @@ import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../../store/snackbar.store"
 import { transactionLink } from "../../helpers/transactionInformations"
 
-export function Snackbar() {
+function Snackbar() {
   const [snack] = useSnack((s) => s.notifications)
   const close = useSnack((s) => s.close)
 
@@ -39,6 +39,8 @@ export function Snackbar() {
     </MuiSnackbar>
   )
 }
+
+export default Snackbar
 
 function TransitionLeft(props: any) {
   return <Slide {...props} direction="left" />

@@ -27,7 +27,7 @@ type PositionsBorrowTableProps = {
   loading: boolean
 }
 
-export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
+function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const { palette } = useTheme()
   const router = useRouter()
   const account = useAuth((state) => state.address)
@@ -44,14 +44,16 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   if (!account) {
     return (
-      <PositionBorrowTableContainer>
-        <PositionBorrowTableRow>No wallet detected</PositionBorrowTableRow>
-      </PositionBorrowTableContainer>
+      <MyPositionsBorrowTableContainer>
+        <MyPositionsBorrowTableRow>
+          No wallet detected
+        </MyPositionsBorrowTableRow>
+      </MyPositionsBorrowTableContainer>
     )
   }
   if (loading) {
     return (
-      <PositionBorrowTableContainer>
+      <MyPositionsBorrowTableContainer>
         <TableRow sx={{ height: "2.625rem" }}>
           <TableCell>
             <Skeleton />
@@ -75,7 +77,7 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <Skeleton />
           </TableCell>
         </TableRow>
-      </PositionBorrowTableContainer>
+      </MyPositionsBorrowTableContainer>
     )
   }
 
@@ -85,7 +87,7 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   }
 
   return (
-    <PositionBorrowTableContainer>
+    <MyPositionsBorrowTableContainer>
       {rows.length > 0 ? (
         rows.map((row, i) => (
           <TableRow
@@ -159,17 +161,19 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
           </TableRow>
         ))
       ) : (
-        <PositionBorrowTableRow>No open positions</PositionBorrowTableRow>
+        <MyPositionsBorrowTableRow>No open positions</MyPositionsBorrowTableRow>
       )}
-    </PositionBorrowTableContainer>
+    </MyPositionsBorrowTableContainer>
   )
 }
+
+export default MyPositionsBorrowTable
 
 type PositionsBorrowTableElementProps = {
   children: string | JSX.Element | JSX.Element[]
 }
 
-function PositionBorrowTableRow({
+function MyPositionsBorrowTableRow({
   children,
 }: PositionsBorrowTableElementProps) {
   const { palette } = useTheme()
@@ -207,7 +211,7 @@ function PositionBorrowTableRow({
   )
 }
 
-function PositionBorrowTableHeader() {
+function MyPositionsBorrowTableHeader() {
   return (
     <TableHead>
       <TableRow sx={{ height: "2.625rem" }}>
@@ -223,13 +227,13 @@ function PositionBorrowTableHeader() {
   )
 }
 
-function PositionBorrowTableContainer({
+function MyPositionsBorrowTableContainer({
   children,
 }: PositionsBorrowTableElementProps) {
   return (
     <TableContainer>
       <Table aria-label="Positions table" size="small">
-        <PositionBorrowTableHeader />
+        <MyPositionsBorrowTableHeader />
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>

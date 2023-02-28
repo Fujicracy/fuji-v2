@@ -14,7 +14,7 @@ import MarketsTable from "./MarketsTable"
 import Lending from "./Lending"
 import { theme } from "../../styles/theme"
 
-export default function Markets() {
+function Markets() {
   const { palette } = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [currentTab, setCurrentTab] = useState(0)
@@ -144,3 +144,5 @@ export default function Markets() {
     </Box>
   )
 }
+
+export default Markets

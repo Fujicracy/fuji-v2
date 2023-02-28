@@ -1,6 +1,6 @@
 import { Box } from "@mui/material"
 
-import { ChainSelect } from "./ChainSelect"
+import ChainSelect from "./ChainSelect"
 import TokenCard from "./TokenCard"
 
 type BorrowBoxProps = {

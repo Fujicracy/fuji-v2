@@ -1,6 +1,6 @@
 import { SvgIcon, useTheme } from "@mui/material"
 
-export const BurgerMenuIcon = () => {
+function BurgerMenuIcon() {
   const { palette } = useTheme()
 
   return (
@@ -25,3 +25,5 @@ export const BurgerMenuIcon = () => {
     </SvgIcon>
   )
 }
+
+export default BurgerMenuIcon

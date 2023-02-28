@@ -10,7 +10,7 @@ type CollateralDropdownProps = {
   chains: Chain[]
 }
 
-export default function CollateralDropdown(props: CollateralDropdownProps) {
+function CollateralDropdown(props: CollateralDropdownProps) {
   return (
     <>
       {props.chains.map((chain: Chain) => (
@@ -26,3 +26,5 @@ export default function CollateralDropdown(props: CollateralDropdownProps) {
     </>
   )
 }
+
+export default CollateralDropdown

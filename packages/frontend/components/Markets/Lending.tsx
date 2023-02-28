@@ -10,7 +10,7 @@ import {
 import Image from "next/image"
 import { useAuth } from "../../store/auth.store"
 
-export default function Lending() {
+function Lending() {
   const { palette } = useTheme()
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -115,3 +115,5 @@ export default function Lending() {
     </Card>
   )
 }
+
+export default Lending

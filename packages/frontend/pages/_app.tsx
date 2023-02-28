@@ -6,7 +6,7 @@ import { ThemeProvider } from "@mui/material"
 
 import { theme } from "../styles/theme"
 import { useAuth } from "../store/auth.store"
-import { Snackbar } from "../components/Shared/Snackbar"
+import Snackbar from "../components/Shared/Snackbar"
 import { usePositions } from "../store/positions.store"
 import { useBorrow } from "../store/borrow.store"
 import { useRouter } from "next/router"

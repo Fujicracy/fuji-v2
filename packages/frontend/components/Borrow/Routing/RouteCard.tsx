@@ -22,7 +22,7 @@ type RouteCardProps = {
   onChange: () => void
 }
 
-export default function RouteCard(props: RouteCardProps) {
+function RouteCard(props: RouteCardProps) {
   const { palette } = useTheme()
 
   const bridgeStep = props.route.steps.find(
@@ -317,3 +317,5 @@ export default function RouteCard(props: RouteCardProps) {
     </Paper>
   )
 }
+
+export default RouteCard

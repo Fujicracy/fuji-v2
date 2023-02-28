@@ -5,7 +5,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import ParameterLinks from "./ParameterLinks"
 
-export default function Parameters() {
+function Parameters() {
   const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -37,3 +37,5 @@ export default function Parameters() {
     </>
   )
 }
+
+export default Parameters

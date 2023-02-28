@@ -30,7 +30,7 @@ type OverviewProps = {
   futurePosition?: Position
 }
 
-export default function Overview({ position, futurePosition }: OverviewProps) {
+function Overview({ position, futurePosition }: OverviewProps) {
   const { palette } = useTheme()
   const {
     collateral,
@@ -281,3 +281,5 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
     </Grid>
   )
 }
+
+export default Overview

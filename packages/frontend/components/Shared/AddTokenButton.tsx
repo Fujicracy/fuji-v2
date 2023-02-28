@@ -9,7 +9,7 @@ type ButtonAddTokenProps = {
   token: SerializableToken
 }
 
-export function AddTokenButton({ token }: ButtonAddTokenProps) {
+function AddTokenButton({ token }: ButtonAddTokenProps) {
   type Status = "initial" | "loading" | "success" | "error"
   const [status, setStatus] = useState<Status>("initial")
 
@@ -37,6 +37,8 @@ export function AddTokenButton({ token }: ButtonAddTokenProps) {
     </LoadingButton>
   )
 }
+
+export default AddTokenButton
 
 async function addTokenToMetamask(token: SerializableToken) {
   if (!ethereum) {

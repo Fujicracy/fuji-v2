@@ -19,7 +19,7 @@ type LTVProgressBarProps = {
   recommendedLTV: number
 }
 
-export default function LTVProgressBar(props: LTVProgressBarProps) {
+function LTVProgressBar(props: LTVProgressBarProps) {
   const { palette } = useTheme()
 
   return (
@@ -221,3 +221,5 @@ export default function LTVProgressBar(props: LTVProgressBarProps) {
     </Box>
   )
 }
+
+export default LTVProgressBar

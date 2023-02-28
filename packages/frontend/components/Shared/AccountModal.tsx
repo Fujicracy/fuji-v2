@@ -38,7 +38,7 @@ type AccountModalProps = {
   closeAccountModal: () => void
 }
 
-export default function AccountModal(props: AccountModalProps) {
+function AccountModal(props: AccountModalProps) {
   const { palette } = useTheme()
   const [copied, setCopied] = useState(false)
   const [copyAddressHovered, setCopyAddressHovered] = useState(false)
@@ -207,6 +207,8 @@ export default function AccountModal(props: AccountModalProps) {
     </Popover>
   )
 }
+
+export default AccountModal
 
 type BorrowEntryProps = {
   entry: HistoryEntry

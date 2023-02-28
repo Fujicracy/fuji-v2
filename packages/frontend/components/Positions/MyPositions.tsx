@@ -12,8 +12,8 @@ import {
 
 import { usePositions } from "../../store/positions.store"
 
-import { PositionSummary } from "./PositionSummary"
-import { PositionsBorrowTable } from "./PositionBorrowTable"
+import MyPositionsSummary from "./MyPositionsSummary"
+import MyPositionsBorrowTable from "./MyPositionsBorrowTable"
 
 function MyPositions() {
   const { breakpoints } = useTheme()
@@ -34,7 +34,7 @@ function MyPositions() {
         Fuji manages your borrowing and lending positions for maximum capital
         efficiency
       </Typography>
-      <PositionSummary />
+      <MyPositionsSummary />
       <Box mt={2} mb={3}>
         <Tabs
           value={currentTab}
@@ -59,7 +59,7 @@ function MyPositions() {
           />
         </Tabs>
       </Box>
-      {currentTab === 0 && <PositionsBorrowTable loading={loading} />}
+      {currentTab === 0 && <MyPositionsBorrowTable loading={loading} />}
     </>
   )
 }

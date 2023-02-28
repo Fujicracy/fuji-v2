@@ -13,7 +13,7 @@ type Props = {
   dataCy?: string
 }
 
-const Balance = ({ balance, rounding, symbol, dataCy }: Props) => {
+function Balance({ balance, rounding, symbol, dataCy }: Props) {
   const formattedBalance = formatBalance(balance, rounding)
 
   return (

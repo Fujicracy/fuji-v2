@@ -17,9 +17,13 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Box } from "@mui/system"
 
-import { DropletIcon } from "./DropletIcon"
-import { NetworkIcon, ProviderIcon, TokenIcon } from "../Shared/Icons"
-import { SizableTableCell } from "../Shared/SizableTableCell"
+import {
+  DropletIcon,
+  NetworkIcon,
+  ProviderIcon,
+  TokenIcon,
+} from "../Shared/Icons"
+import SizableTableCell from "../Shared/SizableTableCell"
 import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
 import { MarketRow, Status } from "../../helpers/markets"
 import { formatValue } from "../../helpers/values"
@@ -29,10 +33,7 @@ type MarketsTableRowProps = {
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void
 }
 
-export default function MarketsTableRow({
-  row,
-  onClick,
-}: MarketsTableRowProps) {
+function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
   const { palette } = useTheme()
   const [expandRow, setExpandRow] = useState(false)
 
@@ -264,6 +265,8 @@ export default function MarketsTableRow({
     </>
   )
 }
+
+export default MarketsTableRow
 
 type ToggleProps = {
   expandRow: boolean

@@ -31,7 +31,7 @@ import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chains"
 import { transactionLink } from "../../helpers/transactionInformations"
 import { useAuth } from "../../store/auth.store"
-import { AddTokenButton } from "../Shared/AddTokenButton"
+import AddTokenButton from "../Shared/AddTokenButton"
 
 type InvalidStep = {
   label: "Invalid"
@@ -50,7 +50,7 @@ type TransactionProcessingModalProps = {
   hash?: string
   handleClose: (e: MouseEvent) => void
 }
-export default function TransactionProcessingModal({
+function TransactionProcessingModal({
   hash,
   handleClose,
 }: TransactionProcessingModalProps) {
@@ -246,6 +246,8 @@ export default function TransactionProcessingModal({
     </Dialog>
   )
 }
+
+export default TransactionProcessingModal
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {

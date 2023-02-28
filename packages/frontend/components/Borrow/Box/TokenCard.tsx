@@ -30,7 +30,7 @@ type SelectTokenCardProps = {
   disabled: boolean
 }
 
-export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
+function TokenCard({ type, disabled }: SelectTokenCardProps) {
   const { palette } = useTheme()
 
   const changeCollateralToken = useBorrow(
@@ -255,6 +255,8 @@ const TokenItem = (props: TokenItem) => {
     </MenuItem>
   )
 }
+
+export default TokenCard
 
 TokenCard.defaultProps = {
   disabled: false,
