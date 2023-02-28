@@ -1,5 +1,5 @@
 import React from "react"
-import { Card, Chip, Typography, useTheme } from "@mui/material"
+import { Card, Chip, Grid, Typography, useTheme } from "@mui/material"
 import { Stack } from "@mui/system"
 
 type PositionCardProps = {
@@ -10,7 +10,19 @@ type PositionCardProps = {
   extra?: string | number
 }
 
-export default function PositionCard(props: PositionCardProps) {
+export default function PositionCardGradItem(props: PositionCardProps) {
+  return (
+    <Grid item xs={6}>
+      <PositionCard
+        title={props.title}
+        amount={props.amount}
+        footer={props.footer}
+        extra={props.extra}
+      />
+    </Grid>
+  )
+}
+function PositionCard(props: PositionCardProps) {
   const { palette } = useTheme()
 
   return (

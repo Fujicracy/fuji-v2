@@ -24,6 +24,7 @@ import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 import { Position } from "../../../store/models/Position"
+import PositionCardGradItem from "./PositionCard"
 
 type OverviewProps = {
   position: Position
@@ -46,6 +47,14 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault)
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : []
+
+  const collateralInput = useBorrow((state) => state.collateral.input)
+  const borrowInput = useBorrow((state) => state.debt.input)
+
+  const dynamicLtv = futurePosition ? futurePosition.ltv : ltv
+  const dynamicLtvThreshold = futurePosition
+    ? futurePosition.ltvThreshold
+    : ltvThreshold
 
   return (
     <Grid container alignItems="center" justifyContent="space-between">
@@ -99,61 +108,73 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
           <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
 
           <Grid container columnSpacing="1rem">
-            <Grid item xs={6}>
-              <PositionCard
-                title="Collateral Provided"
-                amount={`${formatValue(collateral.amount, {
-                  maximumFractionDigits: 3,
-                })} ${collateral.token.symbol}`}
-                footer={formatValue(collateral.amount * collateral.usdPrice, {
-                  style: "currency",
-                })}
-                // extra={collateral.estimate?.amount} // TODO: not even the right field?
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <PositionCard
-                title="Borrowed Value"
-                amount={formatValue(debt.amount * debt.usdPrice, {
-                  style: "currency",
-                })}
-                footer={`${formatValue(debt.usdPrice, {
-                  maximumFractionDigits: 2,
-                })} ${debt.token.symbol}`}
-                // extra={debt.estimate?.amount} // TODO: debt.estimate?.amount
-              />
-            </Grid>
+            <PositionCardGradItem
+              title="Collateral Provided"
+              amount={`${formatValue(collateral.amount, {
+                maximumFractionDigits: 3,
+              })} ${collateral.token.symbol}`}
+              footer={formatValue(collateral.amount * collateral.usdPrice, {
+                style: "currency",
+              })}
+              extra={
+                futurePosition && Number(collateralInput) !== 0
+                  ? formatValue(futurePosition.collateral.amount, {
+                      maximumFractionDigits: 3,
+                    })
+                  : undefined
+              }
+            />
+            <PositionCardGradItem
+              title="Borrowed Value"
+              amount={formatValue(debt.amount * debt.usdPrice, {
+                style: "currency",
+              })}
+              footer={`${formatValue(debt.usdPrice, {
+                maximumFractionDigits: 2,
+              })} ${debt.token.symbol}`}
+              extra={
+                futurePosition && Number(borrowInput) !== 0
+                  ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
+                      style: "currency",
+                    })
+                  : undefined
+              }
+            />
 
-            <Grid item xs={6}>
-              <PositionCard
-                title="Liquidation Price"
-                amount={
-                  liquidationDiff >= 0
-                    ? formatValue(liquidationPrice, { style: "currency" })
-                    : "$0"
-                }
-                footer={
-                  liquidationDiff >= 0
-                    ? `~${liquidationDiff}% below current price`
-                    : `n/a`
-                }
-                value={liquidationDiff}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <PositionCard
-                title="Current Price"
-                amount={formatValue(collateral.usdPrice, { style: "currency" })}
-                footer={collateral.token.symbol}
-              />
-            </Grid>
+            <PositionCardGradItem
+              title="Liquidation Price"
+              amount={
+                liquidationDiff >= 0
+                  ? formatValue(liquidationPrice, { style: "currency" })
+                  : "$0"
+              }
+              footer={
+                liquidationDiff >= 0
+                  ? `~${liquidationDiff}% below current price`
+                  : `n/a`
+              }
+              value={liquidationDiff}
+              extra={
+                futurePosition &&
+                (Number(borrowInput) !== 0 || Number(borrowInput) !== 0)
+                  ? formatValue(futurePosition.liquidationPrice, {
+                      style: "currency",
+                    })
+                  : undefined
+              }
+            />
+            <PositionCardGradItem
+              title="Current Price"
+              amount={formatValue(collateral.usdPrice, { style: "currency" })}
+              footer={collateral.token.symbol}
+            />
           </Grid>
 
           <Divider sx={{ mb: 1.5 }} />
 
           <LTVProgressBar
             borrowLimit={0} // TODO: should be dynamic
-            value={ltv > ltvMax ? ltvMax : ltv}
+            value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
             maxLTV={ltvMax}
             recommendedLTV={recommendedLTV(ltvMax)}
           />
@@ -168,7 +189,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
             <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
             <Typography variant="small">
-              {ltv <= 100 ? `${ltv}%` : "n/a"}
+              {dynamicLtv <= 100 ? `${dynamicLtv}%` : "n/a"}
             </Typography>
           </Grid>
 
@@ -179,7 +200,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
               LTV liquidation threshold
             </Typography>
 
-            <Typography variant="small">{ltvThreshold}%</Typography>
+            <Typography variant="small">{dynamicLtvThreshold}%</Typography>
           </Grid>
 
           <Divider sx={{ mt: 2, mb: 2 }} />

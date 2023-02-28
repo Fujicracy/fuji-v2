@@ -56,9 +56,7 @@ export default function BorrowWrapper(
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       )
-
-      // setFuturePosition(futurePosition)
-      // window.alert(matchPosition?.debt.usdPrice)
+      setFuturePosition(matchPosition)
     }
     const basePosition = viewDynamicPosition(
       !managePosition,
@@ -120,7 +118,7 @@ export default function BorrowWrapper(
             {isMobile ? (
               <TransactionSummary />
             ) : (
-              <Overview position={position} />
+              <Overview position={position} futurePosition={futurePosition} />
             )}
           </Grid>
         </Grid>
