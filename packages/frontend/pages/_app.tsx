@@ -7,7 +7,7 @@ import { ThemeProvider } from "@mui/material"
 import { theme } from "../styles/theme"
 import { useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
-import SafetyNoticeModal from "../components/Shared/SafetyNoticeModal"
+import SafetyNoticeModal from "../components/Onboarding/SafetyNoticeModal"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)

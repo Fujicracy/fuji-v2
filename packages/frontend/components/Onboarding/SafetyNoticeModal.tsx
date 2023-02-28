@@ -20,17 +20,17 @@ export function SafetyNoticeModal() {
   const acceptTermsOfUse = useAuth((state) => state.acceptTermsOfUse)
   const getOnboardStatus = useAuth((state) => state.getOnboardStatus)
 
-  const [isTermsAccepted, setIsTermsAccepted] = useState<boolean>(true)
-  const [isPreviouslyAccepted, setIsPreviouslyAccepted] =
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true)
+  const [hasPreviouslyAcceptedTerms, setHasPreviouslyAcceptedTerms] =
     useState<boolean>(true)
   const [isExploreModalShown, setIsExploreModalShown] = useState<boolean>(false)
 
   useEffect(() => {
-    const isPreviouslyAccepted = (): boolean =>
-      getOnboardStatus().isTermsAccepted
+    const hasPreviouslyAcceptedTerms = (): boolean =>
+      getOnboardStatus().hasAcceptedTerms
 
-    setIsTermsAccepted(isPreviouslyAccepted)
-    setIsPreviouslyAccepted(isPreviouslyAccepted)
+    setHasAcceptedTerms(hasPreviouslyAcceptedTerms)
+    setHasPreviouslyAcceptedTerms(hasPreviouslyAcceptedTerms)
   }, [getOnboardStatus])
 
   const onAcceptClick = () => {
@@ -39,12 +39,12 @@ export function SafetyNoticeModal() {
   }
 
   const finishOnboarding = () => {
-    setIsPreviouslyAccepted(true)
+    setHasPreviouslyAcceptedTerms(true)
     setIsExploreModalShown(false)
   }
 
   return !isExploreModalShown ? (
-    <Dialog open={!isPreviouslyAccepted}>
+    <Dialog open={!hasPreviouslyAcceptedTerms}>
       <Paper
         variant="outlined"
         sx={{
@@ -86,9 +86,9 @@ export function SafetyNoticeModal() {
             }
             control={
               <Checkbox
-                checked={isTermsAccepted}
+                checked={hasAcceptedTerms}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setIsTermsAccepted(event.target.checked)
+                  setHasAcceptedTerms(event.target.checked)
                 }}
                 color="default"
                 sx={{ p: "0 0.5rem 0 0" }}
@@ -102,7 +102,7 @@ export function SafetyNoticeModal() {
           variant="gradient"
           size="large"
           onClick={onAcceptClick}
-          disabled={!isTermsAccepted}
+          disabled={!hasAcceptedTerms}
           fullWidth
           data-cy="safety-notice-accept"
           sx={{ mt: "1.5rem" }}

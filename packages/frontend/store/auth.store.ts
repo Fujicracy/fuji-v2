@@ -44,7 +44,7 @@ const onboard = Onboard({
   },
 })
 type OnboardStatus = {
-  isTermsAccepted: boolean
+  hasAcceptedTerms: boolean
   date?: Date | string
   isExploreInfoSkipped?: boolean
 }
@@ -142,7 +142,7 @@ export const useAuth = create<AuthStore>()(
 
       acceptTermsOfUse: () => {
         const onboardStatus: OnboardStatus = {
-          isTermsAccepted: true,
+          hasAcceptedTerms: true,
           date: new Date().toJSON(),
         }
         const json = JSON.stringify(onboardStatus)
@@ -152,12 +152,12 @@ export const useAuth = create<AuthStore>()(
 
       getOnboardStatus: (): OnboardStatus => {
         const onboardStatusJson = localStorage.getItem("termsAccepted")
-        if (!onboardStatusJson) return { isTermsAccepted: false }
+        if (!onboardStatusJson) return { hasAcceptedTerms: false }
 
         const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson)
 
         return {
-          isTermsAccepted: onboardStatus.isTermsAccepted,
+          hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
           date: onboardStatus.date && new Date(onboardStatus.date),
           isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
         }
