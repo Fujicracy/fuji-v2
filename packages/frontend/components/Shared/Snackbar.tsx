@@ -14,7 +14,7 @@ import ErrorIcon from "@mui/icons-material/Error"
 import WarningIcon from "@mui/icons-material/Warning"
 import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../../store/snackbar.store"
-import { transactionLink } from "../../helpers/transactionInformations"
+import { transactionLink } from "../../helpers/transaction"
 
 function Snackbar() {
   const [snack] = useSnack((s) => s.notifications)

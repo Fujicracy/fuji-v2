@@ -29,7 +29,7 @@ import { NetworkIcon } from "../Shared/Icons"
 import { useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chains"
-import { transactionLink } from "../../helpers/transactionInformations"
+import { transactionLink } from "../../helpers/transaction"
 import { useAuth } from "../../store/auth.store"
 import AddTokenButton from "../Shared/AddTokenButton"
 

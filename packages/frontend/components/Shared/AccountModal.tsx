@@ -29,7 +29,7 @@ import {
 } from "../../store/history.store"
 import { chainName } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
-import { transactionAddress } from "../../helpers/transactionInformations"
+import { transactionAddress } from "../../helpers/transaction"
 
 type AccountModalProps = {
   isOpen: boolean
