@@ -109,6 +109,8 @@ export const useAuth = create<AuthStore>()(
       },
 
       login: async (options?) => {
+        set({ status: AuthStatus.Connecting })
+
         const wallets = await onboard.connectWallet(options)
 
         if (!wallets[0]) {

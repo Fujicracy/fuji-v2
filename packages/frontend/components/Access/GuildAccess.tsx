@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 
-import { useAuth } from "../../store/auth.store"
-import { guild, setProjectName } from "@guildxyz/sdk"
+import { AuthStatus, useAuth } from "../../store/auth.store"
 import {
   Box,
+  Button,
   Dialog,
   Paper,
   Stack,
@@ -13,42 +13,88 @@ import {
 import { useTheme } from "@mui/material/styles"
 import LoadingButton from "@mui/lab/LoadingButton"
 import Image from "next/image"
-
-const FUJI_GUILD_ID = 461
-setProjectName("Fuji Finance")
+import { AccessStatus, useAccess } from "../../store/access.store"
 
 export function GuildAccess() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
+  const [isOpen, setIsOpen] = useState(true)
+
   const address = useAuth((state) => state.address)
+  const authStatus = useAuth((state) => state.status)
   const login = useAuth((state) => state.login)
+  const logout = useAuth((state) => state.logout)
 
-  const [hasAccess, setHasAccess] = useState(false)
-  //const [checkingAccess, setCheckingAccess] = useState(true)
+  const accessStatus = useAccess((state) => state.status)
+  const retriesCount = useAccess((state) => state.retriesCount)
+  const errorsCount = useAccess((state) => state.errorsCount)
+  const verify = useAccess((state) => state.verify)
+  const reset = useAccess((state) => state.reset)
 
-  // display loader: Checking access...
+  const formattedAddress =
+    address?.substring(0, 5) + "..." + address?.substring(address?.length - 4)
+
   useEffect(() => {
     ;(async () => {
-      if (address) {
-        const reqs = await guild.getUserAccess(FUJI_GUILD_ID, address)
-        const r = reqs.find((r) => r.access)
-        setHasAccess(r?.access as boolean)
-        if (!r) {
-          console.log("No access :(")
-          // display rules and no access
-        } else {
-          console.log("Access :)")
-        }
-      } else {
-        // display rules of access and connect wallet
-      }
-      // hide loader
+      if (address) await verify(address)
     })()
-  }, [address])
+  }, [address, verify])
+
+  useEffect(() => {
+    if (accessStatus === AccessStatus.Verified) {
+      // close this modal 3 secs after the verification succeeded
+      setTimeout(() => {
+        setIsOpen(false)
+      }, 3000)
+    }
+  }, [accessStatus])
+
+  const statusParagraph = () => {
+    if (authStatus !== AuthStatus.Connected) return <></>
+
+    if (accessStatus === AccessStatus.Verifying) {
+      return (
+        <Typography mt="1rem">Status: verifying your eligibility...</Typography>
+      )
+    } else if (accessStatus === AccessStatus.NoAccess) {
+      return (
+        <Typography mt="1rem">
+          Status: you have not joined our guild yet or you do not meet the
+          eligibility criteria!
+        </Typography>
+      )
+    } else if (accessStatus === AccessStatus.Verified) {
+      return (
+        <Typography mt="1rem">
+          Status: Awesome Climber, you are eligibile!
+        </Typography>
+      )
+    } else if (accessStatus === AccessStatus.Error) {
+      return (
+        <Typography mt="1rem">
+          Status: something went wrong and we cannot verify your eligibility!
+          Trying again ... {errorsCount}/5
+        </Typography>
+      )
+    } else if (accessStatus === AccessStatus.FatalError) {
+      return (
+        <Typography mt="1rem">
+          Status: something went wrong and we cannot verify your eligibility!
+          Sorry, try again later...
+        </Typography>
+      )
+    }
+  }
+
+  const openGuildPage = () => {
+    // TODO: redirect to guild.xyz/fuji-finance
+    console.log("TODO: open guild")
+  }
 
   return (
     <Dialog
-      open={!hasAccess}
+      open={isOpen}
       /* BackdropProps={{ style: { backgroundColor: "" } }} */
       sx={{
         ".MuiPaper-root": {
@@ -81,26 +127,65 @@ export function GuildAccess() {
         </Typography>
 
         <Typography mt="1rem">
-          To join Fuji V2 private beta, join our guild.
+          Join our guild to participate in the V2 private beta testing.
         </Typography>
 
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mt="2rem"
-          color="grey"
-        ></Stack>
-        <LoadingButton
-          variant="gradient"
-          size="large"
-          fullWidth
-          loading={false}
-          onClick={() => login()}
-        >
-          Connect Wallet
-        </LoadingButton>
+        {statusParagraph()}
+
+        {authStatus !== AuthStatus.Connected ? (
+          <LoadingButton
+            variant="gradient"
+            size="large"
+            fullWidth
+            loading={authStatus === AuthStatus.Connecting}
+            onClick={() => login()}
+          >
+            Connect Wallet
+          </LoadingButton>
+        ) : (
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="small">{formattedAddress}</Typography>
+            <Button
+              size="small"
+              onClick={() => {
+                logout()
+                reset()
+              }}
+            >
+              Out
+            </Button>
+          </Stack>
+        )}
+        {accessStatus !== AccessStatus.Verified ? (
+          <Button
+            variant="primary"
+            size="large"
+            fullWidth
+            /* disable when checking membership for the first time */
+            disabled={
+              authStatus !== AuthStatus.Connected ||
+              (accessStatus === AccessStatus.Verifying && retriesCount === 0)
+            }
+            onClick={openGuildPage}
+          >
+            Join Guild
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            size="large"
+            fullWidth
+            onClick={() => setIsOpen(false)}
+          >
+            Go to App
+          </Button>
+        )}
       </Paper>
     </Dialog>
   )
 }
+
+// disabled
+// NotConnected
+// Connecting
+// Verifying && retriesCount === 0

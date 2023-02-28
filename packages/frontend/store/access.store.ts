@@ -1,18 +1,15 @@
 import { guild, setProjectName } from "@guildxyz/sdk"
 import produce from "immer"
 import { create } from "zustand"
-import { useAuth } from "./auth.store"
 
 const FUJI_GUILD_ID = 461
 setProjectName("Fuji Finance")
 
 export enum AccessStatus {
-  NotConnected,
-  Connecting,
-  Connected,
   Verifying,
-  Access,
+  Verified,
   NoAccess,
+  // after 5 retries Error turns into FatalError
   Error,
   FatalError,
 }
@@ -24,10 +21,8 @@ type AccessState = {
 }
 
 type AccessActions = {
-  init: () => void
-  login: () => void
-  logout: () => void
-  verifyMember: (addr: string) => void
+  reset: () => void
+  verify: (addr: string) => void
 }
 
 const initialState: AccessState = {
@@ -43,37 +38,22 @@ export const useAccess = create<AccessStore>()(
   (set, get) => ({
     ...initialState,
 
-    init: async () => {
-      const addr = useAuth.getState().address
-
-      if (addr) {
-        set({ status: AccessStatus.Connected })
-
-        await get().verifyMember(addr)
-      }
-    },
-    login: async () => {
-      set({ status: AccessStatus.Connecting })
-
-      await useAuth.getState().login()
-      await get().init()
-    },
-    logout: () => {
-      await useAuth.getState().logout()
-
+    reset: () => {
       set({
-        status: AccessStatus.NotConnected,
+        status: AccessStatus.NoAccess,
         retriesCount: 0,
         errorsCount: 0,
       })
     },
-    verifyMember: async (addr: string) => {
+    // check every 3 seconds if user is a member of the guild
+    // so that we can detect in real time when they do become a member
+    verify: async (addr: string) => {
       set({ status: AccessStatus.Verifying })
 
       try {
         const reqs = await guild.getUserAccess(FUJI_GUILD_ID, addr)
         if (reqs.find((r) => r.access)) {
-          set({ status: AccessStatus.Access })
+          set({ status: AccessStatus.Verified })
         } else {
           set(
             produce((state: AccessState) => {
@@ -83,7 +63,7 @@ export const useAccess = create<AccessStore>()(
           )
           // retry in 3 secs
           setTimeout(async () => {
-            await get().verifyMember(addr)
+            await get().verify(addr)
           }, 3000)
         }
       } catch (e) {
@@ -96,7 +76,7 @@ export const useAccess = create<AccessStore>()(
               state.status = AccessStatus.Error
               state.errorsCount++
               setTimeout(async () => {
-                await get().verifyMember(addr)
+                await get().verify(addr)
               }, 3000)
             }
           })
