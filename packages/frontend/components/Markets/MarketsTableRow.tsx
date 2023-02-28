@@ -71,7 +71,7 @@ export default function MarketsTableRow({
               : palette.secondary.contrastText,
           }}
         >
-          {row.borrow && (
+          {row.debt && (
             <Stack
               direction="row"
               gap={0.5}
@@ -84,9 +84,9 @@ export default function MarketsTableRow({
                 onClick={handleExpand}
               />
               <Stack direction="row" alignItems="center" flexWrap="nowrap">
-                <TokenIcon token={row.borrow} height={32} width={32} />
+                <TokenIcon token={row.debt} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
-                  {row.borrow}
+                  {row.debt}
                 </Typography>
               </Stack>
             </Stack>

@@ -10,8 +10,8 @@ export enum Status {
 export type MarketRow = {
   entity?: BorrowingVault | VaultWithFinancials
 
-  borrow: string
   collateral: string
+  debt: string
 
   chain: {
     status: Status
@@ -63,8 +63,8 @@ export type MarketRow = {
 }
 
 const defaultRow: MarketRow = {
-  borrow: "",
   collateral: "",
+  debt: "",
   chain: {
     status: Status.Loading,
     value: "",
@@ -113,7 +113,7 @@ export const setBase = (v: BorrowingVault): MarketRow => ({
   ...defaultRow,
   entity: v,
   collateral: v.collateral.symbol,
-  borrow: v.debt.symbol,
+  debt: v.debt.symbol,
 })
 
 // set apr and aprBase as being equal
@@ -221,12 +221,12 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
   const grouped: MarketRow[] = []
 
   for (const row of rows) {
-    const key = `${row.borrow}/${row.collateral}`
+    const key = `${row.debt}/${row.collateral}`
     if (done.has(key)) continue
     done.add(key)
 
     const entries = rows.filter(
-      (r) => r.borrow === row.borrow && r.collateral === row.collateral
+      (r) => r.debt === row.debt && r.collateral === row.collateral
     )
     if (entries.length > 1) {
       // TODO: array should be sorted before being grouped

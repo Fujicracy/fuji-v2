@@ -96,17 +96,21 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <TableCell>
               <Stack direction="row" alignItems="center">
                 <TokenWithNetworkIcon
-                  token={row.borrow.sym}
+                  token={row.debt.symbol}
                   network={chainName(row.chainId)}
                   innertTop="1.1rem"
                 />
-                {row.borrow.sym}
+                {row.debt.symbol}
               </Stack>
             </TableCell>
             <TableCell>
               <Stack direction="row" alignItems="center" gap={1}>
-                <TokenIcon token={row.collateral.sym} width={32} height={32} />
-                {row.collateral.sym}
+                <TokenIcon
+                  token={row.collateral.symbol}
+                  width={32}
+                  height={32}
+                />
+                {row.collateral.symbol}
               </Stack>
             </TableCell>
             <TableCell align="right">
@@ -117,14 +121,14 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <TableCell align="right">
               <Box pt={1} pb={1}>
                 <Typography variant="small">
-                  {formatValue(row.borrow.usdValue, {
+                  {formatValue(row.debt.usdValue, {
                     style: "currency",
                     minimumFractionDigits: 0,
                   })}
                 </Typography>
                 <br />
                 <Typography variant="small" color={palette.info.main}>
-                  {formatValue(row.borrow.amount)} {row.borrow.sym}
+                  {formatValue(row.debt.amount)} {row.debt.symbol}
                 </Typography>
               </Box>
             </TableCell>
@@ -138,7 +142,7 @@ export function PositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                 </Typography>
                 <br />
                 <Typography variant="small" color={palette.info.main}>
-                  {formatValue(row.collateral.amount)} {row.collateral.sym}
+                  {formatValue(row.collateral.amount)} {row.collateral.symbol}
                 </Typography>
               </Box>
             </TableCell>

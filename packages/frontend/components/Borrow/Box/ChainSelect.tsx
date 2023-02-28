@@ -5,7 +5,7 @@ import { NetworkIcon } from "../../Shared/Icons"
 
 type ChainSelectProps = {
   label: string
-  type: "collateral" | "borrow"
+  type: "collateral" | "debt"
   value: string
   disabled?: boolean
   onChange: (chainId: string) => void

@@ -7,7 +7,7 @@ type BorrowBoxProps = {
   managePosition: boolean
   mb?: string | number | undefined
   label: string
-  type: "borrow" | "collateral"
+  type: "debt" | "collateral"
   chainId: string
   disableChainChange: boolean
   onChainChange: (chainId: string) => void
@@ -23,10 +23,7 @@ function BorrowBox(props: BorrowBoxProps) {
         disabled={props.disableChainChange}
         onChange={(chainId) => props.onChainChange(chainId)}
       />
-      <TokenCard
-        type={props.type === "collateral" ? "collateral" : "debt"}
-        disabled={props.managePosition}
-      />
+      <TokenCard type={props.type} disabled={props.managePosition} />
     </Box>
   )
 }

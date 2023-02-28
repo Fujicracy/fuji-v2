@@ -24,11 +24,6 @@ const PositionPage: NextPage = () => {
     router.push("/borrow")
   }
 
-  // If we want to make sure that the address corresponds to a vault, we need to
-  // 1) get data from the store
-  // 2) if there's no data yet, fetch it
-  // Meaning we need to show a loader and in case it fails, redirect to /borrow
-
   return (
     <BorrowWrapper
       managePosition

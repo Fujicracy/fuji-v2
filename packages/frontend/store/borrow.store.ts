@@ -74,10 +74,10 @@ export type FetchStatus = "initial" | "fetching" | "ready" | "error"
 type BorrowActions = {
   changeMode: (mode: Mode) => void
   changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
-  changeInputValues: (collateral: string, borrow: string) => void
-  changeBorrowChain: (chainId: ChainId) => void
-  changeBorrowToken: (token: Token) => void
-  changeBorrowValue: (val: string) => void
+  changeInputValues: (collateral: string, debt: string) => void
+  changeDebtChain: (chainId: ChainId) => void
+  changeDebtToken: (token: Token) => void
+  changeDebtValue: (val: string) => void
   changeCollateralChain: (chainId: ChainId) => void
   changeCollateralToken: (token: Token) => void
   changeCollateralValue: (val: string) => void
@@ -218,10 +218,10 @@ export const useBorrow = create<BorrowStore>()(
         set({ availableVaultsStatus: "ready" })
       },
 
-      async changeInputValues(collateral, borrow) {
+      async changeInputValues(collateral, debt) {
         await Promise.all([
           get().changeCollateralValue(collateral),
-          get().changeBorrowValue(borrow),
+          get().changeDebtValue(debt),
         ])
       },
 
@@ -263,7 +263,7 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      changeBorrowChain(chainId) {
+      changeDebtChain(chainId) {
         const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
 
         set(
@@ -279,7 +279,7 @@ export const useBorrow = create<BorrowStore>()(
         get().updateVault()
       },
 
-      changeBorrowToken(token) {
+      changeDebtToken(token) {
         set(
           produce((state: BorrowState) => {
             state.debt.token = token
@@ -290,7 +290,7 @@ export const useBorrow = create<BorrowStore>()(
         get().updateTransactionMeta() // updateVault already calls updateTransactionMeta
       },
 
-      changeBorrowValue(value) {
+      changeDebtValue(value) {
         set(
           produce((state: BorrowState) => {
             state.debt.input = value
@@ -524,7 +524,7 @@ export const useBorrow = create<BorrowStore>()(
           }
           const selectedRoute = selectedValue.data as RouteMeta
           if (!selectedRoute.actions.length) {
-            throw `empty action array returned by sdk.previewDepositAndBorrow with params`
+            throw `empty action array returned by sdk.preview.xxx with params`
           }
           const availableRoutes = results
             .filter((r) => r.data)

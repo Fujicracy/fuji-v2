@@ -14,7 +14,6 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 
-import PositionCard from "./PositionCard"
 import LTVProgressBar from "./LTVProgressBar"
 
 import ClickableTooltip from "../../Shared/ClickableTooltip"
@@ -49,7 +48,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
     allProviders && vault ? allProviders[vault.address.value] : []
 
   const collateralInput = useBorrow((state) => state.collateral.input)
-  const borrowInput = useBorrow((state) => state.debt.input)
+  const debtInput = useBorrow((state) => state.debt.input)
 
   const dynamicLtv = futurePosition ? futurePosition.ltv : ltv
   const dynamicLtvThreshold = futurePosition
@@ -133,7 +132,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
                 maximumFractionDigits: 2,
               })} ${debt.token.symbol}`}
               extra={
-                futurePosition && Number(borrowInput) !== 0
+                futurePosition && Number(debtInput) !== 0
                   ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
                       style: "currency",
                     })
@@ -156,7 +155,7 @@ export default function Overview({ position, futurePosition }: OverviewProps) {
               value={liquidationDiff}
               extra={
                 futurePosition &&
-                (Number(borrowInput) !== 0 || Number(borrowInput) !== 0)
+                (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
                   ? formatValue(futurePosition.liquidationPrice, {
                       style: "currency",
                     })

@@ -49,12 +49,12 @@ export default function Borrow(props: BorrowProps) {
   const debt = useBorrow((state) => state.debt)
   const debtAmount = parseFloat(debt.input)
 
-  const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
+  const changeDebtChain = useBorrow((state) => state.changeDebtChain)
   const changeCollateralChain = useBorrow(
     (state) => state.changeCollateralChain
   )
 
-  // TODO: refacto with a "status" in store (i.e status = "editing, approving, signing, borrowing...") ?
+  // TODO: refactor with a "status" in store (i.e status = "editing, approving, signing, executing...") ?
   const [showApprovalModal, setShowApprovalModal] = useState(false)
 
   const balance = useBorrow(
@@ -150,10 +150,10 @@ export default function Borrow(props: BorrowProps) {
           <BorrowBox
             managePosition={props.managePosition}
             label="Borrow to"
-            type="borrow"
+            type="debt"
             chainId={debt.chainId}
             disableChainChange={isExecuting}
-            onChainChange={(chainId) => changeBorrowChain(chainId)}
+            onChainChange={(chainId) => changeDebtChain(chainId)}
           />
 
           <Stack

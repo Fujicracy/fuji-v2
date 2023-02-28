@@ -7,8 +7,12 @@ import { formatNumber } from "./values"
 
 export type PositionRow = {
   chainId: number | undefined
-  borrow: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }
-  collateral: { sym: string | "-"; amount: number | "-"; usdValue: number | 1 }
+  debt: { symbol: string | "-"; amount: number | "-"; usdValue: number | 1 }
+  collateral: {
+    symbol: string | "-"
+    amount: number | "-"
+    usdValue: number | 1
+  }
   apr: number | "-"
   liquidationPrice: number | "-"
   oraclePrice: number | "-"
@@ -23,13 +27,13 @@ export function getRows(positions: Position[]): PositionRow[] {
     const rows: PositionRow[] = positions.map((pos: Position) => ({
       address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
-      borrow: {
-        sym: pos.vault?.debt.symbol || "",
+      debt: {
+        symbol: pos.vault?.debt.symbol || "",
         amount: pos.debt.amount,
         usdValue: pos.debt.amount * pos.debt.usdPrice,
       },
       collateral: {
-        sym: pos.vault?.collateral.symbol || "",
+        symbol: pos.vault?.collateral.symbol || "",
         amount: pos.collateral.amount,
         usdValue: pos.collateral.amount * pos.collateral.usdPrice,
       },

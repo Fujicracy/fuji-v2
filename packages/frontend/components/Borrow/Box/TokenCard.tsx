@@ -36,8 +36,8 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
   const changeCollateralToken = useBorrow(
     (state) => state.changeCollateralToken
   )
-  const changeBorrowToken = useBorrow((state) => state.changeBorrowToken)
-  const changeBorrowValue = useBorrow((state) => state.changeBorrowValue)
+  const changeDebtToken = useBorrow((state) => state.changeDebtToken)
+  const changeDebtValue = useBorrow((state) => state.changeDebtValue)
   const changeCollateralValue = useBorrow(
     (state) => state.changeCollateralValue
   )
@@ -76,7 +76,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
 
   const handleClick = (token: Token) => {
     if (type === "debt") {
-      changeBorrowToken(token)
+      changeDebtToken(token)
     } else if (type === "collateral") {
       changeCollateralToken(token)
     }
@@ -89,7 +89,7 @@ export default function TokenCard({ type, disabled }: SelectTokenCardProps) {
 
   const handleInput = (val: string) => {
     if (type === "debt") {
-      changeBorrowValue(val)
+      changeDebtValue(val)
     } else if (type === "collateral") {
       changeCollateralValue(val)
     }
