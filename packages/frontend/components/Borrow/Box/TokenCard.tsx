@@ -19,53 +19,39 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { Token } from "@x-fuji/sdk"
 import styles from "../../../styles/components/Borrow.module.css"
 
-import { useBorrow } from "../../../store/borrow.store"
 import Balance from "../../Shared/Balance"
 import { TokenIcon } from "../../Shared/Icons"
-import { recommendedLTV } from "../../../helpers/borrow"
+import { AssetChange, LtvMeta, recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
+  assetChange: AssetChange
+  isExecuting: boolean
   disabled: boolean
+  value: string
+  ltvMeta: LtvMeta
+  onTokenChange: (token: Token) => void
+  onInputChange: (value: string) => void
 }
 
-function TokenCard({ type, disabled }: SelectTokenCardProps) {
+function TokenCard({
+  type,
+  assetChange,
+  isExecuting,
+  disabled,
+  value,
+  ltvMeta,
+  onTokenChange,
+  onInputChange,
+}: SelectTokenCardProps) {
   const { palette } = useTheme()
 
-  const changeCollateralToken = useBorrow(
-    (state) => state.changeCollateralToken
-  )
-  const changeDebtToken = useBorrow((state) => state.changeDebtToken)
-  const changeDebtValue = useBorrow((state) => state.changeDebtValue)
-  const changeCollateralValue = useBorrow(
-    (state) => state.changeCollateralValue
-  )
+  const { token, usdPrice, balances, selectableTokens } = assetChange
 
-  const tokens = useBorrow((state) =>
-    type === "debt"
-      ? state.debt.selectableTokens
-      : state.collateral.selectableTokens
-  )
-  const debtOrCollateral = useBorrow((state) =>
-    type === "debt" ? state.debt : state.collateral
-  )
-  const { token } = debtOrCollateral
-  // const input = useBorrow((state) =>
-  //   type === "debt" ? state.debtInput : state.collateralInput
-  // )
-  // const amount = parseFloat(input)
-  const tokenValue = debtOrCollateral.usdPrice
-  const balances = useBorrow((state) =>
-    type === "debt" ? state.debt.balances : state.collateral.balances
-  )
   const balance = balances[token.symbol]
-  const value = useBorrow((state) =>
-    type === "debt" ? state.debt.input : state.collateral.input
-  )
-  const { ltv, ltvMax } = useBorrow((state) => state.ltv)
 
-  const isExecuting = useBorrow((state) => state.isExecuting)
+  const { ltv, ltvMax } = ltvMeta
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -74,25 +60,12 @@ function TokenCard({ type, disabled }: SelectTokenCardProps) {
   }
   const close = () => setAnchorEl(null)
 
-  const handleClick = (token: Token) => {
-    if (type === "debt") {
-      changeDebtToken(token)
-    } else if (type === "collateral") {
-      changeCollateralToken(token)
-    }
-    close()
-  }
-
   const handleMax = () => {
     handleInput(balance ? balance.toString() : "0")
   }
 
   const handleInput = (val: string) => {
-    if (type === "debt") {
-      changeDebtValue(val)
-    } else if (type === "collateral") {
-      changeCollateralValue(val)
-    }
+    onInputChange(val)
   }
 
   return (
@@ -100,7 +73,7 @@ function TokenCard({ type, disabled }: SelectTokenCardProps) {
       variant="outlined"
       sx={{
         borderColor:
-          type === "collateral" && debtOrCollateral.amount > balance
+          type === "collateral" && assetChange.amount > balance
             ? palette.error.dark
             : palette.secondary.light,
       }}
@@ -145,12 +118,12 @@ function TokenCard({ type, disabled }: SelectTokenCardProps) {
           onClose={close}
           TransitionComponent={Fade}
         >
-          {tokens.map((token) => (
+          {selectableTokens.map((token) => (
             <TokenItem
               key={token.name}
               token={token}
               balance={balances[token.symbol]}
-              onClick={() => handleClick(token)}
+              onClick={() => onTokenChange(token)}
             />
           ))}
         </Menu>
@@ -160,7 +133,7 @@ function TokenCard({ type, disabled }: SelectTokenCardProps) {
         {type === "collateral" ? (
           <>
             <Typography variant="small" sx={{ width: "11rem" }}>
-              {formatValue(tokenValue * +value, { style: "currency" })}
+              {formatValue(usdPrice * +value, { style: "currency" })}
             </Typography>
             <div
               style={{
@@ -193,7 +166,7 @@ function TokenCard({ type, disabled }: SelectTokenCardProps) {
         ) : (
           <>
             <Typography variant="small" sx={{ width: "7rem" }}>
-              {formatValue(tokenValue * +value)}
+              {formatValue(usdPrice * +value)}
             </Typography>
 
             <Stack direction="row">

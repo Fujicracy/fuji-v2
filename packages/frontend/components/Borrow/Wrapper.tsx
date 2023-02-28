@@ -118,7 +118,10 @@ function BorrowWrapper(
       >
         <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
           <Grid item xs={12} md={5}>
-            <Borrow managePosition={managePosition} />
+            <Borrow
+              managePosition={managePosition}
+              futurePosition={futurePosition}
+            />
           </Grid>
           <Grid item sm={12} md={7}>
             {isMobile ? (

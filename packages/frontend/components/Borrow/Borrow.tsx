@@ -25,65 +25,59 @@ import { modeForContext, PositionAction } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { navigateToVault } from "../../helpers/navigation"
+import { Position } from "../../store/models/Position"
 
 type BorrowProps = {
   managePosition: boolean
+  futurePosition?: Position
 }
-function Borrow(props: BorrowProps) {
-  const address = useAuth((state) => state.address)
-  const walletChain = useAuth((state) => state.chain)
+function Borrow({ managePosition, futurePosition }: BorrowProps) {
   const router = useRouter()
-
-  const changeChain = useAuth((state) => state.changeChain)
-  const updateBalance = useBorrow((state) => state.updateBalances)
-  const updateVault = useBorrow((state) => state.updateVault)
-  const updateAllowance = useBorrow((state) => state.updateAllowance)
-
-  const login = useAuth((state) => state.login)
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
-  const collateral = useBorrow((state) => state.collateral)
-  const collateralAmount = parseFloat(collateral.input)
-
-  const debt = useBorrow((state) => state.debt)
-  const debtAmount = parseFloat(debt.input)
-
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain)
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  )
-
-  // TODO: refactor with a "status" in store (i.e status = "editing, approving, signing, executing...") ?
-  const [showApprovalModal, setShowApprovalModal] = useState(false)
+  const address = useAuth((state) => state.address)
+  const walletChain = useAuth((state) => state.chain)
+  const changeChain = useAuth((state) => state.changeChain)
+  const login = useAuth((state) => state.login)
 
   const balance = useBorrow(
     (state) => state.collateral.balances[state.collateral.token.symbol]
   )
-
-  const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
-
-  const { ltv, ltvMax } = useBorrow((state) => state.ltv)
-
-  const signAndExecute = useBorrow((state) => state.signAndExecute)
+  const collateral = useBorrow((state) => state.collateral)
+  const debt = useBorrow((state) => state.debt)
+  const ltvMeta = useBorrow((state) => state.ltv)
   const isSigning = useBorrow((state) => state.isSigning)
   const isExecuting = useBorrow((state) => state.isExecuting)
+  const metaStatus = useBorrow((state) => state.transactionMeta.status)
+  const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
+  const vault = useBorrow((state) => state.activeVault)
+  const mode = useBorrow((state) => state.mode)
+  const changeMode = useBorrow((state) => state.changeMode)
+  const updateBalance = useBorrow((state) => state.updateBalances)
+  const updateVault = useBorrow((state) => state.updateVault)
+  const updateAllowance = useBorrow((state) => state.updateAllowance)
+  const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
+  const signAndExecute = useBorrow((state) => state.signAndExecute)
 
   const currentTxHash = useHistory((state) => state.inModal)
   const closeModal = useHistory((state) => state.closeModal)
-  const metaStatus = useBorrow((state) => state.transactionMeta.status)
-  const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
 
+  const collateralAmount = parseFloat(collateral.input)
+  const debtAmount = parseFloat(debt.input)
+
+  const dynamicLtvMeta = futurePosition
+    ? {
+        ltv: futurePosition.ltv,
+        ltvMax: futurePosition.ltvMax,
+        ltvThreshold: futurePosition.ltvThreshold,
+      }
+    : ltvMeta
+
+  const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const availableRoutes = useBorrow((state) => state.availableRoutes)
-
   const [positionAction, setPositionAction] = useState(PositionAction.ADD)
-
-  // TODO: Need to make sure to update mode when changing page, chains, collateral, debt, etc.
-  const mode = useBorrow((state) => state.mode)
-  const changeMode = useBorrow((state) => state.changeMode)
-
-  const vault = useBorrow((state) => state.activeVault)
   const [hasBalance, setHasBalance] = useState(false)
 
   useEffect(() => {
@@ -102,7 +96,7 @@ function Borrow(props: BorrowProps) {
 
   useEffect(() => {
     ;(async () => {
-      if (address && vault && !props.managePosition) {
+      if (address && vault && !managePosition) {
         // Poor implementation, needs to be more complex and probably grab the associated position
         const balance = await vault.getBalances(Address.from(address))
         const hasBalance =
@@ -110,23 +104,17 @@ function Borrow(props: BorrowProps) {
         setHasBalance(hasBalance)
       }
     })()
-  }, [address, vault, props.managePosition])
+  }, [address, vault, managePosition])
 
   useEffect(() => {
     const mode = modeForContext(
-      props.managePosition,
+      managePosition,
       positionAction,
       Number(collateral.input),
       Number(debt.input)
     )
     changeMode(mode)
-  }, [
-    changeMode,
-    props.managePosition,
-    collateral.input,
-    debt.input,
-    positionAction,
-  ])
+  }, [changeMode, managePosition, collateral.input, debt.input, positionAction])
 
   return (
     <>
@@ -134,27 +122,25 @@ function Borrow(props: BorrowProps) {
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <BorrowHeader
             chainName={chainName(debt.chainId)}
-            managePosition={props.managePosition}
+            managePosition={managePosition}
             action={positionAction}
             onPositionActionChange={(action) => setPositionAction(action)}
           />
-          <BorrowBox
-            mb="1rem"
-            managePosition={props.managePosition}
-            label="Collateral from"
-            type="collateral"
-            chainId={collateral.chainId}
-            disableChainChange={isExecuting}
-            onChainChange={(chainId) => changeCollateralChain(chainId)}
-          />
-          <BorrowBox
-            managePosition={props.managePosition}
-            label="Borrow to"
-            type="debt"
-            chainId={debt.chainId}
-            disableChainChange={isExecuting}
-            onChainChange={(chainId) => changeDebtChain(chainId)}
-          />
+          {[collateral, debt].map((assetChange, index) => {
+            const type = index === 0 ? "collateral" : "debt"
+            return (
+              <BorrowBox
+                key={type}
+                type={type}
+                assetChange={assetChange}
+                managePosition={managePosition}
+                chainId={assetChange.chainId}
+                isExecuting={isExecuting}
+                value={assetChange.input}
+                ltvMeta={dynamicLtvMeta}
+              />
+            )
+          })}
 
           <Stack
             direction="row"
@@ -186,8 +172,7 @@ function Borrow(props: BorrowProps) {
             collateralAmount={collateralAmount}
             debtAmount={debtAmount}
             balance={balance}
-            ltv={ltv}
-            ltvMax={ltvMax}
+            ltvMeta={dynamicLtvMeta}
             collateralAllowance={collateral.allowance?.value}
             collateralToken={collateral.token}
             metaStatus={metaStatus}
@@ -195,7 +180,7 @@ function Borrow(props: BorrowProps) {
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            managePosition={props.managePosition}
+            managePosition={managePosition}
             hasBalance={hasBalance}
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}

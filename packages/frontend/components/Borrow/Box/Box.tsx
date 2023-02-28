@@ -1,29 +1,73 @@
 import { Box } from "@mui/material"
+import { AssetChange, LtvMeta } from "../../../helpers/borrow"
+import { useBorrow } from "../../../store/borrow.store"
 
 import ChainSelect from "./ChainSelect"
 import TokenCard from "./TokenCard"
 
 type BorrowBoxProps = {
   managePosition: boolean
-  mb?: string | number | undefined
-  label: string
   type: "debt" | "collateral"
   chainId: string
-  disableChainChange: boolean
-  onChainChange: (chainId: string) => void
+  isExecuting: boolean
+  value: string
+  ltvMeta: LtvMeta
+  assetChange: AssetChange
 }
 
-function BorrowBox(props: BorrowBoxProps) {
+function BorrowBox({
+  managePosition,
+  assetChange,
+  type,
+  chainId,
+  isExecuting,
+  value,
+  ltvMeta,
+}: BorrowBoxProps) {
+  const changeCollateralChain = useBorrow(
+    (state) => state.changeCollateralChain
+  )
+  const changeCollateralToken = useBorrow(
+    (state) => state.changeCollateralToken
+  )
+  const changeCollateralValue = useBorrow(
+    (state) => state.changeCollateralValue
+  )
+  const changeDebtChain = useBorrow((state) => state.changeDebtChain)
+  const changeDebtToken = useBorrow((state) => state.changeDebtToken)
+  const changeDebtValue = useBorrow((state) => state.changeDebtValue)
+
   return (
-    <Box mb={props.mb}>
+    <Box mb={type === "collateral" ? "1rem" : undefined}>
       <ChainSelect
-        label={props.label}
-        type={props.type}
-        value={props.chainId}
-        disabled={props.disableChainChange}
-        onChange={(chainId) => props.onChainChange(chainId)}
+        label={type === "collateral" ? "Collateral from" : "Borrow to"}
+        type={type}
+        value={chainId}
+        disabled={isExecuting}
+        onChange={(chainId) =>
+          type === "collateral"
+            ? changeCollateralChain(chainId)
+            : changeDebtChain(chainId)
+        }
       />
-      <TokenCard type={props.type} disabled={props.managePosition} />
+      <TokenCard
+        type={type}
+        assetChange={assetChange}
+        disabled={managePosition}
+        isExecuting={isExecuting}
+        value={value}
+        ltvMeta={ltvMeta}
+        onTokenChange={(token) =>
+          type === "collateral"
+            ? changeCollateralToken(token)
+            : changeDebtToken(token)
+        }
+        onInputChange={(value) =>
+          type === "collateral"
+            ? changeCollateralValue(value)
+            : changeDebtValue(value)
+        }
+      />
     </Box>
   )
 }

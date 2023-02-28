@@ -3,7 +3,7 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { Token } from "@x-fuji/sdk"
 import { FetchStatus } from "../../store/borrow.store"
-import { Mode } from "../../helpers/borrow"
+import { LtvMeta, Mode } from "../../helpers/borrow"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 
 type BorrowButtonProps = {
@@ -13,8 +13,7 @@ type BorrowButtonProps = {
   collateralAmount: number
   debtAmount: number
   balance: number
-  ltv: number
-  ltvMax: number
+  ltvMeta: LtvMeta
   collateralAllowance: number | undefined
   collateralToken: Token
   metaStatus: FetchStatus
@@ -112,7 +111,7 @@ function BorrowButton(props: BorrowButtonProps) {
         Insufficient {props.collateralToken.symbol} balance
       </Button>
     )
-  } else if (props.ltv > props.ltvMax) {
+  } else if (props.ltvMeta.ltv > props.ltvMeta.ltvMax) {
     return (
       <Button variant="gradient" size="large" disabled fullWidth>
         Not enough collateral
