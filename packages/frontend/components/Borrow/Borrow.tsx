@@ -167,14 +167,12 @@ function Borrow({ managePosition, futurePosition }: BorrowProps) {
 
           <BorrowButton
             address={address}
-            collateralChainId={collateral.chainId}
+            collateral={collateral}
             walletChain={walletChain}
             collateralAmount={collateralAmount}
             debtAmount={debtAmount}
             balance={balance}
             ltvMeta={dynamicLtvMeta}
-            collateralAllowance={collateral.allowance?.value}
-            collateralToken={collateral.token}
             metaStatus={metaStatus}
             isSigning={isSigning}
             isExecuting={isExecuting}

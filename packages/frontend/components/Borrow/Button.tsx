@@ -1,21 +1,18 @@
 import { Button } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
-import { Token } from "@x-fuji/sdk"
 import { FetchStatus } from "../../store/borrow.store"
-import { LtvMeta, Mode } from "../../helpers/borrow"
+import { AssetChange, LtvMeta, Mode } from "../../helpers/borrow"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 
 type BorrowButtonProps = {
   address: string | undefined
-  collateralChainId: string
+  collateral: AssetChange
   walletChain: ConnectedChain | undefined
   collateralAmount: number
   debtAmount: number
   balance: number
   ltvMeta: LtvMeta
-  collateralAllowance: number | undefined
-  collateralToken: Token
   metaStatus: FetchStatus
   isSigning: boolean
   isExecuting: boolean
@@ -30,103 +27,116 @@ type BorrowButtonProps = {
   onClick: () => void
 }
 
-function BorrowButton(props: BorrowButtonProps) {
+function BorrowButton({
+  address,
+  collateral,
+  walletChain,
+  collateralAmount,
+  debtAmount,
+  balance,
+  ltvMeta,
+  metaStatus,
+  isSigning,
+  isExecuting,
+  availableVaultStatus,
+  mode,
+  managePosition,
+  hasBalance,
+  onLoginClick,
+  onChainChangeClick,
+  onApproveClick,
+  onPositionClick,
+  onClick,
+}: BorrowButtonProps) {
   const loadingButtonTitle =
-    (props.isSigning && "(1/2) Signing...") ||
-    (props.isExecuting &&
+    (isSigning && "(1/2) Signing...") ||
+    (isExecuting &&
       `(2/2) ${
-        props.mode === Mode.DEPOSIT_AND_BORROW || props.mode === Mode.BORROW
+        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
           ? "Borrowing"
-          : props.mode === Mode.DEPOSIT
+          : mode === Mode.DEPOSIT
           ? "Depositing"
-          : props.mode === Mode.PAYBACK_AND_WITHDRAW ||
-            props.mode === Mode.WITHDRAW
+          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
           ? "Withdrawing"
           : "Repaying"
       }...`) ||
-    props.mode === Mode.DEPOSIT_AND_BORROW
+    mode === Mode.DEPOSIT_AND_BORROW
       ? "Sign & Borrow"
-      : props.mode === Mode.BORROW
+      : mode === Mode.BORROW
       ? "Borrow"
-      : props.mode === Mode.DEPOSIT
+      : mode === Mode.DEPOSIT
       ? "Deposit"
-      : props.mode === Mode.PAYBACK_AND_WITHDRAW
+      : mode === Mode.PAYBACK_AND_WITHDRAW
       ? "Repay & Withdraw"
-      : props.mode === Mode.WITHDRAW
+      : mode === Mode.WITHDRAW
       ? "Withdraw"
       : "Repay"
 
-  if (!props.address) {
+  if (!address) {
     return (
       <Button
         variant="gradient"
         size="large"
-        onClick={() => props.onLoginClick()}
+        onClick={() => onLoginClick()}
         fullWidth
         data-cy="borrow-login"
       >
         Connect wallet
       </Button>
     )
-  } else if (props.collateralChainId !== props.walletChain?.id) {
+  } else if (collateral.chainId !== walletChain?.id) {
     return (
       <Button
         variant="gradient"
         size="large"
         fullWidth
-        onClick={() => props.onChainChangeClick()}
+        onClick={() => onChainChangeClick()}
       >
         Switch network
       </Button>
     )
-  } else if (!props.managePosition && props.hasBalance) {
+  } else if (!managePosition && hasBalance) {
     return (
       <Button
         variant="gradient"
         fullWidth
         size="large"
-        onClick={() => props.onPositionClick()}
+        onClick={() => onPositionClick()}
       >
         Manage position
       </Button>
     )
-  } else if (
-    props.debtAmount !== 0 &&
-    props.debtAmount <= MINIMUM_DEBT_AMOUNT
-  ) {
+  } else if (debtAmount !== 0 && debtAmount <= MINIMUM_DEBT_AMOUNT) {
     return (
       <Button variant="gradient" size="large" disabled fullWidth>
         {
           // TODO: need to figure this one out
         }
-        {"Borrowing amount too low"}{" "}
+        {"Borrowing amount too low"}
       </Button>
     )
-  } else if (
-    props.collateralAmount > 0 &&
-    props.collateralAmount > props.balance
-  ) {
+  } else if (collateralAmount > 0 && collateralAmount > balance) {
     return (
       <Button variant="gradient" size="large" disabled fullWidth>
-        Insufficient {props.collateralToken.symbol} balance
+        Insufficient {collateral.token.symbol} balance
       </Button>
     )
-  } else if (props.ltvMeta.ltv > props.ltvMeta.ltvMax) {
+  } else if (ltvMeta.ltv > ltvMeta.ltvMax) {
     return (
       <Button variant="gradient" size="large" disabled fullWidth>
         Not enough collateral
       </Button>
     )
   } else if (
-    props.collateralAllowance !== undefined &&
-    props.collateralAllowance < props.collateralAmount
+    collateral.allowance?.value !== undefined &&
+    collateral.allowance?.value < collateralAmount
   ) {
     return (
       <Button
         variant="gradient"
         fullWidth
         size="large"
-        onClick={() => props.onApproveClick()}
+        onClick={() => onApproveClick()}
       >
         Allow
       </Button>
@@ -135,18 +145,14 @@ function BorrowButton(props: BorrowButtonProps) {
     return (
       <LoadingButton
         variant="gradient"
-        onClick={() => props.onClick()}
+        onClick={() => onClick()}
         size="large"
         fullWidth
         disabled={
-          props.collateralAmount <= 0 ||
-          props.debtAmount <= 0 ||
-          props.metaStatus !== "ready"
+          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
         }
         loading={
-          props.isSigning ||
-          props.isExecuting ||
-          props.availableVaultStatus === "fetching"
+          isSigning || isExecuting || availableVaultStatus === "fetching"
         }
         loadingPosition="start"
         startIcon={<></>}
