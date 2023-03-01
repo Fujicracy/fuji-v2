@@ -72,90 +72,60 @@ function BorrowButton({
       ? "Withdraw"
       : "Repay"
 
+  const regularButton = (
+    title: string,
+    onClick: () => void,
+    data: string | undefined = undefined
+  ) => (
+    <Button
+      variant="gradient"
+      size="large"
+      fullWidth
+      onClick={onClick}
+      data-cy={data}
+    >
+      {title}
+    </Button>
+  )
+
+  const disabledButton = (title: string) => (
+    <Button variant="gradient" size="large" fullWidth disabled>
+      {title}
+    </Button>
+  )
+
   if (!address) {
-    return (
-      <Button
-        variant="gradient"
-        size="large"
-        onClick={() => onLoginClick()}
-        fullWidth
-        data-cy="borrow-login"
-      >
-        Connect wallet
-      </Button>
-    )
+    return regularButton("Connect wallet", onLoginClick, "borrow-login")
   } else if (collateral.chainId !== walletChain?.id) {
-    return (
-      <Button
-        variant="gradient"
-        size="large"
-        fullWidth
-        onClick={() => onChainChangeClick()}
-      >
-        Switch network
-      </Button>
-    )
+    return regularButton("Switch network", onChainChangeClick)
   } else if (!managePosition && hasBalance) {
-    return (
-      <Button
-        variant="gradient"
-        fullWidth
-        size="large"
-        onClick={() => onPositionClick()}
-      >
-        Manage position
-      </Button>
-    )
+    return regularButton("Manage position", onPositionClick)
   } else if (debtAmount !== 0 && debtAmount <= MINIMUM_DEBT_AMOUNT) {
-    return (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        {
-          // TODO: need to figure this one out
-        }
-        {"Borrowing amount too low"}
-      </Button>
-    )
+    return disabledButton("Borrowing amount too low") // TODO: need to figure this one out
   } else if (collateralAmount > 0 && collateralAmount > balance) {
-    return (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        Insufficient {collateral.token.symbol} balance
-      </Button>
-    )
+    return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
   } else if (ltvMeta.ltv > ltvMeta.ltvMax) {
-    return (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        Not enough collateral
-      </Button>
-    )
+    return disabledButton("Not enough collateral")
   } else if (
     collateral.allowance?.value !== undefined &&
     collateral.allowance?.value < collateralAmount
   ) {
-    return (
-      <Button
-        variant="gradient"
-        fullWidth
-        size="large"
-        onClick={() => onApproveClick()}
-      >
-        Allow
-      </Button>
-    )
+    return regularButton("Allow", onApproveClick)
   } else {
     return (
       <LoadingButton
         variant="gradient"
-        onClick={() => onClick()}
         size="large"
+        loadingPosition="start"
         fullWidth
+        startIcon={<></>}
         disabled={
           collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
         }
         loading={
           isSigning || isExecuting || availableVaultStatus === "fetching"
         }
-        loadingPosition="start"
-        startIcon={<></>}
+        onClick={onClick}
       >
         {loadingButtonTitle}
       </LoadingButton>
