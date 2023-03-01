@@ -117,7 +117,7 @@ function Overview({ basePosition }: OverviewProps) {
                 style: "currency",
               })}
               extra={
-                futurePosition && Number(collateralInput) !== 0
+                futurePosition && parseFloat(collateralInput) !== 0
                   ? formatValue(futurePosition.collateral.amount, {
                       maximumFractionDigits: 3,
                     })

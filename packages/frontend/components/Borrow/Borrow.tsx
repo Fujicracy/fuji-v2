@@ -112,8 +112,8 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
     const mode = modeForContext(
       managePosition,
       positionAction,
-      Number(collateral.input),
-      Number(debt.input)
+      parseFloat(collateral.input),
+      parseFloat(debt.input)
     )
     changeMode(mode)
   }, [changeMode, managePosition, collateral.input, debt.input, positionAction])

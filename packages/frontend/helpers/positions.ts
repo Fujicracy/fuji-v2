@@ -88,27 +88,27 @@ export function viewFuturePosition(
   switch (mode) {
     case Mode.DEPOSIT:
       future.collateral.amount =
-        current.collateral.amount + Number(collateral.input)
+        current.collateral.amount + parseFloat(collateral.input)
       break
     case Mode.BORROW:
       future.debt.amount = current.debt.amount + Number(debt.input)
       break
     case Mode.WITHDRAW:
       future.collateral.amount =
-        current.collateral.amount - Number(collateral.input)
+        current.collateral.amount - parseFloat(collateral.input)
       break
     case Mode.PAYBACK:
       future.debt.amount = current.debt.amount - Number(debt.input)
       break
     case Mode.DEPOSIT_AND_BORROW:
       future.collateral.amount =
-        current.collateral.amount + Number(collateral.input)
+        current.collateral.amount + parseFloat(collateral.input)
 
       future.debt.amount = current.debt.amount + Number(debt.input)
       break
     case Mode.PAYBACK_AND_WITHDRAW:
       future.collateral.amount =
-        current.collateral.amount - Number(collateral.input)
+        current.collateral.amount - parseFloat(collateral.input)
 
       future.debt.amount = current.debt.amount - Number(debt.input)
       break
