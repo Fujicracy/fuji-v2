@@ -25,7 +25,6 @@ import { modeForContext, PositionAction } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { navigateToVault } from "../../helpers/navigation"
-import { Position } from "../../store/models/Position"
 import { BasePosition } from "../../helpers/positions"
 
 type BorrowProps = {
@@ -66,9 +65,6 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
 
   const { position, futurePosition } = basePosition
 
-  const collateralAmount = parseFloat(collateral.input)
-  const debtAmount = parseFloat(debt.input)
-
   const dynamicLtvMeta = {
     ltv: futurePosition ? futurePosition.ltv : position.ltv,
     ltvMax: futurePosition ? futurePosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
@@ -80,7 +76,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRoutingModal, setShowRoutingModal] = useState(false)
   const [positionAction, setPositionAction] = useState(PositionAction.ADD)
-  const [hasBalance, setHasBalance] = useState(false)
+  const [hasBalanceInVault, setHasBalanceInVault] = useState(false)
 
   useEffect(() => {
     if (address) {
@@ -99,11 +95,11 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
   useEffect(() => {
     ;(async () => {
       if (address && vault && !managePosition) {
-        // Poor implementation, needs to be more complex and probably grab the associated position
+        // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address))
         const hasBalance =
           balance.deposit.toNumber() > 0 || balance.borrow.toNumber() > 0
-        setHasBalance(hasBalance)
+        setHasBalanceInVault(hasBalance)
       }
     })()
   }, [address, vault, managePosition])
@@ -170,9 +166,9 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
           <BorrowButton
             address={address}
             collateral={collateral}
+            debt={debt}
+            position={position}
             walletChain={walletChain}
-            collateralAmount={collateralAmount}
-            debtAmount={debtAmount}
             balance={balance}
             ltvMeta={dynamicLtvMeta}
             metaStatus={metaStatus}
@@ -180,8 +176,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            managePosition={managePosition}
-            hasBalance={hasBalance}
+            shouldRedirect={!managePosition && hasBalanceInVault}
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
