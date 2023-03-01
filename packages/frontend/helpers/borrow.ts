@@ -48,7 +48,7 @@ export enum Mode {
   DEPOSIT, // addPosition: collateral
   BORROW, //addPosition: debt
   WITHDRAW, // removePosition: collateral
-  REPAY, // removePosition: debt
+  PAYBACK, // removePosition: debt
 }
 
 export function modeForContext(
@@ -65,7 +65,7 @@ export function modeForContext(
   } else if (collateral > 0) {
     return PositionAction.ADD === action ? Mode.DEPOSIT : Mode.WITHDRAW
   } else if (debt > 0) {
-    return PositionAction.ADD === action ? Mode.BORROW : Mode.REPAY
+    return PositionAction.ADD === action ? Mode.BORROW : Mode.PAYBACK
   }
   return Mode.DEPOSIT_AND_BORROW
 }
@@ -76,7 +76,7 @@ export function entryTypeForMode(mode: Mode): HistoryEntryType {
       return "deposit"
     case Mode.PAYBACK_AND_WITHDRAW || Mode.WITHDRAW:
       return "withdraw"
-    case Mode.REPAY:
+    case Mode.PAYBACK:
       return "repay"
     default:
       return "borrow"
@@ -160,7 +160,7 @@ export const fetchRoutes = async (
           collateralToken,
           Address.from(address)
         )
-      case Mode.REPAY:
+      case Mode.PAYBACK:
         preview = await sdk.previews.payback(
           vault,
           parseUnits(debtInput, debtToken.decimals),

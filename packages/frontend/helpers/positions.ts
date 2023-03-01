@@ -97,7 +97,7 @@ export function viewFuturePosition(
       future.collateral.amount =
         current.collateral.amount - Number(collateral.input)
       break
-    case Mode.REPAY:
+    case Mode.PAYBACK:
       future.debt.amount = current.debt.amount - Number(debt.input)
       break
     case Mode.DEPOSIT_AND_BORROW:
