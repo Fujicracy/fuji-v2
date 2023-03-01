@@ -1,3 +1,4 @@
+import { useBorrow } from "../store/borrow.store"
 import { AssetMeta, Position } from "../store/models/Position"
 import { AssetChange, LtvMeta, Mode } from "./borrow"
 import { formatNumber } from "./values"
@@ -116,7 +117,8 @@ export function viewFuturePosition(
   const debtUsdValue = future.debt.amount * future.debt.usdPrice
   const collatUsdValue = future.collateral.amount * future.collateral.usdPrice
 
-  future.ltv = debtUsdValue / collatUsdValue
+  future.ltvMax = future.ltvMax
+  future.ltv = (debtUsdValue / collatUsdValue) * 100
 
   future.liquidationPrice =
     debtUsdValue / (future.ltvThreshold * future.collateral.amount)
@@ -126,25 +128,41 @@ export function viewFuturePosition(
   return future
 }
 
+export type BasePosition = {
+  position: Position
+  futurePosition?: Position
+}
+
 export function viewDynamicPosition(
   dynamic: boolean,
-  baseCollateral: AssetChange,
-  baseDebt: AssetChange,
-  baseLtv: LtvMeta,
-  position: Position | undefined = undefined
-): Position {
+  position: Position | undefined,
+  futurePosition: Position | undefined = undefined
+): BasePosition {
+  const baseCollateral = useBorrow.getState().collateral
+  const baseDebt = useBorrow.getState().debt
+  const baseLtv = useBorrow.getState().ltv
+  const baseLiquidation = useBorrow.getState().liquidationMeta
   return {
-    collateral: dynamicPositionMeta(
-      dynamic,
-      baseCollateral,
-      position?.collateral
-    ),
-    debt: dynamicPositionMeta(dynamic, baseDebt, position?.debt),
-    ltv: position ? position.ltv : baseLtv.ltv,
-    ltvMax: position ? position.ltvMax : baseLtv.ltvMax,
-    ltvThreshold: position ? position.ltvThreshold : baseLtv.ltvThreshold,
-    liquidationDiff: position ? position.liquidationDiff : 0,
-    liquidationPrice: position ? position.liquidationPrice : 0,
+    position: {
+      collateral: dynamicPositionMeta(
+        dynamic,
+        baseCollateral,
+        position?.collateral
+      ),
+      debt: dynamicPositionMeta(dynamic, baseDebt, position?.debt),
+      ltv: position ? 100 * position.ltv : baseLtv.ltv,
+      ltvMax: position ? 100 * position.ltvMax : baseLtv.ltvMax,
+      ltvThreshold: position
+        ? 100 * position.ltvThreshold
+        : baseLtv.ltvThreshold,
+      liquidationDiff: position
+        ? position.liquidationDiff
+        : baseLiquidation.liquidationDiff,
+      liquidationPrice: position
+        ? position.liquidationPrice
+        : baseLiquidation.liquidationPrice,
+    },
+    futurePosition,
   }
 }
 

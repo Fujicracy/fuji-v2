@@ -26,12 +26,13 @@ import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { navigateToVault } from "../../helpers/navigation"
 import { Position } from "../../store/models/Position"
+import { BasePosition } from "../../helpers/positions"
 
 type BorrowProps = {
   managePosition: boolean
-  futurePosition?: Position
+  basePosition: BasePosition
 }
-function Borrow({ managePosition, futurePosition }: BorrowProps) {
+function Borrow({ managePosition, basePosition }: BorrowProps) {
   const router = useRouter()
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
@@ -46,7 +47,6 @@ function Borrow({ managePosition, futurePosition }: BorrowProps) {
   )
   const collateral = useBorrow((state) => state.collateral)
   const debt = useBorrow((state) => state.debt)
-  const ltvMeta = useBorrow((state) => state.ltv)
   const isSigning = useBorrow((state) => state.isSigning)
   const isExecuting = useBorrow((state) => state.isExecuting)
   const metaStatus = useBorrow((state) => state.transactionMeta.status)
@@ -64,16 +64,18 @@ function Borrow({ managePosition, futurePosition }: BorrowProps) {
   const currentTxHash = useHistory((state) => state.inModal)
   const closeModal = useHistory((state) => state.closeModal)
 
+  const { position, futurePosition } = basePosition
+
   const collateralAmount = parseFloat(collateral.input)
   const debtAmount = parseFloat(debt.input)
 
-  const dynamicLtvMeta = futurePosition
-    ? {
-        ltv: futurePosition.ltv,
-        ltvMax: futurePosition.ltvMax,
-        ltvThreshold: futurePosition.ltvThreshold,
-      }
-    : ltvMeta
+  const dynamicLtvMeta = {
+    ltv: futurePosition ? futurePosition.ltv : position.ltv,
+    ltvMax: futurePosition ? futurePosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvThreshold: futurePosition
+      ? futurePosition.ltvThreshold
+      : position.ltvThreshold,
+  }
 
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRoutingModal, setShowRoutingModal] = useState(false)

@@ -24,14 +24,15 @@ import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 import { Position } from "../../../store/models/Position"
 import PositionCardGradItem from "./PositionCard"
+import { BasePosition } from "../../../helpers/positions"
 
 type OverviewProps = {
-  position: Position
-  futurePosition?: Position
+  basePosition: BasePosition
 }
 
-function Overview({ position, futurePosition }: OverviewProps) {
+function Overview({ basePosition }: OverviewProps) {
   const { palette } = useTheme()
+  const { position, futurePosition } = basePosition
   const {
     collateral,
     debt,
@@ -149,7 +150,7 @@ function Overview({ position, futurePosition }: OverviewProps) {
               }
               footer={
                 liquidationDiff >= 0
-                  ? `~${liquidationDiff}% below current price`
+                  ? `~${liquidationDiff.toFixed(0)}% below current price`
                   : `n/a`
               }
               value={liquidationDiff}

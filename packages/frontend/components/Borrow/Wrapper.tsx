@@ -19,6 +19,7 @@ import { useAuth } from "../../store/auth.store"
 import { usePositions } from "../../store/positions.store"
 import { Position } from "../../store/models/Position"
 import {
+  BasePosition,
   viewDynamicPosition,
   viewFuturePosition,
 } from "../../helpers/positions"
@@ -44,34 +45,32 @@ function BorrowWrapper(
   const baseLtv = useBorrow((state) => state.ltv)
   const mode = useBorrow((state) => state.mode)
 
-  const [position, setPosition] = useState<Position>(
-    viewDynamicPosition(!managePosition, baseCollateral, baseDebt, baseLtv)
+  const [basePosition, setBasePosition] = useState<BasePosition>(
+    viewDynamicPosition(!managePosition, undefined)
   )
-  const [futurePosition, setFuturePosition] = useState<Position | undefined>(
-    undefined
-  )
+  // const [futurePosition, setFuturePosition] = useState<Position | undefined>(
+  //   undefined
+  // )
 
   useEffect(() => {
     let matchPosition: Position | undefined
+    let futurePosition: Position | undefined
     if (address && positions.length > 0 && query) {
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       )
-      const futurePosition = matchPosition
+      futurePosition = matchPosition
         ? viewFuturePosition(baseCollateral, baseDebt, matchPosition, mode)
         : undefined
-      setFuturePosition(futurePosition)
     }
     const basePosition = viewDynamicPosition(
       !managePosition,
-      baseCollateral,
-      baseDebt,
-      baseLtv,
-      matchPosition
+      matchPosition,
+      futurePosition
     )
-    setPosition(basePosition)
+    setBasePosition(basePosition)
   }, [
     baseCollateral,
     baseDebt,
@@ -120,14 +119,14 @@ function BorrowWrapper(
           <Grid item xs={12} md={5}>
             <Borrow
               managePosition={managePosition}
-              futurePosition={futurePosition}
+              basePosition={basePosition}
             />
           </Grid>
           <Grid item sm={12} md={7}>
             {isMobile ? (
               <TransactionSummary />
             ) : (
-              <Overview position={position} futurePosition={futurePosition} />
+              <Overview basePosition={basePosition} />
             )}
           </Grid>
         </Grid>

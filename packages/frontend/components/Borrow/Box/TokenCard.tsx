@@ -183,7 +183,7 @@ function TokenCard({
                 }
                 mr=".5rem"
               >
-                LTV {ltv <= 100 ? `${ltv}%` : "n/a"}
+                LTV {ltv <= 100 ? `${ltv.toFixed(0)}%` : "n/a"}
               </Typography>
               <Typography variant="smallDark">
                 (Recommended: {recommendedLTV(ltvMax)}%)
