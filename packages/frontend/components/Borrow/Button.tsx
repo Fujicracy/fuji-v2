@@ -4,13 +4,14 @@ import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
 import { AssetChange, LtvMeta, Mode } from "../../helpers/borrow"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
+import { Position } from "../../store/models/Position"
 
 type BorrowButtonProps = {
   address: string | undefined
   collateral: AssetChange
+  debt: AssetChange
+  position: Position
   walletChain: ConnectedChain | undefined
-  collateralAmount: number
-  debtAmount: number
   balance: number
   ltvMeta: LtvMeta
   metaStatus: FetchStatus
@@ -18,8 +19,7 @@ type BorrowButtonProps = {
   isExecuting: boolean
   availableVaultStatus: FetchStatus
   mode: Mode
-  managePosition: boolean
-  hasBalance: boolean
+  shouldRedirect: boolean
   onLoginClick: () => void
   onChainChangeClick: () => void
   onApproveClick: () => void
@@ -30,9 +30,9 @@ type BorrowButtonProps = {
 function BorrowButton({
   address,
   collateral,
+  debt,
+  position,
   walletChain,
-  collateralAmount,
-  debtAmount,
   balance,
   ltvMeta,
   metaStatus,
@@ -40,14 +40,16 @@ function BorrowButton({
   isExecuting,
   availableVaultStatus,
   mode,
-  managePosition,
-  hasBalance,
+  shouldRedirect,
   onLoginClick,
   onChainChangeClick,
   onApproveClick,
   onPositionClick,
   onClick,
 }: BorrowButtonProps) {
+  const collateralAmount = parseFloat(collateral.input)
+  const debtAmount = parseFloat(debt.input)
+
   const loadingButtonTitle =
     (isSigning && "(1/2) Signing...") ||
     (isExecuting &&
@@ -98,14 +100,25 @@ function BorrowButton({
     return regularButton("Connect wallet", onLoginClick, "borrow-login")
   } else if (collateral.chainId !== walletChain?.id) {
     return regularButton("Switch network", onChainChangeClick)
-  } else if (!managePosition && hasBalance) {
+  } else if (shouldRedirect) {
     return regularButton("Manage position", onPositionClick)
   } else if (debtAmount !== 0 && debtAmount <= MINIMUM_DEBT_AMOUNT) {
-    return disabledButton("Borrowing amount too low") // TODO: need to figure this one out
+    return disabledButton("Borrowing amount too low") // TODO: Temp text
   } else if (collateralAmount > 0 && collateralAmount > balance) {
+    // && Mode...?
     return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
   } else if (ltvMeta.ltv > ltvMeta.ltvMax) {
     return disabledButton("Not enough collateral")
+  } else if (
+    (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+    collateralAmount > position.collateral.amount
+  ) {
+    return disabledButton("Too much collateral?") // TODO: Temp text
+  } else if (
+    (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+    debtAmount > position.debt.amount
+  ) {
+    return disabledButton("Too much debt?") // TODO: Temp text
   } else if (
     collateral.allowance?.value !== undefined &&
     collateral.allowance?.value < collateralAmount
