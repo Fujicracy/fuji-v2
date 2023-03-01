@@ -1,6 +1,7 @@
 import { guild, setProjectName } from "@guildxyz/sdk"
 import produce from "immer"
 import { create } from "zustand"
+import { useAuth } from "./auth.store"
 
 const FUJI_GUILD_ID = 461
 setProjectName("Fuji Finance")
@@ -22,7 +23,7 @@ type AccessState = {
 
 type AccessActions = {
   reset: () => void
-  verify: (addr: string) => void
+  verify: () => void
 }
 
 const initialState: AccessState = {
@@ -45,13 +46,19 @@ export const useAccess = create<AccessStore>()(
         errorsCount: 0,
       })
     },
-    // check every 3 seconds if user is a member of the guild
+    // check every 6 seconds if user is a member of the guild
     // so that we can detect in real time when they do become a member
-    verify: async (addr: string) => {
+    verify: async () => {
       set({ status: AccessStatus.Verifying })
+      const addr = useAuth.getState().address
+
+      if (!addr) {
+        get().reset()
+        return
+      }
 
       try {
-        const reqs = await guild.getUserAccess(FUJI_GUILD_ID, addr)
+        const reqs = await guild.getUserAccess(FUJI_GUILD_ID, addr as string)
         if (reqs.find((r) => r.access)) {
           set({ status: AccessStatus.Verified })
         } else {
@@ -61,10 +68,10 @@ export const useAccess = create<AccessStore>()(
               state.retriesCount++
             })
           )
-          // retry in 3 secs
-          setTimeout(async () => {
-            await get().verify(addr)
-          }, 3000)
+          // retry in 6 secs
+          setTimeout(() => {
+            get().verify()
+          }, 6000)
         }
       } catch (e) {
         set(
@@ -72,12 +79,12 @@ export const useAccess = create<AccessStore>()(
             if (state.errorsCount > 4) {
               state.status = AccessStatus.FatalError
             } else {
-              // increase counter and retry in 3 secs
+              // increase counter and retry in 6 secs
               state.status = AccessStatus.Error
               state.errorsCount++
-              setTimeout(async () => {
-                await get().verify(addr)
-              }, 3000)
+              setTimeout(() => {
+                get().verify()
+              }, 6000)
             }
           })
         )
