@@ -19,11 +19,12 @@ type BorrowButtonProps = {
   isExecuting: boolean
   availableVaultStatus: FetchStatus
   mode: Mode
-  shouldRedirect: boolean
+  managePosition: boolean
+  hasBalanceInVault: boolean
   onLoginClick: () => void
   onChainChangeClick: () => void
   onApproveClick: () => void
-  onPositionClick: () => void
+  onRedirectClick: (position: boolean) => void
   onClick: () => void
 }
 
@@ -40,11 +41,12 @@ function BorrowButton({
   isExecuting,
   availableVaultStatus,
   mode,
-  shouldRedirect,
+  managePosition,
+  hasBalanceInVault,
   onLoginClick,
   onChainChangeClick,
   onApproveClick,
-  onPositionClick,
+  onRedirectClick,
   onClick,
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input)
@@ -100,8 +102,14 @@ function BorrowButton({
     return regularButton("Connect wallet", onLoginClick, "borrow-login")
   } else if (collateral.chainId !== walletChain?.id) {
     return regularButton("Switch network", onChainChangeClick)
-  } else if (shouldRedirect) {
-    return regularButton("Manage position", onPositionClick)
+  } else if (!managePosition && hasBalanceInVault) {
+    return regularButton("Manage position", () => {
+      onRedirectClick(false)
+    })
+  } else if (managePosition && !hasBalanceInVault) {
+    return regularButton("Borrow", () => {
+      onRedirectClick(true)
+    })
   } else if (debtAmount !== 0 && debtAmount <= MINIMUM_DEBT_AMOUNT) {
     return disabledButton("Borrowing amount too low") // TODO: Temp text
   } else if (collateralAmount > 0 && collateralAmount > balance) {

@@ -15,7 +15,7 @@ enum TopLevelUrl {
 export const isTopLevelUrl = (url: string) =>
   (Object.values(TopLevelUrl) as string[]).includes(url)
 
-export const navigateToVault = async (
+export const showPosition = async (
   router: NextRouter,
   walletChainId: string | undefined,
   entity?: BorrowingVault | VaultWithFinancials,

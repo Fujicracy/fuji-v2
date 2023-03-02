@@ -22,7 +22,7 @@ import ConnextFooter from "./ConnextFooter"
 import { modeForContext, PositionAction } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
-import { navigateToVault } from "../../helpers/navigation"
+import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 
 type BorrowProps = {
@@ -171,13 +171,18 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            shouldRedirect={!managePosition && hasBalanceInVault}
+            managePosition={managePosition}
+            hasBalanceInVault={hasBalanceInVault}
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
-            onPositionClick={() =>
-              navigateToVault(router, walletChain?.id, vault, false)
-            }
+            onRedirectClick={(borrow) => {
+              if (borrow) {
+                router.push("/borrow")
+              } else {
+                showPosition(router, walletChain?.id, vault, false)
+              }
+            }}
             onClick={signAndExecute}
           />
 

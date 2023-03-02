@@ -24,7 +24,7 @@ import {
   setLlamas,
   Status,
 } from "../../helpers/markets"
-import { navigateToVault } from "../../helpers/navigation"
+import { showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
 
 function MarketsTable() {
@@ -77,7 +77,7 @@ function MarketsTable() {
   }, [address])
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    navigateToVault(router, walletChain?.id as string, entity)
+    showPosition(router, walletChain?.id as string, entity)
   }
 
   return (

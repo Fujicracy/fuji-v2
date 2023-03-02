@@ -32,7 +32,7 @@ import { chainName } from "../../helpers/chains"
 import { transactionLink } from "../../helpers/transaction"
 import { useAuth } from "../../store/auth.store"
 import AddTokenButton from "../Shared/AddTokenButton"
-import { navigateToVault } from "../../helpers/navigation"
+import { showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
 import { vaultFromAddress } from "../../helpers/positions"
 
@@ -91,7 +91,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
       router.push("/my-positions")
       return
     }
-    navigateToVault(router, undefined, vault)
+    showPosition(router, undefined, vault)
   }
 
   const steps = entry.steps

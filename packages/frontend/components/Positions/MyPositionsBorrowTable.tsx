@@ -20,7 +20,7 @@ import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow, vaultFromAddress } from "../../helpers/positions"
 import { formatValue } from "../../helpers/values"
-import { navigateToVault } from "../../helpers/navigation"
+import { showPosition } from "../../helpers/navigation"
 
 type PositionsBorrowTableProps = {
   loading: boolean
@@ -81,7 +81,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   function handleClick(row: PositionRow) {
     const entity = vaultFromAddress(row.address)
-    navigateToVault(router, String(entity?.chainId), entity)
+    showPosition(router, String(entity?.chainId), entity)
   }
 
   return (
