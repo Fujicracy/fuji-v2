@@ -20,7 +20,6 @@ import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow } from "../../helpers/positions"
 import { formatValue } from "../../helpers/values"
-import { useBorrow } from "../../store/borrow.store"
 import { navigateToVault } from "../../helpers/navigation"
 
 type PositionsBorrowTableProps = {
@@ -32,7 +31,6 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const router = useRouter()
   const account = useAuth((state) => state.address)
   const positions = usePositions((state) => state.positions)
-  const vaults = useBorrow((state) => state.availableVaults)
   const [rows, setRows] = useState<PositionRow[]>([])
 
   useEffect(() => {
@@ -82,7 +80,9 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   }
 
   function handleClick(row: PositionRow) {
-    const entity = vaults.find((v) => v.address.value === row.address)
+    const entity = positions
+      .map((p) => p.vault)
+      .find((v) => v?.address.value === row.address)
     navigateToVault(router, String(entity?.chainId), entity)
   }
 
