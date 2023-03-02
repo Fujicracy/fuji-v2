@@ -128,6 +128,7 @@ export const fetchRoutes = async (
           debtToken,
           Address.from(address)
         )
+        break
       case Mode.DEPOSIT:
         preview = await sdk.previews.deposit(
           vault,
@@ -135,6 +136,7 @@ export const fetchRoutes = async (
           collateralToken,
           Address.from(address)
         )
+        break
       case Mode.BORROW:
         preview = await sdk.previews.borrow(
           vault,
@@ -143,6 +145,7 @@ export const fetchRoutes = async (
           debtToken,
           Address.from(address)
         )
+        break
       case Mode.PAYBACK_AND_WITHDRAW:
         preview = await sdk.previews.paybackAndWithdraw(
           vault,
@@ -152,6 +155,7 @@ export const fetchRoutes = async (
           debtToken,
           Address.from(address)
         )
+        break
       case Mode.WITHDRAW:
         preview = await sdk.previews.withdraw(
           vault,
@@ -160,6 +164,7 @@ export const fetchRoutes = async (
           collateralToken,
           Address.from(address)
         )
+        break
       case Mode.PAYBACK:
         preview = await sdk.previews.payback(
           vault,
@@ -167,6 +172,7 @@ export const fetchRoutes = async (
           debtToken,
           Address.from(address)
         )
+        break
     }
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
       preview
