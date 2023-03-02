@@ -51,16 +51,16 @@ type TransactionStep = InvalidStep | ValidStep
 
 type TransactionModalProps = {
   hash?: string
-  handleClose: () => void
 }
-function TransactionModal({ hash, handleClose }: TransactionModalProps) {
+function TransactionModal({ hash }: TransactionModalProps) {
   const theme = useTheme()
   const router = useRouter()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
 
-  const entry = useHistory((state) => state.byHash[hash || ""])
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ""))
+  const entry = useHistory((state) => state.byHash[hash || ""])
+  const closeModal = useHistory((state) => state.closeModal)
 
   const borrow = entry?.steps.find((s) => s.step === RoutingStep.BORROW)
   const chainId = borrow?.chainId
@@ -81,9 +81,13 @@ function TransactionModal({ hash, handleClose }: TransactionModalProps) {
   }
 
   const onClick = () => {
-    handleClose()
+    closeModal()
     const vault = vaultFromAddress(entry.address)
-    navigateToVault(router, undefined, vault, "my-positions")
+    if (!vault) {
+      router.push("/my-positions")
+      return
+    }
+    navigateToVault(router, undefined, vault)
   }
 
   const steps = entry.steps
@@ -160,7 +164,7 @@ function TransactionModal({ hash, handleClose }: TransactionModalProps) {
   return (
     <Dialog
       open={Boolean(hash)}
-      onClose={handleClose}
+      onClose={closeModal}
       sx={{
         ".MuiPaper-root": { width: isMobile ? "100%" : "430px" },
         backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
@@ -169,7 +173,7 @@ function TransactionModal({ hash, handleClose }: TransactionModalProps) {
       <Paper variant="outlined" sx={{ p: { xs: "1rem", sm: "1.5rem" } }}>
         <CloseIcon
           sx={{ cursor: "pointer", float: "right" }}
-          onClick={handleClose}
+          onClick={closeModal}
           fontSize="small"
         />
         <Box textAlign="center" mt="1.625rem" mb="2.5rem">

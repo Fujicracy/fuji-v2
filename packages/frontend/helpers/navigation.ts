@@ -19,16 +19,10 @@ export const navigateToVault = async (
   router: NextRouter,
   walletChainId: string | undefined,
   entity?: BorrowingVault | VaultWithFinancials,
-  backup: "borrow" | "my-positions" = "borrow",
   reset = true
 ) => {
   const vault = entity instanceof BorrowingVault ? entity : entity?.vault
-  if (!vault) {
-    if (backup === "my-positions") {
-      router.push("/my-positions")
-    }
-    return
-  }
+  if (!vault) return
 
   const changeAll = useBorrow.getState().changeAll
   const isSupported = chainName(walletChainId) !== ""
