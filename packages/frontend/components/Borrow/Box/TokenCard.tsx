@@ -68,6 +68,11 @@ function TokenCard({
     onInputChange(val)
   }
 
+  const handleTokenChange = (token: Token) => {
+    onTokenChange(token)
+    close()
+  }
+
   return (
     <Card
       variant="outlined"
@@ -123,7 +128,7 @@ function TokenCard({
               key={token.name}
               token={token}
               balance={balances[token.symbol]}
-              onClick={() => onTokenChange(token)}
+              onClick={() => handleTokenChange(token)}
             />
           ))}
         </Menu>
