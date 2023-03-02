@@ -124,17 +124,25 @@ function TransactionModal({ hash }: TransactionModalProps) {
           ? `Bridge ${amount} ${token.symbol} to ${chain}`
           : "Invalid"
 
+      const icon =
+        s.step === RoutingStep.X_TRANSFER ? (
+          <Image
+            src="/assets/images/logo/connext.svg"
+            height={32}
+            width={32}
+            alt="Connext"
+          />
+        ) : (
+          <NetworkIcon network={chain} height={32} width={32} />
+        )
+
       return {
         label,
         chainId,
         txHash,
         link,
         description: `${chain} Network`,
-        icon: () => (
-          <Box sx={style}>
-            <NetworkIcon network={chain} height={32} width={32} />
-          </Box>
-        ),
+        icon: () => <Box sx={style}>{icon}</Box>,
       }
     })
     .filter((s) => s.label !== "Invalid") as ValidStep[]
