@@ -62,8 +62,12 @@ function TransactionModal({ hash }: TransactionModalProps) {
   const entry = useHistory((state) => state.byHash[hash || ""])
   const closeModal = useHistory((state) => state.closeModal)
 
-  const borrow = entry?.steps.find((s) => s.step === RoutingStep.BORROW)
-  const chainId = borrow?.chainId
+  const action =
+    entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
+    entry?.steps.find((s) => s.step === RoutingStep.WITHDRAW) ||
+    entry?.steps.find((s) => s.step === RoutingStep.DEPOSIT) ||
+    entry?.steps.find((s) => s.step === RoutingStep.PAYBACK)
+  const chainId = action?.chainId
   const networkName = chainId ? chainName(chainId) : ""
 
   const actionName = entry
@@ -107,53 +111,30 @@ function TransactionModal({ hash }: TransactionModalProps) {
         zIndex: 1,
       }
 
-      switch (s.step) {
-        case RoutingStep.DEPOSIT:
-          return {
-            label: `Deposit ${amount} ${token.symbol} on ${provider}`,
-            description: `${chain} Network`,
-            chainId,
-            txHash,
-            link,
-            icon: () => (
-              <Box sx={style}>
-                <NetworkIcon network={chain} height={32} width={32} />
-              </Box>
-            ),
-          }
-        case RoutingStep.BORROW:
-          return {
-            label: `Borrow ${amount} ${token.symbol} from ${provider}`,
-            description: `${chain} Network`,
-            chainId,
-            txHash,
-            link,
-            icon: () => (
-              <Box sx={style}>
-                <NetworkIcon network={chain} height={32} width={32} />
-              </Box>
-            ),
-          }
-        case RoutingStep.X_TRANSFER:
-          return {
-            label: `Bridge ${amount} ${token.symbol} to ${chain}`,
-            description: "Connext bridge",
-            chainId,
-            txHash,
-            link,
-            icon: () => (
-              <Box sx={style}>
-                <Image
-                  src="/assets/images/logo/connext.svg"
-                  height={32}
-                  width={32}
-                  alt="Connext"
-                />
-              </Box>
-            ),
-          }
-        default:
-          return { label: "Invalid" }
+      const label =
+        s.step === RoutingStep.DEPOSIT
+          ? `Deposit ${amount} ${token.symbol} on ${provider}`
+          : s.step === RoutingStep.BORROW
+          ? `Borrow ${amount} ${token.symbol} from ${provider}`
+          : s.step === RoutingStep.WITHDRAW
+          ? `Withdraw ${amount} ${token.symbol} from ${provider}`
+          : s.step === RoutingStep.PAYBACK
+          ? `Repay ${amount} ${token.symbol} from ${provider}`
+          : s.step === RoutingStep.X_TRANSFER
+          ? `Bridge ${amount} ${token.symbol} to ${chain}`
+          : "Invalid"
+
+      return {
+        label,
+        chainId,
+        txHash,
+        link,
+        description: `${chain} Network`,
+        icon: () => (
+          <Box sx={style}>
+            <NetworkIcon network={chain} height={32} width={32} />
+          </Box>
+        ),
       }
     })
     .filter((s) => s.label !== "Invalid") as ValidStep[]
@@ -246,9 +227,9 @@ function TransactionModal({ hash }: TransactionModalProps) {
         {entry.status === "done" && (
           <Stack sx={{ mt: "2rem" }} spacing={1}>
             {/* This check is to fix the problem that address is a class and thus cannot be rehydrated. See `addTokenToMetamask` */}
-            {borrow?.token && borrow?.token.chainId === activeChainId && (
+            {action?.token && action?.token.chainId === activeChainId && (
               <Box mb="2rem" textAlign="center">
-                <AddTokenButton token={borrow.token} />
+                <AddTokenButton token={action.token} />
               </Box>
             )}
             <Button fullWidth variant="gradient" size="large" onClick={onClick}>
