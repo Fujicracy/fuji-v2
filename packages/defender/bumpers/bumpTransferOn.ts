@@ -29,42 +29,24 @@ export enum ChainId {
   ARBITRUM = 42161,
 };
 
-const store: Record<ChainId, { domain: string, routerAddr: string | null }> = {
-  [ChainId.POLYGON]: {
-    domain: "1886350457",
-    routerAddr: "0x403b1E6EFB00C440dDb60593255c1257f4156863",
-  },
-  [ChainId.OPTIMISM]: {
-    domain: "1869640809",
-    routerAddr: "0x17744B586A6E47a45Fa98d080141139f87314e82",
-  },
-  [ChainId.ETHEREUM]: {
-    domain: "6648936",
-    routerAddr: null,
-  },
-  [ChainId.ARBITRUM]: {
-    domain: "1634886255",
-    routerAddr: "0x190B9e10c3A02896386BE180767cf6E89Df5E798",
-  },
-  [ChainId.GNOSIS]: {
-    domain: "6778479",
-    routerAddr: "0x9DE0CE8Aaa2772f9DB00D223ce9CA17fc430943B",
-  },
+const domains: Record<ChainId, string> = {
+  [ChainId.POLYGON]: "1886350457",
+  [ChainId.OPTIMISM]: "1869640809",
+  [ChainId.ETHEREUM]: "6648936",
+  [ChainId.ARBITRUM]: "1634886255",
+  [ChainId.GNOSIS]: "6778479",
 };
 
 export async function bumpTransferOn(chainId: ChainId, event: AutotaskEvent): Promise<TransactionRequest> {
-  const domain = store[chainId].domain;
-  const routerAddr = store[chainId].routerAddr;
-
-  if (routerAddr === null) {
-    throw `Missing router address for chain with domain ${domain}`;
-  }
+  const domain = domains[chainId];
 
   // extracting `transferId` and `destinationDomain` from the xCall event
   const payload = event.request?.body as any;
-  const { matchReasons } = payload.events[0];
-  console.log(matchReasons[0].params);
+  const { matchReasons, matchedAddresses } = payload.events[0];
 
+  const routerAddr = matchedAddresses[0];
+
+  console.log(matchReasons[0].params);
   const params = matchReasons[0].params;
   const destinationDomain = params.destDomain;
   const transferId = params.transferId;
