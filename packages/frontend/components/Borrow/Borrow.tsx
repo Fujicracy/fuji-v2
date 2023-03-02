@@ -89,7 +89,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
 
   useEffect(() => {
     ;(async () => {
-      if (address && vault && !managePosition) {
+      if (address && vault) {
         // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address))
         const hasBalance =
@@ -97,7 +97,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
         setHasBalanceInVault(hasBalance)
       }
     })()
-  }, [address, vault, managePosition])
+  }, [address, managePosition])
 
   useEffect(() => {
     const mode = modeForContext(
