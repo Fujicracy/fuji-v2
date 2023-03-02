@@ -36,14 +36,13 @@ export function GuildAccess() {
   const verify = useAccess((state) => state.verify)
   const reset = useAccess((state) => state.reset)
 
-  const formattedAddress =
-    address?.substring(0, 13) + "..." + address?.substring(address?.length - 14)
-
   useEffect(() => {
     if (address) verify()
   }, [address, verify])
 
   useEffect(() => {
+    if (accessStatus === AccessStatus.Verifying) return
+
     if (accessStatus === AccessStatus.Verified) {
       // close this modal 3 secs after the verification succeeded
       setTimeout(() => {
@@ -84,13 +83,15 @@ export function GuildAccess() {
           zIndex: 9,
         },
         margin: isMobile ? 1 : "auto",
-        backdropFilter: { xs: "blur(0.313rem)", sm: "none" },
+        backdropFilter: "blur(0.313rem)",
       }}
-      maxWidth="xs"
     >
       <Paper
         variant="outlined"
-        sx={{ p: { xs: "1rem", sm: "1.5rem" }, textAlign: "center" }}
+        sx={{
+          p: { xs: "1rem", sm: "1.5rem", md: "2rem" },
+          textAlign: "center",
+        }}
       >
         <Box mt={2}>
           <Image
@@ -121,24 +122,25 @@ export function GuildAccess() {
               Connect Wallet
             </LoadingButton>
           ) : (
-            <Stack direction="row" justifyContent="space-between" spacing={1}>
+            <Stack direction="row" justifyContent="space-between" spacing={3}>
               <Tooltip title={statusParagraph()} placement="top" arrow>
-                <Button size="large" variant="outlined">
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    spacing={1}
-                  >
-                    {accessStatus === AccessStatus.Verifying ? (
-                      <CircularProgress size={15} />
-                    ) : accessStatus === AccessStatus.Verified ? (
-                      <Check color="success" />
-                    ) : (
-                      <Close color="error" />
-                    )}
-                    <Typography>{formattedAddress}</Typography>
-                  </Stack>
+                <Button
+                  size="large"
+                  fullWidth
+                  variant="outlined"
+                  startIcon={
+                    <>
+                      {accessStatus === AccessStatus.Verifying ? (
+                        <CircularProgress size={16} />
+                      ) : accessStatus === AccessStatus.Verified ? (
+                        <Check color="success" />
+                      ) : (
+                        <Close color="error" />
+                      )}
+                    </>
+                  }
+                >
+                  <Typography noWrap>{address}</Typography>
                 </Button>
               </Tooltip>
               <Tooltip title="Logout">
@@ -177,15 +179,10 @@ export function GuildAccess() {
             fullWidth
             onClick={() => setIsOpen(false)}
           >
-            Go to App
+            Close
           </Button>
         )}
       </Paper>
     </Dialog>
   )
 }
-
-// disabled
-// NotConnected
-// Connecting
-// Verifying && retriesCount === 0
