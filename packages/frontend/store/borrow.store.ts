@@ -746,9 +746,11 @@ export const useBorrow = create<BorrowStore>()(
 
       async signAndExecute() {
         try {
+          const address = get().activeVault?.address.value
           await get().signPermit()
           const t = await get().execute()
           useHistory.getState().add({
+            address,
             hash: t.hash,
             type: entryTypeForMode(get().mode),
             steps: toHistoryRoutingStep(get().transactionMeta.steps),

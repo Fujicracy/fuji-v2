@@ -27,6 +27,7 @@ type HistoryState = {
 export type HistoryEntryType = "borrow" | "withdraw" | "repay" | "deposit"
 
 export type HistoryEntry = {
+  address?: string
   hash: string
   type: HistoryEntryType
   steps: HistoryRoutingStep[]

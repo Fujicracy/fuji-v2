@@ -32,6 +32,9 @@ import { chainName } from "../../helpers/chains"
 import { transactionLink } from "../../helpers/transaction"
 import { useAuth } from "../../store/auth.store"
 import AddTokenButton from "../Shared/AddTokenButton"
+import { navigateToVault } from "../../helpers/navigation"
+import { useRouter } from "next/router"
+import { vaultFromAddress } from "../../helpers/positions"
 
 type InvalidStep = {
   label: "Invalid"
@@ -52,8 +55,10 @@ type TransactionModalProps = {
 }
 function TransactionModal({ hash, handleClose }: TransactionModalProps) {
   const theme = useTheme()
+  const router = useRouter()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
+
   const entry = useHistory((state) => state.byHash[hash || ""])
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ""))
 
@@ -76,8 +81,9 @@ function TransactionModal({ hash, handleClose }: TransactionModalProps) {
   }
 
   const onClick = () => {
-    //onView()
     handleClose()
+    const vault = vaultFromAddress(entry.address)
+    navigateToVault(router, undefined, vault, "my-positions")
   }
 
   const steps = entry.steps

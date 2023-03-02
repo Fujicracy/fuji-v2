@@ -18,7 +18,7 @@ import { TokenIcon, TokenWithNetworkIcon } from "../Shared/Icons"
 import { chainName } from "../../helpers/chains"
 import { usePositions } from "../../store/positions.store"
 import { useAuth } from "../../store/auth.store"
-import { getRows, PositionRow } from "../../helpers/positions"
+import { getRows, PositionRow, vaultFromAddress } from "../../helpers/positions"
 import { formatValue } from "../../helpers/values"
 import { navigateToVault } from "../../helpers/navigation"
 
@@ -80,9 +80,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   }
 
   function handleClick(row: PositionRow) {
-    const entity = positions
-      .map((p) => p.vault)
-      .find((v) => v?.address.value === row.address)
+    const entity = vaultFromAddress(row.address)
     navigateToVault(router, String(entity?.chainId), entity)
   }
 
