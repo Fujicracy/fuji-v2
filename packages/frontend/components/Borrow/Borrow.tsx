@@ -9,11 +9,9 @@ import {
   Box,
 } from "@mui/material"
 
-import TransactionProcessingModal from "./TransactionProcessingModal"
 import Fees from "./Fees"
 import ApprovalModal from "./ApprovalModal"
 import RoutingModal from "./Routing/RoutingModal"
-import { useHistory } from "../../store/history.store"
 import { chainName } from "../../helpers/chains"
 import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
@@ -59,9 +57,6 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
   const updateAllowance = useBorrow((state) => state.updateAllowance)
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
   const signAndExecute = useBorrow((state) => state.signAndExecute)
-
-  const currentTxHash = useHistory((state) => state.inModal)
-  const closeModal = useHistory((state) => state.closeModal)
 
   const { position, futurePosition } = basePosition
 
@@ -189,16 +184,9 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
           <ConnextFooter />
         </CardContent>
       </Card>
-      {/* TODO: Move txprocessing outside of borrow */}
-      <TransactionProcessingModal
-        hash={currentTxHash}
-        handleClose={closeModal}
-        onView={() => navigateToVault(router, walletChain?.id, vault, false)}
-      />
       {showApprovalModal && (
         <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
       )}
-
       <RoutingModal
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}

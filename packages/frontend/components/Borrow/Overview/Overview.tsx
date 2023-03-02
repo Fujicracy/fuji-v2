@@ -22,7 +22,6 @@ import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
 import { recommendedLTV } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
-import { Position } from "../../../store/models/Position"
 import PositionCardGradItem from "./PositionCard"
 import { BasePosition } from "../../../helpers/positions"
 

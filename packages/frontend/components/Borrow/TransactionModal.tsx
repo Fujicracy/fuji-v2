@@ -1,4 +1,4 @@
-import { MouseEvent, useState } from "react"
+import { useState } from "react"
 import {
   Box,
   Button,
@@ -46,16 +46,11 @@ type ValidStep = {
 }
 type TransactionStep = InvalidStep | ValidStep
 
-type TransactionProcessingModalProps = {
+type TransactionModalProps = {
   hash?: string
   handleClose: () => void
-  onView: () => void
 }
-function TransactionProcessingModal({
-  hash,
-  handleClose,
-  onView,
-}: TransactionProcessingModalProps) {
+function TransactionModal({ hash, handleClose }: TransactionModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [activeStep] = useState(2)
@@ -66,12 +61,22 @@ function TransactionProcessingModal({
   const chainId = borrow?.chainId
   const networkName = chainId ? chainName(chainId) : ""
 
+  const actionName = entry
+    ? entry.type === "borrow"
+      ? "Borrowing"
+      : entry.type === "deposit"
+      ? "Depositing"
+      : entry.type === "withdraw"
+      ? "Withdrawing"
+      : "Repaying"
+    : ""
+
   if (!entry) {
     return <></>
   }
 
   const onClick = () => {
-    onView()
+    //onView()
     handleClose()
   }
 
@@ -166,7 +171,9 @@ function TransactionProcessingModal({
             Transaction {entry.status === "ongoing" && "processing..."}
             {entry.status === "done" && "success"}
           </Typography>
-          <Typography variant="body">Borrowing on {networkName}</Typography>
+          <Typography variant="body">
+            {actionName} on {networkName}
+          </Typography>
         </Box>
         <DialogContent>
           <Stepper
@@ -254,7 +261,7 @@ function TransactionProcessingModal({
   )
 }
 
-export default TransactionProcessingModal
+export default TransactionModal
 
 const CustomConnector = styled(StepConnector)(({ theme }) => ({
   [`& .${stepConnectorClasses.line}`]: {

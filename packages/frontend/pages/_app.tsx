@@ -11,12 +11,16 @@ import { usePositions } from "../store/positions.store"
 import { useBorrow } from "../store/borrow.store"
 import { useRouter } from "next/router"
 import { isTopLevelUrl } from "../helpers/navigation"
+import TransactionModal from "../components/Borrow/TransactionModal"
+import { useHistory } from "../store/history.store"
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)
   const address = useAuth((state) => state.address)
   const router = useRouter()
 
+  const currentTxHash = useHistory((state) => state.inModal)
+  const closeModal = useHistory((state) => state.closeModal)
   const fetchPositions = usePositions((state) => state.fetchUserPositions)
   const updateVault = useBorrow((state) => state.updateVault)
 
@@ -52,6 +56,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <ThemeProvider theme={theme}>
       <div className="backdrop"></div>
       <Component {...pageProps} />
+      <TransactionModal hash={currentTxHash} handleClose={closeModal} />
       <Snackbar />
     </ThemeProvider>
   )

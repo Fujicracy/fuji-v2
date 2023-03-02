@@ -38,7 +38,12 @@ type AccountModalProps = {
   closeAccountModal: () => void
 }
 
-function AccountModal(props: AccountModalProps) {
+function AccountModal({
+  isOpen,
+  anchorEl,
+  address,
+  closeAccountModal,
+}: AccountModalProps) {
   const { palette } = useTheme()
   const [copied, setCopied] = useState(false)
   const [copyAddressHovered, setCopyAddressHovered] = useState(false)
@@ -54,23 +59,26 @@ function AccountModal(props: AccountModalProps) {
   const clearAll = useHistory((state) => state.clearAll)
 
   const formattedAddress =
-    props.address.substring(0, 8) +
-    "..." +
-    props.address.substring(props.address.length - 4)
+    address.substring(0, 8) + "..." + address.substring(address.length - 4)
 
   const copy = () => {
-    navigator.clipboard.writeText(props.address)
+    navigator.clipboard.writeText(address)
     setCopied(true)
     setTimeout(() => {
       setCopied(false)
     }, 5000)
   }
 
+  const handleEntryClick = (entry: HistoryEntry) => {
+    openModal(entry.hash)
+    closeAccountModal()
+  }
+
   return (
     <Popover
-      open={props.isOpen}
-      onClose={props.closeAccountModal}
-      anchorEl={props.anchorEl}
+      open={isOpen}
+      onClose={closeAccountModal}
+      anchorEl={anchorEl}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       PaperProps={{ sx: { background: "transparent", padding: 0 } }}
@@ -133,7 +141,7 @@ function AccountModal(props: AccountModalProps) {
 
             <Box>
               <a
-                href={transactionAddress(chainId, props.address)}
+                href={transactionAddress(chainId, address)}
                 target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
                 rel="noreferrer"
               >
@@ -191,7 +199,7 @@ function AccountModal(props: AccountModalProps) {
                 <BorrowEntry
                   key={e.hash}
                   entry={e}
-                  onClick={() => openModal(e.hash)}
+                  onClick={() => handleEntryClick(e)}
                 />
               ))
             ) : (
