@@ -696,12 +696,9 @@ export const useBorrow = create<BorrowStore>()(
         } catch (e: any) {
           set({ isSigning: false })
           if (e.code === "ACTION_REJECTED") {
-            // IDEA: can be moved into some const for refacto
-            // IDEA: add a link "why do I need to sign ?"
             useSnack.getState().display({
-              icon: "error",
+              type: "error",
               title: "Error: Fuji cannot borrow without your signature",
-              // body: "Please retry and ",
             })
           }
           throw e
@@ -760,13 +757,13 @@ export const useBorrow = create<BorrowStore>()(
           get().changeInputValues("", "")
         } catch (e) {
           console.error(e)
-          if (e instanceof Error) {
-            useSnack.getState().display({
-              icon: "error",
-              title: "Error",
-              body: "There was a problem making the transaction, please try again later", // TODO: Improve
-            })
-          }
+          // if (e instanceof Error) {
+          useSnack.getState().display({
+            type: "error",
+            title:
+              "There was a problem making the transaction, please try again later", // TODO: Improve
+          })
+          // }
         }
       },
     }),

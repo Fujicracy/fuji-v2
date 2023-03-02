@@ -13,7 +13,8 @@ export type Snack = {
    * Icon displayed on the left of the notification
    * @default undefined (hidden)
    */
-  icon?: "success" | "warning" | "error"
+  type: "success" | "warning" | "error"
+  icon?: string
   title: string
   body?: string | React.ReactNode
   /**
@@ -43,6 +44,7 @@ export const useSnack = create<SnackStore>()(
       display(n) {
         set(
           produce((s: SnackState) => {
+            n.icon = n.type
             if (!n.autoHideDuration) {
               n.autoHideDuration = 3000 // We need to choose a default value, 3 seconds is probably ok
             }

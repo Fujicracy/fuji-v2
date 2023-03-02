@@ -190,7 +190,7 @@ export const useHistory = create<HistoryStore>()(
           const b = steps.find((s) => s.step === RoutingStep.BORROW)
           const bAmount = b?.amount && formatUnits(b.amount, b.token.decimals)
           useSnack.getState().display({
-            icon: "success",
+            type: "success",
             title: `Deposit ${dAmount} ${d?.token.symbol} and borrow ${bAmount} ${b?.token.symbol}`,
             transactionLink: {
               hash: b?.txHash,
