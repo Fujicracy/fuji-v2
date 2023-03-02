@@ -180,9 +180,9 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
-            onPositionClick={() => {
+            onPositionClick={() =>
               navigateToVault(router, walletChain?.id, vault, false)
-            }}
+            }
             onClick={signAndExecute}
           />
 
@@ -193,6 +193,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
       <TransactionProcessingModal
         hash={currentTxHash}
         handleClose={closeModal}
+        onView={() => navigateToVault(router, walletChain?.id, vault, false)}
       />
       {showApprovalModal && (
         <ApprovalModal handleClose={() => setShowApprovalModal(false)} />

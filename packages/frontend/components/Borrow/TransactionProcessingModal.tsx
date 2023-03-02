@@ -48,11 +48,13 @@ type TransactionStep = InvalidStep | ValidStep
 
 type TransactionProcessingModalProps = {
   hash?: string
-  handleClose: (e: MouseEvent) => void
+  handleClose: () => void
+  onView: () => void
 }
 function TransactionProcessingModal({
   hash,
   handleClose,
+  onView,
 }: TransactionProcessingModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
@@ -66,6 +68,11 @@ function TransactionProcessingModal({
 
   if (!entry) {
     return <></>
+  }
+
+  const onClick = () => {
+    onView()
+    handleClose()
   }
 
   const steps = entry.steps
@@ -227,7 +234,7 @@ function TransactionProcessingModal({
                 <AddTokenButton token={borrow.token} />
               </Box>
             )}
-            <Button fullWidth variant="gradient" size="large">
+            <Button fullWidth variant="gradient" size="large" onClick={onClick}>
               View Position
             </Button>
             <Link
