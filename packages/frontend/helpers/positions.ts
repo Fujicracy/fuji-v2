@@ -67,7 +67,7 @@ export function viewFuturePosition(
   current: Position,
   mode: Mode
 ): Position {
-  const future = current
+  const future = JSON.parse(JSON.stringify(current))
   switch (mode) {
     case Mode.DEPOSIT:
       future.collateral.amount =
