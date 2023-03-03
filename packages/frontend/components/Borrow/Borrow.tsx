@@ -97,7 +97,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
         setHasBalanceInVault(hasBalance)
       }
     })()
-  }, [address, managePosition])
+  }, [address, vault])
 
   useEffect(() => {
     const mode = modeForContext(
