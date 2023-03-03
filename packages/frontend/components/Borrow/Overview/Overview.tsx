@@ -42,10 +42,6 @@ function Overview({ basePosition }: OverviewProps) {
     liquidationPrice,
   } = position
 
-  if (isNaN(ltv)) {
-    window.alert("AAAA")
-  }
-
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
   const providers =

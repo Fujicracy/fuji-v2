@@ -12,7 +12,6 @@ type BorrowButtonProps = {
   debt: AssetChange
   position: Position
   walletChain: ConnectedChain | undefined
-  balance: number
   ltvMeta: LtvMeta
   metaStatus: FetchStatus
   isSigning: boolean
@@ -34,7 +33,6 @@ function BorrowButton({
   debt,
   position,
   walletChain,
-  balance,
   ltvMeta,
   metaStatus,
   isSigning,
@@ -51,6 +49,8 @@ function BorrowButton({
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input)
   const debtAmount = parseFloat(debt.input)
+  const collateralBalance = collateral.balances[collateral.token.symbol]
+  const debtBalance = debt.balances[debt.token.symbol]
 
   const loadingButtonTitle =
     (isSigning && "(1/2) Signing...") ||
@@ -111,22 +111,26 @@ function BorrowButton({
       onRedirectClick(true)
     })
   } else if (debtAmount !== 0 && debtAmount <= MINIMUM_DEBT_AMOUNT) {
-    return disabledButton("Borrowing amount too low") // TODO: Temp text
-  } else if (collateralAmount > 0 && collateralAmount > balance) {
-    // && Mode...?
+    return disabledButton("Debt amount too low") // TODO: Temp text
+  } else if (collateralAmount > 0 && collateralAmount > collateralBalance) {
     return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
+  } else if (
+    (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+    debtAmount > debtBalance
+  ) {
+    return disabledButton(`Insufficient ${debt.token.symbol} balance`)
   } else if (ltvMeta.ltv > ltvMeta.ltvMax) {
     return disabledButton("Not enough collateral")
-  } else if (
-    (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
-    collateralAmount > position.collateral.amount
-  ) {
-    return disabledButton("Too much collateral?") // TODO: Temp text
   } else if (
     (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     debtAmount > position.debt.amount
   ) {
     return disabledButton("Too much debt?") // TODO: Temp text
+  } else if (
+    (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+    collateralAmount > position.collateral.amount
+  ) {
+    return disabledButton("Too much collateral?") // TODO: Temp text
   } else if (
     collateral.allowance?.value !== undefined &&
     collateral.allowance?.value < collateralAmount
@@ -139,9 +143,17 @@ function BorrowButton({
         size="large"
         loadingPosition="start"
         fullWidth
-        startIcon={<></>}
         disabled={
-          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
+          !(
+            (metaStatus === "ready" &&
+              (mode === Mode.DEPOSIT_AND_BORROW ||
+                mode === Mode.PAYBACK_AND_WITHDRAW) &&
+              collateralAmount > 0 &&
+              debtAmount > 0) ||
+            ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) &&
+              collateralAmount > 0) ||
+            ((mode === Mode.BORROW || mode === Mode.PAYBACK) && debtAmount > 0)
+          )
         }
         loading={
           isSigning || isExecuting || availableVaultStatus === "fetching"

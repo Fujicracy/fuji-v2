@@ -39,9 +39,6 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
   const changeChain = useAuth((state) => state.changeChain)
   const login = useAuth((state) => state.login)
 
-  const balance = useBorrow(
-    (state) => state.collateral.balances[state.collateral.token.symbol]
-  )
   const collateral = useBorrow((state) => state.collateral)
   const debt = useBorrow((state) => state.debt)
   const isSigning = useBorrow((state) => state.isSigning)
@@ -103,8 +100,8 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
     const mode = modeForContext(
       managePosition,
       positionAction,
-      parseFloat(collateral.input),
-      parseFloat(debt.input)
+      Number(collateral.input),
+      Number(debt.input)
     )
     changeMode(mode)
   }, [changeMode, managePosition, collateral.input, debt.input, positionAction])
@@ -164,7 +161,6 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
             debt={debt}
             position={position}
             walletChain={walletChain}
-            balance={balance}
             ltvMeta={dynamicLtvMeta}
             metaStatus={metaStatus}
             isSigning={isSigning}
