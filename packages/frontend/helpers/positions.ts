@@ -127,6 +127,7 @@ export function viewDynamicPosition(
   const baseLiquidation = useBorrow.getState().liquidationMeta
   return {
     position: {
+      vault: position?.vault,
       collateral: dynamicPositionMeta(
         dynamic,
         baseCollateral,
