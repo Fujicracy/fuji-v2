@@ -87,12 +87,6 @@ function BorrowWrapper(
     managePosition,
   ])
 
-  useEffect(() => {
-    if (!address) {
-      router.push(rootUrl)
-    }
-  }, [address, router])
-
   /*
     Draft implementation: problem is, if the user opens /my-position/[pid] directly,
     we don't have the positions loaded yet. So we need to wait for the data to load

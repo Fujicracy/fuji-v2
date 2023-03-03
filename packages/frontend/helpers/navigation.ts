@@ -15,8 +15,6 @@ enum TopLevelUrl {
 export const isTopLevelUrl = (url: string) =>
   (Object.values(TopLevelUrl) as string[]).includes(url)
 
-export const rootUrl = TopLevelUrl.Markets.toString()
-
 export const showPosition = async (
   router: NextRouter,
   walletChainId: string | undefined,
