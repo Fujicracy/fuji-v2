@@ -37,7 +37,7 @@ export const showPosition = async (
   }
 
   if (reset) {
-    useBorrow.getState().changeInputValues("0", "0")
+    useBorrow.getState().changeInputValues("", "")
   }
 
   const positions = usePositions.getState().positions

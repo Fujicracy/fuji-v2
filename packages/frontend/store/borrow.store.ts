@@ -30,6 +30,7 @@ import {
   LtvMeta,
   LiquidationMeta,
   entryTypeForMode,
+  failureForMode,
 } from "../helpers/borrow"
 
 setAutoFreeze(false)
@@ -481,7 +482,10 @@ export const useBorrow = create<BorrowStore>()(
         }
 
         const { activeVault, collateral, debt, mode } = get()
-        if (!activeVault || !collateral.input || !debt.input) {
+        if (
+          !activeVault ||
+          failureForMode(mode, collateral.input, debt.input)
+        ) {
           return set(
             produce((state: BorrowState) => {
               state.transactionMeta.status = "error"

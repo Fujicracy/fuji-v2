@@ -22,16 +22,14 @@ type RouteCardProps = {
   onChange: () => void
 }
 
-function RouteCard(props: RouteCardProps) {
+function RouteCard({ route, selected, onChange }: RouteCardProps) {
   const { palette } = useTheme()
+  console.log(route.steps)
+  const bridgeStep = route.steps.find((s) => s.step === RoutingStep.X_TRANSFER)
+  const startStep = route.steps.find((s) => s.step === RoutingStep.START)
+  const endStep = route.steps.find((s) => s.step === RoutingStep.END)
 
-  const bridgeStep = props.route.steps.find(
-    (s) => s.step === RoutingStep.X_TRANSFER
-  )
-  const startStep = props.route.steps.find((s) => s.step === RoutingStep.START)
-  const endStep = props.route.steps.find((s) => s.step === RoutingStep.END)
-
-  const steps = props.route.steps.filter(
+  const steps = route.steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   )
 
@@ -87,7 +85,7 @@ function RouteCard(props: RouteCardProps) {
     const bridgeIndex = steps.indexOf(bridgeStep)
     const step =
       bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1]
-    const slippage = props.route.estimateSlippage
+    const slippage = route.estimateSlippage
     const direction = slippage >= 0 ? "less" : "more"
     const sign = slippage < 0 ? "positive" : "negative"
 
@@ -110,18 +108,16 @@ function RouteCard(props: RouteCardProps) {
     <Paper
       sx={{
         border: `2px solid ${
-          props.selected ? palette.primary.main : palette.secondary.light
+          selected ? palette.primary.main : palette.secondary.light
         }`,
-        p: `${props.route.recommended ? "0" : "1.5rem"} 1.5rem 0 1.5rem`,
+        p: `${route.recommended ? "0" : "1.5rem"} 1.5rem 0 1.5rem`,
         marginTop: "1rem",
         cursor: "pointer",
         background: palette.secondary.dark,
       }}
-      onClick={props.onChange}
+      onClick={onChange}
     >
-      {props.route.recommended && (
-        <Chip variant="recommended" label="Recommended" />
-      )}
+      {route.recommended && <Chip variant="recommended" label="Recommended" />}
 
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
@@ -129,9 +125,7 @@ function RouteCard(props: RouteCardProps) {
             <>
               <Chip
                 variant="routing"
-                label={`Est Processing Time ~${
-                  props.route.estimateTime / 60
-                } Mins`}
+                label={`Est Processing Time ~${route.estimateTime / 60} Mins`}
               />
               <Tooltip
                 arrow
@@ -145,12 +139,12 @@ function RouteCard(props: RouteCardProps) {
                     />
                   }
                   variant="routing"
-                  label={`Bridge Fee ~$${props.route.bridgeFee.toFixed(2)}`}
+                  label={`Bridge Fee ~$${route.bridgeFee.toFixed(2)}`}
                 />
               </Tooltip>
             </>
           )}
-          {bridgeStep && props.route.estimateSlippage !== undefined && (
+          {bridgeStep && route.estimateSlippage !== undefined && (
             <>
               <Tooltip
                 arrow
@@ -170,12 +164,12 @@ function RouteCard(props: RouteCardProps) {
                       <span
                         style={{
                           color:
-                            props.route.estimateSlippage < 0
+                            route.estimateSlippage < 0
                               ? palette.success.main
                               : palette.error.main,
                         }}
                       >
-                        {`${(-props.route.estimateSlippage).toFixed(2)}%`}
+                        {`${(-route.estimateSlippage).toFixed(2)}%`}
                       </span>
                     </>
                   }
@@ -186,8 +180,8 @@ function RouteCard(props: RouteCardProps) {
         </Stack>
 
         <Chip
-          variant={props.selected ? "selected" : "routing"}
-          label={props.selected ? "Selected" : "Click To Select"}
+          variant={selected ? "selected" : "routing"}
+          label={selected ? "Selected" : "Click To Select"}
         />
       </Stack>
 
@@ -226,8 +220,8 @@ function RouteCard(props: RouteCardProps) {
         </Stack>
       </Stack>
 
-      {!props.selected && (
-        <Collapse sx={{ maxHeight: "2.5rem" }} in={!props.selected}>
+      {!selected && (
+        <Collapse sx={{ maxHeight: "2.5rem" }} in={!selected}>
           <Box
             sx={{
               position: "relative",
@@ -281,11 +275,11 @@ function RouteCard(props: RouteCardProps) {
         </Collapse>
       )}
 
-      <Collapse in={props.selected}>
+      <Collapse in={selected}>
         <Box
           m="0.5rem 1.7rem 1.5rem 0.8rem"
           sx={{
-            backgroundImage: "url('./assets/images/utils/multiple-routes.svg')",
+            backgroundImage: "url('/assets/images/utils/multiple-routes.svg')",
             backgroundRepeat: "no-repeat",
             backgroundSize: "contain",
           }}

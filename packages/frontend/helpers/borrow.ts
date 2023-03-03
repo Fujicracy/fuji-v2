@@ -94,11 +94,19 @@ export type RouteMeta = {
   recommended: boolean
 }
 
-/*
-  I'm sure we'll refactor this at some point. Not ideal implementation. 
-  Object is, we need to grab the previews for all vaults and not stop in case one crashes,
-  plus saving the corresponding address and return everything for the caller to handle.
-*/
+export const failureForMode = (
+  mode: Mode,
+  collateral: string | undefined,
+  debt: string | undefined
+): boolean => {
+  return (
+    ((mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+      (!collateral || !debt)) ||
+    ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) && !collateral) ||
+    ((mode === Mode.BORROW || mode === Mode.PAYBACK) && !debt)
+  )
+}
+
 export const fetchRoutes = async (
   mode: Mode,
   vault: BorrowingVault,
