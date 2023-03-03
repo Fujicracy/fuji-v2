@@ -68,32 +68,32 @@ export function viewFuturePosition(
   mode: Mode
 ): Position {
   const future = JSON.parse(JSON.stringify(current))
+  const collateralInput = parseFloat(
+    collateral.input === "" ? "0" : collateral.input
+  )
+  const debtInput = parseFloat(debt.input === "" ? "0" : debt.input)
   switch (mode) {
     case Mode.DEPOSIT:
-      future.collateral.amount =
-        current.collateral.amount + parseFloat(collateral.input)
+      future.collateral.amount = current.collateral.amount + collateralInput
       break
     case Mode.BORROW:
-      future.debt.amount = current.debt.amount + Number(debt.input)
+      future.debt.amount = current.debt.amount + debtInput
       break
     case Mode.WITHDRAW:
-      future.collateral.amount =
-        current.collateral.amount - parseFloat(collateral.input)
+      future.collateral.amount = current.collateral.amount - collateralInput
       break
     case Mode.PAYBACK:
-      future.debt.amount = current.debt.amount - Number(debt.input)
+      future.debt.amount = current.debt.amount - debtInput
       break
     case Mode.DEPOSIT_AND_BORROW:
-      future.collateral.amount =
-        current.collateral.amount + parseFloat(collateral.input)
+      future.collateral.amount = current.collateral.amount + collateralInput
 
-      future.debt.amount = current.debt.amount + Number(debt.input)
+      future.debt.amount = current.debt.amount + debtInput
       break
     case Mode.PAYBACK_AND_WITHDRAW:
-      future.collateral.amount =
-        current.collateral.amount - parseFloat(collateral.input)
+      future.collateral.amount = current.collateral.amount - collateralInput
 
-      future.debt.amount = current.debt.amount - Number(debt.input)
+      future.debt.amount = current.debt.amount - debtInput
       break
   }
 

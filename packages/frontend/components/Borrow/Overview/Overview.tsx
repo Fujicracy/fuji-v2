@@ -42,6 +42,10 @@ function Overview({ basePosition }: OverviewProps) {
     liquidationPrice,
   } = position
 
+  if (isNaN(ltv)) {
+    window.alert("AAAA")
+  }
+
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
   const providers =
@@ -116,7 +120,9 @@ function Overview({ basePosition }: OverviewProps) {
                 style: "currency",
               })}
               extra={
-                futurePosition && parseFloat(collateralInput) !== 0
+                futurePosition &&
+                collateralInput !== "" &&
+                parseFloat(collateralInput) !== 0
                   ? formatValue(futurePosition.collateral.amount, {
                       maximumFractionDigits: 3,
                     })
@@ -132,7 +138,7 @@ function Overview({ basePosition }: OverviewProps) {
                 maximumFractionDigits: 2,
               })} ${debt.token.symbol}`}
               extra={
-                futurePosition && Number(debtInput) !== 0
+                futurePosition && parseFloat(debtInput) !== 0
                   ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
                       style: "currency",
                     })

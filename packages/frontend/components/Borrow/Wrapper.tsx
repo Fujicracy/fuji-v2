@@ -24,7 +24,6 @@ import {
   viewDynamicPosition,
   viewFuturePosition,
 } from "../../helpers/positions"
-import { useRouter } from "next/router"
 
 type BorrowWrapperProps = {
   managePosition: boolean
@@ -38,7 +37,6 @@ function BorrowWrapper(
   { managePosition, query }: BorrowWrapperProps = { managePosition: false }
 ) {
   const { breakpoints } = useTheme()
-  const router = useRouter()
   const isMobile = useMediaQuery(breakpoints.down("sm"))
 
   const address = useAuth((state) => state.address)
