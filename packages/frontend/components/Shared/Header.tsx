@@ -42,7 +42,7 @@ const pages = [
   { name: "My positions", path: "/my-positions" },
 ]
 if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
-  pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" page is to test design system
+  pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" is to test the design system
 }
 
 const Header = () => {
@@ -59,8 +59,7 @@ const Header = () => {
   const { palette } = useTheme()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
-  const currentPage = router.pathname.substring(1) // TODO: Maybe not the best way
-  console.debug({ currentPage })
+  const currentPage = `/${router.pathname.substring(1)}`
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
