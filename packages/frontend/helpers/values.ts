@@ -30,7 +30,8 @@ export function formatNumber(
   return parseFloat(num.toFixed(decimals))
 }
 
-export const toNotSoFixed = (v: number | string): string => {
+export const toNotSoFixed = (v: number | string | undefined): string => {
+  if (!v) return ""
   const value: number = typeof v === "number" ? v : Number(v)
   const leadingZeroes = -Math.floor(Math.log(value) / Math.log(10) + 1) // Account leading zeroes
   const to = leadingZeroes > 0 ? 1 + leadingZeroes : 2

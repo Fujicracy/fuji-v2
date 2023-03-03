@@ -299,7 +299,7 @@ const BalanceAddress = (props: BalanceAddressProps) => {
   const [bal] = Object.values<string>(balance)
   const [token] = Object.keys(balance)
 
-  const formattedBalance = <Balance balance={+bal} symbol={token} rounding />
+  const formattedBalance = <Balance balance={+bal} symbol={token} />
   const pending = active && (
     <Grid container alignItems="center">
       <CircularProgress size={16} sx={{ mr: "0.625rem" }} />

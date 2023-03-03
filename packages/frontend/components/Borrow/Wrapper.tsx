@@ -24,9 +24,7 @@ import {
   viewDynamicPosition,
   viewFuturePosition,
 } from "../../helpers/positions"
-import { Stack } from "@mui/system"
 import { useRouter } from "next/router"
-import { rootUrl } from "../../helpers/navigation"
 
 type BorrowWrapperProps = {
   managePosition: boolean
