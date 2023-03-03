@@ -32,6 +32,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
   IFlasher public flasher;
 
   LiquidationManager public liquidationManager;
+  ISwapper public swapper;
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
@@ -56,7 +57,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     address quickSwap = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
     vm.label(quickSwap, "QuickSwap");
-    ISwapper swapper = new UniswapV2Swapper(IWETH9(collateralAsset), IUniswapV2Router01(quickSwap));
+    swapper = new UniswapV2Swapper(IWETH9(collateralAsset), IUniswapV2Router01(quickSwap));
 
     liquidationManager = new LiquidationManager(address(chief), TREASURY, address(swapper));
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
@@ -98,26 +99,35 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     return borrowAmount < maxBorrow;
   }
 
-  function _utils_getFutureHealthFactor(
-    uint256 amount,
-    uint256 borrowAmount,
-    uint256 priceDrop
+  // function _utils_getFutureHealthFactor(
+  //   uint256 amount,
+  //   uint256 borrowAmount,
+  //   uint256 priceDrop
+  // )
+  //   internal
+  //   view
+  //   returns (uint256)
+  // {
+  //   uint256 priceBefore = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
+  //   return (amount * LIQUIDATION_RATIO * (priceBefore - priceDrop))
+  //     / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
+  // }
+
+  function _utils_getAmountInSwap(
+    address assetIn,
+    address assetOut,
+    uint256 amountOut
   )
     internal
     view
-    returns (uint256)
+    returns (uint256 amountIn)
   {
-    uint256 priceBefore = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    return (amount * LIQUIDATION_RATIO * (priceBefore - priceDrop))
-      / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
+    amountIn = swapper.getAmountIn(assetIn, assetOut, amountOut);
   }
 
   function test_liquidateMax(uint256 borrowAmount) public {
     uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 minAmount = (1e6 * currentPrice) / 1e18;
-
-    console.log("minAmount", minAmount);
-    console.log("oracleprice", oracle.getPriceOf(collateralAsset, debtAsset, 18));
 
     vm.assume(
       borrowAmount > minAmount && borrowAmount < oracle.getPriceOf(collateralAsset, debtAsset, 18)
@@ -125,12 +135,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     uint256 maxltv = 75 * 1e16;
     uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
-
-    console.log("unsafeAmount", unsafeAmount);
-    console.log("borrowAmount", borrowAmount);
-    console.log("currentPrice", currentPrice);
-    console.log("_utils_checkMaxLTV", _utils_checkMaxLTV(1000e18, borrowAmount));
-    console.log("_utils_checkMaxLTV", _utils_checkMaxLTV(unsafeAmount, borrowAmount));
 
     do_depositAndBorrow(unsafeAmount, borrowAmount, vault, ALICE);
 
@@ -140,24 +144,15 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 liquidationPrice = (currentPrice * 75) / 100;
     uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
 
-    console.log(
-      "future hf",
-      _utils_getFutureHealthFactor(unsafeAmount, borrowAmount, currentPrice - liquidationPrice)
-    );
-
     mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
     mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
 
-    console.log("hf after drop", vault.getHealthFactor(ALICE));
-
-    console.log("assertions alice");
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
     assertEq(vault.balanceOf(ALICE), unsafeAmount);
     // assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
 
-    console.log("assertions treasury");
     //check balance of treasury
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
@@ -169,7 +164,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     liquidationManager.liquidate(users, vault, flasher);
     vm.stopPrank();
 
-    console.log("assertions alice after liquidation");
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
@@ -178,11 +172,10 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     //check balance of treasury
     uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
-    uint256 collectedAmount = unsafeAmount - (borrowAmount * 1e18 / liquidationPrice)
-      - (flashloanFee * 1e18 / liquidationPrice);
+    uint256 collectedAmount =
+      unsafeAmount - _utils_getAmountInSwap(collateralAsset, debtAsset, borrowAmount + flashloanFee);
 
-    console.log("assertions treasury after liquidation");
-    // assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 
@@ -197,15 +190,11 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       priceDrop > _utils_getLiquidationThresholdValue(scaledUSDPerMATICPrice, amount, borrowAmount)
     );
 
-    console.log("1");
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
-    console.log("1");
     uint256 priceDropThresholdToMaxLiq =
       price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
-    console.log("1");
     uint256 priceDropThresholdToDiscountLiq =
       price - ((100e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
-    console.log("1");
 
     //priceDrop between thresholds
     priceDrop =
@@ -254,12 +243,12 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount / 2);
 
     uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.5e18 / newPrice);
-    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18 / newPrice);
+    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18 / newPrice) + flashloanFee;
+    uint256 amountInTotal =
+      _utils_getAmountInSwap(collateralAsset, debtAsset, amountToRepayFlashloan); //add swap fee
 
     //check balance of treasury
-    assertEq(
-      IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountToRepayFlashloan
-    );
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountInTotal);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
     assertEq(vault.balanceOf(TREASURY), 0);
     assertEq(vault.balanceOfDebt(TREASURY), 0);
