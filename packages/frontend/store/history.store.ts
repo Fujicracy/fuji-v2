@@ -218,7 +218,8 @@ export const useHistory = create<HistoryStore>()(
 
         clearAll() {
           useHistory.persist.clearStorage()
-          set({ allHash: [...get().activeHash] })
+          set(initialState)
+          // set({ allHash: [...get().activeHash] })
         },
 
         openModal(hash) {
