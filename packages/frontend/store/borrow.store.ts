@@ -492,6 +492,7 @@ export const useBorrow = create<BorrowStore>()(
             })
           )
         }
+
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "fetching"
@@ -499,8 +500,14 @@ export const useBorrow = create<BorrowStore>()(
             state.actions = undefined
           })
         )
+
         try {
-          const vaults = get().availableVaults
+          const formType = get().formType
+          // when managing position, we need to fetch routes only for the active vault
+          const vaults =
+            formType === "create"
+              ? get().availableVaults
+              : [get().activeVault as BorrowingVault]
           const results = await Promise.all(
             vaults.map((v, i) => {
               const recommended = i === 0
