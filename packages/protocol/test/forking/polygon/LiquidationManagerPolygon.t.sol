@@ -3,7 +3,6 @@ pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
-// import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
@@ -119,6 +118,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 amountOut
   )
     internal
+    view
     returns (uint256 amountIn)
   {
     amountIn = swapper.getAmountIn(assetIn, assetOut, amountOut);
