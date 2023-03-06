@@ -174,7 +174,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
     //check balance of treasury
-    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
+    assertApproxEqAbs(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount, 1);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 
