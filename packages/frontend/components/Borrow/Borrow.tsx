@@ -122,7 +122,10 @@ function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
             action={positionAction}
             onPositionActionChange={(action) => setPositionAction(action)}
           />
-          {[collateral, debt].map((assetChange, index) => {
+          {(positionAction === PositionAction.ADD
+            ? [collateral, debt]
+            : [debt, collateral]
+          ).map((assetChange, index) => {
             const type = index === 0 ? "collateral" : "debt"
             return (
               <BorrowBox
