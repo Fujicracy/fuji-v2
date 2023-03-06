@@ -178,9 +178,10 @@ function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
             availableVaultStatus={availableVaultStatus}
             mode={mode}
             isManagingPosition={isManagingPosition}
+            positionAction={positionAction}
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={login}
-            onChainChangeClick={() => changeChain(collateral.token.chainId)}
+            onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={() => setShowApprovalModal(true)}
             onRedirectClick={(borrow) => {
               if (borrow) {

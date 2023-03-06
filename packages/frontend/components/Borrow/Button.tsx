@@ -2,8 +2,12 @@ import { Button } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
-import { AssetChange, LtvMeta, Mode } from "../../helpers/borrow"
-import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
+import {
+  AssetChange,
+  LtvMeta,
+  Mode,
+  PositionAction,
+} from "../../helpers/borrow"
 import { Position } from "../../store/models/Position"
 
 type BorrowButtonProps = {
@@ -19,9 +23,10 @@ type BorrowButtonProps = {
   availableVaultStatus: FetchStatus
   mode: Mode
   isManagingPosition: boolean
+  positionAction: PositionAction
   hasBalanceInVault: boolean
   onLoginClick: () => void
-  onChainChangeClick: () => void
+  onChainChangeClick: (chainId: string) => void
   onApproveClick: () => void
   onRedirectClick: (position: boolean) => void
   onClick: () => void
@@ -40,6 +45,7 @@ function BorrowButton({
   availableVaultStatus,
   mode,
   isManagingPosition,
+  positionAction,
   hasBalanceInVault,
   onLoginClick,
   onChainChangeClick,
@@ -100,8 +106,18 @@ function BorrowButton({
 
   if (!address) {
     return regularButton("Connect wallet", onLoginClick, "borrow-login")
-  } else if (collateral.chainId !== walletChain?.id) {
-    return regularButton("Switch network", onChainChangeClick)
+  } else if (
+    (positionAction === PositionAction.ADD
+      ? collateral.chainId
+      : debt.chainId) !== walletChain?.id
+  ) {
+    return regularButton("Switch network", () => {
+      onChainChangeClick(
+        positionAction === PositionAction.ADD
+          ? collateral.chainId
+          : debt.chainId
+      )
+    })
   } else if (!isManagingPosition && hasBalanceInVault) {
     return regularButton("Manage position", () => {
       onRedirectClick(false)
