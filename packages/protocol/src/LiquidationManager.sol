@@ -198,6 +198,12 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     debtAsset.safeApprove(address(vault), debtAmount);
     uint256 collateralAmount = vault.liquidate(user, address(this));
 
+    uint256 maxWithdrawAmount = vault.maxWithdraw(address(this));
+
+    if (collateralAmount > maxWithdrawAmount) {
+      collateralAmount = maxWithdrawAmount;
+    }
+
     //sell shares for collateralAsset
     vault.withdraw(collateralAmount, address(this), address(this));
 
