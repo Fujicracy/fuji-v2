@@ -4,21 +4,21 @@ import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
 
 type BorrowHeaderProps = {
-  managingPosition: boolean
+  isManagingPosition: boolean
   action: PositionAction
   chainName: string
   onPositionActionChange: (action: PositionAction) => void
 }
 
 function BorrowHeader({
-  managingPosition,
+  isManagingPosition,
   action,
   chainName,
   onPositionActionChange,
 }: BorrowHeaderProps) {
   return (
     <>
-      {managingPosition ? (
+      {isManagingPosition ? (
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -36,7 +36,7 @@ function BorrowHeader({
         </Typography>
       )}
       <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
-      {managingPosition && (
+      {isManagingPosition && (
         <Stack
           direction="row"
           sx={{

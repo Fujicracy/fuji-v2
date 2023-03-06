@@ -1,12 +1,18 @@
 import { Box } from "@mui/material"
-import { AssetChange, LtvMeta } from "../../../helpers/borrow"
+import {
+  AssetChange,
+  LtvMeta,
+  Mode,
+  PositionAction,
+} from "../../../helpers/borrow"
 import { useBorrow } from "../../../store/borrow.store"
 
 import ChainSelect from "./ChainSelect"
 import TokenCard from "./TokenCard"
 
 type BorrowBoxProps = {
-  managingPosition: boolean
+  isManagingPosition: boolean
+  positionAction: PositionAction
   type: "debt" | "collateral"
   chainId: string
   isExecuting: boolean
@@ -16,7 +22,8 @@ type BorrowBoxProps = {
 }
 
 function BorrowBox({
-  managingPosition,
+  isManagingPosition,
+  positionAction,
   assetChange,
   type,
   chainId,
@@ -40,7 +47,15 @@ function BorrowBox({
   return (
     <Box mb={type === "collateral" ? "1rem" : undefined}>
       <ChainSelect
-        label={type === "collateral" ? "Collateral from" : "Borrow to"}
+        label={
+          type === "collateral"
+            ? positionAction === PositionAction.ADD
+              ? "Collateral from"
+              : "Withdraw to"
+            : positionAction === PositionAction.ADD
+            ? "Borrow to"
+            : "Payback from"
+        }
         type={type}
         value={chainId}
         disabled={isExecuting}
@@ -53,7 +68,7 @@ function BorrowBox({
       <TokenCard
         type={type}
         assetChange={assetChange}
-        disabled={managingPosition}
+        disabled={isManagingPosition}
         isExecuting={isExecuting}
         value={value}
         ltvMeta={ltvMeta}

@@ -26,10 +26,10 @@ import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 
 type BorrowProps = {
-  managingPosition: boolean
+  isManagingPosition: boolean
   basePosition: BasePosition
 }
-function Borrow({ managingPosition, basePosition }: BorrowProps) {
+function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
   const router = useRouter()
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
@@ -98,7 +98,7 @@ function Borrow({ managingPosition, basePosition }: BorrowProps) {
 
   useEffect(() => {
     const mode = modeForContext(
-      managingPosition,
+      isManagingPosition,
       positionAction,
       Number(collateral.input),
       Number(debt.input)
@@ -106,7 +106,7 @@ function Borrow({ managingPosition, basePosition }: BorrowProps) {
     changeMode(mode)
   }, [
     changeMode,
-    managingPosition,
+    isManagingPosition,
     collateral.input,
     debt.input,
     positionAction,
@@ -118,7 +118,7 @@ function Borrow({ managingPosition, basePosition }: BorrowProps) {
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <BorrowHeader
             chainName={chainName(debt.chainId)}
-            managingPosition={managingPosition}
+            isManagingPosition={isManagingPosition}
             action={positionAction}
             onPositionActionChange={(action) => setPositionAction(action)}
           />
@@ -126,10 +126,11 @@ function Borrow({ managingPosition, basePosition }: BorrowProps) {
             const type = index === 0 ? "collateral" : "debt"
             return (
               <BorrowBox
+                positionAction={positionAction}
                 key={type}
                 type={type}
                 assetChange={assetChange}
-                managingPosition={managingPosition}
+                isManagingPosition={isManagingPosition}
                 chainId={assetChange.chainId}
                 isExecuting={isExecuting}
                 value={assetChange.input}
@@ -173,7 +174,7 @@ function Borrow({ managingPosition, basePosition }: BorrowProps) {
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            managingPosition={managingPosition}
+            isManagingPosition={isManagingPosition}
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
