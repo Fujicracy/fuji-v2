@@ -49,6 +49,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const vault = useBorrow((state) => state.activeVault)
   const mode = useBorrow((state) => state.mode)
   const changeMode = useBorrow((state) => state.changeMode)
+  const changeInputValues = useBorrow((state) => state.changeInputValues)
   const updateBalance = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)
   const updateAllowance = useBorrow((state) => state.updateAllowance)
@@ -83,6 +84,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     updateTokenPrice("collateral")
     updateTokenPrice("debt")
   }, [updateTokenPrice])
+
+  useEffect(() => {
+    changeInputValues("", "")
+  }, [actionType, changeInputValues])
 
   useEffect(() => {
     ;(async () => {
@@ -120,7 +125,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             ? [collateral, debt]
             : [debt, collateral]
           ).map((assetChange, index) => {
-            const type = index === 0 ? "collateral" : "debt"
+            const collateralIndex = actionType === ActionType.ADD ? 0 : 1
+            const type = index === collateralIndex ? "collateral" : "debt"
             return (
               <BorrowBox
                 key={type}
