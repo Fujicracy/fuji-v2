@@ -150,11 +150,15 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
     assertEq(vault.balanceOf(ALICE), unsafeAmount);
-    // assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount, 1);
 
     //check balance of treasury
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+
+    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
+    uint256 collectedAmount =
+      unsafeAmount - _utils_getAmountInSwap(collateralAsset, debtAsset, borrowAmount + flashloanFee);
 
     //liquidate ALICE
     address[] memory users = new address[](1);
@@ -170,10 +174,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
     //check balance of treasury
-    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
-    uint256 collectedAmount =
-      unsafeAmount - _utils_getAmountInSwap(collateralAsset, debtAsset, borrowAmount + flashloanFee);
-
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
