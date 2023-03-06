@@ -18,7 +18,7 @@ type BorrowButtonProps = {
   isExecuting: boolean
   availableVaultStatus: FetchStatus
   mode: Mode
-  managePosition: boolean
+  managingPosition: boolean
   hasBalanceInVault: boolean
   onLoginClick: () => void
   onChainChangeClick: () => void
@@ -39,7 +39,7 @@ function BorrowButton({
   isExecuting,
   availableVaultStatus,
   mode,
-  managePosition,
+  managingPosition,
   hasBalanceInVault,
   onLoginClick,
   onChainChangeClick,
@@ -102,11 +102,11 @@ function BorrowButton({
     return regularButton("Connect wallet", onLoginClick, "borrow-login")
   } else if (collateral.chainId !== walletChain?.id) {
     return regularButton("Switch network", onChainChangeClick)
-  } else if (!managePosition && hasBalanceInVault) {
+  } else if (!managingPosition && hasBalanceInVault) {
     return regularButton("Manage position", () => {
       onRedirectClick(false)
     })
-  } else if (managePosition && !hasBalanceInVault) {
+  } else if (managingPosition && !hasBalanceInVault) {
     return regularButton("Borrow", () => {
       onRedirectClick(true)
     })

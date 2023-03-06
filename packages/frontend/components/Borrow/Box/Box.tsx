@@ -6,7 +6,7 @@ import ChainSelect from "./ChainSelect"
 import TokenCard from "./TokenCard"
 
 type BorrowBoxProps = {
-  managePosition: boolean
+  managingPosition: boolean
   type: "debt" | "collateral"
   chainId: string
   isExecuting: boolean
@@ -16,7 +16,7 @@ type BorrowBoxProps = {
 }
 
 function BorrowBox({
-  managePosition,
+  managingPosition,
   assetChange,
   type,
   chainId,
@@ -53,7 +53,7 @@ function BorrowBox({
       <TokenCard
         type={type}
         assetChange={assetChange}
-        disabled={managePosition}
+        disabled={managingPosition}
         isExecuting={isExecuting}
         value={value}
         ltvMeta={ltvMeta}

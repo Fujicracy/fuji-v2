@@ -35,9 +35,11 @@ import {
 
 setAutoFreeze(false)
 
+type FormType = "create" | "manage"
+
 export type BorrowStore = BorrowState & BorrowActions
 type BorrowState = {
-  formType: "create" | "edit"
+  formType: FormType
   mode: Mode
 
   availableVaults: BorrowingVault[]
@@ -73,6 +75,7 @@ type BorrowState = {
 export type FetchStatus = "initial" | "fetching" | "ready" | "error"
 
 type BorrowActions = {
+  changeFormType: (type: FormType) => void
   changeMode: (mode: Mode) => void
   changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
   changeInputValues: (collateral: string, debt: string) => void
@@ -173,6 +176,14 @@ export const useBorrow = create<BorrowStore>()(
   devtools(
     (set, get) => ({
       ...initialState,
+
+      async changeFormType(formType) {
+        set(
+          produce((state: BorrowState) => {
+            state.formType = formType
+          })
+        )
+      },
 
       async changeMode(mode) {
         set(
@@ -624,8 +635,6 @@ export const useBorrow = create<BorrowStore>()(
         )
         set(
           produce((s: BorrowState) => {
-            s.formType = deposit.gt(0) || borrow.gt(0) ? "edit" : "create"
-
             const dec = s.collateral.token.decimals
             s.collateral.amount = parseFloat(formatUnits(deposit, dec))
 
