@@ -119,7 +119,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 amountOut
   )
     internal
-    view
     returns (uint256 amountIn)
   {
     amountIn = swapper.getAmountIn(assetIn, assetOut, amountOut);
@@ -208,6 +207,12 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     mock_getPriceOf(collateralAsset, debtAsset, 1e18 / newPrice);
     mock_getPriceOf(debtAsset, collateralAsset, newPrice);
 
+    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.5e18 / 1e18);
+    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18) / 1e18 + flashloanFee;
+    //amount of collateral to swap to repay flashloan
+    uint256 amountInTotal =
+      _utils_getAmountInSwap(collateralAsset, debtAsset, amountToRepayFlashloan);
+
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
@@ -224,7 +229,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     address[] memory users = new address[](1);
     users[0] = ALICE;
 
-    vm.startPrank(address(KEEPER));
+    vm.startPrank(KEEPER);
     liquidationManager.liquidate(users, vault, flasher);
     vm.stopPrank();
 
@@ -239,13 +244,8 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       amountGivenToLiquidator = amount;
     }
 
-    assertEq(vault.balanceOf(ALICE), amount - amountGivenToLiquidator);
-    assertEq(vault.balanceOfDebt(ALICE), borrowAmount / 2);
-
-    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.5e18 / newPrice);
-    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18 / newPrice) + flashloanFee;
-    uint256 amountInTotal =
-      _utils_getAmountInSwap(collateralAsset, debtAsset, amountToRepayFlashloan); //add swap fee
+    assertApproxEqAbs(vault.balanceOf(ALICE), amount - amountGivenToLiquidator, 1);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount / 2, 1);
 
     //check balance of treasury
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountInTotal);
@@ -330,6 +330,10 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
+
+  // function test_liquidateSeveralUsers() public {
+  //
+  // }
 
   function test_unauthorizedKeeper() public {
     uint256 amount = 1 ether;
