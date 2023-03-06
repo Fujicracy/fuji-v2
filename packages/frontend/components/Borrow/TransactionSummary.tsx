@@ -34,7 +34,6 @@ function TransactionSummary() {
 
   const collateral = useBorrow((state) => state.collateral)
   const debt = useBorrow((state) => state.debt)
-
   const allProviders = useBorrow((state) => state.allProviders)
   const vault = useBorrow((state) => state.activeVault)
   const providers =

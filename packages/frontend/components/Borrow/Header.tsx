@@ -4,16 +4,21 @@ import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
 
 type BorrowHeaderProps = {
-  managePosition: boolean
+  managingPosition: boolean
   action: PositionAction
   chainName: string
   onPositionActionChange: (action: PositionAction) => void
 }
 
-function BorrowHeader(props: BorrowHeaderProps) {
+function BorrowHeader({
+  managingPosition,
+  action,
+  chainName,
+  onPositionActionChange,
+}: BorrowHeaderProps) {
   return (
     <>
-      {props.managePosition ? (
+      {managingPosition ? (
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -23,7 +28,7 @@ function BorrowHeader(props: BorrowHeaderProps) {
           <Typography variant="body2" height="40px" lineHeight="40px">
             Manage your position
           </Typography>
-          <NetworkIcon network={props.chainName} height={18} width={18} />
+          <NetworkIcon network={chainName} height={18} width={18} />
         </Stack>
       ) : (
         <Typography variant="body2" height="40px" lineHeight="40px">
@@ -31,7 +36,7 @@ function BorrowHeader(props: BorrowHeaderProps) {
         </Typography>
       )}
       <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
-      {props.managePosition && (
+      {managingPosition && (
         <Stack
           direction="row"
           sx={{
@@ -43,10 +48,10 @@ function BorrowHeader(props: BorrowHeaderProps) {
             <TabChip
               key={`${p}`}
               sx={p === PositionAction.REMOVE ? { marginLeft: 1 } : {}}
-              selected={props.action === p}
+              selected={action === p}
               label={`${p === PositionAction.ADD ? "Add" : "Remove"} Position`}
               onClick={() => {
-                props.onPositionActionChange(p)
+                onPositionActionChange(p)
               }}
             />
           ))}

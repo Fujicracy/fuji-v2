@@ -2,8 +2,10 @@ import { ethers } from "ethers"
 import { NextPage } from "next"
 
 import { useRouter } from "next/router"
+import { useEffect } from "react"
 import BorrowWrapper from "../../components/Borrow/Wrapper"
 import { isChain } from "../../helpers/chains"
+import { useBorrow } from "../../store/borrow.store"
 
 const PositionPage: NextPage = () => {
   const router = useRouter()
@@ -12,6 +14,12 @@ const PositionPage: NextPage = () => {
   const query = typeof pid === "string" ? pid.split("-") : []
   const address = query[0]
   const chain = query[1]
+
+  const changeFormType = useBorrow((state) => state.changeFormType)
+
+  useEffect(() => {
+    changeFormType("manage")
+  }, [changeFormType])
 
   if (!address || !chain) {
     return <></>
@@ -23,10 +31,8 @@ const PositionPage: NextPage = () => {
   ) {
     router.push("/borrow")
   }
-
   return (
     <BorrowWrapper
-      managePosition
       query={{
         address,
         chain,
