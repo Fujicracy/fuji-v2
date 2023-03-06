@@ -21,11 +21,17 @@ import styles from "../../../styles/components/Borrow.module.css"
 
 import Balance from "../../Shared/Balance"
 import { TokenIcon } from "../../Shared/Icons"
-import { AssetChange, LtvMeta, recommendedLTV } from "../../../helpers/borrow"
+import {
+  ActionType,
+  AssetChange,
+  LtvMeta,
+  recommendedLTV,
+} from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 
 type SelectTokenCardProps = {
   type: "collateral" | "debt"
+  actionType: ActionType
   assetChange: AssetChange
   isExecuting: boolean
   disabled: boolean
@@ -38,6 +44,7 @@ type SelectTokenCardProps = {
 function TokenCard({
   type,
   assetChange,
+  actionType,
   isExecuting,
   disabled,
   value,
@@ -78,6 +85,7 @@ function TokenCard({
       variant="outlined"
       sx={{
         borderColor:
+          (actionType === ActionType.ADD ? "collateral" : "debt") === type &&
           Number(assetChange.input) > balance
             ? palette.error.dark
             : palette.secondary.light,

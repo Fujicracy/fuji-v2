@@ -63,6 +63,7 @@ function BorrowBox({
       <TokenCard
         type={type}
         assetChange={assetChange}
+        actionType={actionType}
         disabled={isEditing}
         isExecuting={isExecuting}
         value={value}
