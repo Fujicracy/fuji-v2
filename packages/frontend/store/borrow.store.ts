@@ -35,7 +35,7 @@ import {
 
 setAutoFreeze(false)
 
-type FormType = "create" | "manage"
+type FormType = "create" | "edit"
 
 export type BorrowStore = BorrowState & BorrowActions
 type BorrowState = {
@@ -344,10 +344,10 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "ready"
+            state.needsPermit = Sdk.needSignature(route.actions)
             state.transactionMeta.bridgeFee = route.bridgeFee
             state.transactionMeta.estimateTime = route.estimateTime
             state.transactionMeta.steps = route.steps
-            state.needPermit = Sdk.needSignature(route.actions)
             state.actions = route.actions
           })
         )
@@ -514,7 +514,7 @@ export const useBorrow = create<BorrowStore>()(
 
         try {
           const formType = get().formType
-          // when managing position, we need to fetch routes only for the active vault
+          // when editing a position, we need to fetch routes only for the active vault
           const vaults =
             formType === "create"
               ? get().availableVaults

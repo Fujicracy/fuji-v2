@@ -18,7 +18,7 @@ const PositionPage: NextPage = () => {
   const changeFormType = useBorrow((state) => state.changeFormType)
 
   useEffect(() => {
-    changeFormType("manage")
+    changeFormType("edit")
   }, [changeFormType])
 
   if (!address || !chain) {

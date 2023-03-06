@@ -44,13 +44,13 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   const mode = useBorrow((state) => state.mode)
   const formType = useBorrow((state) => state.formType)
 
-  const isManagingPosition = formType === "manage"
+  const isEditing = formType !== "create"
 
   const [basePosition, setBasePosition] = useState<BasePosition>(
-    viewDynamicPosition(!isManagingPosition, undefined)
+    viewDynamicPosition(!isEditing, undefined)
   )
   const [loading, setLoading] = useState<boolean>(
-    isManagingPosition && (!positions || positions.length === 0)
+    isEditing && (!positions || positions.length === 0)
   )
 
   useEffect(() => {
@@ -67,7 +67,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
         : undefined
     }
     const basePosition = viewDynamicPosition(
-      !isManagingPosition,
+      !isEditing,
       matchPosition,
       futurePosition
     )
@@ -79,8 +79,8 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
     address,
     positions,
     mode,
+    isEditing,
     query,
-    isManagingPosition,
   ])
 
   /*
@@ -89,7 +89,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
     and change the values in the store.
   */
   useEffect(() => {
-    if (isManagingPosition && loading && basePosition) {
+    if (isEditing && loading && basePosition) {
       const vault = basePosition.position.vault
       if (vault) {
         const changeAll = useBorrow.getState().changeAll
@@ -97,16 +97,16 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
         setLoading(false)
       }
     }
-  }, [isManagingPosition, basePosition, loading])
+  }, [isEditing, basePosition, loading])
 
   return (
     <>
       <Head>
-        <title>{`${isManagingPosition ? "Position" : "Borrow"} - xFuji`}</title>
+        <title>{`${isEditing ? "Position" : "Borrow"} - xFuji`}</title>
         <meta
           name="description"
           content={`${
-            isManagingPosition
+            isEditing
               ? "position detail"
               : "borrow at the best rate on any chain"
           }`}
@@ -146,10 +146,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
         ) : (
           <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
             <Grid item xs={12} md={5}>
-              <Borrow
-                isManagingPosition={isManagingPosition}
-                basePosition={basePosition}
-              />
+              <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
             <Grid item sm={12} md={7}>
               {isMobile ? (

@@ -19,17 +19,17 @@ import BorrowButton from "./Button"
 import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
 import ConnextFooter from "./ConnextFooter"
-import { modeForContext, PositionAction } from "../../helpers/borrow"
+import { modeForContext, ActionType } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 
 type BorrowProps = {
-  isManagingPosition: boolean
+  isEditing: boolean
   basePosition: BasePosition
 }
-function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
+function Borrow({ isEditing, basePosition }: BorrowProps) {
   const router = useRouter()
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
@@ -67,7 +67,7 @@ function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
 
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const [positionAction, setPositionAction] = useState(PositionAction.ADD)
+  const [actionType, setActionType] = useState(ActionType.ADD)
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false)
 
   useEffect(() => {
@@ -98,19 +98,13 @@ function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
 
   useEffect(() => {
     const mode = modeForContext(
-      isManagingPosition,
-      positionAction,
+      isEditing,
+      actionType,
       Number(collateral.input),
       Number(debt.input)
     )
     changeMode(mode)
-  }, [
-    changeMode,
-    isManagingPosition,
-    collateral.input,
-    debt.input,
-    positionAction,
-  ])
+  }, [changeMode, isEditing, collateral.input, debt.input, actionType])
 
   return (
     <>
@@ -118,22 +112,22 @@ function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <BorrowHeader
             chainName={chainName(debt.chainId)}
-            isManagingPosition={isManagingPosition}
-            action={positionAction}
-            onPositionActionChange={(action) => setPositionAction(action)}
+            isEditing={isEditing}
+            actionType={actionType}
+            onActionTypeChange={(type) => setActionType(type)}
           />
-          {(positionAction === PositionAction.ADD
+          {(actionType === ActionType.ADD
             ? [collateral, debt]
             : [debt, collateral]
           ).map((assetChange, index) => {
             const type = index === 0 ? "collateral" : "debt"
             return (
               <BorrowBox
-                positionAction={positionAction}
                 key={type}
                 type={type}
                 assetChange={assetChange}
-                isManagingPosition={isManagingPosition}
+                isEditing={isEditing}
+                actionType={actionType}
                 chainId={assetChange.chainId}
                 isExecuting={isExecuting}
                 value={assetChange.input}
@@ -177,8 +171,8 @@ function Borrow({ isManagingPosition, basePosition }: BorrowProps) {
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            isManagingPosition={isManagingPosition}
-            positionAction={positionAction}
+            isEditing={isEditing}
+            actionType={actionType}
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={login}
             onChainChangeClick={(chainId) => changeChain(chainId)}

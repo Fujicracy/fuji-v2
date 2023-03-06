@@ -2,12 +2,7 @@ import { Button } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
-import {
-  AssetChange,
-  LtvMeta,
-  Mode,
-  PositionAction,
-} from "../../helpers/borrow"
+import { AssetChange, LtvMeta, Mode, ActionType } from "../../helpers/borrow"
 import { Position } from "../../store/models/Position"
 
 type BorrowButtonProps = {
@@ -22,8 +17,8 @@ type BorrowButtonProps = {
   isExecuting: boolean
   availableVaultStatus: FetchStatus
   mode: Mode
-  isManagingPosition: boolean
-  positionAction: PositionAction
+  isEditing: boolean
+  actionType: ActionType
   hasBalanceInVault: boolean
   onLoginClick: () => void
   onChainChangeClick: (chainId: string) => void
@@ -44,8 +39,8 @@ function BorrowButton({
   isExecuting,
   availableVaultStatus,
   mode,
-  isManagingPosition,
-  positionAction,
+  isEditing,
+  actionType,
   hasBalanceInVault,
   onLoginClick,
   onChainChangeClick,
@@ -107,22 +102,19 @@ function BorrowButton({
   if (!address) {
     return regularButton("Connect wallet", onLoginClick, "borrow-login")
   } else if (
-    (positionAction === PositionAction.ADD
-      ? collateral.chainId
-      : debt.chainId) !== walletChain?.id
+    (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
+    walletChain?.id
   ) {
     return regularButton("Switch network", () => {
       onChainChangeClick(
-        positionAction === PositionAction.ADD
-          ? collateral.chainId
-          : debt.chainId
+        actionType === ActionType.ADD ? collateral.chainId : debt.chainId
       )
     })
-  } else if (!isManagingPosition && hasBalanceInVault) {
+  } else if (!isEditing && hasBalanceInVault) {
     return regularButton("Manage position", () => {
       onRedirectClick(false)
     })
-  } else if (isManagingPosition && !hasBalanceInVault) {
+  } else if (isEditing && !hasBalanceInVault) {
     return regularButton("Borrow", () => {
       onRedirectClick(true)
     })

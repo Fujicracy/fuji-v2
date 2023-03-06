@@ -1,24 +1,24 @@
 import { Divider, Typography, Stack } from "@mui/material"
-import { PositionAction } from "../../helpers/borrow"
+import { ActionType } from "../../helpers/borrow"
 import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
 
 type BorrowHeaderProps = {
-  isManagingPosition: boolean
-  action: PositionAction
+  isEditing: boolean
+  actionType: ActionType
   chainName: string
-  onPositionActionChange: (action: PositionAction) => void
+  onActionTypeChange: (action: ActionType) => void
 }
 
 function BorrowHeader({
-  isManagingPosition,
-  action,
+  isEditing,
+  actionType,
   chainName,
-  onPositionActionChange,
+  onActionTypeChange,
 }: BorrowHeaderProps) {
   return (
     <>
-      {isManagingPosition ? (
+      {isEditing ? (
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -36,7 +36,7 @@ function BorrowHeader({
         </Typography>
       )}
       <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
-      {isManagingPosition && (
+      {isEditing && (
         <Stack
           direction="row"
           sx={{
@@ -44,14 +44,14 @@ function BorrowHeader({
             marginBottom: 3,
           }}
         >
-          {[PositionAction.ADD, PositionAction.REMOVE].map((p) => (
+          {[ActionType.ADD, ActionType.REMOVE].map((p) => (
             <TabChip
               key={`${p}`}
-              sx={p === PositionAction.REMOVE ? { marginLeft: 1 } : {}}
-              selected={action === p}
-              label={`${p === PositionAction.ADD ? "Add" : "Remove"} Position`}
+              sx={p === ActionType.REMOVE ? { marginLeft: 1 } : {}}
+              selected={actionType === p}
+              label={`${p === ActionType.ADD ? "Add" : "Remove"} Position`}
               onClick={() => {
-                onPositionActionChange(p)
+                onActionTypeChange(p)
               }}
             />
           ))}

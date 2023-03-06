@@ -37,7 +37,7 @@ export type LiquidationMeta = {
   liquidationDiff: number
 }
 
-export enum PositionAction {
+export enum ActionType {
   ADD = 0,
   REMOVE = 1,
 }
@@ -52,20 +52,20 @@ export enum Mode {
 }
 
 export function modeForContext(
-  managing: boolean,
-  action: PositionAction,
+  isEditing: boolean,
+  actionType: ActionType,
   collateral: number,
   debt: number
 ): Mode {
-  if (!managing) return Mode.DEPOSIT_AND_BORROW
+  if (!isEditing) return Mode.DEPOSIT_AND_BORROW
   if ((collateral > 0 && debt > 0) || (collateral === 0 && debt === 0)) {
-    return PositionAction.ADD === action
+    return ActionType.ADD === actionType
       ? Mode.DEPOSIT_AND_BORROW
       : Mode.PAYBACK_AND_WITHDRAW
   } else if (collateral > 0) {
-    return PositionAction.ADD === action ? Mode.DEPOSIT : Mode.WITHDRAW
+    return ActionType.ADD === actionType ? Mode.DEPOSIT : Mode.WITHDRAW
   } else if (debt > 0) {
-    return PositionAction.ADD === action ? Mode.BORROW : Mode.PAYBACK
+    return ActionType.ADD === actionType ? Mode.BORROW : Mode.PAYBACK
   }
   return Mode.DEPOSIT_AND_BORROW
 }
