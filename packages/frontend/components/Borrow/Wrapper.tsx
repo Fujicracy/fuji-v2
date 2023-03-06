@@ -92,11 +92,9 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
     if (isManagingPosition && loading && basePosition) {
       const vault = basePosition.position.vault
       if (vault) {
-        ;(async () => {
-          const changeAll = useBorrow.getState().changeAll
-          await changeAll(vault.collateral, vault.debt, vault)
-          setLoading(false)
-        })()
+        const changeAll = useBorrow.getState().changeAll
+        changeAll(vault.collateral, vault.debt, vault)
+        setLoading(false)
       }
     }
   }, [isManagingPosition, basePosition, loading])
