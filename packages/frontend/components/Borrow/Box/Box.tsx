@@ -1,10 +1,5 @@
 import { Box } from "@mui/material"
-import {
-  AssetChange,
-  LtvMeta,
-  Mode,
-  PositionAction,
-} from "../../../helpers/borrow"
+import { AssetChange, LtvMeta, PositionAction } from "../../../helpers/borrow"
 import { useBorrow } from "../../../store/borrow.store"
 
 import ChainSelect from "./ChainSelect"

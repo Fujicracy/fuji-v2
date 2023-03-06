@@ -110,8 +110,6 @@ function BorrowButton({
     return regularButton("Borrow", () => {
       onRedirectClick(true)
     })
-  } else if (debtAmount !== 0 && debtAmount <= MINIMUM_DEBT_AMOUNT) {
-    return disabledButton("Debt amount too low") // TODO: Temp text
   } else if (collateralAmount > 0 && collateralAmount > collateralBalance) {
     return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
   } else if (
