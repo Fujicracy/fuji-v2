@@ -26,10 +26,10 @@ import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 
 type BorrowProps = {
-  managePosition: boolean
+  managingPosition: boolean
   basePosition: BasePosition
 }
-function Borrow({ managePosition, basePosition }: BorrowProps) {
+function Borrow({ managingPosition, basePosition }: BorrowProps) {
   const router = useRouter()
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
@@ -98,13 +98,19 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
 
   useEffect(() => {
     const mode = modeForContext(
-      managePosition,
+      managingPosition,
       positionAction,
       Number(collateral.input),
       Number(debt.input)
     )
     changeMode(mode)
-  }, [changeMode, managePosition, collateral.input, debt.input, positionAction])
+  }, [
+    changeMode,
+    managingPosition,
+    collateral.input,
+    debt.input,
+    positionAction,
+  ])
 
   return (
     <>
@@ -112,7 +118,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
           <BorrowHeader
             chainName={chainName(debt.chainId)}
-            managePosition={managePosition}
+            managingPosition={managingPosition}
             action={positionAction}
             onPositionActionChange={(action) => setPositionAction(action)}
           />
@@ -123,7 +129,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
                 key={type}
                 type={type}
                 assetChange={assetChange}
-                managePosition={managePosition}
+                managingPosition={managingPosition}
                 chainId={assetChange.chainId}
                 isExecuting={isExecuting}
                 value={assetChange.input}
@@ -167,7 +173,7 @@ function Borrow({ managePosition, basePosition }: BorrowProps) {
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
             mode={mode}
-            managePosition={managePosition}
+            managingPosition={managingPosition}
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={login}
             onChainChangeClick={() => changeChain(collateral.token.chainId)}
