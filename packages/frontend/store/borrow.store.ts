@@ -65,7 +65,7 @@ type BorrowState = {
   }
   availableRoutes: RouteMeta[]
 
-  needPermit: boolean
+  needsPermit: boolean
   isSigning: boolean
   signature?: Signature
   actions?: RouterActionParams[]
@@ -167,7 +167,7 @@ const initialState: BorrowState = {
   },
   availableRoutes: [],
 
-  needPermit: true,
+  needsPermit: true,
   isSigning: false,
   isExecuting: false,
 }
@@ -767,7 +767,9 @@ export const useBorrow = create<BorrowStore>()(
       async signAndExecute() {
         try {
           const address = get().activeVault?.address.value
-          await get().signPermit()
+          if (get().needsPermit) {
+            await get().signPermit()
+          }
           const t = await get().execute()
           useHistory.getState().add({
             address,
