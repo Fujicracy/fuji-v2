@@ -78,7 +78,7 @@ function TokenCard({
       variant="outlined"
       sx={{
         borderColor:
-          type === "collateral" && assetChange.amount > balance
+          Number(assetChange.input) > balance
             ? palette.error.dark
             : palette.secondary.light,
       }}
