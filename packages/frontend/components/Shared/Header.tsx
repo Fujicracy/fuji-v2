@@ -204,14 +204,12 @@ const Header = () => {
               <Link key={page.path} href={page.path}>
                 <MenuItem
                   sx={{
-                    color:
-                      page.path.toLowerCase() === currentPage
-                        ? "primary.main"
-                        : "text.primary",
-                    textShadow:
-                      page.path.toLowerCase() === currentPage
-                        ? `${palette.primary.main} 0rem 0rem 0.125rem`
-                        : "",
+                    color: currentPage.includes(page.path.toLowerCase())
+                      ? "primary.main"
+                      : "text.primary",
+                    textShadow: currentPage.includes(page.path.toLowerCase())
+                      ? `${palette.primary.main} 0rem 0rem 0.125rem`
+                      : "",
                     "&:hover": {
                       color: "primary.main",
                       background: "transparent",
