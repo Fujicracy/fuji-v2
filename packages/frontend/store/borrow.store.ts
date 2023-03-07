@@ -178,19 +178,11 @@ export const useBorrow = create<BorrowStore>()(
       ...initialState,
 
       async changeFormType(formType) {
-        set(
-          produce((state: BorrowState) => {
-            state.formType = formType
-          })
-        )
+        set({ formType })
       },
 
       async changeMode(mode) {
-        set(
-          produce((state: BorrowState) => {
-            state.mode = mode
-          })
-        )
+        set({ mode })
       },
 
       async changeAll(collateral, debt, vault) {
@@ -771,6 +763,7 @@ export const useBorrow = create<BorrowStore>()(
             await get().signPermit()
           }
           const t = await get().execute()
+          console.log(t)
           useHistory.getState().add({
             address,
             hash: t.hash,

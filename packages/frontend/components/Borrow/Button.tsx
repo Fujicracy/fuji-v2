@@ -4,6 +4,7 @@ import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
 import { AssetChange, LtvMeta, Mode, ActionType } from "../../helpers/borrow"
 import { Position } from "../../store/models/Position"
+import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -139,6 +140,12 @@ function BorrowButton({
     debtAmount > position.debt.amount
   ) {
     return disabledButton("Too much debt?") // TODO: Temp text
+  } else if (
+    mode === Mode.DEPOSIT_AND_BORROW &&
+    debtAmount !== 0 &&
+    debtAmount <= MINIMUM_DEBT_AMOUNT
+  ) {
+    return disabledButton("Need to borrow at least 1 USD")
   } else if (
     (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     collateralAmount > position.collateral.amount
