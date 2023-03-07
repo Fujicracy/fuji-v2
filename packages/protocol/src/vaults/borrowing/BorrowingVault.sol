@@ -18,8 +18,6 @@ pragma solidity 0.8.15;
  * functions to determine user's health factor.
  */
 
-//TODO
-import "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -615,19 +613,13 @@ contract BorrowingVault is BaseVault {
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
     // Ensure liquidator receives no more shares than 'owner' owns.
-    // uint256 existingShares = balanceOf(owner);
     uint256 existingShares = maxRedeem(owner);
     if (gainedShares > existingShares) {
       gainedShares = existingShares;
     }
 
-    console.log("@bvault liquidate burn");
-    console.log("@bvault liquidate burn gainedShares", gainedShares);
-    console.log("@bvault liquidate burn balanceowner", balanceOf(owner));
-    console.log("@bvault liquidate burn maxRedeem  -", maxRedeem(owner));
     // Internal share adjusment between 'owner' and 'liquidator'.
     _burn(owner, gainedShares);
-    console.log("@bvault liquidate mint");
     _mint(receiver, gainedShares);
 
     emit Liquidate(caller, receiver, owner, gainedShares, debtToCover, price, liquidationFactor);
