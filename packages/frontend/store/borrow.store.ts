@@ -722,8 +722,8 @@ export const useBorrow = create<BorrowStore>()(
       async execute() {
         const address = useAuth.getState().address
         const provider = useAuth.getState().provider
-        const { actions, signature, collateral } = get()
-        if (!actions || !address || !signature || !provider) {
+        const { actions, signature, collateral, needsPermit } = get()
+        if (!actions || !address || !provider || (needsPermit && !signature)) {
           throw "Unexpected undefined param"
         }
         const srcChainId = collateral.token.chainId
@@ -763,7 +763,6 @@ export const useBorrow = create<BorrowStore>()(
             await get().signPermit()
           }
           const t = await get().execute()
-          console.log(t)
           useHistory.getState().add({
             address,
             hash: t.hash,
