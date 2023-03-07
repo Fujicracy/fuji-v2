@@ -182,7 +182,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async changeMode(mode) {
-        set({ mode })
+        set({ mode, needsPermit: false })
       },
 
       async changeAll(collateral, debt, vault) {
