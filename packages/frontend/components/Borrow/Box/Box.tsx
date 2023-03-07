@@ -53,7 +53,7 @@ function BorrowBox({
         }
         type={type}
         value={chainId}
-        disabled={isExecuting}
+        disabled={isEditing || isExecuting}
         onChange={(chainId) =>
           type === "collateral"
             ? changeCollateralChain(chainId)
