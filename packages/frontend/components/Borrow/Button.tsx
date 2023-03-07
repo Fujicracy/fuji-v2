@@ -13,6 +13,7 @@ type BorrowButtonProps = {
   walletChain: ConnectedChain | undefined
   ltvMeta: LtvMeta
   metaStatus: FetchStatus
+  needsPermit: boolean
   isSigning: boolean
   isExecuting: boolean
   availableVaultStatus: FetchStatus
@@ -35,6 +36,7 @@ function BorrowButton({
   walletChain,
   ltvMeta,
   metaStatus,
+  needsPermit,
   isSigning,
   isExecuting,
   availableVaultStatus,
@@ -53,20 +55,10 @@ function BorrowButton({
   const collateralBalance = collateral.balances[collateral.token.symbol]
   const debtBalance = debt.balances[debt.token.symbol]
 
-  const loadingButtonTitle =
-    (isSigning && "(1/2) Signing...") ||
-    (isExecuting &&
-      `(2/2) ${
-        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
-          ? "Borrowing"
-          : mode === Mode.DEPOSIT
-          ? "Depositing"
-          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
-          ? "Withdrawing"
-          : "Repaying"
-      }...`) ||
+  const executionStep = needsPermit ? 1 : 2
+  const actionTitle = `${needsPermit ? "Sign & " : ""}${
     mode === Mode.DEPOSIT_AND_BORROW
-      ? "Sign & Borrow"
+      ? "Borrow"
       : mode === Mode.BORROW
       ? "Borrow"
       : mode === Mode.DEPOSIT
@@ -76,6 +68,21 @@ function BorrowButton({
       : mode === Mode.WITHDRAW
       ? "Withdraw"
       : "Repay"
+  }`
+
+  const loadingButtonTitle =
+    (isSigning && "(1/2) Signing...") ||
+    (isExecuting &&
+      `(${executionStep}/${executionStep}) ${
+        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
+          ? "Borrowing"
+          : mode === Mode.DEPOSIT
+          ? "Depositing"
+          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
+          ? "Withdrawing"
+          : "Repaying"
+      }...`) ||
+    actionTitle
 
   const regularButton = (
     title: string,
