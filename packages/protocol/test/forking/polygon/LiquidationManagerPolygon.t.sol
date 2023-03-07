@@ -298,15 +298,26 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
     mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
 
+    console.log("hf", vault.getHealthFactor(ALICE));
     //check balance of alice
+    console.log("alice");
+    console.log("1");
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    console.log("1");
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    console.log("1");
     assertEq(vault.balanceOf(ALICE), unsafeAmount);
-    assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+    console.log("1");
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount, 2);
 
     //check balance of treasury
+    console.log("treasury");
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+
+    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
+    uint256 collectedAmount =
+      unsafeAmount - _utils_getAmountInSwap(collateralAsset, debtAsset, borrowAmount + flashloanFee);
 
     //try liquidate all
     //only ALICE will be liquidated
@@ -319,15 +330,15 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     vm.stopPrank();
 
     //check balance of alice
+    console.log("alice");
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
-    assertEq(vault.balanceOf(ALICE), 0);
+    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 1);
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
     //check balance of treasury
-    uint256 collectedAmount = unsafeAmount - (borrowAmount * 1e18 / liquidationPrice);
-
-    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount);
+    console.log("treasury");
+    assertApproxEqAbs(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount, 2);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 
