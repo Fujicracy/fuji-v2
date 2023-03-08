@@ -218,7 +218,6 @@ type TokenItem = {
 }
 const TokenItem = (props: TokenItem) => {
   const { token, balance, prepend, sx, onClick } = props
-
   return (
     <MenuItem
       key={token.name}

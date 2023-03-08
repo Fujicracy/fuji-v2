@@ -5,6 +5,8 @@ import { FetchStatus } from "../../store/borrow.store"
 import { AssetChange, LtvMeta, Mode, ActionType } from "../../helpers/borrow"
 import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
+import { ChainId } from "@x-fuji/sdk"
+import { chainIdToHex, testChains } from "../../helpers/chains"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -56,7 +58,7 @@ function BorrowButton({
   const collateralBalance = collateral.balances[collateral.token.symbol]
   const debtBalance = debt.balances[debt.token.symbol]
 
-  const executionStep = needsPermit ? 1 : 2
+  const executionStep = needsPermit ? 2 : 1
   const actionTitle = `${needsPermit ? "Sign & " : ""}${
     mode === Mode.DEPOSIT_AND_BORROW
       ? "Borrow"
@@ -156,6 +158,13 @@ function BorrowButton({
     collateral.allowance?.value < collateralAmount
   ) {
     return regularButton("Allow", onApproveClick)
+  } else if (
+    isEditing &&
+    position.vault &&
+    mode === Mode.DEPOSIT_AND_BORROW &&
+    debt.chainId !== chainIdToHex(position.vault?.chainId)
+  ) {
+    return disabledButton("wtf?")
   } else {
     return (
       <LoadingButton

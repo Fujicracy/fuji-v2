@@ -710,7 +710,7 @@ export const useBorrow = create<BorrowStore>()(
           if (e.code === "ACTION_REJECTED") {
             useSnack.getState().display({
               type: "error",
-              title: "Error: Fuji cannot borrow without your signature",
+              title: "Fuji cannot borrow without your signature",
             })
           }
           throw e

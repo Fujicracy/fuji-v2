@@ -13,6 +13,7 @@ import ethers from "ethers"
 import { useSnack } from "./snackbar.store"
 import { formatUnits } from "ethers/lib/utils"
 import { useBorrow } from "./borrow.store"
+import { entryOutput } from "../helpers/history"
 
 export type HistoryStore = HistoryState & HistoryActions
 
@@ -125,83 +126,107 @@ export const useHistory = create<HistoryStore>()(
 
         async watch(hash) {
           const entry = get().byHash[hash]
-          if (!entry) {
-            throw `No entry in history for hash ${hash}`
-          }
+          try {
+            if (!entry) {
+              throw `No entry in history for hash ${hash}`
+            }
 
-          let receipt: ethers.providers.TransactionReceipt
-          // TODO: refacto: as long as we cannot store class methods in storage we should not use it (i.e vault.provider.getSmth)
-          const { rpcProvider } = sdk.getConnectionFor(entry.steps[0].chainId)
-          if (rpcProvider) {
-            console.debug("waitForTransaction", hash)
-            receipt = await rpcProvider.waitForTransaction(hash)
-          } else {
-            return console.error("No provider found in position.vault")
-          }
-
-          const startChainId = entry.steps.find(
-            (s) => s.step === RoutingStep.START
-          )?.chainId
-          const endChainId = entry.steps.find(
-            (s) => s.step === RoutingStep.END
-          )?.chainId
-          console.debug({ startChainId, endChainId })
-          if (startChainId === endChainId) {
-            set(
-              produce((s: HistoryState) => {
-                const steps = s.byHash[hash].steps
-                const b = steps.find((s) => s.step === RoutingStep.BORROW)
-                const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-                if (b) b.txHash = receipt.transactionHash
-                if (d) d.txHash = receipt.transactionHash
-              })
-            )
-          } else {
-            const stepsWithHash = await sdk.watchTxStatus(
-              hash,
-              toRoutingStepDetails(entry.steps)
-            )
-
-            for (let i = 0; i < stepsWithHash.length; i++) {
-              const step = stepsWithHash[i]
-              console.debug("waiting", step.step, "...")
-              // TODO: can txHash fail ?
-              const txHash = await step.txHash
-              console.debug("success", step.step, txHash)
+            let receipt: ethers.providers.TransactionReceipt
+            const { rpcProvider } = sdk.getConnectionFor(entry.steps[0].chainId)
+            if (rpcProvider) {
+              console.debug("waitForTransaction", hash)
+              receipt = await rpcProvider.waitForTransaction(hash)
+            } else {
+              throw "No provider found in position.vault"
+            }
+            if (receipt.status === 0) {
+              throw "Transaction failed"
+            }
+            const startChainId = entry.steps.find(
+              (s) => s.step === RoutingStep.START
+            )?.chainId
+            const endChainId = entry.steps.find(
+              (s) => s.step === RoutingStep.END
+            )?.chainId
+            console.debug({ startChainId, endChainId })
+            if (startChainId === endChainId) {
               set(
                 produce((s: HistoryState) => {
-                  s.byHash[hash].steps[i].txHash = txHash
+                  const steps = s.byHash[hash].steps
+                  const actionSteps = [
+                    RoutingStep.BORROW,
+                    RoutingStep.DEPOSIT,
+                    RoutingStep.PAYBACK,
+                    RoutingStep.WITHDRAW,
+                  ].map((step) => steps.find((s) => s.step === step))
+                  for (let i = 0; i < actionSteps.length; i++) {
+                    const step = actionSteps[i]
+                    if (step) {
+                      step.txHash = receipt.transactionHash
+                    }
+                  }
                 })
               )
-              console.debug(step.step, txHash)
-              if (step.step === RoutingStep.DEPOSIT) {
-                useBorrow.getState().updateBalances("collateral")
-                useBorrow.getState().updateAllowance()
+            } else {
+              const stepsWithHash = await sdk.watchTxStatus(
+                hash,
+                toRoutingStepDetails(entry.steps)
+              )
+
+              for (let i = 0; i < stepsWithHash.length; i++) {
+                const step = stepsWithHash[i]
+                console.debug("waiting", step.step, "...")
+                const txHash = await step.txHash
+                if (!txHash) {
+                  throw `Transaction step ${i} failed`
+                }
+                const receipt = await rpcProvider.waitForTransaction(txHash)
+                if (receipt.status === 0) {
+                  throw `Transaction step ${i} failed`
+                }
+                console.debug("success", step.step, txHash)
+                set(
+                  produce((s: HistoryState) => {
+                    s.byHash[hash].steps[i].txHash = txHash
+                  })
+                )
+                console.debug(step.step, txHash)
+                if (
+                  step.step === RoutingStep.DEPOSIT ||
+                  step.step === RoutingStep.WITHDRAW
+                ) {
+                  useBorrow.getState().updateBalances("collateral")
+                  useBorrow.getState().updateAllowance()
+                }
+                if (
+                  step.step === RoutingStep.BORROW ||
+                  step.step === RoutingStep.PAYBACK
+                ) {
+                  useBorrow.getState().updateBalances("collateral")
+                }
               }
-              if (step.step === RoutingStep.BORROW) {
-                useBorrow.getState().updateBalances("collateral")
-              }
-              // TODO: can we have error ? if yes mark the tx as failed. Design ? Retry ?
             }
+
+            const { steps } = get().byHash[hash]
+            const { title, transactionLink } = entryOutput(steps)
+
+            useSnack.getState().display({
+              type: "success",
+              title,
+              transactionLink,
+            })
+
+            get().update(hash, { status: "done" })
+            const activeHash = get().activeHash.filter((h) => h !== hash)
+            set({ activeHash })
+          } catch (e) {
+            console.error(e)
+            get().update(hash, { status: "error" })
+            useSnack.getState().display({
+              type: "error",
+              title: "Transaction failed",
+            })
           }
-
-          const { steps } = get().byHash[hash]
-          const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-          const dAmount = d?.amount && formatUnits(d.amount, d.token.decimals)
-          const b = steps.find((s) => s.step === RoutingStep.BORROW)
-          const bAmount = b?.amount && formatUnits(b.amount, b.token.decimals)
-          useSnack.getState().display({
-            type: "success",
-            title: `Deposit ${dAmount} ${d?.token.symbol} and borrow ${bAmount} ${b?.token.symbol}`,
-            transactionLink: {
-              hash: b?.txHash,
-              chainId: b?.chainId,
-            },
-          })
-
-          get().update(hash, { status: "done" })
-          const activeHash = get().activeHash.filter((h) => h !== hash)
-          set({ activeHash })
         },
 
         update(hash, patch) {
