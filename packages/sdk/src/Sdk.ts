@@ -404,7 +404,7 @@ export class Sdk {
     transactionHash: string
   ): Promise<string | undefined> {
     const { rpcProvider } = this.getConnectionFor(chainId);
-    const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
+    const receipt = await rpcProvider.waitForTransaction(transactionHash);
     invariant(
       !!receipt,
       `Receipt not valid from tx with hash ${transactionHash}`
