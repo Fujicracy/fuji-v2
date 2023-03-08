@@ -41,6 +41,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const collateral = useBorrow((state) => state.collateral)
   const debt = useBorrow((state) => state.debt)
+  const needsPermit = useBorrow((state) => state.needsPermit)
   const isSigning = useBorrow((state) => state.isSigning)
   const isExecuting = useBorrow((state) => state.isExecuting)
   const metaStatus = useBorrow((state) => state.transactionMeta.status)
@@ -173,6 +174,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             walletChain={walletChain}
             ltvMeta={dynamicLtvMeta}
             metaStatus={metaStatus}
+            needsPermit={needsPermit}
             isSigning={isSigning}
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}

@@ -9,6 +9,7 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import { useBorrow } from "../../store/borrow.store"
+import { toNotSoFixed } from "../../helpers/values"
 
 function Fees() {
   const transactionMeta = useBorrow((state) => state.transactionMeta)
@@ -55,7 +56,7 @@ function Fees() {
       <Collapse in={show} sx={{ width: "100%" }}>
         <Fee
           label="Bridge fee"
-          value={`~$${transactionMeta.bridgeFee.toFixed(2)}`}
+          value={`~$${toNotSoFixed(transactionMeta.bridgeFee)}`}
         />
         <Fee
           label="Est. processing time"

@@ -4,6 +4,7 @@ import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
 import { AssetChange, LtvMeta, Mode, ActionType } from "../../helpers/borrow"
 import { Position } from "../../store/models/Position"
+import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -13,6 +14,7 @@ type BorrowButtonProps = {
   walletChain: ConnectedChain | undefined
   ltvMeta: LtvMeta
   metaStatus: FetchStatus
+  needsPermit: boolean
   isSigning: boolean
   isExecuting: boolean
   availableVaultStatus: FetchStatus
@@ -35,6 +37,7 @@ function BorrowButton({
   walletChain,
   ltvMeta,
   metaStatus,
+  needsPermit,
   isSigning,
   isExecuting,
   availableVaultStatus,
@@ -53,20 +56,10 @@ function BorrowButton({
   const collateralBalance = collateral.balances[collateral.token.symbol]
   const debtBalance = debt.balances[debt.token.symbol]
 
-  const loadingButtonTitle =
-    (isSigning && "(1/2) Signing...") ||
-    (isExecuting &&
-      `(2/2) ${
-        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
-          ? "Borrowing"
-          : mode === Mode.DEPOSIT
-          ? "Depositing"
-          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
-          ? "Withdrawing"
-          : "Repaying"
-      }...`) ||
+  const executionStep = needsPermit ? 1 : 2
+  const actionTitle = `${needsPermit ? "Sign & " : ""}${
     mode === Mode.DEPOSIT_AND_BORROW
-      ? "Sign & Borrow"
+      ? "Borrow"
       : mode === Mode.BORROW
       ? "Borrow"
       : mode === Mode.DEPOSIT
@@ -76,6 +69,21 @@ function BorrowButton({
       : mode === Mode.WITHDRAW
       ? "Withdraw"
       : "Repay"
+  }`
+
+  const loadingButtonTitle =
+    (isSigning && "(1/2) Signing...") ||
+    (isExecuting &&
+      `(${executionStep}/${executionStep}) ${
+        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
+          ? "Borrowing"
+          : mode === Mode.DEPOSIT
+          ? "Depositing"
+          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
+          ? "Withdrawing"
+          : "Repaying"
+      }...`) ||
+    actionTitle
 
   const regularButton = (
     title: string,
@@ -132,6 +140,12 @@ function BorrowButton({
     debtAmount > position.debt.amount
   ) {
     return disabledButton("Too much debt?") // TODO: Temp text
+  } else if (
+    mode === Mode.DEPOSIT_AND_BORROW &&
+    debtAmount !== 0 &&
+    debtAmount <= MINIMUM_DEBT_AMOUNT
+  ) {
+    return disabledButton("Need to borrow at least 1 USD")
   } else if (
     (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     collateralAmount > position.collateral.amount

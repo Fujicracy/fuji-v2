@@ -177,19 +177,11 @@ export const useBorrow = create<BorrowStore>()(
       ...initialState,
 
       async changeFormType(formType) {
-        set(
-          produce((state: BorrowState) => {
-            state.formType = formType
-          })
-        )
+        set({ formType })
       },
 
       async changeMode(mode) {
-        set(
-          produce((state: BorrowState) => {
-            state.mode = mode
-          })
-        )
+        set({ mode, needsPermit: false })
       },
 
       async changeAll(collateral, debt, vault) {
@@ -728,8 +720,8 @@ export const useBorrow = create<BorrowStore>()(
       async execute() {
         const address = useAuth.getState().address
         const provider = useAuth.getState().provider
-        const { actions, signature, transactionMeta } = get()
-        if (!actions || !address || !signature || !provider) {
+        const { actions, signature, transactionMeta, needsPermit } = get()
+        if (!actions || !address || !provider || (needsPermit && !signature)) {
           throw "Unexpected undefined param"
         }
 

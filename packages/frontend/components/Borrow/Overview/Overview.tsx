@@ -190,7 +190,9 @@ function Overview({ basePosition }: OverviewProps) {
             <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
             <Typography variant="small">
-              {dynamicLtv <= 100 && dynamicLtv >= 0 ? `${dynamicLtv}%` : "n/a"}
+              {dynamicLtv <= 100 && dynamicLtv >= 0
+                ? `${dynamicLtv.toFixed(0)}%`
+                : "n/a"}
             </Typography>
           </Grid>
 
