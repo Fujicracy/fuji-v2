@@ -113,7 +113,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     address[] memory users = new address[](1);
     users[0] = ALICE;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount);
     vm.stopPrank();
 
     //check balance of alice
@@ -175,7 +175,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[0] = ALICE;
 
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount * 0.5e18 / 1e18);
     vm.stopPrank();
 
     //check balance of alice
@@ -218,7 +218,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, 0);
     vm.stopPrank();
   }
 
@@ -262,7 +262,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[1] = BOB;
     users[2] = CHARLIE;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount);
     vm.stopPrank();
 
     //check balance of alice
@@ -289,7 +289,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
     vm.startPrank(address(CHARLIE));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, 1000e18);
     vm.stopPrank();
   }
 }
