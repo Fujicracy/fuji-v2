@@ -9,8 +9,6 @@ pragma solidity 0.8.15;
  * @notice  Contract that facilitates liquidation of the FujiV2 vaults' users.
  */
 
-//TODO
-import "forge-std/console.sol";
 import {ILiquidationManager} from "./interfaces/ILiquidationManager.sol";
 import {IVault} from "./interfaces/IVault.sol";
 import {IFlasher} from "./interfaces/IFlasher.sol";
@@ -32,6 +30,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   error LiquidationManager__getFlashloan_notEmptyEntryPoint();
   error LiquidationManager__liquidate_notValidExecutor();
   error LiquidationManager__liquidate_noUsersToLiquidate();
+  error LiquidationManager__liquidate_invalidNumberOfUsers();
 
   address public immutable treasury;
 
@@ -60,11 +59,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     emit AllowExecutor(executor, allowed);
   }
 
+  //TODO check gas consumption per block limit
   /// @inheritdoc ILiquidationManager
   function liquidate(
-    address[] memory users,
+    address[] calldata users,
     IVault vault,
-    IFlasher flasher /*, uint256 totalDebtToCover*/
+    IFlasher flasher,
+    uint256 debtToCover
   )
     external
   {
@@ -72,32 +73,11 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       revert LiquidationManager__liquidate_notValidExecutor();
     }
 
-    //TODO limit size of the array of users
-    //TODO check gas consumption per block limit
-    //TODO also check in the forking environment
-    //TODO use total debt to cover to avoid multiple calls to flashloan
-
-    bool liquidatedUsers = false;
-    uint256 totalAmount = 0;
-
-    for (uint256 i = 0; i < users.length; i++) {
-      //check user's health before borrowing to avoid paying unecessary fees from flashloan
-      if (vault.getHealthFactor(users[i]) < 1e18) {
-        liquidatedUsers = true;
-        //calculate how much to borrow from flasher
-        uint256 liquidationFactor = vault.getLiquidationFactor(users[i]);
-
-        //TODO check flashloan multiple calls reentry protection
-        // if necessary, switch to calculate all users total debt and then flashloan once
-        uint256 debtAmount = vault.balanceOfDebt(users[i]);
-        uint256 debtToCover = Math.mulDiv(debtAmount, liquidationFactor, 1e18);
-        _getFlashloan(vault, users[i], debtToCover, flasher);
-      }
+    if (users.length == 0 || users.length > 10) {
+      revert LiquidationManager__liquidate_invalidNumberOfUsers();
     }
 
-    if (!liquidatedUsers) {
-      revert LiquidationManager__liquidate_noUsersToLiquidate();
-    }
+    _getFlashloan(vault, users, debtToCover, flasher);
   }
 
   /**
@@ -117,13 +97,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * {BorrowingVault} only.
    *
    * @param vault that holds user's position
-   * @param user to be liquidated
+   * @param users to be liquidated
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    */
   function _checkReentry(
     IVault vault,
-    address user,
+    address[] calldata users,
     uint256 debtAmount,
     IFlasher flasher
   )
@@ -131,7 +111,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     view
   {
     bytes memory requestorCalldata = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, vault, user, debtAmount, flasher
+      LiquidationManager.completeLiquidation.selector, vault, users, debtAmount, flasher
     );
     bytes32 hashCheck = keccak256(abi.encode(requestorCalldata));
     if (_entryPoint != hashCheck) {
@@ -143,13 +123,20 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * @dev Initiates flashloan for a liquidation operation.
    *
    * @param vault that holds user's position
-   * @param user to be liquidated
+   * @param users to be liquidated
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    */
-  function _getFlashloan(IVault vault, address user, uint256 debtAmount, IFlasher flasher) internal {
+  function _getFlashloan(
+    IVault vault,
+    address[] calldata users,
+    uint256 debtAmount,
+    IFlasher flasher
+  )
+    internal
+  {
     bytes memory requestorCall = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, vault, user, debtAmount, flasher
+      LiquidationManager.completeLiquidation.selector, vault, users, debtAmount, flasher
     );
 
     _checkAndSetEntryPoint(requestorCall);
@@ -164,7 +151,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * operation with a flashloan.
    *
    * @param vault that holds user's position
-   * @param user to be liquidated
+   * @param users to be liquidated
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    *
@@ -174,14 +161,14 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    */
   function completeLiquidation(
     IVault vault,
-    address user,
+    address[] calldata users,
     uint256 debtAmount,
     IFlasher flasher
   )
     external
     returns (bool success)
   {
-    _checkReentry(vault, user, debtAmount, flasher);
+    _checkReentry(vault, users, debtAmount, flasher);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
     IERC20 collateralAsset = IERC20(vault.asset());
@@ -190,16 +177,27 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       revert LiquidationManager__getFlashloan_flashloanFailed();
     }
 
-    //TODO do loop of users here
-
-    uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debtAmount);
-
-    //liquidate user and receive shares
+    //approve amount to all liquidations
     debtAsset.safeApprove(address(vault), debtAmount);
-    uint256 collateralAmount = vault.liquidate(user, address(this));
+
+    bool liquidatedUsers = false;
+
+    uint256 collateralAmount = 0;
+
+    for (uint256 i = 0; i < users.length; i++) {
+      if (vault.getHealthFactor(users[i]) < 1e18) {
+        liquidatedUsers = true;
+        collateralAmount += vault.liquidate(users[i], address(this));
+      }
+    }
+
+    if (!liquidatedUsers) {
+      revert LiquidationManager__liquidate_noUsersToLiquidate();
+    }
 
     uint256 maxWithdrawAmount = vault.maxWithdraw(address(this));
 
+    //TODO check this condition after precision in vault is fixed
     if (collateralAmount > maxWithdrawAmount) {
       collateralAmount = maxWithdrawAmount;
     }
@@ -207,16 +205,19 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     //sell shares for collateralAsset
     vault.withdraw(collateralAmount, address(this), address(this));
 
+    uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debtAmount);
+
     //swap amount to payback the flashloan
+    uint256 amountToSwap = debtAmount + flashloanFee - debtAsset.balanceOf(address(this));
     uint256 amountIn =
-      swapper.getAmountIn(address(collateralAsset), address(debtAsset), debtAmount + flashloanFee);
+      swapper.getAmountIn(address(collateralAsset), address(debtAsset), amountToSwap);
 
     collateralAsset.safeApprove(address(swapper), amountIn);
     swapper.swap(
       address(collateralAsset),
       address(debtAsset),
       amountIn,
-      debtAmount + flashloanFee,
+      amountToSwap,
       address(this),
       treasury,
       0
