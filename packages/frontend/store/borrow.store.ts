@@ -718,8 +718,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async execute() {
-        const address = useAuth.getState().address
-        const provider = useAuth.getState().provider
+        const { address, provider } = useAuth.getState()
         const { actions, signature, transactionMeta, needsPermit } = get()
         if (!actions || !address || !provider || (needsPermit && !signature)) {
           throw "Unexpected undefined param"
@@ -766,7 +765,7 @@ export const useBorrow = create<BorrowStore>()(
 
       async signAndExecute() {
         if (get().needsPermit) {
-          get().signPermit()
+          await get().signPermit()
         }
 
         const tx = await get().execute()
