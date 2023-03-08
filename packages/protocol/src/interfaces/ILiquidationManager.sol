@@ -40,11 +40,18 @@ interface ILiquidationManager {
    * @param users to be liquidated
    * @param vault who holds the `users` positions
    * @param flasher to be used in liquidation
+   * @param debtToCover toal amount of debt to cover for all `users`
    *
    * @dev Requirement:
    * - Must be called from a keeper.
    * - Must emit a `AllowExecutor` event.
    * - Must not revert if at least one user is liquidated.
    */
-  function liquidate(address[] memory users, IVault vault, IFlasher flasher) external;
+  function liquidate(
+    address[] calldata users,
+    IVault vault,
+    IFlasher flasher,
+    uint256 debtToCover
+  )
+    external;
 }
