@@ -164,7 +164,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     address[] memory users = new address[](1);
     users[0] = ALICE;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount + 3);
     vm.stopPrank();
 
     //check balance of alice
@@ -230,7 +230,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     users[0] = ALICE;
 
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount * 0.5e18 / 1e18);
     vm.stopPrank();
 
     //check balance of alice
@@ -269,7 +269,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, 0);
     vm.stopPrank();
   }
 
@@ -319,7 +319,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     users[1] = BOB;
     users[2] = CHARLIE;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount + 1);
     vm.stopPrank();
 
     //check balance of alice
@@ -333,9 +333,66 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 
-  // function test_liquidateSeveralUsers() public {
-  //
-  // }
+  //liquidate several users with the same hf
+  function test_liquidateSeveralUsers(uint256 borrowAmount) public {
+    uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
+    uint256 minAmount = (1e6 * currentPrice) / 1e18;
+
+    vm.assume(
+      borrowAmount > minAmount && borrowAmount < oracle.getPriceOf(collateralAsset, debtAsset, 18)
+    );
+
+    uint256 maxltv = 75 * 1e16;
+    uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
+
+    do_depositAndBorrow(unsafeAmount, borrowAmount, vault, ALICE);
+    do_depositAndBorrow(unsafeAmount, borrowAmount, vault, BOB);
+    do_depositAndBorrow(unsafeAmount, borrowAmount, vault, CHARLIE);
+
+    // Simulate 25% price drop
+    // enough for user to be liquidated
+    // liquidation is still profitable
+    uint256 liquidationPrice = (currentPrice * 75) / 100;
+    uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
+
+    mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
+    mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
+
+    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, 3 * borrowAmount);
+    uint256 collectedAmount = unsafeAmount * 3
+      - _utils_getAmountInSwap(collateralAsset, debtAsset, 3 * borrowAmount + flashloanFee);
+
+    //liquidate
+    address[] memory users = new address[](3);
+    users[0] = ALICE;
+    users[1] = BOB;
+    users[2] = CHARLIE;
+    vm.startPrank(address(KEEPER));
+    liquidationManager.liquidate(users, vault, flasher, borrowAmount * 3 + 9);
+    vm.stopPrank();
+
+    //check balance of alice
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 1);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+
+    //check balance of bob
+    assertEq(IERC20(collateralAsset).balanceOf(BOB), 0);
+    assertEq(IERC20(debtAsset).balanceOf(BOB), borrowAmount);
+    assertApproxEqAbs(vault.balanceOf(BOB), 0, 1);
+    assertEq(vault.balanceOfDebt(BOB), 0);
+
+    //check balance of charlie
+    assertEq(IERC20(collateralAsset).balanceOf(CHARLIE), 0);
+    assertEq(IERC20(debtAsset).balanceOf(CHARLIE), borrowAmount);
+    assertApproxEqAbs(vault.balanceOf(CHARLIE), 0, 1);
+    assertEq(vault.balanceOfDebt(CHARLIE), 0);
+
+    //check balance of treasury
+    assertApproxEqAbs(IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount, 5);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+  }
 
   function test_unauthorizedKeeper() public {
     uint256 amount = 1 ether;
@@ -348,7 +405,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
     vm.startPrank(address(CHARLIE));
-    liquidationManager.liquidate(users, vault, flasher);
+    liquidationManager.liquidate(users, vault, flasher, 1000e18);
     vm.stopPrank();
   }
 }
