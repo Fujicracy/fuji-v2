@@ -281,7 +281,7 @@ type BalanceAddressProps = {
 }
 const BalanceAddress = (props: BalanceAddressProps) => {
   const { palette } = useTheme()
-  const active = useHistory((state) => state.activeHash.length)
+  const active = useHistory((state) => state.ongoingTxns.length)
 
   const [accountModalEl, setAccountModalEl] = useState<
     HTMLElement | undefined

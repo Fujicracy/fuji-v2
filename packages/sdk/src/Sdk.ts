@@ -443,14 +443,14 @@ export class Sdk {
     return new Promise((resolve) => {
       const apiCall = () =>
         axios.get(
-          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,xcall_transaction_hash`
+          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
         );
 
       const interval = () => {
         apiCall()
           .then(({ data }) => {
-            if (data.length > 0 && data[0].xcall_transaction_hash)
-              resolve(data[0].xcall_transaction_hash);
+            if (data.length > 0 && data[0].execute_transaction_hash)
+              resolve(data[0].execute_transaction_hash);
             else setTimeout(interval, 2000);
           })
           .catch((err) => console.error(err));
