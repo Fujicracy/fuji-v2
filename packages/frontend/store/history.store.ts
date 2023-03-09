@@ -11,6 +11,7 @@ import { persist } from "zustand/middleware"
 import { sdk } from "../services/sdk"
 import { useBorrow } from "./borrow.store"
 import { useSnack } from "./snackbar.store"
+import { entryOutput } from "../helpers/history"
 
 function toRoutingStepDetails(s: HistoryRoutingStep[]): RoutingStepDetails[] {
   return s.map((s) => ({
@@ -175,8 +176,16 @@ export const useHistory = create<HistoryStore>()(
             ) {
               useBorrow.getState().updateAllowance()
             }
-          }
 
+            const { steps } = get().byHash[hash]
+            const { title, transactionLink } = entryOutput(steps)
+
+            useSnack.getState().display({
+              type: "success",
+              title,
+              transactionLink,
+            })
+          }
           get().update(hash, { status: HistoryEntryStatus.DONE })
         } catch (e) {
           console.error(e)
