@@ -33,16 +33,16 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
   function setUp() public {
     flasher = new MockFlasher();
-    // TODO make sure only allowed flashers can flash
-    // bytes memory executionCall =
-    //   abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    // _callWithTimelock(address(chief), executionCall);
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), executionCall);
 
     ISwapper swapper = new MockSwapper(oracle);
     liquidationManager = new LiquidationManager(address(chief), TREASURY, address(swapper));
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
-    bytes memory executionCall =
+    executionCall =
       abi.encodeWithSelector(liquidationManager.allowExecutor.selector, address(KEEPER), true);
     _callWithTimelock(address(liquidationManager), executionCall);
   }
@@ -290,6 +290,22 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
     vm.startPrank(address(CHARLIE));
     liquidationManager.liquidate(users, vault, flasher, 1000e18);
+    vm.stopPrank();
+  }
+
+  function test_unauthorizedFlasher() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    address[] memory users = new address[](1);
+    users[0] = ALICE;
+
+    IFlasher invalidFlasher = IFlasher(address(0x0));
+    vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector);
+    vm.startPrank(address(KEEPER));
+    liquidationManager.liquidate(users, vault, invalidFlasher, 1000e18);
     vm.stopPrank();
   }
 }
