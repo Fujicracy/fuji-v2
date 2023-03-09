@@ -1,14 +1,4 @@
-import { useState } from "react"
-import {
-  Box,
-  Dialog,
-  FormControlLabel,
-  Paper,
-  Stack,
-  Switch,
-  Typography,
-  useMediaQuery,
-} from "@mui/material"
+import { Box, Dialog, Paper, Typography, useMediaQuery } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
@@ -26,14 +16,7 @@ function ApprovalModal(props: ApprovalModalProps) {
   const collateralAllowance = useBorrow((state) => state.collateral.allowance)
   const collateralInput = useBorrow((state) => state.collateral.input)
 
-  const [infiniteApproval, setInfiniteApproval] = useState(false)
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInfiniteApproval(event.target.checked)
-  }
-
-  const amount = infiniteApproval
-    ? Number.MAX_SAFE_INTEGER
-    : parseFloat(collateralInput)
+  const amount = parseFloat(collateralInput)
 
   const allow = useBorrow((state) => state.allow)
   const handleAllow = () => allow(amount, props.handleClose)
@@ -83,30 +66,11 @@ function ApprovalModal(props: ApprovalModalProps) {
           Otherwise, only the exact amount for this transaction will be allowed
           to be transfered from your wallet.
         </Typography>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mt="2rem"
-          color="grey"
-        >
-          <Typography variant="small">Infinite approval</Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={infiniteApproval}
-                onChange={handleChange}
-                disabled={collateralAllowance.status === "allowing"}
-              />
-            }
-            label={infiniteApproval ? "Enabled" : "Disabled"}
-            labelPlacement="start"
-          />
-        </Stack>
         <LoadingButton
           variant="gradient"
           size="large"
           fullWidth
+          sx={{ mt: "1.5rem" }}
           loading={collateralAllowance.status === "allowing"}
           onClick={handleAllow}
         >
