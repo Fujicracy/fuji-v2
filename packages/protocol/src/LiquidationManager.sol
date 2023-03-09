@@ -31,6 +31,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   error LiquidationManager__liquidate_notValidExecutor();
   error LiquidationManager__liquidate_noUsersToLiquidate();
   error LiquidationManager__liquidate_invalidNumberOfUsers();
+  error LiquidationManager__liquidate_notValidFlasher();
 
   address public immutable treasury;
 
@@ -60,6 +61,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   }
 
   //TODO check gas consumption per block limit
+  //TODO adjust array so no more than 2m gas is spent
   /// @inheritdoc ILiquidationManager
   function liquidate(
     address[] calldata users,
@@ -71,6 +73,9 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   {
     if (!allowedExecutor[msg.sender]) {
       revert LiquidationManager__liquidate_notValidExecutor();
+    }
+    if (!chief.allowedFlasher(address(flasher))) {
+      revert LiquidationManager__liquidate_notValidFlasher();
     }
 
     if (users.length == 0 || users.length > 10) {
