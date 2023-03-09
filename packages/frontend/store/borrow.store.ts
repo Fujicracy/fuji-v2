@@ -738,10 +738,12 @@ export const useBorrow = create<BorrowStore>()(
           const signer = provider.getSigner()
           const tx = await signer.sendTransaction(txRequest)
 
-          useSnack.getState().display({
-            type: "success",
-            title: "The transaction was submitted successfully.",
-          })
+          if (tx) {
+            useSnack.getState().display({
+              type: "success",
+              title: "The transaction was submitted successfully.",
+            })
+          }
           //set(
           //produce((s: BorrowState) => {
           //if (s.collateral.allowance.value) {
