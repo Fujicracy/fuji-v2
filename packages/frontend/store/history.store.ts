@@ -11,6 +11,7 @@ import { persist } from "zustand/middleware"
 import { sdk } from "../services/sdk"
 import { useBorrow } from "./borrow.store"
 import { useSnack } from "./snackbar.store"
+import { devtools } from "zustand/middleware"
 import { entryOutput } from "../helpers/history"
 
 function toRoutingStepDetails(s: HistoryRoutingStep[]): RoutingStepDetails[] {
@@ -104,147 +105,147 @@ const initialState: HistoryState = {
 
 export const useHistory = create<HistoryStore>()(
   persist(
-    //devtools(
-    (set, get) => ({
-      ...initialState,
+    devtools(
+      (set, get) => ({
+        ...initialState,
 
-      async add(hash, vaultAddr, steps) {
-        const entry = {
-          vaultAddr,
-          hash,
-          steps: toHistoryRoutingStep(steps),
-          status: HistoryEntryStatus.ONGOING,
-        }
-
-        set(
-          produce((s: HistoryState) => {
-            s.inModal = hash
-            s.byHash[hash] = entry
-            s.allTxns = [hash, ...s.allTxns]
-            s.ongoingTxns = [hash, ...s.ongoingTxns]
-          })
-        )
-
-        get().watch(hash)
-      },
-
-      async watch(hash) {
-        const entry = get().byHash[hash]
-        if (!entry) {
-          throw `No entry in history for hash ${hash}`
-        }
-
-        try {
-          // TODO: make sure this wait() for the src tx
-          const srcChainId = entry.steps[0].chainId
-          const { rpcProvider } = sdk.getConnectionFor(srcChainId)
-          const connextTransferId = await sdk.getTransferId(srcChainId, hash)
-          const stepsWithHash = await sdk.watchTxStatus(
+        async add(hash, vaultAddr, steps) {
+          const entry = {
+            vaultAddr,
             hash,
-            toRoutingStepDetails(entry.steps)
+            steps: toHistoryRoutingStep(steps),
+            status: HistoryEntryStatus.ONGOING,
+          }
+
+          set(
+            produce((s: HistoryState) => {
+              s.inModal = hash
+              s.byHash[hash] = entry
+              s.allTxns = [hash, ...s.allTxns]
+              s.ongoingTxns = [hash, ...s.ongoingTxns]
+            })
           )
 
-          for (let i = 0; i < stepsWithHash.length; i++) {
-            const s = stepsWithHash[i]
-            console.log(s)
-            console.debug("waiting", s.step, "...")
-            const txHash = await s.txHash
-            console.log(txHash)
-            if (!txHash) {
-              throw `Transaction step ${i} failed`
-            }
-            const receipt = await rpcProvider.waitForTransaction(txHash)
-            if (receipt.status === 0) {
-              throw `Transaction step ${i} failed`
-            }
-            console.debug("success", s.step, txHash)
-            set(
-              produce((s: HistoryState) => {
-                s.byHash[hash].steps[i].txHash = txHash
-                s.byHash[hash].connextTransferId = connextTransferId
-              })
+          get().watch(hash)
+        },
+
+        async watch(hash) {
+          const entry = get().byHash[hash]
+          if (!entry) {
+            throw `No entry in history for hash ${hash}`
+          }
+
+          try {
+            // TODO: make sure this wait() for the src tx
+            const srcChainId = entry.steps[0].chainId
+            const { rpcProvider } = sdk.getConnectionFor(srcChainId)
+            const connextTransferId = await sdk.getTransferId(srcChainId, hash)
+            const stepsWithHash = await sdk.watchTxStatus(
+              hash,
+              toRoutingStepDetails(entry.steps)
             )
 
-            if (
-              s.step === RoutingStep.DEPOSIT ||
-              s.step === RoutingStep.WITHDRAW
-            ) {
-              useBorrow.getState().updateBalances("collateral")
-            } else if (
-              s.step === RoutingStep.BORROW ||
-              s.step === RoutingStep.PAYBACK
-            ) {
-              useBorrow.getState().updateBalances("debt")
+            for (let i = 0; i < stepsWithHash.length; i++) {
+              const s = stepsWithHash[i]
+              console.log(s)
+              console.debug("waiting", s.step, "...")
+              const txHash = await s.txHash
+              console.log(txHash)
+              if (!txHash) {
+                throw `Transaction step ${i} failed`
+              }
+              const receipt = await rpcProvider.waitForTransaction(txHash)
+              if (receipt.status === 0) {
+                throw `Transaction step ${i} failed`
+              }
+              console.debug("success", s.step, txHash)
+              set(
+                produce((s: HistoryState) => {
+                  s.byHash[hash].steps[i].txHash = txHash
+                  s.byHash[hash].connextTransferId = connextTransferId
+                })
+              )
+
+              if (
+                s.step === RoutingStep.DEPOSIT ||
+                s.step === RoutingStep.WITHDRAW
+              ) {
+                useBorrow.getState().updateBalances("collateral")
+              } else if (
+                s.step === RoutingStep.BORROW ||
+                s.step === RoutingStep.PAYBACK
+              ) {
+                useBorrow.getState().updateBalances("debt")
+              }
+
+              if (
+                s.step === RoutingStep.DEPOSIT ||
+                s.step === RoutingStep.PAYBACK
+              ) {
+                useBorrow.getState().updateAllowance()
+              }
+
+              const { steps } = get().byHash[hash]
+              const { title, transactionLink } = entryOutput(steps)
+
+              useSnack.getState().display({
+                type: "success",
+                title,
+                transactionLink,
+              })
             }
-
-            if (
-              s.step === RoutingStep.DEPOSIT ||
-              s.step === RoutingStep.PAYBACK
-            ) {
-              useBorrow.getState().updateAllowance()
-            }
-
-            const { steps } = get().byHash[hash]
-            const { title, transactionLink } = entryOutput(steps)
-
+            get().update(hash, { status: HistoryEntryStatus.DONE })
+          } catch (e) {
+            console.error(e)
             useSnack.getState().display({
-              type: "success",
-              title,
-              transactionLink,
+              type: "error",
+              title:
+                "The transaction cannot be processed, please try again later.",
             })
+
+            get().update(hash, { status: HistoryEntryStatus.ERROR })
+          } finally {
+            const ongoingTxns = get().ongoingTxns.filter((h) => h !== hash)
+            set({ ongoingTxns })
           }
-          get().update(hash, { status: HistoryEntryStatus.DONE })
-        } catch (e) {
-          console.error(e)
-          useSnack.getState().display({
-            type: "error",
-            title:
-              "The transaction cannot be processed, please try again later.",
-          })
+        },
 
-          get().update(hash, { status: HistoryEntryStatus.ERROR })
-        } finally {
-          const ongoingTxns = get().ongoingTxns.filter((h) => h !== hash)
-          set({ ongoingTxns })
-        }
-      },
+        update(hash, patch) {
+          const entry = get().byHash[hash]
+          if (!entry) {
+            throw `No entry in history for hash ${hash}`
+          }
 
-      update(hash, patch) {
-        const entry = get().byHash[hash]
-        if (!entry) {
-          throw `No entry in history for hash ${hash}`
-        }
+          set(
+            produce((s: HistoryState) => {
+              s.byHash[hash] = { ...s.byHash[hash], ...patch }
+            })
+          )
+        },
 
-        set(
-          produce((s: HistoryState) => {
-            s.byHash[hash] = { ...s.byHash[hash], ...patch }
-          })
-        )
-      },
+        clearAll() {
+          useHistory.persist.clearStorage()
+          set(initialState)
+          // set({ allTxns: [...get().ongoingTxns] })
+        },
 
-      clearAll() {
-        useHistory.persist.clearStorage()
-        set(initialState)
-        // set({ allTxns: [...get().ongoingTxns] })
-      },
+        openModal(hash) {
+          const entry = get().byHash[hash]
+          if (!entry) {
+            console.error("No entry in history for hash", hash)
+          }
+          set({ inModal: hash })
+        },
 
-      openModal(hash) {
-        const entry = get().byHash[hash]
-        if (!entry) {
-          console.error("No entry in history for hash", hash)
-        }
-        set({ inModal: hash })
-      },
-
-      closeModal() {
-        set({ inModal: "" })
-      },
-    }),
-    //{
-    //enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
-    //name: "xFuji/history",
-    //}
-    //),
+        closeModal() {
+          set({ inModal: "" })
+        },
+      }),
+      {
+        enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
+        name: "xFuji/history",
+      }
+    ),
     {
       name: "xFuji/history",
       onRehydrateStorage: () => {
