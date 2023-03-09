@@ -137,6 +137,7 @@ export const useHistory = create<HistoryStore>()(
         try {
           // TODO: make sure this wait() for the src tx
           const srcChainId = entry.steps[0].chainId
+          const { rpcProvider } = sdk.getConnectionFor(srcChainId)
           const connextTransferId = await sdk.getTransferId(srcChainId, hash)
           const stepsWithHash = await sdk.watchTxStatus(
             hash,
@@ -149,6 +150,13 @@ export const useHistory = create<HistoryStore>()(
             console.debug("waiting", s.step, "...")
             const txHash = await s.txHash
             console.log(txHash)
+            if (!txHash) {
+              throw `Transaction step ${i} failed`
+            }
+            const receipt = await rpcProvider.waitForTransaction(txHash)
+            if (receipt.status === 0) {
+              throw `Transaction step ${i} failed`
+            }
             console.debug("success", s.step, txHash)
             set(
               produce((s: HistoryState) => {
@@ -157,7 +165,6 @@ export const useHistory = create<HistoryStore>()(
               })
             )
 
-            console.debug(s.step, txHash)
             if (
               s.step === RoutingStep.DEPOSIT ||
               s.step === RoutingStep.WITHDRAW
