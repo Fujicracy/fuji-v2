@@ -19,7 +19,7 @@ import { chainIdToHex, testChains } from "../helpers/chains"
 import { sdk } from "../services/sdk"
 import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
 import { ethers, Signature } from "ethers"
-import { toHistoryRoutingStep, useHistory } from "./history.store"
+import { useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
 import {
@@ -29,7 +29,6 @@ import {
   Mode,
   LtvMeta,
   LiquidationMeta,
-  entryTypeForMode,
   failureForMode,
 } from "../helpers/borrow"
 
@@ -101,7 +100,7 @@ type BorrowActions = {
 
   allow: (amount: number, callback: () => void) => void
   signPermit: () => void
-  execute: () => Promise<ethers.providers.TransactionResponse>
+  execute: () => Promise<ethers.providers.TransactionResponse | undefined>
   signAndExecute: () => void
 }
 type ChainId = string // hex value as string
@@ -689,44 +688,43 @@ export const useBorrow = create<BorrowStore>()(
           throw "Unexpected undefined value"
         }
 
-        set({ isSigning: true })
-
         const permitAction = Sdk.findPermitAction(actions)
         if (!permitAction) {
           console.error("No permit action found")
           return set({ isSigning: false })
         }
 
-        let signature
+        set({ isSigning: true })
+
         try {
           const { domain, types, value } = await vault.signPermitFor(
             permitAction
           )
           const signer = provider.getSigner()
           const s = await signer._signTypedData(domain, types, value)
-          signature = ethers.utils.splitSignature(s)
+          const signature = ethers.utils.splitSignature(s)
+
+          set({ signature })
         } catch (e: any) {
-          set({ isSigning: false })
           if (e.code === "ACTION_REJECTED") {
             useSnack.getState().display({
               type: "error",
-              title: "Fuji cannot borrow without your signature",
+              title: "Signature was canceled by the user.",
             })
           }
-          throw e
+        } finally {
+          set({ isSigning: false })
         }
-
-        set({ signature, isSigning: false })
       },
 
       async execute() {
-        const address = useAuth.getState().address
-        const provider = useAuth.getState().provider
-        const { actions, signature, collateral, needsPermit } = get()
+        const { address, provider } = useAuth.getState()
+        const { actions, signature, transactionMeta, needsPermit } = get()
         if (!actions || !address || !provider || (needsPermit && !signature)) {
           throw "Unexpected undefined param"
         }
-        const srcChainId = collateral.token.chainId
+
+        const srcChainId = transactionMeta.steps[0].chainId
 
         try {
           set({ isExecuting: true })
@@ -738,48 +736,50 @@ export const useBorrow = create<BorrowStore>()(
             signature
           )
           const signer = provider.getSigner()
-          const t = await signer.sendTransaction(txRequest)
-          set(
-            produce((s: BorrowState) => {
-              if (s.collateral.allowance.value) {
-                // optimistic: we assume transaction will success and update allowance according to that
-                s.collateral.allowance.value -= parseFloat(s.collateral.input)
-              }
+          const tx = await signer.sendTransaction(txRequest)
+
+          if (tx) {
+            useSnack.getState().display({
+              type: "success",
+              title: "The transaction was submitted successfully.",
             })
-          )
-          return t
+          }
+          //set(
+          //produce((s: BorrowState) => {
+          //if (s.collateral.allowance.value) {
+          //// optimistic: we assume transaction will success and update allowance according to that
+          //s.collateral.allowance.value -= parseFloat(s.collateral.input)
+          //}
+          //})
+          //)
+          return tx
         } catch (e) {
-          // TODO: user cancel tx
-          throw e
+          // TODO: what errors can we catch here?
+          useSnack.getState().display({
+            type: "warning",
+            title:
+              "The transaction was canceled by the user or cannot be submitted.",
+          })
         } finally {
           set({ isExecuting: false })
         }
       },
 
       async signAndExecute() {
-        try {
-          const address = get().activeVault?.address.value
-          if (get().needsPermit) {
-            await get().signPermit()
-          }
-          const t = await get().execute()
-          useHistory.getState().add({
-            address,
-            hash: t.hash,
-            type: entryTypeForMode(get().mode),
-            steps: toHistoryRoutingStep(get().transactionMeta.steps),
-            status: "ongoing",
-          })
+        if (get().needsPermit) {
+          await get().signPermit()
+        }
+
+        const tx = await get().execute()
+
+        // error was already displayed in execute()
+        if (tx) {
+          const vaultAddr = get().activeVault?.address.value as string
+          useHistory
+            .getState()
+            .add(tx.hash, vaultAddr, get().transactionMeta.steps)
+
           get().changeInputValues("", "")
-        } catch (e) {
-          console.error(e)
-          // if (e instanceof Error) {
-          useSnack.getState().display({
-            type: "error",
-            title:
-              "There was a problem making the transaction, please try again later", // TODO: Improve
-          })
-          // }
         }
       },
     }),

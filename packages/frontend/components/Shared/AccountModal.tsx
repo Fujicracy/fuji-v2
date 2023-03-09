@@ -26,6 +26,7 @@ import {
   HistoryEntry,
   useHistory,
   HistoryRoutingStep,
+  HistoryEntryStatus,
 } from "../../store/history.store"
 import { chainName } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
@@ -53,7 +54,7 @@ function AccountModal({
   const walletName = useAuth((state) => state.walletName)
 
   const historyEntries = useHistory((state) =>
-    state.allHash.map((hash) => state.byHash[hash]).slice(0, 3)
+    state.allTxns.map((hash) => state.byHash[hash]).slice(0, 3)
   )
   const openModal = useHistory((state) => state.openModal)
   const clearAll = useHistory((state) => state.clearAll)
@@ -185,8 +186,9 @@ function AccountModal({
           <Stack direction="row" justifyContent="space-between" mx="1.25rem">
             <Typography variant="xsmall">Recent Transactions</Typography>
             {historyEntries.length > 0 &&
-              historyEntries.filter((entry) => entry.status === "ongoing")
-                .length !== historyEntries.length && (
+              historyEntries.filter(
+                (entry) => entry.status === HistoryEntryStatus.ONGOING
+              ).length !== historyEntries.length && (
                 <Typography variant="xsmallLink" onClick={clearAll}>
                   clear all
                 </Typography>
@@ -234,7 +236,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const { palette } = useTheme()
 
   const listAction =
-    entry.status === "ongoing" ? (
+    entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: "-1rem" }} />
     ) : (
       <CheckIcon

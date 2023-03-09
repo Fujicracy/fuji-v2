@@ -19,6 +19,7 @@ import { useTheme, styled } from "@mui/material/styles"
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector"
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"
 import CloseIcon from "@mui/icons-material/Close"
 import LaunchIcon from "@mui/icons-material/Launch"
 import CheckIcon from "@mui/icons-material/Check"
@@ -26,7 +27,7 @@ import Image from "next/image"
 import { RoutingStep } from "@x-fuji/sdk"
 
 import { NetworkIcon } from "../Shared/Icons"
-import { useHistory } from "../../store/history.store"
+import { HistoryEntryStatus, useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chains"
 import { transactionLink } from "../../helpers/transaction"
@@ -64,20 +65,10 @@ function TransactionModal({ hash }: TransactionModalProps) {
 
   const action =
     entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
-    entry?.steps.find((s) => s.step === RoutingStep.WITHDRAW) ||
-    entry?.steps.find((s) => s.step === RoutingStep.DEPOSIT) ||
-    entry?.steps.find((s) => s.step === RoutingStep.PAYBACK)
-  const chainId = action?.chainId
-  const networkName = chainId ? chainName(chainId) : ""
+    entry?.steps.find((s) => s.step === RoutingStep.WITHDRAW)
 
-  const actionName = entry
-    ? entry.type === "borrow"
-      ? "Borrowing"
-      : entry.type === "deposit"
-      ? "Depositing"
-      : entry.type === "withdraw"
-      ? "Withdrawing"
-      : "Repaying"
+  const connextScanLink = entry?.connextTransferId
+    ? `https://amarok.connextscan.io/tx/${entry.connextTransferId}`
     : ""
 
   if (!entry) {
@@ -86,7 +77,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
 
   const onClick = () => {
     closeModal()
-    const vault = vaultFromAddress(entry.address)
+    const vault = vaultFromAddress(entry.vaultAddr)
     if (!vault) {
       router.push("/my-positions")
       return
@@ -96,12 +87,11 @@ function TransactionModal({ hash }: TransactionModalProps) {
 
   const steps = entry.steps
     .map((s): TransactionStep => {
-      const token = s.token
+      const { step, txHash, chainId, token, lendingProvider } = s
       const amount = formatUnits(s.amount ?? 0, token.decimals)
-      const provider = s.lendingProvider?.name
-      const chain = chainName(s.chainId)
-      const link = s.txHash && transactionLink(s.chainId, s.txHash)
-      const { txHash, chainId } = s
+      const provider = lendingProvider?.name
+      const chain = chainName(chainId)
+      const link = txHash && transactionLink(chainId, txHash)
 
       const style = {
         background: theme.palette.secondary.light,
@@ -112,20 +102,20 @@ function TransactionModal({ hash }: TransactionModalProps) {
       }
 
       const label =
-        s.step === RoutingStep.DEPOSIT
+        step === RoutingStep.DEPOSIT
           ? `Deposit ${amount} ${token.symbol} on ${provider}`
-          : s.step === RoutingStep.BORROW
+          : step === RoutingStep.BORROW
           ? `Borrow ${amount} ${token.symbol} from ${provider}`
-          : s.step === RoutingStep.WITHDRAW
+          : step === RoutingStep.WITHDRAW
           ? `Withdraw ${amount} ${token.symbol} from ${provider}`
-          : s.step === RoutingStep.PAYBACK
+          : step === RoutingStep.PAYBACK
           ? `Repay ${amount} ${token.symbol} from ${provider}`
-          : s.step === RoutingStep.X_TRANSFER
+          : step === RoutingStep.X_TRANSFER
           ? `Bridge ${amount} ${token.symbol} to ${chain}`
           : "Invalid"
 
       const icon =
-        s.step === RoutingStep.X_TRANSFER ? (
+        step === RoutingStep.X_TRANSFER ? (
           <Image
             src="/assets/images/logo/connext.svg"
             height={32}
@@ -140,15 +130,14 @@ function TransactionModal({ hash }: TransactionModalProps) {
         label,
         chainId,
         txHash,
-        link,
-        description: `${chain} Network`,
+        link: step === RoutingStep.X_TRANSFER ? connextScanLink : link,
+        description:
+          step === RoutingStep.X_TRANSFER ? "Connext" : `${chain} Network`,
         icon: () => <Box sx={style}>{icon}</Box>,
       }
     })
+    // remove "START" and "END"
     .filter((s) => s.label !== "Invalid") as ValidStep[]
-  const transactionDetailsLink = steps.find((s) =>
-    s.label.includes("Deposit")
-  )?.link
 
   return (
     <Dialog
@@ -167,11 +156,10 @@ function TransactionModal({ hash }: TransactionModalProps) {
         />
         <Box textAlign="center" mt="1.625rem" mb="2.5rem">
           <Typography variant="h6">
-            Transaction {entry.status === "ongoing" && "processing..."}
-            {entry.status === "done" && "success"}
-          </Typography>
-          <Typography variant="body">
-            {actionName} on {networkName}
+            Transaction{" "}
+            {entry.status === HistoryEntryStatus.ONGOING && "processing..."}
+            {entry.status === HistoryEntryStatus.DONE && "succeeded"}
+            {entry.status === HistoryEntryStatus.ERROR && "error"}
           </Typography>
         </Box>
         <DialogContent>
@@ -205,7 +193,8 @@ function TransactionModal({ hash }: TransactionModalProps) {
                       )}
                     </Box>
                     <Box>
-                      {step.txHash || entry.status === "done" ? (
+                      {step.txHash ||
+                      entry.status === HistoryEntryStatus.DONE ? (
                         <CheckIcon
                           sx={{
                             backgroundColor: theme.palette.success.dark,
@@ -214,8 +203,10 @@ function TransactionModal({ hash }: TransactionModalProps) {
                           }}
                           fontSize="large"
                         />
-                      ) : (
+                      ) : entry.status === HistoryEntryStatus.ONGOING ? (
                         <CircularProgress size={32} />
+                      ) : (
+                        <ErrorOutlineIcon />
                       )}
                     </Box>
                   </Stack>
@@ -224,7 +215,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
             ))}
           </Stepper>
         </DialogContent>
-        {entry.status === "ongoing" && (
+        {entry.status === HistoryEntryStatus.ONGOING && (
           <Card variant="outlined" sx={{ mt: 3, maxWidth: "100%" }}>
             <Typography variant="small" textAlign="center">
               This step takes a few minutes to process. If you close this
@@ -232,10 +223,9 @@ function TransactionModal({ hash }: TransactionModalProps) {
             </Typography>
           </Card>
         )}
-        {entry.status === "done" && (
+        {entry.status === HistoryEntryStatus.DONE && (
           <Stack sx={{ mt: "2rem" }} spacing={1}>
-            {/* This check is to fix the problem that address is a class and thus cannot be rehydrated. See `addTokenToMetamask` */}
-            {action?.token && action?.token.chainId === activeChainId && (
+            {action?.token?.chainId === activeChainId && (
               <Box mb="2rem" textAlign="center">
                 <AddTokenButton token={action.token} />
               </Box>
@@ -243,11 +233,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
             <Button fullWidth variant="gradient" size="large" onClick={onClick}>
               View Position
             </Button>
-            <Link
-              href={transactionDetailsLink}
-              target="_blank"
-              variant="inherit"
-            >
+            <Link href={connextScanLink} target="_blank" variant="inherit">
               <Button fullWidth variant="ghost">
                 Transaction details
               </Button>
