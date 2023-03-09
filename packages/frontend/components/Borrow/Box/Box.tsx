@@ -40,7 +40,15 @@ function BorrowBox({
   const changeDebtValue = useBorrow((state) => state.changeDebtValue)
 
   return (
-    <Box mb={type === "collateral" ? "1rem" : undefined}>
+    <Box
+      mb={
+        (isEditing && actionType === ActionType.REMOVE
+          ? "debt"
+          : "collateral") === type
+          ? "1rem"
+          : undefined
+      }
+    >
       <ChainSelect
         label={
           type === "collateral"
@@ -53,7 +61,7 @@ function BorrowBox({
         }
         type={type}
         value={chainId}
-        disabled={isEditing || isExecuting}
+        disabled={(isEditing && type === "debt") || isExecuting}
         onChange={(chainId) =>
           type === "collateral"
             ? changeCollateralChain(chainId)

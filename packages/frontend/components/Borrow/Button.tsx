@@ -5,8 +5,7 @@ import { FetchStatus } from "../../store/borrow.store"
 import { AssetChange, LtvMeta, Mode, ActionType } from "../../helpers/borrow"
 import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
-import { ChainId } from "@x-fuji/sdk"
-import { chainIdToHex, testChains } from "../../helpers/chains"
+import { chainIdToHex } from "../../helpers/chains"
 
 type BorrowButtonProps = {
   address: string | undefined
