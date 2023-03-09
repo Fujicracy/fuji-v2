@@ -39,11 +39,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
   function setUp() public {
     setUpFork(POLYGON_DOMAIN);
-    flasher = new FlasherBalancer(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
-    // TODO make sure only allowed flashers can flash
-    // bytes memory executionCall =
-    //   abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
-    // _callWithTimelock(address(chief), executionCall);
 
     ILendingProvider aave = new AaveV2Polygon();
 
@@ -57,13 +52,17 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     address quickSwap = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
     vm.label(quickSwap, "QuickSwap");
     swapper = new UniswapV2Swapper(IWETH9(collateralAsset), IUniswapV2Router01(quickSwap));
+    flasher = new FlasherBalancer(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
     liquidationManager = new LiquidationManager(address(chief), TREASURY, address(swapper));
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
     bytes memory executionCall =
-      abi.encodeWithSelector(liquidationManager.allowExecutor.selector, address(KEEPER), true);
+      abi.encodeWithSelector(liquidationManager.allowExecutor.selector, KEEPER, true);
     _callWithTimelock(address(liquidationManager), executionCall);
+
+    executionCall = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function mock_getPriceOf(address asset1, address asset2, uint256 price) internal {
@@ -163,7 +162,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     //liquidate ALICE
     address[] memory users = new address[](1);
     users[0] = ALICE;
-    vm.startPrank(address(KEEPER));
+    vm.startPrank(KEEPER);
     liquidationManager.liquidate(users, vault, flasher, borrowAmount + 3);
     vm.stopPrank();
 
@@ -268,7 +267,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     users[2] = CHARLIE;
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
-    vm.startPrank(address(KEEPER));
+    vm.startPrank(KEEPER);
     liquidationManager.liquidate(users, vault, flasher, 0);
     vm.stopPrank();
   }
@@ -318,7 +317,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     users[0] = ALICE;
     users[1] = BOB;
     users[2] = CHARLIE;
-    vm.startPrank(address(KEEPER));
+    vm.startPrank(KEEPER);
     liquidationManager.liquidate(users, vault, flasher, borrowAmount + 1);
     vm.stopPrank();
 
@@ -367,7 +366,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     users[0] = ALICE;
     users[1] = BOB;
     users[2] = CHARLIE;
-    vm.startPrank(address(KEEPER));
+    vm.startPrank(KEEPER);
     liquidationManager.liquidate(users, vault, flasher, borrowAmount * 3 + 9);
     vm.stopPrank();
 
@@ -404,8 +403,24 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     users[0] = ALICE;
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
-    vm.startPrank(address(CHARLIE));
+    vm.startPrank(CHARLIE);
     liquidationManager.liquidate(users, vault, flasher, 1000e18);
+    vm.stopPrank();
+  }
+
+  function test_unauthorizedFlasher() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    address[] memory users = new address[](1);
+    users[0] = ALICE;
+
+    IFlasher invalidFlasher = IFlasher(address(0x0));
+    vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector);
+    vm.startPrank(KEEPER);
+    liquidationManager.liquidate(users, vault, invalidFlasher, 1000e18);
     vm.stopPrank();
   }
 }
