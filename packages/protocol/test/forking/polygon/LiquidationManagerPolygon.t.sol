@@ -28,6 +28,17 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
   uint256 public constant KEEPER_PK = 0xE;
   address public KEEPER = vm.addr(KEEPER_PK);
 
+  uint256 public user1_pk = 0x11;
+  uint256 public user2_pk = 0x22;
+  uint256 public user3_pk = 0x33;
+  uint256 public user4_pk = 0x44;
+  uint256 public user5_pk = 0x55;
+  uint256 public user6_pk = 0x66;
+  uint256 public user7_pk = 0x77;
+  uint256 public user8_pk = 0x88;
+  uint256 public user9_pk = 0x99;
+  uint256 public user10_pk = 0x1010;
+
   IFlasher public flasher;
 
   LiquidationManager public liquidationManager;
@@ -96,20 +107,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
     return borrowAmount < maxBorrow;
   }
-
-  // function _utils_getFutureHealthFactor(
-  //   uint256 amount,
-  //   uint256 borrowAmount,
-  //   uint256 priceDrop
-  // )
-  //   internal
-  //   view
-  //   returns (uint256)
-  // {
-  //   uint256 priceBefore = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-  //   return (amount * LIQUIDATION_RATIO * (priceBefore - priceDrop))
-  //     / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
-  // }
 
   function _utils_getAmountInSwap(
     address assetIn,
@@ -422,5 +419,70 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     vm.startPrank(KEEPER);
     liquidationManager.liquidate(users, vault, invalidFlasher, 1000e18);
     vm.stopPrank();
+  }
+
+  //liquidate several users with the same hf
+  function test_liquidateSeveralUsersForGasReport(uint256 numberOfUsers) public {
+    uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
+    uint256 borrowAmount = oracle.getPriceOf(collateralAsset, debtAsset, 18)
+      - (oracle.getPriceOf(collateralAsset, debtAsset, 18) - ((1e6 * currentPrice) / 1e18)) / 2;
+    uint256 maxltv = 75 * 1e16;
+    uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
+
+    vm.assume(numberOfUsers > 0 && numberOfUsers < 11);
+
+    //users
+    address[] memory users = new address[](10);
+
+    users[0] = vm.addr(user1_pk);
+    users[1] = vm.addr(user2_pk);
+    users[2] = vm.addr(user3_pk);
+    users[3] = vm.addr(user4_pk);
+    users[4] = vm.addr(user5_pk);
+    users[5] = vm.addr(user6_pk);
+    users[6] = vm.addr(user7_pk);
+    users[7] = vm.addr(user8_pk);
+    users[8] = vm.addr(user9_pk);
+    users[9] = vm.addr(user10_pk);
+
+    for (uint256 i = 0; i < numberOfUsers; i++) {
+      do_depositAndBorrow(unsafeAmount, borrowAmount, vault, users[i]);
+    }
+
+    // Simulate 25% price drop
+    // enough for user to be liquidated
+    // liquidation is still profitable
+    uint256 liquidationPrice = (currentPrice * 75) / 100;
+    uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
+
+    mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
+    mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
+
+    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, numberOfUsers * borrowAmount);
+    uint256 collectedAmount = unsafeAmount * numberOfUsers
+      - _utils_getAmountInSwap(
+        collateralAsset, debtAsset, numberOfUsers * borrowAmount + flashloanFee
+      );
+
+    //liquidate
+    vm.startPrank(KEEPER);
+    liquidationManager.liquidate(
+      users, vault, flasher, borrowAmount * numberOfUsers + (numberOfUsers * 3)
+    );
+    vm.stopPrank();
+
+    for (uint256 i = 0; i < numberOfUsers; i++) {
+      //check balance of user
+      assertEq(IERC20(collateralAsset).balanceOf(users[i]), 0);
+      assertEq(IERC20(debtAsset).balanceOf(users[i]), borrowAmount);
+      assertApproxEqAbs(vault.balanceOf(users[i]), 0, 1);
+      assertEq(vault.balanceOfDebt(users[i]), 0);
+    }
+
+    //check balance of treasury
+    assertApproxEqAbs(
+      IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount, numberOfUsers * 2
+    );
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 }
