@@ -32,20 +32,17 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   error LiquidationManager__liquidate_noUsersToLiquidate();
   error LiquidationManager__liquidate_invalidNumberOfUsers();
   error LiquidationManager__liquidate_notValidFlasher();
+  error LiquidationManager__liquidate_notValidSwapper();
 
   address public immutable treasury;
-
-  //TODO check safety
-  ISwapper public swapper;
 
   //keepers
   mapping(address => bool) public allowedExecutor;
 
   bytes32 private _entryPoint;
 
-  constructor(address chief_, address treasury_, address swapper_) SystemAccessControl(chief_) {
+  constructor(address chief_, address treasury_) SystemAccessControl(chief_) {
     treasury = treasury_;
-    swapper = ISwapper(swapper_);
   }
 
   /// @inheritdoc ILiquidationManager
@@ -66,8 +63,9 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   function liquidate(
     address[] calldata users,
     IVault vault,
+    uint256 debtToCover,
     IFlasher flasher,
-    uint256 debtToCover
+    ISwapper swapper
   )
     external
   {
@@ -77,12 +75,15 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     if (!chief.allowedFlasher(address(flasher))) {
       revert LiquidationManager__liquidate_notValidFlasher();
     }
+    if (chief.allowedSwapper(address(swapper))) {
+      revert LiquidationManager__liquidate_notValidSwapper();
+    }
 
     if (users.length == 0 || users.length > 10) {
       revert LiquidationManager__liquidate_invalidNumberOfUsers();
     }
 
-    _getFlashloan(vault, users, debtToCover, flasher);
+    _getFlashloan(users, vault, debtToCover, flasher, swapper);
   }
 
   /**
@@ -107,16 +108,17 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * @param flasher contract address
    */
   function _checkReentry(
-    IVault vault,
     address[] calldata users,
+    IVault vault,
     uint256 debtAmount,
-    IFlasher flasher
+    IFlasher flasher,
+    ISwapper swapper
   )
     internal
     view
   {
     bytes memory requestorCalldata = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, vault, users, debtAmount, flasher
+      LiquidationManager.completeLiquidation.selector, users, vault, debtAmount, flasher, swapper
     );
     bytes32 hashCheck = keccak256(abi.encode(requestorCalldata));
     if (_entryPoint != hashCheck) {
@@ -133,15 +135,16 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * @param flasher contract address
    */
   function _getFlashloan(
-    IVault vault,
     address[] calldata users,
+    IVault vault,
     uint256 debtAmount,
-    IFlasher flasher
+    IFlasher flasher,
+    ISwapper swapper
   )
     internal
   {
     bytes memory requestorCall = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, vault, users, debtAmount, flasher
+      LiquidationManager.completeLiquidation.selector, users, vault, debtAmount, flasher, swapper
     );
 
     _checkAndSetEntryPoint(requestorCall);
@@ -165,15 +168,16 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * - Must clear the check state variable `_entryPoint`.
    */
   function completeLiquidation(
-    IVault vault,
     address[] calldata users,
+    IVault vault,
     uint256 debtAmount,
-    IFlasher flasher
+    IFlasher flasher,
+    ISwapper swapper
   )
     external
     returns (bool success)
   {
-    _checkReentry(vault, users, debtAmount, flasher);
+    _checkReentry(users, vault, debtAmount, flasher, swapper);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
     IERC20 collateralAsset = IERC20(vault.asset());
