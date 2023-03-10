@@ -75,7 +75,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     if (!chief.allowedFlasher(address(flasher))) {
       revert LiquidationManager__liquidate_notValidFlasher();
     }
-    if (chief.allowedSwapper(address(swapper))) {
+    if (!chief.allowedSwapper(address(swapper))) {
       revert LiquidationManager__liquidate_notValidSwapper();
     }
 
