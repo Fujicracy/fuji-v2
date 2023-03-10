@@ -11,6 +11,7 @@ pragma solidity 0.8.15;
 
 import {IVault} from "./IVault.sol";
 import {IFlasher} from "./IFlasher.sol";
+import {ISwapper} from "./ISwapper.sol";
 
 interface ILiquidationManager {
   /**
@@ -50,8 +51,9 @@ interface ILiquidationManager {
   function liquidate(
     address[] calldata users,
     IVault vault,
+    uint256 debtToCover,
     IFlasher flasher,
-    uint256 debtToCover
+    ISwapper swapper
   )
     external;
 }
