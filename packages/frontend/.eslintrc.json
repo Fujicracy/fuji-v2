@@ -8,6 +8,12 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "warn",
-    "eqeqeq": 2
+    "eqeqeq": 2,
+    "react/no-unknown-property": [
+      2,
+      {
+        "ignore": ["jsx", "global"] // https://github.com/vercel/next.js/discussions/40269
+      }
+    ]
   }
 }

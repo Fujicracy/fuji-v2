@@ -5,14 +5,18 @@ import mixpanel from "mixpanel-browser"
 import { ThemeProvider } from "@mui/material"
 
 import { theme } from "../styles/theme"
-import { useAuth } from "../store/auth.store"
-import Snackbar from "../components/Shared/Snackbar"
+import { useAuth, onboard } from "../store/auth.store"
 import { usePositions } from "../store/positions.store"
 import { useBorrow } from "../store/borrow.store"
 import { useRouter } from "next/router"
 import { isTopLevelUrl } from "../helpers/navigation"
 import TransactionModal from "../components/Borrow/TransactionModal"
+import Snackbar from "../components/Shared/Snackbar"
 import { useHistory } from "../store/history.store"
+import { Web3OnboardProvider } from "@web3-onboard/react"
+
+import { Inter } from "@next/font/google"
+const inter = Inter({ subsets: ["latin"] })
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init)
@@ -52,12 +56,22 @@ function MyApp({ Component, pageProps }: AppProps) {
   })
 
   return (
-    <ThemeProvider theme={theme}>
-      <div className="backdrop"></div>
-      <Component {...pageProps} />
-      <TransactionModal hash={currentTxHash} />
-      <Snackbar />
-    </ThemeProvider>
+    <>
+      <style jsx global>{`
+        html {
+          font-family: ${inter.style.fontFamily};
+        }
+      `}</style>
+
+      <Web3OnboardProvider web3Onboard={onboard}>
+        <ThemeProvider theme={theme}>
+          <div className="backdrop"></div>
+          <Component {...pageProps} />
+          <TransactionModal hash={currentTxHash} />
+          <Snackbar />
+        </ThemeProvider>
+      </Web3OnboardProvider>
+    </>
   )
 }
 
