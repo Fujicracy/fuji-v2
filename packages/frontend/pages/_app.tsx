@@ -1,5 +1,6 @@
 import "../styles/globals.css"
 import { AppProps } from "next/app"
+import { Inter } from "next/font/google"
 import { useEffect } from "react"
 import mixpanel from "mixpanel-browser"
 import { ThemeProvider } from "@mui/material"
@@ -9,7 +10,6 @@ import { onboard, useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
 import { Web3OnboardProvider } from "@web3-onboard/react"
 
-import { Inter } from "@next/font/google"
 const inter = Inter({ subsets: ["latin"] })
 
 function MyApp({ Component, pageProps }: AppProps) {
