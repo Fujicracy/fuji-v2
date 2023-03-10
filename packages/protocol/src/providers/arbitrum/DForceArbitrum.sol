@@ -198,7 +198,8 @@ contract DForceArbitrum is ILendingProvider {
     uint256 bRateperBlock = IGenIToken(iTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the dForce interest rate model
-    uint256 blocksperYear = 2102400;
+    // aligned with HundredFinance
+    uint256 blocksperYear = 2336000;
     rate = bRateperBlock * blocksperYear;
   }
 
