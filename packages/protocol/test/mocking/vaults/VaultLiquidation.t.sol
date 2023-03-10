@@ -23,7 +23,8 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
   uint256 public constant KEEPER_PK = 0xE;
   address public KEEPER = vm.addr(KEEPER_PK);
 
-  MockFlasher public flasher;
+  IFlasher public flasher;
+  ISwapper public swapper;
 
   LiquidationManager public liquidationManager;
 
@@ -38,8 +39,11 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
       abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _callWithTimelock(address(chief), executionCall);
 
-    ISwapper swapper = new MockSwapper(oracle);
-    liquidationManager = new LiquidationManager(address(chief), TREASURY, address(swapper));
+    swapper = new MockSwapper(oracle);
+    executionCall = abi.encodeWithSelector(chief.allowSwapper.selector, address(swapper), true);
+    _callWithTimelock(address(chief), executionCall);
+
+    liquidationManager = new LiquidationManager(address(chief), TREASURY);
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
     executionCall =
@@ -113,7 +117,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     address[] memory users = new address[](1);
     users[0] = ALICE;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher, borrowAmount);
+    liquidationManager.liquidate(users, vault, borrowAmount, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -175,7 +179,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[0] = ALICE;
 
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher, borrowAmount * 0.5e18 / 1e18);
+    liquidationManager.liquidate(users, vault, borrowAmount * 0.5e18 / 1e18, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -218,7 +222,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher, 0);
+    liquidationManager.liquidate(users, vault, 0, flasher, swapper);
     vm.stopPrank();
   }
 
@@ -262,7 +266,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[1] = BOB;
     users[2] = CHARLIE;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, flasher, borrowAmount);
+    liquidationManager.liquidate(users, vault, borrowAmount, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -289,7 +293,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
     vm.startPrank(address(CHARLIE));
-    liquidationManager.liquidate(users, vault, flasher, 1000e18);
+    liquidationManager.liquidate(users, vault, 1000e18, flasher, swapper);
     vm.stopPrank();
   }
 
@@ -305,7 +309,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     IFlasher invalidFlasher = IFlasher(address(0x0));
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, invalidFlasher, 1000e18);
+    liquidationManager.liquidate(users, vault, 1000e18, invalidFlasher, swapper);
     vm.stopPrank();
   }
 }
