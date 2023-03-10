@@ -8,10 +8,10 @@ import {
 } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import { useStore } from "../../store"
+import { useBorrow } from "../../store/borrow.store"
 
 export const Fees = () => {
-  const transactionMeta = useStore((state) => state.transactionMeta)
+  const transactionMeta = useBorrow((state) => state.transactionMeta)
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
   const show = showTransactionDetails && transactionMeta.status === "ready"
 
@@ -33,7 +33,9 @@ export const Fees = () => {
         </Typography>
         {transactionMeta.status === "ready" && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
-            <Typography variant="small">~$3.90</Typography>
+            <Typography variant="small">
+              {`~$${transactionMeta.bridgeFee.toFixed(2)} + gas`}
+            </Typography>
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
         )}
@@ -51,8 +53,10 @@ export const Fees = () => {
       </Stack>
 
       <Collapse in={show} sx={{ width: "100%" }}>
-        <Fee label="Gas fees" value="~$1.90" />
-        <Fee label="Bridges fees" value={`~$${transactionMeta.bridgeFees}`} />
+        <Fee
+          label="Bridge fee"
+          value={`~$${transactionMeta.bridgeFee.toFixed(2)}`}
+        />
         <Fee
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}

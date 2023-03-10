@@ -80,8 +80,8 @@ export function encodeActionArgs(params: RouterActionParams): string {
     );
     const innerArgs = params.innerActions.map(encodeActionArgs);
     const callData = defaultAbiCoder.encode(
-      ['uint8[]', 'bytes[]'],
-      [innerActions, innerArgs]
+      ['uint8[]', 'bytes[]', 'uint256'],
+      [innerActions, innerArgs, params.slippage]
     );
     return defaultAbiCoder.encode(
       ['uint256', 'uint256', 'address', 'uint256', 'bytes'],

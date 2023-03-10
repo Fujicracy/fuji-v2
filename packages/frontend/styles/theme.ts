@@ -88,7 +88,7 @@ const colorTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
+    // fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
   },
 })
 
@@ -474,7 +474,7 @@ const theme = createTheme(colorTheme, {
           style: {
             background: `${colorTheme.palette.success.main}33`,
             color: colorTheme.palette.success.main,
-            width: "2.47rem",
+            width: "2.52rem",
             height: "1.438rem",
           },
         },

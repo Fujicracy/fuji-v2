@@ -1,7 +1,7 @@
 import { NextPage } from "next"
 import Head from "next/head"
 import Theming from "../components/Theming/Theming"
-import Header from "../components/Layout/Header"
+import Header from "../components/Shared/Header"
 
 const ThemingPage: NextPage = () => {
   return (

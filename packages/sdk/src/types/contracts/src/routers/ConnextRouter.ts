@@ -38,6 +38,7 @@ export interface ConnextRouterInterface extends utils.Interface {
     "REBALANCER_ROLE()": FunctionFragment;
     "UNPAUSER_ROLE()": FunctionFragment;
     "WETH9()": FunctionFragment;
+    "allowCaller(address,bool)": FunctionFragment;
     "bumpTransfer(bytes32)": FunctionFragment;
     "chief()": FunctionFragment;
     "connext()": FunctionFragment;
@@ -58,6 +59,7 @@ export interface ConnextRouterInterface extends utils.Interface {
       | "REBALANCER_ROLE"
       | "UNPAUSER_ROLE"
       | "WETH9"
+      | "allowCaller"
       | "bumpTransfer"
       | "chief"
       | "connext"
@@ -94,6 +96,10 @@ export interface ConnextRouterInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "allowCaller",
+    values: [string, boolean]
+  ): string;
   encodeFunctionData(
     functionFragment: "bumpTransfer",
     values: [BytesLike]
@@ -148,6 +154,10 @@ export interface ConnextRouterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "allowCaller",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "bumpTransfer",
     data: BytesLike
   ): Result;
@@ -164,15 +174,28 @@ export interface ConnextRouterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "xReceive", data: BytesLike): Result;
 
   events: {
+    "AllowCaller(address,bool)": EventFragment;
     "NewRouterAdded(address,uint256)": EventFragment;
     "XCalled(bytes32,address,address,uint256,address,uint256,bytes)": EventFragment;
     "XReceived(bytes32,uint256,bool,address,uint256,bytes)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AllowCaller"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewRouterAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "XCalled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "XReceived"): EventFragment;
 }
+
+export interface AllowCallerEventObject {
+  caller: string;
+  allowed: boolean;
+}
+export type AllowCallerEvent = TypedEvent<
+  [string, boolean],
+  AllowCallerEventObject
+>;
+
+export type AllowCallerEventFilter = TypedEventFilter<AllowCallerEvent>;
 
 export interface NewRouterAddedEventObject {
   router: string;
@@ -257,6 +280,12 @@ export interface ConnextRouter extends BaseContract {
 
     WETH9(overrides?: CallOverrides): Promise<[string]>;
 
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     bumpTransfer(
       transferId: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -298,7 +327,7 @@ export interface ConnextRouter extends BaseContract {
       transferId: BytesLike,
       amount: BigNumberish,
       asset: string,
-      arg3: string,
+      originSender: string,
       originDomain: BigNumberish,
       callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -318,6 +347,12 @@ export interface ConnextRouter extends BaseContract {
   UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
   WETH9(overrides?: CallOverrides): Promise<string>;
+
+  allowCaller(
+    caller: string,
+    allowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   bumpTransfer(
     transferId: BytesLike,
@@ -360,7 +395,7 @@ export interface ConnextRouter extends BaseContract {
     transferId: BytesLike,
     amount: BigNumberish,
     asset: string,
-    arg3: string,
+    originSender: string,
     originDomain: BigNumberish,
     callData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -380,6 +415,12 @@ export interface ConnextRouter extends BaseContract {
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     WETH9(overrides?: CallOverrides): Promise<string>;
+
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     bumpTransfer(
       transferId: BytesLike,
@@ -419,7 +460,7 @@ export interface ConnextRouter extends BaseContract {
       transferId: BytesLike,
       amount: BigNumberish,
       asset: string,
-      arg3: string,
+      originSender: string,
       originDomain: BigNumberish,
       callData: BytesLike,
       overrides?: CallOverrides
@@ -427,6 +468,12 @@ export interface ConnextRouter extends BaseContract {
   };
 
   filters: {
+    "AllowCaller(address,bool)"(
+      caller?: null,
+      allowed?: null
+    ): AllowCallerEventFilter;
+    AllowCaller(caller?: null, allowed?: null): AllowCallerEventFilter;
+
     "NewRouterAdded(address,uint256)"(
       router?: string | null,
       domain?: BigNumberish | null
@@ -488,6 +535,12 @@ export interface ConnextRouter extends BaseContract {
 
     WETH9(overrides?: CallOverrides): Promise<BigNumber>;
 
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     bumpTransfer(
       transferId: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -529,7 +582,7 @@ export interface ConnextRouter extends BaseContract {
       transferId: BytesLike,
       amount: BigNumberish,
       asset: string,
-      arg3: string,
+      originSender: string,
       originDomain: BigNumberish,
       callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -550,6 +603,12 @@ export interface ConnextRouter extends BaseContract {
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    allowCaller(
+      caller: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     bumpTransfer(
       transferId: BytesLike,
@@ -592,7 +651,7 @@ export interface ConnextRouter extends BaseContract {
       transferId: BytesLike,
       amount: BigNumberish,
       asset: string,
-      arg3: string,
+      originSender: string,
       originDomain: BigNumberish,
       callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }

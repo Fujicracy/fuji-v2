@@ -13,6 +13,7 @@ export const INFURA_RPC_URL: Record<ChainId, (id: string) => string> = {
     `https://polygon-mumbai.infura.io/v3/${id}`,
   [ChainId.OPTIMISM_GOERLI]: (id: string) =>
     `https://optimism-goerli.infura.io/v3/${id}`,
+  [ChainId.GNOSIS]: (_: string) => `https://rpc.gnosischain.com/`,
 };
 
 export const INFURA_WSS_URL: Record<ChainId, (id: string) => string | null> = {
@@ -24,6 +25,7 @@ export const INFURA_WSS_URL: Record<ChainId, (id: string) => string | null> = {
   [ChainId.GOERLI]: (id: string) => `wss://goerli.infura.io/ws/v3/${id}`,
   [ChainId.MATIC_MUMBAI]: (_id: string) => null,
   [ChainId.OPTIMISM_GOERLI]: (_id: string) => null,
+  [ChainId.GNOSIS]: (_id: string) => null,
 };
 
 export const ALCHEMY_WSS_URL: Record<ChainId, (id: string) => string | null> = {
@@ -40,4 +42,5 @@ export const ALCHEMY_WSS_URL: Record<ChainId, (id: string) => string | null> = {
     `wss://polygon-mumbai.g.alchemy.com/v2/${id}`,
   [ChainId.OPTIMISM_GOERLI]: (id: string) =>
     `wss://opt-goerli.g.alchemy.com/v2/${id}`,
+  [ChainId.GNOSIS]: (_id: string) => null,
 };

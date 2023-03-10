@@ -4,4 +4,9 @@
 export { AaveV2__factory } from "./AaveV2__factory";
 export { CompoundV2__factory } from "./CompoundV2__factory";
 export { CompoundV3__factory } from "./CompoundV3__factory";
+export { DForce__factory } from "./DForce__factory";
 export { Euler__factory } from "./Euler__factory";
+export { IronBank__factory } from "./IronBank__factory";
+export { MorphoAaveV2__factory } from "./MorphoAaveV2__factory";
+export { MorphoCompound__factory } from "./MorphoCompound__factory";
+export { WePiggy__factory } from "./WePiggy__factory";

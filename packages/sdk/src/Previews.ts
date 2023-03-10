@@ -3,11 +3,11 @@ import { AddressZero } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
 
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
+import { LENDING_PROVIDERS } from './constants/lending-providers';
 import { Address, BorrowingVault, Token } from './entities';
 import { Chain } from './entities/Chain';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { Nxtp } from './Nxtp';
-import { LendingProviderDetails } from './types';
 import {
   BorrowParams,
   DepositParams,
@@ -511,7 +511,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
     // TODO: estimate time
@@ -567,7 +567,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
     // TODO: estimate time
@@ -604,7 +604,7 @@ export class Previews {
       // so we need to account for the router fee (0.05) + slippage
       const received = r.received;
       steps.push(
-        this._step(step, srcChainId, amountOut, tokenOut, activeProvider),
+        this._step(step, srcChainId, amountOut, vaultToken, activeProvider),
         this._step(
           RoutingStep.X_TRANSFER,
           tokenOut.chainId,
@@ -653,7 +653,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     // TODO: estimate time
     const estimateTime = 3 * 60;
@@ -704,14 +704,14 @@ export class Previews {
       steps.push(
         this._step(
           RoutingStep.DEPOSIT,
-          tokenIn.chainId,
+          vault.chainId,
           amountIn,
           vault.collateral,
           activeProvider
         ),
         this._step(
           RoutingStep.BORROW,
-          tokenOut.chainId,
+          vault.chainId,
           amountOut,
           vault.debt,
           activeProvider
@@ -787,7 +787,7 @@ export class Previews {
     estimateSlippage: BigNumber;
     estimateTime: number;
   }> {
-    const activeProvider = (await vault.getProviders()).find((p) => p.active);
+    const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
     // TODO: estimate time
@@ -838,14 +838,14 @@ export class Previews {
       steps.push(
         this._step(
           RoutingStep.PAYBACK,
-          tokenIn.chainId,
+          vault.chainId,
           amountIn,
           vault.debt,
           activeProvider
         ),
         this._step(
           RoutingStep.WITHDRAW,
-          tokenOut.chainId,
+          vault.chainId,
           amountOut,
           vault.collateral,
           activeProvider
@@ -1047,14 +1047,16 @@ export class Previews {
     chainId: ChainId,
     amount?: BigNumber,
     token?: Token,
-    lendingProvider?: LendingProviderDetails
+    lendingProvider?: string
   ): RoutingStepDetails {
     return {
       step,
       amount,
       chainId,
       token,
-      lendingProvider,
+      lendingProvider: lendingProvider
+        ? LENDING_PROVIDERS[chainId][lendingProvider]
+        : undefined,
     };
   }
 

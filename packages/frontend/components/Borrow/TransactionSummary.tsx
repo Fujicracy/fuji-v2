@@ -15,23 +15,31 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-
-import LTVProgressBar from "./LTVProgressBar"
-import ClickableTooltip from "../Layout/ClickableTooltip"
-import { useStore } from "../../store"
 import { formatUnits } from "ethers/lib/utils"
-import ProviderIcon from "../ProviderIcon"
+
+import { useBorrow } from "../../store/borrow.store"
+import LTVProgressBar from "./LTVProgressBar"
+import ClickableTooltip from "../Shared/ClickableTooltip"
+import { ProviderIcon } from "../Shared/Icons"
+import { recommendedLTV } from "../../helpers/borrow"
 
 export default function TransactionSummary() {
   const { palette } = useTheme()
 
-  const ltv = useStore((state) => state.position.ltv)
-  const ltvMax = useStore((state) => state.position.ltvMax)
-  const liquidationPrice = useStore((state) => state.position.liquidationPrice)
-  const liquidationDiff = useStore((state) => state.position.liquidationDiff)
-  const collateral = useStore((state) => state.position.collateral)
-  const debt = useStore((state) => state.position.debt)
-  const providers = useStore((state) => state.position.providers)
+  const ltv = useBorrow((state) => state.position.ltv)
+  const ltvMax = useBorrow((state) => state.position.ltvMax)
+  const liquidationPrice = useBorrow((state) => state.position.liquidationPrice)
+  const liquidationDiff = useBorrow((state) => state.position.liquidationDiff)
+
+  const collateral = useBorrow((state) => state.position.collateral)
+  //const collateralInput = useBorrow((state) => state.collateralInput)
+  //const collateralAmount = parseFloat(collateralInput)
+
+  const debt = useBorrow((state) => state.position.debt)
+  //const debtInput = useBorrow((state) => state.debtInput)
+  //const debtAmount = parseFloat(debtInput)
+
+  const providers = useBorrow((state) => state.position.providers)
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const isOpen = Boolean(anchorEl)
@@ -190,10 +198,10 @@ export default function TransactionSummary() {
               <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
               <LTVProgressBar
-                borrowLimit={0}
+                borrowLimit={0} // TODO: should be dynamic
                 value={ltv > ltvMax ? ltvMax : ltv}
                 maxLTV={ltvMax}
-                recommendedLTV={45} // TODO: Should be dynamic thanks to SDK method
+                recommendedLTV={recommendedLTV(ltvMax)}
               />
 
               <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />

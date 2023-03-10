@@ -13,7 +13,8 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 import Image from "next/image"
-import { useStore } from "../../store"
+
+import { useBorrow } from "../../store/borrow.store"
 
 type ApprovalModalProps = {
   handleClose: () => void
@@ -22,9 +23,8 @@ type ApprovalModalProps = {
 export default function ApprovalModal(props: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const collateralAllowance = useStore((state) => state.collateralAllowance)
-  const collateral = useStore((state) => state.position.collateral)
-  const meta = useStore((state) => state.transactionMeta)
+  const collateralAllowance = useBorrow((state) => state.collateralAllowance)
+  const collateralInput = useBorrow((state) => state.collateralInput)
 
   const [infiniteApproval, setInfiniteApproval] = useState(false)
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,11 +33,9 @@ export default function ApprovalModal(props: ApprovalModalProps) {
 
   const amount = infiniteApproval
     ? Number.MAX_SAFE_INTEGER
-    : collateral.amount +
-      meta.bridgeFees / collateral.usdValue +
-      meta.gasFees / collateral.usdValue
+    : parseFloat(collateralInput)
 
-  const allow = useStore((state) => state.allow)
+  const allow = useBorrow((state) => state.allow)
   const handleAllow = () => allow(amount, props.handleClose)
 
   return (
@@ -82,8 +80,8 @@ export default function ApprovalModal(props: ApprovalModalProps) {
         </Typography>
 
         <Typography mt="1rem">
-          Otherwise only the exact amount for this transaction will be allowed
-          to be transfered from your wallet
+          Otherwise, only the exact amount for this transaction will be allowed
+          to be transfered from your wallet.
         </Typography>
         <Stack
           direction="row"

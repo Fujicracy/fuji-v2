@@ -166,6 +166,11 @@ contract BorrowingVault is BaseVault {
   }
 
   /// @inheritdoc IVault
+  function balanceOfDebtShares(address owner) external view override returns (uint256 debtShares) {
+    return _debtShares[owner];
+  }
+
+  /// @inheritdoc IVault
   function totalDebt() public view override returns (uint256) {
     return _checkProvidersBalance("getBorrowBalance");
   }

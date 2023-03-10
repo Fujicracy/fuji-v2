@@ -6,4 +6,5 @@ export enum ConnextDomain {
   GOERLI = 1735353714,
   OPTIMISM_GOERLI = 1735356532,
   MATIC_MUMBAI = 9991,
+  GNOSIS = 6778479,
 }

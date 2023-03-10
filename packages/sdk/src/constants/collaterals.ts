@@ -11,4 +11,5 @@ export const COLLATERAL_LIST: ChainTokenList = {
   [ChainId.ARBITRUM]: [WNATIVE[ChainId.ARBITRUM]],
   [ChainId.OPTIMISM]: [WNATIVE[ChainId.OPTIMISM]],
   [ChainId.OPTIMISM_GOERLI]: [WETH9[ChainId.OPTIMISM_GOERLI]],
+  [ChainId.GNOSIS]: [WETH9[ChainId.GNOSIS]],
 };

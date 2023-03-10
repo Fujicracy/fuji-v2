@@ -23,7 +23,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "enum IPausableVault.VaultActions",
-        name: "actions",
+        name: "action",
         type: "uint8",
       },
     ],
@@ -55,7 +55,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "enum IPausableVault.VaultActions",
-        name: "actions",
+        name: "action",
         type: "uint8",
       },
     ],

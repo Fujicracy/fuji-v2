@@ -34,6 +34,16 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__allowCaller_noAllowChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__allowCaller_zeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseRouter__bundleInternal_flashloanInvalidRequestor",
     type: "error",
   },
@@ -44,22 +54,17 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BaseRouter__bundleInternal_noRemnantBalance",
+    name: "BaseRouter__bundleInternal_noBalanceChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_notBeneficiary",
     type: "error",
   },
   {
     inputs: [],
     name: "BaseRouter__bundleInternal_paramsMismatch",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "BaseRouter__bundleInternal_withdrawETHReceiverNotOwner",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "BaseRouter__bundleInternal_withdrawETHWrongOrder",
     type: "error",
   },
   {
@@ -80,6 +85,21 @@ const _abi = [
   {
     inputs: [],
     name: "ConnextRouter__setRouter_invalidInput",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ConnextRouter__xReceive_notAllowedCaller",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ConnextRouter__xReceive_notReceivedAssetBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ConnnextRouter__checkSlippage_outOfBounds",
     type: "error",
   },
   {
@@ -107,6 +127,25 @@ const _abi = [
     inputs: [],
     name: "SystemAccessControl__onlyTimelock_callerIsNotTimelock",
     type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "AllowCaller",
+    type: "event",
   },
   {
     anonymous: false,
@@ -317,6 +356,24 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "allowCaller",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "transferId",
         type: "bytes32",
@@ -458,7 +515,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "",
+        name: "originSender",
         type: "address",
       },
       {

@@ -2,6 +2,7 @@ export enum ChainId {
   ETHEREUM = 1,
   GOERLI = 5,
   OPTIMISM = 10,
+  GNOSIS = 100,
   MATIC = 137,
   FANTOM = 250,
   OPTIMISM_GOERLI = 420,

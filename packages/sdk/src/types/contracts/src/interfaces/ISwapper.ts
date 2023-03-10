@@ -15,7 +15,7 @@ import type {
 } from "ethers";
 import type { Fragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
-
+import type { Call } from "@hovoh/ethcall";
 import type {
   TypedEventFilter,
   TypedEvent,
@@ -25,11 +25,23 @@ import type {
 
 export interface ISwapperInterface extends utils.Interface {
   functions: {
+    "getAmountIn(address,address,uint256)": FunctionFragment;
+    "getAmountOut(address,address,uint256)": FunctionFragment;
     "swap(address,address,uint256,uint256,address,address,uint256)": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "swap"): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic: "getAmountIn" | "getAmountOut" | "swap"
+  ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "getAmountIn",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAmountOut",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "swap",
     values: [
@@ -43,6 +55,14 @@ export interface ISwapperInterface extends utils.Interface {
     ]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getAmountIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAmountOut",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
 
   events: {};
@@ -75,6 +95,20 @@ export interface ISwapper extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
     swap(
       assetIn: string,
       assetOut: string,
@@ -86,6 +120,20 @@ export interface ISwapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  getAmountIn(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getAmountOut(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   swap(
     assetIn: string,
@@ -99,6 +147,20 @@ export interface ISwapper extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     swap(
       assetIn: string,
       assetOut: string,
@@ -114,6 +176,20 @@ export interface ISwapper extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     swap(
       assetIn: string,
       assetOut: string,
@@ -127,6 +203,20 @@ export interface ISwapper extends BaseContract {
   };
 
   populateTransaction: {
+    getAmountIn(
+      assetIn: string,
+      assetOut: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAmountOut(
+      assetIn: string,
+      assetOut: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     swap(
       assetIn: string,
       assetOut: string,
@@ -144,4 +234,18 @@ export interface ISwapperMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
+
+  getAmountIn(
+    assetIn: string,
+    assetOut: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  getAmountOut(
+    assetIn: string,
+    assetOut: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 }

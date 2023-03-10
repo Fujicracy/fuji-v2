@@ -1,5 +1,5 @@
 import produce from "immer"
-import create from "zustand"
+import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 
 export type SnackStore = SnackState & SnackActions
@@ -13,7 +13,7 @@ export type Snack = {
    * Icon displayed on the left of the notification
    * @default undefined (hidden)
    */
-  icon?: "success" | "error"
+  icon?: "success" | "warning" | "error"
   title: string
   body?: string | React.ReactNode
   /**
@@ -44,7 +44,7 @@ export const useSnack = create<SnackStore>()(
         set(
           produce((s: SnackState) => {
             if (!n.autoHideDuration) {
-              // n.autoHideDuration = 8000
+              n.autoHideDuration = 3000 // We need to choose a default value, 3 seconds is probably ok
             }
             s.notifications.push(n)
           })

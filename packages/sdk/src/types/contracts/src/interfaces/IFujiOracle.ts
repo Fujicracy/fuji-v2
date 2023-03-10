@@ -87,25 +87,25 @@ export interface IFujiOracle extends BaseContract {
 
   functions: {
     getPriceOf(
-      _collateralAsset: string,
-      _borrowAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
   getPriceOf(
-    _collateralAsset: string,
-    _borrowAsset: string,
-    _decimals: BigNumberish,
+    currencyAsset: string,
+    commodityAsset: string,
+    decimals: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
     getPriceOf(
-      _collateralAsset: string,
-      _borrowAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -123,18 +123,18 @@ export interface IFujiOracle extends BaseContract {
 
   estimateGas: {
     getPriceOf(
-      _collateralAsset: string,
-      _borrowAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     getPriceOf(
-      _collateralAsset: string,
-      _borrowAsset: string,
-      _decimals: BigNumberish,
+      currencyAsset: string,
+      commodityAsset: string,
+      decimals: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
@@ -146,9 +146,9 @@ export interface IFujiOracleMulticall {
   functions: FunctionFragment[];
 
   getPriceOf(
-    _collateralAsset: string,
-    _borrowAsset: string,
-    _decimals: BigNumberish,
+    currencyAsset: string,
+    commodityAsset: string,
+    decimals: BigNumberish,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 }

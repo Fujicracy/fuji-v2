@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from '../constants';
+import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
 import {
   ChainConfig,
@@ -179,6 +180,9 @@ export class BorrowingVault extends StreamManager {
       this.address.value
     );
 
+    this.collateral.setConnection(configParams);
+    this.debt.setConnection(configParams);
+
     return this;
   }
 
@@ -192,6 +196,16 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
+    // skip when data was already loaded
+    if (
+      this.maxLtv &&
+      this.liqRatio &&
+      this.name !== '' &&
+      this.activeProvider &&
+      this.allProviders
+    )
+      return;
+
     const [maxLtv, liqRatio, name, activeProvider, allProviders] =
       await this.multicallRpcProvider.all([
         this.multicallContract.maxLtv(),
@@ -201,6 +215,16 @@ export class BorrowingVault extends StreamManager {
         this.multicallContract.getProviders(),
       ]);
 
+    this.setPreLoads(maxLtv, liqRatio, name, activeProvider, allProviders);
+  }
+
+  setPreLoads(
+    maxLtv: BigNumber,
+    liqRatio: BigNumber,
+    name: string,
+    activeProvider: string,
+    allProviders: string[]
+  ) {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
     this.name = name;
@@ -253,9 +277,6 @@ export class BorrowingVault extends StreamManager {
         this.address.value
       )
     );
-    const nameCalls = this.allProviders.map((addr) =>
-      ILendingProvider__factory.multicall(addr).providerName()
-    );
 
     // do a common call for both types and use an index to split them below
     const rates: BigNumber[] = await this.multicallRpcProvider.all([
@@ -263,12 +284,9 @@ export class BorrowingVault extends StreamManager {
       ...borrowCalls,
     ]);
 
-    // TODO: use LENDING_PROVIDERS_LIST when ready instead of fetching name
-    const names: string[] = await this.multicallRpcProvider.all(nameCalls);
-
     const splitIndex = rates.length / 2;
     return this.allProviders.map((addr: string, i: number) => ({
-      name: names[i].split('_').join(' '),
+      name: LENDING_PROVIDERS[this.chainId][addr].name,
       depositRate: rates[i],
       borrowRate: rates[i + splitIndex],
       active: addr === this.activeProvider,
@@ -286,13 +304,9 @@ export class BorrowingVault extends StreamManager {
       this.multicallContract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    // TODO: call both in a consistent manner after fixing issue #251
-    const [depositShares, borrow] = await this.multicallRpcProvider.all([
-      this.multicallContract.balanceOf(account.value),
+    const [deposit, borrow] = await this.multicallRpcProvider.all([
+      this.multicallContract.balanceOfAsset(account.value),
       this.multicallContract.balanceOfDebt(account.value),
-    ]);
-    const [deposit] = await this.multicallRpcProvider.all([
-      this.multicallContract.convertToAssets(depositShares),
     ]);
 
     return { deposit, borrow };

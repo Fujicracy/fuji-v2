@@ -4,10 +4,7 @@ import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
 
 import RouteCard from "./RouteCard"
-import { useStore } from "../../store"
-import { chainName } from "../../helpers/chainName"
-import NetworkIcon from "../NetworkIcon"
-import TokenIcon from "../TokenIcon"
+import { useBorrow } from "../../store/borrow.store"
 
 type RoutingModalProps = {
   open: boolean
@@ -17,62 +14,20 @@ type RoutingModalProps = {
 export default function RoutingModal(props: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
-  const collateral = useStore((state) => state.position.collateral)
-  const collateralInput = useStore((state) => state.collateralInput)
-  const debt = useStore((state) => state.position.debt)
-  const debtInput = useStore((state) => state.debtInput)
-  const providers = useStore((state) => state.position.providers)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
+  const availableVaults = useBorrow((state) => state.availableVaults)
+  const changeActiveVault = useBorrow((state) => state.changeActiveVault)
 
-  const collateralChain = chainName(collateral.token.chainId)
-  const debtChain = chainName(debt.token.chainId)
-  const providerName = providers?.length ? providers[0].name : "n/a"
-
-  const routes = [
-    {
-      cost: 3.9,
-      time: 2,
-      steps: [
-        {
-          icon: (
-            <NetworkIcon network={collateralChain} height={18} width={18} />
-          ),
-          label: `Deposit ${collateralInput} ${collateral.token.symbol} to ${providerName}`,
-        },
-        {
-          icon: <TokenIcon token={debt.token} height={18} width={18} />,
-          label: `Borrow ${debtInput} ${debt.token.symbol} from ${providerName}`,
-        },
-        {
-          icon: <NetworkIcon network={debtChain} height={18} width={18} />,
-          label: `Bridge to ${collateralChain} via Connext`,
-        },
-      ],
-      recommended: true,
-      info: `Deposited in ${providerName}`,
-    },
-    {
-      cost: 4.6,
-      time: 2,
-      steps: [
-        {
-          icon: (
-            <NetworkIcon network={collateralChain} height={18} width={18} />
-          ),
-          label: `Deposit ${collateralInput} ${collateral.token.symbol} to ${providerName}`,
-        },
-        {
-          icon: <TokenIcon token={debt.token} height={18} width={18} />,
-          label: `Borrow ${debtInput} ${debt.token.symbol} from ${providerName}`,
-        },
-        {
-          icon: <NetworkIcon network={debtChain} height={18} width={18} />,
-          label: `Bridge to ${collateralChain} via Connext`,
-        },
-      ],
-      recommended: false,
-      info: `Deposited in ${providerName}`,
-    },
-  ]
+  function didSelectRoute(i: number) {
+    if (selectedRoute !== i) {
+      const vault = availableVaults.find(
+        (v) => v.address.value === availableRoutes[i].address
+      )
+      if (!vault) return
+      changeActiveVault(vault)
+    }
+    setSelectedRoute(i)
+  }
 
   return (
     <Dialog
@@ -97,12 +52,12 @@ export default function RoutingModal(props: RoutingModalProps) {
           }}
           onClick={props.handleClose}
         />
-        <Typography variant="body2">Best Route</Typography>
+        <Typography variant="body2">Available Routes</Typography>
 
-        {routes.map((route, i) => (
+        {availableRoutes.map((route, i) => (
           <RouteCard
             key={i}
-            onChange={() => setSelectedRoute(i)}
+            onChange={() => didSelectRoute(i)}
             route={route}
             selected={i === selectedRoute}
           />
