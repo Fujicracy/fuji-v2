@@ -57,8 +57,6 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     emit AllowExecutor(executor, allowed);
   }
 
-  //TODO check gas consumption per block limit
-  //TODO adjust array so no more than 2m gas is spent
   /// @inheritdoc ILiquidationManager
   function liquidate(
     address[] calldata users,
