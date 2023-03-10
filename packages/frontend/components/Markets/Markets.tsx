@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
-import Lending from "./Lending"
+import Lending from "../Shared/Lending"
 import { theme } from "../../styles/theme"
 
 function Markets() {
