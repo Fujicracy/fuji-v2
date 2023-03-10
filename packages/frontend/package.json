@@ -23,7 +23,6 @@
     "@mui/icons-material": "^5.11.9",
     "@mui/lab": "^5.0.0-alpha.120",
     "@mui/material": "^5.11.10",
-    "@next/font": "^13.2.1",
     "@web3-onboard/core": "^2.15.2",
     "@web3-onboard/injected-wallets": "^2.8.0",
     "@web3-onboard/react": "^2.6.4",
