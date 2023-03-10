@@ -312,4 +312,20 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     liquidationManager.liquidate(users, vault, 1000e18, invalidFlasher, swapper);
     vm.stopPrank();
   }
+
+  function test_unauthorizedSwapper() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    address[] memory users = new address[](1);
+    users[0] = ALICE;
+
+    ISwapper invalidSwapper = ISwapper(address(0x0));
+    vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidSwapper.selector);
+    vm.startPrank(address(KEEPER));
+    liquidationManager.liquidate(users, vault, 1000e18, flasher, invalidSwapper);
+    vm.stopPrank();
+  }
 }
