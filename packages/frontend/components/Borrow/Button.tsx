@@ -111,6 +111,11 @@ function BorrowButton({
   if (!address) {
     return regularButton("Connect wallet", onLoginClick, "borrow-login")
   } else if (
+    collateral.chainId !== debt.chainId &&
+    debt.token.symbol === "DAI"
+  ) {
+    return disabledButton("Cross-chain DAI not supported")
+  } else if (
     (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
     walletChain?.id
   ) {
