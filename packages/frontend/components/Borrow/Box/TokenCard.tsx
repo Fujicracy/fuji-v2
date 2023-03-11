@@ -24,13 +24,14 @@ import { TokenIcon } from "../../Shared/Icons"
 import {
   ActionType,
   AssetChange,
+  AssetType,
   LtvMeta,
   recommendedLTV,
 } from "../../../helpers/borrow"
 import { formatValue } from "../../../helpers/values"
 
 type SelectTokenCardProps = {
-  type: "collateral" | "debt"
+  type: AssetType
   actionType: ActionType
   assetChange: AssetChange
   isExecuting: boolean

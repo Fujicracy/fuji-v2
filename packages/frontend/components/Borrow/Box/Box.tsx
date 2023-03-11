@@ -1,5 +1,10 @@
 import { Box } from "@mui/material"
-import { AssetChange, LtvMeta, ActionType } from "../../../helpers/borrow"
+import {
+  AssetChange,
+  LtvMeta,
+  ActionType,
+  AssetType,
+} from "../../../helpers/borrow"
 import { useBorrow } from "../../../store/borrow.store"
 
 import ChainSelect from "./ChainSelect"
@@ -8,7 +13,7 @@ import TokenCard from "./TokenCard"
 type BorrowBoxProps = {
   isEditing: boolean
   actionType: ActionType
-  type: "debt" | "collateral"
+  type: AssetType
   chainId: string
   isExecuting: boolean
   value: string

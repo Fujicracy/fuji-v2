@@ -30,6 +30,7 @@ import {
   LtvMeta,
   LiquidationMeta,
   failureForMode,
+  AssetType,
 } from "../helpers/borrow"
 
 setAutoFreeze(false)
@@ -88,8 +89,8 @@ type BorrowActions = {
   changeTransactionMeta: (route: RouteMeta) => void
 
   updateAllProviders: () => void
-  updateTokenPrice: (type: "debt" | "collateral") => void
-  updateBalances: (type: "debt" | "collateral") => void
+  updateTokenPrice: (type: AssetType) => void
+  updateBalances: (type: AssetType) => void
   updateAllowance: () => void
   updateVault: () => void
   updateTransactionMeta: () => void
@@ -98,7 +99,7 @@ type BorrowActions = {
   updateLiquidation: () => void
   updateVaultBalance: () => void
 
-  allow: (amount: number, callback: () => void) => void
+  allow: (amount: number, type: AssetType, callback: () => void) => void
   signPermit: () => void
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>
   signAndExecute: () => void
@@ -641,7 +642,7 @@ export const useBorrow = create<BorrowStore>()(
        * @param amount
        * @param afterSuccess
        */
-      async allow(amount, afterSuccess?) {
+      async allow(amount, type, afterSuccess?) {
         const token = get().collateral.token
         const userAddress = useAuth.getState().address
         const provider = useAuth.getState().provider

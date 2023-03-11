@@ -11,6 +11,8 @@ import { sdk } from "../services/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 
+export type AssetType = "debt" | "collateral"
+
 export type AssetChange = {
   selectableTokens: Token[]
   balances: Record<string, number>

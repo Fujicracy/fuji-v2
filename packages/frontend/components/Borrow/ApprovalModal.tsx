@@ -19,7 +19,7 @@ function ApprovalModal(props: ApprovalModalProps) {
   const amount = parseFloat(collateralInput)
 
   const allow = useBorrow((state) => state.allow)
-  const handleAllow = () => allow(amount, props.handleClose)
+  const handleAllow = () => allow(amount, "collateral", props.handleClose)
 
   return (
     <Dialog

@@ -6,6 +6,7 @@ import { Address } from "@x-fuji/sdk"
 import { BigNumberish, BigNumber } from "ethers"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { devtools } from "zustand/middleware"
+import { AssetType } from "../helpers/borrow"
 
 type PositionsState = {
   positions: Position[]
@@ -93,10 +94,7 @@ function bigToFloat(
   return parseFloat(formatUnits(value, decimals))
 }
 
-function getTotalSum(
-  positions: Position[],
-  param: "collateral" | "debt"
-): number {
+function getTotalSum(positions: Position[], param: AssetType): number {
   return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0)
 }
 
