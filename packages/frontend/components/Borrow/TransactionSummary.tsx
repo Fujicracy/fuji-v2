@@ -21,7 +21,7 @@ import { useBorrow } from "../../store/borrow.store"
 import LTVProgressBar from "./Overview/LTVProgressBar"
 import ClickableTooltip from "../Shared/ClickableTooltip"
 import { ProviderIcon } from "../Shared/Icons"
-import { recommendedLTV } from "../../helpers/borrow"
+import { recommendedLTV } from "../../helpers/assets"
 import { formatValue } from "../../helpers/values"
 
 function TransactionSummary() {

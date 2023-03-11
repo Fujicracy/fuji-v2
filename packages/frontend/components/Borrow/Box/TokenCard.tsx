@@ -27,7 +27,7 @@ import {
   AssetType,
   LtvMeta,
   recommendedLTV,
-} from "../../../helpers/borrow"
+} from "../../../helpers/assets"
 import { formatValue } from "../../../helpers/values"
 
 type SelectTokenCardProps = {

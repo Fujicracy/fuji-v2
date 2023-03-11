@@ -19,11 +19,12 @@ import BorrowButton from "./Button"
 import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
 import ConnextFooter from "./ConnextFooter"
-import { modeForContext, ActionType } from "../../helpers/borrow"
+import { modeForContext } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
+import { ActionType } from "../../helpers/assets"
 
 type BorrowProps = {
   isEditing: boolean

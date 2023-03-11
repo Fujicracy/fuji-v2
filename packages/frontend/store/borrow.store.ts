@@ -22,16 +22,15 @@ import { ethers, Signature } from "ethers"
 import { useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
+import { fetchRoutes, RouteMeta, failureForMode } from "../helpers/borrow"
 import {
+  AllowanceStatus,
   AssetChange,
-  fetchRoutes,
-  RouteMeta,
   Mode,
   LtvMeta,
   LiquidationMeta,
-  failureForMode,
   AssetType,
-} from "../helpers/borrow"
+} from "../helpers/assets"
 
 setAutoFreeze(false)
 
@@ -351,10 +350,8 @@ export const useBorrow = create<BorrowStore>()(
           return
         }
 
-        const tokens =
-          type === "debt"
-            ? get().debt.selectableTokens
-            : get().collateral.selectableTokens
+        const tokens = (type === "debt" ? get().debt : get().collateral)
+          .selectableTokens
         const token =
           type === "debt" ? get().debt.token : get().collateral.token
         const chainId = token.chainId
@@ -643,7 +640,7 @@ export const useBorrow = create<BorrowStore>()(
        * @param afterSuccess
        */
       async allow(amount, type, afterSuccess?) {
-        const token = get().collateral.token
+        const token = (type === "debt" ? get().debt : get().collateral).token
         const userAddress = useAuth.getState().address
         const provider = useAuth.getState().provider
         const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value
@@ -652,11 +649,20 @@ export const useBorrow = create<BorrowStore>()(
           throw "Missing provider (check auth slice) or missing user address"
         }
 
-        set(
-          produce((s: BorrowState) => {
-            s.collateral.allowance.status = "allowing"
-          })
-        )
+        const changeAllowance = (status: AllowanceStatus, amount?: number) => {
+          set(
+            produce((s: BorrowState) => {
+              if (type === "debt") {
+                s.debt.allowance.status = status
+                if (amount) s.debt.allowance.value = amount
+              } else {
+                s.collateral.allowance.status = status
+                if (amount) s.collateral.allowance.value = amount
+              }
+            })
+          )
+        }
+        changeAllowance("allowing")
         const owner = provider.getSigner()
         try {
           const approval = await contracts.ERC20__factory.connect(
@@ -665,19 +671,10 @@ export const useBorrow = create<BorrowStore>()(
           ).approve(spender, parseUnits(amount.toString(), token.decimals))
           await approval.wait()
 
-          set(
-            produce((s: BorrowState) => {
-              s.collateral.allowance.status = "ready"
-              s.collateral.allowance.value = amount
-            })
-          )
+          changeAllowance("ready", amount)
           afterSuccess && afterSuccess()
         } catch (e) {
-          set(
-            produce((s: BorrowState) => {
-              s.collateral.allowance.status = "error"
-            })
-          )
+          changeAllowance("error")
         }
       },
 

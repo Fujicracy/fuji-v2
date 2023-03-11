@@ -2,7 +2,7 @@ import { Typography, Grid, Select, MenuItem, Stack, Fade } from "@mui/material"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { chains } from "../../../helpers/chains"
 import { NetworkIcon } from "../../Shared/Icons"
-import { AssetType } from "../../../helpers/borrow"
+import { AssetType } from "../../../helpers/assets"
 
 type ChainSelectProps = {
   label: string

@@ -1,7 +1,7 @@
 import { useBorrow } from "../store/borrow.store"
 import { AssetMeta, Position } from "../store/models/Position"
 import { usePositions } from "../store/positions.store"
-import { AssetChange, Mode } from "./borrow"
+import { AssetChange, Mode } from "./assets"
 import { formatNumber } from "./values"
 
 export type PositionRow = {

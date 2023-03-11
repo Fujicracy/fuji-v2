@@ -9,48 +9,7 @@ import {
 } from "@x-fuji/sdk"
 import { sdk } from "../services/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
-import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
-
-export type AssetType = "debt" | "collateral"
-
-export type AssetChange = {
-  selectableTokens: Token[]
-  balances: Record<string, number>
-  allowance: {
-    status: "initial" | "fetching" | "allowing" | "ready" | "error"
-    value: number | undefined
-  }
-  input: string
-  chainId: string
-  token: Token
-  amount: number
-  usdPrice: number
-}
-
-export type LtvMeta = {
-  ltv: number
-  ltvMax: number
-  ltvThreshold: number
-}
-
-export type LiquidationMeta = {
-  liquidationPrice: number
-  liquidationDiff: number
-}
-
-export enum ActionType {
-  ADD = 0,
-  REMOVE = 1,
-}
-
-export enum Mode {
-  DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
-  PAYBACK_AND_WITHDRAW, // removePosition: both collateral and debt
-  DEPOSIT, // addPosition: collateral
-  BORROW, //addPosition: debt
-  WITHDRAW, // removePosition: collateral
-  PAYBACK, // removePosition: debt
-}
+import { ActionType, Mode } from "./assets"
 
 export function modeForContext(
   isEditing: boolean,
@@ -71,17 +30,6 @@ export function modeForContext(
   return Mode.DEPOSIT_AND_BORROW
 }
 
-export type RouteMeta = {
-  //gasFees: number
-  estimateSlippage: number
-  bridgeFee: number
-  estimateTime: number
-  steps: RoutingStepDetails[]
-  actions: RouterActionParams[]
-  address: string
-  recommended: boolean
-}
-
 export const failureForMode = (
   mode: Mode,
   collateral: string | undefined,
@@ -93,6 +41,17 @@ export const failureForMode = (
     ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) && !collateral) ||
     ((mode === Mode.BORROW || mode === Mode.PAYBACK) && !debt)
   )
+}
+
+export type RouteMeta = {
+  //gasFees: number
+  estimateSlippage: number
+  bridgeFee: number
+  estimateTime: number
+  steps: RoutingStepDetails[]
+  actions: RouterActionParams[]
+  address: string
+  recommended: boolean
 }
 
 export const fetchRoutes = async (
@@ -193,8 +152,4 @@ export const fetchRoutes = async (
     if (e instanceof Error) result.error = e
   }
   return result
-}
-
-export const recommendedLTV = (ltvMax: number): number => {
-  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0
 }

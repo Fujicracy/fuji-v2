@@ -4,7 +4,7 @@ import {
   LtvMeta,
   ActionType,
   AssetType,
-} from "../../../helpers/borrow"
+} from "../../../helpers/assets"
 import { useBorrow } from "../../../store/borrow.store"
 
 import ChainSelect from "./ChainSelect"

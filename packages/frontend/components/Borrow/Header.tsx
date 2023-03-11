@@ -1,5 +1,5 @@
 import { Divider, Typography, Stack } from "@mui/material"
-import { ActionType } from "../../helpers/borrow"
+import { ActionType } from "../../helpers/assets"
 import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
 

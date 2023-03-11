@@ -6,7 +6,7 @@ import { Address } from "@x-fuji/sdk"
 import { BigNumberish, BigNumber } from "ethers"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { devtools } from "zustand/middleware"
-import { AssetType } from "../helpers/borrow"
+import { AssetType } from "../helpers/assets"
 
 type PositionsState = {
   positions: Position[]

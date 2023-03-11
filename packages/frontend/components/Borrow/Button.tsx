@@ -2,7 +2,14 @@ import { Button } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
-import { AssetChange, LtvMeta, Mode, ActionType } from "../../helpers/borrow"
+import {
+  AssetChange,
+  LtvMeta,
+  Mode,
+  ActionType,
+  AssetType,
+  needsAllowance,
+} from "../../helpers/assets"
 import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 import { chainIdToHex } from "../../helpers/chains"
@@ -25,7 +32,7 @@ type BorrowButtonProps = {
   hasBalanceInVault: boolean
   onLoginClick: () => void
   onChainChangeClick: (chainId: string) => void
-  onApproveClick: () => void
+  onApproveClick: (type: AssetType) => void
   onRedirectClick: (position: boolean) => void
   onClick: () => void
 }
@@ -157,11 +164,14 @@ function BorrowButton({
     collateralAmount > position.collateral.amount
   ) {
     return disabledButton("Too much collateral?") // TODO: Temp text
-  } else if (
-    collateral.allowance?.value !== undefined &&
-    collateral.allowance?.value < collateralAmount
-  ) {
-    return regularButton("Allow", onApproveClick)
+  } else if (needsAllowance(mode, "collateral", collateral, collateralAmount)) {
+    return regularButton("Allow", () => {
+      onApproveClick("collateral")
+    })
+  } else if (needsAllowance(mode, "debt", debt, debtAmount)) {
+    return regularButton("Allow", () => {
+      onApproveClick("debt")
+    })
   } else if (
     isEditing &&
     position.vault &&
