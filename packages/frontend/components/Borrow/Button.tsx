@@ -67,7 +67,7 @@ function BorrowButton({
   const executionStep = needsPermit ? 2 : 1
   const actionTitle = `${needsPermit ? "Sign & " : ""}${
     mode === Mode.DEPOSIT_AND_BORROW
-      ? "Borrow"
+      ? `${needsPermit ? "" : "Deposit & "}Borrow`
       : mode === Mode.BORROW
       ? "Borrow"
       : mode === Mode.DEPOSIT
