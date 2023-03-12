@@ -242,7 +242,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // the same address as the one on GOERLI
     vm.startPrank(attacker);
     try connextRouter.xReceive(
-      "", 1 ether, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, attackCallData
+      "", 1 wei, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, attackCallData
     ) {
       console.log("xReceive-attack succeeded");
     } catch {
