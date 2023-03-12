@@ -13,6 +13,7 @@ import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
+import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
@@ -30,6 +31,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Dispatch(bytes32 leaf, uint256 index, bytes32 root, bytes message);
 
   ConnextRouter public connextRouter;
+  ConnextHandler public connextHandler;
   uint32 domain;
 
   function setUp() public {
@@ -48,6 +50,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       IConnext(registry[domain].connext),
       chief
     );
+
+    connextHandler = connextRouter.handler();
 
     // addresses are supposed to be the same across different chains
     /*connextRouter.setRouter(GOERLI_DOMAIN, address(connextRouter));*/
@@ -73,6 +77,10 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     collateralAsset = 0x68Db1c8d85C09d546097C65ec7DCBFF4D6497CbF;
     deal(collateralAsset, ALICE, amount);
 
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
     uint32 destDomain = GOERLI_DOMAIN;
 
     vm.startPrank(ALICE);
@@ -83,23 +91,15 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     bytes[] memory args = new bytes[](1);
 
     actions[0] = IRouter.Action.XTransferWithCall;
-    bytes memory randomData = abi.encode(keccak256("data_data"));
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, randomData);
 
-    /*bytes4 selector =*/
-    /*bytes4(keccak256("xCall(uint32,address,address,address,uint256,uint256,bytes)"));*/
-    /*bytes memory callData = abi.encodeWithSelector(*/
-    /*selector,*/
-    /*destDomain,*/
-    /*connextRouter.routerByDomain(destDomain),*/
-    /*collateralAsset,*/
-    /*ALICE,*/
-    /*amount,*/
-    /*30,*/
-    /*randomData*/
-    /*);*/
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    bytes[] memory destArgs = new bytes[](1);
 
-    /*vm.expectCall(address(connext), "");*/
+    destActions[0] = IRouter.Action.Deposit;
+    destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
+
+    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -219,8 +219,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    // Assert that funds are kept at the Router
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+    // Assert that funds are kept at the ConnextHandler
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
 
     // Attacker attemps to take funds, BOB
     address attacker = BOB;
@@ -238,7 +238,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // call attack faked as from GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
     try connextRouter.xReceive(
-      "", amount, vault.asset(), address(connextRouter), GOERLI_DOMAIN, attackCallData
+      "", 1 wei, vault.asset(), address(connextRouter), GOERLI_DOMAIN, attackCallData
     ) {
       console.log("attack succeeded");
     } catch {
@@ -278,8 +278,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), 0);
-    // funds are kept at the Router
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), amount);
+    // funds are kept at the ConnextHandler contract
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
   }
 
   function test_depositAndBorrowaAndTransfer() public {
