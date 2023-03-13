@@ -85,14 +85,13 @@ const Header = () => {
         <Toolbar disableGutters>
           <Grid container justifyContent="space-between" alignItems="center">
             <Grid item>
-              <Link href="/">
+              <Link href="/markets" legacyBehavior>
                 <a className={styles.logoTitle}>
                   <Image
                     src="/assets/images/logo/logo-title.svg"
                     alt="Logo Fuji"
                     width={120}
                     height={50}
-                    layout="fixed"
                   />
                 </a>
               </Link>

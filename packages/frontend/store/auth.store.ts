@@ -1,5 +1,7 @@
 import { create, StoreApi } from "zustand"
-import Onboard, { ConnectOptions } from "@web3-onboard/core"
+import { init } from "@web3-onboard/react"
+import { ConnectOptions } from "@web3-onboard/core"
+
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect"
 import {
@@ -26,7 +28,7 @@ const walletConnect = walletConnectModule({
   },
 })
 
-const onboard = Onboard({
+export const onboard = init({
   chains,
   wallets: [injectedModule(), walletConnect],
   appMetadata: {
