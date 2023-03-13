@@ -8,6 +8,7 @@ import { ThemeProvider } from "@mui/material"
 import { theme } from "../styles/theme"
 import { onboard, useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
+import SafetyNoticeModal from "../components/Onboarding/SafetyNoticeModal"
 import { Web3OnboardProvider } from "@web3-onboard/react"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -35,6 +36,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <div className="backdrop"></div>
           <Component {...pageProps} />
           <Snackbar />
+          <SafetyNoticeModal />
         </ThemeProvider>
       </Web3OnboardProvider>
     </>
