@@ -46,6 +46,11 @@ export const onboard = init({
     mobile: { enabled: false },
   },
 })
+type OnboardStatus = {
+  hasAcceptedTerms: boolean
+  date?: Date | string
+  isExploreInfoSkipped?: boolean
+}
 
 type ConnectedState = {
   status: "connected"
@@ -80,6 +85,9 @@ type Action = {
   login: (options?: ConnectOptions) => void
   init: () => void
   logout: () => void
+  acceptTermsOfUse: () => void
+  getOnboardStatus: () => OnboardStatus
+  setExploreInfoSkipped: (value: boolean) => void
   changeChain: (chainId: string | number) => void
 }
 
@@ -134,6 +142,39 @@ export const useAuth = create<AuthStore>()(
 
         set({ ...initialState, status: "disconnected" })
         useHistory.getState().clearAll()
+      },
+
+      acceptTermsOfUse: () => {
+        const onboardStatus: OnboardStatus = {
+          hasAcceptedTerms: true,
+          date: new Date().toJSON(),
+        }
+        const json = JSON.stringify(onboardStatus)
+        console.log(json)
+        localStorage.setItem("termsAccepted", json)
+      },
+
+      getOnboardStatus: (): OnboardStatus => {
+        const onboardStatusJson = localStorage.getItem("termsAccepted")
+        if (!onboardStatusJson) return { hasAcceptedTerms: false }
+
+        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson)
+
+        return {
+          hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
+          date: onboardStatus.date && new Date(onboardStatus.date),
+          isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
+        }
+      },
+
+      setExploreInfoSkipped: (isExploreInfoSkipped: boolean) => {
+        const onboardStatusJson = localStorage.getItem("termsAccepted")
+        if (!onboardStatusJson) return
+
+        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson)
+
+        const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped })
+        localStorage.setItem("termsAccepted", json)
       },
 
       changeChain: async (chainId) => {

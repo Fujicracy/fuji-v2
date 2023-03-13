@@ -211,7 +211,8 @@ contract HundredOptimism is ILendingProvider {
     uint256 bRateperBlock = ICToken(cTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the Compound interest rate model
-    uint256 blocksperYear = 2102400;
+    // https://docs.hundred.finance/developers/interest-rates/optimism
+    uint256 blocksperYear = 2336000;
     rate = bRateperBlock * blocksperYear;
   }
 
@@ -223,7 +224,8 @@ contract HundredOptimism is ILendingProvider {
     uint256 bRateperBlock = ICToken(cTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the Compound interest rate model
-    uint256 blocksperYear = 2102400;
+    // https://docs.hundred.finance/developers/interest-rates/optimism
+    uint256 blocksperYear = 2336000;
     rate = bRateperBlock * blocksperYear;
   }
 

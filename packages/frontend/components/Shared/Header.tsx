@@ -91,7 +91,6 @@ const Header = () => {
                     alt="Logo Fuji"
                     width={120}
                     height={50}
-                    layout="fixed"
                   />
                 </a>
               </Link>
