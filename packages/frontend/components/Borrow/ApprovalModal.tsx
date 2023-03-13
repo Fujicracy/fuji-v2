@@ -5,26 +5,30 @@ import CloseIcon from "@mui/icons-material/Close"
 import Image from "next/image"
 
 import { useBorrow } from "../../store/borrow.store"
+import { AssetType } from "../../helpers/assets"
 
 type ApprovalModalProps = {
+  type: AssetType
   handleClose: () => void
 }
 
-function ApprovalModal(props: ApprovalModalProps) {
+function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const collateralAllowance = useBorrow((state) => state.collateral.allowance)
-  const collateralInput = useBorrow((state) => state.collateral.input)
 
-  const amount = parseFloat(collateralInput)
-
+  const { allowance, input } = useBorrow((state) => {
+    if (type === "debt") return state.debt
+    return state.collateral
+  })
   const allow = useBorrow((state) => state.allow)
-  const handleAllow = () => allow(amount, "collateral", props.handleClose)
+
+  const amount = parseFloat(input)
+  const handleAllow = () => allow(amount, type, handleClose)
 
   return (
     <Dialog
       open
-      onClose={props.handleClose}
+      onClose={handleClose}
       sx={{
         ".MuiPaper-root": {
           width: isMobile ? "100%" : "auto",
@@ -40,7 +44,7 @@ function ApprovalModal(props: ApprovalModalProps) {
       >
         <CloseIcon
           sx={{ cursor: "pointer", position: "absolute", right: 16, top: 16 }}
-          onClick={props.handleClose}
+          onClick={handleClose}
           fontSize="small"
         />
 
@@ -71,7 +75,7 @@ function ApprovalModal(props: ApprovalModalProps) {
           size="large"
           fullWidth
           sx={{ mt: "1.5rem" }}
-          loading={collateralAllowance.status === "allowing"}
+          loading={allowance.status === "allowing"}
           onClick={handleAllow}
         >
           Approve

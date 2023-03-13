@@ -24,7 +24,7 @@ import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
-import { ActionType } from "../../helpers/assets"
+import { ActionType, AssetType } from "../../helpers/assets"
 
 type BorrowProps = {
   isEditing: boolean
@@ -72,6 +72,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [showRoutingModal, setShowRoutingModal] = useState(false)
   const [actionType, setActionType] = useState(ActionType.ADD)
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false)
+  const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
+    undefined
+  )
 
   useEffect(() => {
     if (address) {
@@ -188,7 +191,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               login()
             }}
             onChainChangeClick={(chainId) => changeChain(chainId)}
-            onApproveClick={() => setShowApprovalModal(true)}
+            onApproveClick={(type) => {
+              setAllowanceType(type)
+              setShowApprovalModal(true)
+            }}
             onRedirectClick={(borrow) => {
               if (borrow) {
                 router.push("/borrow")
@@ -203,7 +209,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         </CardContent>
       </Card>
       {showApprovalModal && (
-        <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
+        <ApprovalModal
+          handleClose={() => {
+            setAllowanceType(undefined)
+            setShowApprovalModal(false)
+          }}
+        />
       )}
       <RoutingModal
         open={showRoutingModal}
