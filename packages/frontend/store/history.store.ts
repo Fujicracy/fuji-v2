@@ -182,7 +182,7 @@ export const useHistory = create<HistoryStore>()(
                 s.step === RoutingStep.DEPOSIT ||
                 s.step === RoutingStep.PAYBACK
               ) {
-                useBorrow.getState().updateAllowance()
+                useBorrow.getState().updateAllowance("collateral")
               }
 
               const { steps } = get().byHash[hash]

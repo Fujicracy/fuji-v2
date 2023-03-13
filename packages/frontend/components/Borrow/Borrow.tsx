@@ -77,7 +77,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     if (address) {
       updateBalance("collateral")
       updateBalance("debt")
-      updateAllowance()
+      updateAllowance("collateral")
+      updateAllowance("debt")
       updateVault()
     }
   }, [address, updateBalance, updateAllowance, updateVault])

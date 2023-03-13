@@ -78,19 +78,22 @@ type BorrowActions = {
   changeMode: (mode: Mode) => void
   changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
   changeInputValues: (collateral: string, debt: string) => void
-  changeDebtChain: (chainId: ChainId) => void
-  changeDebtToken: (token: Token) => void
-  changeDebtValue: (val: string) => void
-  changeCollateralChain: (chainId: ChainId) => void
-  changeCollateralToken: (token: Token) => void
-  changeCollateralValue: (val: string) => void
+  changeAssetChain: (type: AssetType, chainId: ChainId) => void
+  changeAssetToken: (type: AssetType, token: Token) => void
+  changeAssetValue: (type: AssetType, value: string) => void
+  changeDebtChain: (chainId: ChainId) => void // Convenience
+  changeDebtToken: (token: Token) => void // Convenience
+  changeDebtValue: (val: string) => void // Convenience
+  changeCollateralChain: (chainId: ChainId) => void // Convenience
+  changeCollateralToken: (token: Token) => void // Convenience
+  changeCollateralValue: (val: string) => void // Convenience
   changeActiveVault: (v: BorrowingVault) => void
   changeTransactionMeta: (route: RouteMeta) => void
 
   updateAllProviders: () => void
   updateTokenPrice: (type: AssetType) => void
   updateBalances: (type: AssetType) => void
-  updateAllowance: () => void
+  updateAllowance: (type: AssetType) => void
   updateVault: () => void
   updateTransactionMeta: () => void
   updateTransactionMetaDebounced: () => void
@@ -139,7 +142,7 @@ const initialState: BorrowState = {
   debt: {
     selectableTokens: initialDebtTokens,
     balances: {},
-    allowance: { status: "initial", value: 0 },
+    allowance: { status: "initial", value: undefined },
     input: "",
     chainId: initialChainId,
     token: initialDebtTokens[0],
@@ -204,7 +207,8 @@ export const useBorrow = create<BorrowStore>()(
         get().updateBalances("collateral")
         get().updateTokenPrice("debt")
         get().updateBalances("debt")
-        get().updateAllowance()
+        get().updateAllowance("collateral")
+        get().updateAllowance("debt")
 
         await get().changeActiveVault(vault)
 
@@ -228,80 +232,78 @@ export const useBorrow = create<BorrowStore>()(
         ])
       },
 
-      changeCollateralChain(chainId) {
-        const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
+      changeAssetChain(type, chainId) {
+        const tokens =
+          type === "debt"
+            ? sdk.getDebtForChain(parseInt(chainId, 16))
+            : sdk.getCollateralForChain(parseInt(chainId, 16))
 
         set(
           produce((state: BorrowState) => {
-            state.collateral.chainId = chainId
-            state.collateral.selectableTokens = tokens
-            state.collateral.token = tokens[0]
+            const t = type === "debt" ? state.debt : state.collateral
+            t.chainId = chainId
+            t.selectableTokens = tokens
+            t.token = tokens[0]
           })
         )
-        get().updateTokenPrice("collateral")
-        get().updateBalances("collateral")
+        get().updateTokenPrice(type)
+        get().updateBalances(type)
         get().updateVault()
-        get().updateAllowance()
+        get().updateAllowance(type)
+      },
+
+      changeAssetToken(type, token) {
+        set(
+          produce((state: BorrowState) => {
+            if (type === "debt") {
+              state.debt.token = token
+            } else {
+              state.collateral.token = token
+            }
+          })
+        )
+        get().updateTokenPrice(type)
+        get().updateVault()
+        get().updateAllowance(type)
+      },
+
+      changeAssetValue(type, value) {
+        set(
+          produce((state: BorrowState) => {
+            if (type === "debt") {
+              state.debt.input = value
+            } else {
+              state.collateral.input = value
+            }
+          })
+        )
+        get().updateTransactionMetaDebounced()
+        get().updateLtv()
+        get().updateLiquidation()
+      },
+
+      changeCollateralChain(chainId) {
+        get().changeAssetChain("collateral", chainId)
       },
 
       changeCollateralToken(token) {
-        set(
-          produce((state: BorrowState) => {
-            state.collateral.token = token
-          })
-        )
-        get().updateTokenPrice("collateral")
-        get().updateVault()
-        get().updateAllowance()
+        get().changeAssetToken("collateral", token)
       },
 
       changeCollateralValue(value) {
-        set(
-          produce((state: BorrowState) => {
-            state.collateral.input = value
-          })
-        )
-        get().updateTransactionMetaDebounced()
-        get().updateLtv()
-        get().updateLiquidation()
+        get().changeAssetValue("collateral", value)
       },
 
       changeDebtChain(chainId) {
-        const tokens = sdk.getDebtForChain(parseInt(chainId, 16))
-
-        set(
-          produce((state: BorrowState) => {
-            state.debt.chainId = chainId
-            state.debt.selectableTokens = tokens
-            state.debt.token = tokens[0]
-          })
-        )
-
-        get().updateTokenPrice("debt")
-        get().updateBalances("debt")
-        get().updateVault()
+        get().changeAssetChain("debt", chainId)
       },
 
       changeDebtToken(token) {
-        set(
-          produce((state: BorrowState) => {
-            state.debt.token = token
-          })
-        )
-        get().updateTokenPrice("debt")
-        get().updateVault()
-        get().updateTransactionMeta() // updateVault already calls updateTransactionMeta
+        get().changeAssetToken("debt", token)
       },
 
       changeDebtValue(value) {
-        set(
-          produce((state: BorrowState) => {
-            state.debt.input = value
-          })
-        )
-        get().updateTransactionMetaDebounced()
-        get().updateLtv()
-        get().updateLiquidation()
+        get().changeAssetValue("debt", value)
       },
 
       async changeActiveVault(vault) {
@@ -403,8 +405,10 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      async updateAllowance() {
-        const token = get().collateral.token
+      // TODO: change according to the type
+      async updateAllowance(type) {
+        const token =
+          type === "debt" ? get().debt.token : get().collateral.token
         const address = useAuth.getState().address
 
         if (!address) {
@@ -413,7 +417,11 @@ export const useBorrow = create<BorrowStore>()(
 
         set(
           produce((s: BorrowState) => {
-            s.collateral.allowance.status = "fetching"
+            if (type === "debt") {
+              s.debt.allowance.status = "fetching"
+            } else {
+              s.collateral.allowance.status = "fetching"
+            }
           })
         )
         try {
@@ -421,8 +429,13 @@ export const useBorrow = create<BorrowStore>()(
           const value = parseFloat(formatUnits(res, token.decimals))
           set(
             produce((s: BorrowState) => {
-              s.collateral.allowance.status = "ready"
-              s.collateral.allowance.value = value
+              if (type === "debt") {
+                s.debt.allowance.status = "ready"
+                s.debt.allowance.value = value
+              } else {
+                s.collateral.allowance.status = "ready"
+                s.collateral.allowance.value = value
+              }
             })
           )
         } catch (e) {
@@ -430,7 +443,11 @@ export const useBorrow = create<BorrowStore>()(
           console.error(e)
           set(
             produce((s: BorrowState) => {
-              s.collateral.allowance.status = "error"
+              if (type === "debt") {
+                s.debt.allowance.status = "error"
+              } else {
+                s.collateral.allowance.status = "error"
+              }
             })
           )
         }

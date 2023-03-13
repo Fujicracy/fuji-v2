@@ -1,5 +1,5 @@
 import Image, { ImageProps } from "next/image"
-import { Box, Palette, useTheme } from "@mui/material"
+import { Box, Palette } from "@mui/material"
 
 export interface Icon extends Omit<ImageProps, "src" | "alt"> {
   sx?: object

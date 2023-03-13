@@ -64,21 +64,29 @@ The major drawback is, compared to writing logic in a component: when an action 
 
 ```ts
   async changeCollateralChain(chainId) {
-    const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
+    const tokens =
+      type === "debt"
+        ? sdk.getDebtForChain(parseInt(chainId, 16))
+        : sdk.getCollateralForChain(parseInt(chainId, 16))
 
     set(
-      produce((state: TransactionState) => {
-        state.collateral.chainId = chainId
-        state.collateral.allTokens = tokens
-        state.collateral.token = tokens[0]
+      produce((state: BorrowState) => {
+        if (type === "debt") {
+          state.debt.chainId = chainId
+          state.debt.selectableTokens = tokens
+          state.debt.token = tokens[0]
+        } else {
+          state.collateral.chainId = chainId
+          state.collateral.selectableTokens = tokens
+          state.collateral.token = tokens[0]
+        }
       })
     )
-    return Promise.all([
-      get().updateTokenPrice("collateral"),
-      get().updateBalances("collateral"),
-      get().updateVault(),
-      get().updateAllowance(),
-    ])
+
+    get().updateTokenPrice(type)
+    get().updateBalances(type)
+    get().updateVault()
+    get().updateAllowance(type)
   },
 ```
 
