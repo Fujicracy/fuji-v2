@@ -15,7 +15,6 @@ type PositionsState = {
   totalAPY?: number
   availableBorrowPowerUSD?: number
   loading: boolean
-  // positionsAtRisk?: Position[]
 }
 
 type PositionsActions = {
@@ -26,7 +25,6 @@ type PositionsActions = {
 const initialState: PositionsState = {
   positions: [],
   loading: false,
-  // positionsAtRisk: [],
 }
 
 export type PositionsStore = PositionsState & PositionsActions
@@ -75,9 +73,7 @@ export const usePositions = create<PositionsStore>()(
         })
       },
 
-      // getPositionsAtRisk: async () => {
-      //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
-      // },
+      // getPositionsAtRisk: async () => { },
     }),
     {
       enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",

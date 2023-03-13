@@ -33,8 +33,7 @@ const initialKeyMetrics: MetricSummary[] = [
     value: "-",
     valueSym: "$",
     action: "Borrow more",
-  }, // TODO: tooltip & actions
-  // { name: "Positions at Risk", value: 3, action: "Close position" }, // TODO: tooltip & actions
+  },
 ]
 
 function updateKeyMetricsSummary(
