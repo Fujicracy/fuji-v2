@@ -133,10 +133,18 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           ).map((assetChange, index) => {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1
             const type = index === collateralIndex ? "collateral" : "debt"
+            const balance = assetChange.balances[assetChange.token.symbol]
+            const debtAmount = position.debt.amount
+            const maxAmount =
+              type === "debt" && debtAmount && debtAmount < balance
+                ? debtAmount
+                : balance
             return (
               <BorrowBox
                 key={type}
                 type={type}
+                core={index === 0}
+                maxAmount={maxAmount}
                 assetChange={assetChange}
                 isEditing={isEditing}
                 actionType={actionType}
