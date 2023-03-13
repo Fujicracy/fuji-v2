@@ -84,7 +84,10 @@ function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
                 <Typography
                   mt="1.5rem"
                   mb="1.5rem"
-                  sx={{ fontSize: "0.875rem" }}
+                  sx={{
+                    fontSize: "0.875rem",
+                    minHeight: "2.625rem",
+                  }}
                 >
                   {slide.text}
                 </Typography>
@@ -100,7 +103,7 @@ function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
           fullWidth
           data-cy="safety-notice-accept"
         >
-          Next
+          {currentSlide !== 3 ? "Next" : "Finish"}
         </Button>
 
         <Typography
@@ -108,6 +111,7 @@ function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
             m: "1.25rem 0",
             textDecoration: "underline",
             fontSize: "0.75rem",
+            cursor: "pointer",
           }}
           onClick={skip}
         >
@@ -130,7 +134,9 @@ function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
                     ? palette.text.primary
                     : palette.secondary.light,
                 m: "0 0.25rem",
+                cursor: "pointer",
               }}
+              onClick={() => setCurrentSlide(index + 1)}
             />
           ))}
         </Grid>
