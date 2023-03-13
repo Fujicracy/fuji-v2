@@ -18,7 +18,7 @@ functions:
   autotask-polygon:
     name: 'Bump relayer fees on Polygon'
     # where the index file is located
-    path: './dist/polygon'
+    path: './dist/bumpers/polygon'
     relayer: ${self:resources.Resources.relayers.bumper-polygon}
     trigger:
       type: webhook
@@ -26,11 +26,35 @@ functions:
   autotask-optimism:
     name: 'Bump relayer fees on Optimism'
     # where the index file is located
-    path: './dist/optimism'
+    path: './dist/bumpers/optimism'
     relayer: ${self:resources.Resources.relayers.bumper-optimism}
     trigger:
       type: webhook
     paused: false
+  autotask-arbitrum:
+    name: 'Bump relayer fees on Arbitrum'
+    # where the index file is located
+    path: './dist/bumpers/arbitrum'
+    relayer: ${self:resources.Resources.relayers.bumper-arbitrum}
+    trigger:
+      type: webhook
+    paused: false
+  autotask-gnosis:
+    name: 'Bump relayer fees on Gnosis'
+    # where the index file is located
+    path: './dist/bumpers/gnosis'
+    relayer: ${self:resources.Resources.relayers.bumper-gnosis}
+    trigger:
+      type: webhook
+    paused: false
+  #autotask-ethereum:
+    #name: 'Bump relayer fees on Ethereum'
+    ## where the index file is located
+    #path: './dist/bumpers/ethereum'
+    #relayer: ${self:resources.Resources.relayers.bumper-ethereum}
+    #trigger:
+      #type: webhook
+    #paused: false
 
 resources:
   Resources:
@@ -51,13 +75,32 @@ resources:
           - key1
       bumper-optimism:
         name: Bumper Optimism
-        # list of networks can be found at:
-        # https://github.com/OpenZeppelin/defender-serverless/blob/main/src/types/docs/definitions-definitions-network.md
         network: optimism
         min-balance: 1000
         policy: ${self:resources.Resources.policies.policy-1}
         api-keys:
           - key1
+      bumper-arbitrum:
+        name: Bumper Arbitrum
+        network: arbitrum
+        min-balance: 1000
+        policy: ${self:resources.Resources.policies.policy-1}
+        api-keys:
+          - key1
+      bumper-gnosis:
+        name: Bumper Gnosis
+        network: xdai
+        min-balance: 1000
+        policy: ${self:resources.Resources.policies.policy-1}
+        api-keys:
+          - key1
+      #bumper-ethereum:
+        #name: Bumper Ethereum
+        #network: mainnet
+        #min-balance: 1000
+        #policy: ${self:resources.Resources.policies.policy-1}
+        #api-keys:
+          #- key1
     sentinels:
       watcher-polygon:
         name: Watcher Polygon
@@ -93,5 +136,56 @@ resources:
           event:
             - expression: null
               signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
+      watcher-arbitrum:
+        name: Watcher Arbitrum
+        type: BLOCK
+        network: arbitrum
+        abi: ${file(./abis/connext-router.json.abi)}
+        addresses:
+          - '0x190B9e10c3A02896386BE180767cf6E89Df5E798'
+        paused: false
+        autotask-condition: ${self:functions.autotask-arbitrum}
+        autotask-trigger: ${self:functions.autotask-arbitrum}
+        confirm-level: 1
+        notify-config:
+          channels: []
+        conditions:
+          event:
+            - expression: null
+              signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
+      watcher-gnosis:
+        name: Watcher Gnosis
+        type: BLOCK
+        network: xdai
+        abi: ${file(./abis/connext-router.json.abi)}
+        addresses:
+          - '0x9DE0CE8Aaa2772f9DB00D223ce9CA17fc430943B'
+        paused: false
+        autotask-condition: ${self:functions.autotask-gnosis}
+        autotask-trigger: ${self:functions.autotask-gnosis}
+        confirm-level: 1
+        notify-config:
+          channels: []
+        conditions:
+          event:
+            - expression: null
+              signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
+      #watcher-ethereum:
+        #name: Watcher Ethereum
+        #type: BLOCK
+        #network: mainnet
+        #abi: ${file(./abis/connext-router.json.abi)}
+        #addresses:
+          #- ''
+        #paused: false
+        #autotask-condition: ${self:functions.autotask-ethereum}
+        #autotask-trigger: ${self:functions.autotask-ethereum}
+        #confirm-level: 1
+        #notify-config:
+          #channels: []
+        #conditions:
+          #event:
+            #- expression: null
+              #signature: XCalled(bytes32,address,address,uint256,address,uint256,bytes)
 plugins:
   - defender-serverless

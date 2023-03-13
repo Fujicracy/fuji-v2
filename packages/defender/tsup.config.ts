@@ -3,7 +3,7 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   name: "tsup",
   treeshake: true,
-  entry: ['bumpers'],
+  entry: ['src'],
   outExtension() {
     return {
       js: `.js`,
