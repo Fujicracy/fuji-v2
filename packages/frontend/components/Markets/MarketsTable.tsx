@@ -26,6 +26,7 @@ import {
 } from "../../helpers/markets"
 import { showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
+import DocsTooltip from "../Shared/DocsTooltip"
 
 function MarketsTable() {
   const { palette } = useTheme()
@@ -163,28 +164,7 @@ function MarketsTable() {
                 spacing="0.25rem"
                 justifyContent="right"
               >
-                <Tooltip
-                  arrow
-                  title={
-                    <span>
-                      We take into account variables such as liquidity, audits
-                      and team behind each protocol, you can read more on our
-                      risk framework{" "}
-                      <Link
-                        href="https://docs.fujidao.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <u> here</u>
-                      </Link>
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: "0.875rem", color: palette.info.main }}
-                  />
-                </Tooltip>
+                <DocsTooltip />
                 <span>Safety Rating</span>
               </Stack>
             </SizableTableCell>

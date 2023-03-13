@@ -24,6 +24,7 @@ import { recommendedLTV } from "../../../helpers/assets"
 import { formatValue } from "../../../helpers/values"
 import PositionCardGradItem from "./PositionCard"
 import { BasePosition } from "../../../helpers/positions"
+import DocsTooltip from "../../Shared/DocsTooltip"
 
 type OverviewProps = {
   basePosition: BasePosition
@@ -75,28 +76,7 @@ function Overview({ basePosition }: OverviewProps) {
             <Typography variant="body2">Overview</Typography>
             {providers && vault && (
               <Stack direction="row" alignItems="center">
-                <Tooltip
-                  arrow
-                  title={
-                    <span>
-                      We take into account variables such as liquidity, audits
-                      and team behind each protocol, you can read more on our
-                      risk framework{" "}
-                      <Link
-                        href="https://docs.fujidao.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <u> here</u>
-                      </Link>
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: "1rem", color: palette.info.main }}
-                  />
-                </Tooltip>
+                <DocsTooltip />
                 <Typography variant="smallDark" ml={0.5} mr={1}>
                   Safety rating:
                 </Typography>
