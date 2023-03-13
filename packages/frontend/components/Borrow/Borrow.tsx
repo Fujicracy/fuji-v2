@@ -52,7 +52,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const mode = useBorrow((state) => state.mode)
   const changeMode = useBorrow((state) => state.changeMode)
   const changeInputValues = useBorrow((state) => state.changeInputValues)
-  const updateBalance = useBorrow((state) => state.updateBalances)
+  const updateBalances = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)
   const updateAllowance = useBorrow((state) => state.updateAllowance)
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
@@ -75,13 +75,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   useEffect(() => {
     if (address) {
-      updateBalance("collateral")
-      updateBalance("debt")
+      updateBalances("collateral")
+      updateBalances("debt")
       updateAllowance("collateral")
       updateAllowance("debt")
       updateVault()
     }
-  }, [address, updateBalance, updateAllowance, updateVault])
+  }, [address, updateBalances, updateAllowance, updateVault])
 
   useEffect(() => {
     updateTokenPrice("collateral")
