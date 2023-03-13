@@ -20,7 +20,7 @@ type ClickableTooltipProps = {
     | undefined
 }
 
-export default function ClickableTooltip(props: ClickableTooltipProps) {
+function ClickableTooltip(props: ClickableTooltipProps) {
   const [open, setOpen] = React.useState(false)
 
   const handleTooltipClose = () => setOpen(false)
@@ -40,3 +40,5 @@ export default function ClickableTooltip(props: ClickableTooltipProps) {
     </Tooltip>
   )
 }
+
+export default ClickableTooltip
