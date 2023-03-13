@@ -210,6 +210,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       </Card>
       {showApprovalModal && (
         <ApprovalModal
+          type={allowanceType ?? "collateral"}
           handleClose={() => {
             setAllowanceType(undefined)
             setShowApprovalModal(false)
