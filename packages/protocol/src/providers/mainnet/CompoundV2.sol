@@ -173,9 +173,8 @@ contract CompoundV2 is ILendingProvider {
     // Note: Compound uses base 1e18
     uint256 ratePerBlock = ICToken(cTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
-    // 2102400 is the approx. number of blocks per year that's
-    // assumed by the Compound V2 interest rate model
-    rate = ratePerBlock * 2102400;
+    // 2612670 is the approx. number of blocks per year with new PoS ethereum
+    rate = ratePerBlock * 2612670;
   }
 
   /// @inheritdoc ILendingProvider
@@ -187,9 +186,8 @@ contract CompoundV2 is ILendingProvider {
     // Note: Compound uses base 1e18
     uint256 ratePerBlock = ICToken(cTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
-    // 2102400 is the approx. number of blocks per year that's
-    // assumed by the Compound V2 interest rate model
-    rate = ratePerBlock * 2102400;
+    // 2612670 is the approx. number of blocks per year with new PoS ethereum
+    rate = ratePerBlock * 2612670;
   }
 
   /// @inheritdoc ILendingProvider
