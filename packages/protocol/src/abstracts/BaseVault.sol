@@ -187,7 +187,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Called during {ERC20-transferFrom} to decrease allowance.
    * Requirements:
    * - Must be overriden to call {VaultPermissions-_spendWithdrawAllowance}.
-   * - Msut convert `shares` to `assets` before calling internal functions.
+   * - Must convert `shares` to `assets` before calling internal functions.
    *
    * @param owner of `shares`
    * @param operator allowed to act on `owners` behalf
