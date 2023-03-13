@@ -113,7 +113,7 @@ function Overview({ basePosition }: OverviewProps) {
                 maximumFractionDigits: 2,
               })} ${debt.token.symbol}`}
               extra={
-                futurePosition && parseFloat(debtInput) !== 0
+                futurePosition && debtInput && parseFloat(debtInput) !== 0
                   ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
                       style: "currency",
                     })
