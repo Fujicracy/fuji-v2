@@ -186,12 +186,12 @@ export const useHistory = create<HistoryStore>()(
               }
 
               const { steps } = get().byHash[hash]
-              const { title, transactionLink } = entryOutput(steps)
+              const { title, transactionUrl } = entryOutput(steps)
 
               useSnack.getState().display({
                 type: "success",
                 title,
-                transactionLink,
+                transactionUrl,
               })
             }
             get().update(hash, { status: HistoryEntryStatus.DONE })

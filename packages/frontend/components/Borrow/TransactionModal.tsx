@@ -30,7 +30,7 @@ import { NetworkIcon } from "../Shared/Icons"
 import { HistoryEntryStatus, useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chains"
-import { transactionLink } from "../../helpers/transaction"
+import { transactionUrl } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
 import AddTokenButton from "../Shared/AddTokenButton"
 import { showPosition } from "../../helpers/navigation"
@@ -91,7 +91,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
       const amount = formatUnits(s.amount ?? 0, token.decimals)
       const provider = lendingProvider?.name
       const chain = chainName(chainId)
-      const link = txHash && transactionLink(chainId, txHash)
+      const link = txHash && transactionUrl(chainId, txHash)
 
       const style = {
         background: theme.palette.secondary.light,

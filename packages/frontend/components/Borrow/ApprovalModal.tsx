@@ -1,4 +1,11 @@
-import { Box, Dialog, Paper, Typography, useMediaQuery } from "@mui/material"
+import {
+  Box,
+  Dialog,
+  Link,
+  Paper,
+  Typography,
+  useMediaQuery,
+} from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { useTheme } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
@@ -6,6 +13,7 @@ import Image from "next/image"
 
 import { useBorrow } from "../../store/borrow.store"
 import { AssetType } from "../../helpers/assets"
+import { addressUrl } from "../../helpers/chains"
 
 type ApprovalModalProps = {
   type: AssetType
@@ -16,10 +24,11 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
-  const { allowance, input } = useBorrow((state) => {
+  const { allowance, input, token } = useBorrow((state) => {
     if (type === "debt") return state.debt
     return state.collateral
   })
+  const activeVault = useBorrow((state) => state.activeVault)
   const allow = useBorrow((state) => state.allow)
 
   const amount = parseFloat(input)
@@ -62,14 +71,20 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
         </Typography>
 
         <Typography mt="1rem">
-          To avoid having to reapprove for subsequent transactions, you could
-          enable infinite approval.
+          Approve the router contract{" "}
+          <Link
+            href={addressUrl(
+              activeVault?.chainId ?? "",
+              activeVault?.address.value ?? ""
+            )}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <u>{activeVault?.address.value ?? ""}</u>
+          </Link>{" "}
+          to use {token.symbol} from your wallet.
         </Typography>
 
-        <Typography mt="1rem">
-          Otherwise, only the exact amount for this transaction will be allowed
-          to be transfered from your wallet.
-        </Typography>
         <LoadingButton
           variant="gradient"
           size="large"

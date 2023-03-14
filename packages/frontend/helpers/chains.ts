@@ -77,9 +77,13 @@ if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
 }
 
 const chainsMap = new Map<string | number, string>()
+const explorersMap = new Map()
 chains.map((c) => {
   chainsMap.set(c.id, c.label) // string hex id
   chainsMap.set(parseInt(c.id), c.label) // num id
+
+  explorersMap.set(c.id, c.blockExplorerUrl)
+  explorersMap.set(parseInt(c.id), c.blockExplorerUrl)
 })
 
 export function chainName(id?: string | number): string {
@@ -109,4 +113,27 @@ export function isChain(id: number): boolean {
 
 export function chainIdToHex(id: ChainId): string {
   return `0x${id.toString(16)}`
+}
+
+export function transactionUrl(id: string | number, hash: string) {
+  return explorerUrl(id, hash, "tx")
+}
+
+export function addressUrl(id: string | number | undefined, address: string) {
+  return explorerUrl(id, address, "address")
+}
+
+function explorerUrl(
+  id: string | number | undefined,
+  value: string,
+  type: "tx" | "address"
+) {
+  const link = explorersMap.get(id)
+  if (!link) {
+    console.error(`No blockExplorerUrl found for chainId ${id}.
+    - Make sure id is valid (hex string or base 10 number) and the chain is setup in web3-onboard config
+    - Make sure blockExplorerUrl is set for chain ${id} in web3-onboard config`)
+    return
+  }
+  return link + type + "/" + value
 }

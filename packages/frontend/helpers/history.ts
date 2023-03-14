@@ -25,7 +25,7 @@ export const entryOutput = (
   steps: HistoryRoutingStep[]
 ): {
   title: string
-  transactionLink: {
+  transactionUrl: {
     hash: string
     chainId: ChainId | undefined
   }
@@ -53,7 +53,7 @@ export const entryOutput = (
   const chainId = step2?.chainId || step2?.chainId
   return {
     title,
-    transactionLink: {
+    transactionUrl: {
       hash,
       chainId,
     },

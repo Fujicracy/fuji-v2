@@ -28,9 +28,8 @@ import {
   HistoryRoutingStep,
   HistoryEntryStatus,
 } from "../../store/history.store"
-import { chainName } from "../../helpers/chains"
+import { chainName, addressUrl } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
-import { transactionAddress } from "../../helpers/transaction"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -142,7 +141,7 @@ function AccountModal({
 
             <Box>
               <a
-                href={transactionAddress(chainId, address)}
+                href={addressUrl(chainId, address)}
                 target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
                 rel="noreferrer"
               >
