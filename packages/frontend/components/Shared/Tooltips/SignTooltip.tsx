@@ -2,7 +2,7 @@ import React from "react"
 import { Box, Tooltip, Typography, Link } from "@mui/material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 
-export default function Borrow() {
+function Borrow() {
   return (
     <Box
       mb="1rem"
@@ -54,3 +54,5 @@ export default function Borrow() {
     </Box>
   )
 }
+
+export default Borrow
