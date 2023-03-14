@@ -18,7 +18,7 @@ import { useAuth } from "../../store/auth.store"
 import BorrowButton from "./Button"
 import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
-import SignTooltip from "../Shared/SignTooltip"
+import SignTooltip from "../Shared/Tooltips/SignTooltip"
 import ConnextFooter from "./ConnextFooter"
 import { modeForContext } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
@@ -189,7 +189,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             <Fees />
           </Box>
 
-          {shouldSignTooltipBeShown && <SignTooltip />}
+          {true && <SignTooltip />}
 
           <BorrowButton
             address={address}
