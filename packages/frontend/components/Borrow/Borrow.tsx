@@ -188,7 +188,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             walletChain={walletChain}
             ltvMeta={dynamicLtvMeta}
             metaStatus={metaStatus}
-            needsPermit={needsSignature}
+            needsSignature={needsSignature}
             isSigning={isSigning}
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
