@@ -10,7 +10,6 @@ import {
 import { sdk } from "../services/sdk"
 import { formatUnits, parseUnits } from "ethers/lib/utils"
 import { Mode } from "./assets"
-import { camelize } from "./values"
 
 export type RouteMeta = {
   //gasFees: number
@@ -22,9 +21,6 @@ export type RouteMeta = {
   address: string
   recommended: boolean
 }
-
-export const stringifyStep = (step: RoutingStep): string =>
-  camelize(step.toString())
 
 export const fetchRoutes = async (
   mode: Mode,
@@ -86,7 +82,7 @@ export const fetchRoutes = async (
       case Mode.WITHDRAW:
         preview = await sdk.previews.withdraw(
           vault,
-          collateralToken.chainId, // TODO: wallet chain id
+          vault.collateral.chainId,
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
           Address.from(address)
