@@ -136,7 +136,6 @@ export const useHistory = create<HistoryStore>()(
           }
 
           try {
-            // TODO: make sure this wait() for the src tx
             const srcChainId = entry.steps[0].chainId
             const { rpcProvider } = sdk.getConnectionFor(srcChainId)
             const connextTransferId = await sdk.getTransferId(srcChainId, hash)
@@ -178,15 +177,13 @@ export const useHistory = create<HistoryStore>()(
                 useBorrow.getState().updateBalances("debt")
               }
 
-              if (
-                s.step === RoutingStep.DEPOSIT ||
-                s.step === RoutingStep.PAYBACK
-              ) {
+              if (s.step === RoutingStep.DEPOSIT) {
                 useBorrow.getState().updateAllowance("collateral")
+              } else if (s.step === RoutingStep.PAYBACK) {
+                useBorrow.getState().updateAllowance("debt")
               }
 
-              const { steps } = get().byHash[hash]
-              const { title, transactionUrl } = entryOutput(steps)
+              const { title, transactionUrl } = entryOutput(s, txHash)
 
               useSnack.getState().display({
                 type: "success",

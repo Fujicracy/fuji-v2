@@ -22,7 +22,8 @@ import { ethers, Signature } from "ethers"
 import { useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
-import { fetchRoutes, RouteMeta, failureForMode } from "../helpers/borrow"
+import { failureForMode } from "../helpers/borrow"
+import { fetchRoutes, RouteMeta } from "../helpers/routing"
 import {
   AllowanceStatus,
   AssetChange,
@@ -758,14 +759,6 @@ export const useBorrow = create<BorrowStore>()(
               title: "The transaction was submitted successfully.",
             })
           }
-          //set(
-          //produce((s: BorrowState) => {
-          //if (s.collateral.allowance.value) {
-          //// optimistic: we assume transaction will success and update allowance according to that
-          //s.collateral.allowance.value -= parseFloat(s.collateral.input)
-          //}
-          //})
-          //)
           return tx
         } catch (e) {
           // TODO: what errors can we catch here?

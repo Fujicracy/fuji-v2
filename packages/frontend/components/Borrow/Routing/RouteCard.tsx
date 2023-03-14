@@ -13,7 +13,7 @@ import {
   TokenIcon,
   TokenWithNetworkIcon,
 } from "../../Shared/Icons"
-import { RouteMeta } from "../../../helpers/borrow"
+import { RouteMeta } from "../../../helpers/routing"
 import { toNotSoFixed, camelize } from "../../../helpers/values"
 
 type RouteCardProps = {
@@ -44,31 +44,24 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
     return <></>
   }
 
-  function textForStep(step: RoutingStepDetails) {
-    if (step.step === RoutingStep.DEPOSIT) {
-      return `Deposit ${toNotSoFixed(
-        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol}`
+  function textForStep({ step, amount, token, chainId }: RoutingStepDetails) {
+    switch (step) {
+      case RoutingStep.DEPOSIT:
+      case RoutingStep.BORROW:
+      case RoutingStep.PAYBACK:
+      case RoutingStep.WITHDRAW:
+        return camelize(
+          `${step.toString()} ${toNotSoFixed(
+            formatUnits(amount ?? 0, token?.decimals || 18)
+          )} ${token?.symbol}`
+        )
+      case RoutingStep.X_TRANSFER:
+        return camelize(
+          `${step.toString()} to ${chainName(chainId)} via Connext`
+        )
+      default:
+        return camelize(step)
     }
-    if (step.step === RoutingStep.WITHDRAW) {
-      return `Withdraw ${toNotSoFixed(
-        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol}`
-    }
-    if (step.step === RoutingStep.BORROW) {
-      return `Borrow ${toNotSoFixed(
-        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol}`
-    }
-    if (step.step === RoutingStep.PAYBACK) {
-      return `Payback ${toNotSoFixed(
-        formatUnits(step.amount ?? 0, step.token?.decimals || 18)
-      )} ${step.token?.symbol}`
-    }
-    if (step.step === RoutingStep.X_TRANSFER) {
-      return `Bridge to ${chainName(step.chainId)} via Connext`
-    }
-    return camelize(step.step)
   }
 
   function slippageText() {
