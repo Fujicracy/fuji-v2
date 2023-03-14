@@ -25,7 +25,7 @@ import {
 } from "../../helpers/markets"
 import { showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
-import DocsTooltip from "../Shared/DocsTooltip"
+import { DocsTooltip } from "../Shared/Tooltips"
 
 function MarketsTable() {
   const { palette } = useTheme()

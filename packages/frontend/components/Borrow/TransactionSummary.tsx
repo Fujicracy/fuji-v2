@@ -19,7 +19,7 @@ import { formatUnits } from "ethers/lib/utils"
 
 import { useBorrow } from "../../store/borrow.store"
 import LTVProgressBar from "./Overview/LTVProgressBar"
-import ClickableTooltip from "../Shared/ClickableTooltip"
+import { ClickableTooltip } from "../Shared/Tooltips"
 import { ProviderIcon } from "../Shared/Icons"
 import { recommendedLTV } from "../../helpers/assets"
 import { formatValue } from "../../helpers/values"

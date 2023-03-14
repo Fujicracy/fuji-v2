@@ -25,7 +25,7 @@ import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
-import { ActionType } from "../../helpers/assets"
+import { ActionType, AssetType } from "../../helpers/assets"
 
 type BorrowProps = {
   isEditing: boolean
@@ -53,7 +53,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const mode = useBorrow((state) => state.mode)
   const changeMode = useBorrow((state) => state.changeMode)
   const changeInputValues = useBorrow((state) => state.changeInputValues)
-  const updateBalance = useBorrow((state) => state.updateBalances)
+  const updateBalances = useBorrow((state) => state.updateBalances)
   const updateVault = useBorrow((state) => state.updateVault)
   const updateAllowance = useBorrow((state) => state.updateAllowance)
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
@@ -82,16 +82,19 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [showRoutingModal, setShowRoutingModal] = useState(false)
   const [actionType, setActionType] = useState(ActionType.ADD)
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false)
+  const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
+    undefined
+  )
 
   useEffect(() => {
     if (address) {
-      updateBalance("collateral")
-      updateBalance("debt")
+      updateBalances("collateral")
+      updateBalances("debt")
       updateAllowance("collateral")
       updateAllowance("debt")
       updateVault()
     }
-  }, [address, updateBalance, updateAllowance, updateVault])
+  }, [address, updateBalances, updateAllowance, updateVault])
 
   useEffect(() => {
     updateTokenPrice("collateral")
@@ -140,10 +143,18 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           ).map((assetChange, index) => {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1
             const type = index === collateralIndex ? "collateral" : "debt"
+            const balance = assetChange.balances[assetChange.token.symbol]
+            const debtAmount = position.debt.amount
+            const maxAmount =
+              type === "debt" && debtAmount && debtAmount < balance
+                ? debtAmount
+                : balance
             return (
               <BorrowBox
                 key={type}
                 type={type}
+                core={index === 0}
+                maxAmount={maxAmount}
                 assetChange={assetChange}
                 isEditing={isEditing}
                 actionType={actionType}
@@ -200,7 +211,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               login()
             }}
             onChainChangeClick={(chainId) => changeChain(chainId)}
-            onApproveClick={() => setShowApprovalModal(true)}
+            onApproveClick={(type) => {
+              setAllowanceType(type)
+              setShowApprovalModal(true)
+            }}
             onRedirectClick={(borrow) => {
               if (borrow) {
                 router.push("/borrow")
@@ -215,7 +229,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         </CardContent>
       </Card>
       {showApprovalModal && (
-        <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
+        <ApprovalModal
+          type={allowanceType ?? "collateral"}
+          handleClose={() => {
+            setAllowanceType(undefined)
+            setShowApprovalModal(false)
+          }}
+        />
       )}
       <RoutingModal
         open={showRoutingModal}

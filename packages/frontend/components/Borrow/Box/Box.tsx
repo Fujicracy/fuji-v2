@@ -19,6 +19,8 @@ type BorrowBoxProps = {
   value: string
   ltvMeta: LtvMeta
   assetChange: AssetChange
+  core: boolean
+  maxAmount?: number
 }
 
 function BorrowBox({
@@ -30,6 +32,8 @@ function BorrowBox({
   isExecuting,
   value,
   ltvMeta,
+  core,
+  maxAmount,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
     (state) => state.changeCollateralChain
@@ -75,6 +79,8 @@ function BorrowBox({
       />
       <TokenCard
         type={type}
+        core={core}
+        maxAmount={maxAmount}
         assetChange={assetChange}
         actionType={actionType}
         disabled={isEditing}

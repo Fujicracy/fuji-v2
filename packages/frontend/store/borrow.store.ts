@@ -405,7 +405,6 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      // TODO: change according to the type
       async updateAllowance(type) {
         const token =
           type === "debt" ? get().debt.token : get().collateral.token

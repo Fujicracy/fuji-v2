@@ -19,7 +19,7 @@ import { useAuth } from "../../store/auth.store"
 import { chains, chainName } from "../../helpers/chains"
 import { NetworkIcon } from "./Icons"
 
-export default function ChainSelect() {
+function ChainSelect() {
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [chainId, setChainId] = useAuth((state) => [
@@ -118,3 +118,5 @@ const ListItem = (props: ListItemProps) => {
     </>
   )
 }
+
+export default ChainSelect

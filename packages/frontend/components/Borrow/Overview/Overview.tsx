@@ -15,7 +15,7 @@ import { formatUnits } from "ethers/lib/utils"
 
 import LTVProgressBar from "./LTVProgressBar"
 
-import ClickableTooltip from "../../Shared/ClickableTooltip"
+import { ClickableTooltip } from "../../Shared/Tooltips"
 import { useBorrow } from "../../../store/borrow.store"
 import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
@@ -23,7 +23,7 @@ import { recommendedLTV } from "../../../helpers/assets"
 import { formatValue } from "../../../helpers/values"
 import PositionCardGradItem from "./PositionCard"
 import { BasePosition } from "../../../helpers/positions"
-import DocsTooltip from "../../Shared/DocsTooltip"
+import { DocsTooltip } from "../../Shared/Tooltips"
 
 type OverviewProps = {
   basePosition: BasePosition
@@ -113,7 +113,7 @@ function Overview({ basePosition }: OverviewProps) {
                 maximumFractionDigits: 2,
               })} ${debt.token.symbol}`}
               extra={
-                futurePosition && parseFloat(debtInput) !== 0
+                futurePosition && debtInput && parseFloat(debtInput) !== 0
                   ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
                       style: "currency",
                     })

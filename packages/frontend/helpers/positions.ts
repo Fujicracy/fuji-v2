@@ -108,6 +108,8 @@ export function viewFuturePosition(
 
   future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice
 
+  future.ltvThreshold = future.ltvThreshold * 100
+
   return future
 }
 

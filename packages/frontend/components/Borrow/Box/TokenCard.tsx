@@ -38,18 +38,22 @@ type SelectTokenCardProps = {
   disabled: boolean
   value: string
   ltvMeta: LtvMeta
+  core: boolean
+  maxAmount?: number
   onTokenChange: (token: Token) => void
   onInputChange: (value: string) => void
 }
 
 function TokenCard({
   type,
+  core,
   assetChange,
   actionType,
   isExecuting,
   disabled,
   value,
   ltvMeta,
+  maxAmount,
   onTokenChange,
   onInputChange,
 }: SelectTokenCardProps) {
@@ -69,7 +73,8 @@ function TokenCard({
   const close = () => setAnchorEl(null)
 
   const handleMax = () => {
-    handleInput(balance ? balance.toString() : "0")
+    // const amount = type === "debt" ? 50 : balance
+    handleInput(maxAmount?.toString() ?? "0")
   }
 
   const handleInput = (val: string) => {
@@ -144,7 +149,7 @@ function TokenCard({
       </div>
 
       <div className={styles.cardLine} style={{ marginTop: "1rem" }}>
-        {type === "collateral" ? (
+        {core ? (
           <>
             <Typography variant="small" sx={{ width: "11rem" }}>
               {formatValue(usdPrice * +value, { style: "currency" })}
