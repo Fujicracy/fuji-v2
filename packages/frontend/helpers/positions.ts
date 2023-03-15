@@ -1,3 +1,4 @@
+import { Palette } from "@mui/material"
 import { useBorrow } from "../store/borrow.store"
 import { AssetMeta, Position } from "../store/models/Position"
 import { usePositions } from "../store/positions.store"
@@ -169,4 +170,13 @@ export function vaultFromAddress(address: string | undefined) {
   if (!address) return undefined
   const positions = usePositions.getState().positions
   return positions.find((pos) => pos.vault?.address.value === address)?.vault
+}
+
+export function liquidationColor(
+  percentage: number | string,
+  palette: Palette
+) {
+  if (typeof percentage === "string") return palette.info.main
+  if (percentage < 20) return palette.error.main
+  return palette.success.main
 }

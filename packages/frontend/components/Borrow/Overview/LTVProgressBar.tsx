@@ -19,7 +19,12 @@ type LTVProgressBarProps = {
   recommendedLTV: number
 }
 
-function LTVProgressBar(props: LTVProgressBarProps) {
+function LTVProgressBar({
+  borrowLimit,
+  value,
+  maxLTV,
+  recommendedLTV,
+}: LTVProgressBarProps) {
   const { palette } = useTheme()
 
   return (
@@ -60,14 +65,14 @@ function LTVProgressBar(props: LTVProgressBarProps) {
               variant="xsmall"
               sx={{ display: { xs: "none", sm: "inline" } }}
             >
-              {props.recommendedLTV}% LTV (Recommended)
+              {recommendedLTV}% LTV (Recommended)
             </Typography>
 
             <Typography
               variant="xsmall"
               sx={{ display: { xs: "inline", sm: "none" } }}
             >
-              SAFE LTV: {props.recommendedLTV}%
+              SAFE LTV: {recommendedLTV}%
             </Typography>
           </Stack>
         </Grid>
@@ -101,14 +106,14 @@ function LTVProgressBar(props: LTVProgressBarProps) {
               variant="xsmall"
               sx={{ display: { xs: "none", sm: "inline" } }}
             >
-              {props.maxLTV}% LTV (MAX)
+              {maxLTV}% LTV (MAX)
             </Typography>
 
             <Typography
               variant="xsmall"
               sx={{ display: { xs: "inline", sm: "none" } }}
             >
-              MAX LTV: {props.maxLTV}%
+              MAX LTV: {maxLTV}%
             </Typography>
           </Stack>
         </Grid>
@@ -120,7 +125,7 @@ function LTVProgressBar(props: LTVProgressBarProps) {
             height: "0.813rem",
             borderRight: `0.063rem solid`,
             borderBottom: 0,
-            width: `${(props.recommendedLTV * 100) / props.maxLTV}%`,
+            width: `${(recommendedLTV * 100) / maxLTV}%`,
             margin: 0,
           }}
         />
@@ -129,7 +134,7 @@ function LTVProgressBar(props: LTVProgressBarProps) {
             height: "0.813rem",
             borderRight: `0.063rem solid`,
             borderBottom: 0,
-            width: `${100 - (props.recommendedLTV * 100) / props.maxLTV}%`,
+            width: `${100 - (recommendedLTV * 100) / maxLTV}%`,
             margin: 0,
           }}
         />
@@ -143,31 +148,25 @@ function LTVProgressBar(props: LTVProgressBarProps) {
           marginBottom: "0.5rem",
           "& .MuiLinearProgress-barColorPrimary": {
             backgroundColor:
-              props.value <= props.recommendedLTV
+              value <= recommendedLTV
                 ? palette.success.main
                 : palette.warning.main,
             borderRadius: "1.25rem",
           },
         }}
-        value={
-          props.value > props.maxLTV ? 100 : (props.value * 100) / props.maxLTV
-        }
+        value={value > maxLTV ? 100 : (value * 100) / maxLTV}
         variant="determinate"
       />
 
       <Typography
         variant="label"
         color="success.main"
-        ml={`${
-          (props.value > props.maxLTV
-            ? props.value
-            : (props.value * 100) / props.maxLTV) - 5
-        }%`}
+        ml={`${(value > maxLTV ? value : (value * 100) / maxLTV) - 5}%`}
         sx={{
           display: { xs: "block", sm: "none" },
         }}
       >
-        {props.value}%
+        {value}%
       </Typography>
 
       <Grid
@@ -214,7 +213,7 @@ function LTVProgressBar(props: LTVProgressBarProps) {
             />
           </Tooltip>
           <Typography variant="xsmall">
-            Borrow Limit: ${props.borrowLimit.toFixed(2)}
+            Borrow Limit: ${borrowLimit.toFixed(2)}
           </Typography>
         </div>
       </Grid>

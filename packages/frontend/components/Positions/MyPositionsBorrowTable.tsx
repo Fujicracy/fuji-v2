@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Box,
   Table,
@@ -10,7 +10,6 @@ import {
   useTheme,
   TableBody,
   Stack,
-  Button,
   Skeleton,
 } from "@mui/material"
 import { useRouter } from "next/router"
@@ -21,7 +20,8 @@ import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow, vaultFromAddress } from "../../helpers/positions"
 import { formatValue } from "../../helpers/values"
 import { showPosition } from "../../helpers/navigation"
-import { shallow } from "zustand/shallow"
+import LiquidationBox from "./LiquidationBox"
+import EmptyState from "./EmptyState"
 
 type PositionsBorrowTableProps = {
   loading: boolean
@@ -180,124 +180,5 @@ function MyPositionsBorrowTableContainer({
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>
-  )
-}
-
-function LiquidationBox(props: {
-  liquidationPrice: number | "-"
-  percentPriceDiff: number | "-"
-}) {
-  const { palette } = useTheme()
-  const displayPercent = () => {
-    if (props.liquidationPrice === 0 || props.liquidationPrice === "-") {
-      return <span>No debt</span>
-    } else {
-      return (
-        <span>
-          <Typography variant="small" color={palette.success.main}>
-            ~{props.percentPriceDiff}%{" "}
-          </Typography>
-          <Typography variant="small" color={palette.info.main}>
-            above
-          </Typography>
-        </span>
-      )
-    }
-  }
-  return (
-    <TableCell align="right">
-      <Box pt={1} pb={1}>
-        <Typography variant="small">
-          {formatValue(props.liquidationPrice, {
-            style: "currency",
-            minimumFractionDigits: 0,
-          })}
-        </Typography>
-        <br />
-        {displayPercent()}
-      </Box>
-    </TableCell>
-  )
-}
-
-function EmptyState({ reason }: { reason: "no-wallet" | "no-positions" }) {
-  const { palette } = useTheme()
-
-  const router = useRouter()
-
-  const login = useAuth((state) => state.login, shallow)
-
-  const config = useMemo(() => {
-    return reason === "no-wallet"
-      ? {
-          title: "No wallet connected",
-          infoText: <></>,
-          button: {
-            label: "Connect Wallet",
-            action: login,
-          },
-        }
-      : {
-          title: "No Positions",
-          infoText: (
-            <Typography
-              variant="smallDark"
-              mt="0.5rem"
-              sx={{
-                whiteSpace: "normal",
-              }}
-            >
-              Deposit and borrow in a vault to view your dashboard metrics
-            </Typography>
-          ),
-          button: {
-            label: "Borrow",
-            action: () => router.push("/borrow"),
-          },
-        }
-  }, [reason, login, router])
-
-  return (
-    <TableRow>
-      <TableCell
-        colSpan={7}
-        align="center"
-        sx={{ m: "0", textAlign: "center", p: 0 }}
-      >
-        <Box
-          sx={{
-            minHeight: "25rem",
-            display: "flex",
-            flexDirection: "column",
-            pt: "3rem",
-            justifyContent: "start",
-            alignItems: "center",
-            overflow: "hidden",
-            ["@media screen and (max-width:700px)"]: {
-              maxWidth: "90vw",
-              minHeight: "15rem",
-              p: "3rem 1rem 0 1rem",
-            },
-          }}
-        >
-          <Typography variant="h4" color={palette.text.primary}>
-            {config.title}
-          </Typography>
-
-          {config.infoText}
-
-          <Button
-            variant="gradient"
-            size="large"
-            onClick={() => config.button.action()}
-            data-cy="connect-wallet"
-            fullWidth
-            sx={{ mt: "1.5rem", maxWidth: "17rem" }}
-          >
-            {config.button.label}
-          </Button>
-        </Box>
-      </TableCell>
-    </TableRow>
   )
 }

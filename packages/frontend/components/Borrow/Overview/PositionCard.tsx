@@ -1,6 +1,7 @@
 import React from "react"
 import { Card, Chip, Grid, Typography, useTheme } from "@mui/material"
 import { Stack } from "@mui/system"
+import { liquidationColor } from "../../../helpers/positions"
 
 type PositionCardProps = {
   title: string
@@ -25,48 +26,50 @@ function PositionCardGradItem(props: PositionCardProps) {
 
 export default PositionCardGradItem
 
-function PositionCard(props: PositionCardProps) {
+function PositionCard({
+  title,
+  amount,
+  footer,
+  value,
+  extra,
+}: PositionCardProps) {
   const { palette } = useTheme()
 
   return (
     <Card variant="position">
-      <Typography variant="smallDark">{props.title}</Typography>
+      <Typography variant="smallDark">{title}</Typography>
       <Stack
         direction={"row"}
         alignItems="left"
         justifyContent={"center-vertical"}
       >
         <Typography variant="regularH4" mb="0.5rem">
-          {props.amount}
+          {amount}
         </Typography>
-        {props.extra && (
+        {extra && (
           <Chip
             sx={{ marginLeft: "0.5rem" }}
-            label={`${props.extra} after`}
+            label={`${extra} after`}
             variant={"currency"}
           />
         )}
       </Stack>
-      {props.footer && props.footer.includes("below current price") ? (
+      {footer && footer.includes("below current price") ? (
         <Typography
           variant="smallDark"
           mb="1rem"
           sx={{
-            color: props.value
-              ? props.value > 50 // TODO: use recommendedLTV?
-                ? palette.success.main
-                : palette.warning.main
-              : palette.info.dark,
+            color: value ? liquidationColor(value, palette) : palette.info.dark,
           }}
         >
-          {props.footer.split("below current price")[0]}
+          {footer.split("below current price")[0]}
           <Typography variant="smallDark" mb="1rem">
-            {props.footer.split("%")[1]}
+            {footer.split("%")[1]}
           </Typography>
         </Typography>
       ) : (
         <Typography variant="smallDark" mb="1rem">
-          {props.footer}
+          {footer}
         </Typography>
       )}
     </Card>

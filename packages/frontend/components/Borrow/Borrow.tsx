@@ -171,9 +171,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
-              <u>{`${chainName(collateral.chainId)} > ${chainName(
-                debt.chainId
-              )}`}</u>
+              <u>
+                {actionType === ActionType.ADD
+                  ? `${chainName(collateral.chainId)} > ${chainName(
+                      debt.chainId
+                    )}`
+                  : `${chainName(debt.chainId)} > ${chainName(
+                      collateral.chainId
+                    )}`}
+              </u>
             </Typography>
           </Stack>
           <Box mb="1rem">
