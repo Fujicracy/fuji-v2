@@ -16,7 +16,9 @@ export function LTVWarningModal({
 }: LTVWarningModalProps) {
   const { palette } = useTheme()
 
-  const message = `The Loan-to-Value of your position becomes ${ltv}% that's very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes. Please, make sure you understand the risks associated with this operation. We highly recommend you change the amount of the collateral and/or the debt so that your position LTV reaches a healthier level.`
+  const message = `The Loan-to-Value of your position becomes ${ltv.toFixed(
+    2
+  )}% that's very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes. Please, make sure you understand the risks associated with this operation. We highly recommend you change the amount of the collateral and/or the debt so that your position LTV reaches a healthier level.`
 
   return (
     <Dialog open={open}>
