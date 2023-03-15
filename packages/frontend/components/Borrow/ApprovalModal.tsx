@@ -14,6 +14,7 @@ import Image from "next/image"
 import { useBorrow } from "../../store/borrow.store"
 import { AssetType } from "../../helpers/assets"
 import { addressUrl } from "../../helpers/chains"
+import { CONNEXT_ROUTER_ADDRESS } from "@x-fuji/sdk"
 
 type ApprovalModalProps = {
   type: AssetType
@@ -33,6 +34,8 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
 
   const amount = parseFloat(input)
   const handleAllow = () => allow(amount, type, handleClose)
+
+  const address = CONNEXT_ROUTER_ADDRESS[token.chainId].value
 
   return (
     <Dialog
@@ -73,14 +76,11 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
         <Typography mt="1rem">
           Approve the router contract{" "}
           <Link
-            href={addressUrl(
-              activeVault?.chainId ?? "",
-              activeVault?.address.value ?? ""
-            )}
+            href={addressUrl(token.chainId ?? "", address)}
             target="_blank"
             rel="noreferrer"
           >
-            <u>{activeVault?.address.value ?? ""}</u>
+            <u>{address}</u>
           </Link>{" "}
           to use {token.symbol} from your wallet.
         </Typography>
