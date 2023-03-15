@@ -69,3 +69,11 @@ export const needsAllowance = (
     asset.allowance?.value < amount
   )
 }
+
+export const borrowLimit = (
+  amount: number,
+  price: number,
+  maxLtv: number
+): number => {
+  return amount * price * maxLtv
+}

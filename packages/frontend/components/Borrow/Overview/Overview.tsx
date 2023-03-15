@@ -19,7 +19,7 @@ import { ClickableTooltip } from "../../Shared/Tooltips"
 import { useBorrow } from "../../../store/borrow.store"
 import { NetworkIcon } from "../../Shared/Icons"
 import VaultsMenu from "./VaultsMenu"
-import { recommendedLTV } from "../../../helpers/assets"
+import { borrowLimit, recommendedLTV } from "../../../helpers/assets"
 import { formatValue } from "../../../helpers/values"
 import PositionCardGradItem from "./PositionCard"
 import { BasePosition } from "../../../helpers/positions"
@@ -153,7 +153,15 @@ function Overview({ basePosition }: OverviewProps) {
           <Divider sx={{ mb: 1.5 }} />
 
           <LTVProgressBar
-            borrowLimit={0} // TODO: should be dynamic
+            borrowLimit={borrowLimit(
+              futurePosition
+                ? futurePosition.collateral.amount
+                : collateralInput
+                ? parseFloat(collateralInput)
+                : 0,
+              collateral.usdPrice,
+              dynamicLtv
+            )}
             value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
             maxLTV={ltvMax}
             recommendedLTV={recommendedLTV(ltvMax)}

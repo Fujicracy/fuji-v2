@@ -26,7 +26,6 @@ function LTVProgressBar({
   recommendedLTV,
 }: LTVProgressBarProps) {
   const { palette } = useTheme()
-
   return (
     <Box>
       <Grid

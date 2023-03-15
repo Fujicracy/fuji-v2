@@ -21,7 +21,7 @@ import { useBorrow } from "../../store/borrow.store"
 import LTVProgressBar from "./Overview/LTVProgressBar"
 import { ClickableTooltip } from "../Shared/Tooltips"
 import { ProviderIcon } from "../Shared/Icons"
-import { recommendedLTV } from "../../helpers/assets"
+import { borrowLimit, recommendedLTV } from "../../helpers/assets"
 import { formatValue } from "../../helpers/values"
 
 function TransactionSummary() {
@@ -195,7 +195,11 @@ function TransactionSummary() {
               <Divider sx={{ mt: "1.25rem", mb: "0.5rem" }} />
 
               <LTVProgressBar
-                borrowLimit={0} // TODO: should be dynamic
+                borrowLimit={borrowLimit(
+                  parseFloat(collateral.input),
+                  collateral.usdPrice,
+                  ltvMax
+                )}
                 value={ltv > ltvMax ? ltvMax : ltv}
                 maxLTV={ltvMax}
                 recommendedLTV={recommendedLTV(ltvMax)}
