@@ -35,6 +35,7 @@ type BorrowButtonProps = {
   onApproveClick: (type: AssetType) => void
   onRedirectClick: (position: boolean) => void
   onClick: () => void
+  ltvCheck: (action: () => void) => void
 }
 
 function BorrowButton({
@@ -58,6 +59,7 @@ function BorrowButton({
   onApproveClick,
   onRedirectClick,
   onClick,
+  ltvCheck,
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input)
   const debtAmount = parseFloat(debt.input)
@@ -95,19 +97,25 @@ function BorrowButton({
 
   const regularButton = (
     title: string,
-    onClick: () => void,
+    action: () => void,
     data: string | undefined = undefined
-  ) => (
-    <Button
-      variant="gradient"
-      size="large"
-      fullWidth
-      onClick={onClick}
-      data-cy={data}
-    >
-      {title}
-    </Button>
-  )
+  ) => {
+    const onClick = () => {
+      ltvCheck(action)
+    }
+
+    return (
+      <Button
+        variant="gradient"
+        size="large"
+        fullWidth
+        onClick={onClick}
+        data-cy={data}
+      >
+        {title}
+      </Button>
+    )
+  }
 
   const disabledButton = (title: string) => (
     <Button variant="gradient" size="large" fullWidth disabled>

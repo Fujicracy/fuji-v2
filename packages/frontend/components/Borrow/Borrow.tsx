@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   Typography,
   CardContent,
@@ -25,6 +25,7 @@ import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 import { ActionType, AssetType } from "../../helpers/assets"
+import LTVWarningModal from "../Shared/LTVWarningModal"
 
 type BorrowProps = {
   isEditing: boolean
@@ -75,6 +76,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
     undefined
   )
+  const [isLTVModalShown, setIsLTVModalShown] = useState(false)
 
   useEffect(() => {
     if (address) {
@@ -116,6 +118,16 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     )
     changeMode(mode)
   }, [changeMode, isEditing, collateral.input, debt.input, actionType])
+
+  const proceedWithLTVCheck = useCallback(
+    (action: () => void) => {
+      // Checks if ltv close to max ltv
+      dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax * 0.95
+        ? setIsLTVModalShown(true)
+        : action()
+    },
+    [dynamicLtvMeta]
+  )
 
   return (
     <>
@@ -211,6 +223,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               }
             }}
             onClick={signAndExecute}
+            ltvCheck={proceedWithLTVCheck}
           />
 
           <ConnextFooter />
@@ -228,6 +241,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       <RoutingModal
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
+      />
+      <LTVWarningModal
+        open={isLTVModalShown}
+        ltv={dynamicLtvMeta.ltv}
+        onClose={() => setIsLTVModalShown(false)}
+        action={signAndExecute}
       />
     </>
   )

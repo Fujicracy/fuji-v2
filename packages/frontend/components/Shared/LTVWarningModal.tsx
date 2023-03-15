@@ -36,23 +36,29 @@ export function LTVWarningModal({
           {message}
         </Typography>
 
-        <Box>
+        <Box
+          mt="1.5rem"
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: "1rem", sm: "2rem" },
+          }}
+        >
           <Button
-            size="large"
-            onClick={action}
+            variant="secondary"
             fullWidth
-            data-cy="safety-notice-accept"
-            sx={{ mt: "1.5rem" }}
+            onClick={action}
+            size="medium"
+            data-cy="accept-ltv-warning"
           >
             Proceed anyway
           </Button>
           <Button
             variant="gradient"
-            size="large"
-            onClick={onClose}
+            size="medium"
             fullWidth
-            data-cy="safety-notice-accept"
-            sx={{ mt: "1.5rem" }}
+            onClick={onClose}
+            data-cy="change-ltv"
           >
             Change
           </Button>
