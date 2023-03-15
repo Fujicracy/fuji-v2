@@ -30,12 +30,13 @@ import { NetworkIcon } from "../Shared/Icons"
 import { HistoryEntryStatus, useHistory } from "../../store/history.store"
 import { formatUnits } from "ethers/lib/utils"
 import { chainName } from "../../helpers/chains"
-import { transactionLink } from "../../helpers/transaction"
+import { transactionUrl } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
 import AddTokenButton from "../Shared/AddTokenButton"
 import { showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
 import { vaultFromAddress } from "../../helpers/positions"
+import { camelize } from "../../helpers/values"
 
 type InvalidStep = {
   label: "Invalid"
@@ -91,7 +92,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
       const amount = formatUnits(s.amount ?? 0, token.decimals)
       const provider = lendingProvider?.name
       const chain = chainName(chainId)
-      const link = txHash && transactionLink(chainId, txHash)
+      const link = txHash && transactionUrl(chainId, txHash)
 
       const style = {
         background: theme.palette.secondary.light,
@@ -101,18 +102,20 @@ function TransactionModal({ hash }: TransactionModalProps) {
         zIndex: 1,
       }
 
-      const label =
+      const action = step.toString()
+      const preposition =
         step === RoutingStep.DEPOSIT
-          ? `Deposit ${amount} ${token.symbol} on ${provider}`
-          : step === RoutingStep.BORROW
-          ? `Borrow ${amount} ${token.symbol} from ${provider}`
-          : step === RoutingStep.WITHDRAW
-          ? `Withdraw ${amount} ${token.symbol} from ${provider}`
-          : step === RoutingStep.PAYBACK
-          ? `Repay ${amount} ${token.symbol} from ${provider}`
+          ? "on"
           : step === RoutingStep.X_TRANSFER
-          ? `Bridge ${amount} ${token.symbol} to ${chain}`
-          : "Invalid"
+          ? "to"
+          : "from"
+
+      const label =
+        step === RoutingStep.START || step === RoutingStep.END
+          ? "Invalid"
+          : camelize(
+              `${action} ${amount} ${token.symbol} ${preposition} ${provider}`
+            )
 
       const icon =
         step === RoutingStep.X_TRANSFER ? (

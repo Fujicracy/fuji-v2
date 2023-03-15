@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Box,
   Table,
@@ -21,6 +21,7 @@ import { useAuth } from "../../store/auth.store"
 import { getRows, PositionRow, vaultFromAddress } from "../../helpers/positions"
 import { formatValue } from "../../helpers/values"
 import { showPosition } from "../../helpers/navigation"
+import { shallow } from "zustand/shallow"
 
 type PositionsBorrowTableProps = {
   loading: boolean
@@ -43,9 +44,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   if (!account) {
     return (
       <MyPositionsBorrowTableContainer>
-        <MyPositionsBorrowTableRow>
-          No wallet detected
-        </MyPositionsBorrowTableRow>
+        <EmptyState reason="no-wallet" />
       </MyPositionsBorrowTableContainer>
     )
   }
@@ -53,27 +52,11 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     return (
       <MyPositionsBorrowTableContainer>
         <TableRow sx={{ height: "2.625rem" }}>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
-          <TableCell>
-            <Skeleton />
-          </TableCell>
+          {new Array(7).fill("").map((_, index) => (
+            <TableCell key={index}>
+              <Skeleton />
+            </TableCell>
+          ))}
         </TableRow>
       </MyPositionsBorrowTableContainer>
     )
@@ -159,7 +142,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
           </TableRow>
         ))
       ) : (
-        <MyPositionsBorrowTableRow>No open positions</MyPositionsBorrowTableRow>
+        <EmptyState reason="no-positions" />
       )}
     </MyPositionsBorrowTableContainer>
   )
@@ -169,44 +152,6 @@ export default MyPositionsBorrowTable
 
 type PositionsBorrowTableElementProps = {
   children: string | JSX.Element | JSX.Element[]
-}
-
-function MyPositionsBorrowTableRow({
-  children,
-}: PositionsBorrowTableElementProps) {
-  const { palette } = useTheme()
-  const router = useRouter()
-  const account = useAuth((state) => state.address)
-
-  const buttonSx = {
-    padding: "6px 16px 5px",
-    lineHeight: "0.875rem",
-    fontSize: "0.875rem",
-    backgroundColor: palette.secondary.main,
-    border: "none",
-  }
-
-  return (
-    <TableRow sx={{ height: "2.625rem" }}>
-      <TableCell></TableCell>
-      <TableCell colSpan={5} align="center">
-        {children}
-      </TableCell>
-      <TableCell align="right">
-        {account && (
-          <Button
-            variant="primary"
-            sx={buttonSx}
-            onClick={() => {
-              router.push("/borrow")
-            }}
-          >
-            Open position
-          </Button>
-        )}
-      </TableCell>
-    </TableRow>
-  )
 }
 
 function MyPositionsBorrowTableHeader() {
@@ -272,5 +217,87 @@ function LiquidationBox(props: {
         {displayPercent()}
       </Box>
     </TableCell>
+  )
+}
+
+function EmptyState({ reason }: { reason: "no-wallet" | "no-positions" }) {
+  const { palette } = useTheme()
+
+  const router = useRouter()
+
+  const login = useAuth((state) => state.login, shallow)
+
+  const config = useMemo(() => {
+    return reason === "no-wallet"
+      ? {
+          title: "No wallet connected",
+          infoText: <></>,
+          button: {
+            label: "Connect Wallet",
+            action: login,
+          },
+        }
+      : {
+          title: "No Positions",
+          infoText: (
+            <Typography
+              variant="smallDark"
+              mt="0.5rem"
+              sx={{
+                whiteSpace: "normal",
+              }}
+            >
+              Deposit and borrow in a vault to view your dashboard metrics
+            </Typography>
+          ),
+          button: {
+            label: "Borrow",
+            action: () => router.push("/borrow"),
+          },
+        }
+  }, [reason, login, router])
+
+  return (
+    <TableRow>
+      <TableCell
+        colSpan={7}
+        align="center"
+        sx={{ m: "0", textAlign: "center", p: 0 }}
+      >
+        <Box
+          sx={{
+            minHeight: "25rem",
+            display: "flex",
+            flexDirection: "column",
+            pt: "3rem",
+            justifyContent: "start",
+            alignItems: "center",
+            overflow: "hidden",
+            ["@media screen and (max-width:700px)"]: {
+              maxWidth: "90vw",
+              minHeight: "15rem",
+              p: "3rem 1rem 0 1rem",
+            },
+          }}
+        >
+          <Typography variant="h4" color={palette.text.primary}>
+            {config.title}
+          </Typography>
+
+          {config.infoText}
+
+          <Button
+            variant="gradient"
+            size="large"
+            onClick={() => config.button.action()}
+            data-cy="connect-wallet"
+            fullWidth
+            sx={{ mt: "1.5rem", maxWidth: "17rem" }}
+          >
+            {config.button.label}
+          </Button>
+        </Box>
+      </TableCell>
+    </TableRow>
   )
 }

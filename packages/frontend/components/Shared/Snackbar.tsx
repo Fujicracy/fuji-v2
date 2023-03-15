@@ -14,7 +14,7 @@ import ErrorIcon from "@mui/icons-material/Error"
 import WarningIcon from "@mui/icons-material/Warning"
 import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../../store/snackbar.store"
-import { transactionLink } from "../../helpers/transaction"
+import { transactionUrl } from "../../helpers/chains"
 
 function Snackbar() {
   const [snack] = useSnack((s) => s.notifications)
@@ -65,11 +65,11 @@ function SnackbarBody({ snack, onClose }: SnackBodyProps) {
         {snack.body && (
           <Typography variant="xsmallDark">{snack.body}</Typography>
         )}
-        {snack.transactionLink?.chainId && snack.transactionLink.hash && (
+        {snack.transactionUrl?.chainId && snack.transactionUrl.hash && (
           <Link
-            href={transactionLink(
-              snack.transactionLink.chainId,
-              snack.transactionLink.hash
+            href={transactionUrl(
+              snack.transactionUrl.chainId,
+              snack.transactionUrl.hash
             )}
             target="_blank"
             variant="smallDark"
