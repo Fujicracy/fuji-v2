@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
-import Lending from "../Lending/Lending"
+import Lending from "../Shared/Lending/Lending"
 import { theme } from "../../styles/theme"
 
 function Markets() {
@@ -138,9 +138,13 @@ function Markets() {
         )} */}
       </Grid>
 
-      {currentTab === 0 && <MarketsTable />}
-
-      {currentTab === 1 && <Lending />}
+      {currentTab === 0 ? (
+        <MarketsTable />
+      ) : (
+        <Box sx={{ height: "33rem", width: "100%" }}>
+          <Lending />
+        </Box>
+      )}
     </Box>
   )
 }

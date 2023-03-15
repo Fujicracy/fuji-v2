@@ -1,9 +1,9 @@
 import { NextPage } from "next"
 import Head from "next/head"
 
-import { Container, Divider, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Container, Divider, useMediaQuery, useTheme } from "@mui/material"
 
-import Lending from "../components/Lending/Lending"
+import Lending from "../components/Shared/Lending/Lending"
 import Footer from "../components/Shared/Footer"
 import Header from "../components/Shared/Header/Header"
 
@@ -37,7 +37,9 @@ const MarketsPage: NextPage = () => {
           minHeight: "75vh",
         }}
       >
-        <Lending />
+        <Box sx={{ height: "45rem", width: "100%" }}>
+          <Lending />
+        </Box>
       </Container>
 
       {!isMobile && <Footer />}

@@ -34,7 +34,15 @@ function Lending() {
   // }
 
   return (
-    <Card variant="lending" sx={{ p: { xs: "1rem", sm: "8rem 27.5rem" } }}>
+    <Card
+      variant="lending"
+      sx={{
+        p: { xs: "1rem", md: "8rem 27.5rem" },
+        width: "100%",
+        height: "100%",
+      }}
+      raised
+    >
       <Image
         src="/assets/images/logo/himalaya.svg"
         alt="Logo Himalaya"
