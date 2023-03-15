@@ -25,7 +25,7 @@ import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
-import { ActionType, AssetType } from "../../helpers/assets"
+import { ActionType, AssetType, needsAllowance } from "../../helpers/assets"
 
 type BorrowProps = {
   isEditing: boolean
@@ -61,10 +61,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const { position, futurePosition } = basePosition
 
-  const shouldSignTooltipBeShown = useMemo(() => {
-    return availableVaultStatus === "ready" && needsSignature
-  }, [availableVaultStatus, needsSignature])
-
   const dynamicLtvMeta = {
     ltv: futurePosition ? futurePosition.ltv : position.ltv,
     ltvMax: futurePosition ? futurePosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
@@ -80,6 +76,20 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
     undefined
   )
+
+  const shouldSignTooltipBeShown = useMemo(() => {
+    return (
+      availableVaultStatus === "ready" &&
+      !(!isEditing && hasBalanceInVault) &&
+      (needsAllowance(
+        mode,
+        "collateral",
+        collateral,
+        parseFloat(collateral.input)
+      ) ||
+        needsAllowance(mode, "debt", debt, parseFloat(debt.input)))
+    )
+  }, [availableVaultStatus, needsSignature, mode, collateral, debt])
 
   useEffect(() => {
     if (address) {
