@@ -62,13 +62,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const { position, futurePosition } = basePosition
 
   const shouldSignTooltipBeShown = useMemo(() => {
-    return (
-      availableVaultStatus === "ready" &&
-      needsSignature &&
-      collateral.amount &&
-      debt.amount
-    )
-  }, [availableVaultStatus, needsSignature, collateral.amount, debt.amount])
+    return availableVaultStatus === "ready" && needsSignature
+  }, [availableVaultStatus, needsSignature])
 
   const dynamicLtvMeta = {
     ltv: futurePosition ? futurePosition.ltv : position.ltv,
@@ -189,7 +184,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             <Fees />
           </Box>
 
-          {shouldSignTooltipBeShown && <SignTooltip />}
+          {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
           <BorrowButton
             address={address}
