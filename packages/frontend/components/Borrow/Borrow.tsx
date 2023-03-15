@@ -189,7 +189,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             <Fees />
           </Box>
 
-          {true && <SignTooltip />}
+          {shouldSignTooltipBeShown && <SignTooltip />}
 
           <BorrowButton
             address={address}
