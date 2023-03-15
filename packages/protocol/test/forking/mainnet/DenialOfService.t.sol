@@ -11,7 +11,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV2Pool} from "../../../src/interfaces/aaveV2/IV2Pool.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract AaveV2ForkingTest is Routines, ForkingSetup {
+contract DenialOfServiceTest is Routines, ForkingSetup {
   using SafeERC20 for IERC20;
 
   ILendingProvider public aaveV2;
