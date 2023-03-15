@@ -161,9 +161,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             m="1rem 0"
             justifyContent="space-between"
             onClick={() => {
-              availableRoutes.length > 0 &&
+              !isEditing &&
                 !onMobile &&
                 address &&
+                availableRoutes.length > 0 &&
                 setShowRoutingModal(true)
             }}
             sx={{ cursor: address && "pointer" }}
