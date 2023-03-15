@@ -10,7 +10,7 @@ import {
 } from "@mui/material"
 
 import Fees from "./Fees"
-import ApprovalModal from "./ApprovalModal"
+import AllowanceModal from "./AllowanceModal"
 import RoutingModal from "./Routing/RoutingModal"
 import { chainName } from "../../helpers/chains"
 import { useBorrow } from "../../store/borrow.store"
@@ -68,7 +68,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       : position.ltvThreshold,
   }
 
-  const [showApprovalModal, setShowApprovalModal] = useState(false)
+  const [showAllowanceModal, setShowAllowanceModal] = useState(false)
   const [showRoutingModal, setShowRoutingModal] = useState(false)
   const [actionType, setActionType] = useState(ActionType.ADD)
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false)
@@ -201,7 +201,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => {
               setAllowanceType(type)
-              setShowApprovalModal(true)
+              setShowAllowanceModal(true)
             }}
             onRedirectClick={(borrow) => {
               if (borrow) {
@@ -216,12 +216,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           <ConnextFooter />
         </CardContent>
       </Card>
-      {showApprovalModal && (
-        <ApprovalModal
+      {showAllowanceModal && (
+        <AllowanceModal
           type={allowanceType ?? "collateral"}
           handleClose={() => {
             setAllowanceType(undefined)
-            setShowApprovalModal(false)
+            setShowAllowanceModal(false)
           }}
         />
       )}

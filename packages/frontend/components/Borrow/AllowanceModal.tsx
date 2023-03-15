@@ -16,12 +16,12 @@ import { AssetType } from "../../helpers/assets"
 import { addressUrl } from "../../helpers/chains"
 import { CONNEXT_ROUTER_ADDRESS } from "@x-fuji/sdk"
 
-type ApprovalModalProps = {
+type AllowanceModalProps = {
   type: AssetType
   handleClose: () => void
 }
 
-function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
+function AllowanceModal({ type, handleClose }: AllowanceModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
@@ -29,13 +29,11 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
     if (type === "debt") return state.debt
     return state.collateral
   })
-  const activeVault = useBorrow((state) => state.activeVault)
   const allow = useBorrow((state) => state.allow)
 
   const amount = parseFloat(input)
-  const handleAllow = () => allow(amount, type, handleClose)
-
   const address = CONNEXT_ROUTER_ADDRESS[token.chainId].value
+  const handleAllow = () => allow(amount, type, handleClose)
 
   return (
     <Dialog
@@ -100,4 +98,4 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
   )
 }
 
-export default ApprovalModal
+export default AllowanceModal
