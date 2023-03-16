@@ -10,6 +10,7 @@ import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
 import { NetworkIcon } from "../../Shared/Icons"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
+import APRTooltip from "../../Shared/Tooltips/APRTooltip"
 
 type DetailsProps = {
   ltv: number
@@ -82,20 +83,32 @@ function Details({
 
         <Grid container justifyContent="space-between">
           <div style={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="smallDark">Deposit Interest (APR)</Typography>
+            <APRTooltip />
+          </div>
+          <Box sx={{ alignItems: "center" }}>
+            {providers?.length ? (
+              <Typography variant="small">
+                {providers[0].name}:{" "}
+                <span style={{ color: palette.success.main }}>
+                  {(
+                    parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
+                  ).toFixed(2)}
+                  %
+                </span>
+              </Typography>
+            ) : (
+              "n/a"
+            )}
+          </Box>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
+          <div style={{ display: "flex", alignItems: "center" }}>
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-            <Tooltip
-              arrow
-              title="APR, or annual percentage rate, represents the price you pay to borrow money."
-            >
-              <InfoOutlinedIcon
-                sx={{
-                  ml: "0.4rem",
-                  fontSize: "0.875rem",
-                  color: palette.info.dark,
-                  display: { xs: "none", sm: "inline" },
-                }}
-              />
-            </Tooltip>
+            <APRTooltip />
           </div>
           <Box sx={{ alignItems: "center" }}>
             {providers?.length ? (
