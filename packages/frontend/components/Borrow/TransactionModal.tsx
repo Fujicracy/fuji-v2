@@ -37,6 +37,9 @@ import { showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
 import { vaultFromAddress } from "../../helpers/positions"
 import { camelize } from "../../helpers/values"
+import { LoadingButton } from "@mui/lab"
+import { usePositions } from "../../store/positions.store"
+import { PageUrl } from "../../helpers/navigation"
 
 type InvalidStep = {
   label: "Invalid"
@@ -53,16 +56,21 @@ type TransactionStep = InvalidStep | ValidStep
 
 type TransactionModalProps = {
   hash?: string
+  currentPage: string
 }
-function TransactionModal({ hash }: TransactionModalProps) {
+function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   const theme = useTheme()
   const router = useRouter()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const [activeStep] = useState(2)
 
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ""))
   const entry = useHistory((state) => state.byHash[hash || ""])
+  const fetchPositions = usePositions((state) => state.fetchUserPositions)
+
   const closeModal = useHistory((state) => state.closeModal)
+
+  const [activeStep] = useState(2)
+  const [loading, setLoading] = useState(false)
 
   const action =
     entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
@@ -76,7 +84,16 @@ function TransactionModal({ hash }: TransactionModalProps) {
     return <></>
   }
 
-  const onClick = () => {
+  const onClick = async () => {
+    // If the user is editing a position, we need to refresh positions
+    if (currentPage === PageUrl.Position) {
+      setLoading(true)
+      await fetchPositions()
+      setLoading(false)
+      closeModal()
+      return
+    }
+
     closeModal()
     const vault = vaultFromAddress(entry.vaultAddr)
     if (!vault) {
@@ -86,67 +103,69 @@ function TransactionModal({ hash }: TransactionModalProps) {
     showPosition(router, undefined, vault)
   }
 
-  const steps = entry.steps
-    .map((s): TransactionStep => {
-      const { step, txHash, chainId, token, lendingProvider } = s
-      const amount = formatUnits(s.amount ?? 0, token.decimals)
-      const provider = lendingProvider?.name
-      const chain = chainName(chainId)
-      const link = txHash && transactionUrl(chainId, txHash)
+  const steps = entry
+    ? (entry.steps
+        .map((s): TransactionStep => {
+          const { step, txHash, chainId, token, lendingProvider } = s
+          const amount = formatUnits(s.amount ?? 0, token.decimals)
+          const provider = lendingProvider?.name
+          const chain = chainName(chainId)
+          const link = txHash && transactionUrl(chainId, txHash)
 
-      const style = {
-        background: theme.palette.secondary.light,
-        mr: "0.5rem",
-        p: "0.5rem 0.5rem 0.3rem 0.5rem",
-        borderRadius: "100%",
-        zIndex: 1,
-      }
+          const style = {
+            background: theme.palette.secondary.light,
+            mr: "0.5rem",
+            p: "0.5rem 0.5rem 0.3rem 0.5rem",
+            borderRadius: "100%",
+            zIndex: 1,
+          }
 
-      const action = step.toString()
-      const preposition =
-        step === RoutingStep.DEPOSIT
-          ? "on"
-          : step === RoutingStep.X_TRANSFER
-          ? "to"
-          : "from"
+          const action = step.toString()
+          const preposition =
+            step === RoutingStep.DEPOSIT
+              ? "on"
+              : step === RoutingStep.X_TRANSFER
+              ? "to"
+              : "from"
 
-      const label =
-        step === RoutingStep.START || step === RoutingStep.END
-          ? "Invalid"
-          : camelize(
-              `${action} ${amount} ${token.symbol}${
-                provider ? ` ${preposition} ${provider}` : ""
-              }`
+          const label =
+            step === RoutingStep.START || step === RoutingStep.END
+              ? "Invalid"
+              : camelize(
+                  `${action} ${amount} ${token.symbol}${
+                    provider ? ` ${preposition} ${provider}` : ""
+                  }`
+                )
+
+          const icon =
+            step === RoutingStep.X_TRANSFER ? (
+              <Image
+                src="/assets/images/logo/connext.svg"
+                height={32}
+                width={32}
+                alt="Connext"
+              />
+            ) : (
+              <NetworkIcon network={chain} height={32} width={32} />
             )
 
-      const icon =
-        step === RoutingStep.X_TRANSFER ? (
-          <Image
-            src="/assets/images/logo/connext.svg"
-            height={32}
-            width={32}
-            alt="Connext"
-          />
-        ) : (
-          <NetworkIcon network={chain} height={32} width={32} />
-        )
-
-      return {
-        label,
-        chainId,
-        txHash,
-        link: step === RoutingStep.X_TRANSFER ? connextScanLink : link,
-        description:
-          step === RoutingStep.X_TRANSFER ? "Connext" : `${chain} Network`,
-        icon: () => <Box sx={style}>{icon}</Box>,
-      }
-    })
-    // remove "START" and "END"
-    .filter((s) => s.label !== "Invalid") as ValidStep[]
+          return {
+            label,
+            chainId,
+            txHash,
+            link: step === RoutingStep.X_TRANSFER ? connextScanLink : link,
+            description:
+              step === RoutingStep.X_TRANSFER ? "Connext" : `${chain} Network`,
+            icon: () => <Box sx={style}>{icon}</Box>,
+          }
+        })
+        // remove "START" and "END"
+        .filter((s) => s.label !== "Invalid") as ValidStep[])
+    : []
 
   return (
     <Dialog
-      open={Boolean(hash)}
+      open={true}
       onClose={closeModal}
       sx={{
         ".MuiPaper-root": { width: isMobile ? "100%" : "430px" },
@@ -173,7 +192,7 @@ function TransactionModal({ hash }: TransactionModalProps) {
             orientation="vertical"
             connector={<CustomConnector />}
           >
-            {steps.map((step) => (
+            {steps?.map((step) => (
               <Step key={step.label}>
                 <StepLabel StepIconComponent={step.icon}>
                   <Stack direction="row" justifyContent="space-between">
@@ -235,9 +254,15 @@ function TransactionModal({ hash }: TransactionModalProps) {
                 <AddTokenButton token={action.token} />
               </Box>
             )}
-            <Button fullWidth variant="gradient" size="large" onClick={onClick}>
+            <LoadingButton
+              loading={loading}
+              fullWidth
+              variant="gradient"
+              size="large"
+              onClick={onClick}
+            >
               View Position
-            </Button>
+            </LoadingButton>
             <Link href={connextScanLink} target="_blank" variant="inherit">
               <Button fullWidth variant="ghost">
                 Transaction details

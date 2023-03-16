@@ -1,19 +1,12 @@
 import { useState } from "react"
-import {
-  Button,
-  Card,
-  Link,
-  TextField,
-  Typography,
-  useTheme,
-} from "@mui/material"
+import { Card, Typography, useTheme } from "@mui/material"
 import Image from "next/image"
 // import { useAuth } from "../../store/auth.store"
 
 function Lending() {
   const { palette } = useTheme()
   // const [email, setEmail] = useState("")
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitted] = useState(false)
   // const [errorMessage, setErrorMessage] = useState("")
   // const address = useAuth((state) => state.address)
   // const login = useAuth((state) => state.login)
