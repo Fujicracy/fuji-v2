@@ -1,11 +1,11 @@
 import React from "react"
-import { useTheme } from "@mui/material/styles"
+import { SxProps, useTheme } from "@mui/material/styles"
 import { Chip } from "@mui/material"
 
 type TabChipProps = {
   selected: boolean
   label: string
-  sx: any | undefined
+  sx: SxProps | undefined
   onClick: () => void
 }
 
