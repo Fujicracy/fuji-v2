@@ -2,6 +2,7 @@ import { Divider, Typography, Stack } from "@mui/material"
 import { ActionType } from "../../helpers/assets"
 import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
+import SlippageSettings from "./SlippageSettings"
 
 type BorrowHeaderProps = {
   isEditing: boolean
@@ -31,9 +32,17 @@ function BorrowHeader({
           <NetworkIcon network={chainName} height={18} width={18} />
         </Stack>
       ) : (
-        <Typography variant="body2" height="40px" lineHeight="40px">
-          Borrow
-        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          height="40px"
+        >
+          <Typography variant="body2" height="40px" lineHeight="40px">
+            Borrow
+          </Typography>
+          <SlippageSettings />
+        </Stack>
       )}
       <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
       {isEditing && (

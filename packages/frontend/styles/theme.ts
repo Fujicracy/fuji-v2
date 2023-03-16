@@ -9,6 +9,7 @@ declare module "@mui/material/Button" {
     gradient: true
     small: true
     rounded: true
+    "white-outlined": true
   }
 }
 
@@ -230,6 +231,15 @@ const theme = createTheme(colorTheme, {
           style: {
             background: colorTheme.palette.secondary.dark,
             border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
+          },
+        },
+        {
+          props: {
+            variant: "white-outlined",
+          },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            border: `0.063rem solid ${colorTheme.palette.text.primary}`,
           },
         },
         {
