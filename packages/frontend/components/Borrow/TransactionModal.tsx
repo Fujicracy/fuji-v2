@@ -114,7 +114,9 @@ function TransactionModal({ hash }: TransactionModalProps) {
         step === RoutingStep.START || step === RoutingStep.END
           ? "Invalid"
           : camelize(
-              `${action} ${amount} ${token.symbol} ${preposition} ${provider}`
+              `${action} ${amount} ${token.symbol}${
+                provider ? ` ${preposition} ${provider}` : ""
+              }`
             )
 
       const icon =
