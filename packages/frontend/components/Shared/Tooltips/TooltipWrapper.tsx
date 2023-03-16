@@ -35,7 +35,7 @@ function TooltipWrapper({
       placement={placement}
       onClose={() => setOpen(false)}
       onOpen={() => setOpen(true)}
-      open={true}
+      open={open}
       arrow
       sx={{ display: { xs: "inline", sm: "none" } }}
     >
