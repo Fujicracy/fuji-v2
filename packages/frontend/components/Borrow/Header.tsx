@@ -1,7 +1,8 @@
-import { Divider, Typography, Stack } from "@mui/material"
+import { Divider, Typography, Stack, Box } from "@mui/material"
 import { ActionType } from "../../helpers/assets"
 import { NetworkIcon } from "../Shared/Icons"
 import TabChip from "../Shared/TabChip"
+import TooltipWrapper from "../Shared/Tooltips/TooltipWrapper"
 
 type BorrowHeaderProps = {
   isEditing: boolean
@@ -16,6 +17,8 @@ function BorrowHeader({
   chainName,
   onActionTypeChange,
 }: BorrowHeaderProps) {
+  const networkMessage = `Your position is currently on the ${chainName} Network`
+
   return (
     <>
       {isEditing ? (
@@ -28,7 +31,23 @@ function BorrowHeader({
           <Typography variant="body2" height="40px" lineHeight="40px">
             Manage your position
           </Typography>
-          <NetworkIcon network={chainName} height={18} width={18} />
+          <TooltipWrapper
+            defaultOpen
+            placement="top"
+            title={
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "10rem",
+                }}
+              >
+                <Typography variant="small">{networkMessage}</Typography>
+              </Box>
+            }
+          >
+            <NetworkIcon network={chainName} height={18} width={18} />
+          </TooltipWrapper>
         </Stack>
       ) : (
         <Typography variant="body2" height="40px" lineHeight="40px">

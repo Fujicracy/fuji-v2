@@ -14,6 +14,7 @@ import { usePositions } from "../../store/positions.store"
 
 import MyPositionsSummary from "./MyPositionsSummary"
 import MyPositionsBorrowTable from "./MyPositionsBorrowTable"
+import Lending from "../Shared/Lending/Lending"
 
 function MyPositions() {
   const { breakpoints } = useTheme()
@@ -43,7 +44,6 @@ function MyPositions() {
         >
           <Tab label="Borrowing" />
           <Tab
-            disabled
             label={
               <Stack direction="row" alignItems="center" gap={1}>
                 Lending
@@ -59,7 +59,14 @@ function MyPositions() {
           />
         </Tabs>
       </Box>
-      {currentTab === 0 && <MyPositionsBorrowTable loading={loading} />}
+
+      {currentTab === 0 ? (
+        <MyPositionsBorrowTable loading={loading} />
+      ) : (
+        <Box sx={{ height: "31rem", width: "100%" }}>
+          <Lending />
+        </Box>
+      )}
     </>
   )
 }
