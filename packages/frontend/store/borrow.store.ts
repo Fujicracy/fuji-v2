@@ -79,13 +79,17 @@ type BorrowActions = {
   changeMode: (mode: Mode) => void
   changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
   changeInputValues: (collateral: string, debt: string) => void
-  changeAssetChain: (type: AssetType, chainId: ChainId) => void
+  changeAssetChain: (
+    type: AssetType,
+    chainId: ChainId,
+    updateVault: boolean
+  ) => void
   changeAssetToken: (type: AssetType, token: Token) => void
   changeAssetValue: (type: AssetType, value: string) => void
-  changeDebtChain: (chainId: ChainId) => void // Convenience
+  changeDebtChain: (chainId: ChainId, updateVault: boolean) => void // Convenience
   changeDebtToken: (token: Token) => void // Convenience
   changeDebtValue: (val: string) => void // Convenience
-  changeCollateralChain: (chainId: ChainId) => void // Convenience
+  changeCollateralChain: (chainId: ChainId, updateVault: boolean) => void // Convenience
   changeCollateralToken: (token: Token) => void // Convenience
   changeCollateralValue: (val: string) => void // Convenience
   changeActiveVault: (v: BorrowingVault) => void
@@ -233,7 +237,7 @@ export const useBorrow = create<BorrowStore>()(
         ])
       },
 
-      changeAssetChain(type, chainId) {
+      changeAssetChain(type, chainId, updateVault) {
         const tokens =
           type === "debt"
             ? sdk.getDebtForChain(parseInt(chainId, 16))
@@ -249,7 +253,9 @@ export const useBorrow = create<BorrowStore>()(
         )
         get().updateTokenPrice(type)
         get().updateBalances(type)
-        get().updateVault()
+        if (updateVault) {
+          get().updateVault()
+        }
         get().updateAllowance(type)
       },
 
@@ -283,8 +289,8 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      changeCollateralChain(chainId) {
-        get().changeAssetChain("collateral", chainId)
+      changeCollateralChain(chainId, updateVault) {
+        get().changeAssetChain("collateral", chainId, updateVault)
       },
 
       changeCollateralToken(token) {
@@ -295,8 +301,8 @@ export const useBorrow = create<BorrowStore>()(
         get().changeAssetValue("collateral", value)
       },
 
-      changeDebtChain(chainId) {
-        get().changeAssetChain("debt", chainId)
+      changeDebtChain(chainId, updateVault) {
+        get().changeAssetChain("debt", chainId, updateVault)
       },
 
       changeDebtToken(token) {
