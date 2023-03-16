@@ -81,13 +81,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     return (
       availableVaultStatus === "ready" &&
       !(!isEditing && hasBalanceInVault) &&
-      (needsAllowance(
-        mode,
-        "collateral",
-        collateral,
-        parseFloat(collateral.input)
-      ) ||
-        needsAllowance(mode, "debt", debt, parseFloat(debt.input)))
+      needsSignature
     )
   }, [availableVaultStatus, needsSignature, mode, collateral, debt])
 
