@@ -75,6 +75,11 @@ function AccountModal({
     closeAccountModal()
   }
 
+  const onLogout = () => {
+    logout()
+    clearAll()
+  }
+
   return (
     <Popover
       open={isOpen}
@@ -95,7 +100,7 @@ function AccountModal({
             <Typography variant="xsmall">
               Connected with {walletName}
             </Typography>
-            <Button variant="small" onClick={logout}>
+            <Button variant="small" onClick={onLogout}>
               Disconnect
             </Button>
           </Stack>
