@@ -11,7 +11,7 @@ type RoutingModalProps = {
   handleClose: () => void
 }
 
-function RoutingModal(props: RoutingModalProps) {
+function RoutingModal({ open, handleClose }: RoutingModalProps) {
   const { palette } = useTheme()
   const [selectedRoute, setSelectedRoute] = useState(0)
   const availableRoutes = useBorrow((state) => state.availableRoutes)
@@ -30,12 +30,7 @@ function RoutingModal(props: RoutingModalProps) {
   }
 
   return (
-    <Dialog
-      fullWidth
-      maxWidth="md"
-      onClose={() => props.handleClose()}
-      open={props.open}
-    >
+    <Dialog fullWidth maxWidth="md" onClose={() => handleClose()} open={open}>
       <DialogContent
         sx={{
           p: "1.5rem",
@@ -50,7 +45,7 @@ function RoutingModal(props: RoutingModalProps) {
             position: "absolute",
             right: "2rem",
           }}
-          onClick={props.handleClose}
+          onClick={handleClose}
         />
         <Typography variant="body2">Available Routes</Typography>
 

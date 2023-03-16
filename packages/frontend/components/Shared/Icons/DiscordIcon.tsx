@@ -5,7 +5,7 @@ type DiscordIconProps = {
   color?: string
 }
 
-function DiscordIcon(props: DiscordIconProps) {
+function DiscordIcon({ size, color }: DiscordIconProps) {
   const { palette } = useTheme()
 
   return (
@@ -13,11 +13,11 @@ function DiscordIcon(props: DiscordIconProps) {
       role="img"
       viewBox="0 0 24 24"
       sx={{
-        fontSize: props.size ? props.size : 22,
-        color: props.color ? props.color : "",
+        fontSize: size ?? 22,
+        color: color ?? "",
         ml: "0.25rem",
         "&:hover": {
-          color: props.color ? "" : palette.primary.main,
+          color: color ? "" : palette.primary.main,
           textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
         },
       }}

@@ -10,10 +10,10 @@ type CollateralDropdownProps = {
   chains: Chain[]
 }
 
-function CollateralDropdown(props: CollateralDropdownProps) {
+function CollateralDropdown({ chains }: CollateralDropdownProps) {
   return (
     <>
-      {props.chains.map((chain: Chain) => (
+      {chains.map((chain: Chain) => (
         <MenuItem key={chain.id} value={chain.id}>
           <ListItemIcon>
             <NetworkIcon network={chain.label} height={20} width={20} />

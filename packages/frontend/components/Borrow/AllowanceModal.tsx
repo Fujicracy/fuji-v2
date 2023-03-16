@@ -14,13 +14,14 @@ import Image from "next/image"
 import { useBorrow } from "../../store/borrow.store"
 import { AssetType } from "../../helpers/assets"
 import { addressUrl } from "../../helpers/chains"
+import { CONNEXT_ROUTER_ADDRESS } from "@x-fuji/sdk"
 
-type ApprovalModalProps = {
+type AllowanceModalProps = {
   type: AssetType
   handleClose: () => void
 }
 
-function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
+function AllowanceModal({ type, handleClose }: AllowanceModalProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
@@ -28,10 +29,10 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
     if (type === "debt") return state.debt
     return state.collateral
   })
-  const activeVault = useBorrow((state) => state.activeVault)
   const allow = useBorrow((state) => state.allow)
 
   const amount = parseFloat(input)
+  const address = CONNEXT_ROUTER_ADDRESS[token.chainId].value
   const handleAllow = () => allow(amount, type, handleClose)
 
   return (
@@ -73,14 +74,11 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
         <Typography mt="1rem">
           Approve the router contract{" "}
           <Link
-            href={addressUrl(
-              activeVault?.chainId ?? "",
-              activeVault?.address.value ?? ""
-            )}
+            href={addressUrl(token.chainId ?? "", address)}
             target="_blank"
             rel="noreferrer"
           >
-            <u>{activeVault?.address.value ?? ""}</u>
+            <u>{address}</u>
           </Link>{" "}
           to use {token.symbol} from your wallet.
         </Typography>
@@ -100,4 +98,4 @@ function ApprovalModal({ type, handleClose }: ApprovalModalProps) {
   )
 }
 
-export default ApprovalModal
+export default AllowanceModal

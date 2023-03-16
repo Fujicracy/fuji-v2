@@ -160,7 +160,7 @@ function BorrowButton({
     (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     debtAmount > position.debt.amount
   ) {
-    return disabledButton("Too much debt?") // TODO: Temp text
+    return disabledButton("Payback more than amount due")
   } else if (
     mode === Mode.DEPOSIT_AND_BORROW &&
     debtAmount !== 0 &&
@@ -171,7 +171,7 @@ function BorrowButton({
     (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     collateralAmount > position.collateral.amount
   ) {
-    return disabledButton("Too much collateral?") // TODO: Temp text
+    return disabledButton("Withdraw more than allowed")
   } else if (needsAllowance(mode, "collateral", collateral, collateralAmount)) {
     return regularButton("Allow", () => {
       onApproveClick("collateral")

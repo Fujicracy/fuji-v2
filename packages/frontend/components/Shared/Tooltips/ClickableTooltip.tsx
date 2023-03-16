@@ -20,7 +20,11 @@ type ClickableTooltipProps = {
     | undefined
 }
 
-function ClickableTooltip(props: ClickableTooltipProps) {
+function ClickableTooltip({
+  title,
+  children,
+  placement,
+}: ClickableTooltipProps) {
   const [open, setOpen] = React.useState(false)
 
   const handleTooltipClose = () => setOpen(false)
@@ -29,14 +33,14 @@ function ClickableTooltip(props: ClickableTooltipProps) {
 
   return (
     <Tooltip
-      title={props.title}
-      placement={props.placement}
+      title={title}
+      placement={placement}
       onClose={handleTooltipClose}
       open={open}
       arrow
       sx={{ display: { xs: "inline", sm: "none" } }}
     >
-      <Link onClick={handleTooltipOpen}>{props.children}</Link>
+      <Link onClick={handleTooltipOpen}>{children}</Link>
     </Tooltip>
   )
 }

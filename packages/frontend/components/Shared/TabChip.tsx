@@ -9,10 +9,10 @@ type TabChipProps = {
   onClick: () => void
 }
 
-function TabChip(props: TabChipProps) {
+function TabChip({ selected, label, sx, onClick }: TabChipProps) {
   const { palette, typography } = useTheme()
-  const variant = props.selected ? "outlined" : "filled"
-  const style = props.selected
+  const variant = selected ? "outlined" : "filled"
+  const style = selected
     ? { borderColor: palette.error.main }
     : {
         background: palette.secondary.main,
@@ -22,17 +22,17 @@ function TabChip(props: TabChipProps) {
   return (
     <Chip
       variant={variant}
-      label={props.label}
+      label={label}
       sx={{
         ...style,
         height: 44,
         fontSize: typography.body1,
         paddingLeft: 1,
         paddingRight: 1,
-        ...props.sx,
+        ...sx,
       }}
       onClick={() => {
-        props.onClick()
+        onClick()
       }}
     />
   )
