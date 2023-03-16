@@ -4,7 +4,13 @@ import { useTheme } from "@mui/material/styles"
 import { useAuth } from "../../store/auth.store"
 import Image from "next/image"
 
-function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
+function ExploreCarousel({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
   const { palette } = useTheme()
   const [currentSlide, setCurrentSlide] = useState(1)
   const setExploreInfoSkipped = useAuth((state) => state.setExploreInfoSkipped)
@@ -37,7 +43,7 @@ function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
   const next = () => {
     if (currentSlide === 3) {
       setExploreInfoSkipped(false)
-      props.onClose()
+      onClose()
     }
 
     handleNextSlide()
@@ -45,11 +51,11 @@ function ExploreCarousel(props: { open: boolean; onClose: () => void }) {
 
   const skip = () => {
     setExploreInfoSkipped(true)
-    props.onClose()
+    onClose()
   }
 
   return (
-    <Dialog open={props.open}>
+    <Dialog open={open}>
       <Paper
         variant="outlined"
         sx={{
