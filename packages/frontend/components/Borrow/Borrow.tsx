@@ -25,7 +25,7 @@ import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
-import { ActionType, AssetType, needsAllowance } from "../../helpers/assets"
+import { ActionType, AssetType } from "../../helpers/assets"
 
 type BorrowProps = {
   isEditing: boolean
@@ -83,7 +83,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       !(!isEditing && hasBalanceInVault) &&
       needsSignature
     )
-  }, [availableVaultStatus, needsSignature, mode, collateral, debt])
+  }, [availableVaultStatus, hasBalanceInVault, isEditing, needsSignature])
 
   useEffect(() => {
     if (address) {
