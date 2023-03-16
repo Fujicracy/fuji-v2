@@ -97,7 +97,7 @@ function BorrowButton({
 
   const regularButton = (
     title: string,
-    action: () => void,
+    onClick: () => void,
     data: string | undefined = undefined
   ) => {
     return (
@@ -105,7 +105,7 @@ function BorrowButton({
         variant="gradient"
         size="large"
         fullWidth
-        onClick={() => clickWithLTVCheck(action)}
+        onClick={onClick}
         data-cy={data}
       >
         {title}
@@ -144,9 +144,11 @@ function BorrowButton({
       onRedirectClick(false)
     })
   } else if (isEditing && !hasBalanceInVault) {
-    return regularButton("Borrow", () => {
-      onRedirectClick(true)
-    })
+    return regularButton("Borrow", () =>
+      clickWithLTVCheck(() => {
+        onRedirectClick(true)
+      })
+    )
   } else if (collateralAmount > 0 && collateralAmount > collateralBalance) {
     return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
   } else if (
@@ -173,13 +175,17 @@ function BorrowButton({
   ) {
     return disabledButton("Withdraw more than allowed")
   } else if (needsAllowance(mode, "collateral", collateral, collateralAmount)) {
-    return regularButton("Allow", () => {
-      onApproveClick("collateral")
-    })
+    return regularButton("Allow", () =>
+      clickWithLTVCheck(() => {
+        onApproveClick("collateral")
+      })
+    )
   } else if (needsAllowance(mode, "debt", debt, debtAmount)) {
-    return regularButton("Allow", () => {
-      onApproveClick("debt")
-    })
+    return regularButton("Allow", () =>
+      clickWithLTVCheck(() => {
+        onApproveClick("debt")
+      })
+    )
   } else if (
     isEditing &&
     position.vault &&

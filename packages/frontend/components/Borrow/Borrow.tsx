@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react"
+import { useEffect, useState, useMemo } from "react"
 import {
   Typography,
   CardContent,
@@ -78,6 +78,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     undefined
   )
   const [isLTVModalShown, setIsLTVModalShown] = useState(false)
+  const [ltvModalAction, setLTVModalAction] = useState(() => () => {
+    console.error("Invalid function called")
+  })
 
   const shouldSignTooltipBeShown = useMemo(() => {
     return (
@@ -85,7 +88,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       !(!isEditing && hasBalanceInVault) &&
       needsSignature
     )
-  }, [availableVaultStatus, needsSignature, mode, collateral, debt])
+  }, [
+    availableVaultStatus,
+    needsSignature,
+    mode,
+    collateral,
+    debt,
+    hasBalanceInVault,
+    isEditing,
+  ])
 
   useEffect(() => {
     if (address) {
@@ -128,15 +139,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     changeMode(mode)
   }, [changeMode, isEditing, collateral.input, debt.input, actionType])
 
-  const proceedWithLTVCheck = useCallback(
-    (action: () => void) => {
-      // Checks if ltv close to max ltv
-      dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
-        ? setIsLTVModalShown(true)
-        : action()
-    },
-    [dynamicLtvMeta]
-  )
+  const proceedWithLTVCheck = (action: () => void) => {
+    setLTVModalAction(() => action)
+    // Checks if ltv close to max ltv
+    dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
+      ? setIsLTVModalShown(true)
+      : action()
+  }
 
   return (
     <>
@@ -264,7 +273,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         open={isLTVModalShown}
         ltv={dynamicLtvMeta.ltv}
         onClose={() => setIsLTVModalShown(false)}
-        action={signAndExecute}
+        action={() => {
+          setIsLTVModalShown(false)
+          ltvModalAction()
+        }}
       />
     </>
   )
