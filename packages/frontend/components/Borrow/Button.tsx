@@ -100,21 +100,21 @@ function BorrowButton({
     action: () => void,
     data: string | undefined = undefined
   ) => {
-    const onClick = () => {
-      ltvCheck(action)
-    }
-
     return (
       <Button
         variant="gradient"
         size="large"
         fullWidth
-        onClick={onClick}
+        onClick={() => clickWithLTVCheck(action)}
         data-cy={data}
       >
         {title}
       </Button>
     )
+  }
+
+  const clickWithLTVCheck: (action: () => void) => void = (action) => {
+    ltvCheck(action)
   }
 
   const disabledButton = (title: string) => (
@@ -209,7 +209,7 @@ function BorrowButton({
         loading={
           isSigning || isExecuting || availableVaultStatus === "fetching"
         }
-        onClick={onClick}
+        onClick={() => clickWithLTVCheck(onClick)}
       >
         {loadingButtonTitle}
       </LoadingButton>
