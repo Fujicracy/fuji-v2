@@ -65,7 +65,7 @@ type BorrowState = {
   }
   availableRoutes: RouteMeta[]
 
-  needsPermit: boolean
+  needsSignature: boolean
   isSigning: boolean
   signature?: Signature
   actions?: RouterActionParams[]
@@ -170,7 +170,7 @@ const initialState: BorrowState = {
   },
   availableRoutes: [],
 
-  needsPermit: true,
+  needsSignature: true,
   isSigning: false,
   isExecuting: false,
 }
@@ -185,7 +185,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async changeMode(mode) {
-        set({ mode, needsPermit: false })
+        set({ mode, needsSignature: false })
       },
 
       async changeAll(collateral, debt, vault) {
@@ -338,7 +338,7 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "ready"
-            state.needsPermit = Sdk.needSignature(route.actions)
+            state.needsSignature = Sdk.needSignature(route.actions)
             state.transactionMeta.bridgeFee = route.bridgeFee
             state.transactionMeta.estimateTime = route.estimateTime
             state.transactionMeta.steps = route.steps
@@ -734,8 +734,13 @@ export const useBorrow = create<BorrowStore>()(
 
       async execute() {
         const { address, provider } = useAuth.getState()
-        const { actions, signature, transactionMeta, needsPermit } = get()
-        if (!actions || !address || !provider || (needsPermit && !signature)) {
+        const { actions, signature, transactionMeta, needsSignature } = get()
+        if (
+          !actions ||
+          !address ||
+          !provider ||
+          (needsSignature && !signature)
+        ) {
           throw "Unexpected undefined param"
         }
 
@@ -773,7 +778,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async signAndExecute() {
-        if (get().needsPermit) {
+        if (get().needsSignature) {
           await get().signPermit()
         }
 

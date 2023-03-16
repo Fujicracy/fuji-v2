@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import {
   Typography,
   CardContent,
@@ -18,13 +18,14 @@ import { useAuth } from "../../store/auth.store"
 import BorrowButton from "./Button"
 import BorrowHeader from "./Header"
 import BorrowBox from "./Box/Box"
+import SignTooltip from "../Shared/Tooltips/SignTooltip"
 import ConnextFooter from "./ConnextFooter"
 import { modeForContext } from "../../helpers/borrow"
 import { Address } from "@x-fuji/sdk"
 import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
-import { ActionType, AssetType } from "../../helpers/assets"
+import { ActionType, AssetType, needsAllowance } from "../../helpers/assets"
 
 type BorrowProps = {
   isEditing: boolean
@@ -42,7 +43,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const collateral = useBorrow((state) => state.collateral)
   const debt = useBorrow((state) => state.debt)
-  const needsPermit = useBorrow((state) => state.needsPermit)
+  const needsSignature = useBorrow((state) => state.needsSignature)
   const isSigning = useBorrow((state) => state.isSigning)
   const isExecuting = useBorrow((state) => state.isExecuting)
   const metaStatus = useBorrow((state) => state.transactionMeta.status)
@@ -75,6 +76,14 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
     undefined
   )
+
+  const shouldSignTooltipBeShown = useMemo(() => {
+    return (
+      availableVaultStatus === "ready" &&
+      !(!isEditing && hasBalanceInVault) &&
+      needsSignature
+    )
+  }, [availableVaultStatus, needsSignature, mode, collateral, debt])
 
   useEffect(() => {
     if (address) {
@@ -186,6 +195,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             <Fees />
           </Box>
 
+          {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
+
           <BorrowButton
             address={address}
             collateral={collateral}
@@ -194,7 +205,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             walletChain={walletChain}
             ltvMeta={dynamicLtvMeta}
             metaStatus={metaStatus}
-            needsPermit={needsPermit}
+            needsSignature={needsSignature}
             isSigning={isSigning}
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
