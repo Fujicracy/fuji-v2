@@ -122,7 +122,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const proceedWithLTVCheck = useCallback(
     (action: () => void) => {
       // Checks if ltv close to max ltv
-      dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax * 0.95
+      dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
         ? setIsLTVModalShown(true)
         : action()
     },
