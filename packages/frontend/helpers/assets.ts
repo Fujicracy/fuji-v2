@@ -75,5 +75,5 @@ export const borrowLimit = (
   price: number,
   maxLtv: number
 ): number => {
-  return amount * price * maxLtv
+  return (amount * price * maxLtv) / 100
 }

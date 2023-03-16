@@ -122,8 +122,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       if (address && vault) {
         // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address))
-        const hasBalance =
-          balance.deposit.toNumber() > 0 || balance.borrow.toNumber() > 0
+        const hasBalance = balance.deposit.gt(0) || balance.borrow.gt(0)
         setHasBalanceInVault(hasBalance)
       }
     })()

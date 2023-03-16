@@ -13,7 +13,6 @@ import { ethers, utils } from "ethers"
 import { devtools } from "zustand/middleware"
 import { chains } from "../helpers/chains"
 import { fujiLogo } from "../constants/ui"
-import { useHistory } from "./history.store"
 
 const walletConnect = walletConnectModule({
   // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
@@ -141,7 +140,6 @@ export const useAuth = create<AuthStore>()(
         localStorage.removeItem("connectedWallets")
 
         set({ ...initialState, status: "disconnected" })
-        useHistory.getState().clearAll()
       },
 
       acceptTermsOfUse: () => {
