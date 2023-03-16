@@ -24,7 +24,7 @@ function Title({ providers, vault }: TitleProps) {
             <Typography variant="smallDark" ml={0.5} mr={1}>
               Safety rating:
             </Typography>
-            <VaultsMenu vault={vault} providers={providers} />
+            <VaultsMenu providers={providers} />
           </Stack>
         )}
       </Stack>
