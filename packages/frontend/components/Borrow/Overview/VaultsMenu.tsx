@@ -40,7 +40,7 @@ function VaultsMenu({ providers }: VaultsMenuProps) {
           providers.map((p) => (
             <ProviderIcon
               key={p.name}
-              providerName={p.name}
+              provider={p.name}
               height={16}
               width={16}
             />

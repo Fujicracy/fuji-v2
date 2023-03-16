@@ -1,4 +1,4 @@
-import { Button } from "@mui/material"
+import { Button, CircularProgress } from "@mui/material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { ConnectedChain } from "@web3-onboard/core"
 import { FetchStatus } from "../../store/borrow.store"
@@ -13,6 +13,7 @@ import {
 import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 import { chainIdToHex } from "../../helpers/chains"
+import React from "react"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -185,6 +186,7 @@ function BorrowButton({
         variant="gradient"
         size="large"
         loadingPosition="start"
+        startIcon={<CircularProgress size={15} />}
         fullWidth
         disabled={
           !(

@@ -5,6 +5,7 @@ import {
   Divider,
   Menu,
   Stack,
+  TextField,
   Typography,
   useTheme,
 } from "@mui/material"
@@ -28,11 +29,40 @@ function SlippageSettings() {
   const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [slippage, setSlippage] = useState<number>(defaultSlippage)
+  const [slippageInput, setSlippageInput] = useState<string>("")
   const isOpen = Boolean(anchorEl)
 
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
     setAnchorEl(event.currentTarget)
   const closeMenu = () => setAnchorEl(null)
+
+  const handlePercentageChange = (
+    event: React.FocusEvent<HTMLInputElement>
+  ) => {
+    const enteredValue = parseFloat(event?.target?.value)
+
+    if (enteredValue > 100) {
+      setSlippageInput("100")
+      setSlippage(10000)
+
+      return
+    }
+
+    setSlippage(enteredValue * 100)
+    setSlippageInput(event?.target?.value)
+  }
+
+  const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (event.target.value === "") {
+      setSlippageInput("0.3")
+      setSlippage(30)
+    }
+  }
+
+  const onButtonClick = (value: number) => {
+    setSlippage(value)
+    setSlippageInput("")
+  }
 
   return (
     <>
@@ -47,7 +77,7 @@ function SlippageSettings() {
         sx={{ mt: 1 }}
         PaperProps={{ sx: { background: palette.secondary.contrastText } }}
       >
-        <Box sx={{ minWidth: "21rem", p: "1rem" }}>
+        <Box sx={{ maxWidth: "22rem", p: "1rem" }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -59,32 +89,66 @@ function SlippageSettings() {
               <CloseIcon />
             </Box>
           </Stack>
+
           <Divider sx={{ m: "1rem 0" }} />
-          <Typography variant="h5">Slippage Tolerance</Typography>
-          <Typography variant="body">
+
+          <Typography
+            variant="h6"
+            sx={{ fontSize: "0.875rem" }}
+            lineHeight="22px"
+          >
+            Slippage Tolerance
+          </Typography>
+
+          <Typography sx={{ fontSize: "0.75rem" }} variant="small">
             Your transaction will revert if the price changes unfavorably by
             more than this percentage
           </Typography>
+
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
             height="40px"
             mt="1rem"
+            gap="0.3rem"
           >
             {slippageDefaultOptions.map((option) => (
               <Button
+                size="medium"
                 variant={
                   slippage === option.value ? "white-outlined" : "secondary"
                 }
+                // sx={{ p: "0.1rem" }}
                 key={option.label}
-                size="large"
                 fullWidth
-                onClick={() => setSlippage(option.value)}
+                onClick={() => onButtonClick(option.value)}
               >
                 {option.label}
               </Button>
             ))}
+            <TextField
+              label="Custom %"
+              type="number"
+              inputProps={{
+                min: 0,
+                max: 100,
+                step: 0.01,
+              }}
+              sx={{
+                minWidth: "7rem",
+                background: "transparent",
+                "& .MuiInputBase-input": {
+                  p: "0.6rem",
+                },
+                "& .MuiInputLabel": {
+                  transform: "translate(14px, 10px) scale(1)",
+                },
+              }}
+              onChange={handlePercentageChange}
+              onFocus={onInputFocus}
+              value={slippageInput}
+            />
           </Stack>
         </Box>
       </Menu>
