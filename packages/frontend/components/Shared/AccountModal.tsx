@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
   Box,
+  capitalize,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
@@ -25,11 +26,11 @@ import { RoutingStep } from "@x-fuji/sdk"
 import {
   HistoryEntry,
   useHistory,
-  HistoryRoutingStep,
   HistoryEntryStatus,
 } from "../../store/history.store"
-import { chainName, addressUrl } from "../../helpers/chains"
+import { addressUrl } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
+import { stepFromEntry } from "../../helpers/history"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -225,12 +226,13 @@ type BorrowEntryProps = {
 }
 
 function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
-  const collateral = entry.steps.find(
-    (s) => s.step === RoutingStep.DEPOSIT
-  ) as HistoryRoutingStep
-  const debt = entry.steps.find(
-    (s) => s.step === RoutingStep.BORROW
-  ) as HistoryRoutingStep
+  const deposit = stepFromEntry(entry, RoutingStep.DEPOSIT)
+  const borrow = stepFromEntry(entry, RoutingStep.BORROW)
+  const payback = stepFromEntry(entry, RoutingStep.PAYBACK)
+  const withdraw = stepFromEntry(entry, RoutingStep.WITHDRAW)
+
+  const firstStep = deposit ?? payback
+  const secondStep = borrow ?? withdraw
 
   const { palette } = useTheme()
 
@@ -249,17 +251,28 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
       />
     )
 
+  const firstTitle = firstStep
+    ? `${firstStep.step.toString()} ${formatUnits(
+        firstStep.amount ?? 0,
+        firstStep.token.decimals
+      )} ${firstStep.token.symbol}`
+    : ""
+
+  const connector = firstStep ? " and " : ""
+  const secondTitle = secondStep
+    ? `${secondStep.step.toString()} ${formatUnits(
+        secondStep.amount ?? 0,
+        secondStep.token.decimals
+      )} ${secondStep.token.symbol}`
+    : ""
+
+  const title = capitalize(firstTitle + connector + secondTitle)
+
   return (
     <ListItemButton sx={{ px: "1.25rem", py: ".25rem" }} onClick={onClick}>
       <ListItem secondaryAction={listAction} sx={{ p: 0, pr: "3rem" }}>
         <ListItemText sx={{ m: 0 }}>
-          <Typography variant="xsmall">
-            Deposit{" "}
-            {formatUnits(collateral.amount ?? 0, collateral.token.decimals)}{" "}
-            {collateral.token.symbol} and borrow{" "}
-            {formatUnits(debt.amount ?? 0, debt.token.decimals)}{" "}
-            {debt.token.symbol} on {chainName(debt.token.chainId)}
-          </Typography>
+          <Typography variant="xsmall">{title}</Typography>
         </ListItemText>
       </ListItem>
     </ListItemButton>
