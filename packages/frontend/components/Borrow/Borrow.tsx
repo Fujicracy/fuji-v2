@@ -134,6 +134,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             isEditing={isEditing}
             actionType={actionType}
             onActionTypeChange={(type) => setActionType(type)}
+            isCrossChainOperation={collateral.chainId !== debt.chainId}
           />
           {(actionType === ActionType.ADD
             ? [collateral, debt]
