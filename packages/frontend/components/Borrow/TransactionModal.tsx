@@ -127,13 +127,14 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
               : step === RoutingStep.X_TRANSFER
               ? "to"
               : "from"
+          const destination = provider ?? chain
 
           const label =
             step === RoutingStep.START || step === RoutingStep.END
               ? "Invalid"
               : camelize(
                   `${action} ${amount} ${token.symbol}${
-                    provider ? ` ${preposition} ${provider}` : ""
+                    destination ? ` ${preposition} ${destination}` : ""
                   }`
                 )
 
