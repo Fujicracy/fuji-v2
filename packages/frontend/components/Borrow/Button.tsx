@@ -35,6 +35,7 @@ type BorrowButtonProps = {
   onApproveClick: (type: AssetType) => void
   onRedirectClick: (position: boolean) => void
   onClick: () => void
+  ltvCheck: (action: () => void) => void
 }
 
 function BorrowButton({
@@ -58,6 +59,7 @@ function BorrowButton({
   onApproveClick,
   onRedirectClick,
   onClick,
+  ltvCheck,
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input)
   const debtAmount = parseFloat(debt.input)
@@ -97,17 +99,23 @@ function BorrowButton({
     title: string,
     onClick: () => void,
     data: string | undefined = undefined
-  ) => (
-    <Button
-      variant="gradient"
-      size="large"
-      fullWidth
-      onClick={onClick}
-      data-cy={data}
-    >
-      {title}
-    </Button>
-  )
+  ) => {
+    return (
+      <Button
+        variant="gradient"
+        size="large"
+        fullWidth
+        onClick={onClick}
+        data-cy={data}
+      >
+        {title}
+      </Button>
+    )
+  }
+
+  const clickWithLTVCheck: (action: () => void) => void = (action) => {
+    ltvCheck(action)
+  }
 
   const disabledButton = (title: string) => (
     <Button variant="gradient" size="large" fullWidth disabled>
@@ -136,9 +144,11 @@ function BorrowButton({
       onRedirectClick(false)
     })
   } else if (isEditing && !hasBalanceInVault) {
-    return regularButton("Borrow", () => {
-      onRedirectClick(true)
-    })
+    return regularButton("Borrow", () =>
+      clickWithLTVCheck(() => {
+        onRedirectClick(true)
+      })
+    )
   } else if (collateralAmount > 0 && collateralAmount > collateralBalance) {
     return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
   } else if (
@@ -165,13 +175,17 @@ function BorrowButton({
   ) {
     return disabledButton("Withdraw more than allowed")
   } else if (needsAllowance(mode, "collateral", collateral, collateralAmount)) {
-    return regularButton("Allow", () => {
-      onApproveClick("collateral")
-    })
+    return regularButton("Allow", () =>
+      clickWithLTVCheck(() => {
+        onApproveClick("collateral")
+      })
+    )
   } else if (needsAllowance(mode, "debt", debt, debtAmount)) {
-    return regularButton("Allow", () => {
-      onApproveClick("debt")
-    })
+    return regularButton("Allow", () =>
+      clickWithLTVCheck(() => {
+        onApproveClick("debt")
+      })
+    )
   } else if (
     isEditing &&
     position.vault &&
@@ -201,7 +215,7 @@ function BorrowButton({
         loading={
           isSigning || isExecuting || availableVaultStatus === "fetching"
         }
-        onClick={onClick}
+        onClick={() => clickWithLTVCheck(onClick)}
       >
         {loadingButtonTitle}
       </LoadingButton>
