@@ -1,5 +1,5 @@
 import { Tooltip } from "@mui/material"
-import React from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 type WithTooltipProps = {
   title: React.ReactElement | string
@@ -27,20 +27,40 @@ function TooltipWrapper({
   placement,
   defaultOpen,
 }: WithTooltipProps) {
-  const [open, setOpen] = React.useState(Boolean(defaultOpen))
+  const [open, setOpen] = useState(Boolean(defaultOpen))
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearHideTimer = () => {
+    timerRef.current && clearTimeout(timerRef.current)
+  }
+
+  useEffect(() => {
+    if (defaultOpen) {
+      timerRef.current = setTimeout(() => {
+        setOpen(false)
+        clearHideTimer()
+      }, 5000)
+    }
+
+    return () => {
+      clearHideTimer()
+    }
+  }, [])
 
   return (
-    <Tooltip
-      title={title}
-      placement={placement}
-      onClose={() => setOpen(false)}
-      onOpen={() => setOpen(true)}
-      open={open}
-      arrow
-      sx={{ display: { xs: "inline", sm: "none" } }}
-    >
-      <div style={{ cursor: "pointer" }}>{children}</div>
-    </Tooltip>
+    <div style={{ display: "inline" }} onMouseOver={clearHideTimer}>
+      <Tooltip
+        title={title}
+        placement={placement}
+        onClose={() => setOpen(false)}
+        onOpen={() => setOpen(true)}
+        open={open}
+        arrow
+        sx={{ display: { xs: "inline", sm: "none" } }}
+      >
+        <div style={{ cursor: "pointer" }}>{children}</div>
+      </Tooltip>
+    </div>
   )
 }
 
