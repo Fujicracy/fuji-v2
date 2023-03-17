@@ -30,7 +30,8 @@ export const fetchRoutes = async (
   collateralInput: string,
   debtInput: string,
   address: string,
-  recommended: boolean
+  recommended: boolean,
+  slippage?: number
 ): Promise<{
   data?: RouteMeta
   error?: Error
@@ -49,7 +50,8 @@ export const fetchRoutes = async (
           parseUnits(debtInput, debtToken.decimals),
           collateralToken,
           debtToken,
-          Address.from(address)
+          Address.from(address),
+          slippage
         )
         break
       case Mode.DEPOSIT:
@@ -57,7 +59,8 @@ export const fetchRoutes = async (
           vault,
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
-          Address.from(address)
+          Address.from(address),
+          slippage
         )
         break
       case Mode.BORROW:
@@ -66,7 +69,8 @@ export const fetchRoutes = async (
           collateralToken.chainId,
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
-          Address.from(address)
+          Address.from(address),
+          slippage
         )
         break
       case Mode.PAYBACK_AND_WITHDRAW:
@@ -76,7 +80,8 @@ export const fetchRoutes = async (
           parseUnits(debtInput, debtToken.decimals),
           collateralToken,
           debtToken,
-          Address.from(address)
+          Address.from(address),
+          slippage
         )
         break
       case Mode.WITHDRAW:
@@ -85,7 +90,8 @@ export const fetchRoutes = async (
           vault.collateral.chainId,
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
-          Address.from(address)
+          Address.from(address),
+          slippage
         )
         break
       case Mode.PAYBACK:
@@ -93,7 +99,8 @@ export const fetchRoutes = async (
           vault,
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
-          Address.from(address)
+          Address.from(address),
+          slippage
         )
         break
     }

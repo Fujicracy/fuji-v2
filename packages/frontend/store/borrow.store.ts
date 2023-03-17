@@ -60,9 +60,10 @@ type BorrowState = {
 
   transactionMeta: {
     status: FetchStatus
-    gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
+    gasFees: number // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
     bridgeFee: number
     estimateTime: number
+    estimateSlippage: number
     steps: RoutingStepDetails[]
   }
   availableRoutes: RouteMeta[]
@@ -176,6 +177,7 @@ const initialState: BorrowState = {
     bridgeFee: 0,
     gasFees: 0,
     estimateTime: 0,
+    estimateSlippage: 0,
     steps: [],
   },
   availableRoutes: [],
@@ -324,7 +326,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       changeSlippageValue(slippage) {
-        set({ slippage: Number(slippage) || 0 })
+        set({ slippage })
       },
 
       async changeActiveVault(vault) {
@@ -363,6 +365,7 @@ export const useBorrow = create<BorrowStore>()(
             state.transactionMeta.estimateTime = route.estimateTime
             state.transactionMeta.steps = route.steps
             state.actions = route.actions
+            state.transactionMeta.estimateSlippage = route.estimateSlippage
           })
         )
       },
@@ -518,7 +521,7 @@ export const useBorrow = create<BorrowStore>()(
           return
         }
 
-        const { activeVault, collateral, debt, mode } = get()
+        const { activeVault, collateral, debt, mode, slippage } = get()
         if (
           !activeVault ||
           failureForMode(mode, collateral.input, debt.input)
@@ -557,7 +560,8 @@ export const useBorrow = create<BorrowStore>()(
                 collateral.input,
                 debt.input,
                 address,
-                recommended
+                recommended,
+                slippage
               )
             })
           )
