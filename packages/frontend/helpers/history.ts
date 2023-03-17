@@ -1,7 +1,47 @@
-import { ChainId, RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
+import {
+  Address,
+  ChainId,
+  RoutingStep,
+  RoutingStepDetails,
+  Token,
+} from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
 import { HistoryEntry, HistoryRoutingStep } from "../store/history.store"
 import { camelize } from "./values"
+
+export const toRoutingStepDetails = (
+  s: HistoryRoutingStep[]
+): RoutingStepDetails[] => {
+  return s.map((s) => ({
+    ...s,
+    txHash: undefined,
+    token: new Token(
+      s.token.chainId,
+      Address.from(s.token.address),
+      s.token.decimals,
+      s.token.symbol,
+      s.token.name
+    ),
+  }))
+}
+
+export const toHistoryRoutingStep = (
+  s: RoutingStepDetails[]
+): HistoryRoutingStep[] => {
+  return s.map((s: RoutingStepDetails) => {
+    return {
+      ...s,
+      txHash: undefined,
+      token: {
+        chainId: s.token?.chainId as ChainId,
+        address: s.token?.address.value as string,
+        decimals: s.token?.decimals as number,
+        symbol: s.token?.symbol as string,
+        name: s.token?.name as string,
+      },
+    }
+  })
+}
 
 export const entryOutput = (
   step: RoutingStepDetails,
