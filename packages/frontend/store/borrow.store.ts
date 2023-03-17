@@ -253,9 +253,13 @@ export const useBorrow = create<BorrowStore>()(
         )
         get().updateTokenPrice(type)
         get().updateBalances(type)
+
         if (updateVault) {
           get().updateVault()
+        } else {
+          get().updateTransactionMeta()
         }
+
         get().updateAllowance(type)
       },
 
