@@ -54,7 +54,6 @@ function SlippageSettings() {
 
   const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (event.target.value === "") {
-      event.target.value = String(slippage)
       setSlippageInput(String(slippage / 100))
     }
   }
