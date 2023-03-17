@@ -15,13 +15,15 @@ export const toRoutingStepDetails = (
   return s.map((s) => ({
     ...s,
     txHash: undefined,
-    token: new Token(
-      s.token.chainId,
-      Address.from(s.token.address),
-      s.token.decimals,
-      s.token.symbol,
-      s.token.name
-    ),
+    token: s.token
+      ? new Token(
+          s.token.chainId,
+          Address.from(s.token.address),
+          s.token.decimals,
+          s.token.symbol,
+          s.token.name
+        )
+      : undefined,
   }))
 }
 

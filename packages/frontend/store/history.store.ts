@@ -41,7 +41,7 @@ export type HistoryRoutingStep = Omit<
   "txHash" | "token"
 > & {
   txHash?: string
-  token: SerializableToken
+  token?: SerializableToken
 }
 
 /**
