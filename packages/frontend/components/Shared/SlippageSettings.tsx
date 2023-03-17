@@ -14,8 +14,6 @@ import SettingsIcon from "@mui/icons-material/Settings"
 import CloseIcon from "@mui/icons-material/Close"
 import { useBorrow } from "../../store/borrow.store"
 
-const defaultSlippage = 30
-
 const slippageDefaultOptions: {
   value: number
   label: string
@@ -29,10 +27,9 @@ const slippageDefaultOptions: {
 function SlippageSettings() {
   const { palette } = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [slippage, setSlippage] = useState<number>(defaultSlippage)
   const [slippageInput, setSlippageInput] = useState<string>("")
   const isOpen = Boolean(anchorEl)
-
+  const slippage = useBorrow((state) => state.slippage)
   const changeSlippageValue = useBorrow((state) => state.changeSlippageValue)
 
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
@@ -47,26 +44,22 @@ function SlippageSettings() {
     if (enteredValue > 100) {
       setSlippageInput("100")
       changeSlippageValue(10000)
-      setSlippage(10000)
 
       return
     }
 
     changeSlippageValue(enteredValue * 100)
-    setSlippage(enteredValue * 100)
     setSlippageInput(event?.target?.value)
   }
 
   const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (event.target.value === "") {
-      setSlippageInput("0.3")
-      changeSlippageValue(30)
-      setSlippage(30)
+      event.target.value = String(slippage)
+      setSlippageInput(String(slippage / 100))
     }
   }
 
   const onButtonClick = (value: number) => {
-    setSlippage(value)
     changeSlippageValue(value)
     setSlippageInput("")
   }
@@ -142,13 +135,13 @@ function SlippageSettings() {
                 step: 0.01,
               }}
               sx={{
-                minWidth: "7rem",
+                minWidth: "6.2rem",
                 background: "transparent",
                 "& .MuiInputBase-input": {
-                  p: "0.6rem",
+                  p: "0.6rem 1rem",
                 },
                 "& .MuiInputLabel-root:not(.MuiInputLabel-shrink)": {
-                  transform: "translate(14px, 11px) scale(1)",
+                  transform: "translate(13px, 10px) scale(1)",
                 },
               }}
               onChange={handlePercentageChange}

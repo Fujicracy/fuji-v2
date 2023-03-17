@@ -17,7 +17,11 @@ import { debounce } from "debounce"
 import { useAuth } from "./auth.store"
 import { chainIdToHex, testChains } from "../helpers/chains"
 import { sdk } from "../services/sdk"
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
+import {
+  DEFAULT_LTV_MAX,
+  DEFAULT_LTV_TRESHOLD,
+  DEFAULT_SLIPPAGE,
+} from "../constants/borrow"
 import { ethers, Signature } from "ethers"
 import { useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
@@ -165,7 +169,7 @@ const initialState: BorrowState = {
     ltvThreshold: DEFAULT_LTV_TRESHOLD,
   },
 
-  slippage: 30,
+  slippage: DEFAULT_SLIPPAGE,
 
   liquidationMeta: {
     liquidationPrice: 0,
