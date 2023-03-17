@@ -81,8 +81,8 @@ function SlippageSettings() {
           <Stack
             direction="row"
             justifyContent="space-between"
-            alignItems="center"
-            height="40px"
+            alignItems="start"
+            height="30px"
           >
             <Typography variant="body2">Settings</Typography>
             <Box sx={{ cursor: "pointer" }} onClick={closeMenu}>
@@ -119,7 +119,6 @@ function SlippageSettings() {
                 variant={
                   slippage === option.value ? "white-outlined" : "secondary"
                 }
-                // sx={{ p: "0.1rem" }}
                 key={option.label}
                 fullWidth
                 onClick={() => onButtonClick(option.value)}
@@ -141,8 +140,8 @@ function SlippageSettings() {
                 "& .MuiInputBase-input": {
                   p: "0.6rem",
                 },
-                "& .MuiInputLabel": {
-                  transform: "translate(14px, 10px) scale(1)",
+                "& .MuiInputLabel-root:not(.MuiInputLabel-shrink)": {
+                  transform: "translate(14px, 11px) scale(1)",
                 },
               }}
               onChange={handlePercentageChange}
