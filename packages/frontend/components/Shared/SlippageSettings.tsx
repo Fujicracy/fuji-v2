@@ -12,6 +12,7 @@ import {
 import Chip from "@mui/material/Chip"
 import SettingsIcon from "@mui/icons-material/Settings"
 import CloseIcon from "@mui/icons-material/Close"
+import { useBorrow } from "../../store/borrow.store"
 
 const defaultSlippage = 30
 
@@ -32,6 +33,8 @@ function SlippageSettings() {
   const [slippageInput, setSlippageInput] = useState<string>("")
   const isOpen = Boolean(anchorEl)
 
+  const changeSlippageValue = useBorrow((state) => state.changeSlippageValue)
+
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
     setAnchorEl(event.currentTarget)
   const closeMenu = () => setAnchorEl(null)
@@ -43,11 +46,13 @@ function SlippageSettings() {
 
     if (enteredValue > 100) {
       setSlippageInput("100")
+      changeSlippageValue(10000)
       setSlippage(10000)
 
       return
     }
 
+    changeSlippageValue(enteredValue * 100)
     setSlippage(enteredValue * 100)
     setSlippageInput(event?.target?.value)
   }
@@ -61,6 +66,7 @@ function SlippageSettings() {
 
   const onButtonClick = (value: number) => {
     setSlippage(value)
+    changeSlippageValue(value)
     setSlippageInput("")
   }
 

@@ -56,6 +56,8 @@ type BorrowState = {
   ltv: LtvMeta
   liquidationMeta: LiquidationMeta
 
+  slippage: number
+
   transactionMeta: {
     status: FetchStatus
     gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
@@ -94,6 +96,7 @@ type BorrowActions = {
   changeCollateralValue: (val: string) => void // Convenience
   changeActiveVault: (v: BorrowingVault) => void
   changeTransactionMeta: (route: RouteMeta) => void
+  changeSlippageValue: (slippage: number) => void
 
   updateAllProviders: () => void
   updateTokenPrice: (type: AssetType) => void
@@ -160,6 +163,9 @@ const initialState: BorrowState = {
     ltvMax: DEFAULT_LTV_MAX,
     ltvThreshold: DEFAULT_LTV_TRESHOLD,
   },
+
+  slippage: 30,
+
   liquidationMeta: {
     liquidationPrice: 0,
     liquidationDiff: 0,
@@ -315,6 +321,10 @@ export const useBorrow = create<BorrowStore>()(
 
       changeDebtValue(value) {
         get().changeAssetValue("debt", value)
+      },
+
+      changeSlippageValue(slippage) {
+        set({ slippage: Number(slippage) || 0 })
       },
 
       async changeActiveVault(vault) {
