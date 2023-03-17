@@ -23,7 +23,7 @@ type BorrowButtonProps = {
   walletChain: ConnectedChain | undefined
   ltvMeta: LtvMeta
   metaStatus: FetchStatus
-  needsPermit: boolean
+  needsSignature: boolean
   isSigning: boolean
   isExecuting: boolean
   availableVaultStatus: FetchStatus
@@ -46,7 +46,7 @@ function BorrowButton({
   walletChain,
   ltvMeta,
   metaStatus,
-  needsPermit,
+  needsSignature,
   isSigning,
   isExecuting,
   availableVaultStatus,
@@ -65,10 +65,10 @@ function BorrowButton({
   const collateralBalance = collateral.balances[collateral.token.symbol]
   const debtBalance = debt.balances[debt.token.symbol]
 
-  const executionStep = needsPermit ? 2 : 1
-  const actionTitle = `${needsPermit ? "Sign & " : ""}${
+  const executionStep = needsSignature ? 2 : 1
+  const actionTitle = `${needsSignature ? "Sign & " : ""}${
     mode === Mode.DEPOSIT_AND_BORROW
-      ? `${needsPermit ? "" : "Deposit & "}Borrow`
+      ? `${needsSignature ? "" : "Deposit & "}Borrow`
       : mode === Mode.BORROW
       ? "Borrow"
       : mode === Mode.DEPOSIT

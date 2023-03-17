@@ -73,8 +73,8 @@ function BorrowBox({
         disabled={(isEditing && type === "debt") || isExecuting}
         onChange={(chainId) =>
           type === "collateral"
-            ? changeCollateralChain(chainId)
-            : changeDebtChain(chainId)
+            ? changeCollateralChain(chainId, !isEditing)
+            : changeDebtChain(chainId, !isEditing)
         }
       />
       <TokenCard

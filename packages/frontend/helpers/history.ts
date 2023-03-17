@@ -1,5 +1,6 @@
-import { ChainId, RoutingStepDetails } from "@x-fuji/sdk"
+import { ChainId, RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import { formatUnits } from "ethers/lib/utils"
+import { HistoryEntry, HistoryRoutingStep } from "../store/history.store"
 import { camelize } from "./values"
 
 export const entryOutput = (
@@ -25,4 +26,11 @@ export const entryOutput = (
       chainId,
     },
   }
+}
+
+export const stepFromEntry = (
+  entry: HistoryEntry,
+  type: RoutingStep
+): HistoryRoutingStep | undefined => {
+  return entry.steps.find((s) => s.step === type)
 }

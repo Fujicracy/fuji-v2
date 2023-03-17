@@ -65,7 +65,7 @@ type BorrowState = {
   }
   availableRoutes: RouteMeta[]
 
-  needsPermit: boolean
+  needsSignature: boolean
   isSigning: boolean
   signature?: Signature
   actions?: RouterActionParams[]
@@ -79,13 +79,17 @@ type BorrowActions = {
   changeMode: (mode: Mode) => void
   changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void
   changeInputValues: (collateral: string, debt: string) => void
-  changeAssetChain: (type: AssetType, chainId: ChainId) => void
+  changeAssetChain: (
+    type: AssetType,
+    chainId: ChainId,
+    updateVault: boolean
+  ) => void
   changeAssetToken: (type: AssetType, token: Token) => void
   changeAssetValue: (type: AssetType, value: string) => void
-  changeDebtChain: (chainId: ChainId) => void // Convenience
+  changeDebtChain: (chainId: ChainId, updateVault: boolean) => void // Convenience
   changeDebtToken: (token: Token) => void // Convenience
   changeDebtValue: (val: string) => void // Convenience
-  changeCollateralChain: (chainId: ChainId) => void // Convenience
+  changeCollateralChain: (chainId: ChainId, updateVault: boolean) => void // Convenience
   changeCollateralToken: (token: Token) => void // Convenience
   changeCollateralValue: (val: string) => void // Convenience
   changeActiveVault: (v: BorrowingVault) => void
@@ -170,7 +174,7 @@ const initialState: BorrowState = {
   },
   availableRoutes: [],
 
-  needsPermit: true,
+  needsSignature: true,
   isSigning: false,
   isExecuting: false,
 }
@@ -185,7 +189,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async changeMode(mode) {
-        set({ mode, needsPermit: false })
+        set({ mode, needsSignature: false })
       },
 
       async changeAll(collateral, debt, vault) {
@@ -233,7 +237,7 @@ export const useBorrow = create<BorrowStore>()(
         ])
       },
 
-      changeAssetChain(type, chainId) {
+      changeAssetChain(type, chainId, updateVault) {
         const tokens =
           type === "debt"
             ? sdk.getDebtForChain(parseInt(chainId, 16))
@@ -249,7 +253,13 @@ export const useBorrow = create<BorrowStore>()(
         )
         get().updateTokenPrice(type)
         get().updateBalances(type)
-        get().updateVault()
+
+        if (updateVault) {
+          get().updateVault()
+        } else {
+          get().updateTransactionMeta()
+        }
+
         get().updateAllowance(type)
       },
 
@@ -283,8 +293,8 @@ export const useBorrow = create<BorrowStore>()(
         get().updateLiquidation()
       },
 
-      changeCollateralChain(chainId) {
-        get().changeAssetChain("collateral", chainId)
+      changeCollateralChain(chainId, updateVault) {
+        get().changeAssetChain("collateral", chainId, updateVault)
       },
 
       changeCollateralToken(token) {
@@ -295,8 +305,8 @@ export const useBorrow = create<BorrowStore>()(
         get().changeAssetValue("collateral", value)
       },
 
-      changeDebtChain(chainId) {
-        get().changeAssetChain("debt", chainId)
+      changeDebtChain(chainId, updateVault) {
+        get().changeAssetChain("debt", chainId, updateVault)
       },
 
       changeDebtToken(token) {
@@ -338,7 +348,7 @@ export const useBorrow = create<BorrowStore>()(
         set(
           produce((state: BorrowState) => {
             state.transactionMeta.status = "ready"
-            state.needsPermit = Sdk.needSignature(route.actions)
+            state.needsSignature = Sdk.needSignature(route.actions)
             state.transactionMeta.bridgeFee = route.bridgeFee
             state.transactionMeta.estimateTime = route.estimateTime
             state.transactionMeta.steps = route.steps
@@ -734,8 +744,13 @@ export const useBorrow = create<BorrowStore>()(
 
       async execute() {
         const { address, provider } = useAuth.getState()
-        const { actions, signature, transactionMeta, needsPermit } = get()
-        if (!actions || !address || !provider || (needsPermit && !signature)) {
+        const { actions, signature, transactionMeta, needsSignature } = get()
+        if (
+          !actions ||
+          !address ||
+          !provider ||
+          (needsSignature && !signature)
+        ) {
           throw "Unexpected undefined param"
         }
 
@@ -773,7 +788,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async signAndExecute() {
-        if (get().needsPermit) {
+        if (get().needsSignature) {
           await get().signPermit()
         }
 

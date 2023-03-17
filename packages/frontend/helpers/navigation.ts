@@ -12,6 +12,11 @@ enum TopLevelUrl {
   MyPositions = "/my-positions",
 }
 
+export const PageUrl = {
+  ...TopLevelUrl,
+  Position: "/my-positions/[pid]",
+}
+
 export const isTopLevelUrl = (url: string) =>
   (Object.values(TopLevelUrl) as string[]).includes(url)
 

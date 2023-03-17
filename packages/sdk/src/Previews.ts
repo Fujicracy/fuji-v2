@@ -219,7 +219,7 @@ export class Previews {
         this._withdraw(vault, amountOut, connextRouter, account),
         this._xTransfer(
           tokenOut.chainId,
-          vault.debt,
+          vault.collateral,
           amountOut,
           account,
           connextRouter,
