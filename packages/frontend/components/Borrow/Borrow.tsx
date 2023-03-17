@@ -26,6 +26,7 @@ import { useRouter } from "next/router"
 import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 import { ActionType, AssetType } from "../../helpers/assets"
+import LTVWarningModal from "../Shared/LTVWarningModal"
 
 type BorrowProps = {
   isEditing: boolean
@@ -76,6 +77,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
     undefined
   )
+  const [isLTVModalShown, setIsLTVModalShown] = useState(false)
+  const [ltvModalAction, setLTVModalAction] = useState(() => () => {
+    console.error("Invalid function called")
+  })
 
   const shouldSignTooltipBeShown = useMemo(() => {
     return (
@@ -83,7 +88,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       !(!isEditing && hasBalanceInVault) &&
       needsSignature
     )
-  }, [availableVaultStatus, hasBalanceInVault, isEditing, needsSignature])
+  }, [
+    availableVaultStatus,
+    needsSignature,
+    mode,
+    collateral,
+    debt,
+    hasBalanceInVault,
+    isEditing,
+  ])
 
   useEffect(() => {
     if (address) {
@@ -124,6 +137,14 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     )
     changeMode(mode)
   }, [changeMode, isEditing, collateral.input, debt.input, actionType])
+
+  const proceedWithLTVCheck = (action: () => void) => {
+    setLTVModalAction(() => action)
+    // Checks if ltv close to max ltv
+    dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
+      ? setIsLTVModalShown(true)
+      : action()
+  }
 
   return (
     <>
@@ -229,6 +250,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               }
             }}
             onClick={signAndExecute}
+            ltvCheck={proceedWithLTVCheck}
           />
 
           <ConnextFooter />
@@ -246,6 +268,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       <RoutingModal
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
+      />
+      <LTVWarningModal
+        open={isLTVModalShown}
+        ltv={dynamicLtvMeta.ltv}
+        onClose={() => setIsLTVModalShown(false)}
+        action={() => {
+          setIsLTVModalShown(false)
+          ltvModalAction()
+        }}
       />
     </>
   )

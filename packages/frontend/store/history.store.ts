@@ -1,10 +1,4 @@
-import {
-  Address,
-  ChainId,
-  RoutingStep,
-  RoutingStepDetails,
-  Token,
-} from "@x-fuji/sdk"
+import { ChainId, RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import produce from "immer"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
@@ -12,37 +6,11 @@ import { sdk } from "../services/sdk"
 import { useBorrow } from "./borrow.store"
 import { useSnack } from "./snackbar.store"
 import { devtools } from "zustand/middleware"
-import { entryOutput } from "../helpers/history"
-
-function toRoutingStepDetails(s: HistoryRoutingStep[]): RoutingStepDetails[] {
-  return s.map((s) => ({
-    ...s,
-    txHash: undefined,
-    token: new Token(
-      s.token.chainId,
-      Address.from(s.token.address),
-      s.token.decimals,
-      s.token.symbol,
-      s.token.name
-    ),
-  }))
-}
-
-function toHistoryRoutingStep(s: RoutingStepDetails[]): HistoryRoutingStep[] {
-  return s.map((s: RoutingStepDetails) => {
-    return {
-      ...s,
-      txHash: undefined,
-      token: {
-        chainId: s.token?.chainId as ChainId,
-        address: s.token?.address.value as string,
-        decimals: s.token?.decimals as number,
-        symbol: s.token?.symbol as string,
-        name: s.token?.name as string,
-      },
-    }
-  })
-}
+import {
+  entryOutput,
+  toHistoryRoutingStep,
+  toRoutingStepDetails,
+} from "../helpers/history"
 
 export type HistoryStore = HistoryState & HistoryActions
 
