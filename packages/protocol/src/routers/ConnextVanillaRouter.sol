@@ -301,7 +301,7 @@ contract ConnextVanillaRouter is BaseRouter, IXReceiver {
     internal
     override
   {
-    if (sender == msg.sender) {
+    if (sender != address(this) && sender == msg.sender) {
       SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
     }
   }
