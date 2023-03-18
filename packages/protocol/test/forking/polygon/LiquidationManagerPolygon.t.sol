@@ -575,14 +575,11 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
     //defining useful variables
-    uint256 depositDecimals = IERC20Metadata(collateralAsset).decimals();
-    uint256 borrowDecimals = IERC20Metadata(debtAsset).decimals();
+    uint256 depositDiff = 1e18 / (10 ** IERC20Metadata(collateralAsset).decimals());
+    uint256 borrowDiff = 1e18 / (10 ** IERC20Metadata(debtAsset).decimals());
 
-    uint256 depositDiff = 1e18 / (10 ** depositDecimals);
-    uint256 borrowDiff = 1e18 / (10 ** borrowDecimals);
-
-    uint256 amount = 1 * 10 ** depositDecimals; // 1 WETH
-    uint256 borrowAmount = 100 * 10 ** borrowDecimals; // 100 USDC
+    uint256 amount = 1 * 10 ** IERC20Metadata(collateralAsset).decimals(); // 1 WETH
+    uint256 borrowAmount = 100 * 10 ** IERC20Metadata(debtAsset).decimals(); // 100 USDC
 
     // Make price in 1e18 decimals.
     uint256 scaledUSDPerWETHPrice = 1e36 / oracle.getPriceOf(collateralAsset, debtAsset, 18);
@@ -590,7 +587,11 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     vm.assume(
       priceDrop
         > _utils_getLiquidationThresholdValue(
-          scaledUSDPerWETHPrice, amount, borrowAmount, depositDecimals, borrowDecimals
+          scaledUSDPerWETHPrice,
+          amount,
+          borrowAmount,
+          IERC20Metadata(collateralAsset).decimals(),
+          IERC20Metadata(debtAsset).decimals()
         )
     );
 
@@ -610,14 +611,18 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 newPrice = price - priceDrop;
 
     mock_getPriceOfWithDecimals(
-      collateralAsset, debtAsset, newPrice, depositDecimals, borrowDecimals
+      collateralAsset,
+      debtAsset,
+      newPrice,
+      IERC20Metadata(collateralAsset).decimals(),
+      IERC20Metadata(debtAsset).decimals()
     );
 
     // make sure hf is between 95 and 100
     assertApproxEqAbs(vault.getHealthFactor(ALICE), 975e15, 25e16);
 
-    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.6e18 / 1e18);
-    uint256 amountToRepayFlashloan = (borrowAmount * 0.6e18) / 1e18 + flashloanFee;
+    uint256 amountToRepayFlashloan = (borrowAmount * 0.6e18) / 1e18
+      + flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.6e18 / 1e18);
     //amount of collateral to swap to repay flashloan
     uint256 amountInTotal =
       _utils_getAmountInSwap(collateralAsset, debtAsset, amountToRepayFlashloan);
@@ -631,7 +636,8 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     vm.stopPrank();
 
     uint256 discountedPrice = (newPrice * 0.9e18) / 1e18;
-    uint256 amountGivenToLiquidator = (borrowAmount * 0.5e18) / discountedPrice;
+    uint256 amountGivenToLiquidator = (borrowAmount * 0.5e18)
+      * 10 ** IERC20Metadata(collateralAsset).decimals() / (discountedPrice * 1e18);
 
     if (amountGivenToLiquidator >= amount) {
       amountGivenToLiquidator = amount;
