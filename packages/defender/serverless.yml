@@ -109,6 +109,7 @@ resources:
         abi: ${file(./abis/connext-router.json.abi)}
         addresses:
           - '0x403b1E6EFB00C440dDb60593255c1257f4156863'
+          - '0xE8F9c971be4008fe7261A60ece93DF75bE0bF1CE'
         paused: false
         autotask-condition: ${self:functions.autotask-polygon}
         autotask-trigger: ${self:functions.autotask-polygon}
@@ -126,6 +127,7 @@ resources:
         abi: ${file(./abis/connext-router.json.abi)}
         addresses:
           - '0x17744B586A6E47a45Fa98d080141139f87314e82'
+          - '0xEBdCb08bA47e6a4EC2590140011d8707D76962B8'
         paused: false
         autotask-condition: ${self:functions.autotask-optimism}
         autotask-trigger: ${self:functions.autotask-optimism}
