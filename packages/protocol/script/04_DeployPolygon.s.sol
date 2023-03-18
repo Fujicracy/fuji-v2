@@ -8,7 +8,7 @@ import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {Chief} from "../src/Chief.sol";
-import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
+import {ConnextVanillaRouter} from "../src/routers/ConnextVanillaRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../src/providers/polygon/AaveV2Polygon.sol";
@@ -25,12 +25,12 @@ contract DeployPolygon is ScriptPlus {
   BorrowingVaultFactory factory;
   TimelockController timelock;
   FujiOracle oracle;
-  ConnextRouter connextRouter;
+  ConnextVanillaRouter connextRouter;
 
   AaveV3Polygon aaveV3Polygon;
   AaveV2Polygon aaveV2Polygon;
 
-  IConnext connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
+  IConnext connext = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
   IWETH9 WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
   ERC20 DAI = ERC20(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063);
   ERC20 USDC = ERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
@@ -71,9 +71,9 @@ contract DeployPolygon is ScriptPlus {
     /*oracle = new FujiOracle(assets, feeds, address(chief));*/
     /*saveAddress("FujiOracle", address(oracle));*/
 
-    connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
-    /*connextRouter = new ConnextRouter(WETH, connextHandler, chief);*/
-    /*saveAddress("ConnextRouter", address(connextRouter));*/
+    connextRouter = ConnextVanillaRouter(payable(getAddress("ConnextVanillaRouter")));
+    /*connextRouter = new ConnextVanillaRouter(WETH, connext, chief);*/
+    /*saveAddress("ConnextVanillaRouter", address(connextRouter));*/
 
     factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
     /*factory = new BorrowingVaultFactory(address(chief));*/
@@ -104,9 +104,9 @@ contract DeployPolygon is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
-    /*address arbitrumRouter = getAddressAt("ConnextRouter", "arbitrum");*/
-    /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
-    /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
+    /*address arbitrumRouter = getAddressAt("ConnextVanillaRouter", "arbitrum");*/
+    /*address optimismRouter = getAddressAt("ConnextVanillaRouter", "optimism");*/
+    /*address gnosisRouter = getAddressAt("ConnextVanillaRouter", "gnosis");*/
     /*_scheduleWithTimelock(*/
     /*address(connextRouter),*/
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
