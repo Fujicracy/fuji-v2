@@ -113,7 +113,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    */
-  function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
+  function _bundleInternal(Action[] memory actions, bytes[] memory args) internal virtual {
     uint256 len = actions.length;
     if (len != args.length) {
       revert BaseRouter__bundleInternal_paramsMismatch();
@@ -314,6 +314,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     uint256 amount
   )
     internal
+    virtual
   {
     if (sender != address(this) && (sender == owner || sender == msg.sender)) {
       SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
@@ -390,7 +391,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    *
    * @param token address of ERC-20 to be pushed
    */
-  function _addTokenToList(address token) private {
+  function _addTokenToList(address token) internal {
     if (!_isInTokenList(token)) {
       Snapshot memory checkedToken = Snapshot(token, IERC20(token).balanceOf(address(this)));
       _tokensToCheck.push(checkedToken);
@@ -406,7 +407,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param tokensToCheck array of 'Snapshot' elements
    * @param nativeBalance the stored balance of ETH
    */
-  function _checkNoBalanceChange(Snapshot[] memory tokensToCheck, uint256 nativeBalance) private {
+  function _checkNoBalanceChange(Snapshot[] memory tokensToCheck, uint256 nativeBalance) internal {
     uint256 len = tokensToCheck.length;
     for (uint256 i = 0; i < len;) {
       uint256 previousBalance = tokensToCheck[i].balance;
