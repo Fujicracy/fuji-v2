@@ -1,7 +1,8 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import {
   Box,
   Button,
+  Card,
   Divider,
   Menu,
   Stack,
@@ -9,19 +10,19 @@ import {
   Typography,
   useTheme,
 } from "@mui/material"
-import Chip from "@mui/material/Chip"
-import SettingsIcon from "@mui/icons-material/Settings"
 import CloseIcon from "@mui/icons-material/Close"
 import { useBorrow } from "../../store/borrow.store"
+import { colorTheme } from "../../styles/theme"
+import { DEFAULT_SLIPPAGE } from "../../constants/borrow"
+import Image from "next/image"
 
 const slippageDefaultOptions: {
   value: number
   label: string
-  selected: boolean
 }[] = [
-  { value: 100, label: "1%", selected: false },
-  { value: 50, label: "0.5%", selected: false },
-  { value: 30, label: "0.3%", selected: true },
+  { value: 100, label: "1%" },
+  { value: 50, label: "0.5%" },
+  { value: DEFAULT_SLIPPAGE, label: "0.3%" },
 ]
 
 function SlippageSettings() {
@@ -29,12 +30,30 @@ function SlippageSettings() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [slippageInput, setSlippageInput] = useState<string>("")
   const isOpen = Boolean(anchorEl)
+  const textInput = useRef<HTMLInputElement>(null)
   const slippage = useBorrow((state) => state.slippage)
   const changeSlippageValue = useBorrow((state) => state.changeSlippageValue)
 
-  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+  const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
-  const closeMenu = () => setAnchorEl(null)
+  }
+  const closeMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    event.stopPropagation()
+    setAnchorEl(null)
+  }
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (textInput.current) {
+        if ([DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
+          setSlippageInput("")
+          textInput?.current?.blur()
+        } else {
+          textInput?.current?.focus()
+        }
+      }
+    }, 0)
+  }, [textInput.current])
 
   const handlePercentageChange = (
     event: React.FocusEvent<HTMLInputElement>
@@ -58,19 +77,49 @@ function SlippageSettings() {
     }
   }
 
-  const onButtonClick = (value: number) => {
+  const onButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    value: number
+  ) => {
+    event.stopPropagation()
     changeSlippageValue(value)
     setSlippageInput("")
+    textInput?.current?.blur()
   }
 
   return (
     <>
-      <Chip label={<SettingsIcon />} onClick={openMenu} />
+      <Card
+        variant="position"
+        onClick={openMenu}
+        sx={{
+          display: "flex",
+          p: "0.6rem",
+          m: "0",
+          maxWidth: "2.45rem",
+          border: `1.23px solid ${
+            anchorEl ? colorTheme.palette.text.primary : "transparent"
+          }`,
+          borderRadius: "6px",
+        }}
+      >
+        <Image
+          src={"/assets/images/shared/settings.svg"}
+          alt="Settings Image"
+          width={18}
+          height={18}
+        />
+      </Card>
       <Menu
         id="slippage-settings"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
+        onClick={() => {
+          if (![DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
+            textInput?.current?.focus()
+          }
+        }}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         sx={{ mt: 1 }}
@@ -120,7 +169,7 @@ function SlippageSettings() {
                 }
                 key={option.label}
                 fullWidth
-                onClick={() => onButtonClick(option.value)}
+                onClick={(e) => onButtonClick(e, option.value)}
               >
                 {option.label}
               </Button>
@@ -128,11 +177,8 @@ function SlippageSettings() {
             <TextField
               label="Custom %"
               type="number"
-              inputProps={{
-                min: 0,
-                max: 100,
-                step: 0.01,
-              }}
+              variant="outlined"
+              inputRef={textInput}
               sx={{
                 minWidth: "6.2rem",
                 background: "transparent",
@@ -141,6 +187,13 @@ function SlippageSettings() {
                 },
                 "& .MuiInputLabel-root:not(.MuiInputLabel-shrink)": {
                   transform: "translate(13px, 10px) scale(1)",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: `${colorTheme.palette.text.primary}`,
+                },
+                "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderWidth: "1px !important",
+                  borderColor: `${colorTheme.palette.text.primary} !important`,
                 },
               }}
               onChange={handlePercentageChange}

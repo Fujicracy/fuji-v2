@@ -239,7 +239,7 @@ const theme = createTheme(colorTheme, {
           },
           style: {
             background: colorTheme.palette.secondary.dark,
-            border: `0.063rem solid ${colorTheme.palette.text.primary}`,
+            border: `1px solid ${colorTheme.palette.text.primary}`,
           },
         },
         {
