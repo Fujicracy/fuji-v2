@@ -98,10 +98,10 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
   )
     internal
   {
-    require(
-      price / 1e18 > 0,
-      "For this to work, price has to be 1e18. Make sure asset1 is worth more than asset2"
-    );
+    // require(
+    //   price / 1e18 > 0,
+    //   "For this to work, price has to be 1e18. Make sure asset1 is worth more than asset2"
+    // );
 
     uint256 asset2PerAsset1 = price;
     uint256 asset1PerAsset2 = 1e36 / asset2PerAsset1; //this is in 18 decimals
@@ -149,8 +149,8 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     returns (uint256 threshold)
   {
     require(
-      price / 1e18 > 0 && deposit / 10 ** depositDecimals > 0
-        && borrowAmount / 10 ** borrowDecimals > 0,
+      /*price / 1e18 > 0 && */
+      deposit / 10 ** depositDecimals > 0 && borrowAmount / 10 ** borrowDecimals > 0,
       "Price, deposit, and borrowAmount should be according to decimals"
     );
 
@@ -158,11 +158,21 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 depositDiff = 18 - depositDecimals;
 
     if (depositDecimals >= borrowDecimals) {
-      threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
-        / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+      if (price < borrowAmount * 10 ** borrowDiff) {
+        threshold = (borrowAmount * 10 ** borrowDiff - price) * 1e36
+          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+      } else {
+        threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
+          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+      }
     } else {
-      threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
-        / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+      if (price < borrowAmount * 10 ** borrowDiff) {
+        threshold = (borrowAmount * 10 ** borrowDiff - price) * 1e36
+          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+      } else {
+        threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
+          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+      }
     }
   }
 
@@ -574,7 +584,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aave;
     deployVault(
-      registry[POLYGON_DOMAIN].weth, registry[POLYGON_DOMAIN].usdc, "WETH", "USDC", providers
+      registry[POLYGON_DOMAIN].usdc, registry[POLYGON_DOMAIN].weth, "USDC", "WETH", providers
     );
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
@@ -582,8 +592,8 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 depositDiff = 1e18 / (10 ** IERC20Metadata(collateralAsset).decimals());
     uint256 borrowDiff = 1e18 / (10 ** IERC20Metadata(debtAsset).decimals());
 
-    uint256 amount = 1 * 10 ** IERC20Metadata(collateralAsset).decimals(); // 1 WETH
-    uint256 borrowAmount = 100 * 10 ** IERC20Metadata(debtAsset).decimals(); // 100 USDC
+    uint256 amount = 2500 * 10 ** IERC20Metadata(collateralAsset).decimals(); // 2500 USDC
+    uint256 borrowAmount = 1 * 10 ** IERC20Metadata(debtAsset).decimals(); // 1 WETH
 
     // Make price in 1e18 decimals.
     uint256 scaledUSDPerWETHPrice = 1e36 / oracle.getPriceOf(collateralAsset, debtAsset, 18);
