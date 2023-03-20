@@ -2,7 +2,7 @@ import { useTheme } from "@mui/material"
 import { ChainId } from "@x-fuji/sdk"
 import { SyntheticEvent, useState } from "react"
 import { getNetworkImage } from "../../../helpers/paths"
-import { chainName, chainIcon } from "../../../helpers/chains"
+import { chainName } from "../../../helpers/chains"
 import { Icon, renderIcon, renderIconError } from "./Base/Icon"
 
 interface Props extends Icon {
@@ -13,7 +13,7 @@ function NetworkIcon(props: Props) {
   const { palette } = useTheme()
   const { network } = props
   const name = typeof network === "string" ? network : chainName(network)
-  const path = getNetworkImage(chainIcon(name))
+  const path = getNetworkImage(name)
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
 
   if (error) {

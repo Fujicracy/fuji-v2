@@ -1,4 +1,5 @@
 import { Box } from "@mui/material"
+import { ChainId } from "@x-fuji/sdk"
 import {
   AssetChange,
   LtvMeta,
@@ -14,7 +15,7 @@ type BorrowBoxProps = {
   isEditing: boolean
   actionType: ActionType
   type: AssetType
-  chainId: string
+  chainId: ChainId
   isExecuting: boolean
   value: string
   ltvMeta: LtvMeta

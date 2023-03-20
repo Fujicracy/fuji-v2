@@ -1,118 +1,64 @@
-import { Chain as IChain } from "@web3-onboard/common"
-import { ChainId } from "@x-fuji/sdk"
+import { Chain as OnboardChain } from "@web3-onboard/common"
+import { CHAIN, ChainId, CHAIN_LABEL } from "@x-fuji/sdk"
 
-export type Chain = IChain
+export const chains = [
+  CHAIN[ChainId.ETHEREUM],
+  CHAIN[ChainId.MATIC],
+  CHAIN[ChainId.FANTOM],
+  CHAIN[ChainId.ARBITRUM],
+  CHAIN[ChainId.OPTIMISM],
+].filter((c) => c.isDeployed)
 
-export const chains: Chain[] = [
-  {
-    id: "0x1",
-    token: "ETH",
-    label: "Ethereum",
-    rpcUrl: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
-    blockExplorerUrl: "https://etherscan.io/",
-    icon: "Ethereum",
-  },
-  {
-    id: "0x89",
-    token: "MATIC",
-    label: "Polygon",
-    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-    blockExplorerUrl: "https://polygonscan.com/",
-    icon: "Polygon",
-  },
-  {
-    id: "0x64",
-    token: "xDai",
-    label: "Gnosis",
-    rpcUrl: "https://rpc.gnosischain.com/",
-    blockExplorerUrl: "https://gnosisscan.io/",
-    icon: "Gnosis",
-  },
-  {
-    id: "0xa4b1",
-    token: "AETH",
-    label: "Arbitrum",
-    rpcUrl: "https://arb1.arbitrum.io/rpc",
-    blockExplorerUrl: "https://arbiscan.io/",
-    icon: "Arbitrum",
-  },
-  {
-    id: "0xa",
-    token: "ETH",
-    label: "Optimism",
-    rpcUrl: "https://optimism-mainnet.public.blastapi.io/",
-    blockExplorerUrl: "https://optimistic.etherscan.io/",
-    icon: "Optimism",
-  },
-]
-export const testChains: Chain[] = [
-  {
-    id: "0x13881",
-    token: "MATIC",
-    label: "Mumbai",
-    rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-    blockExplorerUrl: "https://mumbai.polygonscan.com/",
-    icon: "Polygon",
-  },
-  {
-    id: "0x5",
-    token: "GTH",
-    label: "Goerli",
-    rpcUrl: `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
-    blockExplorerUrl: "https://goerli.etherscan.io/",
-    icon: "Ethereum",
-  },
-  {
-    id: "0x1a4",
-    token: "ETH",
-    label: "Optimism Goerli",
-    rpcUrl: "https://goerli.optimism.io/",
-    blockExplorerUrl: "https://goerli-optimism.etherscan.io/",
-    icon: "Optimism",
-  },
+export const testChains = [
+  CHAIN[ChainId.GOERLI],
+  CHAIN[ChainId.MATIC_MUMBAI],
+  CHAIN[ChainId.OPTIMISM_GOERLI],
 ]
 
-if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
-  chains.push(...testChains)
+// if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
+//   chains.push(...testChains)
+// }
+
+const rpcs = {
+  [ChainId.ETHEREUM]: `https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+  [ChainId.MATIC]: "https://matic-mainnet.chainstacklabs.com",
+  [ChainId.FANTOM]: "https://rpcapi.fantom.network",
+  [ChainId.ARBITRUM]: "https://arb1.arbitrum.io/rpc",
+  [ChainId.OPTIMISM]: "https://optimism-mainnet.public.blastapi.io/",
+  [ChainId.GNOSIS]: "https://rpc.gnosischain.com/",
+  [ChainId.GOERLI]: `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`,
+  [ChainId.MATIC_MUMBAI]: "https://matic-mainnet.chainstacklabs.com",
+  [ChainId.OPTIMISM_GOERLI]: "https://goerli.optimism.io/",
 }
 
-const chainsMap = new Map<string | number, string>()
-const explorersMap = new Map()
-chains.map((c) => {
-  chainsMap.set(c.id, c.label) // string hex id
-  chainsMap.set(parseInt(c.id), c.label) // num id
-
-  explorersMap.set(c.id, c.blockExplorerUrl)
-  explorersMap.set(parseInt(c.id), c.blockExplorerUrl)
+export const onboardChains: OnboardChain[] = chains.map((c) => {
+  return {
+    id: chainIdToHex(c.chainId),
+    token: c.nativeTokenName,
+    label: c.label,
+    blockExplorerUrl: c.blockExplorerUrl,
+    rpcUrl: rpcs[c.chainId],
+  }
 })
 
-export function chainName(id?: string | number): string {
+export function chainName(id?: ChainId): string {
   if (!id) {
     return ""
   }
-
-  const name = chainsMap.get(id)
-  if (!name) {
-    console.error(`No chain found with id ${id}. "id" must either:
-    - be a string with hex value,
-    - a number with decimal value`)
-    return ""
-  }
-
-  return name
-}
-
-export function chainIcon(name: string): string {
-  const chain = chains.find((c) => c.label === name)
-  return chain?.icon || ""
+  return CHAIN_LABEL[id]
 }
 
 export function isChain(id: number): boolean {
-  return chainsMap.has(id)
+  return ChainId[Number(id)] !== undefined
 }
 
 export function chainIdToHex(id: ChainId): string {
   return `0x${id.toString(16)}`
+}
+
+export function hexToChainId(hex: string | undefined): ChainId | undefined {
+  if (!hex) return undefined
+  return parseInt(hex, 16)
 }
 
 export function transactionUrl(id: string | number, hash: string) {
@@ -128,7 +74,7 @@ function explorerUrl(
   value: string,
   type: "tx" | "address"
 ) {
-  const link = explorersMap.get(id)
+  const link = "" // TODO: explorersMap.get(id)
   if (!link) {
     console.error(`No blockExplorerUrl found for chainId ${id}.
     - Make sure id is valid (hex string or base 10 number) and the chain is setup in web3-onboard config
