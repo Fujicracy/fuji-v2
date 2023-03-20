@@ -1,4 +1,5 @@
 export * from './addresses';
+export * from './chain-properties';
 export * from './chains';
 export * from './collaterals';
 export * from './debts';

@@ -5,6 +5,11 @@ import {
 import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
 
 import {
+  CHAIN_BLOCK_EXPLORER_URL,
+  CHAIN_LABEL,
+  CHAIN_NATIVE_TOKEN_NAME,
+} from '../constants/chain-properties';
+import {
   ALCHEMY_WSS_URL,
   INFURA_RPC_URL,
   INFURA_WSS_URL,
@@ -27,6 +32,10 @@ export class Chain {
 
   connection?: ChainConnectionDetails;
 
+  label: string; // Convenience property
+  nativeTokenName: string; // Convenience property
+  blockExplorerUrl: string; // Convenience property
+
   constructor(
     id: ChainId,
     type: ChainType,
@@ -43,6 +52,10 @@ export class Chain {
     this.coingeckoKey = coingecko;
     this.llamaKey = llama;
     this.isDeployed = isDeployed as boolean;
+
+    this.label = CHAIN_LABEL[id];
+    this.nativeTokenName = CHAIN_NATIVE_TOKEN_NAME[id];
+    this.blockExplorerUrl = CHAIN_BLOCK_EXPLORER_URL[id];
   }
 
   getConnextDomain(): string {
