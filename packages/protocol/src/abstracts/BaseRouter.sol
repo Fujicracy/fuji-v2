@@ -60,10 +60,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   /**
    * @dev Stores token balances of this contract at a given moment.
-   * It's used to ensure there're no changes in balances at the
-   * end of a transaction.
+   * It's used to pass tokens to check from parent contract this contract.
    */
-  Snapshot[] internal _tokensToCheck;
+  Snapshot internal _tempTokenToCheck;
 
   /**
    * @notice Constructor of a new {BaseRouter}.
@@ -126,6 +125,18 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
      */
     address beneficiary;
 
+    /**
+     * @dev Stores token balances of this contract at a given moment.
+     * It's used to ensure there're no changes in balances at the
+     * end of a transaction.
+     */
+    Snapshot[] memory tokensToCheck = new Snapshot[](10);
+
+    /// @dev Add token to check from parent calls.
+    if (_tempTokenToCheck.token != address(0)) {
+      tokensToCheck[0] = _tempTokenToCheck;
+    }
+
     uint256 nativeBalance = address(this).balance - msg.value;
 
     for (uint256 i; i < len;) {
@@ -137,7 +148,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        _addTokenToList(token);
+        tokensToCheck = _addTokenToList(token, tokensToCheck);
         _safePullTokenFrom(token, sender, receiver, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -148,7 +159,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           abi.decode(args[i], (IVault, uint256, address, address));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
-        _addTokenToList(vault.asset());
+        tokensToCheck = _addTokenToList(vault.asset(), tokensToCheck);
 
         vault.withdraw(amount, receiver, owner);
       } else if (action == Action.Borrow) {
@@ -157,7 +168,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           abi.decode(args[i], (IVault, uint256, address, address));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
-        _addTokenToList(vault.debtAsset());
+        tokensToCheck = _addTokenToList(vault.debtAsset(), tokensToCheck);
 
         vault.borrow(amount, receiver, owner);
       } else if (action == Action.Payback) {
@@ -167,7 +178,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         address token = vault.debtAsset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        _addTokenToList(token);
+        tokensToCheck = _addTokenToList(token, tokensToCheck);
         _safePullTokenFrom(token, sender, receiver, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -234,8 +245,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
         );
 
-        _addTokenToList(assetIn);
-        _addTokenToList(assetOut);
+        tokensToCheck = _addTokenToList(assetIn, tokensToCheck);
+        tokensToCheck = _addTokenToList(assetOut, tokensToCheck);
         _safeApprove(assetIn, address(swapper), amountIn);
 
         swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
@@ -254,7 +265,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
-        _addTokenToList(asset);
+        tokensToCheck = _addTokenToList(asset, tokensToCheck);
 
         // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
@@ -264,13 +275,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (amount != msg.value) {
           revert BaseRouter__bundleInternal_insufficientETH();
         }
-        _addTokenToList(address(WETH9));
+        tokensToCheck = _addTokenToList(address(WETH9), tokensToCheck);
 
         WETH9.deposit{value: msg.value}();
       } else if (action == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        _addTokenToList(address(WETH9));
+        tokensToCheck = _addTokenToList(address(WETH9), tokensToCheck);
 
         WETH9.withdraw(amount);
 
@@ -280,7 +291,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ++i;
       }
     }
-    _checkNoBalanceChange(_tokensToCheck, nativeBalance);
+    _checkNoBalanceChange(tokensToCheck, nativeBalance);
   }
 
   /**
@@ -367,15 +378,26 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     returns (address);
 
   /**
-   * @dev Returns "true" if token has already been added to `_tokensToCheck`.
+   * @dev Returns "true" and on what `index` if token has already
+   * been added to `tokenList`.
    *
    * @param token address of ERC-20 to check
+   * @param tokenList to check
    */
-  function _isInTokenList(address token) private view returns (bool value) {
-    uint256 len = _tokensToCheck.length;
-    for (uint256 i = 0; i < len;) {
-      if (token == _tokensToCheck[i].token) {
+  function _isInTokenList(
+    address token,
+    Snapshot[] memory tokenList
+  )
+    private
+    pure
+    returns (bool value, uint256 index)
+  {
+    uint256 len = tokenList.length;
+    for (uint256 i; i < len;) {
+      if (token == tokenList[i].token) {
         value = true;
+        index = i;
+        break;
       }
       unchecked {
         ++i;
@@ -384,17 +406,27 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev Adds a token and balance to `_tokensToCheck`.
+   * @dev Adds a token and balance to a Snapshot and returns it.
    * Requirements:
    * - Must check if token has already been added.
    *
    * @param token address of ERC-20 to be pushed
+   * @param tokenList to add token
    */
-  function _addTokenToList(address token) private {
-    if (!_isInTokenList(token)) {
-      Snapshot memory checkedToken = Snapshot(token, IERC20(token).balanceOf(address(this)));
-      _tokensToCheck.push(checkedToken);
+  function _addTokenToList(
+    address token,
+    Snapshot[] memory tokenList
+  )
+    private
+    view
+    returns (Snapshot[] memory)
+  {
+    (bool isInList, uint256 index) = _isInTokenList(token, tokenList);
+    if (!isInList) {
+      uint256 position = index == 0 ? index : index + 1;
+      tokenList[position] = Snapshot(token, IERC20(token).balanceOf(address(this)));
     }
+    return tokenList;
   }
 
   /**
@@ -406,14 +438,22 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param tokensToCheck array of 'Snapshot' elements
    * @param nativeBalance the stored balance of ETH
    */
-  function _checkNoBalanceChange(Snapshot[] memory tokensToCheck, uint256 nativeBalance) private {
+  function _checkNoBalanceChange(
+    Snapshot[] memory tokensToCheck,
+    uint256 nativeBalance
+  )
+    private
+    view
+  {
     uint256 len = tokensToCheck.length;
-    for (uint256 i = 0; i < len;) {
-      uint256 previousBalance = tokensToCheck[i].balance;
-      uint256 currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
+    for (uint256 i; i < len;) {
+      if (tokensToCheck[i].token != address(0)) {
+        uint256 previousBalance = tokensToCheck[i].balance;
+        uint256 currentBalance = IERC20(tokensToCheck[i].token).balanceOf(address(this));
 
-      if (currentBalance != previousBalance) {
-        revert BaseRouter__bundleInternal_noBalanceChange();
+        if (currentBalance != previousBalance) {
+          revert BaseRouter__bundleInternal_noBalanceChange();
+        }
       }
       unchecked {
         ++i;
@@ -424,8 +464,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     if (nativeBalance != address(this).balance) {
       revert BaseRouter__bundleInternal_noBalanceChange();
     }
-
-    delete _tokensToCheck;
   }
 
   /**

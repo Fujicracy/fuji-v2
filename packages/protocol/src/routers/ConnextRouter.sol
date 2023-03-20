@@ -145,7 +145,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
       } else {
-        _tokensToCheck.push(Snapshot(asset, balance - amount));
+        _tempTokenToCheck = Snapshot(asset, balance - amount);
       }
 
       /**
@@ -173,7 +173,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       }
 
       // Ensure clear storage for token balance checks.
-      delete _tokensToCheck;
+      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
