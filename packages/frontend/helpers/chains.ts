@@ -1,5 +1,10 @@
 import { Chain as OnboardChain } from "@web3-onboard/common"
-import { CHAIN, ChainId, CHAIN_LABEL } from "@x-fuji/sdk"
+import {
+  CHAIN,
+  ChainId,
+  CHAIN_BLOCK_EXPLORER_URL,
+  CHAIN_LABEL,
+} from "@x-fuji/sdk"
 
 export const chains = [
   CHAIN[ChainId.ETHEREUM],
@@ -61,25 +66,19 @@ export function hexToChainId(hex: string | undefined): ChainId | undefined {
   return parseInt(hex, 16)
 }
 
-export function transactionUrl(id: string | number, hash: string) {
+export function transactionUrl(id: ChainId, hash: string) {
   return explorerUrl(id, hash, "tx")
 }
 
-export function addressUrl(id: string | number | undefined, address: string) {
+export function addressUrl(id: ChainId | undefined, address: string) {
   return explorerUrl(id, address, "address")
 }
 
 function explorerUrl(
-  id: string | number | undefined,
+  id: ChainId | undefined,
   value: string,
   type: "tx" | "address"
 ) {
-  const link = "" // TODO: explorersMap.get(id)
-  if (!link) {
-    console.error(`No blockExplorerUrl found for chainId ${id}.
-    - Make sure id is valid (hex string or base 10 number) and the chain is setup in web3-onboard config
-    - Make sure blockExplorerUrl is set for chain ${id} in web3-onboard config`)
-    return
-  }
-  return link + type + "/" + value
+  if (!id) return
+  return CHAIN_BLOCK_EXPLORER_URL[id] + type + "/" + value
 }
