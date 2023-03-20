@@ -72,10 +72,10 @@ export const fetchRoutes = async (
       case Mode.PAYBACK_AND_WITHDRAW:
         preview = await sdk.previews.paybackAndWithdraw(
           vault,
-          parseUnits(collateralInput, collateralToken.decimals),
           parseUnits(debtInput, debtToken.decimals),
-          collateralToken,
+          parseUnits(collateralInput, collateralToken.decimals),
           debtToken,
+          collateralToken,
           Address.from(address)
         )
         break
