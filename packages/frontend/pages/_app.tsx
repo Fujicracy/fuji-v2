@@ -1,5 +1,6 @@
 import "../styles/globals.css"
 import { AppProps } from "next/app"
+import { Inter } from "next/font/google"
 import { useEffect } from "react"
 import mixpanel from "mixpanel-browser"
 import { ThemeProvider } from "@mui/material"
@@ -7,9 +8,9 @@ import { ThemeProvider } from "@mui/material"
 import { theme } from "../styles/theme"
 import { onboard, useAuth } from "../store/auth.store"
 import { Snackbar } from "../components/Shared/Snackbar"
+import SafetyNoticeModal from "../components/Onboarding/SafetyNoticeModal"
 import { Web3OnboardProvider } from "@web3-onboard/react"
 
-import { Inter } from "@next/font/google"
 const inter = Inter({ subsets: ["latin"] })
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -35,6 +36,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <div className="backdrop"></div>
           <Component {...pageProps} />
           <Snackbar />
+          <SafetyNoticeModal />
         </ThemeProvider>
       </Web3OnboardProvider>
     </>
