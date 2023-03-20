@@ -8,7 +8,7 @@ import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {Chief} from "../src/Chief.sol";
-import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
+import {ConnextVanillaRouter} from "../src/routers/ConnextVanillaRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AgaveGnosis} from "../src/providers/gnosis/AgaveGnosis.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
@@ -24,11 +24,11 @@ contract DeployGnosis is ScriptPlus {
   BorrowingVaultFactory factory;
   TimelockController timelock;
   FujiOracle oracle;
-  ConnextRouter connextRouter;
+  ConnextVanillaRouter connextRouter;
 
   AgaveGnosis agaveGnosis;
 
-  IConnext connextHandler = IConnext(0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109);
+  IConnext connext = IConnext(0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109);
   IWETH9 WETH = IWETH9(0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1);
   ERC20 DAI;
   ERC20 USDC = ERC20(0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83);
@@ -61,9 +61,9 @@ contract DeployGnosis is ScriptPlus {
     /*oracle = new FujiOracle(assets, feeds, address(chief));*/
     /*saveAddress("FujiOracle", address(oracle));*/
 
-    connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
-    /*connextRouter = new ConnextRouter(WETH, connextHandler, chief);*/
-    /*saveAddress("ConnextRouter", address(connextRouter));*/
+    connextRouter = ConnextVanillaRouter(payable(getAddress("ConnextVanillaRouter")));
+    /*connextRouter = new ConnextVanillaRouter(WETH, connext, chief);*/
+    /*saveAddress("ConnextVanillaRouter", address(connextRouter));*/
 
     factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
     /*factory = new BorrowingVaultFactory(address(chief));*/
@@ -94,9 +94,9 @@ contract DeployGnosis is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
-    /*address polygonRouter = getAddressAt("ConnextRouter", "polygon");*/
-    /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
-    /*address arbitrumRouter = getAddressAt("ConnextRouter", "arbitrum");*/
+    /*address polygonRouter = getAddressAt("ConnextVanillaRouter", "polygon");*/
+    /*address optimismRouter = getAddressAt("ConnextVanillaRouter", "optimism");*/
+    /*address arbitrumRouter = getAddressAt("ConnextVanillaRouter", "arbitrum");*/
     /*_scheduleWithTimelock(*/
     /*address(connextRouter),*/
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, POLYGON_DOMAIN, polygonRouter)*/
