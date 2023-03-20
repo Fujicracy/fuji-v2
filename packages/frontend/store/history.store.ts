@@ -41,7 +41,7 @@ export type HistoryRoutingStep = Omit<
   "txHash" | "token"
 > & {
   txHash?: string
-  token: SerializableToken
+  token?: SerializableToken
 }
 
 /**
@@ -105,7 +105,6 @@ export const useHistory = create<HistoryStore>()(
 
           try {
             const srcChainId = entry.steps[0].chainId
-            const { rpcProvider } = sdk.getConnectionFor(srcChainId)
             const connextTransferId = await sdk.getTransferId(srcChainId, hash)
             const stepsWithHash = await sdk.watchTxStatus(
               hash,
@@ -114,13 +113,12 @@ export const useHistory = create<HistoryStore>()(
 
             for (let i = 0; i < stepsWithHash.length; i++) {
               const s = stepsWithHash[i]
-              console.log(s)
               console.debug("waiting", s.step, "...")
               const txHash = await s.txHash
-              console.log(txHash)
               if (!txHash) {
                 throw `Transaction step ${i} failed`
               }
+              const { rpcProvider } = sdk.getConnectionFor(s.chainId)
               const receipt = await rpcProvider.waitForTransaction(txHash)
               if (receipt.status === 0) {
                 throw `Transaction step ${i} failed`

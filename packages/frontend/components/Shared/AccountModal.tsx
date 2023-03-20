@@ -256,20 +256,22 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
       />
     )
 
-  const firstTitle = firstStep
-    ? `${firstStep.step.toString()} ${formatUnits(
-        firstStep.amount ?? 0,
-        firstStep.token.decimals
-      )} ${firstStep.token.symbol}`
-    : ""
+  const firstTitle =
+    firstStep && firstStep.token
+      ? `${firstStep.step.toString()} ${formatUnits(
+          firstStep.amount ?? 0,
+          firstStep.token.decimals
+        )} ${firstStep.token.symbol}`
+      : ""
 
   const connector = firstStep ? " and " : ""
-  const secondTitle = secondStep
-    ? `${secondStep.step.toString()} ${formatUnits(
-        secondStep.amount ?? 0,
-        secondStep.token.decimals
-      )} ${secondStep.token.symbol}`
-    : ""
+  const secondTitle =
+    secondStep && secondStep.token
+      ? `${secondStep.step.toString()} ${formatUnits(
+          secondStep.amount ?? 0,
+          secondStep.token.decimals
+        )} ${secondStep.token.symbol}`
+      : ""
 
   const title = capitalize(firstTitle + connector + secondTitle)
 

@@ -1,14 +1,6 @@
-import {
-  Box,
-  Divider,
-  Grid,
-  Tooltip,
-  Typography,
-  useTheme,
-} from "@mui/material"
+import { Box, Divider, Grid, Typography, useTheme } from "@mui/material"
 import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
 import { NetworkIcon } from "../../Shared/Icons"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import { formatUnits } from "ethers/lib/utils"
 import APRTooltip from "../../Shared/Tooltips/APRTooltip"
 

@@ -107,9 +107,9 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     ? (entry.steps
         .map((s): TransactionStep => {
           const { step, txHash, chainId, token, lendingProvider } = s
-          const amount = formatUnits(s.amount ?? 0, token.decimals)
           const provider = lendingProvider?.name
           const chain = chainName(chainId)
+          const amount = token && formatUnits(s.amount ?? 0, token.decimals)
           const link = txHash && transactionUrl(chainId, txHash)
 
           const style = {
@@ -127,13 +127,17 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
               : step === RoutingStep.X_TRANSFER
               ? "to"
               : "from"
+          const destination = provider ?? chain
 
           const label =
-            step === RoutingStep.START || step === RoutingStep.END
+            step === RoutingStep.START ||
+            step === RoutingStep.END ||
+            !token ||
+            !amount
               ? "Invalid"
               : camelize(
                   `${action} ${amount} ${token.symbol}${
-                    provider ? ` ${preposition} ${provider}` : ""
+                    destination ? ` ${preposition} ${destination}` : ""
                   }`
                 )
 
@@ -159,7 +163,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             icon: () => <Box sx={style}>{icon}</Box>,
           }
         })
-        // remove "START" and "END"
+        // remove "START", "END" and steps with no token
         .filter((s) => s.label !== "Invalid") as ValidStep[])
     : []
 

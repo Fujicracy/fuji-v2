@@ -88,15 +88,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       !(!isEditing && hasBalanceInVault) &&
       needsSignature
     )
-  }, [
-    availableVaultStatus,
-    needsSignature,
-    mode,
-    collateral,
-    debt,
-    hasBalanceInVault,
-    isEditing,
-  ])
+  }, [availableVaultStatus, needsSignature, hasBalanceInVault, isEditing])
 
   useEffect(() => {
     if (address) {
