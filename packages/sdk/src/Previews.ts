@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
 
-import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
+import { CHAIN, CONNEXT_ROUTER_ADDRESS, DEFAULT_SLIPPAGE } from './constants';
 import { LENDING_PROVIDERS } from './constants/lending-providers';
 import { Address, BorrowingVault, Token } from './entities';
 import { Chain } from './entities/Chain';
@@ -34,7 +34,7 @@ export class Previews {
   ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
@@ -77,7 +77,7 @@ export class Previews {
     deadline?: number,
     slippage?: number
   ): Promise<PreviewResult> {
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
 
@@ -149,7 +149,7 @@ export class Previews {
   ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
@@ -192,7 +192,7 @@ export class Previews {
     deadline?: number,
     slippage?: number
   ): Promise<PreviewResult> {
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
 
@@ -304,7 +304,7 @@ export class Previews {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -399,7 +399,7 @@ export class Previews {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {

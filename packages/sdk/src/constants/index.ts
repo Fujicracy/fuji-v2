@@ -2,6 +2,7 @@ export * from './addresses';
 export * from './chain-properties';
 export * from './chains';
 export * from './collaterals';
+export * from './common';
 export * from './debts';
 export * from './natives';
 export * from './rpcs';
