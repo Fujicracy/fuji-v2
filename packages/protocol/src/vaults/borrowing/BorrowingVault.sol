@@ -608,7 +608,9 @@ contract BorrowingVault is BaseVault {
     // Compute `gainedShares` amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
-    gainedShares = convertToShares(Math.mulDiv(debt, liquidationFactor, discountedPrice));
+
+    uint256 gainedAssets = Math.mulDiv(debtToCover, 10 ** _asset.decimals(), discountedPrice);
+    gainedShares = convertToShares(gainedAssets);
 
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
