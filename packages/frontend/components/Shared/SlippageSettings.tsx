@@ -43,6 +43,7 @@ function SlippageSettings() {
   }
 
   useEffect(() => {
+    // setTimeout here to give time for input ref to setup
     setTimeout(() => {
       if (textInput.current) {
         if ([DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
@@ -60,6 +61,7 @@ function SlippageSettings() {
   ) => {
     const enteredValue = parseFloat(event?.target?.value)
 
+    // handles input more than 100 and sets it to max
     if (enteredValue > 100) {
       setSlippageInput("100")
       changeSlippageValue(10000)
@@ -85,6 +87,13 @@ function SlippageSettings() {
     changeSlippageValue(value)
     setSlippageInput("")
     textInput?.current?.blur()
+  }
+
+  // Keeps focus on input when user click on menu wrapper and something different from default values is set.
+  const handleNonfunctionalClick = () => {
+    if (![DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
+      textInput?.current?.focus()
+    }
   }
 
   return (
@@ -115,11 +124,7 @@ function SlippageSettings() {
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
-        onClick={() => {
-          if (![DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
-            textInput?.current?.focus()
-          }
-        }}
+        onClick={handleNonfunctionalClick}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         sx={{ mt: 1 }}
