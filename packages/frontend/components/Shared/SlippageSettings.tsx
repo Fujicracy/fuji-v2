@@ -130,7 +130,7 @@ function SlippageSettings() {
         sx={{ mt: 1 }}
         PaperProps={{ sx: { background: palette.secondary.contrastText } }}
       >
-        <Box sx={{ maxWidth: "22rem", p: "1rem" }}>
+        <Box sx={{ maxWidth: "22rem", p: { xs: "0.5rem", sm: "1rem" } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
