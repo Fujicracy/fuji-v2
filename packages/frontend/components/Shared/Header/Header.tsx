@@ -161,16 +161,18 @@ const Header = () => {
                         </ListItemText>
                       </MenuItem>
                     ))}
-                    <MenuItem onClick={handleCloseNavMenu}>
-                      <ListItemText>
-                        <Stack direction="row" justifyContent="space-between">
-                          <Typography variant="small">Wallet</Typography>
-                          <Typography variant="small">
-                            {formattedAddress}
-                          </Typography>
-                        </Stack>
-                      </ListItemText>
-                    </MenuItem>
+                    {address && (
+                      <MenuItem onClick={handleCloseNavMenu}>
+                        <ListItemText>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="small">Wallet</Typography>
+                            <Typography variant="small">
+                              {formattedAddress}
+                            </Typography>
+                          </Stack>
+                        </ListItemText>
+                      </MenuItem>
+                    )}
                     <MenuItem onClick={handleCloseNavMenu}>
                       <ListItemText>
                         <Stack direction="row" justifyContent="space-between">
