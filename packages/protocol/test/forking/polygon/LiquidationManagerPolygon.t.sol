@@ -105,11 +105,15 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     uint256 asset2PerAsset1 = price;
     uint256 asset1PerAsset2 = 1e36 / asset2PerAsset1; //this is in 18 decimals
+
+    //price is in 1e18 -> make price in requested decimals by dividing by 10^(18-decimals)
     vm.mockCall(
       address(oracle),
       abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset1, asset2, decimalsAsset1),
       abi.encode(asset2PerAsset1 / (10 ** (18 - decimalsAsset1)))
     );
+
+    //price is in 1e18 -> make price in requested decimals by dividing by 10^(18-decimals)
     vm.mockCall(
       address(oracle),
       abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset2, asset1, decimalsAsset2),
@@ -141,7 +145,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 borrowDecimals
   )
     internal
-    view
+    pure
     returns (uint256 threshold)
   {
     require(
@@ -611,11 +615,11 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     uint256 newPrice = price - priceDrop;
 
     mock_getPriceOfWithDecimals(
-      collateralAsset,
       debtAsset,
+      collateralAsset,
       newPrice,
-      IERC20Metadata(collateralAsset).decimals(),
-      IERC20Metadata(debtAsset).decimals()
+      IERC20Metadata(debtAsset).decimals(),
+      IERC20Metadata(collateralAsset).decimals()
     );
 
     // make sure hf is between 95 and 100
@@ -636,13 +640,20 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     vm.stopPrank();
 
     uint256 discountedPrice = (newPrice * 0.9e18) / 1e18;
+
+    //amount of collateral given to liquidator
+    //price is in 1e18 -> cancels 0.5e18
+    //borrowAmount is in debt decimals -> cancelled by 10 ** debt decimals
+    //we want amountGivenToLiquidator to be in collateral decimals so we multiply by collateral decimals
     uint256 amountGivenToLiquidator = (borrowAmount * 0.5e18)
-      * 10 ** IERC20Metadata(collateralAsset).decimals() / (discountedPrice * 1e18);
+      * 10 ** IERC20Metadata(collateralAsset).decimals()
+      / (discountedPrice * 10 ** IERC20Metadata(debtAsset).decimals());
 
     if (amountGivenToLiquidator >= amount) {
       amountGivenToLiquidator = amount;
     }
 
+    //check balance of user
     assertApproxEqAbs(vault.balanceOf(ALICE), amount - amountGivenToLiquidator, 1);
     assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount / 2, 1);
 
