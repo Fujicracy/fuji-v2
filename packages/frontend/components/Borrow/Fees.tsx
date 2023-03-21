@@ -13,6 +13,8 @@ import { toNotSoFixed } from "../../helpers/values"
 
 function Fees() {
   const transactionMeta = useBorrow((state) => state.transactionMeta)
+  const collateral = useBorrow((state) => state.collateral)
+  const debt = useBorrow((state) => state.debt)
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
   const show = showTransactionDetails && transactionMeta.status === "ready"
 
@@ -62,6 +64,12 @@ function Fees() {
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
         />
+        {collateral.chainId !== debt.chainId && (
+          <Fee
+            label="Est. slippage"
+            value={`~${transactionMeta.estimateSlippage} %`}
+          />
+        )}
       </Collapse>
     </Card>
   )
