@@ -108,7 +108,6 @@ resources:
         network: matic
         abi: ${file(./abis/connext-router.json.abi)}
         addresses:
-          - '0x403b1E6EFB00C440dDb60593255c1257f4156863'
           - '0x2bF38f818CC5B6Ce9c13Fe8FE9653410db79fe63'
         paused: false
         autotask-condition: ${self:functions.autotask-polygon}
@@ -126,7 +125,6 @@ resources:
         network: optimism
         abi: ${file(./abis/connext-router.json.abi)}
         addresses:
-          - '0x17744B586A6E47a45Fa98d080141139f87314e82'
           - '0xEBdCb08bA47e6a4EC2590140011d8707D76962B8'
         paused: false
         autotask-condition: ${self:functions.autotask-optimism}
@@ -144,7 +142,6 @@ resources:
         network: arbitrum
         abi: ${file(./abis/connext-router.json.abi)}
         addresses:
-          - '0x190B9e10c3A02896386BE180767cf6E89Df5E798'
           - '0xd33Dedc767AF90B163a98A08eB1B28C35902f734'
         paused: false
         autotask-condition: ${self:functions.autotask-arbitrum}
@@ -162,7 +159,6 @@ resources:
         network: xdai
         abi: ${file(./abis/connext-router.json.abi)}
         addresses:
-          - '0x9DE0CE8Aaa2772f9DB00D223ce9CA17fc430943B'
           - '0x12e5BD64CC72C5B2643c3D2C8A88dD05c361e513'
         paused: false
         autotask-condition: ${self:functions.autotask-gnosis}
