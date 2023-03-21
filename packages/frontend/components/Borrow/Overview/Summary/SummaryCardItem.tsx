@@ -40,9 +40,10 @@ function SummaryCardItem({
       <Card variant="position">
         <Typography variant="smallDark">{title}</Typography>
         <Stack
-          direction={"row"}
-          alignItems="left"
+          direction="row"
+          alignItems="right"
           justifyContent={"center-vertical"}
+          sx={{ textAlign: "right" }}
         >
           <Typography variant="regularH4" mb="0.5rem">
             {amount}
