@@ -185,7 +185,8 @@ contract DForcePolygon is ILendingProvider {
     uint256 bRateperBlock = IGenIToken(iTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the dForce interest rate model
-    uint256 blocksperYear = 2102400;
+    // aligned with Hundred finance
+    uint256 blocksperYear = 15017140;
     return bRateperBlock * blocksperYear;
   }
 
@@ -197,7 +198,8 @@ contract DForcePolygon is ILendingProvider {
     uint256 bRateperBlock = IGenIToken(iTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
     // The approximate number of blocks per year that is assumed by the dForce interest rate model
-    uint256 blocksperYear = 2102400;
+    // aligned with Hundred finance
+    uint256 blocksperYear = 15017140;
     return bRateperBlock * blocksperYear;
   }
 

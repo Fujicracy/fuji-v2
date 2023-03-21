@@ -109,9 +109,7 @@ contract MorphoAaveV2 is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    (uint256 suppliedOnPool, uint256 suppliedP2P,) =
-      ILens(LENS).getCurrentSupplyBalanceInOf(_getAToken(vault.asset()), user);
-    balance = suppliedOnPool + suppliedP2P;
+    (,, balance) = ILens(LENS).getCurrentSupplyBalanceInOf(_getAToken(vault.asset()), user);
   }
 
   /// @inheritdoc ILendingProvider
@@ -124,8 +122,6 @@ contract MorphoAaveV2 is ILendingProvider {
     override
     returns (uint256 balance)
   {
-    (uint256 borrowedOnPool, uint256 borrowedP2P,) =
-      ILens(LENS).getCurrentBorrowBalanceInOf(_getAToken(vault.debtAsset()), user);
-    balance = borrowedOnPool + borrowedP2P;
+    (,, balance) = ILens(LENS).getCurrentBorrowBalanceInOf(_getAToken(vault.debtAsset()), user);
   }
 }
