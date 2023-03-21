@@ -180,26 +180,35 @@ const Header = () => {
                       </MenuItem>
                     ))}
                     {address && (
-                      <MenuItem onClick={handleCloseNavMenu}>
-                        <ListItemText>
-                          <Stack direction="row" justifyContent="space-between">
-                            <Typography variant="small">Wallet</Typography>
-                            <Typography variant="small">
-                              {formattedAddress}
-                            </Typography>
-                          </Stack>
-                        </ListItemText>
-                      </MenuItem>
+                      <>
+                        <MenuItem onClick={handleCloseNavMenu}>
+                          <ListItemText>
+                            <Stack
+                              direction="row"
+                              justifyContent="space-between"
+                            >
+                              <Typography variant="small">Wallet</Typography>
+                              <Typography variant="small">
+                                {formattedAddress}
+                              </Typography>
+                            </Stack>
+                          </ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={handleCloseNavMenu}>
+                          <ListItemText>
+                            <Stack
+                              direction="row"
+                              justifyContent="space-between"
+                            >
+                              <Typography variant="small">
+                                Transaction History
+                              </Typography>
+                            </Stack>
+                          </ListItemText>
+                        </MenuItem>
+                      </>
                     )}
-                    <MenuItem onClick={handleCloseNavMenu}>
-                      <ListItemText>
-                        <Stack direction="row" justifyContent="space-between">
-                          <Typography variant="small">
-                            Transaction History
-                          </Typography>
-                        </Stack>
-                      </ListItemText>
-                    </MenuItem>
+
                     <Divider />
                     <ParameterLinks />
                   </MenuList>
