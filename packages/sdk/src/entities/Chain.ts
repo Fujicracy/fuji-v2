@@ -9,7 +9,6 @@ import {
   CHAIN_COINGECKO_KEY,
   CHAIN_LLAMA_KEY,
   CHAIN_NAME,
-  CHAIN_NATIVE_TOKEN_NAME,
 } from '../constants/chain-properties';
 import {
   ALCHEMY_WSS_URL,
@@ -33,8 +32,7 @@ export class Chain {
 
   connection?: ChainConnectionDetails;
 
-  label: string; // Convenience property
-  nativeTokenName: string; // Convenience property
+  name: string; // Convenience property
   blockExplorerUrl: string; // Convenience property
 
   constructor(
@@ -53,8 +51,7 @@ export class Chain {
     this.coingeckoKey = CHAIN_COINGECKO_KEY[id];
     this.llamaKey = CHAIN_LLAMA_KEY[id];
 
-    this.label = CHAIN_NAME[id];
-    this.nativeTokenName = CHAIN_NATIVE_TOKEN_NAME[id];
+    this.name = CHAIN_NAME[id];
     this.blockExplorerUrl = CHAIN_BLOCK_EXPLORER_URL[id];
   }
 

@@ -5,6 +5,7 @@ import {
   ChainType,
   CHAIN_BLOCK_EXPLORER_URL,
   CHAIN_NAME,
+  NATIVE,
 } from "@x-fuji/sdk"
 
 const chainsWithType = (type: ChainType) =>
@@ -32,10 +33,10 @@ const rpcs = {
 export const onboardChains: OnboardChain[] = chains.map((c) => {
   return {
     id: chainIdToHex(c.chainId),
-    token: c.nativeTokenName,
-    label: c.label,
+    label: c.name,
     blockExplorerUrl: c.blockExplorerUrl,
-    rpcUrl: rpcs[c.chainId],
+    token: NATIVE[c.chainId].symbol ?? "ETH",
+    rpcUrl: c.connection?.rpcProvider.connection.url ?? rpcs[c.chainId],
   }
 })
 

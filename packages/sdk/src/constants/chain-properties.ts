@@ -12,18 +12,6 @@ export const CHAIN_NAME: Record<ChainId, string> = {
   [ChainId.MATIC_MUMBAI]: 'Mumbai',
 };
 
-export const CHAIN_NATIVE_TOKEN_NAME: Record<ChainId, string> = {
-  [ChainId.ETHEREUM]: 'ETH',
-  [ChainId.ARBITRUM]: 'AETH',
-  [ChainId.FANTOM]: 'FTM',
-  [ChainId.MATIC]: 'MATIC',
-  [ChainId.OPTIMISM]: 'ETH',
-  [ChainId.GNOSIS]: 'xDai',
-  [ChainId.GOERLI]: 'GTH',
-  [ChainId.OPTIMISM_GOERLI]: 'Optimism Goerli',
-  [ChainId.MATIC_MUMBAI]: 'MATIC',
-};
-
 export const CHAIN_BLOCK_EXPLORER_URL: Record<ChainId, string> = {
   [ChainId.ETHEREUM]: 'https://etherscan.io/',
   [ChainId.ARBITRUM]: 'https://arbiscan.io/',
