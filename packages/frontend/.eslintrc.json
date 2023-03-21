@@ -9,6 +9,7 @@
   "rules": {
     "@typescript-eslint/no-unused-vars": "warn",
     "eqeqeq": 2,
+    "react-hooks/exhaustive-deps": 2,
     "react/no-unknown-property": [
       2,
       {
