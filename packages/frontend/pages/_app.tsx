@@ -64,7 +64,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (slippage) {
       changeSlippageValue(Number(slippage))
     }
-  }, [])
+  }, [changeSlippageValue])
 
   return (
     <>
