@@ -416,7 +416,7 @@ export const useBorrow = create<BorrowStore>()(
             type === "debt" ? get().debt.token : get().collateral.token
 
           let tokenValue = await token.getPriceUSD()
-          const isTestNet = testChains.find((c) => c.id === token.chainId)
+          const isTestNet = testChains.find((c) => c.chainId === token.chainId)
           if (token.symbol === "WETH" && isTestNet) {
             tokenValue = 1242.42 // fix bc weth has no value on testnet
           }

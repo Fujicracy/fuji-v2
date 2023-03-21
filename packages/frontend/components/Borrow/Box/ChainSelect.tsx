@@ -43,9 +43,9 @@ const ChainSelect = ({
           return (
             <MenuItem key={chain.chainId} value={chain.chainId}>
               <Grid container alignItems="center">
-                <NetworkIcon network={chain.label} height={18} width={18} />
+                <NetworkIcon network={chain.name} height={18} width={18} />
                 <span style={{ marginLeft: "0.5rem" }}>
-                  <Typography variant="small">{chain.label}</Typography>
+                  <Typography variant="small">{chain.name}</Typography>
                 </span>
               </Grid>
             </MenuItem>

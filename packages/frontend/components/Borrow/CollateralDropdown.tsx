@@ -17,10 +17,10 @@ function CollateralDropdown({ chains }: CollateralDropdownProps) {
         return (
           <MenuItem key={chain.chainId} value={chain.chainId}>
             <ListItemIcon>
-              <NetworkIcon network={chain.label} height={20} width={20} />
+              <NetworkIcon network={chain.name} height={20} width={20} />
             </ListItemIcon>
             <ListItemText>
-              <Typography variant="body">{chain.label}</Typography>
+              <Typography variant="body">{chain.name}</Typography>
             </ListItemText>
           </MenuItem>
         )
