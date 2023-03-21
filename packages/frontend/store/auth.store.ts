@@ -44,6 +44,7 @@ export const onboard = init({
     desktop: { enabled: false },
     mobile: { enabled: false },
   },
+  theme: "dark",
 })
 type OnboardStatus = {
   hasAcceptedTerms: boolean
@@ -148,7 +149,6 @@ export const useAuth = create<AuthStore>()(
           date: new Date().toJSON(),
         }
         const json = JSON.stringify(onboardStatus)
-        console.log(json)
         localStorage.setItem("termsAccepted", json)
       },
 
