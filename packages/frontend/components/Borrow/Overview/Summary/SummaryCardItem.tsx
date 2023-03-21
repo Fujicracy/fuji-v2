@@ -31,7 +31,9 @@ function SummaryCardItem({
     return (
       <Grid item sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="smallDark">{title}</Typography>
-        <Typography variant="small">{content}</Typography>
+        <Typography variant="small" sx={{ textAlign: "right" }}>
+          {content}
+        </Typography>
       </Grid>
     )
   }
