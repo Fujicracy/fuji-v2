@@ -13,6 +13,7 @@ import {
 import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 import { chainIdToHex } from "../../helpers/chains"
+import React from "react"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -199,6 +200,7 @@ function BorrowButton({
         variant="gradient"
         size="large"
         loadingPosition="start"
+        startIcon={<></>}
         fullWidth
         disabled={
           !(

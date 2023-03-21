@@ -4,15 +4,15 @@ import { getProviderImage } from "../../../helpers/paths"
 import { Icon, renderIcon, renderIconError } from "./Base/Icon"
 
 interface Props extends Icon {
-  providerName: string
+  provider: string
 }
 
 const defaultImage = "/assets/images/protocol-icons/providers/Aave%20V3.svg"
 
 function ProviderIcon(props: Props) {
   const { palette } = useTheme()
-  const { providerName } = props
-  const path = getProviderImage(providerName)
+  const { provider } = props
+  const path = getProviderImage(provider)
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
 
   if (error) {
@@ -21,7 +21,7 @@ function ProviderIcon(props: Props) {
   return renderIcon(
     props,
     path,
-    providerName,
+    provider,
     (e) => setError(e),
     error ? defaultImage : undefined
   )

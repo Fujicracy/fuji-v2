@@ -17,7 +17,11 @@ import { debounce } from "debounce"
 import { useAuth } from "./auth.store"
 import { chainIdToHex, testChains } from "../helpers/chains"
 import { sdk } from "../services/sdk"
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from "../constants/borrow"
+import {
+  DEFAULT_LTV_MAX,
+  DEFAULT_LTV_TRESHOLD,
+  DEFAULT_SLIPPAGE,
+} from "../constants/borrow"
 import { ethers, Signature } from "ethers"
 import { useHistory } from "./history.store"
 import { useSnack } from "./snackbar.store"
@@ -56,11 +60,14 @@ type BorrowState = {
   ltv: LtvMeta
   liquidationMeta: LiquidationMeta
 
+  slippage: number
+
   transactionMeta: {
     status: FetchStatus
-    gasFees: number // TODO: cannot estimat gas fees until the user has approved AND permit fuji to use its fund
+    gasFees: number // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
     bridgeFee: number
     estimateTime: number
+    estimateSlippage: number
     steps: RoutingStepDetails[]
   }
   availableRoutes: RouteMeta[]
@@ -94,6 +101,7 @@ type BorrowActions = {
   changeCollateralValue: (val: string) => void // Convenience
   changeActiveVault: (v: BorrowingVault) => void
   changeTransactionMeta: (route: RouteMeta) => void
+  changeSlippageValue: (slippage: number) => void
 
   updateAllProviders: () => void
   updateTokenPrice: (type: AssetType) => void
@@ -160,6 +168,9 @@ const initialState: BorrowState = {
     ltvMax: DEFAULT_LTV_MAX,
     ltvThreshold: DEFAULT_LTV_TRESHOLD,
   },
+
+  slippage: DEFAULT_SLIPPAGE,
+
   liquidationMeta: {
     liquidationPrice: 0,
     liquidationDiff: 0,
@@ -170,6 +181,7 @@ const initialState: BorrowState = {
     bridgeFee: 0,
     gasFees: 0,
     estimateTime: 0,
+    estimateSlippage: 0,
     steps: [],
   },
   availableRoutes: [],
@@ -317,6 +329,13 @@ export const useBorrow = create<BorrowStore>()(
         get().changeAssetValue("debt", value)
       },
 
+      changeSlippageValue(slippage) {
+        const json = JSON.stringify(slippage)
+        localStorage.setItem("slippage", json)
+
+        set({ slippage })
+      },
+
       async changeActiveVault(vault) {
         const providers = await vault.getProviders()
 
@@ -353,6 +372,7 @@ export const useBorrow = create<BorrowStore>()(
             state.transactionMeta.estimateTime = route.estimateTime
             state.transactionMeta.steps = route.steps
             state.actions = route.actions
+            state.transactionMeta.estimateSlippage = route.estimateSlippage
           })
         )
       },
@@ -508,7 +528,7 @@ export const useBorrow = create<BorrowStore>()(
           return
         }
 
-        const { activeVault, collateral, debt, mode } = get()
+        const { activeVault, collateral, debt, mode, slippage } = get()
         if (
           !activeVault ||
           failureForMode(mode, collateral.input, debt.input)
@@ -547,7 +567,8 @@ export const useBorrow = create<BorrowStore>()(
                 collateral.input,
                 debt.input,
                 address,
-                recommended
+                recommended,
+                slippage
               )
             })
           )
