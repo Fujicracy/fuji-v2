@@ -72,12 +72,13 @@ function ExploreCarousel({
               display={slide.id !== currentSlide ? "none" : "block"}
             >
               <Box color="white" textAlign="center">
-                <Image
-                  src={slide.image}
-                  alt="Onboarding Image"
-                  width={432}
-                  height={240}
-                />
+                <Box maxWidth={432} maxHeight={240}>
+                  <img
+                    src={slide.image}
+                    alt="Onboarding Image"
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                </Box>
 
                 <Typography
                   variant="h5"
