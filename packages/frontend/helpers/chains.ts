@@ -2,23 +2,16 @@ import { Chain as OnboardChain } from "@web3-onboard/common"
 import {
   CHAIN,
   ChainId,
+  ChainType,
   CHAIN_BLOCK_EXPLORER_URL,
-  CHAIN_LABEL,
+  CHAIN_NAME,
 } from "@x-fuji/sdk"
 
-export const chains = [
-  CHAIN[ChainId.ETHEREUM],
-  CHAIN[ChainId.MATIC],
-  CHAIN[ChainId.FANTOM],
-  CHAIN[ChainId.ARBITRUM],
-  CHAIN[ChainId.OPTIMISM],
-].filter((c) => c.isDeployed)
+const chainsWithType = (type: ChainType) =>
+  Object.values(CHAIN).filter((c) => c.isDeployed && c.chainType === type)
 
-export const testChains = [
-  CHAIN[ChainId.GOERLI],
-  CHAIN[ChainId.MATIC_MUMBAI],
-  CHAIN[ChainId.OPTIMISM_GOERLI],
-]
+export const chains = chainsWithType(ChainType.MAINNET)
+export const testChains = chainsWithType(ChainType.TESTNET)
 
 // if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
 //   chains.push(...testChains)
@@ -47,10 +40,8 @@ export const onboardChains: OnboardChain[] = chains.map((c) => {
 })
 
 export function chainName(id?: ChainId): string {
-  if (!id) {
-    return ""
-  }
-  return CHAIN_LABEL[id]
+  if (!id) return ""
+  return CHAIN_NAME[id]
 }
 
 export function isChain(id: number): boolean {

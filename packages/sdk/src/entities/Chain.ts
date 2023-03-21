@@ -6,7 +6,9 @@ import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
 
 import {
   CHAIN_BLOCK_EXPLORER_URL,
-  CHAIN_LABEL,
+  CHAIN_COINGECKO_KEY,
+  CHAIN_LLAMA_KEY,
+  CHAIN_NAME,
   CHAIN_NATIVE_TOKEN_NAME,
 } from '../constants/chain-properties';
 import {
@@ -15,7 +17,6 @@ import {
   INFURA_WSS_URL,
 } from '../constants/rpcs';
 import { ChainId, ChainType, ConnextDomain } from '../enums';
-import { ChainCoingeckoKey, ChainLlamaKey } from '../enums/ChainKey';
 import { ChainConfig } from '../types/ChainConfig';
 import { ChainConnectionDetails } from '../types/ChainConnectionDetails';
 
@@ -25,8 +26,8 @@ export class Chain {
 
   connextDomain?: ConnextDomain;
 
-  coingeckoKey: ChainCoingeckoKey;
-  llamaKey: ChainLlamaKey;
+  coingeckoKey: string;
+  llamaKey: string;
 
   isDeployed: boolean;
 
@@ -40,8 +41,6 @@ export class Chain {
     id: ChainId,
     type: ChainType,
     connextDomain: ConnextDomain | undefined,
-    coingecko: ChainCoingeckoKey,
-    llama: ChainLlamaKey,
     isDeployed?: boolean
   ) {
     this.chainId = id;
@@ -49,11 +48,12 @@ export class Chain {
 
     this.connextDomain = connextDomain;
 
-    this.coingeckoKey = coingecko;
-    this.llamaKey = llama;
     this.isDeployed = isDeployed as boolean;
 
-    this.label = CHAIN_LABEL[id];
+    this.coingeckoKey = CHAIN_COINGECKO_KEY[id];
+    this.llamaKey = CHAIN_LLAMA_KEY[id];
+
+    this.label = CHAIN_NAME[id];
     this.nativeTokenName = CHAIN_NATIVE_TOKEN_NAME[id];
     this.blockExplorerUrl = CHAIN_BLOCK_EXPLORER_URL[id];
   }
