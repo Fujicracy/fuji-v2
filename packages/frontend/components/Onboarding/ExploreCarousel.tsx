@@ -2,7 +2,6 @@ import { useState } from "react"
 import { Grid, Box, Typography, Paper, Dialog, Button } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { useAuth } from "../../store/auth.store"
-import Image from "next/image"
 
 function ExploreCarousel({
   open,

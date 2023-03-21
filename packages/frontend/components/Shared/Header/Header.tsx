@@ -19,7 +19,6 @@ import {
   ListItemText,
 } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close"
-import Image from "next/image"
 import { useRouter } from "next/router"
 import { shallow } from "zustand/shallow"
 
@@ -75,6 +74,9 @@ const Header = () => {
         p="0 1.25rem"
         sx={{
           background: palette.background.paper,
+          ["@media screen and (max-width: 346px)"]: {
+            p: "0 0.5rem",
+          },
         }}
       >
         <Toolbar disableGutters>
@@ -82,12 +84,22 @@ const Header = () => {
             <Grid item>
               <Link href="/markets" legacyBehavior>
                 <a className={styles.logoTitle}>
-                  <Image
-                    src="/assets/images/logo/logo-title.svg"
-                    alt="Logo Fuji"
-                    width={120}
-                    height={50}
-                  />
+                  <Box
+                    maxWidth={120}
+                    maxHeight={50}
+                    sx={{
+                      maxWidth: "120px",
+                      ["@media screen and (max-width: 346px)"]: {
+                        maxWidth: "100px",
+                      },
+                    }}
+                  >
+                    <img
+                      src="/assets/images/logo/logo-title.svg"
+                      alt="Logo Fuji"
+                      style={{ width: "100%", height: "auto" }}
+                    />
+                  </Box>
                 </a>
               </Link>
             </Grid>
@@ -104,7 +116,12 @@ const Header = () => {
                     <Chip
                       label="Connect wallet"
                       variant="gradient"
-                      sx={{ fontSize: "1rem" }}
+                      sx={{
+                        fontSize: "1rem",
+                        ["@media screen and (max-width: 346px)"]: {
+                          fontSize: "0.6rem",
+                        },
+                      }}
                       onClick={() => login()}
                     />
                     <Button
@@ -124,13 +141,14 @@ const Header = () => {
                   aria-haspopup="true"
                   color="inherit"
                   onClick={handleOpenNavMenu}
+                  sx={{ pr: "0" }}
                 >
                   {isNavMenuOpen ? (
                     <CloseIcon
                       sx={{
                         background: palette.secondary.dark,
                         borderRadius: "100%",
-                        fontSize: "10.5px",
+                        fontSize: "12px",
                         padding: "8px",
                         width: "34px",
                         height: "34px",
@@ -232,7 +250,12 @@ const Header = () => {
                 <Chip
                   label="Connect wallet"
                   variant="gradient"
-                  sx={{ fontSize: "1rem" }}
+                  sx={{
+                    fontSize: "1rem",
+                    ["@media screen and (max-width: 346px)"]: {
+                      fontSize: "0.6rem",
+                    },
+                  }}
                   onClick={() => login()}
                 />
                 <Button

@@ -6,10 +6,10 @@ function BurgerMenuIcon() {
   return (
     <SvgIcon
       role="img"
-      viewBox="0 0 24 21"
+      viewBox="0 0 24 24"
       sx={{
-        fontSize: 22,
-        ml: "0.25rem",
+        fontSize: 34,
+        p: "8px",
         "&:hover": {
           color: palette.primary.main,
           textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
