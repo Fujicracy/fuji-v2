@@ -45,7 +45,7 @@ function TooltipWrapper({
     return () => {
       clearHideTimer()
     }
-  }, [])
+  }, [defaultOpen])
 
   return (
     <div style={{ display: "inline" }} onMouseOver={clearHideTimer}>

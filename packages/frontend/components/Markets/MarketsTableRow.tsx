@@ -198,11 +198,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
                     }}
                   >
                     {i <= 2 && (
-                      <ProviderIcon
-                        providerName={name}
-                        height={24}
-                        width={24}
-                      />
+                      <ProviderIcon provider={name} height={24} width={24} />
                     )}
                   </Box>
                 </Tooltip>

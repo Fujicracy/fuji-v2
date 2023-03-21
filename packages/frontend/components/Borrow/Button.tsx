@@ -14,6 +14,7 @@ import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
 import { hexToChainId } from "../../helpers/chains"
 import { ChainId } from "@x-fuji/sdk"
+import React from "react"
 
 type BorrowButtonProps = {
   address: string | undefined
@@ -150,10 +151,15 @@ function BorrowButton({
         onRedirectClick(true)
       })
     )
-  } else if (collateralAmount > 0 && collateralAmount > collateralBalance) {
+  } else if (
+    (mode === Mode.DEPOSIT || mode === Mode.DEPOSIT_AND_BORROW) &&
+    collateralAmount > 0 &&
+    collateralAmount > collateralBalance
+  ) {
     return disabledButton(`Insufficient ${collateral.token.symbol} balance`)
   } else if (
     (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+    debtAmount > 0 &&
     debtAmount > debtBalance
   ) {
     return disabledButton(`Insufficient ${debt.token.symbol} balance`)
@@ -200,6 +206,7 @@ function BorrowButton({
         variant="gradient"
         size="large"
         loadingPosition="start"
+        startIcon={<></>}
         fullWidth
         disabled={
           !(
