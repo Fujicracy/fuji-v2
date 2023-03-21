@@ -29,8 +29,9 @@ function LTVProgressBar({
 }: LTVProgressBarProps) {
   const { palette } = useTheme()
 
-  const percentageMargin =
+  const percentageMargin = `${
     value < 5 ? 0 : value > maxLTV ? value : (value * 100) / maxLTV - 5
+  }%`
 
   return (
     <LTVProgressBarContainer isMobile={isMobile}>
@@ -167,7 +168,7 @@ function LTVProgressBar({
         <Typography
           variant="label"
           color="success.main"
-          ml={`${percentageMargin}%`}
+          ml={percentageMargin}
           sx={{
             display: { xs: "block", sm: "none" },
           }}
