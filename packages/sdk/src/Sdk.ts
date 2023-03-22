@@ -9,7 +9,9 @@ import {
   CHAIN,
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
+  CONNEXT_URL,
   DEBT_LIST,
+  URLS,
   VAULT_LIST,
 } from './constants';
 import { Address, Currency, Token } from './entities';
@@ -254,10 +256,8 @@ export class Sdk {
     const uri = {
       lendBorrow: defillamaproxy
         ? defillamaproxy + 'lendBorrow'
-        : 'https://yields.llama.fi/lendBorrow',
-      pools: defillamaproxy
-        ? defillamaproxy + 'pools'
-        : 'https://yields.llama.fi/pools',
+        : URLS.DEFILLAMA_LEND_BORROW,
+      pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
     };
     try {
       const [borrows, pools] = await Promise.all([
@@ -441,11 +441,7 @@ export class Sdk {
   ): Promise<string> {
     const chainStr = chainType === ChainType.MAINNET ? 'mainnet' : 'testnet';
     return new Promise((resolve) => {
-      const apiCall = () =>
-        axios.get(
-          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
-        );
-
+      const apiCall = () => axios.get(CONNEXT_URL(chainStr, transferId));
       const interval = () => {
         apiCall()
           .then(({ data }) => {

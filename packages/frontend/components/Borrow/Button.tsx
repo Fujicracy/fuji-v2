@@ -12,7 +12,8 @@ import {
 } from "../../helpers/assets"
 import { Position } from "../../store/models/Position"
 import { MINIMUM_DEBT_AMOUNT } from "../../constants/borrow"
-import { chainIdToHex } from "../../helpers/chains"
+import { hexToChainId } from "../../helpers/chains"
+import { ChainId } from "@x-fuji/sdk"
 import React from "react"
 
 type BorrowButtonProps = {
@@ -32,7 +33,7 @@ type BorrowButtonProps = {
   actionType: ActionType
   hasBalanceInVault: boolean
   onLoginClick: () => void
-  onChainChangeClick: (chainId: string) => void
+  onChainChangeClick: (chainId: ChainId) => void
   onApproveClick: (type: AssetType) => void
   onRedirectClick: (position: boolean) => void
   onClick: () => void
@@ -133,7 +134,7 @@ function BorrowButton({
     return disabledButton("Cross-chain DAI not supported")
   } else if (
     (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
-    walletChain?.id
+    hexToChainId(walletChain?.id)
   ) {
     return regularButton("Switch network", () => {
       onChainChangeClick(
@@ -181,13 +182,13 @@ function BorrowButton({
   ) {
     return disabledButton("Withdraw more than allowed")
   } else if (needsAllowance(mode, "collateral", collateral, collateralAmount)) {
-    return regularButton("Allow", () =>
+    return regularButton("Approve", () =>
       clickWithLTVCheck(() => {
         onApproveClick("collateral")
       })
     )
   } else if (needsAllowance(mode, "debt", debt, debtAmount)) {
-    return regularButton("Allow", () =>
+    return regularButton("Approve", () =>
       clickWithLTVCheck(() => {
         onApproveClick("debt")
       })
@@ -196,7 +197,7 @@ function BorrowButton({
     isEditing &&
     position.vault &&
     mode === Mode.DEPOSIT_AND_BORROW &&
-    debt.chainId !== chainIdToHex(position.vault?.chainId)
+    debt.chainId !== position.vault?.chainId
   ) {
     return disabledButton("wtf?")
   } else {

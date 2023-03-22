@@ -3,6 +3,7 @@ import {
   BorrowingVault,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  ChainId,
   LendingProviderDetails,
   RouterActionParams,
   RoutingStepDetails,
@@ -16,7 +17,7 @@ import { debounce } from "debounce"
 import { persist } from "zustand/middleware"
 
 import { useAuth } from "./auth.store"
-import { chainIdToHex, testChains } from "../helpers/chains"
+import { testChains } from "../helpers/chains"
 import { sdk } from "../services/sdk"
 import {
   DEFAULT_LTV_MAX,
@@ -120,13 +121,10 @@ type BorrowActions = {
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>
   signAndExecute: () => void
 }
-type ChainId = string // hex value as string
 
-const initialChainId = "0x89"
-const initialDebtTokens = sdk.getDebtForChain(parseInt(initialChainId, 16))
-const initialCollateralTokens = sdk.getCollateralForChain(
-  parseInt(initialChainId, 16)
-)
+const initialChainId = ChainId.MATIC
+const initialDebtTokens = sdk.getDebtForChain(initialChainId)
+const initialCollateralTokens = sdk.getCollateralForChain(initialChainId)
 
 const initialState: BorrowState = {
   formType: "create",
@@ -213,11 +211,11 @@ export const useBorrow = create<BorrowStore>()(
             produce((state: BorrowState) => {
               state.activeVault = vault // Need to test this
 
-              state.collateral.chainId = chainIdToHex(collateral.chainId)
+              state.collateral.chainId = collateral.chainId
               state.collateral.selectableTokens = collaterals
               state.collateral.token = collateral
 
-              state.debt.chainId = chainIdToHex(debt.chainId)
+              state.debt.chainId = debt.chainId
               state.debt.selectableTokens = debts
               state.debt.token = debt
             })
@@ -254,8 +252,8 @@ export const useBorrow = create<BorrowStore>()(
         changeAssetChain(type, chainId, updateVault) {
           const tokens =
             type === "debt"
-              ? sdk.getDebtForChain(parseInt(chainId, 16))
-              : sdk.getCollateralForChain(parseInt(chainId, 16))
+              ? sdk.getDebtForChain(chainId)
+              : sdk.getCollateralForChain(chainId)
 
           set(
             produce((state: BorrowState) => {
@@ -332,9 +330,6 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeSlippageValue(slippage) {
-          const json = JSON.stringify(slippage)
-          localStorage.setItem("slippage", json)
-
           set({ slippage })
         },
 
@@ -418,9 +413,7 @@ export const useBorrow = create<BorrowStore>()(
             type === "debt" ? get().debt.token : get().collateral.token
 
           let tokenValue = await token.getPriceUSD()
-          const isTestNet = testChains.find(
-            (c) => parseInt(c.id) === token.chainId
-          )
+          const isTestNet = testChains.find((c) => c.chainId === token.chainId)
           if (token.symbol === "WETH" && isTestNet) {
             tokenValue = 1242.42 // fix bc weth has no value on testnet
           }
@@ -806,6 +799,7 @@ export const useBorrow = create<BorrowStore>()(
             return tx
           } catch (e) {
             // TODO: what errors can we catch here?
+            console.error(e)
             useSnack.getState().display({
               type: "warning",
               title:
