@@ -184,7 +184,15 @@ function TokenCard({
           </>
         ) : (
           <>
-            <Typography variant="small" sx={{ width: "7rem" }}>
+            <Typography
+              variant="small"
+              sx={{
+                minWidth: "2.5rem",
+                ["@media screen and (max-width: 370px)"]: {
+                  fontSize: "0.7rem",
+                },
+              }}
+            >
               {formatValue(usdPrice * +value)}
             </Typography>
 
@@ -201,11 +209,31 @@ function TokenCard({
                     : palette.success.main
                 }
                 mr=".5rem"
+                sx={{
+                  ["@media screen and (max-width: 370px)"]: {
+                    fontSize: "0.7rem",
+                  },
+                }}
               >
                 LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : "n/a"}
               </Typography>
-              <Typography variant="smallDark">
-                (Recommended: {recommendedLTV(ltvMax)}%)
+              <Typography
+                variant="smallDark"
+                sx={{
+                  "&::before": {
+                    content: '"Recommended: "',
+                  },
+                  ["@media screen and (max-width: 370px)"]: {
+                    fontSize: "0.7rem",
+                  },
+                  ["@media screen and (max-width: 320px)"]: {
+                    "&::before": {
+                      content: '"Rec. "',
+                    },
+                  },
+                }}
+              >
+                ({recommendedLTV(ltvMax)}%)
               </Typography>
             </Stack>
           </>
