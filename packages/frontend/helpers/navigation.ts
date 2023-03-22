@@ -5,20 +5,27 @@ import { sdk } from "../services/sdk"
 import { useBorrow } from "../store/borrow.store"
 import { usePositions } from "../store/positions.store"
 
-enum TopLevelUrl {
-  Markets = "/markets",
-  Borrow = "/borrow",
-  Lending = "/lend",
-  MyPositions = "/my-positions",
+type Page = {
+  title: string
+  path: string
+}
+export const topLevelPages: Page[] = [
+  { title: "Markets", path: "/markets" },
+  { title: "Borrow", path: "/borrow" },
+  { title: "Lend", path: "/lend" },
+  { title: "My positions", path: "/my-positions" },
+]
+if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
+  topLevelPages.push({ title: "Theming", path: "/theming" }) // Design testing
 }
 
-export const PageUrl = {
-  ...TopLevelUrl,
-  Position: "/my-positions/[pid]",
+export const myPositionPage: Page = {
+  title: "Position",
+  path: "/my-positions/[pid]",
 }
 
 export const isTopLevelUrl = (url: string) =>
-  (Object.values(TopLevelUrl) as string[]).includes(url)
+  topLevelPages.find((p) => p.path === url)
 
 export const showPosition = async (
   router: NextRouter,

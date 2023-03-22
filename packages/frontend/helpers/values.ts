@@ -1,7 +1,7 @@
-export function formatValue(
+export const formatValue = (
   value: string | number | undefined,
   params: Intl.NumberFormatOptions = {}
-): string {
+): string => {
   if (params.style === "currency") {
     params.currency = "USD"
   }
@@ -22,10 +22,10 @@ export const formatBalance = (
   )
 }
 
-export function formatNumber(
+export const formatNumber = (
   num: number | undefined,
   decimals: number
-): number | "-" {
+): number | "-" => {
   if (!num) return "-"
   return parseFloat(num.toFixed(decimals))
 }
@@ -38,6 +38,9 @@ export const toNotSoFixed = (v: number | string | undefined): string => {
   return Number(value.toFixed(to)).toString() // Remove trailing zeroes
 }
 
-export function camelize(str: string) {
+export const camelize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+export const hiddenAddress = (address: string | undefined) =>
+  address?.substring(0, 5) + "..." + address?.substring(address?.length - 4)

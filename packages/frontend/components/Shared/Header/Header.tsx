@@ -30,16 +30,8 @@ import ParameterLinks from "../ParameterLinks"
 import { useAuth } from "../../../store/auth.store"
 import AccountModal from "../AccountModal"
 import BalanceAddon from "./BalanceAddon"
-
-const pages = [
-  { name: "Markets", path: "/markets" },
-  { name: "Borrow", path: "/borrow" },
-  { name: "Lend", path: "/lend" },
-  { name: "My positions", path: "/my-positions" },
-]
-if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
-  pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" is to test the design system
-}
+import { topLevelPages } from "../../../helpers/navigation"
+import { hiddenAddress } from "../../../helpers/values"
 
 const Header = () => {
   const { address, ens, status, balance, login } = useAuth(
@@ -53,15 +45,14 @@ const Header = () => {
     shallow
   )
   const { palette } = useTheme()
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
   const currentPage = `/${router.pathname.substring(1)}`
 
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const [accountModalEl, setAccountModalEl] = useState<
     HTMLElement | undefined
   >()
   const showAccountModal = Boolean(accountModalEl)
-
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
 
@@ -71,8 +62,7 @@ const Header = () => {
   const e2eConnect = () =>
     login({ autoSelect: { label: "MetaMask", disableModals: true } })
 
-  const formattedAddress =
-    address?.substring(0, 5) + "..." + address?.substring(address?.length - 4)
+  const formattedAddress = hiddenAddress(address)
 
   return (
     <AppBar position="static">
@@ -176,11 +166,13 @@ const Header = () => {
                   TransitionComponent={Fade}
                 >
                   <MenuList>
-                    {pages.map((page) => (
+                    {topLevelPages.map((page) => (
                       <MenuItem key={page.path} onClick={handleCloseNavMenu}>
                         <ListItemText>
                           <Link href={page.path}>
-                            <Typography variant="small">{page.name}</Typography>
+                            <Typography variant="small">
+                              {page.title}
+                            </Typography>
                           </Link>
                         </ListItemText>
                       </MenuItem>
@@ -224,7 +216,7 @@ const Header = () => {
               justifyContent: "center",
             }}
           >
-            {pages.map((page) => (
+            {topLevelPages.map((page) => (
               <Link key={page.path} href={page.path}>
                 <MenuItem
                   sx={{
@@ -241,7 +233,7 @@ const Header = () => {
                     },
                   }}
                 >
-                  {page.name}
+                  {page.title}
                 </MenuItem>
               </Link>
             ))}
@@ -284,7 +276,7 @@ const Header = () => {
                 <Grid item>
                   <BalanceAddon
                     balance={balance}
-                    formattedAddress={formattedAddress as string}
+                    formattedAddress={formattedAddress}
                     ens={ens}
                     onClick={(e) => setAccountModalEl(e)}
                   />
