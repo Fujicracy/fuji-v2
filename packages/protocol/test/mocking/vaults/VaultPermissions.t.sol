@@ -479,4 +479,37 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
     );
   }
+
+  function testFail_spendAllowanceIssue() public {
+    do_deposit(1 ether, vault, owner);
+
+    vm.startPrank(owner);
+    vault.approve(receiver, 1 ether);
+    uint256 allowance1 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    vm.startPrank(receiver);
+    vault.transferFrom(owner, receiver, 1 ether);
+    uint256 allowance2 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    assertEq(allowance1, allowance2);
+  }
+
+  function test_spendAllowanceIssue() public {
+    do_deposit(1 ether, vault, owner);
+
+    vm.startPrank(owner);
+    vault.approve(receiver, 1 ether);
+    uint256 allowance1 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    vm.startPrank(receiver);
+    vault.transferFrom(owner, receiver, 1 ether);
+    uint256 allowance2 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    assertEq(allowance1, 1 ether);
+    assertEq(allowance2, 0);
+  }
 }
