@@ -301,7 +301,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /**
    * @dev Returns who is the first receiver of value in `callData`
    * Requirements:
-   * - Must revert if "swap" is fist action
+   * - Must revert if "swap" is first action
    *
    * @param callData encoded to execute in {BaseRouter-xBundle}
    */
