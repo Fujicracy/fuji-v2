@@ -19,7 +19,6 @@ import {
   ListItemText,
 } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close"
-import Image from "next/image"
 import { useRouter } from "next/router"
 import { shallow } from "zustand/shallow"
 
@@ -29,17 +28,10 @@ import Parameters from "../Parameters"
 import styles from "../../../styles/components/Header.module.css"
 import ParameterLinks from "../ParameterLinks"
 import { useAuth } from "../../../store/auth.store"
-import BalanceAddress from "./BalanceAddress"
-
-const pages = [
-  { name: "Markets", path: "/markets" },
-  { name: "Borrow", path: "/borrow" },
-  { name: "Lend", path: "/lend" },
-  { name: "My positions", path: "/my-positions" },
-]
-if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
-  pages.push({ name: "Theming", path: "theming" }) // TODO: "Theming" is to test the design system
-}
+import AccountModal from "../AccountModal"
+import BalanceAddon from "./BalanceAddon"
+import { topLevelPages } from "../../../helpers/navigation"
+import { hiddenAddress } from "../../../helpers/values"
 
 const Header = () => {
   const { address, ens, status, balance, login } = useAuth(
@@ -53,10 +45,14 @@ const Header = () => {
     shallow
   )
   const { palette } = useTheme()
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const router = useRouter()
   const currentPage = `/${router.pathname.substring(1)}`
 
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
+  const [accountModalEl, setAccountModalEl] = useState<
+    HTMLElement | undefined
+  >()
+  const showAccountModal = Boolean(accountModalEl)
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
 
@@ -66,15 +62,17 @@ const Header = () => {
   const e2eConnect = () =>
     login({ autoSelect: { label: "MetaMask", disableModals: true } })
 
-  const formattedAddress =
-    address?.substring(0, 5) + "..." + address?.substring(address?.length - 4)
-  // window.alert(balance)
+  const formattedAddress = hiddenAddress(address)
+
   return (
     <AppBar position="static">
       <Box
         p="0 1.25rem"
         sx={{
           background: palette.background.paper,
+          ["@media screen and (max-width: 346px)"]: {
+            p: "0 0.5rem",
+          },
         }}
       >
         <Toolbar disableGutters>
@@ -82,12 +80,22 @@ const Header = () => {
             <Grid item>
               <Link href="/markets" legacyBehavior>
                 <a className={styles.logoTitle}>
-                  <Image
-                    src="/assets/images/logo/logo-title.svg"
-                    alt="Logo Fuji"
-                    width={120}
-                    height={50}
-                  />
+                  <Box
+                    maxWidth={120}
+                    maxHeight={50}
+                    sx={{
+                      maxWidth: "120px",
+                      ["@media screen and (max-width: 346px)"]: {
+                        maxWidth: "100px",
+                      },
+                    }}
+                  >
+                    <img
+                      src="/assets/images/logo/logo-title.svg"
+                      alt="Logo Fuji"
+                      style={{ width: "100%", height: "auto" }}
+                    />
+                  </Box>
                 </a>
               </Link>
             </Grid>
@@ -104,7 +112,12 @@ const Header = () => {
                     <Chip
                       label="Connect wallet"
                       variant="gradient"
-                      sx={{ fontSize: "1rem" }}
+                      sx={{
+                        fontSize: "1rem",
+                        ["@media screen and (max-width: 346px)"]: {
+                          fontSize: "0.6rem",
+                        },
+                      }}
                       onClick={() => login()}
                     />
                     <Button
@@ -124,13 +137,14 @@ const Header = () => {
                   aria-haspopup="true"
                   color="inherit"
                   onClick={handleOpenNavMenu}
+                  sx={{ pr: "0" }}
                 >
                   {isNavMenuOpen ? (
                     <CloseIcon
                       sx={{
                         background: palette.secondary.dark,
                         borderRadius: "100%",
-                        fontSize: "10.5px",
+                        fontSize: "12px",
                         padding: "8px",
                         width: "34px",
                         height: "34px",
@@ -152,34 +166,41 @@ const Header = () => {
                   TransitionComponent={Fade}
                 >
                   <MenuList>
-                    {pages.map((page) => (
+                    {topLevelPages.map((page) => (
                       <MenuItem key={page.path} onClick={handleCloseNavMenu}>
                         <ListItemText>
                           <Link href={page.path}>
-                            <Typography variant="small">{page.name}</Typography>
+                            <Typography variant="small">
+                              {page.title}
+                            </Typography>
                           </Link>
                         </ListItemText>
                       </MenuItem>
                     ))}
-                    <MenuItem onClick={handleCloseNavMenu}>
-                      <ListItemText>
-                        <Stack direction="row" justifyContent="space-between">
-                          <Typography variant="small">Wallet</Typography>
-                          <Typography variant="small">
-                            {formattedAddress}
-                          </Typography>
-                        </Stack>
-                      </ListItemText>
-                    </MenuItem>
-                    <MenuItem onClick={handleCloseNavMenu}>
-                      <ListItemText>
-                        <Stack direction="row" justifyContent="space-between">
-                          <Typography variant="small">
-                            Transaction History
-                          </Typography>
-                        </Stack>
-                      </ListItemText>
-                    </MenuItem>
+                    {address && (
+                      <>
+                        <Divider />
+                        <MenuItem
+                          onClick={() => {
+                            handleCloseNavMenu()
+                            setAccountModalEl(
+                              anchorElNav ? anchorElNav : undefined
+                            )
+                          }}
+                        >
+                          <ListItemText>
+                            <Stack
+                              direction="row"
+                              justifyContent="space-between"
+                            >
+                              <Typography variant="small">
+                                {formattedAddress}
+                              </Typography>
+                            </Stack>
+                          </ListItemText>
+                        </MenuItem>
+                      </>
+                    )}
                     <Divider />
                     <ParameterLinks />
                   </MenuList>
@@ -195,7 +216,7 @@ const Header = () => {
               justifyContent: "center",
             }}
           >
-            {pages.map((page) => (
+            {topLevelPages.map((page) => (
               <Link key={page.path} href={page.path}>
                 <MenuItem
                   sx={{
@@ -212,7 +233,7 @@ const Header = () => {
                     },
                   }}
                 >
-                  {page.name}
+                  {page.title}
                 </MenuItem>
               </Link>
             ))}
@@ -230,7 +251,12 @@ const Header = () => {
                 <Chip
                   label="Connect wallet"
                   variant="gradient"
-                  sx={{ fontSize: "1rem" }}
+                  sx={{
+                    fontSize: "1rem",
+                    ["@media screen and (max-width: 346px)"]: {
+                      fontSize: "0.6rem",
+                    },
+                  }}
                   onClick={() => login()}
                 />
                 <Button
@@ -248,11 +274,11 @@ const Header = () => {
                   <ChainSelect />
                 </Grid>
                 <Grid item>
-                  <BalanceAddress
+                  <BalanceAddon
                     balance={balance}
-                    address={address as string}
-                    formattedAddress={formattedAddress as string}
+                    formattedAddress={formattedAddress}
                     ens={ens}
+                    onClick={(e) => setAccountModalEl(e)}
                   />
                 </Grid>
                 <Grid item>
@@ -263,6 +289,14 @@ const Header = () => {
           </Grid>
         </Toolbar>
       </Box>
+      {address && (
+        <AccountModal
+          isOpen={showAccountModal}
+          anchorEl={accountModalEl}
+          closeAccountModal={() => setAccountModalEl(undefined)}
+          address={address}
+        />
+      )}
     </AppBar>
   )
 }

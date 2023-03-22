@@ -23,15 +23,18 @@ function SummaryCardItem({
   const { palette } = useTheme()
 
   if (isMobile) {
-    const shouldHaveParenthesis = title !== "Current Price"
-    const content = `${amount} ${shouldHaveParenthesis ? "(" : ""}${footer}${
-      shouldHaveParenthesis ? ")" : ""
-    }`
+    const shouldHaveParenthesis =
+      title !== "Current Price" && title !== "Borrowed Value"
+    const content = `${amount} ${shouldHaveParenthesis ? "(" : ""}${
+      title !== "Borrowed Value" ? footer : ""
+    }${shouldHaveParenthesis ? ")" : ""}`
 
     return (
       <Grid item sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="smallDark">{title}</Typography>
-        <Typography variant="small">{content}</Typography>
+        <Typography variant="small" sx={{ textAlign: "right" }}>
+          {content}
+        </Typography>
       </Grid>
     )
   }
@@ -40,9 +43,10 @@ function SummaryCardItem({
       <Card variant="position">
         <Typography variant="smallDark">{title}</Typography>
         <Stack
-          direction={"row"}
-          alignItems="left"
+          direction="row"
+          alignItems="right"
           justifyContent={"center-vertical"}
+          sx={{ textAlign: "right" }}
         >
           <Typography variant="regularH4" mb="0.5rem">
             {amount}

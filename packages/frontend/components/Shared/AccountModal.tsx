@@ -34,7 +34,7 @@ import { stepFromEntry } from "../../helpers/history"
 
 type AccountModalProps = {
   isOpen: boolean
-  anchorEl: HTMLElement
+  anchorEl: HTMLElement | null | undefined
   address: string
   closeAccountModal: () => void
 }
