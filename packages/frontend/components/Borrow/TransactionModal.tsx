@@ -33,13 +33,12 @@ import { chainName } from "../../helpers/chains"
 import { transactionUrl } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
 import AddTokenButton from "../Shared/AddTokenButton"
-import { showPosition } from "../../helpers/navigation"
+import { myPositionPage, showPosition } from "../../helpers/navigation"
 import { useRouter } from "next/router"
 import { vaultFromAddress } from "../../helpers/positions"
 import { camelize } from "../../helpers/values"
 import { LoadingButton } from "@mui/lab"
 import { usePositions } from "../../store/positions.store"
-import { PageUrl } from "../../helpers/navigation"
 
 type InvalidStep = {
   label: "Invalid"
@@ -86,7 +85,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
 
   const onClick = async () => {
     // If the user is editing a position, we need to refresh positions
-    if (currentPage === PageUrl.Position) {
+    if (currentPage === myPositionPage.path) {
       setLoading(true)
       await fetchPositions()
       setLoading(false)

@@ -133,7 +133,7 @@ function SlippageSettings() {
         sx={{ mt: 1 }}
         PaperProps={{ sx: { background: palette.secondary.contrastText } }}
       >
-        <Box sx={{ maxWidth: "22rem", p: { xs: "0.5rem", sm: "1rem" } }}>
+        <Box sx={{ maxWidth: "22rem", p: "1rem" }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -168,6 +168,14 @@ function SlippageSettings() {
             height="40px"
             mt="1rem"
             gap="0.3rem"
+            sx={{
+              ["@media screen and (max-width:414px)"]: {
+                flexWrap: "wrap",
+                gap: "0.8rem 0.5rem",
+                justifyContent: "flex-start",
+                height: "auto",
+              },
+            }}
           >
             {slippageDefaultOptions.map((option) => (
               <Button
@@ -176,7 +184,6 @@ function SlippageSettings() {
                   slippage === option.value ? "white-outlined" : "secondary"
                 }
                 key={option.label}
-                fullWidth
                 onClick={(e) => onButtonClick(e, option.value)}
               >
                 {option.label}
@@ -189,6 +196,7 @@ function SlippageSettings() {
               inputRef={handleRef}
               sx={{
                 minWidth: "6.2rem",
+                width: "6.2rem",
                 background: "transparent",
                 "& .MuiInputBase-input": {
                   p: "0.6rem 1rem",
