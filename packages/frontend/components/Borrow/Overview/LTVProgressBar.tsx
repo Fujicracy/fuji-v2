@@ -173,7 +173,7 @@ function LTVProgressBar({
             display: { xs: "block", sm: "none" },
           }}
         >
-          {value}%
+          {value.toFixed(0)}%
         </Typography>
 
         <Grid
