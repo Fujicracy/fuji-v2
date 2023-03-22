@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
 import Snackbar from '../components/Shared/Snackbar';
+import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
@@ -34,6 +35,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     mixpanel.init('030ddddf19623797be516b634956d108', {
       debug: process.env.NEXT_PUBLIC_APP_ENV === 'development',
     });
+    initErrorReporting();
     initAuth();
   }, [initAuth]);
 
