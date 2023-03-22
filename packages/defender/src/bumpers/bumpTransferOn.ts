@@ -1,25 +1,27 @@
 import axios from "axios";
 import { AutotaskEvent } from "defender-autotask-utils";
-import { TransactionRequest } from "ethers/types/providers";
 import {
   DefenderRelayProvider,
   DefenderRelaySigner,
 } from "defender-relay-client/lib/ethers";
 import { ethers } from "ethers";
+import { TransactionRequest } from "ethers/types/providers";
 
-const ABI = [{
-  "inputs": [
-    {
-      "internalType": "bytes32",
-      "name": "transferId",
-      "type": "bytes32"
-    }
-  ],
-  "name": "bumpTransfer",
-  "outputs": [],
-  "stateMutability": "payable",
-  "type": "function"
-}];
+const ABI = [
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "transferId",
+        type: "bytes32",
+      },
+    ],
+    name: "bumpTransfer",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+];
 
 export enum ChainId {
   ETHEREUM = 1,
@@ -27,7 +29,7 @@ export enum ChainId {
   GNOSIS = 100,
   POLYGON = 137,
   ARBITRUM = 42161,
-};
+}
 
 const domains: Record<ChainId, string> = {
   [ChainId.POLYGON]: "1886350457",
@@ -37,7 +39,10 @@ const domains: Record<ChainId, string> = {
   [ChainId.GNOSIS]: "6778479",
 };
 
-export async function bumpTransferOn(chainId: ChainId, event: AutotaskEvent): Promise<TransactionRequest> {
+export async function bumpTransferOn(
+  chainId: ChainId,
+  event: AutotaskEvent
+): Promise<TransactionRequest> {
   const domain = domains[chainId];
 
   // extracting `transferId` and `destinationDomain` from the xCall event
@@ -69,5 +74,5 @@ export async function bumpTransferOn(chainId: ChainId, event: AutotaskEvent): Pr
   // call contract
   const contract = new ethers.Contract(routerAddr, ABI, signer as any);
 
-  return contract.bumpTransfer(transferId, { value: relayerFee })
+  return contract.bumpTransfer(transferId, { value: `${relayerFee}` });
 }
