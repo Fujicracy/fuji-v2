@@ -1,4 +1,4 @@
-import { Token } from "@x-fuji/sdk"
+import { ChainId, Token } from "@x-fuji/sdk"
 import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
 
 export enum Mode {
@@ -29,7 +29,7 @@ export type AssetChange = {
   balances: Record<string, number>
   allowance: Allowance
   input: string
-  chainId: string
+  chainId: ChainId
   token: Token
   amount: number
   usdPrice: number

@@ -78,7 +78,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
 
   const connextScanLink = entry?.connextTransferId
     ? `https://amarok.connextscan.io/tx/${entry.connextTransferId}`
-    : ""
+    : undefined
 
   if (!entry) {
     return <></>
@@ -106,8 +106,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   const steps = entry
     ? (entry.steps
         .map((s): TransactionStep => {
-          const { step, txHash, chainId, token, lendingProvider } = s
-          const provider = lendingProvider?.name
+          const { step, txHash, chainId, token } = s
           const chain = chainName(chainId)
           const amount = token && formatUnits(s.amount ?? 0, token.decimals)
           const link = txHash && transactionUrl(chainId, txHash)
@@ -124,10 +123,13 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           const preposition =
             step === RoutingStep.DEPOSIT
               ? "on"
-              : step === RoutingStep.X_TRANSFER
+              : [
+                  RoutingStep.X_TRANSFER,
+                  RoutingStep.BORROW,
+                  RoutingStep.PAYBACK,
+                ].includes(step)
               ? "to"
               : "from"
-          const destination = provider ?? chain
 
           const label =
             step === RoutingStep.START ||
@@ -136,9 +138,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             !amount
               ? "Invalid"
               : camelize(
-                  `${action} ${amount} ${token.symbol}${
-                    destination ? ` ${preposition} ${destination}` : ""
-                  }`
+                  `${action} ${amount} ${token.symbol} ${preposition} ${chain}`
                 )
 
           const icon =
@@ -267,9 +267,13 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             >
               View Position
             </LoadingButton>
+          </Stack>
+        )}
+        {connextScanLink && (
+          <Stack sx={{ mt: "1rem" }} spacing={1}>
             <Link href={connextScanLink} target="_blank" variant="inherit">
               <Button fullWidth variant="ghost">
-                Transaction details
+                View transaction on ConnextScan
               </Button>
             </Link>
           </Stack>

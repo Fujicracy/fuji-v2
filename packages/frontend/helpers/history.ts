@@ -34,13 +34,15 @@ export const toHistoryRoutingStep = (
     return {
       ...s,
       txHash: undefined,
-      token: {
-        chainId: s.token?.chainId as ChainId,
-        address: s.token?.address.value as string,
-        decimals: s.token?.decimals as number,
-        symbol: s.token?.symbol as string,
-        name: s.token?.name as string,
-      },
+      token: s.token
+        ? {
+            chainId: s.token.chainId,
+            address: s.token.address.value,
+            decimals: s.token.decimals,
+            symbol: s.token.symbol,
+            name: s.token.name,
+          }
+        : undefined,
     }
   })
 }

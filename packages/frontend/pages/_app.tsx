@@ -28,7 +28,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const currentTxHash = useHistory((state) => state.inModal)
   const fetchPositions = usePositions((state) => state.fetchUserPositions)
   const updateVault = useBorrow((state) => state.updateVault)
-  const changeSlippageValue = useBorrow((state) => state.changeSlippageValue)
 
   useEffect(() => {
     mixpanel.init("030ddddf19623797be516b634956d108", {
@@ -57,14 +56,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       router.events.off("routeChangeStart", handleRouteChange)
     }
   })
-
-  useEffect(() => {
-    const slippage = localStorage.getItem("slippage")
-
-    if (slippage) {
-      changeSlippageValue(Number(slippage))
-    }
-  }, [])
 
   return (
     <>

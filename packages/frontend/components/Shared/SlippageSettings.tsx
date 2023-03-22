@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
   Box,
   Button,
@@ -30,7 +30,7 @@ function SlippageSettings() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [slippageInput, setSlippageInput] = useState<string>("")
   const isOpen = Boolean(anchorEl)
-  const textInput = useRef<HTMLInputElement>(null)
+  // const textInput = useRef<HTMLInputElement>(null)
   const slippage = useBorrow((state) => state.slippage)
   const changeSlippageValue = useBorrow((state) => state.changeSlippageValue)
 
@@ -41,20 +41,24 @@ function SlippageSettings() {
     event.stopPropagation()
     setAnchorEl(null)
   }
+  const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
+    undefined
+  )
+
+  const handleRef = useCallback((node: HTMLInputElement) => {
+    setTextInput(node)
+  }, [])
 
   useEffect(() => {
-    // setTimeout here to give time for input ref to setup
-    setTimeout(() => {
-      if (textInput.current) {
-        if ([DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
-          setSlippageInput("")
-          textInput?.current?.blur()
-        } else {
-          textInput?.current?.focus()
-        }
+    if (textInput) {
+      if ([DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
+        setSlippageInput("")
+        textInput?.blur()
+      } else {
+        textInput?.focus()
       }
-    }, 0)
-  }, [textInput.current])
+    }
+  }, [textInput, slippage])
 
   const handlePercentageChange = (
     event: React.FocusEvent<HTMLInputElement>
@@ -86,13 +90,13 @@ function SlippageSettings() {
     event.stopPropagation()
     changeSlippageValue(value)
     setSlippageInput("")
-    textInput?.current?.blur()
+    textInput?.blur()
   }
 
   // Keeps focus on input when user click on menu wrapper and something different from default values is set.
   const handleNonfunctionalClick = () => {
     if (![DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
-      textInput?.current?.focus()
+      textInput?.focus()
     }
   }
 
@@ -190,7 +194,7 @@ function SlippageSettings() {
               label="Custom %"
               type="number"
               variant="outlined"
-              inputRef={textInput}
+              inputRef={handleRef}
               sx={{
                 minWidth: "6.2rem",
                 width: "6.2rem",

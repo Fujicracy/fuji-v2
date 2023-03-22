@@ -51,6 +51,7 @@ export const fetchRoutes = async (
           collateralToken,
           debtToken,
           Address.from(address),
+          undefined,
           slippage
         )
         break
@@ -70,6 +71,7 @@ export const fetchRoutes = async (
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
           Address.from(address),
+          undefined,
           slippage
         )
         break
@@ -81,6 +83,7 @@ export const fetchRoutes = async (
           debtToken,
           collateralToken,
           Address.from(address),
+          undefined,
           slippage
         )
         break
@@ -91,6 +94,7 @@ export const fetchRoutes = async (
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
           Address.from(address),
+          undefined,
           slippage
         )
         break
