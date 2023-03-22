@@ -80,7 +80,7 @@ function AllowanceModal({ type, handleClose }: AllowanceModalProps) {
           >
             <u>{address}</u>
           </Link>{" "}
-          to use {token.symbol} from your wallet.
+          to use {amount} {token.symbol} from your wallet.
         </Typography>
 
         <LoadingButton

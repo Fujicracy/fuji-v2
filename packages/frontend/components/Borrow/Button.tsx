@@ -181,13 +181,13 @@ function BorrowButton({
   ) {
     return disabledButton("Withdraw more than allowed")
   } else if (needsAllowance(mode, "collateral", collateral, collateralAmount)) {
-    return regularButton("Allow", () =>
+    return regularButton("Approve", () =>
       clickWithLTVCheck(() => {
         onApproveClick("collateral")
       })
     )
   } else if (needsAllowance(mode, "debt", debt, debtAmount)) {
-    return regularButton("Allow", () =>
+    return regularButton("Approve", () =>
       clickWithLTVCheck(() => {
         onApproveClick("debt")
       })

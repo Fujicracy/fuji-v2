@@ -806,6 +806,7 @@ export const useBorrow = create<BorrowStore>()(
             return tx
           } catch (e) {
             // TODO: what errors can we catch here?
+            console.error(e)
             useSnack.getState().display({
               type: "warning",
               title:
