@@ -11,8 +11,9 @@ import {
 } from "@web3-onboard/core/dist/types"
 import { ethers, utils } from "ethers"
 import { devtools } from "zustand/middleware"
-import { chains } from "../services/chains"
+import { chainIdToHex, onboardChains } from "../helpers/chains"
 import { fujiLogo } from "../constants/ui"
+import { ChainId } from "@x-fuji/sdk"
 
 const walletConnect = walletConnectModule({
   // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
@@ -29,7 +30,7 @@ const walletConnect = walletConnectModule({
 })
 
 export const onboard = init({
-  chains,
+  chains: onboardChains,
   wallets: [injectedModule(), walletConnect],
   appMetadata: {
     name: "Fuji II - Himalaya",
@@ -87,7 +88,7 @@ type Action = {
   acceptTermsOfUse: () => void
   getOnboardStatus: () => OnboardStatus
   setExploreInfoSkipped: (value: boolean) => void
-  changeChain: (chainId: string | number) => void
+  changeChain: (chainId: ChainId) => void
 }
 
 type AuthStore = State & Action
@@ -176,7 +177,8 @@ export const useAuth = create<AuthStore>()(
       },
 
       changeChain: async (chainId) => {
-        await onboard.setChain({ chainId })
+        const hexChainId = chainIdToHex(chainId)
+        await onboard.setChain({ chainId: hexChainId })
       },
     }),
     {

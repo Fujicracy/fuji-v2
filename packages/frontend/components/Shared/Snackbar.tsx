@@ -14,9 +14,9 @@ import ErrorIcon from "@mui/icons-material/Error"
 import WarningIcon from "@mui/icons-material/Warning"
 import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../../store/snackbar.store"
-import { transactionLink } from "../../helpers/transactionInformations"
+import { transactionUrl } from "../../helpers/chains"
 
-export function Snackbar() {
+function Snackbar() {
   const [snack] = useSnack((s) => s.notifications)
   const close = useSnack((s) => s.close)
 
@@ -39,6 +39,8 @@ export function Snackbar() {
     </MuiSnackbar>
   )
 }
+
+export default Snackbar
 
 function TransitionLeft(props: any) {
   return <Slide {...props} direction="left" />
@@ -63,11 +65,11 @@ function SnackbarBody({ snack, onClose }: SnackBodyProps) {
         {snack.body && (
           <Typography variant="xsmallDark">{snack.body}</Typography>
         )}
-        {snack.transactionLink?.chainId && snack.transactionLink.hash && (
+        {snack.transactionUrl?.chainId && snack.transactionUrl.hash && (
           <Link
-            href={transactionLink(
-              snack.transactionLink.chainId,
-              snack.transactionLink.hash
+            href={transactionUrl(
+              snack.transactionUrl.chainId,
+              snack.transactionUrl.hash
             )}
             target="_blank"
             variant="smallDark"

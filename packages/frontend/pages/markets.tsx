@@ -5,7 +5,7 @@ import { Container, Divider, useMediaQuery, useTheme } from "@mui/material"
 
 import Markets from "../components/Markets/Markets"
 import Footer from "../components/Shared/Footer"
-import Header from "../components/Shared/Header"
+import Header from "../components/Shared/Header/Header"
 
 const MarketsPage: NextPage = () => {
   const { breakpoints } = useTheme()

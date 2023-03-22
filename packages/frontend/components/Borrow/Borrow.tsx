@@ -1,264 +1,281 @@
-import { ReactNode, useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import {
-  Divider,
-  Button,
   Typography,
   CardContent,
   Card,
-  Grid,
   Stack,
   useMediaQuery,
   useTheme,
   Box,
-  Link,
 } from "@mui/material"
-import Image from "next/image"
 
-import TransactionProcessingModal from "./TransactionProcessingModal"
-import { ChainSelect } from "./ChainSelect"
-import TokenCard from "./TokenCard"
-import { Fees } from "./Fees"
-import ApprovalModal from "./ApprovalModal"
-import LoadingButton from "@mui/lab/LoadingButton"
-import RoutingModal from "./RoutingModal"
-import { useHistory } from "../../store/history.store"
-import { chainName } from "../../services/chains"
+import Fees from "./Fees"
+import AllowanceModal from "./AllowanceModal"
+import RoutingModal from "./Routing/RoutingModal"
+import { chainName } from "../../helpers/chains"
 import { useBorrow } from "../../store/borrow.store"
 import { useAuth } from "../../store/auth.store"
+import BorrowButton from "./Button"
+import BorrowHeader from "./Header"
+import BorrowBox from "./Box/Box"
+import SignTooltip from "../Shared/Tooltips/SignTooltip"
+import ConnextFooter from "./ConnextFooter"
+import { modeForContext } from "../../helpers/borrow"
+import { Address } from "@x-fuji/sdk"
+import { useRouter } from "next/router"
+import { showPosition } from "../../helpers/navigation"
+import { BasePosition } from "../../helpers/positions"
+import { ActionType, AssetType } from "../../helpers/assets"
+import LTVWarningModal from "../Shared/LTVWarningModal"
 
-export default function Borrow() {
-  const address = useAuth((state) => state.address)
-  const walletChain = useAuth((state) => state.chain)
-  const activeVault = useBorrow((state) => state.position.vault)
-  const changeChain = useAuth((state) => state.changeChain)
-  const updateBalance = useBorrow((state) => state.updateBalances)
-  const updateVault = useBorrow((state) => state.updateVault)
-  const updateAllowance = useBorrow((state) => state.updateAllowance)
-
-  useEffect(() => {
-    if (address) {
-      updateBalance("collateral")
-      updateBalance("debt")
-      updateAllowance()
-    }
-    // updateVault only if there's no active vault already set
-    // because if we want to set it from somewhere else (as from the markets page)
-    // this will overwrite what was set beforehand
-    if (!activeVault) updateVault()
-  }, [address, updateBalance, updateAllowance, updateVault, activeVault])
-
-  const login = useAuth((state) => state.login)
+type BorrowProps = {
+  isEditing: boolean
+  basePosition: BasePosition
+}
+function Borrow({ isEditing, basePosition }: BorrowProps) {
+  const router = useRouter()
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("md"))
 
-  const collateral = useBorrow((state) => state.position.collateral)
-  const collateralInput = useBorrow((state) => state.collateralInput)
-  const collateralAmount = parseFloat(collateralInput)
-  const collateralChainId = useBorrow((state) => state.collateralChainId)
-  const collateralAllowance = useBorrow((state) => state.collateralAllowance)
+  const address = useAuth((state) => state.address)
+  const walletChain = useAuth((state) => state.chain)
+  const changeChain = useAuth((state) => state.changeChain)
+  const login = useAuth((state) => state.login)
 
-  const debtInput = useBorrow((state) => state.debtInput)
-  const debtAmount = parseFloat(debtInput)
-  const debtChainId = useBorrow((state) => state.debtChainId)
-
-  const changeBorrowChain = useBorrow((state) => state.changeBorrowChain)
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  )
-
-  // TODO: refacto with a "status" in store (i.e status = "editing, approving, signing, borrowing...") ?
-  const [showApprovalModal, setShowApprovalModal] = useState(false)
-
-  const balance = useBorrow(
-    (state) => state.collateralBalances[state.position.collateral.token.symbol]
-  )
-
+  const collateral = useBorrow((state) => state.collateral)
+  const debt = useBorrow((state) => state.debt)
+  const needsSignature = useBorrow((state) => state.needsSignature)
+  const isSigning = useBorrow((state) => state.isSigning)
+  const isExecuting = useBorrow((state) => state.isExecuting)
+  const metaStatus = useBorrow((state) => state.transactionMeta.status)
+  const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
+  const availableRoutes = useBorrow((state) => state.availableRoutes)
+  const vault = useBorrow((state) => state.activeVault)
+  const mode = useBorrow((state) => state.mode)
+  const changeMode = useBorrow((state) => state.changeMode)
+  const changeInputValues = useBorrow((state) => state.changeInputValues)
+  const updateBalances = useBorrow((state) => state.updateBalances)
+  const updateVault = useBorrow((state) => state.updateVault)
+  const updateAllowance = useBorrow((state) => state.updateAllowance)
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice)
+  const signAndExecute = useBorrow((state) => state.signAndExecute)
+
+  const { position, futurePosition } = basePosition
+
+  const dynamicLtvMeta = {
+    ltv: futurePosition ? futurePosition.ltv : position.ltv,
+    ltvMax: futurePosition ? futurePosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvThreshold: futurePosition
+      ? futurePosition.ltvThreshold
+      : position.ltvThreshold,
+  }
+
+  const [showAllowanceModal, setShowAllowanceModal] = useState(false)
+  const [showRoutingModal, setShowRoutingModal] = useState(false)
+  const [actionType, setActionType] = useState(ActionType.ADD)
+  const [hasBalanceInVault, setHasBalanceInVault] = useState(false)
+  const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
+    undefined
+  )
+  const [isLTVModalShown, setIsLTVModalShown] = useState(false)
+  const [ltvModalAction, setLTVModalAction] = useState(() => () => {
+    console.error("Invalid function called")
+  })
+
+  const shouldSignTooltipBeShown = useMemo(() => {
+    return (
+      availableVaultStatus === "ready" &&
+      !(!isEditing && hasBalanceInVault) &&
+      needsSignature
+    )
+  }, [availableVaultStatus, needsSignature, hasBalanceInVault, isEditing])
+
+  useEffect(() => {
+    if (address) {
+      updateBalances("collateral")
+      updateBalances("debt")
+      updateAllowance("collateral")
+      updateAllowance("debt")
+      updateVault()
+    }
+  }, [address, updateBalances, updateAllowance, updateVault])
+
   useEffect(() => {
     updateTokenPrice("collateral")
     updateTokenPrice("debt")
   }, [updateTokenPrice])
 
-  const ltv = useBorrow((state) => state.position.ltv)
-  const ltvMax = useBorrow((state) => state.position.ltvMax)
+  useEffect(() => {
+    changeInputValues("", "")
+  }, [actionType, changeInputValues])
 
-  const signAndBorrow = useBorrow((state) => state.signAndBorrow)
-  const isSigning = useBorrow((state) => state.isSigning)
-  const isBorrowing = useBorrow((state) => state.isBorrowing)
+  useEffect(() => {
+    ;(async () => {
+      if (address && vault) {
+        // Should probably pair/replace this with the position object?
+        const balance = await vault.getBalances(Address.from(address))
+        const hasBalance = balance.deposit.gt(0) || balance.borrow.gt(0)
+        setHasBalanceInVault(hasBalance)
+      }
+    })()
+  }, [address, vault])
 
-  const currentTxHash = useHistory((state) => state.inModal)
-  const closeModal = useHistory((state) => state.closeModal)
-  const metaStatus = useBorrow((state) => state.transactionMeta.status)
-  const availableVaultStatus = useBorrow((state) => state.availableVaultsStatus)
+  useEffect(() => {
+    const mode = modeForContext(
+      isEditing,
+      actionType,
+      Number(collateral.input),
+      Number(debt.input)
+    )
+    changeMode(mode)
+  }, [changeMode, isEditing, collateral.input, debt.input, actionType])
 
-  const [showRoutingModal, setShowRoutingModal] = useState(false)
-  const availableRoutes = useBorrow((state) => state.availableRoutes)
-
-  let button: ReactNode
-  if (!address) {
-    button = (
-      <Button
-        variant="gradient"
-        size="large"
-        onClick={() => login()}
-        fullWidth
-        data-cy="borrow-login"
-      >
-        Connect wallet
-      </Button>
-    )
-  } else if (collateralChainId !== walletChain?.id) {
-    button = (
-      <Button
-        variant="gradient"
-        size="large"
-        fullWidth
-        onClick={() => changeChain(collateral.token.chainId)}
-      >
-        Switch network
-      </Button>
-    )
-  } else if (collateralAmount > 0 && collateralAmount > balance) {
-    button = (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        Insufficient {collateral.token.symbol} balance
-      </Button>
-    )
-  } else if (ltv > ltvMax) {
-    button = (
-      <Button variant="gradient" size="large" disabled fullWidth>
-        Not enough collateral
-      </Button>
-    )
-  } else if (
-    collateralAllowance?.value !== undefined &&
-    collateralAllowance.value < collateralAmount
-  ) {
-    button = (
-      <Button
-        variant="gradient"
-        fullWidth
-        size="large"
-        onClick={() => setShowApprovalModal(true)}
-      >
-        Allow
-      </Button>
-    )
-  } else {
-    button = (
-      <LoadingButton
-        variant="gradient"
-        onClick={signAndBorrow}
-        size="large"
-        fullWidth
-        disabled={
-          collateralAmount <= 0 || debtAmount <= 0 || metaStatus !== "ready"
-        }
-        loading={
-          isSigning || isBorrowing || availableVaultStatus === "fetching"
-        }
-        loadingPosition="start"
-        startIcon={<></>}
-      >
-        {(isSigning && "(1/2) Signing...") ||
-          (isBorrowing && "(2/2) Borrowing...") ||
-          "Sign & Borrow"}
-      </LoadingButton>
-    )
+  const proceedWithLTVCheck = (action: () => void) => {
+    setLTVModalAction(() => action)
+    // Checks if ltv close to max ltv
+    dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
+      ? setIsLTVModalShown(true)
+      : action()
   }
 
   return (
     <>
       <Card sx={{ maxWidth: "500px", margin: "auto" }}>
         <CardContent sx={{ width: "100%", p: "1.5rem 2rem" }}>
-          <Typography variant="body2" height="40px" lineHeight="40px">
-            Borrow
-          </Typography>
-
-          <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
-
-          <Box mb="1rem">
-            <ChainSelect
-              label="Collateral from"
-              type="collateral"
-              value={collateralChainId}
-              disabled={isBorrowing}
-              onChange={(chainId) => changeCollateralChain(chainId)}
-            />
-            <TokenCard type="collateral" />
-          </Box>
-
-          <Box>
-            <ChainSelect
-              label="Borrow to"
-              type="borrow"
-              value={debtChainId}
-              disabled={isBorrowing}
-              onChange={(chainId) => changeBorrowChain(chainId)}
-            />
-            <TokenCard type="debt" />
-          </Box>
+          <BorrowHeader
+            chainName={chainName(debt.chainId)}
+            isEditing={isEditing}
+            actionType={actionType}
+            onActionTypeChange={(type) => setActionType(type)}
+            isCrossChainOperation={collateral.chainId !== debt.chainId}
+          />
+          {(actionType === ActionType.ADD
+            ? [collateral, debt]
+            : [debt, collateral]
+          ).map((assetChange, index) => {
+            const collateralIndex = actionType === ActionType.ADD ? 0 : 1
+            const type = index === collateralIndex ? "collateral" : "debt"
+            const balance = assetChange.balances[assetChange.token.symbol]
+            const debtAmount = position.debt.amount
+            const maxAmount =
+              type === "debt" && debtAmount && debtAmount < balance
+                ? debtAmount
+                : balance
+            return (
+              <BorrowBox
+                key={type}
+                type={type}
+                core={index === 0}
+                maxAmount={maxAmount}
+                assetChange={assetChange}
+                isEditing={isEditing}
+                actionType={actionType}
+                chainId={assetChange.chainId}
+                isExecuting={isExecuting}
+                value={assetChange.input}
+                ltvMeta={dynamicLtvMeta}
+              />
+            )
+          })}
 
           <Stack
             direction="row"
             m="1rem 0"
             justifyContent="space-between"
             onClick={() => {
-              availableRoutes.length > 0 &&
+              !isEditing &&
                 !onMobile &&
                 address &&
+                availableRoutes.length > 0 &&
                 setShowRoutingModal(true)
             }}
             sx={{ cursor: address && "pointer" }}
           >
             <Typography variant="small">Route</Typography>
             <Typography variant="small">
-              <u>{`${chainName(collateralChainId)} > ${chainName(
-                debtChainId
-              )}`}</u>
+              <u>
+                {actionType === ActionType.ADD
+                  ? `${chainName(collateral.chainId)} > ${chainName(
+                      debt.chainId
+                    )}`
+                  : `${chainName(debt.chainId)} > ${chainName(
+                      collateral.chainId
+                    )}`}
+              </u>
             </Typography>
           </Stack>
           <Box mb="1rem">
             <Fees />
           </Box>
 
-          {button}
+          {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
-          <Link
-            href="https://www.connext.network/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Grid
-              container
-              justifyContent="center"
-              alignItems="center"
-              mt="2rem"
-            >
-              <Typography variant="small">Powered by</Typography>
-              <Image
-                src="/assets/images/logo/connext-title.svg"
-                height={16}
-                width={95}
-                alt="Connext logo"
-              />
-            </Grid>
-          </Link>
+          <BorrowButton
+            address={address}
+            collateral={collateral}
+            debt={debt}
+            position={position}
+            walletChain={walletChain}
+            ltvMeta={dynamicLtvMeta}
+            metaStatus={metaStatus}
+            needsSignature={needsSignature}
+            isSigning={isSigning}
+            isExecuting={isExecuting}
+            availableVaultStatus={availableVaultStatus}
+            mode={mode}
+            isEditing={isEditing}
+            actionType={actionType}
+            hasBalanceInVault={hasBalanceInVault}
+            onLoginClick={() => {
+              login()
+            }}
+            onChainChangeClick={(chainId) => changeChain(chainId)}
+            onApproveClick={(type) => {
+              setAllowanceType(type)
+              setShowAllowanceModal(true)
+            }}
+            onRedirectClick={(borrow) => {
+              if (borrow) {
+                router.push("/borrow")
+              } else {
+                showPosition(router, walletChain?.id, vault, false)
+              }
+            }}
+            onClick={signAndExecute}
+            ltvCheck={proceedWithLTVCheck}
+          />
+
+          <ConnextFooter />
         </CardContent>
       </Card>
-      {/* TODO: Move txprocessing outside of borrow */}
-      <TransactionProcessingModal
-        hash={currentTxHash}
-        handleClose={closeModal}
-      />
-      {showApprovalModal && (
-        <ApprovalModal handleClose={() => setShowApprovalModal(false)} />
+      {showAllowanceModal && (
+        <AllowanceModal
+          type={allowanceType ?? "collateral"}
+          handleClose={() => {
+            setAllowanceType(undefined)
+            setShowAllowanceModal(false)
+          }}
+        />
       )}
-
       <RoutingModal
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
       />
+      <LTVWarningModal
+        open={isLTVModalShown}
+        ltv={dynamicLtvMeta.ltv}
+        onClose={() => setIsLTVModalShown(false)}
+        action={() => {
+          setIsLTVModalShown(false)
+          ltvModalAction()
+        }}
+      />
     </>
   )
+}
+
+export default Borrow
+
+Borrow.defaultProps = {
+  position: false,
 }

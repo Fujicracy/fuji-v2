@@ -8,7 +8,7 @@ interface Props extends Icon {
   token: Token | string
 }
 
-export default function TokenIcon(props: Props) {
+function TokenIcon(props: Props) {
   const { palette } = useTheme()
   const { token } = props
   const symbol = typeof token === "string" ? token : token.symbol
@@ -21,3 +21,5 @@ export default function TokenIcon(props: Props) {
 
   return renderIcon(props, path, symbol, (e) => setError(e))
 }
+
+export default TokenIcon

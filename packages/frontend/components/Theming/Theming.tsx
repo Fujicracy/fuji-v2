@@ -3,7 +3,7 @@ import { useTheme } from "@mui/material/styles"
 import { Button, CircularProgress, Typography } from "@mui/material"
 import { Box } from "@mui/system"
 
-export default function Theming() {
+function Theming() {
   const { palette } = useTheme()
   return (
     <>
@@ -377,3 +377,5 @@ export default function Theming() {
     </>
   )
 }
+
+export default Theming

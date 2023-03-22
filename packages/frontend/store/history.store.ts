@@ -1,39 +1,39 @@
-import {
-  Address,
-  ChainId,
-  RoutingStep,
-  RoutingStepDetails,
-  Token,
-} from "@x-fuji/sdk"
+import { ChainId, RoutingStep, RoutingStepDetails } from "@x-fuji/sdk"
 import produce from "immer"
 import { create } from "zustand"
-import { devtools, persist } from "zustand/middleware"
+import { persist } from "zustand/middleware"
 import { sdk } from "../services/sdk"
-import ethers from "ethers"
-import { useSnack } from "./snackbar.store"
-import { formatUnits } from "ethers/lib/utils"
 import { useBorrow } from "./borrow.store"
+import { useSnack } from "./snackbar.store"
+import { devtools } from "zustand/middleware"
+import {
+  entryOutput,
+  toHistoryRoutingStep,
+  toRoutingStepDetails,
+} from "../helpers/history"
 
 export type HistoryStore = HistoryState & HistoryActions
 
+export enum HistoryEntryStatus {
+  ONGOING,
+  DONE,
+  ERROR,
+}
+
 type HistoryState = {
-  allHash: string[]
-  activeHash: string[] // ongoing tx
+  allTxns: string[]
+  ongoingTxns: string[]
   byHash: Record<string, HistoryEntry>
 
   inModal?: string // The tx hash displayed in modal
 }
 
-/**
- * ⚠️ DO NOT STORE CLASSE INSTANCE because they are persisted in localstorage
- * and all methods will be lost. Also POO can be heavy to stringify because
- * of inheriting other classes
- */
 export type HistoryEntry = {
   hash: string
-  type: "borrow" // || withdraw || flashclose...
   steps: HistoryRoutingStep[]
-  status: "ongoing" | "error" | "done"
+  status: HistoryEntryStatus
+  connextTransferId?: string
+  vaultAddr?: string
 }
 
 export type HistoryRoutingStep = Omit<
@@ -41,41 +41,7 @@ export type HistoryRoutingStep = Omit<
   "txHash" | "token"
 > & {
   txHash?: string
-  token: SerializableToken
-}
-
-export function toRoutingStepDetails(
-  s: HistoryRoutingStep[]
-): RoutingStepDetails[] {
-  return s.map((s) => ({
-    ...s,
-    txHash: undefined,
-    token: new Token(
-      s.token.chainId,
-      Address.from(s.token.address),
-      s.token.decimals,
-      s.token.symbol,
-      s.token.name
-    ),
-  }))
-}
-
-export function toHistoryRoutingStep(
-  s: RoutingStepDetails[]
-): HistoryRoutingStep[] {
-  return s.map((s: RoutingStepDetails) => {
-    return {
-      ...s,
-      txHash: undefined,
-      token: {
-        chainId: s.token?.chainId as ChainId,
-        address: s.token?.address.value as string,
-        decimals: s.token?.decimals as number,
-        symbol: s.token?.symbol as string,
-        name: s.token?.name as string,
-      },
-    }
-  })
+  token?: SerializableToken
 }
 
 /**
@@ -90,7 +56,7 @@ export type SerializableToken = {
 }
 
 type HistoryActions = {
-  add: (e: HistoryEntry) => void
+  add: (hash: string, vaultAddr: string, steps: RoutingStepDetails[]) => void
   update: (hash: string, patch: Partial<HistoryEntry>) => void
   clearAll: () => void
   watch: (hash: string) => void
@@ -100,8 +66,8 @@ type HistoryActions = {
 }
 
 const initialState: HistoryState = {
-  allHash: [],
-  activeHash: [],
+  allTxns: [],
+  ongoingTxns: [],
   byHash: {},
 }
 
@@ -111,18 +77,24 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        // Add active transaction
-        async add(e) {
+        async add(hash, vaultAddr, steps) {
+          const entry = {
+            vaultAddr,
+            hash,
+            steps: toHistoryRoutingStep(steps),
+            status: HistoryEntryStatus.ONGOING,
+          }
+
           set(
             produce((s: HistoryState) => {
-              s.inModal = e.hash
-              s.byHash[e.hash] = e
-              s.allHash = [e.hash, ...s.allHash]
-              s.activeHash = [e.hash, ...s.activeHash]
+              s.inModal = hash
+              s.byHash[hash] = entry
+              s.allTxns = [hash, ...s.allTxns]
+              s.ongoingTxns = [hash, ...s.ongoingTxns]
             })
           )
 
-          get().watch(e.hash)
+          get().watch(hash)
         },
 
         async watch(hash) {
@@ -131,79 +103,74 @@ export const useHistory = create<HistoryStore>()(
             throw `No entry in history for hash ${hash}`
           }
 
-          let receipt: ethers.providers.TransactionReceipt
-          // TODO: refacto: as long as we cannot store class methods in storage we should not use it (i.e vault.provider.getSmth)
-          const { rpcProvider } = sdk.getConnectionFor(entry.steps[0].chainId)
-          if (rpcProvider) {
-            console.debug("waitForTransaction", hash)
-            receipt = await rpcProvider.waitForTransaction(hash)
-          } else {
-            return console.error("No provider found in position.vault")
-          }
-
-          const startChainId = entry.steps.find(
-            (s) => s.step === RoutingStep.START
-          )?.chainId
-          const endChainId = entry.steps.find(
-            (s) => s.step === RoutingStep.END
-          )?.chainId
-          console.debug({ startChainId, endChainId })
-          if (startChainId === endChainId) {
-            set(
-              produce((s: HistoryState) => {
-                const steps = s.byHash[hash].steps
-                const b = steps.find((s) => s.step === RoutingStep.BORROW)
-                const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-                if (b) b.txHash = receipt.transactionHash
-                if (d) d.txHash = receipt.transactionHash
-              })
-            )
-          } else {
+          try {
+            const srcChainId = entry.steps[0].chainId
+            const connextTransferId = await sdk.getTransferId(srcChainId, hash)
             const stepsWithHash = await sdk.watchTxStatus(
               hash,
               toRoutingStepDetails(entry.steps)
             )
 
             for (let i = 0; i < stepsWithHash.length; i++) {
-              const step = stepsWithHash[i]
-              console.debug("waiting", step.step, "...")
-              // TODO: can txHash fail ?
-              const txHash = await step.txHash
-              console.debug("success", step.step, txHash)
+              const s = stepsWithHash[i]
+              console.debug("waiting", s.step, "...")
+              const txHash = await s.txHash
+              if (!txHash) {
+                throw `Transaction step ${i} failed`
+              }
+              const { rpcProvider } = sdk.getConnectionFor(s.chainId)
+              const receipt = await rpcProvider.waitForTransaction(txHash)
+              if (receipt.status === 0) {
+                throw `Transaction step ${i} failed`
+              }
+              console.debug("success", s.step, txHash)
               set(
                 produce((s: HistoryState) => {
                   s.byHash[hash].steps[i].txHash = txHash
+                  s.byHash[hash].connextTransferId = connextTransferId
                 })
               )
-              console.debug(step.step, txHash)
-              if (step.step === RoutingStep.DEPOSIT) {
+
+              if (
+                s.step === RoutingStep.DEPOSIT ||
+                s.step === RoutingStep.WITHDRAW
+              ) {
                 useBorrow.getState().updateBalances("collateral")
-                useBorrow.getState().updateAllowance()
+              } else if (
+                s.step === RoutingStep.BORROW ||
+                s.step === RoutingStep.PAYBACK
+              ) {
+                useBorrow.getState().updateBalances("debt")
               }
-              if (step.step === RoutingStep.BORROW) {
-                useBorrow.getState().updateBalances("collateral")
+
+              if (s.step === RoutingStep.DEPOSIT) {
+                useBorrow.getState().updateAllowance("collateral")
+              } else if (s.step === RoutingStep.PAYBACK) {
+                useBorrow.getState().updateAllowance("debt")
               }
-              // TODO: can we have error ? if yes mark the tx as failed. Design ? Retry ?
+
+              const { title, transactionUrl } = entryOutput(s, txHash)
+
+              useSnack.getState().display({
+                type: "success",
+                title,
+                transactionUrl,
+              })
             }
+            get().update(hash, { status: HistoryEntryStatus.DONE })
+          } catch (e) {
+            console.error(e)
+            useSnack.getState().display({
+              type: "error",
+              title:
+                "The transaction cannot be processed, please try again later.",
+            })
+
+            get().update(hash, { status: HistoryEntryStatus.ERROR })
+          } finally {
+            const ongoingTxns = get().ongoingTxns.filter((h) => h !== hash)
+            set({ ongoingTxns })
           }
-
-          const { steps } = get().byHash[hash]
-          const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-          const dAmount = d?.amount && formatUnits(d.amount, d.token.decimals)
-          const b = steps.find((s) => s.step === RoutingStep.BORROW)
-          const bAmount = b?.amount && formatUnits(b.amount, b.token.decimals)
-          useSnack.getState().display({
-            icon: "success",
-            title: `Deposit ${dAmount} ${d?.token.symbol} and borrow ${bAmount} ${b?.token.symbol}`,
-            transactionLink: {
-              hash: b?.txHash,
-              chainId: b?.chainId,
-            },
-          })
-
-          get().update(hash, { status: "done" })
-          const activeHash = get().activeHash.filter((h) => h !== hash)
-          set({ activeHash })
         },
 
         update(hash, patch) {
@@ -211,6 +178,7 @@ export const useHistory = create<HistoryStore>()(
           if (!entry) {
             throw `No entry in history for hash ${hash}`
           }
+
           set(
             produce((s: HistoryState) => {
               s.byHash[hash] = { ...s.byHash[hash], ...patch }
@@ -220,7 +188,8 @@ export const useHistory = create<HistoryStore>()(
 
         clearAll() {
           useHistory.persist.clearStorage()
-          set({ allHash: [...get().activeHash] })
+          set(initialState)
+          // set({ allTxns: [...get().ongoingTxns] })
         },
 
         openModal(hash) {
@@ -250,7 +219,7 @@ export const useHistory = create<HistoryStore>()(
           if (!state) {
             return console.error("no state")
           }
-          for (const hash of state.activeHash) {
+          for (const hash of state.ongoingTxns) {
             state.watch(hash)
           }
         }

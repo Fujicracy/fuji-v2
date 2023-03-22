@@ -11,10 +11,10 @@ import {
   useTheme,
 } from "@mui/material"
 import MarketsTable from "./MarketsTable"
-import Lending from "./Lending"
+import Lending from "../Shared/Lending/Lending"
 import { theme } from "../../styles/theme"
 
-export default function Markets() {
+function Markets() {
   const { palette } = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [currentTab, setCurrentTab] = useState(0)
@@ -138,9 +138,15 @@ export default function Markets() {
         )} */}
       </Grid>
 
-      {currentTab === 0 && <MarketsTable />}
-
-      {currentTab === 1 && <Lending />}
+      {currentTab === 0 ? (
+        <MarketsTable />
+      ) : (
+        <Box sx={{ height: "33rem", width: "100%" }}>
+          <Lending />
+        </Box>
+      )}
     </Box>
   )
 }
+
+export default Markets

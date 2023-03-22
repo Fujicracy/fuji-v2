@@ -9,7 +9,7 @@ import {
 import TwitterIcon from "@mui/icons-material/Twitter"
 import { DiscordIcon } from "./Icons"
 
-export default function ParameterLinks() {
+function ParameterLinks() {
   const { palette } = useTheme()
 
   return (
@@ -59,3 +59,5 @@ export default function ParameterLinks() {
     </>
   )
 }
+
+export default ParameterLinks

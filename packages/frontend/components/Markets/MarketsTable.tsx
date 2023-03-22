@@ -1,5 +1,4 @@
 import {
-  Link,
   Stack,
   Table,
   TableBody,
@@ -12,10 +11,10 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import MarketsTableRow from "./MarketsTableRow"
 import { useEffect, useState } from "react"
-import { Address } from "@x-fuji/sdk"
+import { Address, BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
 import { useAuth } from "../../store/auth.store"
 import { sdk } from "../../services/sdk"
-import { SizableTableCell } from "../Shared/SizableTableCell"
+import SizableTableCell from "../Shared/SizableTableCell"
 import {
   groupByPair,
   MarketRow,
@@ -24,12 +23,18 @@ import {
   setLlamas,
   Status,
 } from "../../helpers/markets"
+import { showPosition } from "../../helpers/navigation"
+import { useRouter } from "next/router"
+import { DocsTooltip } from "../Shared/Tooltips"
 
-export default function MarketsTable() {
+function MarketsTable() {
   const { palette } = useTheme()
   const address = useAuth((state) => state.address)
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([])
+  const router = useRouter()
+
+  const walletChain = useAuth((state) => state.chain)
 
   useEffect(() => {
     const addr = address ? Address.from(address) : undefined
@@ -70,6 +75,10 @@ export default function MarketsTable() {
       }
     })()
   }, [address])
+
+  const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
+    showPosition(router, walletChain?.id as string, entity)
+  }
 
   return (
     <TableContainer>
@@ -125,10 +134,10 @@ export default function MarketsTable() {
                 )} */}
               </Stack>
             </SizableTableCell>
-            <SizableTableCell width="140px" align="right">
+            <SizableTableCell width="130px" align="right">
               Collateral APR
             </SizableTableCell>
-            <SizableTableCell align="right" width="140px">
+            <SizableTableCell align="right" width="130px">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -154,28 +163,7 @@ export default function MarketsTable() {
                 spacing="0.25rem"
                 justifyContent="right"
               >
-                <Tooltip
-                  arrow
-                  title={
-                    <span>
-                      We take into account variables such as liquidity, audits
-                      and team behind each protocol, you can read more on our
-                      risk framework{" "}
-                      <Link
-                        href="https://docs.fujidao.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <u> here</u>
-                      </Link>
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: "0.875rem", color: palette.info.main }}
-                  />
-                </Tooltip>
+                <DocsTooltip />
                 <span>Safety Rating</span>
               </Stack>
             </SizableTableCell>
@@ -186,10 +174,12 @@ export default function MarketsTable() {
         </TableHead>
         <TableBody>
           {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} />
+            <MarketsTableRow key={i} row={row} onClick={handleClick} />
           ))}
         </TableBody>
       </Table>
     </TableContainer>
   )
 }
+
+export default MarketsTable

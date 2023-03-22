@@ -1,4 +1,4 @@
-import { formatBalance } from "../../helpers/values"
+import { toNotSoFixed } from "../../helpers/values"
 
 type Props = {
   balance?: number
@@ -13,9 +13,8 @@ type Props = {
   dataCy?: string
 }
 
-const Balance = ({ balance, rounding, symbol, dataCy }: Props) => {
-  const formattedBalance = formatBalance(balance, rounding)
-
+function Balance({ balance, symbol, dataCy }: Props) {
+  const formattedBalance = toNotSoFixed(balance) //formatBalance(balance)
   return (
     <span id="balance-amount" data-cy={dataCy}>
       {formattedBalance} {symbol}

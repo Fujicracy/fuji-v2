@@ -9,9 +9,12 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import { useBorrow } from "../../store/borrow.store"
+import { toNotSoFixed } from "../../helpers/values"
 
-export const Fees = () => {
+function Fees() {
   const transactionMeta = useBorrow((state) => state.transactionMeta)
+  const collateral = useBorrow((state) => state.collateral)
+  const debt = useBorrow((state) => state.debt)
   const [showTransactionDetails, setShowTransactionDetails] = useState(false)
   const show = showTransactionDetails && transactionMeta.status === "ready"
 
@@ -55,21 +58,30 @@ export const Fees = () => {
       <Collapse in={show} sx={{ width: "100%" }}>
         <Fee
           label="Bridge fee"
-          value={`~$${transactionMeta.bridgeFee.toFixed(2)}`}
+          value={`~$${toNotSoFixed(transactionMeta.bridgeFee)}`}
         />
         <Fee
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
         />
+        {collateral.chainId !== debt.chainId && (
+          <Fee
+            label="Est. slippage"
+            value={`~${transactionMeta.estimateSlippage} %`}
+          />
+        )}
       </Collapse>
     </Card>
   )
 }
 
+export default Fees
+
 type FeeProps = {
   label: string
   value: string | ReactNode
 }
+
 const Fee = ({ label, value }: FeeProps) => (
   <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
     <Typography variant="small">{label}</Typography>

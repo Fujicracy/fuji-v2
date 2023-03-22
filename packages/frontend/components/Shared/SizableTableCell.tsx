@@ -6,7 +6,7 @@ import { TableCell, TableCellProps } from "@mui/material"
 type SizableTableCellProps = TableCellProps & {
   width?: string
 }
-export const SizableTableCell = (props: SizableTableCellProps) => {
+function SizableTableCell(props: SizableTableCellProps) {
   const { width, children } = props
 
   return (
@@ -22,3 +22,5 @@ export const SizableTableCell = (props: SizableTableCellProps) => {
     </TableCell>
   )
 }
+
+export default SizableTableCell

@@ -3,7 +3,7 @@ import Head from "next/head"
 import { Container, useTheme, useMediaQuery } from "@mui/material"
 
 import Footer from "../components/Shared/Footer"
-import Header from "../components/Shared/Header"
+import Header from "../components/Shared/Header/Header"
 
 import MyPositions from "../components/Positions/MyPositions"
 

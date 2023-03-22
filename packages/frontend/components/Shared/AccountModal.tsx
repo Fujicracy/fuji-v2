@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
   Box,
+  capitalize,
 } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
@@ -25,11 +26,11 @@ import { RoutingStep } from "@x-fuji/sdk"
 import {
   HistoryEntry,
   useHistory,
-  HistoryRoutingStep,
+  HistoryEntryStatus,
 } from "../../store/history.store"
-import { chainName } from "../../services/chains"
+import { addressUrl, hexToChainId } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
-import { transactionAddress } from "../../helpers/transactionInformations"
+import { stepFromEntry } from "../../helpers/history"
 
 type AccountModalProps = {
   isOpen: boolean
@@ -38,39 +39,53 @@ type AccountModalProps = {
   closeAccountModal: () => void
 }
 
-export default function AccountModal(props: AccountModalProps) {
+function AccountModal({
+  isOpen,
+  anchorEl,
+  address,
+  closeAccountModal,
+}: AccountModalProps) {
   const { palette } = useTheme()
   const [copied, setCopied] = useState(false)
   const [copyAddressHovered, setCopyAddressHovered] = useState(false)
   const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false)
   const logout = useAuth((state) => state.logout)
-  const chainId = useAuth((state) => state.chain?.id)
+  const hexChainId = useAuth((state) => state.chain?.id)
   const walletName = useAuth((state) => state.walletName)
 
   const historyEntries = useHistory((state) =>
-    state.allHash.map((hash) => state.byHash[hash]).slice(0, 3)
+    state.allTxns.map((hash) => state.byHash[hash]).slice(0, 3)
   )
   const openModal = useHistory((state) => state.openModal)
   const clearAll = useHistory((state) => state.clearAll)
 
+  const chainId = hexToChainId(hexChainId)
   const formattedAddress =
-    props.address.substring(0, 8) +
-    "..." +
-    props.address.substring(props.address.length - 4)
+    address.substring(0, 8) + "..." + address.substring(address.length - 4)
 
   const copy = () => {
-    navigator.clipboard.writeText(props.address)
+    navigator.clipboard.writeText(address)
     setCopied(true)
     setTimeout(() => {
       setCopied(false)
     }, 5000)
   }
 
+  const handleEntryClick = (entry: HistoryEntry) => {
+    openModal(entry.hash)
+    closeAccountModal()
+  }
+
+  const onLogout = () => {
+    logout()
+    clearAll()
+  }
+
   return (
     <Popover
-      open={props.isOpen}
-      onClose={props.closeAccountModal}
-      anchorEl={props.anchorEl}
+      open={isOpen}
+      onClose={closeAccountModal}
+      anchorEl={anchorEl}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       PaperProps={{ sx: { background: "transparent", padding: 0 } }}
@@ -86,7 +101,7 @@ export default function AccountModal(props: AccountModalProps) {
             <Typography variant="xsmall">
               Connected with {walletName}
             </Typography>
-            <Button variant="small" onClick={logout}>
+            <Button variant="small" onClick={onLogout}>
               Disconnect
             </Button>
           </Stack>
@@ -133,7 +148,7 @@ export default function AccountModal(props: AccountModalProps) {
 
             <Box>
               <a
-                href={transactionAddress(chainId, props.address)}
+                href={addressUrl(chainId, address)}
                 target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
                 rel="noreferrer"
               >
@@ -177,8 +192,9 @@ export default function AccountModal(props: AccountModalProps) {
           <Stack direction="row" justifyContent="space-between" mx="1.25rem">
             <Typography variant="xsmall">Recent Transactions</Typography>
             {historyEntries.length > 0 &&
-              historyEntries.filter((entry) => entry.status === "ongoing")
-                .length !== historyEntries.length && (
+              historyEntries.filter(
+                (entry) => entry.status === HistoryEntryStatus.ONGOING
+              ).length !== historyEntries.length && (
                 <Typography variant="xsmallLink" onClick={clearAll}>
                   clear all
                 </Typography>
@@ -191,7 +207,7 @@ export default function AccountModal(props: AccountModalProps) {
                 <BorrowEntry
                   key={e.hash}
                   entry={e}
-                  onClick={() => openModal(e.hash)}
+                  onClick={() => handleEntryClick(e)}
                 />
               ))
             ) : (
@@ -208,23 +224,26 @@ export default function AccountModal(props: AccountModalProps) {
   )
 }
 
+export default AccountModal
+
 type BorrowEntryProps = {
   entry: HistoryEntry
   onClick: () => void
 }
 
 function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
-  const collateral = entry.steps.find(
-    (s) => s.step === RoutingStep.DEPOSIT
-  ) as HistoryRoutingStep
-  const debt = entry.steps.find(
-    (s) => s.step === RoutingStep.BORROW
-  ) as HistoryRoutingStep
+  const deposit = stepFromEntry(entry, RoutingStep.DEPOSIT)
+  const borrow = stepFromEntry(entry, RoutingStep.BORROW)
+  const payback = stepFromEntry(entry, RoutingStep.PAYBACK)
+  const withdraw = stepFromEntry(entry, RoutingStep.WITHDRAW)
+
+  const firstStep = deposit ?? payback
+  const secondStep = borrow ?? withdraw
 
   const { palette } = useTheme()
 
   const listAction =
-    entry.status === "ongoing" ? (
+    entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: "-1rem" }} />
     ) : (
       <CheckIcon
@@ -238,17 +257,30 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
       />
     )
 
+  const firstTitle =
+    firstStep && firstStep.token
+      ? `${firstStep.step.toString()} ${formatUnits(
+          firstStep.amount ?? 0,
+          firstStep.token.decimals
+        )} ${firstStep.token.symbol}`
+      : ""
+
+  const connector = firstStep ? " and " : ""
+  const secondTitle =
+    secondStep && secondStep.token
+      ? `${secondStep.step.toString()} ${formatUnits(
+          secondStep.amount ?? 0,
+          secondStep.token.decimals
+        )} ${secondStep.token.symbol}`
+      : ""
+
+  const title = capitalize(firstTitle + connector + secondTitle)
+
   return (
     <ListItemButton sx={{ px: "1.25rem", py: ".25rem" }} onClick={onClick}>
       <ListItem secondaryAction={listAction} sx={{ p: 0, pr: "3rem" }}>
         <ListItemText sx={{ m: 0 }}>
-          <Typography variant="xsmall">
-            Deposit{" "}
-            {formatUnits(collateral.amount ?? 0, collateral.token.decimals)}{" "}
-            {collateral.token.symbol} and borrow{" "}
-            {formatUnits(debt.amount ?? 0, debt.token.decimals)}{" "}
-            {debt.token.symbol} on {chainName(debt.token.chainId)}
-          </Typography>
+          <Typography variant="xsmall">{title}</Typography>
         </ListItemText>
       </ListItem>
     </ListItemButton>

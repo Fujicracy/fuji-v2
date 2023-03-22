@@ -16,16 +16,18 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import CheckIcon from "@mui/icons-material/Check"
 
 import { useAuth } from "../../store/auth.store"
-import { chains, chainName } from "../../services/chains"
+import { chains, chainName, hexToChainId } from "../../helpers/chains"
 import { NetworkIcon } from "./Icons"
+import { ChainId } from "@x-fuji/sdk"
 
-export default function ChainSelect() {
+function ChainSelect() {
   const theme = useTheme()
   const onMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const [chainId, setChainId] = useAuth((state) => [
+  const [hexChainId, setChainId] = useAuth((state) => [
     state.chain?.id,
     state.changeChain,
   ])
+  const chainId = hexToChainId(hexChainId)
   const networkName = chainName(chainId)
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
@@ -34,7 +36,7 @@ export default function ChainSelect() {
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget)
   }
-  const selectChain = (chainId: string) => {
+  const selectChain = (chainId: ChainId) => {
     setChainId(chainId)
     setAnchorEl(null)
   }
@@ -84,10 +86,13 @@ export default function ChainSelect() {
         }}
       >
         {chains.map((chain) => (
-          <MenuItem key={chain.id} onClick={() => selectChain(chain.id)}>
+          <MenuItem
+            key={chain.chainId}
+            onClick={() => selectChain(chain.chainId)}
+          >
             <ListItem
-              chainName={chainName(chain.id)}
-              selected={chainId === chain.id}
+              chainName={chainName(chain.chainId)}
+              selected={chainId === chain.chainId}
               onMobile={false}
             />
           </MenuItem>
@@ -118,3 +123,5 @@ const ListItem = (props: ListItemProps) => {
     </>
   )
 }
+
+export default ChainSelect

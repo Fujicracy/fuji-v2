@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
   Typography,
   Chip,
@@ -11,10 +11,10 @@ import {
 } from "@mui/material"
 
 import { usePositions } from "../../store/positions.store"
-import { useAuth } from "../../store/auth.store"
 
-import { PositionSummary } from "./PositionSummary"
-import { PositionsBorrowTable } from "./PositionBorrowTable"
+import MyPositionsSummary from "./MyPositionsSummary"
+import MyPositionsBorrowTable from "./MyPositionsBorrowTable"
+import Lending from "../Shared/Lending/Lending"
 
 function MyPositions() {
   const { breakpoints } = useTheme()
@@ -24,19 +24,7 @@ function MyPositions() {
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue)
 
-  const account = useAuth((state) => state.address)
-  const fetchPositions = usePositions((state) => state.fetchUserPositions)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (account) {
-      setLoading(true)
-      ;(async () => {
-        await fetchPositions()
-        setLoading(false)
-      })()
-    }
-  }, [account, fetchPositions])
+  const loading = usePositions((state) => state.loading)
 
   return (
     <>
@@ -47,7 +35,7 @@ function MyPositions() {
         Fuji manages your borrowing and lending positions for maximum capital
         efficiency
       </Typography>
-      <PositionSummary />
+      <MyPositionsSummary />
       <Box mt={2} mb={3}>
         <Tabs
           value={currentTab}
@@ -56,7 +44,6 @@ function MyPositions() {
         >
           <Tab label="Borrowing" />
           <Tab
-            disabled
             label={
               <Stack direction="row" alignItems="center" gap={1}>
                 Lending
@@ -72,7 +59,14 @@ function MyPositions() {
           />
         </Tabs>
       </Box>
-      {currentTab === 0 && <PositionsBorrowTable loading={loading} />}
+
+      {currentTab === 0 ? (
+        <MyPositionsBorrowTable loading={loading} />
+      ) : (
+        <Box sx={{ height: "31rem", width: "100%" }}>
+          <Lending />
+        </Box>
+      )}
     </>
   )
 }

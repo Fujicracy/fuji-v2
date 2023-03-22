@@ -9,6 +9,7 @@ declare module "@mui/material/Button" {
     gradient: true
     small: true
     rounded: true
+    "white-outlined": true
   }
 }
 
@@ -21,12 +22,13 @@ declare module "@mui/material/Chip" {
     routing: true
     recommended: true
     selected: true
+    currency: true
   }
 }
 
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
-    currency: true
+    position: true
     lending: true
   }
 }
@@ -233,6 +235,15 @@ const theme = createTheme(colorTheme, {
         },
         {
           props: {
+            variant: "white-outlined",
+          },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            border: `1px solid ${colorTheme.palette.text.primary}`,
+          },
+        },
+        {
+          props: {
             variant: "secondary2",
           },
           style: {
@@ -339,7 +350,7 @@ const theme = createTheme(colorTheme, {
         },
         {
           props: {
-            variant: "currency",
+            variant: "position",
           },
           style: {
             borderRadius: "0.5rem",
@@ -529,6 +540,19 @@ const theme = createTheme(colorTheme, {
             height: "22px",
             color: colorTheme.palette.primary.main,
             border: `1px solid ${colorTheme.palette.primary.main}`,
+          },
+        },
+
+        {
+          props: {
+            variant: "currency",
+          },
+          style: {
+            height: "28px",
+            fontSize: "0.9rem",
+            lineHeight: "100%",
+            backgroundColor: colorTheme.palette.secondary.light,
+            color: "white",
           },
         },
       ],
