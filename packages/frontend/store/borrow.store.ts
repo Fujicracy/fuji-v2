@@ -332,9 +332,6 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeSlippageValue(slippage) {
-          const json = JSON.stringify(slippage)
-          localStorage.setItem("slippage", json)
-
           set({ slippage })
         },
 
