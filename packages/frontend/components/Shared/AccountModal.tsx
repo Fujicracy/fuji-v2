@@ -28,7 +28,7 @@ import {
   useHistory,
   HistoryEntryStatus,
 } from "../../store/history.store"
-import { addressUrl } from "../../helpers/chains"
+import { addressUrl, hexToChainId } from "../../helpers/chains"
 import { useAuth } from "../../store/auth.store"
 import { stepFromEntry } from "../../helpers/history"
 
@@ -50,7 +50,7 @@ function AccountModal({
   const [copyAddressHovered, setCopyAddressHovered] = useState(false)
   const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false)
   const logout = useAuth((state) => state.logout)
-  const chainId = useAuth((state) => state.chain?.id)
+  const hexChainId = useAuth((state) => state.chain?.id)
   const walletName = useAuth((state) => state.walletName)
 
   const historyEntries = useHistory((state) =>
@@ -59,6 +59,7 @@ function AccountModal({
   const openModal = useHistory((state) => state.openModal)
   const clearAll = useHistory((state) => state.clearAll)
 
+  const chainId = hexToChainId(hexChainId)
   const formattedAddress =
     address.substring(0, 8) + "..." + address.substring(address.length - 4)
 

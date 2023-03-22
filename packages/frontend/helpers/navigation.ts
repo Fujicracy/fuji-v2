@@ -1,6 +1,6 @@
 import { BorrowingVault, VaultWithFinancials, Token } from "@x-fuji/sdk"
 import { NextRouter } from "next/router"
-import { chainName } from "./chains"
+import { chainName, hexToChainId } from "./chains"
 import { sdk } from "../services/sdk"
 import { useBorrow } from "../store/borrow.store"
 import { usePositions } from "../store/positions.store"
@@ -30,7 +30,8 @@ export const showPosition = async (
   if (!vault) return
 
   const changeAll = useBorrow.getState().changeAll
-  const isSupported = chainName(walletChainId) !== ""
+  const isSupported =
+    walletChainId && chainName(hexToChainId(walletChainId)) !== ""
   if (isSupported) {
     const collaterals = sdk.getCollateralForChain(Number(walletChainId))
     const collateralToken = collaterals.find(
