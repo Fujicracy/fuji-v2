@@ -27,6 +27,7 @@ import { showPosition } from "../../helpers/navigation"
 import { BasePosition } from "../../helpers/positions"
 import { ActionType, AssetType } from "../../helpers/assets"
 import LTVWarningModal from "../Shared/LTVWarningModal"
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos"
 
 type BorrowProps = {
   isEditing: boolean
@@ -191,18 +192,35 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             }}
             sx={{ cursor: address && "pointer" }}
           >
-            <Typography variant="small">Route</Typography>
-            <Typography variant="small">
-              <u>
-                {actionType === ActionType.ADD
-                  ? `${chainName(collateral.chainId)} > ${chainName(
-                      debt.chainId
-                    )}`
-                  : `${chainName(debt.chainId)} > ${chainName(
-                      collateral.chainId
-                    )}`}
-              </u>
-            </Typography>
+            <Typography variant="smallDark">Optimized Route</Typography>
+            {availableRoutes.length === 0 ? (
+              <></>
+            ) : availableRoutes.length === 1 ? (
+              <Typography variant="h6" sx={{ fontSize: "0.875rem" }}>
+                <u>
+                  {actionType === ActionType.ADD
+                    ? `${chainName(collateral.chainId)} > ${chainName(
+                        debt.chainId
+                      )}`
+                    : `${chainName(debt.chainId)} > ${chainName(
+                        collateral.chainId
+                      )}`}
+                </u>
+              </Typography>
+            ) : (
+              <Stack direction="row">
+                <Typography variant="h6" sx={{ fontSize: "0.875rem" }}>
+                  View all {availableRoutes.length} Routes
+                </Typography>
+                <ArrowForwardIosIcon
+                  viewBox="0 0 24 24"
+                  sx={{
+                    fontSize: 24,
+                    p: "5px",
+                  }}
+                />
+              </Stack>
+            )}
           </Stack>
           <Box mb="1rem">
             <Fees />

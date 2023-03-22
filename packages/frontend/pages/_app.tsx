@@ -28,6 +28,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const currentTxHash = useHistory((state) => state.inModal)
   const fetchPositions = usePositions((state) => state.fetchUserPositions)
   const updateVault = useBorrow((state) => state.updateVault)
+  const updateAvailableRoutes = useBorrow(
+    (state) => state.updateAvailableRoutes
+  )
 
   useEffect(() => {
     mixpanel.init("030ddddf19623797be516b634956d108", {
@@ -47,6 +50,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     const handleRouteChange = (url: string) => {
       const isTop = isTopLevelUrl(url)
       if (isTop && address) {
+        updateAvailableRoutes([])
         fetchPositions()
         updateVault()
       }

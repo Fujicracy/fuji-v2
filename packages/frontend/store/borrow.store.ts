@@ -115,6 +115,8 @@ type BorrowActions = {
   updateLiquidation: () => void
   updateVaultBalance: () => void
 
+  updateAvailableRoutes: (routes: RouteMeta[]) => void
+
   allow: (amount: number, type: AssetType, callback: () => void) => void
   signPermit: () => void
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>
@@ -204,6 +206,10 @@ export const useBorrow = create<BorrowStore>()(
 
         async changeMode(mode) {
           set({ mode, needsSignature: false })
+        },
+
+        async updateAvailableRoutes(routes: RouteMeta[]) {
+          set({ availableRoutes: routes })
         },
 
         async changeAll(collateral, debt, vault) {
