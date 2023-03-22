@@ -1,14 +1,19 @@
-import React from "react"
-import { ListItemIcon, ListItemText, MenuItem, Typography } from "@mui/material"
+import {
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Typography,
+} from '@mui/material';
+import React from 'react';
 
-import { chains } from "../../helpers/chains"
-import { NetworkIcon } from "../Shared/Icons"
+import { chains } from '../../helpers/chains';
+import { NetworkIcon } from '../Shared/Icons';
 
-type Chain = (typeof chains)[0]
+type Chain = (typeof chains)[0];
 
 type CollateralDropdownProps = {
-  chains: Chain[]
-}
+  chains: Chain[];
+};
 
 function CollateralDropdown({ chains }: CollateralDropdownProps) {
   return (
@@ -23,10 +28,10 @@ function CollateralDropdown({ chains }: CollateralDropdownProps) {
               <Typography variant="body">{chain.name}</Typography>
             </ListItemText>
           </MenuItem>
-        )
+        );
       })}
     </>
-  )
+  );
 }
 
-export default CollateralDropdown
+export default CollateralDropdown;

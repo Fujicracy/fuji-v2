@@ -1,17 +1,18 @@
-import { Divider, Typography, Stack, Box } from "@mui/material"
-import { ActionType } from "../../helpers/assets"
-import { NetworkIcon } from "../Shared/Icons"
-import TabChip from "../Shared/TabChip"
-import SlippageSettings from "../Shared/SlippageSettings"
-import TooltipWrapper from "../Shared/Tooltips/TooltipWrapper"
+import { Box, Divider, Stack, Typography } from '@mui/material';
+
+import { ActionType } from '../../helpers/assets';
+import { NetworkIcon } from '../Shared/Icons';
+import SlippageSettings from '../Shared/SlippageSettings';
+import TabChip from '../Shared/TabChip';
+import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
 
 type BorrowHeaderProps = {
-  isEditing: boolean
-  actionType: ActionType
-  chainName: string
-  onActionTypeChange: (action: ActionType) => void
-  isCrossChainOperation: boolean
-}
+  isEditing: boolean;
+  actionType: ActionType;
+  chainName: string;
+  onActionTypeChange: (action: ActionType) => void;
+  isCrossChainOperation: boolean;
+};
 
 function BorrowHeader({
   isEditing,
@@ -20,7 +21,7 @@ function BorrowHeader({
   onActionTypeChange,
   isCrossChainOperation,
 }: BorrowHeaderProps) {
-  const networkMessage = `Your position is currently on the ${chainName} Network`
+  const networkMessage = `Your position is currently on the ${chainName} Network`;
 
   return (
     <>
@@ -46,9 +47,9 @@ function BorrowHeader({
               title={
                 <Box
                   sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "10rem",
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '10rem',
                   }}
                 >
                   <Typography variant="small">{networkMessage}</Typography>
@@ -58,7 +59,7 @@ function BorrowHeader({
               <NetworkIcon network={chainName} height={18} width={18} />
             </TooltipWrapper>
             {isCrossChainOperation && (
-              <Box sx={{ ml: "1rem" }}>
+              <Box sx={{ ml: '1rem' }}>
                 <SlippageSettings />
               </Box>
             )}
@@ -77,7 +78,7 @@ function BorrowHeader({
           {isCrossChainOperation && <SlippageSettings />}
         </Stack>
       )}
-      <Divider sx={{ mt: "1rem", mb: "0.5rem" }} />
+      <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
       {isEditing && (
         <Stack
           direction="row"
@@ -91,16 +92,16 @@ function BorrowHeader({
               key={`${p}`}
               sx={p === ActionType.REMOVE ? { marginLeft: 1 } : {}}
               selected={actionType === p}
-              label={`${p === ActionType.ADD ? "Add" : "Remove"} Position`}
+              label={`${p === ActionType.ADD ? 'Add' : 'Remove'} Position`}
               onClick={() => {
-                onActionTypeChange(p)
+                onActionTypeChange(p);
               }}
             />
           ))}
         </Stack>
       )}
     </>
-  )
+  );
 }
 
-export default BorrowHeader
+export default BorrowHeader;

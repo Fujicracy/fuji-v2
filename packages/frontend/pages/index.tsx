@@ -1,10 +1,10 @@
-import { NextPage } from "next"
-import Head from "next/head"
-import Image from "next/image"
+import { NextPage } from 'next';
+import Head from 'next/head';
+import Image from 'next/image';
 
-import Footer from "../components/Shared/Footer"
-import Header from "../components/Shared/Header/Header"
-import styles from "../styles/Home.module.css"
+import Footer from '../components/Shared/Footer';
+import Header from '../components/Shared/Header/Header';
+import styles from '../styles/Home.module.css';
 
 const Home: NextPage = () => {
   return (
@@ -24,7 +24,7 @@ const Home: NextPage = () => {
           </h1>
 
           <p className={styles.description}>
-            Get started by editing{" "}
+            Get started by editing{' '}
             <code className={styles.code}>pages/index.tsx</code>
           </p>
 
@@ -65,7 +65,7 @@ const Home: NextPage = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Powered by{" "}
+            Powered by{' '}
             <span className={styles.logo}>
               <Image
                 src="/vercel.svg"
@@ -80,7 +80,7 @@ const Home: NextPage = () => {
 
       <Footer />
     </>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

@@ -1,16 +1,16 @@
-import React from "react"
-import { Box, Chip, Stack } from "@mui/material"
+import { Box, Chip, Stack } from '@mui/material';
 // import { Box, Button, Chip, Fade, Menu, MenuItem, Stack } from "@mui/material"
 // import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 // import CheckIcon from "@mui/icons-material/Check"
-import { LendingProviderDetails } from "@x-fuji/sdk"
+import { LendingProviderDetails } from '@x-fuji/sdk';
+import React from 'react';
 
-import { ProviderIcon } from "../../Shared/Icons"
+import { ProviderIcon } from '../../Shared/Icons';
 
 type VaultsMenuProps = {
   // vault: BorrowingVault
-  providers: LendingProviderDetails[]
-}
+  providers: LendingProviderDetails[];
+};
 
 // Commenting out most of this component and let it
 // display only the rating and the providers of the activeVault.
@@ -47,7 +47,7 @@ function VaultsMenu({ providers }: VaultsMenuProps) {
           ))}
       </Box>
     </Stack>
-  )
+  );
   // }
 
   // return (
@@ -100,7 +100,7 @@ function VaultsMenu({ providers }: VaultsMenuProps) {
   // )
 }
 
-export default VaultsMenu
+export default VaultsMenu;
 
 // type VaultMenuItemProps = {
 //   route: RouteMeta

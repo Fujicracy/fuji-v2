@@ -1,5 +1,3 @@
-import Head from "next/head"
-
 import {
   CircularProgress,
   Container,
@@ -7,70 +5,71 @@ import {
   Grid,
   useMediaQuery,
   useTheme,
-} from "@mui/material"
+} from '@mui/material';
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
 
-import Borrow from "../../components/Borrow/Borrow"
-import Footer from "../../components/Shared/Footer"
-import Header from "../Shared/Header/Header"
-import Overview from "./Overview/Overview"
-import { useBorrow } from "../../store/borrow.store"
-import { useEffect, useState } from "react"
-import { useAuth } from "../../store/auth.store"
-import { usePositions } from "../../store/positions.store"
-import { Position } from "../../store/models/Position"
+import Borrow from '../../components/Borrow/Borrow';
+import Footer from '../../components/Shared/Footer';
 import {
   BasePosition,
   viewDynamicPosition,
   viewFuturePosition,
-} from "../../helpers/positions"
+} from '../../helpers/positions';
+import { useAuth } from '../../store/auth.store';
+import { useBorrow } from '../../store/borrow.store';
+import { Position } from '../../store/models/Position';
+import { usePositions } from '../../store/positions.store';
+import Header from '../Shared/Header/Header';
+import Overview from './Overview/Overview';
 
 type BorrowWrapperProps = {
   query?: {
-    address: string
-    chain: string
-  }
-}
+    address: string;
+    chain: string;
+  };
+};
 
 function BorrowWrapper({ query }: BorrowWrapperProps) {
-  const { breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const { breakpoints } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const address = useAuth((state) => state.address)
-  const positions = usePositions((state) => state.positions)
-  const baseCollateral = useBorrow((state) => state.collateral)
-  const baseDebt = useBorrow((state) => state.debt)
-  const baseLtv = useBorrow((state) => state.ltv)
-  const mode = useBorrow((state) => state.mode)
-  const formType = useBorrow((state) => state.formType)
+  const address = useAuth((state) => state.address);
+  const positions = usePositions((state) => state.positions);
+  const baseCollateral = useBorrow((state) => state.collateral);
+  const baseDebt = useBorrow((state) => state.debt);
+  const baseLtv = useBorrow((state) => state.ltv);
+  const mode = useBorrow((state) => state.mode);
+  const formType = useBorrow((state) => state.formType);
 
-  const isEditing = formType !== "create"
+  const isEditing = formType !== 'create';
 
   const [basePosition, setBasePosition] = useState<BasePosition>(
     viewDynamicPosition(!isEditing, undefined)
-  )
+  );
   const [loading, setLoading] = useState<boolean>(
     isEditing && (!positions || positions.length === 0)
-  )
+  );
 
   useEffect(() => {
-    let matchPosition: Position | undefined
-    let futurePosition: Position | undefined
+    let matchPosition: Position | undefined;
+    let futurePosition: Position | undefined;
     if (address && positions.length > 0 && query) {
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
-      )
+      );
       futurePosition = matchPosition
         ? viewFuturePosition(baseCollateral, baseDebt, matchPosition, mode)
-        : undefined
+        : undefined;
     }
     const basePosition = viewDynamicPosition(
       !isEditing,
       matchPosition,
       futurePosition
-    )
-    setBasePosition(basePosition)
+    );
+    setBasePosition(basePosition);
   }, [
     baseCollateral,
     baseDebt,
@@ -80,7 +79,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
     mode,
     isEditing,
     query,
-  ])
+  ]);
 
   /*
     Draft implementation: problem is, if the user opens /my-position/[pid] directly,
@@ -89,25 +88,25 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   */
   useEffect(() => {
     if (isEditing && loading && basePosition) {
-      const vault = basePosition.position.vault
+      const vault = basePosition.position.vault;
       if (vault) {
-        const changeAll = useBorrow.getState().changeAll
-        changeAll(vault.collateral, vault.debt, vault)
-        setLoading(false)
+        const changeAll = useBorrow.getState().changeAll;
+        changeAll(vault.collateral, vault.debt, vault);
+        setLoading(false);
       }
     }
-  }, [isEditing, basePosition, loading])
+  }, [isEditing, basePosition, loading]);
 
   return (
     <>
       <Head>
-        <title>{`${isEditing ? "Position" : "Borrow"} - xFuji`}</title>
+        <title>{`${isEditing ? 'Position' : 'Borrow'} - xFuji`}</title>
         <meta
           name="description"
           content={`${
             isEditing
-              ? "position detail"
-              : "borrow at the best rate on any chain"
+              ? 'position detail'
+              : 'borrow at the best rate on any chain'
           }`}
         />
         <link rel="icon" href="/favicon.ico" />
@@ -117,18 +116,18 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
 
       <Divider
         sx={{
-          display: { xs: "block", sm: "none" },
-          mb: "1rem",
+          display: { xs: 'block', sm: 'none' },
+          mb: '1rem',
         }}
       />
 
       <Container
         sx={{
-          mt: { xs: "0", sm: "4rem" },
-          mb: { xs: "7rem", sm: "0" },
-          pl: { xs: "0.25rem", sm: "1rem" },
-          pr: { xs: "0.25rem", sm: "1rem" },
-          minHeight: "75vh",
+          mt: { xs: '0', sm: '4rem' },
+          mb: { xs: '7rem', sm: '0' },
+          pl: { xs: '0.25rem', sm: '1rem' },
+          pr: { xs: '0.25rem', sm: '1rem' },
+          minHeight: '75vh',
         }}
       >
         {loading ? (
@@ -138,7 +137,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
             direction="column"
             alignItems="center"
             justifyContent="center"
-            style={{ minHeight: "100vh" }}
+            style={{ minHeight: '100vh' }}
           >
             <CircularProgress size={32} />
           </Grid>
@@ -156,7 +155,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
 
       {!isMobile && <Footer />}
     </>
-  )
+  );
 }
 
-export default BorrowWrapper
+export default BorrowWrapper;

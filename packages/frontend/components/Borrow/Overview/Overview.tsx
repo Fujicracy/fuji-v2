@@ -1,24 +1,25 @@
-import React from "react"
-import { useTheme } from "@mui/material/styles"
-import { useMediaQuery } from "@mui/material"
-import LTVProgressBar from "./LTVProgressBar"
-import { useBorrow } from "../../../store/borrow.store"
-import { borrowLimit, recommendedLTV } from "../../../helpers/assets"
-import { BasePosition } from "../../../helpers/positions"
-import Details from "./Details"
-import Summary from "./Summary/Summary"
-import Title from "./Title"
-import Container from "./Container"
+import { useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import React from 'react';
+
+import { borrowLimit, recommendedLTV } from '../../../helpers/assets';
+import { BasePosition } from '../../../helpers/positions';
+import { useBorrow } from '../../../store/borrow.store';
+import Container from './Container';
+import Details from './Details';
+import LTVProgressBar from './LTVProgressBar';
+import Summary from './Summary/Summary';
+import Title from './Title';
 
 type OverviewProps = {
-  basePosition: BasePosition
-}
+  basePosition: BasePosition;
+};
 
 function Overview({ basePosition }: OverviewProps) {
-  const { breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const { breakpoints } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const { position, futurePosition } = basePosition
+  const { position, futurePosition } = basePosition;
   const {
     collateral,
     debt,
@@ -27,20 +28,20 @@ function Overview({ basePosition }: OverviewProps) {
     ltvThreshold,
     liquidationDiff,
     liquidationPrice,
-  } = position
+  } = position;
 
-  const allProviders = useBorrow((state) => state.allProviders)
-  const vault = useBorrow((state) => state.activeVault)
+  const allProviders = useBorrow((state) => state.allProviders);
+  const vault = useBorrow((state) => state.activeVault);
   const providers =
-    allProviders && vault ? allProviders[vault.address.value] : []
+    allProviders && vault ? allProviders[vault.address.value] : [];
 
-  const collateralInput = useBorrow((state) => state.collateral.input)
-  const debtInput = useBorrow((state) => state.debt.input)
+  const collateralInput = useBorrow((state) => state.collateral.input);
+  const debtInput = useBorrow((state) => state.debt.input);
 
-  const dynamicLtv = futurePosition ? futurePosition.ltv : ltv
+  const dynamicLtv = futurePosition ? futurePosition.ltv : ltv;
   const dynamicLtvThreshold = futurePosition
     ? futurePosition.ltvThreshold
-    : ltvThreshold
+    : ltvThreshold;
 
   return (
     <Container isMobile={isMobile}>
@@ -81,7 +82,7 @@ function Overview({ basePosition }: OverviewProps) {
         isMobile={isMobile}
       />
     </Container>
-  )
+  );
 }
 
-export default Overview
+export default Overview;

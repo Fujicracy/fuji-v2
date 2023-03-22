@@ -4,10 +4,11 @@ import {
   RoutingStep,
   RoutingStepDetails,
   Token,
-} from "@x-fuji/sdk"
-import { formatUnits } from "ethers/lib/utils"
-import { HistoryEntry, HistoryRoutingStep } from "../store/history.store"
-import { camelize } from "./values"
+} from '@x-fuji/sdk';
+import { formatUnits } from 'ethers/lib/utils';
+
+import { HistoryEntry, HistoryRoutingStep } from '../store/history.store';
+import { camelize } from './values';
 
 export const toRoutingStepDetails = (
   s: HistoryRoutingStep[]
@@ -24,8 +25,8 @@ export const toRoutingStepDetails = (
           s.token.name
         )
       : undefined,
-  }))
-}
+  }));
+};
 
 export const toHistoryRoutingStep = (
   s: RoutingStepDetails[]
@@ -43,25 +44,25 @@ export const toHistoryRoutingStep = (
             name: s.token.name,
           }
         : undefined,
-    }
-  })
-}
+    };
+  });
+};
 
 export const entryOutput = (
   step: RoutingStepDetails,
   hash: string
 ): {
-  title: string
+  title: string;
   transactionUrl: {
-    hash: string
-    chainId: ChainId
-  }
+    hash: string;
+    chainId: ChainId;
+  };
 } => {
-  const stepAction = camelize(step.step.toString())
+  const stepAction = camelize(step.step.toString());
   const stepAmount =
-    step.amount && formatUnits(step.amount, step.token?.decimals)
-  const title = `${stepAction} ${stepAmount} ${step.token?.symbol}}`
-  const chainId = step.chainId
+    step.amount && formatUnits(step.amount, step.token?.decimals);
+  const title = `${stepAction} ${stepAmount} ${step.token?.symbol}}`;
+  const chainId = step.chainId;
 
   return {
     title,
@@ -69,12 +70,12 @@ export const entryOutput = (
       hash,
       chainId,
     },
-  }
-}
+  };
+};
 
 export const stepFromEntry = (
   entry: HistoryEntry,
   type: RoutingStep
 ): HistoryRoutingStep | undefined => {
-  return entry.steps.find((s) => s.step === type)
-}
+  return entry.steps.find((s) => s.step === type);
+};

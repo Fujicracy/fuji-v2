@@ -1,22 +1,23 @@
-import { useTheme } from "@mui/material"
-import { SyntheticEvent, useState } from "react"
-import { getProviderImage } from "../../../helpers/paths"
-import { Icon, renderIcon, renderIconError } from "./Base/Icon"
+import { useTheme } from '@mui/material';
+import { SyntheticEvent, useState } from 'react';
+
+import { getProviderImage } from '../../../helpers/paths';
+import { Icon, renderIcon, renderIconError } from './Base/Icon';
 
 interface Props extends Icon {
-  provider: string
+  provider: string;
 }
 
-const defaultImage = "/assets/images/protocol-icons/providers/Aave%20V3.svg"
+const defaultImage = '/assets/images/protocol-icons/providers/Aave%20V3.svg';
 
 function ProviderIcon(props: Props) {
-  const { palette } = useTheme()
-  const { provider } = props
-  const path = getProviderImage(provider)
-  const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
+  const { palette } = useTheme();
+  const { provider } = props;
+  const path = getProviderImage(provider);
+  const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>();
 
   if (error) {
-    return renderIconError(props, palette)
+    return renderIconError(props, palette);
   }
   return renderIcon(
     props,
@@ -24,7 +25,7 @@ function ProviderIcon(props: Props) {
     provider,
     (e) => setError(e),
     error ? defaultImage : undefined
-  )
+  );
 }
 
-export default ProviderIcon
+export default ProviderIcon;

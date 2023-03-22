@@ -1,26 +1,27 @@
 import {
   Address,
   BorrowingVault,
+  PreviewResult,
   RouterActionParams,
   RoutingStep,
   RoutingStepDetails,
-  PreviewResult,
   Token,
-} from "@x-fuji/sdk"
-import { sdk } from "../services/sdk"
-import { formatUnits, parseUnits } from "ethers/lib/utils"
-import { Mode } from "./assets"
+} from '@x-fuji/sdk';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+
+import { sdk } from '../services/sdk';
+import { Mode } from './assets';
 
 export type RouteMeta = {
   //gasFees: number
-  estimateSlippage: number
-  bridgeFee: number
-  estimateTime: number
-  steps: RoutingStepDetails[]
-  actions: RouterActionParams[]
-  address: string
-  recommended: boolean
-}
+  estimateSlippage: number;
+  bridgeFee: number;
+  estimateTime: number;
+  steps: RoutingStepDetails[];
+  actions: RouterActionParams[];
+  address: string;
+  recommended: boolean;
+};
 
 export const fetchRoutes = async (
   mode: Mode,
@@ -33,15 +34,15 @@ export const fetchRoutes = async (
   recommended: boolean,
   slippage?: number
 ): Promise<{
-  data?: RouteMeta
-  error?: Error
+  data?: RouteMeta;
+  error?: Error;
 }> => {
   const result: {
-    data?: RouteMeta
-    error?: Error
-  } = {}
+    data?: RouteMeta;
+    error?: Error;
+  } = {};
   try {
-    let preview: PreviewResult
+    let preview: PreviewResult;
     switch (mode) {
       case Mode.DEPOSIT_AND_BORROW:
         preview = await sdk.previews.depositAndBorrow(
@@ -53,8 +54,8 @@ export const fetchRoutes = async (
           Address.from(address),
           undefined,
           slippage
-        )
-        break
+        );
+        break;
       case Mode.DEPOSIT:
         preview = await sdk.previews.deposit(
           vault,
@@ -62,8 +63,8 @@ export const fetchRoutes = async (
           collateralToken,
           Address.from(address),
           slippage
-        )
-        break
+        );
+        break;
       case Mode.BORROW:
         preview = await sdk.previews.borrow(
           vault,
@@ -73,8 +74,8 @@ export const fetchRoutes = async (
           Address.from(address),
           undefined,
           slippage
-        )
-        break
+        );
+        break;
       case Mode.PAYBACK_AND_WITHDRAW:
         preview = await sdk.previews.paybackAndWithdraw(
           vault,
@@ -85,8 +86,8 @@ export const fetchRoutes = async (
           Address.from(address),
           undefined,
           slippage
-        )
-        break
+        );
+        break;
       case Mode.WITHDRAW:
         preview = await sdk.previews.withdraw(
           vault,
@@ -96,8 +97,8 @@ export const fetchRoutes = async (
           Address.from(address),
           undefined,
           slippage
-        )
-        break
+        );
+        break;
       case Mode.PAYBACK:
         preview = await sdk.previews.payback(
           vault,
@@ -105,16 +106,16 @@ export const fetchRoutes = async (
           debtToken,
           Address.from(address),
           slippage
-        )
-        break
+        );
+        break;
     }
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
-      preview
+      preview;
 
-    const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER)
+    const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER);
     const _bridgeFee = bridgeStep
       ? formatUnits(bridgeFee, bridgeStep.token?.decimals ?? 18)
-      : "0"
+      : '0';
 
     result.data = {
       address: vault.address.value,
@@ -125,10 +126,10 @@ export const fetchRoutes = async (
       estimateTime,
       actions,
       steps,
-    }
-    return result
+    };
+    return result;
   } catch (e) {
-    if (e instanceof Error) result.error = e
+    if (e instanceof Error) result.error = e;
   }
-  return result
-}
+  return result;
+};

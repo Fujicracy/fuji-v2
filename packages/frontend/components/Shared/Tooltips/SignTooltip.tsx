@@ -1,14 +1,14 @@
-import React from "react"
-import { Box, Tooltip, Typography, Link } from "@mui/material"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { Box, Link, Tooltip, Typography } from '@mui/material';
+import React from 'react';
 
 function Borrow() {
   return (
     <Box
       mb="1rem"
       sx={{
-        display: "flex",
-        alignItems: "center",
+        display: 'flex',
+        alignItems: 'center',
       }}
     >
       <Typography variant="small">Why do I need to sign?</Typography>
@@ -17,11 +17,11 @@ function Borrow() {
         placement="top"
         title={
           <Box
-            sx={{ display: "flex", flexDirection: "column", width: "15rem" }}
+            sx={{ display: 'flex', flexDirection: 'column', width: '15rem' }}
           >
             <Typography
               variant="body2"
-              sx={{ fontSize: "0.875rem" }}
+              sx={{ fontSize: '0.875rem' }}
               mb="0.5rem"
             >
               Signature
@@ -35,7 +35,7 @@ function Borrow() {
                 target="_blank"
                 rel="noreferrer"
                 ml="0.25rem"
-                sx={{ textDecoration: "underline" }}
+                sx={{ textDecoration: 'underline' }}
               >
                 our docs
               </Link>
@@ -45,14 +45,14 @@ function Borrow() {
       >
         <InfoOutlinedIcon
           sx={{
-            ml: "0.313rem",
-            fontSize: "0.875rem",
-            cursor: "pointer",
+            ml: '0.313rem',
+            fontSize: '0.875rem',
+            cursor: 'pointer',
           }}
         />
       </Tooltip>
     </Box>
-  )
+  );
 }
 
-export default Borrow
+export default Borrow;

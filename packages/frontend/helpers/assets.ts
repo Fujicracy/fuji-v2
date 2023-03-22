@@ -1,5 +1,6 @@
-import { ChainId, Token } from "@x-fuji/sdk"
-import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
+import { ChainId, Token } from '@x-fuji/sdk';
+
+import { LTV_RECOMMENDED_DECREASE } from '../constants/borrow';
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -10,41 +11,41 @@ export enum Mode {
   PAYBACK, // removePosition: debt
 }
 
-export type AssetType = "debt" | "collateral"
+export type AssetType = 'debt' | 'collateral';
 
 export type AllowanceStatus =
-  | "initial"
-  | "fetching"
-  | "allowing"
-  | "ready"
-  | "error"
+  | 'initial'
+  | 'fetching'
+  | 'allowing'
+  | 'ready'
+  | 'error';
 
 export type Allowance = {
-  status: AllowanceStatus
-  value: number | undefined
-}
+  status: AllowanceStatus;
+  value: number | undefined;
+};
 
 export type AssetChange = {
-  selectableTokens: Token[]
-  balances: Record<string, number>
-  allowance: Allowance
-  input: string
-  chainId: ChainId
-  token: Token
-  amount: number
-  usdPrice: number
-}
+  selectableTokens: Token[];
+  balances: Record<string, number>;
+  allowance: Allowance;
+  input: string;
+  chainId: ChainId;
+  token: Token;
+  amount: number;
+  usdPrice: number;
+};
 
 export type LtvMeta = {
-  ltv: number
-  ltvMax: number
-  ltvThreshold: number
-}
+  ltv: number;
+  ltvMax: number;
+  ltvThreshold: number;
+};
 
 export type LiquidationMeta = {
-  liquidationPrice: number
-  liquidationDiff: number
-}
+  liquidationPrice: number;
+  liquidationDiff: number;
+};
 
 export enum ActionType {
   ADD = 0,
@@ -52,8 +53,8 @@ export enum ActionType {
 }
 
 export const recommendedLTV = (ltvMax: number): number => {
-  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0
-}
+  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0;
+};
 
 export const needsAllowance = (
   mode: Mode,
@@ -62,18 +63,18 @@ export const needsAllowance = (
   amount: number
 ): boolean => {
   return (
-    (type === "debt"
+    (type === 'debt'
       ? mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW
       : mode === Mode.DEPOSIT || mode === Mode.DEPOSIT_AND_BORROW) &&
     asset.allowance?.value !== undefined &&
     asset.allowance?.value < amount
-  )
-}
+  );
+};
 
 export const borrowLimit = (
   amount: number,
   price: number,
   maxLtv: number
 ): number => {
-  return (amount * price * maxLtv) / 100
-}
+  return (amount * price * maxLtv) / 100;
+};

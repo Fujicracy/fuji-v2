@@ -1,40 +1,40 @@
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Box,
+  Button,
   Card,
   Grid,
-  Typography,
-  Button,
   Tooltip,
+  Typography,
   useMediaQuery,
   useTheme,
-} from "@mui/material"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import { useEffect, useState } from "react"
+} from '@mui/material';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
-import { useAuth } from "../../store/auth.store"
-import { usePositions } from "../../store/positions.store"
-import { useRouter } from "next/router"
-import { formatValue } from "../../helpers/values"
+import { formatValue } from '../../helpers/values';
+import { useAuth } from '../../store/auth.store';
+import { usePositions } from '../../store/positions.store';
 
 type MetricSummary = {
-  name: string
-  value: number | "-"
-  valueSym?: "$" | "%"
-  action?: string
-  tooltip?: boolean
-}
+  name: string;
+  value: number | '-';
+  valueSym?: '$' | '%';
+  action?: string;
+  tooltip?: boolean;
+};
 
 const initialKeyMetrics: MetricSummary[] = [
-  { name: "Total Deposits", value: "-", valueSym: "$" },
-  { name: "Total Debt", value: "-", valueSym: "$" },
-  { name: "Net APY", value: "-", valueSym: "%" /*action: "View"*/ }, // TODO: tooltip & actions
+  { name: 'Total Deposits', value: '-', valueSym: '$' },
+  { name: 'Total Debt', value: '-', valueSym: '$' },
+  { name: 'Net APY', value: '-', valueSym: '%' /*action: "View"*/ }, // TODO: tooltip & actions
   {
-    name: "Available to Borrow",
-    value: "-",
-    valueSym: "$",
-    action: "Borrow more",
+    name: 'Available to Borrow',
+    value: '-',
+    valueSym: '$',
+    action: 'Borrow more',
   },
-]
+];
 
 function updateKeyMetricsSummary(
   totalDeposits_: number | undefined,
@@ -44,57 +44,59 @@ function updateKeyMetricsSummary(
 ): MetricSummary[] {
   return [
     {
-      name: "Total Deposits",
-      value: totalDeposits_ === undefined ? "-" : totalDeposits_,
-      valueSym: "$",
+      name: 'Total Deposits',
+      value: totalDeposits_ === undefined ? '-' : totalDeposits_,
+      valueSym: '$',
     },
     {
-      name: "Total Debt",
-      value: totalDebt_ === undefined ? "-" : totalDebt_,
-      valueSym: "$",
+      name: 'Total Debt',
+      value: totalDebt_ === undefined ? '-' : totalDebt_,
+      valueSym: '$',
     },
     {
-      name: "Net APY",
-      value: totalAPY_ === undefined ? "-" : totalAPY_,
-      valueSym: "%",
+      name: 'Net APY',
+      value: totalAPY_ === undefined ? '-' : totalAPY_,
+      valueSym: '%',
       // action: "View",
       tooltip: true,
     }, // TODO: tooltip & actions
     {
-      name: "Available to Borrow",
-      value: availableBorrow_ === undefined ? "-" : availableBorrow_,
-      valueSym: "$",
-      action: "Borrow more",
+      name: 'Available to Borrow',
+      value: availableBorrow_ === undefined ? '-' : availableBorrow_,
+      valueSym: '$',
+      action: 'Borrow more',
     },
-  ]
+  ];
 }
 
 function MyPositionsSummary() {
-  const { breakpoints, palette } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
-  const router = useRouter()
+  const { breakpoints, palette } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const router = useRouter();
 
-  const account = useAuth((state) => state.address)
-  const totalDeposits = usePositions((state) => state.totalDepositsUSD)
-  const totalDebt = usePositions((state) => state.totalDebtUSD)
-  const totalAPY = usePositions((state) => state.totalAPY)
-  const availableBorrow = usePositions((state) => state.availableBorrowPowerUSD)
+  const account = useAuth((state) => state.address);
+  const totalDeposits = usePositions((state) => state.totalDepositsUSD);
+  const totalDebt = usePositions((state) => state.totalDebtUSD);
+  const totalAPY = usePositions((state) => state.totalAPY);
+  const availableBorrow = usePositions(
+    (state) => state.availableBorrowPowerUSD
+  );
 
-  const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics)
+  const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics);
 
   useEffect(() => {
     if (account === undefined) {
-      setKeyMetrics(initialKeyMetrics)
+      setKeyMetrics(initialKeyMetrics);
     } else {
       const updatedKeyMetrics = updateKeyMetricsSummary(
         totalDeposits,
         totalDebt,
         totalAPY,
         availableBorrow
-      )
-      setKeyMetrics(updatedKeyMetrics)
+      );
+      setKeyMetrics(updatedKeyMetrics);
     }
-  }, [account, totalDeposits, totalDebt, totalAPY, availableBorrow])
+  }, [account, totalDeposits, totalDebt, totalAPY, availableBorrow]);
 
   return (
     <Box mt={4}>
@@ -109,8 +111,8 @@ function MyPositionsSummary() {
                 metric={m}
                 borderLeft={!isMobile && i > 0}
                 onClick={() => {
-                  if (m.action === "Borrow more") {
-                    router.push("/borrow")
+                  if (m.action === 'Borrow more') {
+                    router.push('/borrow');
                   }
                 }}
               />
@@ -119,38 +121,38 @@ function MyPositionsSummary() {
         </Grid>
       </Card>
     </Box>
-  )
+  );
 }
 
-export default MyPositionsSummary
+export default MyPositionsSummary;
 
 type MetricProps = {
-  metric: MetricSummary
-  borderLeft: boolean
-  onClick: () => void
-}
+  metric: MetricSummary;
+  borderLeft: boolean;
+  onClick: () => void;
+};
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
-  const { palette, breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const { palette, breakpoints } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const borderColor = palette.secondary.light // TODO: should use a palette border color instead
-  const nameColor = palette.info.main
+  const borderColor = palette.secondary.light; // TODO: should use a palette border color instead
+  const nameColor = palette.info.main;
   const buttonSx = {
-    padding: "6px 16px 5px",
-    lineHeight: "0.875rem",
-    fontSize: "0.875rem",
+    padding: '6px 16px 5px',
+    lineHeight: '0.875rem',
+    fontSize: '0.875rem',
     backgroundColor: palette.secondary.main,
-    border: "none",
-  }
+    border: 'none',
+  };
 
   return (
     <Box
-      borderLeft={leftBorder ? `1px solid ${borderColor}` : ""}
-      pl={leftBorder ? 4 : ""}
+      borderLeft={leftBorder ? `1px solid ${borderColor}` : ''}
+      pl={leftBorder ? 4 : ''}
     >
       <Typography color={nameColor} fontSize="0.875rem">
-        {metric.name}{" "}
+        {metric.name}{' '}
         {metric.tooltip && (
           // TODO: tooltip
           <Tooltip
@@ -164,7 +166,7 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
             placement="top"
           >
             <InfoOutlinedIcon
-              sx={{ fontSize: "1rem", color: palette.info.main }}
+              sx={{ fontSize: '1rem', color: palette.info.main }}
             />
           </Tooltip>
         )}
@@ -173,23 +175,23 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
       {/* TODO: use helper to format balance */}
       <Typography
         fontSize="1.5rem"
-        color={metric.name === "Positions at Risk" ? "error" : "inherit"}
+        color={metric.name === 'Positions at Risk' ? 'error' : 'inherit'}
       >
-        {metric.valueSym === "$"
+        {metric.valueSym === '$'
           ? `${formatValue(metric.value, {
-              style: "currency",
+              style: 'currency',
               maximumFractionDigits: 0,
             })}`
-          : metric.valueSym === "%"
+          : metric.valueSym === '%'
           ? `${metric.value}%`
-          : metric.value}{" "}
+          : metric.value}{' '}
         {isMobile && <br />}
         {metric.action && metric.value > 0 && (
           // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
           <Button
             variant="secondary2"
             sx={buttonSx}
-            disabled={metric.value === "-"}
+            disabled={metric.value === '-'}
             onClick={onClick}
           >
             {metric.action}
@@ -197,5 +199,5 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
         )}
       </Typography>
     </Box>
-  )
-}
+  );
+};
