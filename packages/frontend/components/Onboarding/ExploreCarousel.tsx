@@ -1,5 +1,13 @@
 import { useState } from "react"
-import { Grid, Box, Typography, Paper, Dialog, Button } from "@mui/material"
+import {
+  Grid,
+  Box,
+  Typography,
+  Paper,
+  Dialog,
+  Button,
+  Stack,
+} from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import { useAuth } from "../../store/auth.store"
 
@@ -61,6 +69,12 @@ function ExploreCarousel({
           maxWidth: "30rem",
           p: { xs: "1rem", sm: "1.5rem" },
           textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          ["@media screen and (max-width: 414px)"]: {
+            minHeight: "33rem",
+          },
         }}
       >
         <Grid container>
@@ -102,50 +116,52 @@ function ExploreCarousel({
           ))}
         </Grid>
 
-        <Button
-          variant="gradient"
-          size="large"
-          onClick={next}
-          fullWidth
-          data-cy="safety-notice-accept"
-        >
-          {currentSlide !== 3 ? "Next" : "Finish"}
-        </Button>
+        <Stack>
+          <Button
+            variant="gradient"
+            size="large"
+            onClick={next}
+            fullWidth
+            data-cy="safety-notice-accept"
+          >
+            {currentSlide !== 3 ? "Next" : "Finish"}
+          </Button>
 
-        <Typography
-          sx={{
-            m: "1.25rem 0",
-            textDecoration: "underline",
-            fontSize: "0.75rem",
-            cursor: "pointer",
-          }}
-          onClick={skip}
-        >
-          Skip, I Will Explore On My Own
-        </Typography>
+          <Typography
+            sx={{
+              m: "1.25rem 0",
+              textDecoration: "underline",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+            }}
+            onClick={skip}
+          >
+            Skip, I Will Explore On My Own
+          </Typography>
 
-        <Grid
-          container
-          sx={{ width: "100%", display: "flex", justifyContent: "center" }}
-        >
-          {slides.map((_, index) => (
-            <Box
-              key={index}
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor:
-                  index === currentSlide - 1
-                    ? palette.text.primary
-                    : palette.secondary.light,
-                m: "0 0.25rem",
-                cursor: "pointer",
-              }}
-              onClick={() => setCurrentSlide(index + 1)}
-            />
-          ))}
-        </Grid>
+          <Grid
+            container
+            sx={{ width: "100%", display: "flex", justifyContent: "center" }}
+          >
+            {slides.map((_, index) => (
+              <Box
+                key={index}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor:
+                    index === currentSlide - 1
+                      ? palette.text.primary
+                      : palette.secondary.light,
+                  m: "0 0.25rem",
+                  cursor: "pointer",
+                }}
+                onClick={() => setCurrentSlide(index + 1)}
+              />
+            ))}
+          </Grid>
+        </Stack>
       </Paper>
     </Dialog>
   )
