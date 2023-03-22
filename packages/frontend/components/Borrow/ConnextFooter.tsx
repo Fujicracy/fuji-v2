@@ -1,5 +1,5 @@
-import { Typography, Grid, Link } from "@mui/material"
-import Image from "next/image"
+import { Grid, Link, Typography } from '@mui/material';
+import Image from 'next/image';
 
 function ConnextFooter() {
   return (
@@ -20,7 +20,7 @@ function ConnextFooter() {
         />
       </Grid>
     </Link>
-  )
+  );
 }
 
-export default ConnextFooter
+export default ConnextFooter;

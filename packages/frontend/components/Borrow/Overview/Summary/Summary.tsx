@@ -1,18 +1,19 @@
-import { Grid } from "@mui/material"
-import { formatValue } from "../../../../helpers/values"
-import { AssetMeta, Position } from "../../../../store/models/Position"
-import SummaryCardItem from "./SummaryCardItem"
+import { Grid } from '@mui/material';
+
+import { formatValue } from '../../../../helpers/values';
+import { AssetMeta, Position } from '../../../../store/models/Position';
+import SummaryCardItem from './SummaryCardItem';
 
 type SummaryProps = {
-  collateral: AssetMeta
-  collateralInput: string
-  debt: AssetMeta
-  debtInput: string
-  futurePosition: Position | undefined
-  liquidationDiff: number
-  liquidationPrice: number
-  isMobile: boolean
-}
+  collateral: AssetMeta;
+  collateralInput: string;
+  debt: AssetMeta;
+  debtInput: string;
+  futurePosition: Position | undefined;
+  liquidationDiff: number;
+  liquidationPrice: number;
+  isMobile: boolean;
+};
 function Summary({
   collateral,
   collateralInput,
@@ -31,11 +32,11 @@ function Summary({
           maximumFractionDigits: 3,
         })} ${collateral.token.symbol}`}
         footer={formatValue(collateral.amount * collateral.usdPrice, {
-          style: "currency",
+          style: 'currency',
         })}
         extra={
           futurePosition &&
-          collateralInput !== "" &&
+          collateralInput !== '' &&
           parseFloat(collateralInput) !== 0
             ? formatValue(futurePosition.collateral.amount, {
                 maximumFractionDigits: 3,
@@ -47,7 +48,7 @@ function Summary({
       <SummaryCardItem
         title="Borrowed Value"
         amount={formatValue(debt.amount * debt.usdPrice, {
-          style: "currency",
+          style: 'currency',
         })}
         footer={`${formatValue(debt.usdPrice, {
           maximumFractionDigits: 2,
@@ -55,7 +56,7 @@ function Summary({
         extra={
           futurePosition && debtInput && parseFloat(debtInput) !== 0
             ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
-                style: "currency",
+                style: 'currency',
               })
             : undefined
         }
@@ -66,8 +67,8 @@ function Summary({
         title="Liquidation Price"
         amount={
           liquidationDiff >= 0
-            ? formatValue(liquidationPrice, { style: "currency" })
-            : "$0"
+            ? formatValue(liquidationPrice, { style: 'currency' })
+            : '$0'
         }
         footer={
           liquidationDiff >= 0
@@ -79,7 +80,7 @@ function Summary({
           futurePosition &&
           (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
             ? formatValue(futurePosition.liquidationPrice, {
-                style: "currency",
+                style: 'currency',
               })
             : undefined
         }
@@ -87,20 +88,20 @@ function Summary({
       />
       <SummaryCardItem
         title="Current Price"
-        amount={formatValue(collateral.usdPrice, { style: "currency" })}
+        amount={formatValue(collateral.usdPrice, { style: 'currency' })}
         footer={collateral.token.symbol}
         isMobile={isMobile}
       />
     </SummaryContainer>
-  )
+  );
 }
 
-export default Summary
+export default Summary;
 
 type SummaryContainerProps = {
-  children: React.ReactNode
-  isMobile: boolean
-}
+  children: React.ReactNode;
+  isMobile: boolean;
+};
 
 function SummaryContainer({ children, isMobile }: SummaryContainerProps) {
   return isMobile ? (
@@ -111,5 +112,5 @@ function SummaryContainer({ children, isMobile }: SummaryContainerProps) {
     <Grid container columnSpacing="1rem">
       {children}
     </Grid>
-  )
+  );
 }

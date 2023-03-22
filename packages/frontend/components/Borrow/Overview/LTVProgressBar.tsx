@@ -1,24 +1,25 @@
-import React from "react"
-import { useTheme } from "@mui/material/styles"
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Box,
   Divider,
   Grid,
   LinearProgress,
+  Stack,
   Tooltip,
   Typography,
-  Stack,
-} from "@mui/material"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import { ClickableTooltip } from "../../Shared/Tooltips"
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import React from 'react';
+
+import { ClickableTooltip } from '../../Shared/Tooltips';
 
 type LTVProgressBarProps = {
-  borrowLimit: number
-  value: number
-  maxLTV: number
-  recommendedLTV: number
-  isMobile: boolean
-}
+  borrowLimit: number;
+  value: number;
+  maxLTV: number;
+  recommendedLTV: number;
+  isMobile: boolean;
+};
 
 function LTVProgressBar({
   borrowLimit,
@@ -27,11 +28,11 @@ function LTVProgressBar({
   recommendedLTV,
   isMobile,
 }: LTVProgressBarProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   const percentageMargin = `${
     value < 5 ? 0 : value > maxLTV ? value : (value * 100) / maxLTV - 5
-  }%`
+  }%`;
 
   return (
     <LTVProgressBarContainer isMobile={isMobile}>
@@ -39,7 +40,7 @@ function LTVProgressBar({
         <Grid
           container
           sx={{
-            ml: "3rem",
+            ml: '3rem',
           }}
         >
           <Grid item margin="auto">
@@ -50,9 +51,9 @@ function LTVProgressBar({
               >
                 <InfoOutlinedIcon
                   sx={{
-                    mr: "0.313rem",
-                    fontSize: "0.875rem",
-                    display: { xs: "none", sm: "inline" },
+                    mr: '0.313rem',
+                    fontSize: '0.875rem',
+                    display: { xs: 'none', sm: 'inline' },
                   }}
                 />
               </Tooltip>
@@ -63,21 +64,21 @@ function LTVProgressBar({
               >
                 <InfoOutlinedIcon
                   sx={{
-                    mr: "0.313rem",
-                    fontSize: "0.875rem",
+                    mr: '0.313rem',
+                    fontSize: '0.875rem',
                   }}
                 />
               </ClickableTooltip>
               <Typography
                 variant="xsmall"
-                sx={{ display: { xs: "none", sm: "inline" } }}
+                sx={{ display: { xs: 'none', sm: 'inline' } }}
               >
                 {recommendedLTV}% LTV (Recommended)
               </Typography>
 
               <Typography
                 variant="xsmall"
-                sx={{ display: { xs: "inline", sm: "none" } }}
+                sx={{ display: { xs: 'inline', sm: 'none' } }}
               >
                 SAFE LTV: {recommendedLTV}%
               </Typography>
@@ -91,9 +92,9 @@ function LTVProgressBar({
               >
                 <InfoOutlinedIcon
                   sx={{
-                    mr: "0.313rem",
-                    fontSize: "0.875rem",
-                    display: { xs: "none", sm: "inline" },
+                    mr: '0.313rem',
+                    fontSize: '0.875rem',
+                    display: { xs: 'none', sm: 'inline' },
                   }}
                 />
               </Tooltip>
@@ -103,22 +104,22 @@ function LTVProgressBar({
               >
                 <InfoOutlinedIcon
                   sx={{
-                    mr: "0.313rem",
-                    fontSize: "0.875rem",
+                    mr: '0.313rem',
+                    fontSize: '0.875rem',
                   }}
                 />
               </ClickableTooltip>
 
               <Typography
                 variant="xsmall"
-                sx={{ display: { xs: "none", sm: "inline" } }}
+                sx={{ display: { xs: 'none', sm: 'inline' } }}
               >
                 {maxLTV}% LTV (MAX)
               </Typography>
 
               <Typography
                 variant="xsmall"
-                sx={{ display: { xs: "inline", sm: "none" } }}
+                sx={{ display: { xs: 'inline', sm: 'none' } }}
               >
                 MAX LTV: {maxLTV}%
               </Typography>
@@ -129,7 +130,7 @@ function LTVProgressBar({
         <Grid container>
           <Divider
             sx={{
-              height: "0.813rem",
+              height: '0.813rem',
               borderRight: `0.063rem solid`,
               borderBottom: 0,
               width: `${(recommendedLTV * 100) / maxLTV}%`,
@@ -138,7 +139,7 @@ function LTVProgressBar({
           />
           <Divider
             sx={{
-              height: "0.813rem",
+              height: '0.813rem',
               borderRight: `0.063rem solid`,
               borderBottom: 0,
               width: `${100 - (recommendedLTV * 100) / maxLTV}%`,
@@ -149,16 +150,16 @@ function LTVProgressBar({
 
         <LinearProgress
           sx={{
-            borderRadius: "1.25rem",
+            borderRadius: '1.25rem',
             background: palette.background.default,
-            height: "0.5rem",
-            marginBottom: "0.5rem",
-            "& .MuiLinearProgress-barColorPrimary": {
+            height: '0.5rem',
+            marginBottom: '0.5rem',
+            '& .MuiLinearProgress-barColorPrimary': {
               backgroundColor:
                 value <= recommendedLTV
                   ? palette.success.main
                   : palette.warning.main,
-              borderRadius: "1.25rem",
+              borderRadius: '1.25rem',
             },
           }}
           value={value > maxLTV ? 100 : (value * 100) / maxLTV}
@@ -170,7 +171,7 @@ function LTVProgressBar({
           color="success.main"
           ml={percentageMargin}
           sx={{
-            display: { xs: "block", sm: "none" },
+            display: { xs: 'block', sm: 'none' },
           }}
         >
           {value.toFixed(0)}%
@@ -179,12 +180,12 @@ function LTVProgressBar({
         <Grid
           container
           justifyContent="space-between"
-          sx={{ display: { xs: "none", sm: "flex" } }}
+          sx={{ display: { xs: 'none', sm: 'flex' } }}
         >
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             <Typography variant="xsmall">LTV</Typography>
@@ -194,9 +195,9 @@ function LTVProgressBar({
             >
               <InfoOutlinedIcon
                 sx={{
-                  ml: "0.313rem",
-                  fontSize: "0.875rem",
-                  display: { xs: "none", sm: "inline" },
+                  ml: '0.313rem',
+                  fontSize: '0.875rem',
+                  display: { xs: 'none', sm: 'inline' },
                 }}
               />
             </Tooltip>
@@ -204,8 +205,8 @@ function LTVProgressBar({
 
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             <Tooltip
@@ -214,8 +215,8 @@ function LTVProgressBar({
             >
               <InfoOutlinedIcon
                 sx={{
-                  mr: "0.313rem",
-                  fontSize: "0.875rem",
+                  mr: '0.313rem',
+                  fontSize: '0.875rem',
                 }}
               />
             </Tooltip>
@@ -226,15 +227,15 @@ function LTVProgressBar({
         </Grid>
       </Box>
     </LTVProgressBarContainer>
-  )
+  );
 }
 
-export default LTVProgressBar
+export default LTVProgressBar;
 
 type LTVProgressBarContainerProps = {
-  children: React.ReactNode
-  isMobile: boolean
-}
+  children: React.ReactNode;
+  isMobile: boolean;
+};
 
 export function LTVProgressBarContainer({
   children,
@@ -246,5 +247,5 @@ export function LTVProgressBarContainer({
       {children}
       <Divider sx={{ mt: 2, mb: 2 }} />
     </>
-  )
+  );
 }

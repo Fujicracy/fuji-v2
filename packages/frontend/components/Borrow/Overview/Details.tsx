@@ -1,16 +1,17 @@
-import { Box, Divider, Grid, Typography, useTheme } from "@mui/material"
-import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
-import { NetworkIcon } from "../../Shared/Icons"
-import { formatUnits } from "ethers/lib/utils"
-import APRTooltip from "../../Shared/Tooltips/APRTooltip"
+import { Box, Divider, Grid, Typography, useTheme } from '@mui/material';
+import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
+import { formatUnits } from 'ethers/lib/utils';
+
+import { NetworkIcon } from '../../Shared/Icons';
+import APRTooltip from '../../Shared/Tooltips/APRTooltip';
 
 type DetailsProps = {
-  ltv: number
-  ltvThreshold: number
-  providers: LendingProviderDetails[] | undefined
-  vault: BorrowingVault | undefined
-  isMobile: boolean
-}
+  ltv: number;
+  ltvThreshold: number;
+  providers: LendingProviderDetails[] | undefined;
+  vault: BorrowingVault | undefined;
+  isMobile: boolean;
+};
 
 function Details({
   ltv,
@@ -19,7 +20,7 @@ function Details({
   vault,
   isMobile,
 }: DetailsProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   return (
     <>
@@ -32,7 +33,7 @@ function Details({
           <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
           <Typography variant="small">
-            {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : "n/a"}
+            {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
           </Typography>
         </Grid>
 
@@ -56,7 +57,7 @@ function Details({
             {providers?.length ? (
               <Grid container alignItems="center">
                 <NetworkIcon
-                  network={vault?.chainId || ""}
+                  network={vault?.chainId || ''}
                   height={18}
                   width={18}
                 />
@@ -66,7 +67,7 @@ function Details({
                 </Typography>
               </Grid>
             ) : (
-              "n/a"
+              'n/a'
             )}
           </Grid>
         </Grid>
@@ -74,14 +75,14 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Deposit Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: "center" }}>
+          <Box sx={{ alignItems: 'center' }}>
             {providers?.length ? (
               <Typography variant="small">
-                {providers[0].name}:{" "}
+                {providers[0].name}:{' '}
                 <span style={{ color: palette.success.main }}>
                   {(
                     parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
@@ -90,7 +91,7 @@ function Details({
                 </span>
               </Typography>
             ) : (
-              "n/a"
+              'n/a'
             )}
           </Box>
         </Grid>
@@ -98,14 +99,14 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: "center" }}>
+          <Box sx={{ alignItems: 'center' }}>
             {providers?.length ? (
               <Typography variant="small">
-                {providers[0].name}:{" "}
+                {providers[0].name}:{' '}
                 <span style={{ color: palette.success.main }}>
                   {(
                     parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
@@ -114,21 +115,21 @@ function Details({
                 </span>
               </Typography>
             ) : (
-              "n/a"
+              'n/a'
             )}
           </Box>
         </Grid>
       </DetailContainer>
     </>
-  )
+  );
 }
 
-export default Details
+export default Details;
 
 type DetailContainerProps = {
-  children: React.ReactNode
-  isMobile: boolean
-}
+  children: React.ReactNode;
+  isMobile: boolean;
+};
 
 function DetailContainer({ children, isMobile }: DetailContainerProps) {
   return isMobile ? (
@@ -137,9 +138,9 @@ function DetailContainer({ children, isMobile }: DetailContainerProps) {
     </Grid>
   ) : (
     <>{children} </>
-  )
+  );
 }
 
 function DetailDivider({ isMobile }: { isMobile: boolean }) {
-  return isMobile ? <></> : <Divider sx={{ mt: 2, mb: 2 }} />
+  return isMobile ? <></> : <Divider sx={{ mt: 2, mb: 2 }} />;
 }

@@ -1,30 +1,30 @@
-import React from "react"
-import { useTheme } from "@mui/material/styles"
-import { Button, CircularProgress, Typography } from "@mui/material"
-import { Box } from "@mui/system"
+import { Button, CircularProgress, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Box } from '@mui/system';
+import React from 'react';
 
 function Theming() {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
   return (
     <>
       <Typography variant="h2">Buttons</Typography>
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-around",
+          display: 'flex',
+          justifyContent: 'space-around',
         }}
       >
-        <Button variant="primary" sx={{ width: "23em" }}>
+        <Button variant="primary" sx={{ width: '23em' }}>
           Primary flat
         </Button>
         <Button
           variant="primary"
-          sx={{ width: "23em" }}
+          sx={{ width: '23em' }}
           startIcon={<CircularProgress size={15} />}
         >
           Primary flat Loading
         </Button>
-        <Button variant="primary" sx={{ width: "23em" }} disabled>
+        <Button variant="primary" sx={{ width: '23em' }} disabled>
           Primary flat disabled
         </Button>
       </div>
@@ -32,11 +32,11 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-around",
+          display: 'flex',
+          justifyContent: 'space-around',
         }}
       >
-        <Button variant="secondary" sx={{ width: "23em" }}>
+        <Button variant="secondary" sx={{ width: '23em' }}>
           Secondary
         </Button>
       </div>
@@ -44,16 +44,16 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-around",
+          display: 'flex',
+          justifyContent: 'space-around',
         }}
       >
-        <Button variant="secondary2" sx={{ width: "23em" }}>
+        <Button variant="secondary2" sx={{ width: '23em' }}>
           Secondary 2
         </Button>
         <Button
           variant="secondary2"
-          sx={{ width: "23em" }}
+          sx={{ width: '23em' }}
           startIcon={<CircularProgress size={15} />}
         >
           Secondary 2 Loading
@@ -63,21 +63,21 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-around",
+          display: 'flex',
+          justifyContent: 'space-around',
         }}
       >
-        <Button variant="ghost" sx={{ width: "23em" }}>
+        <Button variant="ghost" sx={{ width: '23em' }}>
           Ghost
         </Button>
         <Button
           variant="ghost"
-          sx={{ width: "23em" }}
+          sx={{ width: '23em' }}
           startIcon={<CircularProgress size={15} />}
         >
           Ghost Loading
         </Button>
-        <Button variant="ghost" sx={{ width: "23em" }} disabled>
+        <Button variant="ghost" sx={{ width: '23em' }} disabled>
           Ghost disabled
         </Button>
       </div>
@@ -85,21 +85,21 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-around",
+          display: 'flex',
+          justifyContent: 'space-around',
         }}
       >
-        <Button variant="gradient" sx={{ width: "23em" }}>
+        <Button variant="gradient" sx={{ width: '23em' }}>
           Gradient
         </Button>
         <Button
           variant="gradient"
-          sx={{ width: "23em" }}
+          sx={{ width: '23em' }}
           startIcon={<CircularProgress size={15} />}
         >
           Gradient Loading
         </Button>
-        <Button variant="gradient" sx={{ width: "23em" }} disabled>
+        <Button variant="gradient" sx={{ width: '23em' }} disabled>
           Gradient disabled
         </Button>
       </div>
@@ -155,18 +155,18 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          gap: "1rem",
+          display: 'flex',
+          gap: '1rem',
         }}
       >
         <Box
           sx={{
-            backgroundColor: "primary.main",
+            backgroundColor: 'primary.main',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Brand
@@ -176,9 +176,9 @@ function Theming() {
             background: `linear-gradient(92.29deg, ${palette.primary.light} 0%, ${palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Gradient 1
@@ -189,9 +189,9 @@ function Theming() {
             background: `linear-gradient(287.45deg,  ${palette.primary.contrastText} 0%,  ${palette.primary.dark} 100%)`,
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Gradient 2
@@ -201,66 +201,66 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          gap: "1rem",
+          display: 'flex',
+          gap: '1rem',
         }}
       >
         <Box
           sx={{
-            backgroundColor: "text.primary",
+            backgroundColor: 'text.primary',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Main text
         </Box>
         <Box
           sx={{
-            backgroundColor: "text.secondary",
+            backgroundColor: 'text.secondary',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Sub text
         </Box>
         <Box
           sx={{
-            backgroundColor: "info.dark",
+            backgroundColor: 'info.dark',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Sub text 2
         </Box>
         <Box
           sx={{
-            backgroundColor: "info.main",
+            backgroundColor: 'info.main',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Description text
         </Box>
         <Box
           sx={{
-            backgroundColor: "text.disabled",
+            backgroundColor: 'text.disabled',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Inactive text
@@ -273,54 +273,54 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          gap: "1rem",
+          display: 'flex',
+          gap: '1rem',
         }}
       >
         <Box
           sx={{
-            backgroundColor: "background.default",
+            backgroundColor: 'background.default',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Grey
         </Box>
         <Box
           sx={{
-            backgroundColor: "secondary.dark",
+            backgroundColor: 'secondary.dark',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Dark Grey
         </Box>
         <Box
           sx={{
-            backgroundColor: "secondary.contrastText",
+            backgroundColor: 'secondary.contrastText',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Black
         </Box>
         <Box
           sx={{
-            backgroundColor: "secondary.light",
+            backgroundColor: 'secondary.light',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "white",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'white',
+            padding: '1rem',
           }}
         >
           Grey Border
@@ -333,49 +333,49 @@ function Theming() {
       <br />
       <div
         style={{
-          display: "flex",
-          gap: "1rem",
+          display: 'flex',
+          gap: '1rem',
         }}
       >
         <Box
           sx={{
-            backgroundColor: "success.main",
+            backgroundColor: 'success.main',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Success
         </Box>
         <Box
           sx={{
-            backgroundColor: "error.main",
+            backgroundColor: 'error.main',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Fail
         </Box>
         <Box
           sx={{
-            backgroundColor: "warning.main",
+            backgroundColor: 'warning.main',
             width: 150,
             height: 100,
-            borderRadius: "1rem",
-            color: "black",
-            padding: "1rem",
+            borderRadius: '1rem',
+            color: 'black',
+            padding: '1rem',
           }}
         >
           Borrow interest
         </Box>
       </div>
     </>
-  )
+  );
 }
 
-export default Theming
+export default Theming;

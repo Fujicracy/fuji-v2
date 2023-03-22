@@ -1,19 +1,20 @@
-import { Typography, TableCell, Box, useTheme } from "@mui/material"
-import { liquidationColor } from "../../helpers/positions"
-import { formatValue } from "../../helpers/values"
+import { Box, TableCell, Typography, useTheme } from '@mui/material';
+
+import { liquidationColor } from '../../helpers/positions';
+import { formatValue } from '../../helpers/values';
 
 type LiquidationBoxProps = {
-  liquidationPrice: number | "-"
-  percentPriceDiff: number | "-"
-}
+  liquidationPrice: number | '-';
+  percentPriceDiff: number | '-';
+};
 function LiquidationBox({
   liquidationPrice,
   percentPriceDiff,
 }: LiquidationBoxProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
   const displayPercent = () => {
-    if (liquidationPrice === 0 || liquidationPrice === "-") {
-      return <span>No debt</span>
+    if (liquidationPrice === 0 || liquidationPrice === '-') {
+      return <span>No debt</span>;
     } else {
       return (
         <span>
@@ -21,21 +22,21 @@ function LiquidationBox({
             variant="small"
             color={liquidationColor(percentPriceDiff, palette)}
           >
-            ~{percentPriceDiff}%{" "}
+            ~{percentPriceDiff}%{' '}
           </Typography>
           <Typography variant="small" color={palette.info.main}>
             above
           </Typography>
         </span>
-      )
+      );
     }
-  }
+  };
   return (
     <TableCell align="right">
       <Box pt={1} pb={1}>
         <Typography variant="small">
           {formatValue(liquidationPrice, {
-            style: "currency",
+            style: 'currency',
             minimumFractionDigits: 0,
           })}
         </Typography>
@@ -43,7 +44,7 @@ function LiquidationBox({
         {displayPercent()}
       </Box>
     </TableCell>
-  )
+  );
 }
 
-export default LiquidationBox
+export default LiquidationBox;

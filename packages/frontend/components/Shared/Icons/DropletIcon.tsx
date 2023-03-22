@@ -1,11 +1,11 @@
-import { SvgIcon } from "@mui/material"
+import { SvgIcon } from '@mui/material';
 
 function DropletIcon() {
   return (
     <SvgIcon
       role="img"
       viewBox="0 0 10 14"
-      sx={{ fontSize: "0.875rem" }}
+      sx={{ fontSize: '0.875rem' }}
       xmlns="http://www.w3.org/2000/svg"
     >
       <svg
@@ -34,7 +34,7 @@ function DropletIcon() {
         </defs>
       </svg>
     </SvgIcon>
-  )
+  );
 }
 
-export default DropletIcon
+export default DropletIcon;

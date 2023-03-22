@@ -1,12 +1,12 @@
-import Image, { ImageProps } from "next/image"
-import { Box, Palette } from "@mui/material"
+import { Box, Palette } from '@mui/material';
+import Image, { ImageProps } from 'next/image';
 
-export interface Icon extends Omit<ImageProps, "src" | "alt"> {
-  sx?: object
+export interface Icon extends Omit<ImageProps, 'src' | 'alt'> {
+  sx?: object;
 }
 
 export function renderIconError(props: Icon, palette: Palette) {
-  const { ...rest } = props
+  const { ...rest } = props;
 
   return (
     <Box
@@ -14,10 +14,10 @@ export function renderIconError(props: Icon, palette: Palette) {
       sx={{
         ...props.sx,
         background: palette.secondary.main,
-        borderRadius: "100%",
+        borderRadius: '100%',
       }}
     ></Box>
-  )
+  );
 }
 
 export function renderIcon(
@@ -27,7 +27,7 @@ export function renderIcon(
   onError: (e: any) => void,
   defaultImage: string | undefined = undefined
 ) {
-  const { ...rest } = props
+  const { ...rest } = props;
 
   return (
     <>
@@ -49,5 +49,5 @@ export function renderIcon(
         />
       )}
     </>
-  )
+  );
 }
