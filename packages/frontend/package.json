@@ -23,6 +23,8 @@
     "@mui/icons-material": "^5.11.9",
     "@mui/lab": "^5.0.0-alpha.120",
     "@mui/material": "^5.11.10",
+    "@sentry/react": "^7.44.2",
+    "@sentry/tracing": "^7.44.2",
     "@web3-onboard/core": "^2.15.4",
     "@web3-onboard/injected-wallets": "^2.8.1",
     "@web3-onboard/react": "^2.6.5",
