@@ -187,14 +187,15 @@ const Header = () => {
                               direction="row"
                               justifyContent="space-between"
                             >
-                              <Typography variant="small">Wallet</Typography>
+                              {/* <Typography variant="small">Wallet</Typography> */}
                               <Typography variant="small">
                                 {formattedAddress}
                               </Typography>
                             </Stack>
                           </ListItemText>
                         </MenuItem>
-                        <MenuItem onClick={handleCloseNavMenu}>
+                        {/* Temporary disabled until having a mobile design */}
+                        {/* <MenuItem onClick={handleCloseNavMenu}>
                           <ListItemText>
                             <Stack
                               direction="row"
@@ -205,7 +206,7 @@ const Header = () => {
                               </Typography>
                             </Stack>
                           </ListItemText>
-                        </MenuItem>
+                        </MenuItem> */}
                       </>
                     )}
 
