@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {
   Box,
   Button,
@@ -30,7 +30,6 @@ function SlippageSettings() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [slippageInput, setSlippageInput] = useState<string>("")
   const isOpen = Boolean(anchorEl)
-  // const textInput = useRef<HTMLInputElement>(null)
   const slippage = useBorrow((state) => state.slippage)
   const changeSlippageValue = useBorrow((state) => state.changeSlippageValue)
 

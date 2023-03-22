@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import Link from "next/link"
 import {
@@ -28,7 +28,8 @@ import Parameters from "../Parameters"
 import styles from "../../../styles/components/Header.module.css"
 import ParameterLinks from "../ParameterLinks"
 import { useAuth } from "../../../store/auth.store"
-import BalanceAddress from "./BalanceAddress"
+import AccountModal from "../AccountModal"
+import BalanceAddon from "./BalanceAddon"
 
 const pages = [
   { name: "Markets", path: "/markets" },
@@ -56,6 +57,11 @@ const Header = () => {
   const router = useRouter()
   const currentPage = `/${router.pathname.substring(1)}`
 
+  const [accountModalEl, setAccountModalEl] = useState<
+    HTMLElement | undefined
+  >()
+  const showAccountModal = Boolean(accountModalEl)
+
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget)
 
@@ -67,7 +73,7 @@ const Header = () => {
 
   const formattedAddress =
     address?.substring(0, 5) + "..." + address?.substring(address?.length - 4)
-  // window.alert(balance)
+
   return (
     <AppBar position="static">
       <Box
@@ -181,35 +187,28 @@ const Header = () => {
                     ))}
                     {address && (
                       <>
-                        <MenuItem onClick={handleCloseNavMenu}>
+                        <Divider />
+                        <MenuItem
+                          onClick={() => {
+                            handleCloseNavMenu()
+                            setAccountModalEl(
+                              anchorElNav ? anchorElNav : undefined
+                            )
+                          }}
+                        >
                           <ListItemText>
                             <Stack
                               direction="row"
                               justifyContent="space-between"
                             >
-                              {/* <Typography variant="small">Wallet</Typography> */}
                               <Typography variant="small">
                                 {formattedAddress}
                               </Typography>
                             </Stack>
                           </ListItemText>
                         </MenuItem>
-                        {/* Temporary disabled until having a mobile design */}
-                        {/* <MenuItem onClick={handleCloseNavMenu}>
-                          <ListItemText>
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                            >
-                              <Typography variant="small">
-                                Transaction History
-                              </Typography>
-                            </Stack>
-                          </ListItemText>
-                        </MenuItem> */}
                       </>
                     )}
-
                     <Divider />
                     <ParameterLinks />
                   </MenuList>
@@ -283,11 +282,11 @@ const Header = () => {
                   <ChainSelect />
                 </Grid>
                 <Grid item>
-                  <BalanceAddress
+                  <BalanceAddon
                     balance={balance}
-                    address={address as string}
                     formattedAddress={formattedAddress as string}
                     ens={ens}
+                    onClick={(e) => setAccountModalEl(e)}
                   />
                 </Grid>
                 <Grid item>
@@ -298,6 +297,14 @@ const Header = () => {
           </Grid>
         </Toolbar>
       </Box>
+      {address && (
+        <AccountModal
+          isOpen={showAccountModal}
+          anchorEl={accountModalEl}
+          closeAccountModal={() => setAccountModalEl(undefined)}
+          address={address}
+        />
+      )}
     </AppBar>
   )
 }

@@ -1,30 +1,23 @@
-import { useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import { Box, Typography, Grid, Chip, CircularProgress } from "@mui/material"
 import { Balances } from "@web3-onboard/core/dist/types"
-import AccountModal from "../AccountModal"
 import { useHistory } from "../../../store/history.store"
 import Balance from "../Balance"
 
-type BalanceAddressProps = {
-  address: string
+type BalanceAddonProps = {
   formattedAddress: string
   balance?: Balances
   ens?: string
+  onClick: (element: EventTarget & HTMLSpanElement) => void
 }
-function BalanceAddress({
-  address,
+function BalanceAddon({
   formattedAddress,
   balance,
   ens,
-}: BalanceAddressProps) {
+  onClick,
+}: BalanceAddonProps) {
   const { palette } = useTheme()
   const active = useHistory((state) => state.ongoingTxns.length)
-
-  const [accountModalEl, setAccountModalEl] = useState<
-    HTMLElement | undefined
-  >()
-  const showAccountModal = Boolean(accountModalEl)
 
   const [bal] = balance ? Object.values<string>(balance) : [""]
   const [token] = balance ? Object.keys(balance) : [""]
@@ -33,10 +26,7 @@ function BalanceAddress({
   const pending = active && (
     <Grid container alignItems="center">
       <CircularProgress size={16} sx={{ mr: "0.625rem" }} />
-      <Typography
-        variant="small"
-        onClick={(e) => setAccountModalEl(e.currentTarget)}
-      >
+      <Typography variant="small" onClick={(e) => onClick(e.currentTarget)}>
         {active} pending
       </Typography>
     </Grid>
@@ -52,7 +42,7 @@ function BalanceAddress({
       )}
 
       <Chip
-        onClick={(e) => setAccountModalEl(e.currentTarget)}
+        onClick={(e) => onClick(e.currentTarget)}
         label={pending || ens || formattedAddress}
         sx={{
           background: palette.secondary.light,
@@ -70,14 +60,8 @@ function BalanceAddress({
           },
         }}
       />
-      <AccountModal
-        isOpen={showAccountModal}
-        anchorEl={accountModalEl as HTMLElement}
-        closeAccountModal={() => setAccountModalEl(undefined)}
-        address={address}
-      />
     </Box>
   )
 }
 
-export default BalanceAddress
+export default BalanceAddon
