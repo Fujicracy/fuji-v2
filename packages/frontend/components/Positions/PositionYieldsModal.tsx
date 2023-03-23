@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
-import BorrowDepositTabNavigation from '../Shared/BorrowDepositTabNavigation';
+import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 
 type PositionYieldsModalProps = {
   open: boolean;
@@ -43,7 +43,7 @@ export function PositionYieldsModal({
 
         <Divider sx={{ m: '1.375rem 0' }} />
 
-        <BorrowDepositTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
         <Button
           variant="gradient"

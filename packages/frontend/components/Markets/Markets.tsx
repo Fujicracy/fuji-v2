@@ -2,7 +2,7 @@ import { Box, Grid, Link, Typography, useMediaQuery } from '@mui/material';
 import { useState } from 'react';
 
 import { theme } from '../../styles/theme';
-import BorrowDepositTabNavigation from '../Shared/BorrowDepositTabNavigation';
+import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending/Lending';
 import MarketsTable from './MarketsTable';
 
@@ -37,7 +37,7 @@ function Markets() {
         alignItems="center"
         wrap="wrap"
       >
-        <BorrowDepositTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
         {/* {currentTab === 0 && (
           <Stack

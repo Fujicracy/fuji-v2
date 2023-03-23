@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { usePositions } from '../../store/positions.store';
-import BorrowDepositTabNavigation from '../Shared/BorrowDepositTabNavigation';
+import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending/Lending';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
@@ -25,7 +25,7 @@ function MyPositions() {
         efficiency
       </Typography>
       <MyPositionsSummary />
-      <BorrowDepositTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+      <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
       {currentTab === 0 ? (
         <MyPositionsBorrowTable loading={loading} />
