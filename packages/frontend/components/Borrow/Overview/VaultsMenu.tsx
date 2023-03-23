@@ -1,23 +1,23 @@
-import React from "react"
-import { Box, Chip, Stack } from "@mui/material"
+import { Box, Chip, Stack } from '@mui/material';
 // import { Box, Button, Chip, Fade, Menu, MenuItem, Stack } from "@mui/material"
 // import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 // import CheckIcon from "@mui/icons-material/Check"
-import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
+import { LendingProviderDetails } from '@x-fuji/sdk';
+import React from 'react';
 
-import { ProviderIcon } from "../../Shared/Icons"
+import { ProviderIcon } from '../../Shared/Icons';
 
 type VaultsMenuProps = {
-  vault: BorrowingVault
-  providers: LendingProviderDetails[]
-}
+  // vault: BorrowingVault
+  providers: LendingProviderDetails[];
+};
 
 // Commenting out most of this component and let it
 // display only the rating and the providers of the activeVault.
 // In the future, it should be turned again into a menu and made
 // responsible to select vaults according their safety rating.
 
-function VaultsMenu(props: VaultsMenuProps) {
+function VaultsMenu({ providers }: VaultsMenuProps) {
   // const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   // const open = (event: React.MouseEvent<HTMLButtonElement>) => {
   // setAnchorEl(event.currentTarget)
@@ -36,18 +36,18 @@ function VaultsMenu(props: VaultsMenuProps) {
     <Stack direction="row" alignItems="center" spacing={1}>
       <Chip variant="success" label="A+" />
       <Box display="flex" alignItems="center">
-        {props.providers &&
-          props.providers.map((p) => (
+        {providers &&
+          providers.map((p) => (
             <ProviderIcon
               key={p.name}
-              providerName={p.name}
+              provider={p.name}
               height={16}
               width={16}
             />
           ))}
       </Box>
     </Stack>
-  )
+  );
   // }
 
   // return (
@@ -100,7 +100,7 @@ function VaultsMenu(props: VaultsMenuProps) {
   // )
 }
 
-export default VaultsMenu
+export default VaultsMenu;
 
 // type VaultMenuItemProps = {
 //   route: RouteMeta

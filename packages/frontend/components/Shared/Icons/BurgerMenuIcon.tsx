@@ -1,16 +1,16 @@
-import { SvgIcon, useTheme } from "@mui/material"
+import { SvgIcon, useTheme } from '@mui/material';
 
 function BurgerMenuIcon() {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   return (
     <SvgIcon
       role="img"
-      viewBox="0 0 24 21"
+      viewBox="0 0 24 24"
       sx={{
-        fontSize: 22,
-        ml: "0.25rem",
-        "&:hover": {
+        fontSize: 34,
+        p: '8px',
+        '&:hover': {
           color: palette.primary.main,
           textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
         },
@@ -23,7 +23,7 @@ function BurgerMenuIcon() {
         fill="#9CA3AF"
       />
     </SvgIcon>
-  )
+  );
 }
 
-export default BurgerMenuIcon
+export default BurgerMenuIcon;

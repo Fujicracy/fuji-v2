@@ -1,29 +1,29 @@
-import { useState } from "react"
 import {
-  Typography,
+  Box,
   Chip,
   Stack,
-  Box,
   Tab,
   Tabs,
+  Typography,
   useMediaQuery,
   useTheme,
-} from "@mui/material"
+} from '@mui/material';
+import { useState } from 'react';
 
-import { usePositions } from "../../store/positions.store"
-
-import MyPositionsSummary from "./MyPositionsSummary"
-import MyPositionsBorrowTable from "./MyPositionsBorrowTable"
+import { usePositions } from '../../store/positions.store';
+import Lending from '../Shared/Lending/Lending';
+import MyPositionsBorrowTable from './MyPositionsBorrowTable';
+import MyPositionsSummary from './MyPositionsSummary';
 
 function MyPositions() {
-  const { breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const { breakpoints } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const [currentTab, setCurrentTab] = useState(0)
+  const [currentTab, setCurrentTab] = useState(0);
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
-    setCurrentTab(newValue)
+    setCurrentTab(newValue);
 
-  const loading = usePositions((state) => state.loading)
+  const loading = usePositions((state) => state.loading);
 
   return (
     <>
@@ -39,11 +39,10 @@ function MyPositions() {
         <Tabs
           value={currentTab}
           onChange={handleTabChange}
-          variant={isMobile ? "fullWidth" : "standard"}
+          variant={isMobile ? 'fullWidth' : 'standard'}
         >
           <Tab label="Borrowing" />
           <Tab
-            disabled
             label={
               <Stack direction="row" alignItems="center" gap={1}>
                 Lending
@@ -51,7 +50,7 @@ function MyPositions() {
                   <Chip
                     variant="gradient"
                     label="Coming soon"
-                    sx={{ cursor: "pointer" }}
+                    sx={{ cursor: 'pointer' }}
                   />
                 )}
               </Stack>
@@ -59,9 +58,16 @@ function MyPositions() {
           />
         </Tabs>
       </Box>
-      {currentTab === 0 && <MyPositionsBorrowTable loading={loading} />}
+
+      {currentTab === 0 ? (
+        <MyPositionsBorrowTable loading={loading} />
+      ) : (
+        <Box sx={{ height: '31rem', width: '100%' }}>
+          <Lending />
+        </Box>
+      )}
     </>
-  )
+  );
 }
 
-export default MyPositions
+export default MyPositions;

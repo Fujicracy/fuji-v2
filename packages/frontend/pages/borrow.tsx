@@ -1,17 +1,17 @@
-import { NextPage } from "next"
-import { useEffect } from "react"
+import { NextPage } from 'next';
+import { useEffect } from 'react';
 
-import BorrowWrapper from "../components/Borrow/Wrapper"
-import { useBorrow } from "../store/borrow.store"
+import BorrowWrapper from '../components/Borrow/Wrapper';
+import { useBorrow } from '../store/borrow.store';
 
 const BorrowPage: NextPage = () => {
-  const changeFormType = useBorrow((state) => state.changeFormType)
+  const changeFormType = useBorrow((state) => state.changeFormType);
 
   useEffect(() => {
-    changeFormType("create")
-  }, [changeFormType])
+    changeFormType('create');
+  }, [changeFormType]);
 
-  return <BorrowWrapper />
-}
+  return <BorrowWrapper />;
+};
 
-export default BorrowPage
+export default BorrowPage;

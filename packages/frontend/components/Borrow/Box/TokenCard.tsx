@@ -1,5 +1,6 @@
-import React, { MouseEvent, ReactElement, useState } from "react"
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {
+  ButtonBase,
   Card,
   Fade,
   ListItemIcon,
@@ -9,40 +10,38 @@ import {
   Stack,
   SxProps,
   TextField,
+  Theme,
   Typography,
   useTheme,
-  Theme,
-  ButtonBase,
-} from "@mui/material"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+} from '@mui/material';
+import { Token } from '@x-fuji/sdk';
+import React, { MouseEvent, ReactElement, useState } from 'react';
 
-import { Token } from "@x-fuji/sdk"
-import styles from "../../../styles/components/Borrow.module.css"
-
-import Balance from "../../Shared/Balance"
-import { TokenIcon } from "../../Shared/Icons"
 import {
   ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
   recommendedLTV,
-} from "../../../helpers/assets"
-import { formatValue } from "../../../helpers/values"
+} from '../../../helpers/assets';
+import { formatValue } from '../../../helpers/values';
+import styles from '../../../styles/components/Borrow.module.css';
+import Balance from '../../Shared/Balance';
+import { TokenIcon } from '../../Shared/Icons';
 
 type SelectTokenCardProps = {
-  type: AssetType
-  actionType: ActionType
-  assetChange: AssetChange
-  isExecuting: boolean
-  disabled: boolean
-  value: string
-  ltvMeta: LtvMeta
-  core: boolean
-  maxAmount?: number
-  onTokenChange: (token: Token) => void
-  onInputChange: (value: string) => void
-}
+  type: AssetType;
+  actionType: ActionType;
+  assetChange: AssetChange;
+  isExecuting: boolean;
+  disabled: boolean;
+  value: string;
+  ltvMeta: LtvMeta;
+  core: boolean;
+  maxAmount?: number;
+  onTokenChange: (token: Token) => void;
+  onInputChange: (value: string) => void;
+};
 
 function TokenCard({
   type,
@@ -57,41 +56,41 @@ function TokenCard({
   onTokenChange,
   onInputChange,
 }: SelectTokenCardProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
-  const { token, usdPrice, balances, selectableTokens } = assetChange
+  const { token, usdPrice, balances, selectableTokens } = assetChange;
 
-  const balance = balances[token.symbol]
+  const balance = balances[token.symbol];
 
-  const { ltv, ltvMax } = ltvMeta
+  const { ltv, ltvMax } = ltvMeta;
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const isOpen = Boolean(anchorEl)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const close = () => setAnchorEl(null)
+    setAnchorEl(event.currentTarget);
+  };
+  const close = () => setAnchorEl(null);
 
   const handleMax = () => {
     // const amount = type === "debt" ? 50 : balance
-    handleInput(maxAmount?.toString() ?? "0")
-  }
+    handleInput(maxAmount?.toString() ?? '0');
+  };
 
   const handleInput = (val: string) => {
-    onInputChange(val)
-  }
+    onInputChange(val);
+  };
 
   const handleTokenChange = (token: Token) => {
-    onTokenChange(token)
-    close()
-  }
+    onTokenChange(token);
+    close();
+  };
 
   return (
     <Card
       variant="outlined"
       sx={{
         borderColor:
-          (actionType === ActionType.ADD ? "collateral" : "debt") === type &&
+          (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
           Number(assetChange.input) > balance
             ? palette.error.dark
             : palette.secondary.light,
@@ -126,7 +125,7 @@ function TokenCard({
             <TokenItem
               token={token}
               prepend={<KeyboardArrowDownIcon />}
-              sx={{ borderRadius: "2rem" }}
+              sx={{ borderRadius: '2rem' }}
             />
           )}
         </ButtonBase>
@@ -148,16 +147,16 @@ function TokenCard({
         </Menu>
       </div>
 
-      <div className={styles.cardLine} style={{ marginTop: "1rem" }}>
+      <div className={styles.cardLine} style={{ marginTop: '1rem' }}>
         {core ? (
           <>
-            <Typography variant="small" sx={{ width: "11rem" }}>
-              {formatValue(usdPrice * +value, { style: "currency" })}
+            <Typography variant="small" sx={{ width: '11rem' }}>
+              {formatValue(usdPrice * +value, { style: 'currency' })}
             </Typography>
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
               <Typography
@@ -184,7 +183,15 @@ function TokenCard({
           </>
         ) : (
           <>
-            <Typography variant="small" sx={{ width: "7rem" }}>
+            <Typography
+              variant="small"
+              sx={{
+                minWidth: '2.5rem',
+                ['@media screen and (max-width: 370px)']: {
+                  fontSize: '0.7rem',
+                },
+              }}
+            >
               {formatValue(usdPrice * +value)}
             </Typography>
 
@@ -193,7 +200,7 @@ function TokenCard({
                 variant="smallDark"
                 color={
                   !ltv
-                    ? ""
+                    ? ''
                     : ltv > ltvMax
                     ? palette.error.main
                     : ltv > recommendedLTV(ltvMax)
@@ -201,29 +208,49 @@ function TokenCard({
                     : palette.success.main
                 }
                 mr=".5rem"
+                sx={{
+                  ['@media screen and (max-width: 370px)']: {
+                    fontSize: '0.7rem',
+                  },
+                }}
               >
-                LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : "n/a"}
+                LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
               </Typography>
-              <Typography variant="smallDark">
-                (Recommended: {recommendedLTV(ltvMax)}%)
+              <Typography
+                variant="smallDark"
+                sx={{
+                  '&::before': {
+                    content: '"Recommended: "',
+                  },
+                  ['@media screen and (max-width: 370px)']: {
+                    fontSize: '0.7rem',
+                  },
+                  ['@media screen and (max-width: 320px)']: {
+                    '&::before': {
+                      content: '"Rec. "',
+                    },
+                  },
+                }}
+              >
+                ({recommendedLTV(ltvMax)}%)
               </Typography>
             </Stack>
           </>
         )}
       </div>
     </Card>
-  )
+  );
 }
 
 type TokenItem = {
-  token: Token
-  balance?: number
-  prepend?: ReactElement
-  sx?: SxProps<Theme>
-  onClick?: (token: Token) => void
-}
+  token: Token;
+  balance?: number;
+  prepend?: ReactElement;
+  sx?: SxProps<Theme>;
+  onClick?: (token: Token) => void;
+};
 const TokenItem = (props: TokenItem) => {
-  const { token, balance, prepend, sx, onClick } = props
+  const { token, balance, prepend, sx, onClick } = props;
   return (
     <MenuItem
       key={token.name}
@@ -237,18 +264,18 @@ const TokenItem = (props: TokenItem) => {
       <ListItemText>
         <Typography variant="h6">{token.symbol}</Typography>
       </ListItemText>
-      {typeof balance === "number" && (
+      {typeof balance === 'number' && (
         <Typography variant="smallDark" ml="3rem">
           <Balance balance={balance} />
         </Typography>
       )}
       {prepend}
     </MenuItem>
-  )
-}
+  );
+};
 
-export default TokenCard
+export default TokenCard;
 
 TokenCard.defaultProps = {
   disabled: false,
-}
+};

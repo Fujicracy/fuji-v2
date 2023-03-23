@@ -1,4 +1,6 @@
-import { MouseEvent, useState } from "react"
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import {
   Chip,
   Collapse,
@@ -11,36 +13,34 @@ import {
   Tooltip,
   Typography,
   useTheme,
-} from "@mui/material"
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import { Box } from "@mui/system"
+} from '@mui/material';
+import { Box } from '@mui/system';
+import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { MouseEvent, useState } from 'react';
 
+import { MarketRow, Status } from '../../helpers/markets';
+import { formatValue } from '../../helpers/values';
 import {
   DropletIcon,
   NetworkIcon,
   ProviderIcon,
   TokenIcon,
-} from "../Shared/Icons"
-import SizableTableCell from "../Shared/SizableTableCell"
-import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
-import { MarketRow, Status } from "../../helpers/markets"
-import { formatValue } from "../../helpers/values"
+} from '../Shared/Icons';
+import SizableTableCell from '../Shared/SizableTableCell';
 
 type MarketsTableRowProps = {
-  row: MarketRow
-  onClick: (entity?: BorrowingVault | VaultWithFinancials) => void
-}
+  row: MarketRow;
+  onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
+};
 
 function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
-  const { palette } = useTheme()
-  const [expandRow, setExpandRow] = useState(false)
+  const { palette } = useTheme();
+  const [expandRow, setExpandRow] = useState(false);
 
   const handleExpand = (evt: MouseEvent) => {
-    evt.stopPropagation()
-    setExpandRow(!expandRow)
-  }
+    evt.stopPropagation();
+    setExpandRow(!expandRow);
+  };
 
   const loaderOrError = (status: Status) =>
     status === Status.Loading ? (
@@ -51,18 +51,18 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
       </Tooltip>
     ) : (
       <></>
-    )
+    );
 
   return (
     <>
       <TableRow
         onClick={() => onClick(row.entity)}
-        sx={{ height: "3.438rem", cursor: "pointer" }}
+        sx={{ height: '3.438rem', cursor: 'pointer' }}
       >
         <SizableTableCell
           width="160px"
           sx={{
-            position: "sticky",
+            position: 'sticky',
             left: 0,
             zIndex: 5,
             background: row.isChild
@@ -191,18 +191,14 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
                 <Tooltip key={name} title={name} arrow>
                   <Box
                     sx={{
-                      position: "relative",
+                      position: 'relative',
                       right: `${i * 0.25}rem`,
                       zIndex: 4 - i,
-                      height: "24px",
+                      height: '24px',
                     }}
                   >
                     {i <= 2 && (
-                      <ProviderIcon
-                        providerName={name}
-                        height={24}
-                        width={24}
-                      />
+                      <ProviderIcon provider={name} height={24} width={24} />
                     )}
                   </Box>
                 </Tooltip>
@@ -222,7 +218,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
           <Chip
-            variant={row.safetyRating.value === "A+" ? "success" : "warning"}
+            variant={row.safetyRating.value === 'A+' ? 'success' : 'warning'}
             label={row.safetyRating.value}
           />
         </SizableTableCell>
@@ -231,15 +227,15 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           {row.liquidity.status === Status.Ready &&
             formatValue(row.liquidity.value, {
               maximumSignificantDigits: 3,
-              notation: "compact",
-              style: "currency",
+              notation: 'compact',
+              style: 'currency',
             })}
         </SizableTableCell>
       </TableRow>
 
       <TableRow>
         <SizableTableCell
-          sx={{ p: 0, borderBottom: "none !important" }}
+          sx={{ p: 0, borderBottom: 'none !important' }}
           colSpan={8}
         >
           <Collapse
@@ -253,7 +249,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
             }}
           >
             {row.children?.map((collaspsedRow, i) => (
-              <Table key={i} sx={{ borderCollapse: "initial" }}>
+              <Table key={i} sx={{ borderCollapse: 'initial' }}>
                 <TableBody>
                   <MarketsTableRow row={collaspsedRow} onClick={onClick} />
                 </TableBody>
@@ -263,25 +259,25 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
       </TableRow>
     </>
-  )
+  );
 }
 
-export default MarketsTableRow
+export default MarketsTableRow;
 
 type ToggleProps = {
-  expandRow: boolean
-  isVisible: boolean
-  onClick: (e: MouseEvent) => void
-}
+  expandRow: boolean;
+  isVisible: boolean;
+  onClick: (e: MouseEvent) => void;
+};
 
 function Toggle(props: ToggleProps) {
-  const { expandRow, isVisible, onClick } = props
+  const { expandRow, isVisible, onClick } = props;
 
-  const visibility = isVisible ? "visible" : "hidden"
+  const visibility = isVisible ? 'visible' : 'hidden';
 
   return (
     <IconButton onClick={onClick} size="small" sx={{ visibility }}>
       {expandRow ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
     </IconButton>
-  )
+  );
 }

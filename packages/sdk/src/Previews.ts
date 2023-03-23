@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
 
-import { CHAIN, CONNEXT_ROUTER_ADDRESS } from './constants';
+import { CHAIN, CONNEXT_ROUTER_ADDRESS, DEFAULT_SLIPPAGE } from './constants';
 import { LENDING_PROVIDERS } from './constants/lending-providers';
 import { Address, BorrowingVault, Token } from './entities';
 import { Chain } from './entities/Chain';
@@ -34,7 +34,7 @@ export class Previews {
   ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
@@ -77,7 +77,7 @@ export class Previews {
     deadline?: number,
     slippage?: number
   ): Promise<PreviewResult> {
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
 
@@ -149,7 +149,7 @@ export class Previews {
   ): Promise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId == vault.chainId) {
@@ -192,7 +192,7 @@ export class Previews {
     deadline?: number,
     slippage?: number
   ): Promise<PreviewResult> {
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
 
@@ -219,7 +219,7 @@ export class Previews {
         this._withdraw(vault, amountOut, connextRouter, account),
         this._xTransfer(
           tokenOut.chainId,
-          vault.debt,
+          vault.collateral,
           amountOut,
           account,
           connextRouter,
@@ -304,7 +304,7 @@ export class Previews {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -399,7 +399,7 @@ export class Previews {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
-    const _slippage = slippage ?? 30;
+    const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
     if (srcChainId === destChainId && srcChainId == vault.chainId) {
@@ -410,7 +410,7 @@ export class Previews {
         this._withdraw(vault, amountOut, account, account),
       ];
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
-      // deposit and borrow on chain A and transfer to chain B
+      // payback and withdraw on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
       actions = [
         this._payback(vault, amountIn, account, account),
@@ -424,7 +424,7 @@ export class Previews {
         this._withdraw(vault, amountOut, connextRouter, account),
         this._xTransfer(
           destChainId,
-          vault.debt,
+          vault.collateral,
           amountOut,
           account,
           connextRouter,
@@ -432,7 +432,7 @@ export class Previews {
         ),
       ];
     } else if (srcChainId !== destChainId && destChainId === vault.chainId) {
-      // transfer from chain A and deposit and borrow on chain B
+      // transfer from chain A and payback and withdraw on chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
       const innerActions = [
         this._payback(vault, amountIn, account, connextRouter),
@@ -501,14 +501,11 @@ export class Previews {
         amountIn
       );
       estimateSlippage = r.estimateSlippage;
-      // add back 'routerFee' because the tx passes through
-      // Connext slow path where no fee is taken
-      const received = r.received.add(r.bridgeFee);
 
       steps.push(
         this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
-        this._step(step, vault.chainId, received, vaultToken, activeProvider),
-        this._step(RoutingStep.END, vault.chainId, received, vaultToken)
+        this._step(step, vault.chainId, r.received, vaultToken, activeProvider),
+        this._step(RoutingStep.END, vault.chainId, r.received, vaultToken)
       );
     }
 
@@ -558,7 +555,6 @@ export class Previews {
       estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
       // so we need to account for the router fee (0.05) + slippage
-      const received = r.received;
       steps.push(
         this._step(step, srcChainId, amountOut, vaultToken, activeProvider),
         this._step(
@@ -567,7 +563,7 @@ export class Previews {
           amountOut,
           vaultToken
         ),
-        this._step(RoutingStep.END, tokenOut.chainId, received, tokenOut)
+        this._step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
       );
     } else if (
       srcChainId !== vault.chainId &&
@@ -651,7 +647,6 @@ export class Previews {
       estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
       // so we need to account for the router fee (0.05) + slippage
-      const received = r.received;
       steps.push(
         this._step(
           RoutingStep.DEPOSIT,
@@ -673,7 +668,7 @@ export class Previews {
           amountOut,
           vault.debt
         ),
-        this._step(RoutingStep.END, tokenOut.chainId, received, tokenOut)
+        this._step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
       );
     } else if (
       tokenIn.chainId !== tokenOut.chainId &&
@@ -687,16 +682,13 @@ export class Previews {
         amountIn
       );
       estimateSlippage = r.estimateSlippage;
-      // add back 'routerFee' because the tx passes through
-      // Connext slow path where no fee is taken
-      const received = r.received.add(r.bridgeFee);
 
       steps.push(
         this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
         this._step(
           RoutingStep.DEPOSIT,
           vault.chainId,
-          received,
+          r.received,
           vault.collateral,
           activeProvider
         ),
@@ -780,7 +772,6 @@ export class Previews {
       estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
       // so we need to account for the router fee (0.05) + slippage
-      const received = r.received;
       steps.push(
         this._step(
           RoutingStep.PAYBACK,
@@ -802,7 +793,7 @@ export class Previews {
           amountOut,
           vault.collateral
         ),
-        this._step(RoutingStep.END, tokenOut.chainId, received, tokenOut)
+        this._step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
       );
     } else if (
       tokenIn.chainId !== tokenOut.chainId &&
@@ -816,16 +807,13 @@ export class Previews {
         amountIn
       );
       estimateSlippage = r.estimateSlippage;
-      // add back 'routerFee' because the tx passes through
-      // Connext slow path where no fee is taken
-      const received = r.received.add(r.bridgeFee);
 
       steps.push(
         this._step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
         this._step(
           RoutingStep.PAYBACK,
           vault.chainId,
-          received,
+          r.received,
           vault.debt,
           activeProvider
         ),

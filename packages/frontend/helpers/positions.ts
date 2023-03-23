@@ -1,38 +1,40 @@
-import { useBorrow } from "../store/borrow.store"
-import { AssetMeta, Position } from "../store/models/Position"
-import { usePositions } from "../store/positions.store"
-import { AssetChange, Mode } from "./assets"
-import { formatNumber } from "./values"
+import { Palette } from '@mui/material';
+
+import { useBorrow } from '../store/borrow.store';
+import { AssetMeta, Position } from '../store/models/Position';
+import { usePositions } from '../store/positions.store';
+import { AssetChange, Mode } from './assets';
+import { formatNumber } from './values';
 
 export type PositionRow = {
-  chainId: number | undefined
-  debt: { symbol: string | "-"; amount: number | "-"; usdValue: number | 1 }
+  chainId: number | undefined;
+  debt: { symbol: string | '-'; amount: number | '-'; usdValue: number | 1 };
   collateral: {
-    symbol: string | "-"
-    amount: number | "-"
-    usdValue: number | 1
-  }
-  apr: number | "-"
-  liquidationPrice: number | "-"
-  oraclePrice: number | "-"
-  percentPriceDiff: number | "-"
-  address: string | undefined
-}
+    symbol: string | '-';
+    amount: number | '-';
+    usdValue: number | 1;
+  };
+  apr: number | '-';
+  liquidationPrice: number | '-';
+  oraclePrice: number | '-';
+  percentPriceDiff: number | '-';
+  address: string | undefined;
+};
 
 export function getRows(positions: Position[]): PositionRow[] {
   if (positions.length === 0) {
-    return []
+    return [];
   } else {
     const rows: PositionRow[] = positions.map((pos: Position) => ({
       address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
       debt: {
-        symbol: pos.vault?.debt.symbol || "",
+        symbol: pos.vault?.debt.symbol || '',
         amount: pos.debt.amount,
         usdValue: pos.debt.amount * pos.debt.usdPrice,
       },
       collateral: {
-        symbol: pos.vault?.collateral.symbol || "",
+        symbol: pos.vault?.collateral.symbol || '',
         amount: pos.collateral.amount,
         usdValue: pos.collateral.amount * pos.collateral.usdPrice,
       },
@@ -40,16 +42,16 @@ export function getRows(positions: Position[]): PositionRow[] {
       liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
       oraclePrice: pos.collateral.usdPrice,
       percentPriceDiff: pos.liquidationDiff,
-    }))
-    return rows
+    }));
+    return rows;
   }
 }
 
 function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
   if (liqPrice === undefined || liqPrice === 0) {
-    return "-"
+    return '-';
   } else {
-    return formatNumber(liqPrice, 0)
+    return formatNumber(liqPrice, 0);
   }
 }
 
@@ -67,66 +69,66 @@ export function viewFuturePosition(
   current: Position,
   mode: Mode
 ): Position {
-  const future = JSON.parse(JSON.stringify(current))
+  const future = JSON.parse(JSON.stringify(current));
   const collateralInput = parseFloat(
-    collateral.input === "" ? "0" : collateral.input
-  )
-  const debtInput = parseFloat(debt.input === "" ? "0" : debt.input)
+    collateral.input === '' ? '0' : collateral.input
+  );
+  const debtInput = parseFloat(debt.input === '' ? '0' : debt.input);
   switch (mode) {
     case Mode.DEPOSIT:
-      future.collateral.amount = current.collateral.amount + collateralInput
-      break
+      future.collateral.amount = current.collateral.amount + collateralInput;
+      break;
     case Mode.BORROW:
-      future.debt.amount = current.debt.amount + debtInput
-      break
+      future.debt.amount = current.debt.amount + debtInput;
+      break;
     case Mode.WITHDRAW:
-      future.collateral.amount = current.collateral.amount - collateralInput
-      break
+      future.collateral.amount = current.collateral.amount - collateralInput;
+      break;
     case Mode.PAYBACK:
-      future.debt.amount = current.debt.amount - debtInput
-      break
+      future.debt.amount = current.debt.amount - debtInput;
+      break;
     case Mode.DEPOSIT_AND_BORROW:
-      future.collateral.amount = current.collateral.amount + collateralInput
+      future.collateral.amount = current.collateral.amount + collateralInput;
 
-      future.debt.amount = current.debt.amount + debtInput
-      break
+      future.debt.amount = current.debt.amount + debtInput;
+      break;
     case Mode.PAYBACK_AND_WITHDRAW:
-      future.collateral.amount = current.collateral.amount - collateralInput
+      future.collateral.amount = current.collateral.amount - collateralInput;
 
-      future.debt.amount = current.debt.amount - debtInput
-      break
+      future.debt.amount = current.debt.amount - debtInput;
+      break;
   }
 
-  const debtUsdValue = future.debt.amount * future.debt.usdPrice
-  const collatUsdValue = future.collateral.amount * future.collateral.usdPrice
+  const debtUsdValue = future.debt.amount * future.debt.usdPrice;
+  const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
 
-  future.ltvMax = future.ltvMax
-  future.ltv = (debtUsdValue / collatUsdValue) * 100
+  future.ltvMax = future.ltvMax;
+  future.ltv = (debtUsdValue / collatUsdValue) * 100;
 
   future.liquidationPrice =
-    debtUsdValue / (future.ltvThreshold * future.collateral.amount)
+    debtUsdValue / (future.ltvThreshold * future.collateral.amount);
 
-  future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice
+  future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice;
 
-  future.ltvThreshold = future.ltvThreshold * 100
+  future.ltvThreshold = future.ltvThreshold * 100;
 
-  return future
+  return future;
 }
 
 export type BasePosition = {
-  position: Position
-  futurePosition?: Position
-}
+  position: Position;
+  futurePosition?: Position;
+};
 
 export function viewDynamicPosition(
   dynamic: boolean,
   position: Position | undefined,
   futurePosition: Position | undefined = undefined
 ): BasePosition {
-  const baseCollateral = useBorrow.getState().collateral
-  const baseDebt = useBorrow.getState().debt
-  const baseLtv = useBorrow.getState().ltv
-  const baseLiquidation = useBorrow.getState().liquidationMeta
+  const baseCollateral = useBorrow.getState().collateral;
+  const baseDebt = useBorrow.getState().debt;
+  const baseLtv = useBorrow.getState().ltv;
+  const baseLiquidation = useBorrow.getState().liquidationMeta;
   return {
     position: {
       vault: position?.vault,
@@ -149,7 +151,7 @@ export function viewDynamicPosition(
         : baseLiquidation.liquidationPrice,
     },
     futurePosition,
-  }
+  };
 }
 
 export function dynamicPositionMeta(
@@ -157,16 +159,25 @@ export function dynamicPositionMeta(
   source: AssetChange,
   positionMeta: AssetMeta | undefined = undefined
 ): AssetMeta {
-  if (positionMeta) return positionMeta
+  if (positionMeta) return positionMeta;
   return {
     amount: dynamic ? Number(source.input) : source.amount,
     usdPrice: source.usdPrice,
     token: source.token,
-  }
+  };
 }
 
 export function vaultFromAddress(address: string | undefined) {
-  if (!address) return undefined
-  const positions = usePositions.getState().positions
-  return positions.find((pos) => pos.vault?.address.value === address)?.vault
+  if (!address) return undefined;
+  const positions = usePositions.getState().positions;
+  return positions.find((pos) => pos.vault?.address.value === address)?.vault;
+}
+
+export function liquidationColor(
+  percentage: number | string,
+  palette: Palette
+) {
+  if (typeof percentage === 'string') return palette.info.main;
+  if (percentage < 20) return palette.error.main;
+  return palette.success.main;
 }

@@ -1,38 +1,41 @@
-import { ReactNode, useState } from "react"
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
   Card,
-  Collapse,
-  Typography,
   CircularProgress,
+  Collapse,
   Stack,
-} from "@mui/material"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import { useBorrow } from "../../store/borrow.store"
-import { toNotSoFixed } from "../../helpers/values"
+  Typography,
+} from '@mui/material';
+import { ReactNode, useState } from 'react';
+
+import { toNotSoFixed } from '../../helpers/values';
+import { useBorrow } from '../../store/borrow.store';
 
 function Fees() {
-  const transactionMeta = useBorrow((state) => state.transactionMeta)
-  const [showTransactionDetails, setShowTransactionDetails] = useState(false)
-  const show = showTransactionDetails && transactionMeta.status === "ready"
+  const transactionMeta = useBorrow((state) => state.transactionMeta);
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
+  const [showTransactionDetails, setShowTransactionDetails] = useState(false);
+  const show = showTransactionDetails && transactionMeta.status === 'ready';
 
   const handleClick = () => {
-    if (transactionMeta.status === "ready") {
-      setShowTransactionDetails(!showTransactionDetails)
+    if (transactionMeta.status === 'ready') {
+      setShowTransactionDetails(!showTransactionDetails);
     }
-  }
+  };
 
   return (
     <Card
       variant="outlined"
-      sx={{ cursor: "pointer", border: "none" }}
+      sx={{ cursor: 'pointer', border: 'none' }}
       onClick={handleClick}
     >
       <Stack direction="row" justifyContent="space-between" width="100%">
         <Typography variant="small" display="block">
           Estimated Cost
         </Typography>
-        {transactionMeta.status === "ready" && (
+        {transactionMeta.status === 'ready' && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
               {`~$${transactionMeta.bridgeFee.toFixed(2)} + gas`}
@@ -40,20 +43,20 @@ function Fees() {
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
         )}
-        {transactionMeta.status === "fetching" && (
+        {transactionMeta.status === 'fetching' && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <CircularProgress size="0.875rem" />
           </Stack>
         )}
-        {(transactionMeta.status === "error" ||
-          transactionMeta.status === "initial") && (
+        {(transactionMeta.status === 'error' ||
+          transactionMeta.status === 'initial') && (
           <Typography variant="small" display="block">
             n/a
           </Typography>
         )}
       </Stack>
 
-      <Collapse in={show} sx={{ width: "100%" }}>
+      <Collapse in={show} sx={{ width: '100%' }}>
         <Fee
           label="Bridge fee"
           value={`~$${toNotSoFixed(transactionMeta.bridgeFee)}`}
@@ -62,21 +65,27 @@ function Fees() {
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
         />
+        {collateral.chainId !== debt.chainId && (
+          <Fee
+            label="Est. slippage"
+            value={`~${transactionMeta.estimateSlippage} %`}
+          />
+        )}
       </Collapse>
     </Card>
-  )
+  );
 }
 
-export default Fees
+export default Fees;
 
 type FeeProps = {
-  label: string
-  value: string | ReactNode
-}
+  label: string;
+  value: string | ReactNode;
+};
 
 const Fee = ({ label, value }: FeeProps) => (
   <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
     <Typography variant="small">{label}</Typography>
     <Typography variant="small">{value}</Typography>
   </Stack>
-)
+);

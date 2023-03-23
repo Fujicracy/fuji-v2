@@ -1,70 +1,75 @@
-import { useEffect, useMemo, useState } from "react"
 import {
   Box,
+  Skeleton,
+  Stack,
   Table,
+  TableBody,
+  TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TableCell,
   Typography,
   useTheme,
-  TableBody,
-  Stack,
-  Button,
-  Skeleton,
-} from "@mui/material"
-import { useRouter } from "next/router"
-import { TokenIcon, TokenWithNetworkIcon } from "../Shared/Icons"
-import { chainName } from "../../helpers/chains"
-import { usePositions } from "../../store/positions.store"
-import { useAuth } from "../../store/auth.store"
-import { getRows, PositionRow, vaultFromAddress } from "../../helpers/positions"
-import { formatValue } from "../../helpers/values"
-import { showPosition } from "../../helpers/navigation"
-import { shallow } from "zustand/shallow"
+} from '@mui/material';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+
+import { chainName } from '../../helpers/chains';
+import { showPosition } from '../../helpers/navigation';
+import {
+  getRows,
+  PositionRow,
+  vaultFromAddress,
+} from '../../helpers/positions';
+import { formatValue } from '../../helpers/values';
+import { useAuth } from '../../store/auth.store';
+import { usePositions } from '../../store/positions.store';
+import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
+import EmptyState from './EmptyState';
+import LiquidationBox from './LiquidationBox';
 
 type PositionsBorrowTableProps = {
-  loading: boolean
-}
+  loading: boolean;
+};
 
 function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
-  const { palette } = useTheme()
-  const router = useRouter()
-  const account = useAuth((state) => state.address)
-  const positions = usePositions((state) => state.positions)
-  const [rows, setRows] = useState<PositionRow[]>([])
+  const { palette } = useTheme();
+  const router = useRouter();
+  const account = useAuth((state) => state.address);
+  const positions = usePositions((state) => state.positions);
+  const [rows, setRows] = useState<PositionRow[]>([]);
 
   useEffect(() => {
-    ;(() => {
-      if (loading) return
-      setRows(getRows(positions))
-    })()
-  }, [loading, account, positions])
+    (() => {
+      if (loading) return;
+      setRows(getRows(positions));
+    })();
+  }, [loading, account, positions]);
 
   if (!account) {
     return (
       <MyPositionsBorrowTableContainer>
         <EmptyState reason="no-wallet" />
       </MyPositionsBorrowTableContainer>
-    )
+    );
   }
   if (loading) {
     return (
       <MyPositionsBorrowTableContainer>
-        <TableRow sx={{ height: "2.625rem" }}>
-          {new Array(7).fill("").map((_, index) => (
+        <TableRow sx={{ height: '2.625rem' }}>
+          {new Array(7).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
           ))}
         </TableRow>
       </MyPositionsBorrowTableContainer>
-    )
+    );
   }
 
   function handleClick(row: PositionRow) {
-    const entity = vaultFromAddress(row.address)
-    showPosition(router, String(entity?.chainId), entity)
+    const entity = vaultFromAddress(row.address);
+    showPosition(router, String(entity?.chainId), entity);
   }
 
   return (
@@ -73,7 +78,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
         rows.map((row, i) => (
           <TableRow
             key={i}
-            sx={{ cursor: "pointer" }}
+            sx={{ cursor: 'pointer' }}
             onClick={() => handleClick(row)}
           >
             <TableCell>
@@ -105,7 +110,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               <Box pt={1} pb={1}>
                 <Typography variant="small">
                   {formatValue(row.debt.usdValue, {
-                    style: "currency",
+                    style: 'currency',
                     minimumFractionDigits: 0,
                   })}
                 </Typography>
@@ -119,7 +124,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               <Box pt={1} pb={1}>
                 <Typography variant="small">
                   {formatValue(row.collateral.usdValue, {
-                    style: "currency",
+                    style: 'currency',
                     maximumFractionDigits: 0,
                   })}
                 </Typography>
@@ -131,7 +136,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             </TableCell>
             <TableCell align="right">
               {formatValue(row.oraclePrice, {
-                style: "currency",
+                style: 'currency',
                 minimumFractionDigits: 0,
               })}
             </TableCell>
@@ -145,19 +150,19 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
         <EmptyState reason="no-positions" />
       )}
     </MyPositionsBorrowTableContainer>
-  )
+  );
 }
 
-export default MyPositionsBorrowTable
+export default MyPositionsBorrowTable;
 
 type PositionsBorrowTableElementProps = {
-  children: string | JSX.Element | JSX.Element[]
-}
+  children: string | JSX.Element | JSX.Element[];
+};
 
 function MyPositionsBorrowTableHeader() {
   return (
     <TableHead>
-      <TableRow sx={{ height: "2.625rem" }}>
+      <TableRow sx={{ height: '2.625rem' }}>
         <TableCell>Borrow</TableCell>
         <TableCell>Collateral</TableCell>
         <TableCell align="right">Debt APR</TableCell>
@@ -167,7 +172,7 @@ function MyPositionsBorrowTableHeader() {
         <TableCell align="right">Liquidation Price</TableCell>
       </TableRow>
     </TableHead>
-  )
+  );
 }
 
 function MyPositionsBorrowTableContainer({
@@ -180,124 +185,5 @@ function MyPositionsBorrowTableContainer({
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>
-  )
-}
-
-function LiquidationBox(props: {
-  liquidationPrice: number | "-"
-  percentPriceDiff: number | "-"
-}) {
-  const { palette } = useTheme()
-  const displayPercent = () => {
-    if (props.liquidationPrice === 0 || props.liquidationPrice === "-") {
-      return <span>No debt</span>
-    } else {
-      return (
-        <span>
-          <Typography variant="small" color={palette.success.main}>
-            ~{props.percentPriceDiff}%{" "}
-          </Typography>
-          <Typography variant="small" color={palette.info.main}>
-            above
-          </Typography>
-        </span>
-      )
-    }
-  }
-  return (
-    <TableCell align="right">
-      <Box pt={1} pb={1}>
-        <Typography variant="small">
-          {formatValue(props.liquidationPrice, {
-            style: "currency",
-            minimumFractionDigits: 0,
-          })}
-        </Typography>
-        <br />
-        {displayPercent()}
-      </Box>
-    </TableCell>
-  )
-}
-
-function EmptyState({ reason }: { reason: "no-wallet" | "no-positions" }) {
-  const { palette } = useTheme()
-
-  const router = useRouter()
-
-  const login = useAuth((state) => state.login, shallow)
-
-  const config = useMemo(() => {
-    return reason === "no-wallet"
-      ? {
-          title: "No wallet connected",
-          infoText: <></>,
-          button: {
-            label: "Connect Wallet",
-            action: login,
-          },
-        }
-      : {
-          title: "No Positions",
-          infoText: (
-            <Typography
-              variant="smallDark"
-              mt="0.5rem"
-              sx={{
-                whiteSpace: "normal",
-              }}
-            >
-              Deposit and borrow in a vault to view your dashboard metrics
-            </Typography>
-          ),
-          button: {
-            label: "Borrow",
-            action: () => router.push("/borrow"),
-          },
-        }
-  }, [reason, login, router])
-
-  return (
-    <TableRow>
-      <TableCell
-        colSpan={7}
-        align="center"
-        sx={{ m: "0", textAlign: "center", p: 0 }}
-      >
-        <Box
-          sx={{
-            minHeight: "25rem",
-            display: "flex",
-            flexDirection: "column",
-            pt: "3rem",
-            justifyContent: "start",
-            alignItems: "center",
-            overflow: "hidden",
-            ["@media screen and (max-width:700px)"]: {
-              maxWidth: "90vw",
-              minHeight: "15rem",
-              p: "3rem 1rem 0 1rem",
-            },
-          }}
-        >
-          <Typography variant="h4" color={palette.text.primary}>
-            {config.title}
-          </Typography>
-
-          {config.infoText}
-
-          <Button
-            variant="gradient"
-            size="large"
-            onClick={() => config.button.action()}
-            data-cy="connect-wallet"
-            fullWidth
-            sx={{ mt: "1.5rem", maxWidth: "17rem" }}
-          >
-            {config.button.label}
-          </Button>
-        </Box>
-      </TableCell>
-    </TableRow>
-  )
+  );
 }

@@ -1,26 +1,27 @@
 import {
   Address,
   BorrowingVault,
+  PreviewResult,
   RouterActionParams,
   RoutingStep,
   RoutingStepDetails,
-  PreviewResult,
   Token,
-} from "@x-fuji/sdk"
-import { sdk } from "../services/sdk"
-import { formatUnits, parseUnits } from "ethers/lib/utils"
-import { Mode } from "./assets"
+} from '@x-fuji/sdk';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+
+import { sdk } from '../services/sdk';
+import { Mode } from './assets';
 
 export type RouteMeta = {
   //gasFees: number
-  estimateSlippage: number
-  bridgeFee: number
-  estimateTime: number
-  steps: RoutingStepDetails[]
-  actions: RouterActionParams[]
-  address: string
-  recommended: boolean
-}
+  estimateSlippage: number;
+  bridgeFee: number;
+  estimateTime: number;
+  steps: RoutingStepDetails[];
+  actions: RouterActionParams[];
+  address: string;
+  recommended: boolean;
+};
 
 export const fetchRoutes = async (
   mode: Mode,
@@ -30,17 +31,18 @@ export const fetchRoutes = async (
   collateralInput: string,
   debtInput: string,
   address: string,
-  recommended: boolean
+  recommended: boolean,
+  slippage?: number
 ): Promise<{
-  data?: RouteMeta
-  error?: Error
+  data?: RouteMeta;
+  error?: Error;
 }> => {
   const result: {
-    data?: RouteMeta
-    error?: Error
-  } = {}
+    data?: RouteMeta;
+    error?: Error;
+  } = {};
   try {
-    let preview: PreviewResult
+    let preview: PreviewResult;
     switch (mode) {
       case Mode.DEPOSIT_AND_BORROW:
         preview = await sdk.previews.depositAndBorrow(
@@ -49,61 +51,71 @@ export const fetchRoutes = async (
           parseUnits(debtInput, debtToken.decimals),
           collateralToken,
           debtToken,
-          Address.from(address)
-        )
-        break
+          Address.from(address),
+          undefined,
+          slippage
+        );
+        break;
       case Mode.DEPOSIT:
         preview = await sdk.previews.deposit(
           vault,
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
-          Address.from(address)
-        )
-        break
+          Address.from(address),
+          slippage
+        );
+        break;
       case Mode.BORROW:
         preview = await sdk.previews.borrow(
           vault,
           collateralToken.chainId,
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
-          Address.from(address)
-        )
-        break
+          Address.from(address),
+          undefined,
+          slippage
+        );
+        break;
       case Mode.PAYBACK_AND_WITHDRAW:
         preview = await sdk.previews.paybackAndWithdraw(
           vault,
-          parseUnits(collateralInput, collateralToken.decimals),
           parseUnits(debtInput, debtToken.decimals),
-          collateralToken,
+          parseUnits(collateralInput, collateralToken.decimals),
           debtToken,
-          Address.from(address)
-        )
-        break
+          collateralToken,
+          Address.from(address),
+          undefined,
+          slippage
+        );
+        break;
       case Mode.WITHDRAW:
         preview = await sdk.previews.withdraw(
           vault,
           vault.collateral.chainId,
           parseUnits(collateralInput, collateralToken.decimals),
           collateralToken,
-          Address.from(address)
-        )
-        break
+          Address.from(address),
+          undefined,
+          slippage
+        );
+        break;
       case Mode.PAYBACK:
         preview = await sdk.previews.payback(
           vault,
           parseUnits(debtInput, debtToken.decimals),
           debtToken,
-          Address.from(address)
-        )
-        break
+          Address.from(address),
+          slippage
+        );
+        break;
     }
     const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
-      preview
+      preview;
 
-    const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER)
+    const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER);
     const _bridgeFee = bridgeStep
       ? formatUnits(bridgeFee, bridgeStep.token?.decimals ?? 18)
-      : "0"
+      : '0';
 
     result.data = {
       address: vault.address.value,
@@ -114,10 +126,10 @@ export const fetchRoutes = async (
       estimateTime,
       actions,
       steps,
-    }
-    return result
+    };
+    return result;
   } catch (e) {
-    if (e instanceof Error) result.error = e
+    if (e instanceof Error) result.error = e;
   }
-  return result
-}
+  return result;
+};
