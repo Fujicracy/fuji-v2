@@ -1,5 +1,14 @@
 import CloseIcon from '@mui/icons-material/Close';
-import { Box, Button, Dialog, Divider, Paper, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  Divider,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -13,6 +22,18 @@ type PositionYieldsModalProps = {
   onClose: () => void;
 };
 
+type PeriodOption = {
+  label: string;
+  value: string;
+};
+
+const periodOptions: PeriodOption[] = [
+  { label: '365D', value: 'year' },
+  { label: '30D', value: 'month' },
+  { label: '7D', value: 'week' },
+  { label: '1D', value: 'day' },
+];
+
 export function PositionYieldsModal({
   open,
   onClose,
@@ -21,6 +42,7 @@ export function PositionYieldsModal({
   const router = useRouter();
   const loading = usePositions((state) => state.loading);
 
+  const [period, setPeriod] = useState<PeriodOption>(periodOptions[0]);
   const [currentTab, setCurrentTab] = useState(0);
 
   return (
@@ -56,9 +78,38 @@ export function PositionYieldsModal({
 
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
-        <Box sx={{ mb: '1.375rem' }}>
-          <PositionYieldTable loading={loading} />
-        </Box>
+        <Stack alignItems="end" direction="row">
+          <Box></Box>
+
+          <Stack alignItems="center" direction="row-reverse">
+            {periodOptions.map((option) => (
+              <Chip
+                key={option.value}
+                sx={{
+                  marginLeft: '0.5rem',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  color: `${
+                    option.value === period.value ? 'white' : palette.info.main
+                  }`,
+                  background: `${
+                    option.value === period.value
+                      ? palette.secondary.main
+                      : palette.secondary.dark
+                  }`,
+                }}
+                onClick={() => setPeriod(option)}
+                label={option.label}
+              />
+            ))}
+          </Stack>
+        </Stack>
+
+        {currentTab === 0 && (
+          <Box sx={{ m: '1.375rem 0' }}>
+            <PositionYieldTable loading={loading} />
+          </Box>
+        )}
 
         <Button
           variant="gradient"
