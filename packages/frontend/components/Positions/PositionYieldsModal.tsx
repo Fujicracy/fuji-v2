@@ -1,10 +1,12 @@
 import CloseIcon from '@mui/icons-material/Close';
-import { Button, Dialog, Divider, Paper, Typography } from '@mui/material';
+import { Box, Button, Dialog, Divider, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
+import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
+import PositionYieldTable from './PositionYieldTable';
 
 type PositionYieldsModalProps = {
   open: boolean;
@@ -17,11 +19,20 @@ export function PositionYieldsModal({
 }: PositionYieldsModalProps) {
   const { palette } = useTheme();
   const router = useRouter();
+  const loading = usePositions((state) => state.loading);
 
   const [currentTab, setCurrentTab] = useState(0);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      sx={{
+        '& .MuiDialog-paper': {
+          maxWidth: '706px',
+        },
+      }}
+    >
       <Paper
         variant="outlined"
         sx={{
@@ -44,6 +55,10 @@ export function PositionYieldsModal({
         <Divider sx={{ m: '1.375rem 0' }} />
 
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+
+        <Box sx={{ mb: '1.375rem' }}>
+          <PositionYieldTable loading={loading} />
+        </Box>
 
         <Button
           variant="gradient"
