@@ -685,7 +685,7 @@ export const useBorrow = create<BorrowStore>()(
          * @param amount
          * @param afterSuccess
          */
-        async allow(amount, type, afterSuccess?) {
+        async allow(amount, type, afterSuccess) {
           const token = (type === 'debt' ? get().debt : get().collateral).token;
           const userAddress = useAuth.getState().address;
           const provider = useAuth.getState().provider;
