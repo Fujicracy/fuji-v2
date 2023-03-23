@@ -36,7 +36,7 @@ function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
   if (!account) {
     return (
       <PositionYieldTableContainer>
-        <EmptyState reason="no-wallet" />
+        <EmptyState minHeight="17.25rem" reason="no-wallet" />
       </PositionYieldTableContainer>
     );
   }
@@ -82,7 +82,7 @@ function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
           </TableRow>
         ))
       ) : (
-        <EmptyState reason="no-positions" />
+        <EmptyState minHeight="17.25rem" reason="no-positions" />
       )}
     </PositionYieldTableContainer>
   );
