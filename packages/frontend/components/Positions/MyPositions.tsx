@@ -14,12 +14,15 @@ import { usePositions } from '../../store/positions.store';
 import Lending from '../Shared/Lending/Lending';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
+import PositionYieldsModal from './PositionYieldsModal';
 
 function MyPositions() {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   const [currentTab, setCurrentTab] = useState(0);
+  const [isPositionsYieldsModalShown, setIsPositionsYieldsModalShown] =
+    useState<boolean>(true);
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
     setCurrentTab(newValue);
 
@@ -66,6 +69,11 @@ function MyPositions() {
           <Lending />
         </Box>
       )}
+
+      <PositionYieldsModal
+        open={isPositionsYieldsModalShown}
+        onClose={() => setIsPositionsYieldsModalShown(true)}
+      />
     </>
   );
 }
