@@ -67,7 +67,7 @@ export function PositionYieldsModal({
           sx={{
             cursor: 'pointer',
             position: 'absolute',
-            right: '2rem',
+            right: '3%',
           }}
           onClick={onClose}
         />
@@ -79,7 +79,17 @@ export function PositionYieldsModal({
 
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
-        <Stack alignItems="end" direction="row" justifyContent="space-between">
+        <Stack
+          alignItems="end"
+          direction="row"
+          justifyContent="space-between"
+          sx={{
+            gap: '1rem',
+            ['@media screen and (max-width: 517px)']: {
+              flexWrap: 'wrap',
+            },
+          }}
+        >
           <Stack alignItems="center" direction="row">
             <Box sx={{ textAlign: 'start' }}>
               <Typography
@@ -110,12 +120,11 @@ export function PositionYieldsModal({
             </Box>
           </Stack>
 
-          <Stack alignItems="center" direction="row-reverse">
+          <Stack alignItems="center" direction="row-reverse" gap={0.5}>
             {periodOptions.map((option) => (
               <Chip
                 key={option.value}
                 sx={{
-                  marginLeft: '0.5rem',
                   borderRadius: '6px',
                   cursor: 'pointer',
                   color: `${
