@@ -13,6 +13,7 @@ import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
+import { formatValue } from '../../helpers/values';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import PositionYieldTable from './PositionYieldTable';
@@ -78,8 +79,36 @@ export function PositionYieldsModal({
 
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
-        <Stack alignItems="end" direction="row">
-          <Box></Box>
+        <Stack alignItems="end" direction="row" justifyContent="space-between">
+          <Stack alignItems="center" direction="row">
+            <Box sx={{ textAlign: 'start' }}>
+              <Typography
+                variant="small"
+                color={palette.text.primary}
+                sx={{ fontSize: '0.875rem' }}
+              >
+                Net APY
+              </Typography>
+              <Typography variant="h5" color={palette.success.main}>
+                {1.93}%
+              </Typography>
+            </Box>
+            <Box ml="3rem" sx={{ textAlign: 'start' }}>
+              <Typography
+                variant="small"
+                color={palette.text.primary}
+                sx={{ fontSize: '0.875rem' }}
+              >
+                Net Earnings
+              </Typography>
+              <Typography variant="h5" color={palette.text.primary}>
+                {formatValue(812.31, {
+                  style: 'currency',
+                  maximumFractionDigits: 2,
+                })}
+              </Typography>
+            </Box>
+          </Stack>
 
           <Stack alignItems="center" direction="row-reverse">
             {periodOptions.map((option) => (
@@ -106,7 +135,7 @@ export function PositionYieldsModal({
         </Stack>
 
         {currentTab === 0 && (
-          <Box sx={{ m: '1.375rem 0' }}>
+          <Box sx={{ width: '40rem', m: '1.375rem 0' }}>
             <PositionYieldTable loading={loading} />
           </Box>
         )}
