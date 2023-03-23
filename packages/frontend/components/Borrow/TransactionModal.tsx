@@ -2,7 +2,6 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import LaunchIcon from '@mui/icons-material/Launch';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Button,
@@ -36,7 +35,6 @@ import { vaultFromAddress } from '../../helpers/positions';
 import { camelize } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { HistoryEntryStatus, useHistory } from '../../store/history.store';
-import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import { NetworkIcon } from '../Shared/Icons';
 
@@ -64,12 +62,10 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
 
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ''));
   const entry = useHistory((state) => state.byHash[hash || '']);
-  const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [activeStep] = useState(2);
-  const [loading, setLoading] = useState(false);
 
   const action =
     entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
@@ -84,11 +80,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   }
 
   const onClick = async () => {
-    // If the user is editing a position, we need to refresh positions
+    // If the user is editing a position, we just need to close the modal
     if (currentPage === myPositionPage.path) {
-      setLoading(true);
-      await fetchPositions();
-      setLoading(false);
       closeModal();
       return;
     }
@@ -257,15 +250,9 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                 <AddTokenButton token={action.token} />
               </Box>
             )}
-            <LoadingButton
-              loading={loading}
-              fullWidth
-              variant="gradient"
-              size="large"
-              onClick={onClick}
-            >
+            <Button fullWidth variant="gradient" size="large" onClick={onClick}>
               View Position
-            </LoadingButton>
+            </Button>
           </Stack>
         )}
         {connextScanLink && (

@@ -20,7 +20,6 @@ type PositionsState = {
 
 type PositionsActions = {
   fetchUserPositions: () => void;
-  // getPositionsAtRisk: () => void
 };
 
 const initialState: PositionsState = {
@@ -64,17 +63,17 @@ export const usePositions = create<PositionsStore>()(
         const availableBorrowPowerUSD =
           getCurrentAvailableBorrowingPower(positions);
 
-        set({
-          positions,
-          totalDepositsUSD,
-          totalDebtUSD,
-          totalAPY: parseFloat(totalAPY.toFixed(2)),
-          availableBorrowPowerUSD,
-          loading: false,
+        set(() => {
+          return {
+            positions,
+            totalDepositsUSD,
+            totalDebtUSD,
+            totalAPY: parseFloat(totalAPY.toFixed(2)),
+            availableBorrowPowerUSD,
+            loading: false,
+          };
         });
       },
-
-      // getPositionsAtRisk: async () => { },
     }),
     {
       enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',

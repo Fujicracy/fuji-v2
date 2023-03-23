@@ -11,6 +11,7 @@ import {
 } from '../helpers/history';
 import { sdk } from '../services/sdk';
 import { useBorrow } from './borrow.store';
+import { usePositions } from './positions.store';
 import { useSnack } from './snackbar.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
@@ -168,6 +169,8 @@ export const useHistory = create<HistoryStore>()(
             });
 
             get().update(hash, { status: HistoryEntryStatus.ERROR });
+
+            usePositions.getState().fetchUserPositions();
           } finally {
             const ongoingTxns = get().ongoingTxns.filter((h) => h !== hash);
             set({ ongoingTxns });
