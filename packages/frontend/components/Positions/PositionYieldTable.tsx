@@ -7,7 +7,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  useTheme,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 
@@ -23,7 +22,6 @@ type PositionsBorrowTableProps = {
 };
 
 function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
-  const { palette } = useTheme();
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
   const [rows, setRows] = useState<PositionRow[]>([]);

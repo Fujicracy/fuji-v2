@@ -85,6 +85,7 @@ export function PositionYieldsModal({
           justifyContent="space-between"
           sx={{
             gap: '1rem',
+            mb: '1.375rem',
             ['@media screen and (max-width: 517px)']: {
               flexWrap: 'wrap',
             },
@@ -144,7 +145,7 @@ export function PositionYieldsModal({
         </Stack>
 
         {currentTab === 0 && (
-          <Box sx={{ width: '40rem', m: '1.375rem 0' }}>
+          <Box sx={{ width: '40rem' }}>
             <PositionYieldTable loading={loading} />
           </Box>
         )}
@@ -155,6 +156,9 @@ export function PositionYieldsModal({
           fullWidth
           onClick={() => router.push('/borrow')}
           data-cy="new-borrow-redirect"
+          sx={{
+            mt: '1.375rem',
+          }}
         >
           Deposit and Borrow a new assets
         </Button>
