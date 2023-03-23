@@ -31,6 +31,7 @@ import {
   LtvMeta,
   Mode,
 } from '../helpers/assets';
+import { fetchBalances } from '../helpers/balances';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
@@ -385,18 +386,9 @@ export const useBorrow = create<BorrowStore>()(
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
           const chainId = token.chainId;
+          const balances = await fetchBalances(tokens, address, chainId);
 
-          const rawBalances = await sdk.getTokenBalancesFor(
-            tokens,
-            Address.from(address),
-            chainId
-          );
-          const balances: Record<string, number> = {};
-          rawBalances.forEach((b, i) => {
-            const value = parseFloat(formatUnits(b, tokens[i].decimals));
-            balances[tokens[i].symbol] = value;
-          });
-
+          // TODO: Move this to its own changeBalances call
           set(
             produce((state: BorrowState) => {
               if (type === 'debt') {
