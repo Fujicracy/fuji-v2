@@ -20,6 +20,7 @@ type PositionsState = {
 
 type PositionsActions = {
   fetchUserPositions: () => void;
+  updatePosition: (position: Position | undefined) => void;
 };
 
 const initialState: PositionsState = {
@@ -31,7 +32,7 @@ export type PositionsStore = PositionsState & PositionsActions;
 
 export const usePositions = create<PositionsStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
       fetchUserPositions: async () => {
@@ -73,6 +74,25 @@ export const usePositions = create<PositionsStore>()(
             loading: false,
           };
         });
+      },
+
+      updatePosition: async (position) => {
+        const list = get().positions;
+        const match =
+          position &&
+          list.find(
+            (p) => p.vault?.address.value === position?.vault?.address.value
+          );
+        if (match) {
+          set((state) => {
+            const positions = [...state.positions];
+            const index = positions.indexOf(match);
+            positions[index] = position;
+            return { positions };
+          });
+          return;
+        }
+        get().fetchUserPositions();
       },
     }),
     {
