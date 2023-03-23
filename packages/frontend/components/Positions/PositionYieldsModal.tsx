@@ -1,7 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close';
-import { Button, Dialog, Paper, Typography } from '@mui/material';
+import { Button, Dialog, Divider, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
+
+import BorrowDepositTabNavigation from '../Shared/BorrowDepositTabNavigation';
 
 type PositionYieldsModalProps = {
   open: boolean;
@@ -15,12 +18,13 @@ export function PositionYieldsModal({
   const { palette } = useTheme();
   const router = useRouter();
 
+  const [currentTab, setCurrentTab] = useState(0);
+
   return (
     <Dialog open={open} onClose={onClose}>
       <Paper
         variant="outlined"
         sx={{
-          maxWidth: '30rem',
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
@@ -36,6 +40,10 @@ export function PositionYieldsModal({
         <Typography variant="h5" color={palette.text.primary}>
           Position yields
         </Typography>
+
+        <Divider sx={{ m: '1.375rem 0' }} />
+
+        <BorrowDepositTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
         <Button
           variant="gradient"
