@@ -37,7 +37,6 @@ import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useHistory } from './history.store';
-import { Position } from './models/Position';
 import { useSnack } from './snackbar.store';
 
 setAutoFreeze(false);
@@ -120,7 +119,7 @@ type BorrowActions = {
   allow: (amount: number, type: AssetType, callback: () => void) => void;
   signPermit: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
-  signAndExecute: (futurePosition?: Position) => void;
+  signAndExecute: () => void;
 };
 
 const initialChainId = ChainId.MATIC;
@@ -811,7 +810,7 @@ export const useBorrow = create<BorrowStore>()(
           }
         },
 
-        async signAndExecute(futurePosition) {
+        async signAndExecute() {
           if (get().needsSignature) {
             await get().signPermit();
           }
@@ -823,12 +822,7 @@ export const useBorrow = create<BorrowStore>()(
             const vaultAddr = get().activeVault?.address.value as string;
             useHistory
               .getState()
-              .add(
-                tx.hash,
-                vaultAddr,
-                get().transactionMeta.steps,
-                futurePosition
-              );
+              .add(tx.hash, vaultAddr, get().transactionMeta.steps);
 
             get().changeInputValues('', '');
           }

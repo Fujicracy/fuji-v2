@@ -243,15 +243,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 showPosition(router, walletChain?.id, vault, false);
               }
             }}
-            onClick={() => {
-              const copy = futurePosition
-                ? JSON.parse(JSON.stringify(futurePosition))
-                : undefined;
-              if (copy) {
-                copy.vault = basePosition.position.vault;
-              }
-              signAndExecute(copy);
-            }}
+            onClick={signAndExecute}
             ltvCheck={proceedWithLTVCheck}
           />
 

@@ -11,7 +11,6 @@ import {
 } from '../helpers/history';
 import { sdk } from '../services/sdk';
 import { useBorrow } from './borrow.store';
-import { Position } from './models/Position';
 import { usePositions } from './positions.store';
 import { useSnack } from './snackbar.store';
 
@@ -29,7 +28,6 @@ type HistoryState = {
   byHash: Record<string, HistoryEntry>;
 
   inModal?: string; // The tx hash displayed in modal
-  pendingPositions?: Position[];
 };
 
 export type HistoryEntry = {
@@ -60,12 +58,7 @@ export type SerializableToken = {
 };
 
 type HistoryActions = {
-  add: (
-    hash: string,
-    vaultAddr: string,
-    steps: RoutingStepDetails[],
-    futurePosition: Position | undefined
-  ) => void;
+  add: (hash: string, vaultAddr: string, steps: RoutingStepDetails[]) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
   clearAll: () => void;
   watch: (hash: string) => void;
@@ -78,7 +71,6 @@ const initialState: HistoryState = {
   allTxns: [],
   ongoingTxns: [],
   byHash: {},
-  pendingPositions: [],
 };
 
 export const useHistory = create<HistoryStore>()(
@@ -87,7 +79,7 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        async add(hash, vaultAddr, steps, futurePosition) {
+        async add(hash, vaultAddr, steps) {
           const entry = {
             vaultAddr,
             hash,
@@ -101,9 +93,6 @@ export const useHistory = create<HistoryStore>()(
               s.byHash[hash] = entry;
               s.allTxns = [hash, ...s.allTxns];
               s.ongoingTxns = [hash, ...s.ongoingTxns];
-              if (futurePosition) {
-                s.pendingPositions?.push(futurePosition);
-              }
             })
           );
 
@@ -172,14 +161,7 @@ export const useHistory = create<HistoryStore>()(
             }
             get().update(hash, { status: HistoryEntryStatus.DONE });
 
-            // Update positions
-            const update = get().pendingPositions?.find(
-              (p) => p.vault?.address.value === entry.vaultAddr
-            );
-            usePositions.getState().updatePosition(update);
-            const pending = get().pendingPositions?.filter((p) => update !== p);
-            // Remove
-            set({ pendingPositions: pending });
+            usePositions.getState().fetchUserPositions();
           } catch (e) {
             console.error(e);
             useSnack.getState().display({
@@ -233,12 +215,6 @@ export const useHistory = create<HistoryStore>()(
     ),
     {
       name: 'xFuji/history',
-      partialize: (state) =>
-        Object.fromEntries(
-          Object.entries(state).filter(
-            ([key]) => !['pendingPositions'].includes(key)
-          )
-        ),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
