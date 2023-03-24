@@ -1,6 +1,7 @@
 import { Address, ChainId, Token } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
+import { BALANCE_POLLING_INTERVAL } from '../constants/borrow';
 import { sdk } from '../services/sdk';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
@@ -21,26 +22,6 @@ export const fetchBalances = async (
     balances[tokens[i].symbol] = value;
   });
   return balances;
-};
-
-const balancesDiffer = (
-  obj1: Record<string, number>,
-  obj2: Record<string, number>
-): boolean => {
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-
-  if (keys1.length !== keys2.length) {
-    return true;
-  }
-
-  for (const key of keys1) {
-    if (obj1[key] !== obj2[key]) {
-      return true;
-    }
-  }
-
-  return false;
 };
 
 export const checkBalances = async () => {
@@ -91,6 +72,26 @@ export const checkBalances = async () => {
   });
 };
 
+const balancesDiffer = (
+  obj1: Record<string, number>,
+  obj2: Record<string, number>
+): boolean => {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return true;
+  }
+
+  for (const key of keys1) {
+    if (obj1[key] !== obj2[key]) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 // Polling
 
 export const pollBalances = () => {
@@ -101,23 +102,22 @@ export const stopPolling = () => {
   cancelPoll();
 };
 
-const interval = 30000;
+let shouldFetchERC20 = false; // This ones are optional
 let timerId: ReturnType<typeof setTimeout> | null = null;
-let shouldFetchERC20 = false;
 
 export const changeERC20PollingPolicy = (value: boolean) => {
   shouldFetchERC20 = value;
 };
 
-export const poll = (callback: () => void) => {
+export const poll = (pollFn: () => void) => {
   if (timerId !== null) {
-    return; // Do nothing if there's already a timer
+    return; // Do nothing if there's already a timer in place
   }
-  const pollFn = async () => {
-    await callback();
-    timerId = setTimeout(pollBalances, interval);
+  const callback = async () => {
+    await pollFn();
+    timerId = setTimeout(callback, BALANCE_POLLING_INTERVAL);
   };
-  pollFn();
+  callback();
 };
 
 const cancelPoll = () => {
