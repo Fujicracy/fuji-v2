@@ -105,6 +105,7 @@ type BorrowActions = {
   changeActiveVault: (v: BorrowingVault) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
+  changeBalances: (type: AssetType, balances: Record<string, number>) => void;
 
   updateAllProviders: () => void;
   updateTokenPrice: (type: AssetType) => void;
@@ -388,7 +389,10 @@ export const useBorrow = create<BorrowStore>()(
           const chainId = token.chainId;
           const balances = await fetchBalances(tokens, address, chainId);
 
-          // TODO: Move this to its own changeBalances call
+          get().changeBalances(type, balances);
+        },
+
+        async changeBalances(type, balances) {
           set(
             produce((state: BorrowState) => {
               if (type === 'debt') {

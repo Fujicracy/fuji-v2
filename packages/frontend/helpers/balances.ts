@@ -27,21 +27,44 @@ export const fetchBalances = async (
   return balances;
 };
 
+const balancesDiffer = (
+  obj1: Record<string, number>,
+  obj2: Record<string, number>
+): boolean => {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return true;
+  }
+
+  for (const key of keys1) {
+    if (obj1[key] !== obj2[key]) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 const checkBalances = async (address: string | undefined) => {
   if (!address) {
     return;
   }
+  // Triggers a native token refresh using onboard
+  onboard.state.actions.updateBalances([address]);
 
+  // Now let's to with ERC20 tokens
   const debt = useBorrow.getState().debt;
   const collateral = useBorrow.getState().collateral;
 
   const data = [collateral, debt];
 
-  for (const d of data) {
+  data.forEach(async (asset, i) => {
     const balances = await fetchBalances(
-      d.selectableTokens,
+      asset.selectableTokens,
       address,
-      d.token.chainId
+      asset.token.chainId
     );
     console.log(balances);
 
@@ -50,12 +73,12 @@ const checkBalances = async (address: string | undefined) => {
     if (stop) {
       return;
     }
-    useBorrow.getState().debt.balances;
-    // TODO:
-    // - Check if stored balances are different
-    // - If so, call changeBalances
-  }
-
-  // Triggers a native token refresh using onboard
-  onboard.state.actions.updateBalances([address]);
+    const old = asset.balances;
+    if (balancesDiffer(old, balances)) {
+      const type = i === 0 ? 'collateral' : 'debt';
+      useBorrow.getState().changeBalances(type, balances);
+    }
+  });
 };
+
+// TODO: polling
