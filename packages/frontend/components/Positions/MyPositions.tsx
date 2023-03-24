@@ -6,12 +6,9 @@ import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending/Lending';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
-import PositionYieldsModal from './PositionYieldsModal';
 
 function MyPositions() {
   const [currentTab, setCurrentTab] = useState(0);
-  const [isPositionsYieldsModalShown, setIsPositionsYieldsModalShown] =
-    useState<boolean>(true);
 
   const loading = usePositions((state) => state.loading);
 
@@ -34,11 +31,6 @@ function MyPositions() {
           <Lending />
         </Box>
       )}
-
-      <PositionYieldsModal
-        open={isPositionsYieldsModalShown}
-        onClose={() => setIsPositionsYieldsModalShown(false)}
-      />
     </>
   );
 }

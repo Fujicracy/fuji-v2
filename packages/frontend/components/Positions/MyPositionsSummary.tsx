@@ -4,17 +4,19 @@ import {
   Button,
   Card,
   Grid,
+  Stack,
   Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
+import PositionYieldsModal from './PositionYieldsModal';
 
 type MetricSummary = {
   name: string;
@@ -27,7 +29,7 @@ type MetricSummary = {
 const initialKeyMetrics: MetricSummary[] = [
   { name: 'Total Deposits', value: '-', valueSym: '$' },
   { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%' /*action: "View"*/ }, // TODO: tooltip & actions
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'View' }, // TODO: tooltip
   {
     name: 'Available to Borrow',
     value: '-',
@@ -57,9 +59,9 @@ function updateKeyMetricsSummary(
       name: 'Net APY',
       value: totalAPY_ === undefined ? '-' : totalAPY_,
       valueSym: '%',
-      // action: "View",
       tooltip: true,
-    }, // TODO: tooltip & actions
+      action: 'View',
+    },
     {
       name: 'Available to Borrow',
       value: availableBorrow_ === undefined ? '-' : availableBorrow_,
@@ -82,6 +84,9 @@ function MyPositionsSummary() {
     (state) => state.availableBorrowPowerUSD
   );
 
+  const [isPositionsYieldsModalShown, setIsPositionsYieldsModalShown] =
+    useState<boolean>(false);
+
   const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics);
 
   useEffect(() => {
@@ -98,6 +103,19 @@ function MyPositionsSummary() {
     }
   }, [account, totalDeposits, totalDebt, totalAPY, availableBorrow]);
 
+  const mappedActions: {
+    [key: string]: () => void;
+  } = {
+    ['Borrow more']: () => router.push('/borrow'),
+    ['View']: () => setIsPositionsYieldsModalShown(true),
+  };
+
+  const getAction = (actionName?: string): (() => void) => {
+    return actionName
+      ? mappedActions[actionName]
+      : () => console.error('no action provided'); // TODO: add notification
+  };
+
   return (
     <Box mt={4}>
       <Card
@@ -110,16 +128,16 @@ function MyPositionsSummary() {
               <Metric
                 metric={m}
                 borderLeft={!isMobile && i > 0}
-                onClick={() => {
-                  if (m.action === 'Borrow more') {
-                    router.push('/borrow');
-                  }
-                }}
+                onClick={getAction(m.action)}
               />
             </Grid>
           ))}
         </Grid>
       </Card>
+      <PositionYieldsModal
+        open={isPositionsYieldsModalShown}
+        onClose={() => setIsPositionsYieldsModalShown(false)}
+      />
     </Box>
   );
 }
@@ -136,14 +154,16 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
   const { palette, breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const borderColor = palette.secondary.light; // TODO: should use a palette border color instead
-  const nameColor = palette.info.main;
+  const borderColor = 'transparent'; // TODO: should use a palette border color instead
+  const nameColor = palette.text.primary;
   const buttonSx = {
     padding: '6px 16px 5px',
     lineHeight: '0.875rem',
     fontSize: '0.875rem',
     backgroundColor: palette.secondary.main,
     border: 'none',
+    color: palette.text.primary,
+    marginLeft: '0.5rem',
   };
 
   return (
@@ -173,21 +193,22 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
       </Typography>
 
       {/* TODO: use helper to format balance */}
-      <Typography
-        fontSize="1.5rem"
-        color={metric.name === 'Positions at Risk' ? 'error' : 'inherit'}
-      >
-        {metric.valueSym === '$'
-          ? `${formatValue(metric.value, {
-              style: 'currency',
-              maximumFractionDigits: 0,
-            })}`
-          : metric.valueSym === '%'
-          ? `${metric.value}%`
-          : metric.value}{' '}
-        {isMobile && <br />}
-        {metric.action && metric.value > 0 && (
-          // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
+      <Stack display="flex" direction="row" alignItems="center">
+        <Typography
+          fontSize="1.5rem"
+          color={metric.name === 'Positions at Risk' ? 'error' : 'inherit'}
+        >
+          {metric.valueSym === '$'
+            ? `${formatValue(metric.value, {
+                style: 'currency',
+                maximumFractionDigits: 0,
+              })}`
+            : metric.valueSym === '%'
+            ? `${metric.value}%`
+            : metric.value}{' '}
+          {isMobile && <br />}
+        </Typography>
+        {metric.action && metric.value !== 0 && (
           <Button
             variant="secondary2"
             sx={buttonSx}
@@ -197,7 +218,7 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
             {metric.action}
           </Button>
         )}
-      </Typography>
+      </Stack>
     </Box>
   );
 };

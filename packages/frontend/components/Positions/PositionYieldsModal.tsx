@@ -25,14 +25,14 @@ type PositionYieldsModalProps = {
 
 type PeriodOption = {
   label: string;
-  value: string;
+  value: number;
 };
 
 const periodOptions: PeriodOption[] = [
-  { label: '365D', value: 'year' },
-  { label: '30D', value: 'month' },
-  { label: '7D', value: 'week' },
-  { label: '1D', value: 'day' },
+  { label: '365D', value: 365 },
+  { label: '30D', value: 30 },
+  { label: '7D', value: 7 },
+  { label: '1D', value: 1 },
 ];
 
 export function PositionYieldsModal({
@@ -42,6 +42,7 @@ export function PositionYieldsModal({
   const { palette } = useTheme();
   const router = useRouter();
   const loading = usePositions((state) => state.loading);
+  const totalAPY = usePositions((state) => state.totalAPY);
 
   const [period, setPeriod] = useState<PeriodOption>(periodOptions[0]);
   const [currentTab, setCurrentTab] = useState(0);
@@ -103,8 +104,11 @@ export function PositionYieldsModal({
               >
                 Net APY
               </Typography>
-              <Typography variant="h5" color={palette.success.main}>
-                {1.93}%
+              <Typography variant="h5">
+                {formatValue(totalAPY, {
+                  style: 'currency',
+                  maximumFractionDigits: 2,
+                })}
               </Typography>
             </Box>
             <Box ml="3rem" sx={{ textAlign: 'start' }}>

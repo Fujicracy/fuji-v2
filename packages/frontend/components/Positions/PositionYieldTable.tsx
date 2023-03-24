@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
 import { getRows, PositionRow } from '../../helpers/positions';
+import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
@@ -99,7 +100,10 @@ function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
             </TableCell>
             <TableCell align="right">
               <Typography variant="small" color={palette.warning.main}>
-                {row.apr}%
+                {formatValue(812.31, {
+                  style: 'currency',
+                  maximumFractionDigits: 2,
+                })}
               </Typography>
             </TableCell>
           </TableRow>
