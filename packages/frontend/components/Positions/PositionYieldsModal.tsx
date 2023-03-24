@@ -46,6 +46,7 @@ export function PositionYieldsModal({
 
   const [period, setPeriod] = useState<PeriodOption>(periodOptions[0]);
   const [currentTab, setCurrentTab] = useState(0);
+  const [estEarnings, setEstEarnings] = useState(0);
 
   return (
     <Dialog
@@ -117,10 +118,10 @@ export function PositionYieldsModal({
                 color={palette.text.primary}
                 sx={{ fontSize: '0.875rem' }}
               >
-                Net Earnings
+                Net {estEarnings >= 0 ? 'Earnings' : 'Costs'}
               </Typography>
               <Typography variant="h5" color={palette.text.primary}>
-                {formatValue(812.31, {
+                {formatValue(estEarnings, {
                   style: 'currency',
                   maximumFractionDigits: 2,
                 })}
@@ -153,7 +154,11 @@ export function PositionYieldsModal({
 
         {currentTab === 0 && (
           <Box sx={{ width: '35rem' }}>
-            <PositionYieldTable loading={loading} days={period.value} />
+            <PositionYieldTable
+              loading={loading}
+              days={period.value}
+              callback={(value) => setEstEarnings(value)}
+            />
           </Box>
         )}
 

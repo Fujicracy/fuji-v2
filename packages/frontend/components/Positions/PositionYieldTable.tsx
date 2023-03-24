@@ -24,12 +24,17 @@ import { usePositions } from '../../store/positions.store';
 import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
 import EmptyState from './EmptyState';
 
-type PositionsBorrowTableProps = {
+type PositionYieldTableProps = {
   loading: boolean;
   days: number;
+  callback: (value: number) => void;
 };
 
-function PositionYieldTable({ loading, days }: PositionsBorrowTableProps) {
+function PositionYieldTable({
+  loading,
+  days,
+  callback,
+}: PositionYieldTableProps) {
   const { palette } = useTheme();
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
@@ -41,6 +46,23 @@ function PositionYieldTable({ loading, days }: PositionsBorrowTableProps) {
       setRows(getRows(positions));
     })();
   }, [loading, account, positions]);
+
+  useEffect(() => {
+    callback(
+      rows.reduce((a, c) => {
+        return (
+          a +
+          getEstimatedEarnings({
+            days,
+            collateralInUsd: c.collateral.usdValue,
+            collateralAPR: c.collateral.baseAPR,
+            debtInUsd: c.debt.usdValue,
+            debtAPR: c.debt.baseAPR,
+          })
+        );
+      }, 0)
+    );
+  }, [rows, days, callback]);
 
   if (!account) {
     return (

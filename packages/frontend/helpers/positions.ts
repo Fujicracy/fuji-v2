@@ -187,7 +187,6 @@ export function getEstimatedEarnings({
   collateralAPR?: number;
   debtAPR?: number;
 }) {
-  console.log(days, collateralInUsd, debtInUsd, collateralAPR, debtAPR);
   return (
     ((debtInUsd * debtAPR - collateralInUsd * collateralAPR) / 100 / 365) * days
   );
