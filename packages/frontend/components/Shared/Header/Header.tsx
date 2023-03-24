@@ -177,29 +177,24 @@ const Header = () => {
                         </ListItemText>
                       </MenuItem>
                     ))}
+                    {address && <Divider />}
                     {address && (
-                      <>
-                        <Divider />
-                        <MenuItem
-                          onClick={() => {
-                            handleCloseNavMenu();
-                            setAccountModalEl(
-                              anchorElNav ? anchorElNav : undefined
-                            );
-                          }}
-                        >
-                          <ListItemText>
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                            >
-                              <Typography variant="small">
-                                {formattedAddress}
-                              </Typography>
-                            </Stack>
-                          </ListItemText>
-                        </MenuItem>
-                      </>
+                      <MenuItem
+                        onClick={() => {
+                          handleCloseNavMenu();
+                          setAccountModalEl(
+                            anchorElNav ? anchorElNav : undefined
+                          );
+                        }}
+                      >
+                        <ListItemText>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="small">
+                              {formattedAddress}
+                            </Typography>
+                          </Stack>
+                        </ListItemText>
+                      </MenuItem>
                     )}
                     <Divider />
                     <ParameterLinks />
