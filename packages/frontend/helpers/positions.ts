@@ -177,17 +177,20 @@ export function dynamicPositionMeta(
 export function getEstimatedEarnings({
   days,
   collateralInUsd,
-  collateralAPR,
   debtInUsd,
-  debtAPR,
+  collateralAPR = 1,
+  debtAPR = 1,
 }: {
   days: number;
   collateralInUsd: number;
-  collateralAPR: number;
   debtInUsd: number;
-  debtAPR: number;
+  collateralAPR?: number;
+  debtAPR?: number;
 }) {
-  // TODO: implement
+  console.log(days, collateralInUsd, debtInUsd, collateralAPR, debtAPR);
+  return (
+    ((debtInUsd * debtAPR - collateralInUsd * collateralAPR) / 100 / 365) * days
+  );
 }
 
 export function vaultFromAddress(address: string | undefined) {

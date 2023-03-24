@@ -153,7 +153,7 @@ export function PositionYieldsModal({
 
         {currentTab === 0 && (
           <Box sx={{ width: '35rem' }}>
-            <PositionYieldTable loading={loading} />
+            <PositionYieldTable loading={loading} days={period.value} />
           </Box>
         )}
 

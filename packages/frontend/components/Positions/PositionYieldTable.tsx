@@ -13,7 +13,11 @@ import {
 import { useEffect, useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
-import { getRows, PositionRow } from '../../helpers/positions';
+import {
+  getEstimatedEarnings,
+  getRows,
+  PositionRow,
+} from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -22,9 +26,10 @@ import EmptyState from './EmptyState';
 
 type PositionsBorrowTableProps = {
   loading: boolean;
+  days: number;
 };
 
-function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
+function PositionYieldTable({ loading, days }: PositionsBorrowTableProps) {
   const { palette } = useTheme();
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
@@ -100,10 +105,19 @@ function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
             </TableCell>
             <TableCell align="right">
               <Typography variant="small" color={palette.warning.main}>
-                {formatValue(812.31, {
-                  style: 'currency',
-                  maximumFractionDigits: 2,
-                })}
+                {formatValue(
+                  getEstimatedEarnings({
+                    days,
+                    collateralInUsd: row.collateral.usdValue,
+                    collateralAPR: row.collateral.baseAPR,
+                    debtInUsd: row.debt.usdValue,
+                    debtAPR: row.debt.baseAPR,
+                  }),
+                  {
+                    style: 'currency',
+                    maximumFractionDigits: 2,
+                  }
+                )}
               </Typography>
             </TableCell>
           </TableRow>
