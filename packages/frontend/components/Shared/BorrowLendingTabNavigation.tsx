@@ -11,8 +11,10 @@ import { useState } from 'react';
 
 function BorrowLendingTabNavigation({
   onChange,
+  isLendingDisabled,
 }: {
   onChange: (value: number) => void;
+  isLendingDisabled?: boolean;
 }) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
@@ -32,6 +34,7 @@ function BorrowLendingTabNavigation({
       >
         <Tab label="Borrowing" />
         <Tab
+          disabled={isLendingDisabled}
           label={
             <Stack direction="row" alignItems="center" gap={1}>
               Lending

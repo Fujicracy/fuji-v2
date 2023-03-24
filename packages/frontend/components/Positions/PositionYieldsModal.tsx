@@ -16,7 +16,6 @@ import { useState } from 'react';
 import { formatValue } from '../../helpers/values';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending/Lending';
 import PositionYieldTable from './PositionYieldTable';
 
 type PositionYieldsModalProps = {
@@ -78,7 +77,10 @@ export function PositionYieldsModal({
 
         <Divider sx={{ m: '1.375rem 0' }} />
 
-        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation
+          onChange={(tab) => setCurrentTab(tab)}
+          isLendingDisabled
+        />
 
         <Stack
           alignItems="end"
@@ -145,21 +147,9 @@ export function PositionYieldsModal({
           </Stack>
         </Stack>
 
-        {currentTab === 0 ? (
+        {currentTab === 0 && (
           <Box sx={{ width: '35rem' }}>
             <PositionYieldTable loading={loading} />
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              height: '20rem',
-              width: '35rem',
-              '& .MuiCard-root': {
-                p: '3rem',
-              },
-            }}
-          >
-            <Lending />
           </Box>
         )}
 

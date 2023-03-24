@@ -8,11 +8,17 @@ import { formatNumber } from './values';
 
 export type PositionRow = {
   chainId: number | undefined;
-  debt: { symbol: string | '-'; amount: number | '-'; usdValue: number | 1 };
+  debt: {
+    symbol: string | '-';
+    amount: number | '-';
+    usdValue: number | 1;
+    baseAPR?: number | 0;
+  };
   collateral: {
     symbol: string | '-';
     amount: number | '-';
     usdValue: number | 1;
+    baseAPR?: number | 0;
   };
   apr: number | '-';
   liquidationPrice: number | '-';
@@ -25,25 +31,26 @@ export function getRows(positions: Position[]): PositionRow[] {
   if (positions.length === 0) {
     return [];
   } else {
-    const rows: PositionRow[] = positions.map((pos: Position) => ({
+    return positions.map((pos: Position) => ({
       address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
       debt: {
         symbol: pos.vault?.debt.symbol || '',
         amount: pos.debt.amount,
         usdValue: pos.debt.amount * pos.debt.usdPrice,
+        baseAPR: pos.debt.baseAPR,
       },
       collateral: {
         symbol: pos.vault?.collateral.symbol || '',
         amount: pos.collateral.amount,
         usdValue: pos.collateral.amount * pos.collateral.usdPrice,
+        baseAPR: pos.collateral.baseAPR,
       },
       apr: formatNumber(pos.debt.baseAPR, 2),
       liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
       oraclePrice: pos.collateral.usdPrice,
       percentPriceDiff: pos.liquidationDiff,
     }));
-    return rows;
   }
 }
 
@@ -165,6 +172,22 @@ export function dynamicPositionMeta(
     usdPrice: source.usdPrice,
     token: source.token,
   };
+}
+
+export function getEstimatedEarnings({
+  days,
+  collateralInUsd,
+  collateralAPR,
+  debtInUsd,
+  debtAPR,
+}: {
+  days: number;
+  collateralInUsd: number;
+  collateralAPR: number;
+  debtInUsd: number;
+  debtAPR: number;
+}) {
+  // TODO: implement
 }
 
 export function vaultFromAddress(address: string | undefined) {

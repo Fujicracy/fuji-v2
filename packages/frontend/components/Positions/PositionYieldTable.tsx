@@ -7,6 +7,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
+  useTheme,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 
@@ -22,6 +24,7 @@ type PositionsBorrowTableProps = {
 };
 
 function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
+  const { palette } = useTheme();
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
   const [rows, setRows] = useState<PositionRow[]>([]);
@@ -44,7 +47,7 @@ function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
     return (
       <PositionYieldTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(2).fill('').map((_, index) => (
+          {new Array(6).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
@@ -79,6 +82,26 @@ function PositionYieldTable({ loading }: PositionsBorrowTableProps) {
                 {row.collateral.symbol}
               </Stack>
             </TableCell>
+            <TableCell align="right">
+              <Typography variant="small" color={palette.warning.main}>
+                {row.collateral.baseAPR}%
+              </Typography>
+            </TableCell>
+            <TableCell align="right">
+              <Typography variant="small" color={palette.warning.main}>
+                {row.debt.baseAPR}%
+              </Typography>
+            </TableCell>
+            <TableCell align="right">
+              <Typography variant="small" color={palette.warning.main}>
+                {row.apr}%
+              </Typography>
+            </TableCell>
+            <TableCell align="right">
+              <Typography variant="small" color={palette.warning.main}>
+                {row.apr}%
+              </Typography>
+            </TableCell>
           </TableRow>
         ))
       ) : (
@@ -100,6 +123,10 @@ function PositionYieldTableHeader() {
       <TableRow sx={{ height: '2.625rem' }}>
         <TableCell>Borrow</TableCell>
         <TableCell>Collateral</TableCell>
+        <TableCell align="right">Borrow APY</TableCell>
+        <TableCell align="right">Collateral APY</TableCell>
+        <TableCell align="right">Net APY</TableCell>
+        <TableCell align="right">Est. Earnings</TableCell>
       </TableRow>
     </TableHead>
   );
