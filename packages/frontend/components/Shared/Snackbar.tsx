@@ -11,6 +11,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close"
 import CheckIcon from "@mui/icons-material/Check"
 import ErrorIcon from "@mui/icons-material/Error"
+import WarningIcon from "@mui/icons-material/Warning"
 import LaunchIcon from "@mui/icons-material/Launch"
 import { useSnack, Snack } from "../../store/snackbar.store"
 import { transactionLink } from "../../helpers/transactionInformations"
@@ -50,6 +51,8 @@ function SnackbarBody({ snack, onClose }: SnackBodyProps) {
     icon = <CheckIcon color="success" />
   } else if (snack.icon === "error") {
     icon = <ErrorIcon color="error" />
+  } else if (snack.icon === "warning") {
+    icon = <WarningIcon color="warning" />
   }
 
   return (

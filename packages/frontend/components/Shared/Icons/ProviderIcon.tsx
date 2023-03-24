@@ -1,43 +1,28 @@
-import Image, { ImageProps } from "next/image"
-import { SyntheticEvent, useEffect, useState } from "react"
+import { useTheme } from "@mui/material"
+import { SyntheticEvent, useState } from "react"
+import { getProviderImage } from "../../../helpers/paths"
+import { Icon, renderIcon, renderIconError } from "./Base/Icon"
 
-interface Props extends Omit<ImageProps, "src"> {
+interface Props extends Icon {
   providerName: string
-  sx?: object
 }
-const defaultImage = "/assets/images/protocol-icons/providers/Aave V3.svg"
+
+const defaultImage = "/assets/images/protocol-icons/providers/Aave%20V3.svg"
 
 export default function ProviderIcon(props: Props) {
-  const { providerName, ...rest } = props
-  const path = `/assets/images/protocol-icons/providers/${providerName}.svg`
-
+  const { palette } = useTheme()
+  const { providerName } = props
+  const path = getProviderImage(providerName)
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>()
-  useEffect(() => {
-    if (error)
-      console.warn(
-        `404 Not found. No image found for network ${providerName}. Searched in ${path}`
-      )
-  }, [error, path, providerName])
 
-  return (
-    <>
-      {props.sx ? (
-        <div style={props.sx}>
-          <Image
-            {...rest}
-            src={error ? defaultImage : path}
-            alt={`${providerName} icon`}
-            onError={(e) => setError(e)}
-          />
-        </div>
-      ) : (
-        <Image
-          {...rest}
-          src={error ? defaultImage : path}
-          alt={`${providerName} icon`}
-          onError={(e) => setError(e)}
-        />
-      )}
-    </>
+  if (error) {
+    return renderIconError(props, palette)
+  }
+  return renderIcon(
+    props,
+    path,
+    providerName,
+    (e) => setError(e),
+    error ? defaultImage : undefined
   )
 }

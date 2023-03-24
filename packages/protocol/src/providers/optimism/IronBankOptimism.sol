@@ -178,9 +178,8 @@ contract IronBankOptimism is ILendingProvider {
     // Note: Compound uses base 1e18
     uint256 ratePerBlock = ICToken(cyTokenAddr).supplyRatePerBlock() * 10 ** 9;
 
-    // 2102400 is the approx. number of blocks per year that's
-    // assumed by the Compound V2 interest rate model
-    rate = ratePerBlock * 2102400;
+    // aligned with HundredFinance
+    rate = ratePerBlock * 2336000;
   }
 
   /// @inheritdoc ILendingProvider
@@ -192,9 +191,8 @@ contract IronBankOptimism is ILendingProvider {
     // Note: Compound uses base 1e18
     uint256 ratePerBlock = ICToken(cyTokenAddr).borrowRatePerBlock() * 10 ** 9;
 
-    // 2102400 is the approx. number of blocks per year that's
-    // assumed by the Compound V2 interest rate model
-    rate = ratePerBlock * 2102400;
+    // aligned with HundredFinance
+    rate = ratePerBlock * 2336000;
   }
 
   /// @inheritdoc ILendingProvider

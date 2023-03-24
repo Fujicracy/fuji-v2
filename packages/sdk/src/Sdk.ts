@@ -1,8 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signature } from '@ethersproject/bytes';
-import { AddressZero } from '@ethersproject/constants';
 import { TransactionRequest } from '@ethersproject/providers';
-import { formatUnits } from '@ethersproject/units';
 import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
 import invariant from 'tiny-invariant';
@@ -12,45 +10,29 @@ import {
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
   DEBT_LIST,
-  FUJI_ORACLE_ADDRESS,
   VAULT_LIST,
 } from './constants';
-import { LENDING_PROVIDERS_LIST } from './constants/lending-providers';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import { ChainId, ChainType, RouterAction } from './enums';
-import { encodeActionArgs } from './functions';
+import { batchLoad, encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
-  BorrowingVaultWithFinancials,
   ChainConfig,
   ChainConnectionDetails,
   PermitParams,
   RouterActionParams,
   RoutingStepDetails,
+  VaultWithFinancials,
 } from './types';
-import {
-  ConnextRouter__factory,
-  FujiOracle__factory,
-  ILendingProvider__factory,
-} from './types/contracts';
+import { ConnextRouter__factory } from './types/contracts';
 import {
   GetLlamaAssetPoolsResponse,
   GetLlamaBorrowPoolsResponse,
   LlamaAssetPool,
   LlamaBorrowPool,
 } from './types/LlamaResponses';
-
-type AccountDetailsPerVault = {
-  vault: BorrowingVault;
-  depositBalance: BigNumber;
-  borrowBalance: BigNumber;
-  collateralPriceUSD: BigNumber;
-  debtPriceUSD: BigNumber;
-  depositApyBase: number;
-  borrowApyBase: number;
-};
 
 export class Sdk {
   /**
@@ -201,23 +183,42 @@ export class Sdk {
   }
 
   /**
-   * Retruns details for all vaults on all chains for a given account.
+   * Retruns all vaults.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
+   *
+   */
+  getAllBorrowingVaults(
+    chainType: ChainType = ChainType.MAINNET
+  ): BorrowingVault[] {
+    const vaults = [];
+    const chains = Object.values(CHAIN).filter(
+      (c) => c.chainType === chainType
+    );
+
+    for (const chain of chains) {
+      vaults.push(...VAULT_LIST[chain.chainId]);
+    }
+
+    return vaults.map((v) => v.setConnection(this._configParams));
+  }
+
+  /**
+   * Retruns all vaults with financial data such as base deposit APRs and
+   * base borrow APRs fetched on-chain.
    *
    * @remarks
-   * `depositApyBase` and `borrowApyBase` are returned in %,
-   * `collateralPriceUSD` and `debtPriceUSD` have to be formatted
-   * with their respective token decimals.
+   * This methods serves to pre-fetch and loads only partially the financials.
+   * It's recommended to call afterwards "getLlamaFinancials()".
    *
-   * @param account - {@link Account} for the user
-   * @param chainType - for what chain types to query
+   * @param account - {@link Address} for the user
+   * @param chainType - for type of chains: mainnet or testnet
    */
-  async getAllAccountDetailsPerVaultFor(
-    account: Address,
+  async getBorrowingVaultsFinancials(
+    account?: Address,
     chainType: ChainType = ChainType.MAINNET
-  ): Promise<AccountDetailsPerVault[]> {
-    // { vault, depositBalance, borrowBalance, collateralPriceUSD, debtPriceUSD, depositApyBase, borrowApyBase }
-    const res: AccountDetailsPerVault[] = [];
-
+  ): Promise<VaultWithFinancials[]> {
+    const res: VaultWithFinancials[] = [];
     const chains = Object.values(CHAIN)
       .filter((c) => c.chainType === chainType && c.isDeployed)
       .map((c) => c.setConnection(this._configParams));
@@ -227,71 +228,59 @@ export class Sdk {
       const vaults = VAULT_LIST[chainId].map((v) =>
         v.setConnection(this._configParams)
       );
-      const { multicallRpcProvider } = this.getConnectionFor(chainId);
-      const oracle = FujiOracle__factory.multicall(
-        FUJI_ORACLE_ADDRESS[chainId].value
-      );
-
-      const firstBatch: Call<BigNumber | string>[] = [];
-      vaults.forEach((v) => {
-        firstBatch.push(
-          v.multicallContract?.balanceOfAsset(account.value) as Call<BigNumber>,
-          v.multicallContract?.balanceOfDebt(account.value) as Call<BigNumber>,
-          v.multicallContract?.activeProvider() as Call<string>,
-          oracle.getPriceOf(
-            v.collateral.address.value,
-            AddressZero,
-            v.collateral.decimals
-          ),
-          oracle.getPriceOf(v.debt.address.value, AddressZero, v.debt.decimals)
-        );
-      });
-      const firstBatchResults = await multicallRpcProvider.all(firstBatch);
-
-      const secondBatch: Call<BigNumber>[] = [];
-      vaults.forEach((v, i) => {
-        // multiply by 5 becasue there 5 calls per vault in the firstBatch
-        const activeProvider = firstBatchResults[5 * i + 2] as string;
-        secondBatch.push(
-          ILendingProvider__factory.multicall(activeProvider).getDepositRateFor(
-            v.address.value
-          ),
-          ILendingProvider__factory.multicall(activeProvider).getBorrowRateFor(
-            v.address.value
-          )
-        );
-      });
-      const secondBatchResults = await multicallRpcProvider.all(secondBatch);
-
-      vaults.forEach((vault, i) => {
-        // multiply by 2 becasue there 2 calls per vault in the firstBatch
-        const depositRate = secondBatchResults[2 * i].toString();
-        const borrowRate = secondBatchResults[2 * i + 1].toString();
-        res.push({
-          vault,
-          depositBalance: firstBatchResults[5 * i] as BigNumber,
-          borrowBalance: firstBatchResults[5 * i + 1] as BigNumber,
-          collateralPriceUSD: firstBatchResults[5 * i + 3] as BigNumber,
-          debtPriceUSD: firstBatchResults[5 * i + 4] as BigNumber,
-          depositApyBase: parseFloat(formatUnits(depositRate, 27)) * 100,
-          borrowApyBase: parseFloat(formatUnits(borrowRate, 27)) * 100,
-        });
-      });
+      const v = await batchLoad(vaults, account, chain);
+      res.push(...v);
     }
 
     return res;
   }
 
   /**
-   * Retruns all vaults.
+   * Retruns all vaults with the whole financial data
+   * loaded from DefiLlama API.
    *
-   * @param chainType - for type of chains: mainnet or testnet
+   * @remarks
+   * This data is fetched from DefiLlama API and it can take
+   * longer than expected to get loaded. Their API is considered being in a
+   * "experimental" mode and might be unstable.
    *
+   * @param vaults - returned value from "getAllVaultsWithFinancials()"
    */
-  getAllBorrowingVaults(
-    chainType: ChainType = ChainType.MAINNET
-  ): BorrowingVault[] {
-    return this._getAllVaults(chainType);
+  async getLlamaFinancials(
+    vaults: VaultWithFinancials[]
+  ): Promise<VaultWithFinancials[]> {
+    // fetch from DefiLlama
+    const { defillamaproxy } = this._configParams;
+    const uri = {
+      lendBorrow: defillamaproxy
+        ? defillamaproxy + 'lendBorrow'
+        : 'https://yields.llama.fi/lendBorrow',
+      pools: defillamaproxy
+        ? defillamaproxy + 'pools'
+        : 'https://yields.llama.fi/pools',
+    };
+    try {
+      const [borrows, pools] = await Promise.all([
+        axios
+          .get<GetLlamaBorrowPoolsResponse>(uri.lendBorrow)
+          .then(({ data }) => data),
+        axios
+          .get<GetLlamaAssetPoolsResponse>(uri.pools)
+          .then(({ data }) => data.data),
+      ]);
+
+      return vaults.map((vault) =>
+        this._getFinancialsFor(vault, pools, borrows)
+      );
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        console.error(`DefiLlama API call failed with a message: ${e.message}`);
+      } else {
+        console.error('DefiLlama API call failed with an unexpected error!');
+      }
+    }
+
+    return vaults;
   }
 
   /**
@@ -331,61 +320,6 @@ export class Sdk {
     }
 
     return sorted;
-  }
-
-  /**
-   * Retruns all vaults with financial data such as deposit APYs and
-   * borrow APYs.
-   *
-   * @remarks
-   * This data is fetched from DefiLlama API and it can take
-   * longer than expected to get loaded. Their API is considered being in a
-   * "experimental" mode and might be unstable. This method can return `void`
-   * which indicates a problem with DefiLlama API. In that case, client should
-   * fetch for each vault borrow and deposit APY manually.
-   *
-   * @param chainType - for type of chains: mainnet or testnet
-   */
-  async getAllVaultsWithFinancials(
-    chainType: ChainType = ChainType.MAINNET
-  ): Promise<BorrowingVaultWithFinancials[] | void> {
-    const vaults = this._getAllVaults(chainType);
-
-    // TODO: inefficient when there will be many vaults
-    await Promise.all(vaults.map((v) => v.preLoad()));
-
-    const providers = vaults.map((v) => v.activeProvider) as string[];
-
-    // fetch from DefiLlama
-    const { defillamaproxy } = this._configParams;
-    const uri = {
-      lendBorrow: defillamaproxy
-        ? defillamaproxy + 'lendBorrow'
-        : 'https://yields.llama.fi/lendBorrow',
-      pools: defillamaproxy
-        ? defillamaproxy + 'pools'
-        : 'https://yields.llama.fi/pools',
-    };
-    try {
-      const [borrows, pools] = await Promise.all([
-        axios
-          .get<GetLlamaBorrowPoolsResponse>(uri.lendBorrow)
-          .then(({ data }) => data),
-        axios
-          .get<GetLlamaAssetPoolsResponse>(uri.pools)
-          .then(({ data }) => data.data),
-      ]);
-
-      return vaults.map((vault, i) =>
-        this._getFinancialsFor(vault, providers[i], pools, borrows)
-      );
-    } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.error(`DefiLlama API call failed with a message: ${e.message}`);
-      } else {
-        console.error('DefiLlama API call failed with an unexpected error!');
-      }
-    }
   }
 
   /**
@@ -509,14 +443,14 @@ export class Sdk {
     return new Promise((resolve) => {
       const apiCall = () =>
         axios.get(
-          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,execute_transaction_hash`
+          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,xcall_transaction_hash`
         );
 
       const interval = () => {
         apiCall()
           .then(({ data }) => {
-            if (data.length > 0 && data[0].execute_transaction_hash)
-              resolve(data[0].execute_transaction_hash);
+            if (data.length > 0 && data[0].xcall_transaction_hash)
+              resolve(data[0].xcall_transaction_hash);
             else setTimeout(interval, 2000);
           })
           .catch((err) => console.error(err));
@@ -578,29 +512,15 @@ export class Sdk {
       }, []);
   }
 
-  private _getAllVaults(chainType: ChainType): BorrowingVault[] {
-    const vaults = [];
-    const chains = Object.values(CHAIN).filter(
-      (c) => c.chainType === chainType
-    );
-
-    for (const chain of chains) {
-      vaults.push(...VAULT_LIST[chain.chainId]);
-    }
-
-    return vaults.map((v) => v.setConnection(this._configParams));
-  }
-
   private _getFinancialsFor(
-    v: BorrowingVault,
-    providerAddr: string,
+    v: VaultWithFinancials,
     pools: LlamaAssetPool[],
     borrows: LlamaBorrowPool[]
-  ): BorrowingVaultWithFinancials {
-    const chain = CHAIN[v.chainId].llamaKey;
-    const project = LENDING_PROVIDERS_LIST[v.chainId][providerAddr];
-    const collateralSym = v.collateral.symbol;
-    const debtSym = v.debt.symbol;
+  ): VaultWithFinancials {
+    const chain = CHAIN[v.vault.chainId].llamaKey;
+    const project = v.activeProvider.llamaKey;
+    const collateralSym = v.vault.collateral.symbol;
+    const debtSym = v.vault.debt.symbol;
 
     const borrowPool = pools.find(
       (p: LlamaAssetPool) =>
@@ -620,17 +540,17 @@ export class Sdk {
     );
 
     return {
-      vault: v,
-      depositApyBase: depositData?.apyBase ?? 0,
-      depositApyReward: depositData?.apyReward ?? 0,
-      depositApy: depositData?.apy ?? 0,
-      depositRewardTokens: depositData?.rewardTokens ?? [],
-      borrowApyBase: borrowData?.apyBaseBorrow ?? 0,
-      borrowApyReward: borrowData?.apyRewardBorrow ?? 0,
-      borrowRewardTokens: borrowData?.rewardTokens ?? [],
-      availableToBorrowUSD: borrowData
-        ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
-        : 0,
+      ...v,
+      activeProvider: {
+        ...v.activeProvider,
+        depositAprReward: depositData?.apyReward,
+        depositRewardTokens: depositData?.rewardTokens,
+        borrowAprReward: borrowData?.apyRewardBorrow,
+        borrowRewardTokens: borrowData?.rewardTokens,
+        availableToBorrowUSD: borrowData
+          ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
+          : undefined,
+      },
     };
   }
 }

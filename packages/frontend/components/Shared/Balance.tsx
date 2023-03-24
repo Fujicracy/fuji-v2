@@ -1,3 +1,5 @@
+import { formatBalance } from "../../helpers/values"
+
 type Props = {
   balance?: number
   /**
@@ -11,14 +13,8 @@ type Props = {
   dataCy?: string
 }
 
-// Format the balance depending of the token
-// If no token is specified, 5 digits is used
-// else, eth based tokens use 4 digits
 const Balance = ({ balance, rounding, symbol, dataCy }: Props) => {
-  const formattedBalance =
-    balance?.toLocaleString("en-US", {
-      notation: rounding ? "compact" : "standard",
-    }) ?? "0"
+  const formattedBalance = formatBalance(balance, rounding)
 
   return (
     <span id="balance-amount" data-cy={dataCy}>
