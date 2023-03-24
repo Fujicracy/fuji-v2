@@ -11,6 +11,11 @@ import { useEffect } from 'react';
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
 import Snackbar from '../components/Shared/Snackbar';
+import {
+  changeERC20PollingPolicy,
+  pollBalances,
+  stopPolling,
+} from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
@@ -47,12 +52,25 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [address, fetchPositions, updateVault]);
 
   useEffect(() => {
+    if (address) {
+      pollBalances();
+    } else {
+      stopPolling();
+    }
+    return () => {
+      stopPolling();
+    };
+  }, [address]);
+
+  useEffect(() => {
     const handleRouteChange = (url: string) => {
       const isTop = isTopLevelUrl(url);
       if (isTop && address) {
         fetchPositions();
         updateVault();
       }
+      const should = url === '/borrow' || url.includes('/my-positions/');
+      changeERC20PollingPolicy(should);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {

@@ -2,12 +2,8 @@ import { Address, ChainId, Token } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
 import { sdk } from '../services/sdk';
-import { onboard } from '../store/auth.store';
+import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
-
-// TODO:
-// - Call this each X seconds
-// - Allow cancelation
 
 export const fetchBalances = async (
   tokens: Token[],
@@ -47,13 +43,17 @@ const balancesDiffer = (
   return false;
 };
 
-const checkBalances = async (address: string | undefined) => {
+export const checkBalances = async () => {
+  const address = useAuth.getState().address;
   if (!address) {
     return;
   }
   // Triggers a native token refresh using onboard
   onboard.state.actions.updateBalances([address]);
 
+  if (!shouldFetchERC20) {
+    return;
+  }
   // Now let's to with ERC20 tokens
   const debt = useBorrow.getState().debt;
   const collateral = useBorrow.getState().collateral;
@@ -73,12 +73,56 @@ const checkBalances = async (address: string | undefined) => {
     if (stop) {
       return;
     }
-    const old = asset.balances;
-    if (balancesDiffer(old, balances)) {
-      const type = i === 0 ? 'collateral' : 'debt';
-      useBorrow.getState().changeBalances(type, balances);
+
+    // Grab again in case it changed while we were fetching
+    const type = i === 0 ? 'collateral' : 'debt';
+    const current =
+      type === 'collateral'
+        ? useBorrow.getState().collateral
+        : useBorrow.getState().debt;
+
+    // Check if balances changed but don't even get there if chain changed
+    if (
+      current.token.chainId === asset.token.chainId &&
+      balancesDiffer(current.balances, balances)
+    ) {
+      useBorrow.getState().changeBalances(type, current.balances);
     }
   });
 };
 
-// TODO: polling
+// Polling
+
+export const pollBalances = () => {
+  poll(checkBalances);
+};
+
+export const stopPolling = () => {
+  cancelPoll();
+};
+
+const interval = 30000;
+let timerId: ReturnType<typeof setTimeout> | null = null;
+let shouldFetchERC20 = false;
+
+export const changeERC20PollingPolicy = (value: boolean) => {
+  shouldFetchERC20 = value;
+};
+
+export const poll = (callback: () => void) => {
+  if (timerId !== null) {
+    return; // Do nothing if there's already a timer
+  }
+  const pollFn = async () => {
+    await callback();
+    timerId = setTimeout(pollBalances, interval);
+  };
+  pollFn();
+};
+
+const cancelPoll = () => {
+  if (timerId) {
+    clearTimeout(timerId);
+    timerId = null;
+  }
+};
