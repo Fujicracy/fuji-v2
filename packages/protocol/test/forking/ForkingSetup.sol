@@ -25,10 +25,6 @@ import {IFujiOracle} from "../../src/interfaces/IFujiOracle.sol";
 // 3. Create a registry entry with addresses for reuiqred resources
 
 contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
-  uint32 public constant GOERLI_DOMAIN = 1735353714;
-  uint32 public constant OPTIMISM_GOERLI_DOMAIN = 1735356532;
-  uint32 public constant MUMBAI_DOMAIN = 9991;
-
   uint256 public constant ALICE_PK = 0xA;
   address public ALICE = vm.addr(ALICE_PK);
   uint256 public constant BOB_PK = 0xB;
@@ -45,8 +41,8 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     address wmatic;
     address connext;
   }
-  // domain => addresses registry
 
+  // domain => addresses registry
   mapping(uint256 => Registry) public registry;
   // domain => forkId
   mapping(uint256 => uint256) public forks;
@@ -55,7 +51,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   Chief public chief;
   TimelockController public timelock;
   MockOracle mockOracle;
-  IFujiOracle public oracle;
+  IFujiOracle oracle;
 
   address public dummy;
 
@@ -78,8 +74,8 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     Registry memory goerli = Registry({
       weth: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6,
-      usdc: address(0),
-      dai: address(0),
+      usdc: 0xd35CCeEAD182dcee0F148EbaC9447DA2c4D449c4,
+      dai: 0x2899a03ffDab5C90BADc5920b4f53B0884EB13cC,
       wmatic: address(0),
       connext: 0x99A784d082476E551E5fc918ce3d849f2b8e89B6
     });
@@ -87,8 +83,8 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     Registry memory optimismGoerli = Registry({
       weth: 0x74c6FD7D2Bc6a8F0Ebd7D78321A95471b8C2B806,
-      usdc: address(0),
-      dai: address(0),
+      usdc: 0x3714A8C7824B22271550894f7555f0a672f97809,
+      dai: 0xA8B4FBacE6B464f32daAf53b2b86dC91122194CB,
       wmatic: address(0),
       connext: 0x705791AD27229dd4CCf41b6720528AfE1bcC2910
     });
@@ -96,7 +92,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     Registry memory mumbai = Registry({
       weth: 0xFD2AB41e083c75085807c4A65C0A14FDD93d55A9,
-      usdc: address(0),
+      usdc: 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747,
       dai: address(0),
       wmatic: address(0),
       connext: 0xfeBBcfe9a88aadefA6e305945F2d2011493B15b4
@@ -168,13 +164,24 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     vm.label(reg.weth, "WETH");
 
     if (reg.usdc == address(0)) {
-      // mostly for testnets
-      MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
-      debtAsset = address(tDAI);
-      vm.label(debtAsset, "testDAI");
+      debtAsset = reg.dai;
+      vm.label(debtAsset, "DAI");
     } else {
       debtAsset = reg.usdc;
       vm.label(debtAsset, "USDC");
+    }
+
+    if (domain == GOERLI_DOMAIN || domain == OPTIMISM_GOERLI_DOMAIN || domain == MUMBAI_DOMAIN) {
+      MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
+      debtAsset = address(tDAI);
+      vm.label(debtAsset, "testDAI");
+
+      mockOracle = new MockOracle();
+
+      // WETH and DAI prices by Nov 11h 2022
+      mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
+      mockOracle.setUSDPriceOf(debtAsset, 100000000);
+      oracle = mockOracle;
     }
   }
 
