@@ -1,7 +1,7 @@
 import { Address, ChainId, Token } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
-import { BALANCE_POLLING_INTERVAL } from '../constants/borrow';
+import { BALANCE_POLLING_INTERVAL } from '../constants';
 import { sdk } from '../services/sdk';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';

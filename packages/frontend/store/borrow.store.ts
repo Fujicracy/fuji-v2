@@ -22,7 +22,7 @@ import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_TRESHOLD,
   DEFAULT_SLIPPAGE,
-} from '../constants/borrow';
+} from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
