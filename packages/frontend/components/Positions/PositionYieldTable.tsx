@@ -22,7 +22,6 @@ import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
-import EmptyState from './EmptyState';
 
 type PositionYieldTableProps = {
   loading: boolean;
@@ -64,13 +63,6 @@ function PositionYieldTable({
     );
   }, [rows, days, callback]);
 
-  if (!account) {
-    return (
-      <PositionYieldTableContainer>
-        <EmptyState minHeight="17.25rem" reason="no-wallet" />
-      </PositionYieldTableContainer>
-    );
-  }
   if (loading) {
     return (
       <PositionYieldTableContainer>
@@ -87,66 +79,58 @@ function PositionYieldTable({
 
   return (
     <PositionYieldTableContainer>
-      {rows.length > 0 ? (
-        rows.map((row, i) => (
-          <TableRow key={i} sx={{ cursor: 'pointer' }}>
-            <TableCell>
-              <Stack direction="row" alignItems="center" pt={1} pb={1}>
-                <TokenWithNetworkIcon
-                  token={row.debt.symbol}
-                  network={chainName(row.chainId)}
-                  innertTop="1.1rem"
-                />
-                {row.debt.symbol}
-              </Stack>
-            </TableCell>
-            <TableCell>
-              <Stack direction="row" alignItems="center" pt={1} pb={1} gap={1}>
-                <TokenIcon
-                  token={row.collateral.symbol}
-                  width={32}
-                  height={32}
-                />
-                {row.collateral.symbol}
-              </Stack>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {row.collateral.baseAPR}%
-              </Typography>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {row.debt.baseAPR}%
-              </Typography>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {row.apr}%
-              </Typography>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {formatValue(
-                  getEstimatedEarnings({
-                    days,
-                    collateralInUsd: row.collateral.usdValue,
-                    collateralAPR: row.collateral.baseAPR,
-                    debtInUsd: row.debt.usdValue,
-                    debtAPR: row.debt.baseAPR,
-                  }),
-                  {
-                    style: 'currency',
-                    maximumFractionDigits: 2,
-                  }
-                )}
-              </Typography>
-            </TableCell>
-          </TableRow>
-        ))
-      ) : (
-        <EmptyState minHeight="17.25rem" reason="no-positions" />
-      )}
+      {rows.map((row, i) => (
+        <TableRow key={i} sx={{ cursor: 'pointer' }}>
+          <TableCell>
+            <Stack direction="row" alignItems="center" pt={1} pb={1}>
+              <TokenWithNetworkIcon
+                token={row.debt.symbol}
+                network={chainName(row.chainId)}
+                innertTop="1.1rem"
+              />
+              {row.debt.symbol}
+            </Stack>
+          </TableCell>
+          <TableCell>
+            <Stack direction="row" alignItems="center" pt={1} pb={1} gap={1}>
+              <TokenIcon token={row.collateral.symbol} width={32} height={32} />
+              {row.collateral.symbol}
+            </Stack>
+          </TableCell>
+          <TableCell align="right">
+            <Typography variant="small" color={palette.warning.main}>
+              {row.collateral.baseAPR}%
+            </Typography>
+          </TableCell>
+          <TableCell align="right">
+            <Typography variant="small" color={palette.warning.main}>
+              {row.debt.baseAPR}%
+            </Typography>
+          </TableCell>
+          <TableCell align="right">
+            <Typography variant="small" color={palette.warning.main}>
+              {row.apr}%
+            </Typography>
+          </TableCell>
+          <TableCell align="right">
+            <Typography variant="small" color={palette.warning.main}>
+              {formatValue(
+                getEstimatedEarnings({
+                  days,
+                  collateralInUsd: row.collateral.usdValue,
+                  collateralAPR: row.collateral.baseAPR,
+                  debtInUsd: row.debt.usdValue,
+                  debtAPR: row.debt.baseAPR,
+                }),
+                {
+                  style: 'currency',
+                  maximumFractionDigits: 2,
+                }
+              )}
+            </Typography>
+          </TableCell>
+        </TableRow>
+      ))}
     </PositionYieldTableContainer>
   );
 }

@@ -11,9 +11,10 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { formatValue } from '../../helpers/values';
+import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import PositionYieldTable from './PositionYieldTable';
@@ -43,10 +44,18 @@ export function PositionYieldsModal({
   const router = useRouter();
   const loading = usePositions((state) => state.loading);
   const totalAPY = usePositions((state) => state.totalAPY);
+  const account = useAuth((state) => state.address);
+  const positions = usePositions((state) => state.positions);
 
   const [period, setPeriod] = useState<PeriodOption>(periodOptions[0]);
   const [currentTab, setCurrentTab] = useState(0);
   const [estEarnings, setEstEarnings] = useState(0);
+
+  useEffect(() => {
+    if (!account || positions.length === 0) {
+      onClose();
+    }
+  }, [account, positions, onClose]);
 
   return (
     <Dialog
