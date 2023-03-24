@@ -24,17 +24,21 @@ export const fetchBalances = async (
   return balances;
 };
 
+export const updateNativeBalance = (addr?: string) => {
+  const address = addr ?? useAuth.getState().address;
+  if (!address) return;
+  onboard.state.actions.updateBalances([address]);
+};
+
 export const checkBalances = async () => {
   const address = useAuth.getState().address;
-  if (!address) {
-    return;
-  }
-  // Triggers a native token refresh using onboard
-  onboard.state.actions.updateBalances([address]);
+  if (!address) return;
 
-  if (!shouldFetchERC20) {
-    return;
-  }
+  // Triggers a native token refresh using onboard
+  updateNativeBalance(address);
+
+  if (!shouldFetchERC20) return;
+
   // Now let's to with ERC20 tokens
   const debt = useBorrow.getState().debt;
   const collateral = useBorrow.getState().collateral;
