@@ -158,3 +158,4 @@ jobs:
           # SENTRY_URL: https://sentry.io/
         with:
           environment: production
+          sourcemaps: '${{ env.GITHUB_WORKSPACE }}/packages/frontend/.next/static/chunks'
