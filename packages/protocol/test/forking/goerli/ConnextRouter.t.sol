@@ -20,6 +20,40 @@ import {BaseRouter} from "../../../src/abstracts/BaseRouter.sol";
 import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
+import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
+import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
+import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+
+contract MockTestFlasher is Routines, IFlasher {
+  using SafeERC20 for IERC20;
+  using Address for address;
+
+  bool public flashloanCalled = false;
+
+  function initiateFlashloan(
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+  {
+    deal(asset, requestor, amount);
+    flashloanCalled = true;
+    requestor.functionCall(requestorCalldata);
+  }
+
+  /// @inheritdoc IFlasher
+  function getFlashloanSourceAddr(address) external view override returns (address) {
+    return address(this);
+  }
+
+  /// @inheritdoc IFlasher
+  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
+    fee = 0;
+  }
+}
 
 contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
@@ -408,5 +442,55 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     assertEq(vault.balanceOf(ALICE), amount);
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+  }
+
+  function test_simpleFlashloan() public {
+    uint256 amount = 2 ether;
+    MockTestFlasher flasher = new MockTestFlasher();
+    deal(collateralAsset, ALICE, amount);
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
+    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+
+    IRouter.Action[] memory actions1 = new IRouter.Action[](1);
+    actions1[0] = IRouter.Action.Flashloan;
+
+    //here
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.XTransferWithCall;
+
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    bytes[] memory destArgs = new bytes[](1);
+
+    destActions[0] = IRouter.Action.Deposit;
+    destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
+
+    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
+
+    //here
+
+    bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
+
+    bytes[] memory args1 = new bytes[](1);
+    args1[0] =
+      abi.encode(address(flasher), collateralAsset, amount, address(connextRouter), requestorCall);
+
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
+
+    vm.expectEmit(false, false, false, false);
+    emit Dispatch("", 1, "", "");
+
+    connextRouter.xBundle(actions1, args1);
+    vm.stopPrank();
+
+    assertEq(flasher.flashloanCalled(), true);
+    assertEq(vault.balanceOf(ALICE), amount);
   }
 }
