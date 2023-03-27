@@ -79,22 +79,6 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     return <></>;
   }
 
-  const onClick = async () => {
-    // If the user is editing a position, we just need to close the modal
-    if (currentPage === myPositionPage.path) {
-      closeModal();
-      return;
-    }
-
-    closeModal();
-    const vault = vaultFromAddress(entry.vaultAddr);
-    if (!vault) {
-      router.push('/my-positions');
-      return;
-    }
-    showPosition(router, undefined, vault);
-  };
-
   const steps = entry
     ? (entry.steps
         .map((s): TransactionStep => {
@@ -159,6 +143,22 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
         .filter((s) => s.label !== 'Invalid') as ValidStep[])
     : [];
 
+  const onClick = async () => {
+    // If the user is editing a position, we just need to close the modal
+    if (currentPage === myPositionPage.path) {
+      closeModal();
+      return;
+    }
+
+    closeModal();
+    const vault = vaultFromAddress(entry.vaultAddr);
+    if (!vault) {
+      router.push('/my-positions');
+      return;
+    }
+    showPosition(router, undefined, vault);
+  };
+
   return (
     <Dialog
       open={true}
@@ -195,7 +195,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                     <Box>
                       <Typography variant="body">{step.label}</Typography>
                       <br />
-                      {step.txHash && (
+                      {step.txHash && step.link && (
                         <Link
                           href={step.link}
                           target="_blank"
