@@ -1,4 +1,4 @@
-import { Link } from '@mui/material';
+import { Box, Link, Typography } from '@mui/material';
 
 export function getLinkNotification(message: string) {
   return <CustomToastWithLink link="test" message={message} />;
@@ -12,10 +12,10 @@ export function CustomToastWithLink({
   message: string;
 }) {
   return (
-    <div>
+    <Box>
       <Link href={link} target="_blank">
-        {message}
+        <Typography variant="small">{message}</Typography>
       </Link>
-    </div>
+    </Box>
   );
 }
