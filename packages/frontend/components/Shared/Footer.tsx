@@ -96,7 +96,7 @@ function Footer() {
                 Documentation
               </Link>
             </Grid>
-            <Grid item>© FujiDAO {new Date().getFullYear()}</Grid>
+            <Grid item>© Fuji Finance {new Date().getFullYear()}</Grid>
           </Grid>
         </Typography>
       </div>
