@@ -458,7 +458,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     IRouter.Action[] memory actions1 = new IRouter.Action[](1);
     actions1[0] = IRouter.Action.Flashloan;
 
-    //here
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
 
@@ -472,8 +471,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
     args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
-
-    //here
 
     bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
 
