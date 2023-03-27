@@ -165,7 +165,7 @@ export function PositionYieldsModal({
         </Stack>
 
         {currentTab === 0 && (
-          <Box sx={{ width: '40rem' }}>
+          <Box sx={{ maxWidth: '40rem' }}>
             <PositionYieldTable
               loading={loading}
               days={period.value}
