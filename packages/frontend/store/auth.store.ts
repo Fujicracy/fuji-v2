@@ -12,9 +12,8 @@ import { ethers, utils } from 'ethers';
 import { create, StoreApi } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { ERROR_MESSAGE, fujiLogo } from '../constants/ui';
+import { fujiLogo } from '../constants/ui';
 import { chainIdToHex, onboardChains } from '../helpers/chains';
-import { useSnack } from './snackbar.store';
 
 const walletConnect = walletConnectModule({
   // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
@@ -84,7 +83,7 @@ type DisconnectedState = {
 type State = InitialState | ConnectedState | DisconnectedState;
 
 type Action = {
-  login: (silent: boolean, options?: ConnectOptions) => void;
+  login: (options?: ConnectOptions) => void;
   init: () => void;
   logout: () => void;
   acceptTermsOfUse: () => void;
@@ -115,18 +114,12 @@ export const useAuth = create<AuthStore>()(
         onOnboardChange(set, get);
       },
 
-      login: async (silent, options?) => {
+      login: async (options) => {
         const wallets = await onboard.connectWallet(options);
 
         if (!wallets[0] || !wallets[0].accounts[0]) {
           set({ status: 'disconnected' });
-          if (!silent) {
-            useSnack.getState().display({
-              type: 'error',
-              title: ERROR_MESSAGE.LOGIN,
-            });
-          }
-          return;
+          throw 'Failure trying to login';
         }
 
         const json = JSON.stringify(wallets.map(({ label }) => label));
@@ -205,7 +198,7 @@ async function reconnect(
     return set({ status: 'disconnected' });
   }
   const wallets = JSON.parse(previouslyConnectedWallets);
-  await get().login(true, {
+  await get().login({
     autoSelect: { label: wallets[0], disableModals: true },
   });
 }

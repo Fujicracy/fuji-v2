@@ -74,7 +74,7 @@ const Header = () => {
     const options: ConnectOptions | undefined = testing
       ? { autoSelect: { label: 'MetaMask', disableModals: true } }
       : undefined;
-    login(false, options);
+    login(options);
   };
 
   return (
