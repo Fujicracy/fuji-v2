@@ -53,7 +53,7 @@ const Header = () => {
   const [accountModalEl, setAccountModalEl] = useState<
     HTMLElement | undefined
   >();
-  const showAccountModal = Boolean(accountModalEl);
+  const [showAccountModal, setShowAccountModal] = useState(false);
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget);
 
@@ -61,6 +61,14 @@ const Header = () => {
   const isNavMenuOpen = Boolean(anchorElNav);
 
   const formattedAddress = hiddenAddress(address);
+
+  const handleOpenAccountModal = (
+    show: boolean,
+    element: HTMLElement | undefined
+  ) => {
+    setShowAccountModal(show);
+    setAccountModalEl(element);
+  };
 
   const handleLogin = (testing: boolean) => {
     const options: ConnectOptions | undefined = testing
@@ -278,7 +286,7 @@ const Header = () => {
                     balance={balance}
                     formattedAddress={formattedAddress}
                     ens={ens}
-                    onClick={(e) => setAccountModalEl(e)}
+                    onClick={(e) => handleOpenAccountModal(true, e)}
                   />
                 </Grid>
                 <Grid item>
@@ -293,7 +301,7 @@ const Header = () => {
         <AccountModal
           isOpen={showAccountModal}
           anchorEl={accountModalEl}
-          closeAccountModal={() => setAccountModalEl(undefined)}
+          closeAccountModal={() => handleOpenAccountModal(false, undefined)}
           address={address}
         />
       )}
