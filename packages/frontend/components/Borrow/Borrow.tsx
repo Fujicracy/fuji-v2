@@ -229,7 +229,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             actionType={actionType}
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={() => {
-              login();
+              login(false);
             }}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => {

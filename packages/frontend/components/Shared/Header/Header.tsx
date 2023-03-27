@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -59,10 +60,14 @@ const Header = () => {
   const handleCloseNavMenu = () => setAnchorElNav(null);
   const isNavMenuOpen = Boolean(anchorElNav);
 
-  const e2eConnect = () =>
-    login({ autoSelect: { label: 'MetaMask', disableModals: true } });
-
   const formattedAddress = hiddenAddress(address);
+
+  const handleLogin = (testing: boolean) => {
+    const options: ConnectOptions | undefined = testing
+      ? { autoSelect: { label: 'MetaMask', disableModals: true } }
+      : undefined;
+    login(false, options);
+  };
 
   return (
     <AppBar position="static">
@@ -118,11 +123,11 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={() => login()}
+                      onClick={() => handleLogin(false)}
                     />
                     <Button
                       data-cy="login"
-                      onClick={e2eConnect}
+                      onClick={() => handleLogin(true)}
                       sx={{ position: 'absolute', visibility: 'hidden' }}
                     >
                       e2e
@@ -252,11 +257,11 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={() => login()}
+                  onClick={() => handleLogin(false)}
                 />
                 <Button
                   data-cy="login"
-                  onClick={e2eConnect}
+                  onClick={() => handleLogin(true)}
                   sx={{ position: 'absolute', visibility: 'hidden' }}
                 >
                   e2e
