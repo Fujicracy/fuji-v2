@@ -50,7 +50,7 @@ function Summary({
         amount={formatValue(debt.amount * debt.usdPrice, {
           style: 'currency',
         })}
-        footer={`${formatValue(debt.usdPrice, {
+        footer={`${formatValue(debt.amount, {
           maximumFractionDigits: 2,
         })} ${debt.token.symbol}`}
         extra={
