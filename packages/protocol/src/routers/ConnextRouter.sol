@@ -269,7 +269,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
-    address beneficiary = _getBeneficiaryFromCalldata(callData);
+    (Action[] memory actions, bytes[] memory args,) =
+      abi.decode(callData, (Action[], bytes[], uint256));
+    address beneficiary = _getBeneficiaryFromCalldata(actions, args);
     _checkBeneficiary(beneficiary);
 
     _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
@@ -303,15 +305,18 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * Requirements:
    * - Must revert if "swap" is first action
    *
-   * @param callData encoded to execute in {BaseRouter-xBundle}
+   * @param actions to execute in {BaseRouter-xBundle}
+   * @param args to execute in {BaseRouter-xBundle}
    */
-  function _getBeneficiaryFromCalldata(bytes memory callData)
+
+  function _getBeneficiaryFromCalldata(
+    Action[] memory actions,
+    bytes[] memory args
+  )
     internal
     pure
     returns (address beneficiary)
   {
-    (Action[] memory actions, bytes[] memory args,) =
-      abi.decode(callData, (Action[], bytes[], uint256));
     if (actions[0] == Action.Deposit || actions[0] == Action.Payback) {
       // For Deposit or Payback.
       (,, address receiver,) = abi.decode(args[0], (IVault, uint256, address, address));
@@ -332,7 +337,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     } else if (actions[0] == Action.Flashloan) {
       (,,,, bytes memory requestorCalldata) =
         abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-      beneficiary = _getBeneficiaryFromCalldata(requestorCalldata);
+
+      (, Action[] memory newActions, bytes[] memory newArgs) =
+        abi.decode(requestorCalldata, (bytes4, Action[], bytes[]));
+
+      beneficiary = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
       revert BaseRouter__bundleInternal_swapNotFirstAction();
