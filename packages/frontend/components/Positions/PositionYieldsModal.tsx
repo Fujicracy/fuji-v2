@@ -114,7 +114,10 @@ export function PositionYieldsModal({
               >
                 Net APY
               </Typography>
-              <Typography variant="h5">
+              <Typography
+                variant="h5"
+                color={Number(totalAPY) >= 0 ? palette.success.main : 'inherit'}
+              >
                 {formatValue(totalAPY, {
                   style: 'currency',
                   maximumFractionDigits: 2,
@@ -162,7 +165,7 @@ export function PositionYieldsModal({
         </Stack>
 
         {currentTab === 0 && (
-          <Box sx={{ width: '35rem' }}>
+          <Box sx={{ width: '40rem' }}>
             <PositionYieldTable
               loading={loading}
               days={period.value}

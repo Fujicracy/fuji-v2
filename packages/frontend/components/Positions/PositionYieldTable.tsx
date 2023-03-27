@@ -99,21 +99,19 @@ function PositionYieldTable({
           </TableCell>
           <TableCell align="right">
             <Typography variant="small" color={palette.warning.main}>
-              {row.collateral.baseAPR}%
+              {formatValue(row.debt.baseAPR)}%
             </Typography>
           </TableCell>
           <TableCell align="right">
-            <Typography variant="small" color={palette.warning.main}>
-              {row.debt.baseAPR}%
+            <Typography variant="small" color={palette.success.main}>
+              {formatValue(row.collateral.baseAPR)}%
             </Typography>
           </TableCell>
           <TableCell align="right">
-            <Typography variant="small" color={palette.warning.main}>
-              {row.apr}%
-            </Typography>
+            <Typography variant="small">{row.apr}%</Typography>
           </TableCell>
           <TableCell align="right">
-            <Typography variant="small" color={palette.warning.main}>
+            <Typography variant="small">
               {formatValue(
                 getEstimatedEarnings({
                   days,
