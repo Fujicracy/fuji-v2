@@ -39,8 +39,9 @@ contract MockTestFlasher is Routines, IFlasher {
   )
     external
   {
-    deal(asset, requestor, amount);
+    deal(asset, address(this), amount);
     flashloanCalled = true;
+    SafeERC20.safeApprove(IERC20(asset), requestor, amount);
     requestor.functionCall(requestorCalldata);
   }
 
