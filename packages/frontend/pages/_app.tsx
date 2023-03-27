@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
+import Notification from '../components/Shared/Notification';
 import Snackbar from '../components/Shared/Snackbar';
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
@@ -75,6 +76,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <TransactionModal hash={currentTxHash} currentPage={currentPage} />
           <Snackbar />
           <SafetyNoticeModal />
+          <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>
     </>
