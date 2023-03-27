@@ -9,9 +9,10 @@ import {
   toHistoryRoutingStep,
   toRoutingStepDetails,
 } from '../helpers/history';
+import { getTransactionUrl } from '../helpers/notifications';
 import { sdk } from '../services/sdk';
 import { useBorrow } from './borrow.store';
-import { useSnack } from './snackbar.store';
+import { useNotifications } from './notifications.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
@@ -152,18 +153,19 @@ export const useHistory = create<HistoryStore>()(
 
               const { title, transactionUrl } = entryOutput(s, txHash);
 
-              useSnack.getState().display({
+              useNotifications.getState().notify({
                 type: 'success',
-                title,
-                transactionUrl,
+                message: title,
+                link: getTransactionUrl(transactionUrl),
+                isTransaction: true,
               });
             }
             get().update(hash, { status: HistoryEntryStatus.DONE });
           } catch (e) {
             console.error(e);
-            useSnack.getState().display({
+            useNotifications.getState().notify({
               type: 'error',
-              title:
+              message:
                 'The transaction cannot be processed, please try again later.',
             });
 

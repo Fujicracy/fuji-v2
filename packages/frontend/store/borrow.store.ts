@@ -37,7 +37,7 @@ import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useHistory } from './history.store';
-import { useSnack } from './snackbar.store';
+import { useNotifications } from './notifications.store';
 
 setAutoFreeze(false);
 
@@ -754,9 +754,9 @@ export const useBorrow = create<BorrowStore>()(
             set({ signature });
           } catch (e: any) {
             if (e.code === 'ACTION_REJECTED') {
-              useSnack.getState().display({
+              useNotifications.getState().notify({
                 type: 'error',
-                title: 'Signature was canceled by the user.',
+                message: 'Signature was canceled by the user.',
               });
             }
           } finally {
@@ -791,18 +791,18 @@ export const useBorrow = create<BorrowStore>()(
             const tx = await signer.sendTransaction(txRequest);
 
             if (tx) {
-              useSnack.getState().display({
+              useNotifications.getState().notify({
                 type: 'success',
-                title: 'The transaction was submitted successfully.',
+                message: 'The transaction was submitted successfully.',
               });
             }
             return tx;
           } catch (e) {
             // TODO: what errors can we catch here?
             console.error(e);
-            useSnack.getState().display({
+            useNotifications.getState().notify({
               type: 'warning',
-              title:
+              message:
                 'The transaction was canceled by the user or cannot be submitted.',
             });
           } finally {

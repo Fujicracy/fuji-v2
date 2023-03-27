@@ -7,17 +7,11 @@ import { getLinkNotification } from '../helpers/notifications';
 
 export type NotificationsStore = NotificationsActions;
 
-enum ToastNotificationsTypes {
-  error = 'error',
-  info = 'info',
-  success = 'success',
-  warning = 'warning',
-}
-
 type NotifyArgs = {
   message: string;
-  type: ToastNotificationsTypes;
+  type: 'error' | 'info' | 'success' | 'warning';
   link?: string;
+  isTransaction?: boolean;
 };
 
 type NotificationsActions = {
@@ -28,9 +22,9 @@ export const useNotifications = create<NotificationsStore>()(
   persist(
     devtools(
       (set, get) => ({
-        notify({ message, type, link }: NotifyArgs) {
+        notify({ message, type, link, isTransaction }: NotifyArgs) {
           if (link) {
-            toast(getLinkNotification(message));
+            toast(getLinkNotification({ message, link, isTransaction }));
 
             return;
           }
