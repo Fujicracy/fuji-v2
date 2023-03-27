@@ -10,7 +10,10 @@ import MyPositionsSummary from './MyPositionsSummary';
 function MyPositions() {
   const [currentTab, setCurrentTab] = useState(0);
 
+  const positions = usePositions((state) => state.positions);
   const loading = usePositions((state) => state.loading);
+
+  const isLoading = loading && positions.length === 0;
 
   return (
     <>
@@ -25,7 +28,7 @@ function MyPositions() {
       <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
       {currentTab === 0 ? (
-        <MyPositionsBorrowTable loading={loading} />
+        <MyPositionsBorrowTable loading={isLoading} />
       ) : (
         <Box sx={{ height: '31rem', width: '100%' }}>
           <Lending />
