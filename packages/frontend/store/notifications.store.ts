@@ -1,4 +1,4 @@
-import { toast } from 'react-toastify';
+import { toast, ToastOptions } from 'react-toastify';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
@@ -23,16 +23,21 @@ export const useNotifications = create<NotificationsStore>()(
     devtools(
       (set, get) => ({
         notify({ message, type, link, isTransaction }: NotifyArgs) {
+          const options: Partial<ToastOptions> = {
+            position: toast.POSITION.TOP_RIGHT,
+            theme: 'dark',
+          };
+
           if (link) {
-            toast(getLinkNotification({ message, link, isTransaction }));
+            toast(
+              getLinkNotification({ message, link, isTransaction, type }),
+              options
+            );
 
             return;
           }
 
-          toast[type](message, {
-            position: toast.POSITION.TOP_RIGHT,
-            theme: 'dark',
-          });
+          toast[type](message, options);
         },
       }),
       {

@@ -7,7 +7,7 @@ function Notification() {
   /** Describes notification position */
   const POSITION: ToastPosition = 'top-right';
   /** Closes notification after delay  */
-  const AUTO_CLOSE_TIME = 5000;
+  const AUTO_CLOSE_TIME = 500000;
   /** Describes notification queue */
   const IS_NEWEST_ON_TOP = false;
   /** Describes behaviour closes notification by onClick Mouse Event */
