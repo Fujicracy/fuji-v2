@@ -5,6 +5,7 @@ import { BALANCE_POLLING_INTERVAL } from '../constants';
 import { sdk } from '../services/sdk';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
+import { AssetChange, AssetType } from './assets';
 
 export const fetchBalances = async (
   tokens: Token[],
@@ -37,44 +38,49 @@ export const checkBalances = async () => {
   // Triggers a native token refresh using onboard
   updateNativeBalance(address);
 
-  if (!shouldFetchERC20) return;
+  if (!shouldFetchERC20 || isExecutingTx()) return;
 
   // Now let's to with ERC20 tokens
-  const debt = useBorrow.getState().debt;
   const collateral = useBorrow.getState().collateral;
+  const debt = useBorrow.getState().debt;
 
-  const data = [collateral, debt];
-
-  data.forEach(async (asset, i) => {
-    const balances = await fetchBalances(
-      asset.selectableTokens,
-      address,
-      asset.token.chainId
-    );
-    console.log(balances);
-
-    const stop =
-      useBorrow.getState().isExecuting || useBorrow.getState().isSigning;
-    if (stop) {
-      return;
-    }
-
-    // Grab again in case it changed while we were fetching
-    const type = i === 0 ? 'collateral' : 'debt';
-    const current =
-      type === 'collateral'
-        ? useBorrow.getState().collateral
-        : useBorrow.getState().debt;
-
-    // Check if balances changed but don't even get there if chain changed
-    if (
-      current.token.chainId === asset.token.chainId &&
-      balancesDiffer(current.balances, balances)
-    ) {
-      useBorrow.getState().changeBalances(type, current.balances);
-    }
-  });
+  await checkBalance(address, 'collateral', collateral);
+  await checkBalance(address, 'debt', debt);
 };
+
+const checkBalance = async (
+  address: string,
+  type: AssetType,
+  asset: AssetChange
+) => {
+  const balances = await fetchBalances(
+    asset.selectableTokens,
+    address,
+    asset.token.chainId
+  );
+
+  // Check again
+  if (isExecutingTx()) {
+    return;
+  }
+
+  // Grab again in case it changed while we were fetching
+  const current =
+    type === 'collateral'
+      ? useBorrow.getState().collateral
+      : useBorrow.getState().debt;
+
+  // Check if balances changed but don't even get there if chain changed
+  if (
+    current.token.chainId === asset.token.chainId &&
+    balancesDiffer(current.balances, balances)
+  ) {
+    useBorrow.getState().changeBalances(type, current.balances);
+  }
+};
+
+const isExecutingTx = () =>
+  useBorrow.getState().isExecuting || useBorrow.getState().isSigning;
 
 const balancesDiffer = (
   obj1: Record<string, number>,
