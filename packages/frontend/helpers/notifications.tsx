@@ -2,8 +2,31 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import { Link, Stack, Typography } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 import Image from 'next/image';
+import { toast, ToastOptions } from 'react-toastify';
 
 import { transactionUrl } from './chains';
+
+type NotifyArgs = {
+  message: string;
+  type: 'error' | 'info' | 'success' | 'warning';
+  link?: string;
+  isTransaction?: boolean;
+};
+
+export function notify({ message, type, link, isTransaction }: NotifyArgs) {
+  const options: Partial<ToastOptions> = {
+    position: toast.POSITION.TOP_RIGHT,
+    theme: 'dark',
+  };
+
+  if (link) {
+    toast(getLinkNotification({ message, link, isTransaction, type }), options);
+
+    return;
+  }
+
+  toast[type](message, options);
+}
 
 export function getTransactionUrl(transaction: {
   chainId: ChainId;

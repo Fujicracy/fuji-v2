@@ -33,11 +33,11 @@ import {
 } from '../helpers/assets';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
+import { notify } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useHistory } from './history.store';
-import { useNotifications } from './notifications.store';
 
 setAutoFreeze(false);
 
@@ -754,7 +754,7 @@ export const useBorrow = create<BorrowStore>()(
             set({ signature });
           } catch (e: any) {
             if (e.code === 'ACTION_REJECTED') {
-              useNotifications.getState().notify({
+              notify({
                 type: 'error',
                 message: 'Signature was canceled by the user.',
               });
@@ -791,16 +791,14 @@ export const useBorrow = create<BorrowStore>()(
             const tx = await signer.sendTransaction(txRequest);
 
             if (tx) {
-              useNotifications.getState().notify({
+              notify({
                 type: 'success',
                 message: 'The transaction was submitted successfully.',
               });
             }
             return tx;
           } catch (e) {
-            // TODO: what errors can we catch here?
-            console.error(e);
-            useNotifications.getState().notify({
+            notify({
               type: 'warning',
               message:
                 'The transaction was canceled by the user or cannot be submitted.',
