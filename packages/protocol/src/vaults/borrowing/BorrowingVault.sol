@@ -67,6 +67,8 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_slippageTooHigh();
   error BorrowingVault__payback_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
+  error BorrowingVault__correctDebt_noNeedForCorrection();
+  error BorrowingVault__correctDebt_invalidAmount();
 
   /*///////////////////
    Liquidation controls
@@ -705,5 +707,29 @@ contract BorrowingVault is BaseVault {
     _providers = providers;
 
     emit ProvidersChanged(providers);
+  }
+
+  /**
+   * @notice In case someone repays this vault's debt directly to the lending provider,
+   * a borrow is done with the amount that was repaid so no issues regarding
+   * the relationship between debt and debt shares occurs.
+   *
+   * @param  amount to be borrowed
+   */
+  function correctDebt(uint256 amount) external onlyTimelock {
+    uint256 vaultDebt = totalDebt();
+    uint256 vaultDebtShares = debtSharesSupply;
+
+    //no need for correction
+    if (vaultDebt > vaultDebtShares || vaultDebt != 0) {
+      revert BorrowingVault__correctDebt_noNeedForCorrection();
+    }
+
+    //amount is to high
+    if (amount > vaultDebtShares - vaultDebt) {
+      revert BorrowingVault__correctDebt_invalidAmount();
+    }
+
+    _executeProviderAction(amount, "borrow", activeProvider);
   }
 }
