@@ -4,6 +4,7 @@ import {
   ChainId,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  DEFAULT_SLIPPAGE,
   LendingProviderDetails,
   RouterActionParams,
   RoutingStepDetails,
@@ -18,11 +19,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import {
-  DEFAULT_LTV_MAX,
-  DEFAULT_LTV_TRESHOLD,
-  DEFAULT_SLIPPAGE,
-} from '../constants/borrow';
+import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from '../constants/borrow';
 import {
   AllowanceStatus,
   AssetChange,
