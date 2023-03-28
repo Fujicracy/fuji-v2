@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { PATH } from '../../constants';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -112,7 +113,7 @@ function MyPositionsSummary() {
                 borderLeft={!isMobile && i > 0}
                 onClick={() => {
                   if (m.action === 'Borrow more') {
-                    router.push('/borrow');
+                    router.push(PATH.BORROW);
                   }
                 }}
               />

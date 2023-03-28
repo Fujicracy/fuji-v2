@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
 import Snackbar from '../components/Shared/Snackbar';
+import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
   pollBalances,
@@ -69,7 +70,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         fetchPositions();
         updateVault();
       }
-      const should = url === '/borrow' || url.includes('/my-positions/');
+      const should =
+        url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
       changeERC20PollingPolicy(should);
     };
     router.events.on('routeChangeStart', handleRouteChange);
