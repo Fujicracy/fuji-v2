@@ -1,3 +1,14 @@
+import { BigNumberish } from 'ethers';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+
+export const bigToFloat = (
+  big: BigNumberish | undefined,
+  decimals: number | BigNumberish
+): number => {
+  const value = big ?? parseUnits('0', 18);
+  return parseFloat(formatUnits(value, decimals));
+};
+
 export const formatValue = (
   value: string | number | undefined,
   params: Intl.NumberFormatOptions = {}
