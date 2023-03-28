@@ -721,7 +721,7 @@ contract BorrowingVault is BaseVault {
     uint256 vaultDebtShares = debtSharesSupply;
 
     //no need for correction
-    if (vaultDebt > vaultDebtShares || vaultDebt != 0) {
+    if (vaultDebt > vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
       revert BorrowingVault__correctDebt_noNeedForCorrection();
     }
 
