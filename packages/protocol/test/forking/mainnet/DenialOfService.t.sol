@@ -68,8 +68,13 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     // Troublemaker pays vaults debt
     deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
     vm.startPrank(TROUBLEMAKER);
-    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT);
-    aaveV2pool.repay(vault.debtAsset(), BORROW_AMOUNT * 2, 2, address(vault));
+    //TODO check this after rounding issue is fixed
+    //approve more than needed because of rounding issues
+    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT * 2 + 10);
+    //pay full amount, sometimes bigger than BORROW_AMOUNT * 2 due to rounding issue
+    aaveV2pool.repay(
+      vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
+    );
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
@@ -78,15 +83,20 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     assertEq(vault.balanceOfDebt(BOB), 0);
 
     uint256 maxAmount = vault.maxWithdraw(ALICE);
+    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
     do_withdraw(maxAmount, vault, ALICE);
+
     maxAmount = vault.maxWithdraw(BOB);
+    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
     do_withdraw(maxAmount, vault, BOB);
 
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 1);
-    assertApproxEqAbs(vault.balanceOf(BOB), 0, 1);
+    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 2);
+    assertApproxEqAbs(vault.balanceOf(BOB), 0, 2);
   }
 
-  function test_denialOfServiceBorrowPaybackWithdraw() public {
+  function test_denialOfServiceBorrowPaybackWithdrawFullAmount() public {
+    uint256 amountCorrected = BORROW_AMOUNT * 2;
+
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
     do_borrow(BORROW_AMOUNT, vault, ALICE);
     do_deposit(DEPOSIT_AMOUNT, vault, BOB);
@@ -95,18 +105,28 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     // Troublemaker pays vaults debt
     deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
     vm.startPrank(TROUBLEMAKER);
-    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT);
-    aaveV2pool.repay(vault.debtAsset(), BORROW_AMOUNT, 2, address(vault));
+    //TODO check this after rounding issue is fixed
+    //approve more than needed because of rounding issues
+    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT * 2 + 10);
+    //pay full amount, sometimes bigger than BORROW_AMOUNT * 2
+    aaveV2pool.repay(
+      vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
+    );
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(ALICE), BORROW_AMOUNT / 2);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
     assertEq(vault.balanceOf(BOB), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(BOB), BORROW_AMOUNT / 2);
+    assertEq(vault.balanceOfDebt(BOB), 0);
+
+    BorrowingVault bvault = BorrowingVault(payable(address(vault)));
+
+    bytes memory data = abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected);
+    _callWithTimelock(address(vault), data);
 
     //Debt should be less so user can borrow more
-    do_borrow(BORROW_AMOUNT / 2, vault, ALICE);
-    do_borrow(BORROW_AMOUNT / 2, vault, BOB);
+    do_borrow(BORROW_AMOUNT, vault, ALICE);
+    do_borrow(BORROW_AMOUNT, vault, BOB);
 
     assertEq(vault.balanceOfDebt(ALICE), BORROW_AMOUNT);
     assertEq(vault.balanceOfDebt(BOB), BORROW_AMOUNT);
@@ -120,11 +140,14 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
 
     //withdraw
     uint256 maxAmount = vault.maxWithdraw(ALICE);
+    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
     do_withdraw(maxAmount, vault, ALICE);
+
     maxAmount = vault.maxWithdraw(BOB);
+    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
     do_withdraw(maxAmount, vault, BOB);
 
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 1);
-    assertApproxEqAbs(vault.balanceOf(BOB), 0, 1);
+    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 2);
+    assertApproxEqAbs(vault.balanceOf(BOB), 0, 2);
   }
 }
