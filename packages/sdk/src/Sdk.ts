@@ -250,7 +250,7 @@ export class Sdk {
    */
   async getLlamaFinancials(
     vaults: VaultWithFinancials[]
-  ): Promise<VaultWithFinancials[]> {
+  ): Promise<FujiResult<VaultWithFinancials[]>> {
     // fetch from DefiLlama
     const { defillamaproxy } = this._configParams;
     const uri = {
@@ -269,18 +269,23 @@ export class Sdk {
           .then(({ data }) => data.data),
       ]);
 
-      return vaults.map((vault) =>
+      const data = vaults.map((vault) =>
         this._getFinancialsFor(vault, pools, borrows)
       );
+      return {
+        success: true,
+        data,
+      };
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.error(`DefiLlama API call failed with a message: ${e.message}`);
-      } else {
-        console.error('DefiLlama API call failed with an unexpected error!');
-      }
+      const message = axios.isAxiosError(e)
+        ? `DefiLlama API call failed with a message: ${e.message}`
+        : 'DefiLlama API call failed with an unexpected error!';
+      console.error(message);
+      return {
+        success: false,
+        error: new FujiError(FujiErrorCode.LLAMA, message),
+      };
     }
-
-    return vaults;
   }
 
   /**
