@@ -156,14 +156,6 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
 
   const borderColor = palette.secondary.light;
   const nameColor = palette.text.primary;
-  const buttonSx = {
-    padding: '6px 16px 5px',
-    lineHeight: '0.875rem',
-    fontSize: '0.875rem',
-    backgroundColor: palette.secondary.main,
-    border: 'none',
-    color: palette.text.primary,
-  };
 
   return (
     <Box
@@ -181,7 +173,6 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
       <Typography color={nameColor} fontSize="0.875rem">
         {metric.name}{' '}
         {metric.tooltip && (
-          // TODO: tooltip
           <Tooltip
             arrow
             title={
@@ -232,7 +223,16 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
         {metric.action && metric.value !== 0 && (
           <Button
             variant="secondary2"
-            sx={buttonSx}
+            sx={{
+              marginLeft: isMobile ? '0rem' : '0.5rem',
+              marginTop: isMobile ? '0.5rem' : '0rem',
+              padding: '6px 16px 5px',
+              lineHeight: '0.875rem',
+              fontSize: '0.875rem',
+              backgroundColor: palette.secondary.main,
+              border: 'none',
+              color: palette.text.primary,
+            }}
             disabled={metric.value === '-'}
             onClick={onClick}
           >
