@@ -11,11 +11,13 @@ import {
   CONNEXT_ROUTER_ADDRESS,
   CONNEXT_URL,
   DEBT_LIST,
+  FujiErrorCode,
   URLS,
   VAULT_LIST,
 } from './constants';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
+import { FujiError } from './entities/FujiError';
 import { ChainId, ChainType, RouterAction } from './enums';
 import { batchLoad, encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
@@ -23,6 +25,7 @@ import { Previews } from './Previews';
 import {
   ChainConfig,
   ChainConnectionDetails,
+  FujiResult,
   PermitParams,
   RouterActionParams,
   RoutingStepDetails,
@@ -213,27 +216,24 @@ export class Sdk {
    * This methods serves to pre-fetch and loads only partially the financials.
    * It's recommended to call afterwards "getLlamaFinancials()".
    *
+   * @param chainId - ID of the chain
    * @param account - {@link Address} for the user
-   * @param chainType - for type of chains: mainnet or testnet
    */
   async getBorrowingVaultsFinancials(
-    account?: Address,
-    chainType: ChainType = ChainType.MAINNET
-  ): Promise<VaultWithFinancials[]> {
-    const res: VaultWithFinancials[] = [];
-    const chains = Object.values(CHAIN)
-      .filter((c) => c.chainType === chainType && c.isDeployed)
-      .map((c) => c.setConnection(this._configParams));
-
-    for (const chain of chains) {
-      const chainId = chain.chainId;
-      const vaults = VAULT_LIST[chainId].map((v) =>
-        v.setConnection(this._configParams)
-      );
-      const v = await batchLoad(vaults, account, chain);
-      res.push(...v);
+    chainId: ChainId,
+    account?: Address
+  ): Promise<FujiResult<VaultWithFinancials[]>> {
+    const chain = CHAIN[chainId];
+    if (!chain.isDeployed) {
+      return {
+        success: false,
+        error: new FujiError(FujiErrorCode.SDK, `${chain.name} not deployed`),
+      };
     }
-
+    const vaults = VAULT_LIST[chainId].map((v) =>
+      v.setConnection(this._configParams)
+    );
+    const res = await batchLoad(vaults, account, chain);
     return res;
   }
 

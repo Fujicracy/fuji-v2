@@ -4,10 +4,12 @@ import { formatUnits } from '@ethersproject/units';
 import { Call } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
+import { FujiErrorCode } from '../constants';
 import { FUJI_ORACLE_ADDRESS } from '../constants/addresses';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
-import { Address, BorrowingVault } from '../entities';
+import { Address, BorrowingVault, FujiError } from '../entities';
 import { Chain } from '../entities/Chain';
+import { FujiResult, VaultWithFinancials } from '../types';
 import {
   FujiOracle__factory,
   ILendingProvider__factory,
@@ -102,62 +104,71 @@ export async function batchLoad(
   vaults: BorrowingVault[],
   account: Address | undefined,
   chain: Chain
-) {
-  invariant(chain.connection, 'Chain connection not set!');
-  invariant(
-    !vaults.find((v) => v.chainId !== chain.chainId),
-    'Vault from a different chain!'
-  );
-
-  const { multicallRpcProvider } = chain.connection;
-  const oracle = FujiOracle__factory.multicall(
-    FUJI_ORACLE_ADDRESS[chain.chainId].value
-  );
-
-  const detailsBatch: Call<Detail>[][] = vaults.map((v) =>
-    getDetailsCalls(v, account, oracle)
-  );
-  const detailsBatchResults = await multicallRpcProvider.all(
-    // flatten [][] to []
-    detailsBatch.reduce((acc, b) => acc.concat(...b), [])
-  );
-
-  vaults.forEach((v, i) => {
-    const maxLtv = detailsBatchResults[N_CALLS * i] as BigNumber;
-    const liqRatio = detailsBatchResults[N_CALLS * i + 1] as BigNumber;
-    const name = detailsBatchResults[N_CALLS * i + 2] as string;
-    const activeProvider = detailsBatchResults[N_CALLS * i + 3] as string;
-    const allProviders = detailsBatchResults[N_CALLS * i + 4] as string[];
-    v.setPreLoads(maxLtv, liqRatio, name, activeProvider, allProviders);
-  });
-
-  const ratesBatch: Call<Rate>[][] = vaults.map((v) => getProvidersCalls(v));
-
-  // Every vault has a different amount of lending providers.
-  // We can't use the same mechanics as for detailsBatch
-  // where every vault has a fixed number of attributes.
-  // We have to pass a flattened array of calls and
-  // that's why for the rates we need to set offsets and length for each vault.
-  let memo = 0;
-  const offsets: { offset: number; len: number }[] = ratesBatch.map(
-    (batch: Call<Rate>[]) => {
-      const o = { offset: memo, len: batch.length };
-      memo += batch.length;
-      return o;
-    }
-  );
-  const ratesBatchResults = await multicallRpcProvider.all(
-    // flatten [][] to []
-    ratesBatch.reduce((acc, v) => acc.concat(...v), [])
-  );
-
-  return vaults.map((v, i) => {
-    const details = detailsBatchResults.slice(
-      N_CALLS * i,
-      N_CALLS * i + N_CALLS
+): Promise<FujiResult<VaultWithFinancials[]>> {
+  try {
+    invariant(chain.connection, 'Chain connection not set!');
+    invariant(
+      !vaults.find((v) => v.chainId !== chain.chainId),
+      'Vault from a different chain!'
     );
-    const o = offsets[i];
-    const rates = ratesBatchResults.slice(o.offset, o.offset + o.len);
-    return setResults(v, details, rates);
-  });
+
+    const { multicallRpcProvider } = chain.connection;
+    const oracle = FujiOracle__factory.multicall(
+      FUJI_ORACLE_ADDRESS[chain.chainId].value
+    );
+
+    const detailsBatch: Call<Detail>[][] = vaults.map((v) =>
+      getDetailsCalls(v, account, oracle)
+    );
+    const detailsBatchResults = await multicallRpcProvider.all(
+      // flatten [][] to []
+      detailsBatch.reduce((acc, b) => acc.concat(...b), [])
+    );
+
+    vaults.forEach((v, i) => {
+      const maxLtv = detailsBatchResults[N_CALLS * i] as BigNumber;
+      const liqRatio = detailsBatchResults[N_CALLS * i + 1] as BigNumber;
+      const name = detailsBatchResults[N_CALLS * i + 2] as string;
+      const activeProvider = detailsBatchResults[N_CALLS * i + 3] as string;
+      const allProviders = detailsBatchResults[N_CALLS * i + 4] as string[];
+      v.setPreLoads(maxLtv, liqRatio, name, activeProvider, allProviders);
+    });
+
+    const ratesBatch: Call<Rate>[][] = vaults.map((v) => getProvidersCalls(v));
+
+    // Every vault has a different amount of lending providers.
+    // We can't use the same mechanics as for detailsBatch
+    // where every vault has a fixed number of attributes.
+    // We have to pass a flattened array of calls and
+    // that's why for the rates we need to set offsets and length for each vault.
+    let memo = 0;
+    const offsets: { offset: number; len: number }[] = ratesBatch.map(
+      (batch: Call<Rate>[]) => {
+        const o = { offset: memo, len: batch.length };
+        memo += batch.length;
+        return o;
+      }
+    );
+    const ratesBatchResults = await multicallRpcProvider.all(
+      // flatten [][] to []
+      ratesBatch.reduce((acc, v) => acc.concat(...v), [])
+    );
+
+    const data = vaults.map((v, i) => {
+      const details = detailsBatchResults.slice(
+        N_CALLS * i,
+        N_CALLS * i + N_CALLS
+      );
+      const o = offsets[i];
+      const rates = ratesBatchResults.slice(o.offset, o.offset + o.len);
+      return setResults(v, details, rates);
+    });
+
+    return { success: true, data };
+  } catch (e: unknown) {
+    const code =
+      e instanceof String ? FujiErrorCode.SDK : FujiErrorCode.MULTICALL;
+    const message = e instanceof Error ? e.message : String(e);
+    return { success: false, error: new FujiError(code, message) };
+  }
 }
