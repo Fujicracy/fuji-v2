@@ -29,12 +29,12 @@ type MetricSummary = {
 const initialKeyMetrics: MetricSummary[] = [
   { name: 'Total Deposits', value: '-', valueSym: '$' },
   { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%', action: 'View' }, // TODO: tooltip
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' }, // TODO: tooltip
   {
     name: 'Available to Borrow',
     value: '-',
     valueSym: '$',
-    action: 'Borrow more',
+    action: 'Borrow',
   },
 ];
 
@@ -60,20 +60,20 @@ function updateKeyMetricsSummary(
       value: totalAPY_ === undefined ? '-' : totalAPY_,
       valueSym: '%',
       tooltip: true,
-      action: 'View',
+      action: 'View yields',
     },
     {
       name: 'Available to Borrow',
       value: availableBorrow_ === undefined ? '-' : availableBorrow_,
       valueSym: '$',
-      action: 'Borrow more',
+      action: 'Borrow',
     },
   ];
 }
 
 function MyPositionsSummary() {
   const { breakpoints, palette } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const isMobile = useMediaQuery(breakpoints.down('md'));
   const router = useRouter();
 
   const account = useAuth((state) => state.address);
@@ -106,8 +106,8 @@ function MyPositionsSummary() {
   const mappedActions: {
     [key: string]: () => void;
   } = {
-    ['Borrow more']: () => router.push('/borrow'),
-    ['View']: () => setIsPositionsYieldsModalShown(true),
+    ['Borrow']: () => router.push('/borrow'),
+    ['View yields']: () => setIsPositionsYieldsModalShown(true),
   };
 
   const getAction = (actionName?: string): (() => void) => {
@@ -152,9 +152,9 @@ type MetricProps = {
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
   const { palette, breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const isMobile = useMediaQuery(breakpoints.down('md'));
 
-  const borderColor = 'transparent'; // TODO: should use a palette border color instead
+  const borderColor = palette.secondary.light;
   const nameColor = palette.text.primary;
   const buttonSx = {
     padding: '6px 16px 5px',
@@ -163,13 +163,20 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
     backgroundColor: palette.secondary.main,
     border: 'none',
     color: palette.text.primary,
-    marginLeft: '0.5rem',
   };
 
   return (
     <Box
       borderLeft={leftBorder ? `1px solid ${borderColor}` : ''}
       pl={leftBorder ? 4 : ''}
+      sx={{
+        ['@media screen and (max-width: 500px)']: {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          height: '100%',
+        },
+      }}
     >
       <Typography color={nameColor} fontSize="0.875rem">
         {metric.name}{' '}
@@ -193,7 +200,21 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
       </Typography>
 
       {/* TODO: use helper to format balance */}
-      <Stack display="flex" direction="row" alignItems="center">
+      <Stack
+        display="flex"
+        direction="row"
+        alignItems="center"
+        flex={1}
+        flexWrap="wrap"
+        gap={0.5}
+        sx={{
+          ['@media screen and (max-width: 500px)']: {
+            flexDirection: 'column',
+            alignItems: 'start',
+            justifyContent: 'space-between',
+          },
+        }}
+      >
         <Typography
           fontSize="1.5rem"
           color={metric.name === 'Positions at Risk' ? 'error' : 'inherit'}
