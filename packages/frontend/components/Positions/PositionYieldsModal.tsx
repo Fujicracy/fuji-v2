@@ -83,7 +83,7 @@ export function PositionYieldsModal({
           onClick={onClose}
         />
         <Typography variant="h5" color={palette.text.primary}>
-          Position yields
+          Estimated Yield / Cost
         </Typography>
 
         <Divider sx={{ m: '1.375rem 0' }} />
@@ -165,7 +165,7 @@ export function PositionYieldsModal({
         </Stack>
 
         {currentTab === 0 && (
-          <Box sx={{ maxWidth: '40rem' }}>
+          <Box sx={{ maxWidth: '46rem' }}>
             <PositionYieldTable
               loading={loading}
               days={period.value}
@@ -184,7 +184,7 @@ export function PositionYieldsModal({
             mt: '1.375rem',
           }}
         >
-          Deposit and Borrow a new assets
+          Deposit and Borrow
         </Button>
       </Paper>
     </Dialog>

@@ -80,7 +80,7 @@ function PositionYieldTable({
   return (
     <PositionYieldTableContainer>
       {rows.map((row, i) => (
-        <TableRow key={i} sx={{ cursor: 'pointer' }}>
+        <TableRow key={i}>
           <TableCell>
             <Stack direction="row" alignItems="center" pt={1} pb={1}>
               <TokenWithNetworkIcon
@@ -108,7 +108,12 @@ function PositionYieldTable({
             </Typography>
           </TableCell>
           <TableCell align="right">
-            <Typography variant="small">{row.apr}%</Typography>
+            <Typography variant="small">
+              {formatValue(
+                Number(row.collateral.baseAPR) - Number(row.debt.baseAPR)
+              )}
+              %
+            </Typography>
           </TableCell>
           <TableCell align="right">
             <Typography variant="small">
@@ -148,7 +153,7 @@ function PositionYieldTableHeader() {
         <TableCell align="right">Borrow APY</TableCell>
         <TableCell align="right">Collateral APY</TableCell>
         <TableCell align="right">Net APY</TableCell>
-        <TableCell align="right">Est. Earnings</TableCell>
+        <TableCell align="right">Est. Yield/Cost</TableCell>
       </TableRow>
     </TableHead>
   );
