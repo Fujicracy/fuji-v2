@@ -9,7 +9,7 @@ function ConnextFooter() {
         justifyContent="center"
         alignItems="center"
         mt="2rem"
-        mb="1rem"
+        mb="2rem"
       >
         <Typography variant="small">Powered by</Typography>
         <Image

@@ -48,33 +48,6 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <Grid item>
-            <Typography variant="smallDark">
-              Collateral will be deposited into
-            </Typography>
-          </Grid>
-          <Grid item>
-            {providers?.length ? (
-              <Grid container alignItems="center">
-                <NetworkIcon
-                  network={vault?.chainId || ''}
-                  height={18}
-                  width={18}
-                />
-
-                <Typography ml="0.375rem" variant="small">
-                  {providers.find((p) => p.active)?.name}
-                </Typography>
-              </Grid>
-            ) : (
-              'n/a'
-            )}
-          </Grid>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Deposit Interest (APR)</Typography>
             <APRTooltip />
@@ -82,7 +55,6 @@ function Details({
           <Box sx={{ alignItems: 'center' }}>
             {providers?.length ? (
               <Typography variant="small">
-                {providers[0].name}:{' '}
                 <span style={{ color: palette.success.main }}>
                   {(
                     parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
@@ -106,8 +78,7 @@ function Details({
           <Box sx={{ alignItems: 'center' }}>
             {providers?.length ? (
               <Typography variant="small">
-                {providers[0].name}:{' '}
-                <span style={{ color: palette.success.main }}>
+                <span style={{ color: palette.warning.main }}>
                   {(
                     parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
                   ).toFixed(2)}
@@ -118,6 +89,31 @@ function Details({
               'n/a'
             )}
           </Box>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
+          <Grid item>
+            <Typography variant="smallDark">Collateral Deposited On</Typography>
+          </Grid>
+          <Grid item>
+            {providers?.length ? (
+              <Grid container alignItems="center">
+                <NetworkIcon
+                  network={vault?.chainId || ''}
+                  height={18}
+                  width={18}
+                />
+
+                <Typography ml="0.375rem" variant="small">
+                  {providers.find((p) => p.active)?.name}
+                </Typography>
+              </Grid>
+            ) : (
+              'n/a'
+            )}
+          </Grid>
         </Grid>
       </DetailContainer>
     </>
