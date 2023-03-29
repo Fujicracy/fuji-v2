@@ -37,7 +37,7 @@ type SelectTokenCardProps = {
   disabled: boolean;
   value: string;
   ltvMeta: LtvMeta;
-  core: boolean;
+  showMax: boolean;
   maxAmount?: number;
   onTokenChange: (token: Token) => void;
   onInputChange: (value: string) => void;
@@ -45,7 +45,7 @@ type SelectTokenCardProps = {
 
 function TokenCard({
   type,
-  core,
+  showMax,
   assetChange,
   actionType,
   isExecuting,
@@ -148,7 +148,7 @@ function TokenCard({
       </div>
 
       <div className={styles.cardLine} style={{ marginTop: '1rem' }}>
-        {core ? (
+        {showMax ? (
           <>
             <Typography variant="small" sx={{ width: '11rem' }}>
               {formatValue(usdPrice * +value, { style: 'currency' })}

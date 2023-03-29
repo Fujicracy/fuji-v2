@@ -20,7 +20,7 @@ type BorrowBoxProps = {
   value: string;
   ltvMeta: LtvMeta;
   assetChange: AssetChange;
-  core: boolean;
+  showMax: boolean;
   maxAmount?: number;
 };
 
@@ -33,7 +33,7 @@ function BorrowBox({
   isExecuting,
   value,
   ltvMeta,
-  core,
+  showMax,
   maxAmount,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
@@ -81,7 +81,7 @@ function BorrowBox({
       />
       <TokenCard
         type={type}
-        core={core}
+        showMax={showMax}
         maxAmount={maxAmount}
         assetChange={assetChange}
         actionType={actionType}

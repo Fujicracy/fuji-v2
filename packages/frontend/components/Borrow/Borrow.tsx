@@ -159,11 +159,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               type === 'debt' && debtAmount && debtAmount < balance
                 ? debtAmount
                 : balance;
+            const showLtv = type === 'debt' && actionType === ActionType.ADD;
             return (
               <BorrowBox
                 key={type}
                 type={type}
-                core={index === 0}
+                showMax={!showLtv}
                 maxAmount={maxAmount}
                 assetChange={assetChange}
                 isEditing={isEditing}
