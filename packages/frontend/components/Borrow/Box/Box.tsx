@@ -72,6 +72,7 @@ function BorrowBox({
         type={type}
         value={chainId}
         disabled={(isEditing && type === 'debt') || isExecuting}
+        showTooltip={isEditing && type === 'debt'}
         onChange={(chainId) =>
           type === 'collateral'
             ? changeCollateralChain(chainId, !isEditing)

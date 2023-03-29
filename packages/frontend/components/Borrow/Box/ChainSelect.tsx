@@ -1,5 +1,14 @@
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { Fade, Grid, MenuItem, Select, Stack, Typography } from '@mui/material';
+import {
+  Fade,
+  Grid,
+  MenuItem,
+  Select,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 
 import { AssetType } from '../../../helpers/assets';
@@ -10,7 +19,8 @@ type ChainSelectProps = {
   label: string;
   type: AssetType;
   value: ChainId;
-  disabled?: boolean;
+  showTooltip: boolean;
+  disabled: boolean;
   onChange: (chainId: ChainId) => void;
 };
 const ChainSelect = ({
@@ -18,6 +28,7 @@ const ChainSelect = ({
   label,
   type,
   disabled,
+  showTooltip,
   onChange,
 }: ChainSelectProps) => {
   const labelId = `${type}-label`;
@@ -53,8 +64,24 @@ const ChainSelect = ({
           );
         })}
       </Select>
+      {showTooltip && (
+        <Tooltip title="{Placeholder}" placement="top">
+          <InfoOutlinedIcon
+            sx={{
+              ml: '0.1rem',
+              fontSize: '0.875rem',
+              display: { xs: 'none', sm: 'inline' },
+            }}
+          />
+        </Tooltip>
+      )}
     </Stack>
   );
 };
 
 export default ChainSelect;
+
+ChainSelect.defaultProps = {
+  showTooltip: false,
+  disabled: false,
+};
