@@ -11,6 +11,7 @@ import {Chief} from "../src/Chief.sol";
 import {ConnextVanillaRouter} from "../src/routers/ConnextVanillaRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AgaveGnosis} from "../src/providers/gnosis/AgaveGnosis.sol";
+import {HundredGnosis} from "../src/providers/gnosis/HundredGnosis.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -27,6 +28,7 @@ contract DeployGnosis is ScriptPlus {
   ConnextVanillaRouter connextRouter;
 
   AgaveGnosis agaveGnosis;
+  HundredGnosis hundredGnosis;
 
   IConnext connext = IConnext(0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109);
   IWETH9 WETH = IWETH9(0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1);
@@ -44,6 +46,10 @@ contract DeployGnosis is ScriptPlus {
     agaveGnosis = AgaveGnosis(getAddress("AgaveGnosis"));
     /*agaveGnosis = new AgaveGnosis();*/
     /*saveAddress("AgaveGnosis", address(agaveGnosis));*/
+
+    hundredGnosis = HundredGnosis(getAddress("HundredGnosis"));
+    /*hundredGnosis = new HundredGnosis();*/
+    /*saveAddress("HundredGnosis", address(hundredGnosis));*/
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -123,6 +129,8 @@ contract DeployGnosis is ScriptPlus {
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
     /*);*/
 
+    /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
+
     vm.stopBroadcast();
   }
 
@@ -133,6 +141,17 @@ contract DeployGnosis is ScriptPlus {
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
     );
     saveAddress(name, vault);
+  }
+
+  function _setVaultNewProviders(string memory vaultName) internal {
+    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
+
+    ILendingProvider[] memory providers = new ILendingProvider[](2);
+    providers[0] = agaveGnosis;
+    providers[1] = hundredGnosis;
+    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    _scheduleWithTimelock(address(vault), callData);
+    /*_executeWithTimelock(address(vault), callData);*/
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {
