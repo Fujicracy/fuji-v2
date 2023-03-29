@@ -19,6 +19,7 @@ export type PositionRow = {
   oraclePrice: number | '-';
   percentPriceDiff: number | '-';
   address: string | undefined;
+  ltvMax: number | 0;
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -42,6 +43,7 @@ export function getRows(positions: Position[]): PositionRow[] {
       liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
       oraclePrice: pos.collateral.usdPrice,
       percentPriceDiff: pos.liquidationDiff,
+      ltvMax: pos.ltvMax,
     }));
     return rows;
   }
@@ -175,9 +177,11 @@ export function vaultFromAddress(address: string | undefined) {
 
 export function liquidationColor(
   percentage: number | string,
+  recommended: number | undefined,
   palette: Palette
 ) {
-  if (typeof percentage === 'string') return palette.info.main;
-  if (percentage < 20) return palette.error.main;
-  return palette.success.main;
+  if (typeof percentage === 'string' || !recommended) return palette.info.main;
+  return percentage <= recommended
+    ? palette.success.main
+    : palette.warning.main;
 }

@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
 import {
@@ -143,6 +144,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <LiquidationBox
               liquidationPrice={row.liquidationPrice}
               percentPriceDiff={row.percentPriceDiff}
+              recommendedLtv={recommendedLTV(row.ltvMax)}
             />
           </TableRow>
         ))

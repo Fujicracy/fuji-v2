@@ -40,6 +40,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const debtInput = useBorrow((state) => state.debt.input);
 
   const dynamicLtv = futurePosition ? futurePosition.ltv : ltv;
+  const recommendedLtv = recommendedLTV(ltvMax);
 
   return (
     <Container isMobile={isMobile}>
@@ -53,6 +54,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
         futurePosition={futurePosition}
         liquidationDiff={liquidationDiff}
         liquidationPrice={liquidationPrice}
+        recommendedLtv={recommendedLtv}
         isMobile={isMobile}
       />
 
@@ -68,7 +70,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
         )}
         value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
         maxLTV={ltvMax}
-        recommendedLTV={recommendedLTV(ltvMax)}
+        recommendedLTV={recommendedLtv}
         isMobile={isMobile}
       />
 

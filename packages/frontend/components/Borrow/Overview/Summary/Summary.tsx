@@ -2,7 +2,7 @@ import { Grid } from '@mui/material';
 
 import { formatValue } from '../../../../helpers/values';
 import { AssetMeta, Position } from '../../../../store/models/Position';
-import SummaryCardItem from './SummaryCardItem';
+import SummaryCardItem, { SummaryCardItemInfo } from './SummaryCardItem';
 
 type SummaryProps = {
   collateral: AssetMeta;
@@ -12,6 +12,7 @@ type SummaryProps = {
   futurePosition: Position | undefined;
   liquidationDiff: number;
   liquidationPrice: number;
+  recommendedLtv: number;
   isMobile: boolean;
 };
 function Summary({
@@ -22,76 +23,76 @@ function Summary({
   futurePosition,
   liquidationDiff,
   liquidationPrice,
+  recommendedLtv,
   isMobile,
 }: SummaryProps) {
+  const info: SummaryCardItemInfo[] = [
+    {
+      title: 'Collateral Provided',
+      amount: `${formatValue(collateral.amount, {
+        maximumFractionDigits: 3,
+      })} ${collateral.token.symbol}`,
+      footer: formatValue(collateral.amount * collateral.usdPrice, {
+        style: 'currency',
+      }),
+      extra:
+        futurePosition &&
+        collateralInput !== '' &&
+        parseFloat(collateralInput) !== 0
+          ? formatValue(futurePosition.collateral.amount, {
+              maximumFractionDigits: 3,
+            })
+          : undefined,
+    },
+    {
+      title: 'Borrowed Value',
+      amount: formatValue(debt.amount * debt.usdPrice, {
+        style: 'currency',
+      }),
+      footer: `${formatValue(debt.amount, {
+        maximumFractionDigits: 2,
+      })} ${debt.token.symbol}`,
+      extra:
+        futurePosition && debtInput && parseFloat(debtInput) !== 0
+          ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
+              style: 'currency',
+            })
+          : undefined,
+    },
+    {
+      title: 'Liquidation Price',
+      amount:
+        liquidationDiff >= 0
+          ? formatValue(liquidationPrice, { style: 'currency' })
+          : '$0',
+      footer:
+        liquidationDiff >= 0
+          ? `~${liquidationDiff.toFixed(0)}% below current price`
+          : `n/a`,
+      extra:
+        futurePosition &&
+        (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
+          ? formatValue(futurePosition.liquidationPrice, {
+              style: 'currency',
+            })
+          : undefined,
+      data: {
+        amount: liquidationDiff,
+        recommended: recommendedLtv,
+      },
+    },
+    {
+      title: 'Current Price',
+      amount: formatValue(collateral.usdPrice, { style: 'currency' }),
+      footer: collateral.token.symbol,
+    },
+  ];
+
   return (
     <SummaryContainer isMobile={isMobile}>
-      <SummaryCardItem
-        title="Collateral Provided"
-        amount={`${formatValue(collateral.amount, {
-          maximumFractionDigits: 3,
-        })} ${collateral.token.symbol}`}
-        footer={formatValue(collateral.amount * collateral.usdPrice, {
-          style: 'currency',
-        })}
-        extra={
-          futurePosition &&
-          collateralInput !== '' &&
-          parseFloat(collateralInput) !== 0
-            ? formatValue(futurePosition.collateral.amount, {
-                maximumFractionDigits: 3,
-              })
-            : undefined
-        }
-        isMobile={isMobile}
-      />
-      <SummaryCardItem
-        title="Borrowed Value"
-        amount={formatValue(debt.amount * debt.usdPrice, {
-          style: 'currency',
-        })}
-        footer={`${formatValue(debt.amount, {
-          maximumFractionDigits: 2,
-        })} ${debt.token.symbol}`}
-        extra={
-          futurePosition && debtInput && parseFloat(debtInput) !== 0
-            ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
-                style: 'currency',
-              })
-            : undefined
-        }
-        isMobile={isMobile}
-      />
-
-      <SummaryCardItem
-        title="Liquidation Price"
-        amount={
-          liquidationDiff >= 0
-            ? formatValue(liquidationPrice, { style: 'currency' })
-            : '$0'
-        }
-        footer={
-          liquidationDiff >= 0
-            ? `~${liquidationDiff.toFixed(0)}% below current price`
-            : `n/a`
-        }
-        value={liquidationDiff}
-        extra={
-          futurePosition &&
-          (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
-            ? formatValue(futurePosition.liquidationPrice, {
-                style: 'currency',
-              })
-            : undefined
-        }
-        isMobile={isMobile}
-      />
-      <SummaryCardItem
-        title="Current Price"
-        amount={formatValue(collateral.usdPrice, { style: 'currency' })}
-        footer={collateral.token.symbol}
-        isMobile={isMobile}
-      />
+      {info.map((item, index) => (
+        <SummaryCardItem key={index} info={item} isMobile={isMobile} />
+      ))}
     </SummaryContainer>
   );
 }

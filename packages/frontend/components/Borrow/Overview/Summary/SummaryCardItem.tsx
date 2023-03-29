@@ -4,24 +4,22 @@ import React from 'react';
 
 import { liquidationColor } from '../../../../helpers/positions';
 
-type SummaryCardItemProps = {
+export type SummaryCardItemInfo = {
   title: string;
   amount: string;
   footer: string;
-  value?: number;
+  data?: { amount: number; recommended: number };
   extra?: string | number;
+};
+
+type SummaryCardItemProps = {
+  info: SummaryCardItemInfo;
   isMobile: boolean;
 };
 
-function SummaryCardItem({
-  title,
-  amount,
-  footer,
-  value,
-  extra,
-  isMobile,
-}: SummaryCardItemProps) {
+function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
   const { palette } = useTheme();
+  const { title, amount, footer, data, extra } = info;
 
   if (isMobile) {
     const shouldHaveParenthesis = title !== 'Current Price';
@@ -59,13 +57,13 @@ function SummaryCardItem({
             />
           )}
         </Stack>
-        {footer && footer.includes('below current price') ? (
+        {footer && data && footer.includes('below current price') ? (
           <Typography
             variant="smallDark"
             mb="1rem"
             sx={{
-              color: value
-                ? liquidationColor(value, palette)
+              color: data.amount
+                ? liquidationColor(data.amount, data.recommended, palette)
                 : palette.info.dark,
             }}
           >
@@ -85,8 +83,3 @@ function SummaryCardItem({
 }
 
 export default SummaryCardItem;
-
-SummaryCardItem.defaultProps = {
-  extra: undefined,
-  value: undefined,
-};
