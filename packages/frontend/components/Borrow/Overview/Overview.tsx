@@ -12,10 +12,11 @@ import Summary from './Summary/Summary';
 import Title from './Title';
 
 type OverviewProps = {
+  isEditing: boolean;
   basePosition: BasePosition;
 };
 
-function Overview({ basePosition }: OverviewProps) {
+function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
@@ -39,9 +40,6 @@ function Overview({ basePosition }: OverviewProps) {
   const debtInput = useBorrow((state) => state.debt.input);
 
   const dynamicLtv = futurePosition ? futurePosition.ltv : ltv;
-  const dynamicLtvThreshold = futurePosition
-    ? futurePosition.ltvThreshold
-    : ltvThreshold;
 
   return (
     <Container isMobile={isMobile}>
@@ -75,11 +73,12 @@ function Overview({ basePosition }: OverviewProps) {
       />
 
       <Details
-        ltv={dynamicLtv}
-        ltvThreshold={dynamicLtvThreshold}
+        ltv={ltv}
+        ltvThreshold={ltvThreshold}
         providers={providers}
         vault={vault}
         isMobile={isMobile}
+        isEditing={isEditing}
       />
     </Container>
   );

@@ -11,6 +11,7 @@ type DetailsProps = {
   providers: LendingProviderDetails[] | undefined;
   vault: BorrowingVault | undefined;
   isMobile: boolean;
+  isEditing: boolean;
 };
 
 function Details({
@@ -19,6 +20,7 @@ function Details({
   providers,
   vault,
   isMobile,
+  isEditing,
 }: DetailsProps) {
   const { palette } = useTheme();
 
@@ -29,15 +31,18 @@ function Details({
       <br />
 
       <DetailContainer isMobile={isMobile}>
-        <Grid container justifyContent="space-between">
-          <Typography variant="smallDark">Current Loan-to-Value</Typography>
+        {isEditing && (
+          <>
+            <Grid container justifyContent="space-between">
+              <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
-          <Typography variant="small">
-            {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
-          </Typography>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
+              <Typography variant="small">
+                {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
+              </Typography>
+            </Grid>
+            <DetailDivider isMobile={isMobile} />
+          </>
+        )}
 
         <Grid container justifyContent="space-between">
           <Typography variant="smallDark">LTV liquidation threshold</Typography>

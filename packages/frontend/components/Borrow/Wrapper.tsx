@@ -147,7 +147,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
             <Grid item sm={12} md={7}>
-              <Overview basePosition={basePosition} />
+              <Overview isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>
         )}
