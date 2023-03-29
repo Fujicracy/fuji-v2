@@ -17,7 +17,11 @@ import {
 } from './constants';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { FujiResultError, FujiResultSuccess } from './entities/FujiError';
+import {
+  FujiError,
+  FujiResultError,
+  FujiResultSuccess,
+} from './entities/FujiError';
 import { ChainId, ChainType, RouterAction } from './enums';
 import { batchLoad, encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
@@ -167,24 +171,33 @@ export class Sdk {
    * @param account - user address, wrapped in {@link Address}
    * @param chainId - ID of the chain
    */
-  getTokenBalancesFor(
+  async getTokenBalancesFor(
     tokens: Token[],
     account: Address,
     chainId: ChainId
-  ): Promise<BigNumber[]> {
-    invariant(
-      !tokens.find((t) => t.chainId !== chainId),
-      'Token from a different chain!'
-    );
-    const { multicallRpcProvider } = this.getConnectionFor(chainId);
-    const balances = tokens
-      .map((token) => token.setConnection(this._configParams))
-      .map(
-        (token) =>
-          token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+  ): FujiResultPromise<BigNumber[]> {
+    try {
+      invariant(
+        !tokens.find((t) => t.chainId !== chainId),
+        'Token from a different chain!'
       );
+      const { multicallRpcProvider } = this.getConnectionFor(chainId);
+      const balances = tokens
+        .map((token) => token.setConnection(this._configParams))
+        .map(
+          (token) =>
+            token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+        );
 
-    return multicallRpcProvider.all(balances);
+      const result = await multicallRpcProvider.all(balances);
+      return new FujiResultSuccess(result);
+    } catch (e) {
+      const { code, message } = FujiError.handleError(
+        e,
+        FujiErrorCode.MULTICALL
+      );
+      return new FujiResultError(code, message, { chainId });
+    }
   }
 
   /**

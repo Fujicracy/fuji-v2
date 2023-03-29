@@ -56,7 +56,10 @@ describe('Sdk', () => {
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
         ChainId.ETHEREUM
       );
-      bals.forEach((bal) => {
+      expect(bals.success).toBeTruthy();
+      if (!bals.success) return; // Tested above
+
+      bals.data.forEach((bal) => {
         expect(parseFloat(formatUnits(bal))).toBeGreaterThan(0);
       });
     });

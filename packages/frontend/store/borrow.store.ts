@@ -386,11 +386,18 @@ export const useBorrow = create<BorrowStore>()(
             type === 'debt' ? get().debt.token : get().collateral.token;
           const chainId = token.chainId;
 
-          const rawBalances = await sdk.getTokenBalancesFor(
+          const result = await sdk.getTokenBalancesFor(
             tokens,
             Address.from(address),
             chainId
           );
+          if (!result.success) {
+            console.error(result.error.message);
+            return;
+          }
+
+          const rawBalances = result.data;
+
           const balances: Record<string, number> = {};
           rawBalances.forEach((b, i) => {
             const value = parseFloat(formatUnits(b, tokens[i].decimals));

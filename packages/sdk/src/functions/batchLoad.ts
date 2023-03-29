@@ -10,6 +10,7 @@ import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
   Address,
   BorrowingVault,
+  FujiError,
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
@@ -171,9 +172,7 @@ export async function batchLoad(
 
     return new FujiResultSuccess(data);
   } catch (e: unknown) {
-    const code =
-      e instanceof String ? FujiErrorCode.SDK : FujiErrorCode.MULTICALL;
-    const message = e instanceof Error ? e.message : String(e);
+    const { code, message } = FujiError.handleError(e, FujiErrorCode.MULTICALL);
     return new FujiResultError(code, message);
   }
 }

@@ -12,6 +12,16 @@ export class FujiError extends Error {
     this.code = code;
     this.info = info;
   }
+
+  static handleError(
+    e: unknown,
+    alternateCode: FujiErrorCode
+  ): { code: FujiErrorCode; message: string } {
+    return {
+      code: e instanceof String ? FujiErrorCode.SDK : alternateCode,
+      message: e instanceof Error ? e.message : String(e),
+    };
+  }
 }
 
 export class FujiResultError {
