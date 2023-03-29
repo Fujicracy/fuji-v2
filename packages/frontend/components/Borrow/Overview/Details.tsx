@@ -4,13 +4,15 @@ import { formatUnits } from 'ethers/lib/utils';
 
 import { NetworkIcon } from '../../Shared/Icons';
 import APRTooltip from '../../Shared/Tooltips/APRTooltip';
+import ProvidersTooltip from '../../Shared/Tooltips/ProvidersTooltip';
+import TooltipWrapper from '../../Shared/Tooltips/TooltipWrapper';
 
 type DetailsProps = {
   ltv: number;
   ltvThreshold: number;
-  providers: LendingProviderDetails[] | undefined;
-  vault: BorrowingVault | undefined;
   isMobile: boolean;
+  vault?: BorrowingVault;
+  providers?: LendingProviderDetails[];
 };
 
 function Details({
@@ -52,20 +54,26 @@ function Details({
             <Typography variant="smallDark">Deposit Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: 'center' }}>
-            {providers?.length ? (
-              <Typography variant="small">
-                <span style={{ color: palette.success.main }}>
-                  {(
-                    parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
-                  ).toFixed(2)}
-                  %
-                </span>
-              </Typography>
-            ) : (
-              'n/a'
-            )}
-          </Box>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.success.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].depositRate, 27)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
         </Grid>
 
         <DetailDivider isMobile={isMobile} />
@@ -75,20 +83,25 @@ function Details({
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: 'center' }}>
-            {providers?.length ? (
-              <Typography variant="small">
-                <span style={{ color: palette.warning.main }}>
-                  {(
-                    parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
-                  ).toFixed(2)}
-                  %
-                </span>
-              </Typography>
-            ) : (
-              'n/a'
-            )}
-          </Box>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} isBorrow />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.warning.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
         </Grid>
 
         <DetailDivider isMobile={isMobile} />
