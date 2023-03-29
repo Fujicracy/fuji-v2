@@ -192,7 +192,7 @@ function TokenCard({
                 },
               }}
             >
-              {formatValue(usdPrice * +value)}
+              {`$${formatValue(usdPrice * +value)}`}
             </Typography>
 
             <Stack direction="row">
