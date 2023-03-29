@@ -116,7 +116,7 @@ const Header = () => {
               <Box
                 sx={{
                   flexGrow: 1,
-                  display: { xs: 'flex', md: 'none' },
+                  display: { xs: 'flex', lg: 'none' },
                   alignItems: 'center',
                 }}
               >
@@ -252,7 +252,7 @@ const Header = () => {
             columnGap="0.5rem"
             justifyContent="flex-end"
             alignItems="center"
-            sx={{ display: { xs: 'none', md: 'flex' } }}
+            sx={{ display: { xs: 'none', lg: 'flex' } }}
           >
             {status === 'disconnected' && (
               <>
