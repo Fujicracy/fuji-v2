@@ -163,8 +163,16 @@ function PositionYieldTableContainer({
   children,
 }: PositionYieldTableElementProps) {
   return (
-    <TableContainer>
-      <Table aria-label="Positions table" size="small">
+    <TableContainer
+      sx={{
+        '-ms-overflow-style': 'none',
+        'scrollbar-width': 'none',
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      }}
+    >
+      <Table aria-label="Positions yields table" size="small">
         <PositionYieldTableHeader />
         <TableBody>{children}</TableBody>
       </Table>
