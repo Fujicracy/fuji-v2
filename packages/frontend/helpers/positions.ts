@@ -1,5 +1,10 @@
 import { Palette } from '@mui/material';
-import { Address, FujiResult } from '@x-fuji/sdk';
+import {
+  Address,
+  FujiResultError,
+  FujiResultPromise,
+  FujiResultSuccess,
+} from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
 import { useBorrow } from '../store/borrow.store';
@@ -18,14 +23,19 @@ export const getTotalSum = (
 
 export const getPositionsWithBalance = async (
   addr: string
-): Promise<FujiResult<Position[]>> => {
+): FujiResultPromise<Position[]> => {
   const account = Address.from(addr);
 
   const result = await getAllBorrowingVaultFinancials(account);
 
   if (result.errors.length > 0) {
     // Should we keep going with the returnd vaults? Don't think so
-    return { success: false, error: result.errors[0] };
+    const firstError = result.errors[0];
+    return new FujiResultError(
+      firstError.code,
+      firstError.message,
+      firstError.info
+    );
   }
 
   const allVaults = result.data;
@@ -69,7 +79,7 @@ export const getPositionsWithBalance = async (
     return p;
   });
 
-  return { success: true, data: vaults };
+  return new FujiResultSuccess(vaults);
 };
 
 export const getAccrual = (

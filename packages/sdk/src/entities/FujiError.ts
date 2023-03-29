@@ -13,3 +13,19 @@ export class FujiError extends Error {
     this.info = info;
   }
 }
+
+export class FujiResultError {
+  readonly success = false;
+  readonly error: FujiError;
+  constructor(code: FujiErrorCode, message: string, info?: ErrorInfo) {
+    this.error = new FujiError(code, message, info);
+  }
+}
+
+export class FujiResultSuccess<T> {
+  readonly success = true;
+  readonly data: T;
+  constructor(data: T) {
+    this.data = data;
+  }
+}

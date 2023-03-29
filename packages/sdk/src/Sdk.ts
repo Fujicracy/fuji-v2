@@ -17,7 +17,7 @@ import {
 } from './constants';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { FujiError } from './entities/FujiError';
+import { FujiResultError, FujiResultSuccess } from './entities/FujiError';
 import { ChainId, ChainType, RouterAction } from './enums';
 import { batchLoad, encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
@@ -25,7 +25,7 @@ import { Previews } from './Previews';
 import {
   ChainConfig,
   ChainConnectionDetails,
-  FujiResult,
+  FujiResultPromise,
   PermitParams,
   RouterActionParams,
   RoutingStepDetails,
@@ -222,13 +222,13 @@ export class Sdk {
   async getBorrowingVaultsFinancials(
     chainId: ChainId,
     account?: Address
-  ): Promise<FujiResult<VaultWithFinancials[]>> {
+  ): FujiResultPromise<VaultWithFinancials[]> {
     const chain = CHAIN[chainId];
     if (!chain.isDeployed) {
-      return {
-        success: false,
-        error: new FujiError(FujiErrorCode.SDK, `${chain.name} not deployed`),
-      };
+      return new FujiResultError(
+        FujiErrorCode.SDK,
+        `${chain.name} not deployed`
+      );
     }
     const vaults = VAULT_LIST[chainId].map((v) =>
       v.setConnection(this._configParams)
@@ -250,7 +250,7 @@ export class Sdk {
    */
   async getLlamaFinancials(
     vaults: VaultWithFinancials[]
-  ): Promise<FujiResult<VaultWithFinancials[]>> {
+  ): FujiResultPromise<VaultWithFinancials[]> {
     // fetch from DefiLlama
     const { defillamaproxy } = this._configParams;
     const uri = {
@@ -272,19 +272,13 @@ export class Sdk {
       const data = vaults.map((vault) =>
         this._getFinancialsFor(vault, pools, borrows)
       );
-      return {
-        success: true,
-        data,
-      };
+      return new FujiResultSuccess(data);
     } catch (e) {
       const message = axios.isAxiosError(e)
         ? `DefiLlama API call failed with a message: ${e.message}`
         : 'DefiLlama API call failed with an unexpected error!';
       console.error(message);
-      return {
-        success: false,
-        error: new FujiError(FujiErrorCode.LLAMA, message),
-      };
+      return new FujiResultError(FujiErrorCode.LLAMA, message);
     }
   }
 

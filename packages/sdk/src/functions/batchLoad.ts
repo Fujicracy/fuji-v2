@@ -7,9 +7,14 @@ import invariant from 'tiny-invariant';
 import { FujiErrorCode } from '../constants';
 import { FUJI_ORACLE_ADDRESS } from '../constants/addresses';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
-import { Address, BorrowingVault, FujiError } from '../entities';
+import {
+  Address,
+  BorrowingVault,
+  FujiResultError,
+  FujiResultSuccess,
+} from '../entities';
 import { Chain } from '../entities/Chain';
-import { FujiResult, VaultWithFinancials } from '../types';
+import { FujiResultPromise, VaultWithFinancials } from '../types';
 import {
   FujiOracle__factory,
   ILendingProvider__factory,
@@ -104,7 +109,7 @@ export async function batchLoad(
   vaults: BorrowingVault[],
   account: Address | undefined,
   chain: Chain
-): Promise<FujiResult<VaultWithFinancials[]>> {
+): FujiResultPromise<VaultWithFinancials[]> {
   try {
     invariant(chain.connection, 'Chain connection not set!');
     invariant(
@@ -164,11 +169,11 @@ export async function batchLoad(
       return setResults(v, details, rates);
     });
 
-    return { success: true, data };
+    return new FujiResultSuccess(data);
   } catch (e: unknown) {
     const code =
       e instanceof String ? FujiErrorCode.SDK : FujiErrorCode.MULTICALL;
     const message = e instanceof Error ? e.message : String(e);
-    return { success: false, error: new FujiError(code, message) };
+    return new FujiResultError(code, message);
   }
 }

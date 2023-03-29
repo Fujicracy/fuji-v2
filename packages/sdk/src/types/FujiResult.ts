@@ -1,5 +1,5 @@
-import { FujiError } from '../entities/FujiError';
+import { FujiResultError, FujiResultSuccess } from '../entities/FujiError';
 
-export type FujiResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: FujiError };
+type FujiResult<T> = FujiResultSuccess<T> | FujiResultError;
+
+export type FujiResultPromise<T> = Promise<FujiResult<T>>;
