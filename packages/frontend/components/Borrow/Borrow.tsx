@@ -11,7 +11,7 @@ import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
-import { ActionType, AssetType } from '../../helpers/assets';
+import { ActionType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
@@ -20,7 +20,6 @@ import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import LTVWarningModal from '../Shared/LTVWarningModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
-import AllowanceModal from './AllowanceModal';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
@@ -58,6 +57,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const changeInputValues = useBorrow((state) => state.changeInputValues);
   const updateBalances = useBorrow((state) => state.updateBalances);
   const updateVault = useBorrow((state) => state.updateVault);
+  const allow = useBorrow((state) => state.allow);
   const updateAllowance = useBorrow((state) => state.updateAllowance);
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
@@ -72,13 +72,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       : position.ltvThreshold,
   };
 
-  const [showAllowanceModal, setShowAllowanceModal] = useState(false);
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false);
-  const [allowanceType, setAllowanceType] = useState<AssetType | undefined>(
-    undefined
-  );
   const [isLTVModalShown, setIsLTVModalShown] = useState(false);
   const [ltvModalAction, setLTVModalAction] = useState(() => () => {
     console.error('Invalid function called');
@@ -230,10 +226,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={login}
             onChainChangeClick={(chainId) => changeChain(chainId)}
-            onApproveClick={(type) => {
-              setAllowanceType(type);
-              setShowAllowanceModal(true);
-            }}
+            onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {
               if (borrow) {
                 router.push('/borrow');
@@ -248,15 +241,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           <ConnextFooter />
         </CardContent>
       </Card>
-      {showAllowanceModal && (
-        <AllowanceModal
-          type={allowanceType ?? 'collateral'}
-          handleClose={() => {
-            setAllowanceType(undefined);
-            setShowAllowanceModal(false);
-          }}
-        />
-      )}
       <RoutingModal
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}

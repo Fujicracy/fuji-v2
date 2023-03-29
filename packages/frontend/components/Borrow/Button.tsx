@@ -222,7 +222,11 @@ function BorrowButton({
           )
         }
         loading={
-          isSigning || isExecuting || availableVaultStatus === 'fetching'
+          isSigning ||
+          isExecuting ||
+          availableVaultStatus === 'fetching' ||
+          collateral.allowance.status === 'allowing' ||
+          debt.allowance.status === 'allowing'
         }
         onClick={() => clickWithLTVCheck(onClick)}
       >

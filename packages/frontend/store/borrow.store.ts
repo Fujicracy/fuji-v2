@@ -113,7 +113,7 @@ type BorrowActions = {
   updateLiquidation: () => void;
   updateVaultBalance: () => void;
 
-  allow: (amount: number, type: AssetType, callback: () => void) => void;
+  allow: (type: AssetType) => void;
   signPermit: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
@@ -678,12 +678,13 @@ export const useBorrow = create<BorrowStore>()(
 
         /**
          * Allow fuji contract to spend on behalf of the user an amount
-         * Token are deduced from collateral
-         * @param amount
-         * @param afterSuccess
+         * Token are deduced from collateral or debt
+         * @param type
          */
-        async allow(amount, type, afterSuccess) {
-          const token = (type === 'debt' ? get().debt : get().collateral).token;
+        async allow(type) {
+          const { token, input } =
+            type === 'debt' ? get().debt : get().collateral;
+          const amount = parseFloat(input);
           const userAddress = useAuth.getState().address;
           const provider = useAuth.getState().provider;
           const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value;
@@ -718,7 +719,6 @@ export const useBorrow = create<BorrowStore>()(
             await approval.wait();
 
             changeAllowance('ready', amount);
-            afterSuccess && afterSuccess();
           } catch (e) {
             changeAllowance('error');
           }
