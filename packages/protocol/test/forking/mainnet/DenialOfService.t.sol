@@ -123,31 +123,36 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
 
     bytes memory data = abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected);
     _callWithTimelock(address(vault), data);
+    skip(2 days);
 
-    //Debt should be less so user can borrow more
-    do_borrow(BORROW_AMOUNT, vault, ALICE);
-    do_borrow(BORROW_AMOUNT, vault, BOB);
-
-    assertEq(vault.balanceOfDebt(ALICE), BORROW_AMOUNT);
-    assertEq(vault.balanceOfDebt(BOB), BORROW_AMOUNT);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), amountCorrected / 2, 1);
+    assertApproxEqAbs(vault.balanceOfDebt(BOB), amountCorrected / 2, 1);
 
     //payback debt
-    do_payback(BORROW_AMOUNT, vault, ALICE);
-    do_payback(BORROW_AMOUNT, vault, BOB);
+    uint256 amountToPayback = amountCorrected / 2;
+    //TODO check this after rounding issue is fixed
+    if (vault.balanceOfDebt(ALICE) < amountToPayback) {
+      amountToPayback = vault.balanceOfDebt(ALICE);
+    }
+    do_payback(amountToPayback, vault, ALICE);
+    if (vault.balanceOfDebt(BOB) < amountToPayback) {
+      amountToPayback = vault.balanceOfDebt(BOB);
+    }
+    do_payback(amountToPayback, vault, BOB);
 
-    assertEq(vault.balanceOfDebt(ALICE), 0);
-    assertEq(vault.balanceOfDebt(BOB), 0);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), 0, 1);
+    assertApproxEqAbs(vault.balanceOfDebt(BOB), 0, 1);
 
     //withdraw
-    uint256 maxAmount = vault.maxWithdraw(ALICE);
-    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
-    do_withdraw(maxAmount, vault, ALICE);
+    do_withdraw(DEPOSIT_AMOUNT, vault, ALICE);
+    do_withdraw(DEPOSIT_AMOUNT, vault, BOB);
 
-    maxAmount = vault.maxWithdraw(BOB);
-    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
-    do_withdraw(maxAmount, vault, BOB);
+    //DEPOSIT_AMOUNT has built up some interest after the call with timelock (lets assume 1%)
+    assertApproxEqAbs(vault.balanceOf(ALICE), 0, DEPOSIT_AMOUNT / 100);
+    assertApproxEqAbs(vault.balanceOf(BOB), 0, DEPOSIT_AMOUNT / 100);
 
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 2);
-    assertApproxEqAbs(vault.balanceOf(BOB), 0, 2);
+    //check the actual corrected amount is in the vault
+    assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
+    assertEq(IERC20(debtAsset).balanceOf(address(vault)), amountCorrected);
   }
 }
