@@ -85,6 +85,8 @@ function BorrowButton({
   }`;
 
   const loadingButtonTitle =
+    collateral.allowance.status === 'allowing' ||
+    (debt.allowance.status === 'allowing' && 'Allowing') ||
     (isSigning && '(1/2) Signing...') ||
     (isExecuting &&
       `(${executionStep}/${executionStep}) ${
