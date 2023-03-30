@@ -96,7 +96,7 @@ contract ConnextHandler {
    */
   function isTransferIdRecorded(bytes32 transferId) public view returns (bool) {
     FailedTxn memory ftxn = _failedTxns[transferId];
-    if (ftxn.transferId != ZERO_BYTES32) {
+    if (ftxn.transferId != ZERO_BYTES32 && ftxn.originDomain == 0) {
       return true;
     } else {
       return false;
