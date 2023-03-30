@@ -4,7 +4,7 @@ import { ConnectedChain } from '@web3-onboard/core';
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
-import { MINIMUM_DEBT_AMOUNT } from '../../constants/borrow';
+import { MINIMUM_DEBT_AMOUNT } from '../../constants';
 import {
   ActionType,
   AssetChange,

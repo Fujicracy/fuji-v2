@@ -22,7 +22,7 @@ import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_TRESHOLD,
   DEFAULT_SLIPPAGE,
-} from '../constants/borrow';
+} from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -31,6 +31,7 @@ import {
   LtvMeta,
   Mode,
 } from '../helpers/assets';
+import { fetchBalances } from '../helpers/balances';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
@@ -104,6 +105,7 @@ type BorrowActions = {
   changeActiveVault: (v: BorrowingVault) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
+  changeBalances: (type: AssetType, balances: Record<string, number>) => void;
 
   updateAllProviders: () => void;
   updateTokenPrice: (type: AssetType) => void;
@@ -391,18 +393,12 @@ export const useBorrow = create<BorrowStore>()(
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
           const chainId = token.chainId;
+          const balances = await fetchBalances(tokens, address, chainId);
 
-          const rawBalances = await sdk.getTokenBalancesFor(
-            tokens,
-            Address.from(address),
-            chainId
-          );
-          const balances: Record<string, number> = {};
-          rawBalances.forEach((b, i) => {
-            const value = parseFloat(formatUnits(b, tokens[i].decimals));
-            balances[tokens[i].symbol] = value;
-          });
+          get().changeBalances(type, balances);
+        },
 
+        async changeBalances(type, balances) {
           set(
             produce((state: BorrowState) => {
               if (type === 'debt') {
