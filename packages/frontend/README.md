@@ -63,23 +63,31 @@ We use [zustand](https://github.com/pmndrs/zustand) as our primary store for our
 The major drawback is, compared to writing logic in a component: when an action changes the state, you have to manually run dependencies (i.e., computed properties or data that need to be re-fetched -because they depend on something that has changed). This action is a good demonstration:
 
 ```ts
-  async changeCollateralChain(chainId) {
-    const tokens = sdk.getCollateralForChain(parseInt(chainId, 16))
+changeAssetChain(type, chainId, updateVault) {
+  const tokens =
+    type === "debt"
+      ? sdk.getDebtForChain(chainId)
+      : sdk.getCollateralForChain(chainId)
 
-    set(
-      produce((state: TransactionState) => {
-        state.collateralChainId = chainId
-        state.collateralTokens = tokens
-        state.position.collateral.token = tokens[0]
-      })
-    )
-    return Promise.all([
-      get().updateTokenPrice("collateral"),
-      get().updateBalances("collateral"),
-      get().updateVault(),
-      get().updateAllowance(),
-    ])
-  },
+  set(
+    produce((state: BorrowState) => {
+      const t = type === "debt" ? state.debt : state.collateral
+      t.chainId = chainId
+      t.selectableTokens = tokens
+      t.token = tokens[0]
+    })
+  )
+  get().updateTokenPrice(type)
+  get().updateBalances(type)
+
+  if (updateVault) {
+    get().updateVault()
+  } else {
+    get().updateTransactionMeta()
+  }
+
+  get().updateAllowance(type)
+},
 ```
 
 I wrote most of the store with this logic: `changeXX` is a primary value, and `upateXX` is an action to change a secondary - computed / fetched - value.

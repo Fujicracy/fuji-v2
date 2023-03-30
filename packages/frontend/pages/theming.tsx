@@ -1,7 +1,8 @@
-import { NextPage } from "next"
-import Head from "next/head"
-import Theming from "../components/Theming/Theming"
-import Header from "../components/Shared/Header"
+import { NextPage } from 'next';
+import Head from 'next/head';
+
+import Header from '../components/Shared/Header/Header';
+import Theming from '../components/Theming/Theming';
 
 const ThemingPage: NextPage = () => {
   return (
@@ -18,7 +19,7 @@ const ThemingPage: NextPage = () => {
         <Theming />
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default ThemingPage
+export default ThemingPage;
