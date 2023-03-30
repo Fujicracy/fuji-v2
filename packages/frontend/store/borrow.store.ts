@@ -123,7 +123,6 @@ type BorrowActions = {
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
 };
-type ChainId = string; // hex value as string
 
 const initialChainId = ChainId.MATIC;
 const initialDebtTokens = sdk.getDebtForChain(initialChainId);
@@ -256,7 +255,7 @@ export const useBorrow = create<BorrowStore>()(
           ]);
         },
 
-        changeAssetChain(type, chainId, updateVault) {
+        changeAssetChain(type, chainId: ChainId, updateVault) {
           const tokens =
             type === 'debt'
               ? sdk.getDebtForChain(chainId)
@@ -312,7 +311,7 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId, updateVault) {
+        changeCollateralChain(chainId: ChainId, updateVault) {
           get().changeAssetChain('collateral', chainId, updateVault);
         },
 
@@ -324,7 +323,7 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAssetValue('collateral', value);
         },
 
-        changeDebtChain(chainId, updateVault) {
+        changeDebtChain(chainId: ChainId, updateVault) {
           get().changeAssetChain('debt', chainId, updateVault);
         },
 
