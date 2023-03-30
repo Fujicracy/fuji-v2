@@ -9,8 +9,6 @@ import {
   useTheme,
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
-import { Address } from '@x-fuji/sdk';
-import { useRouter } from 'next/router';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
