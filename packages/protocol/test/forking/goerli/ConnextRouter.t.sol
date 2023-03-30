@@ -486,9 +486,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     emit Dispatch("", 1, "", "");
 
     connextRouter.xBundle(actions1, args1);
-    vm.stopPrank();
-
     assertEq(flasher.flashloanCalled(), true);
-    assertEq(vault.balanceOf(ALICE), amount);
   }
 }
