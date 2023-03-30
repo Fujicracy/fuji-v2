@@ -285,12 +285,18 @@ export class BorrowingVault extends StreamManager {
     ]);
 
     const splitIndex = rates.length / 2;
-    return this.allProviders.map((addr: string, i: number) => ({
-      name: LENDING_PROVIDERS[this.chainId][addr].name,
-      depositRate: rates[i],
-      borrowRate: rates[i + splitIndex],
-      active: addr === this.activeProvider,
-    }));
+    return this.allProviders
+      .filter((address) =>
+        Boolean(LENDING_PROVIDERS[this.chainId][address]?.name)
+      )
+      .map((addr: string, i: number) => {
+        return {
+          name: LENDING_PROVIDERS[this.chainId][addr]?.name,
+          depositRate: rates[i],
+          borrowRate: rates[i + splitIndex],
+          active: addr === this.activeProvider,
+        };
+      });
   }
 
   /**
