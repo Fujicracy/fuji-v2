@@ -4,17 +4,20 @@ import {
   Button,
   Card,
   Grid,
+  Stack,
   Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { PATH } from '../../constants';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
+import PositionYieldsModal from './PositionYieldsModal';
 
 type MetricSummary = {
   name: string;
@@ -27,12 +30,12 @@ type MetricSummary = {
 const initialKeyMetrics: MetricSummary[] = [
   { name: 'Total Deposits', value: '-', valueSym: '$' },
   { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%' /*action: "View"*/ }, // TODO: tooltip & actions
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' }, // TODO: tooltip
   {
     name: 'Available to Borrow',
     value: '-',
     valueSym: '$',
-    action: 'Borrow more',
+    action: 'Borrow',
   },
 ];
 
@@ -57,21 +60,21 @@ function updateKeyMetricsSummary(
       name: 'Net APY',
       value: totalAPY_ === undefined ? '-' : totalAPY_,
       valueSym: '%',
-      // action: "View",
       tooltip: true,
-    }, // TODO: tooltip & actions
+      action: 'View yields',
+    },
     {
       name: 'Available to Borrow',
       value: availableBorrow_ === undefined ? '-' : availableBorrow_,
       valueSym: '$',
-      action: 'Borrow more',
+      action: 'Borrow',
     },
   ];
 }
 
 function MyPositionsSummary() {
   const { breakpoints, palette } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const isMobile = useMediaQuery(breakpoints.down('md'));
   const router = useRouter();
 
   const account = useAuth((state) => state.address);
@@ -81,6 +84,9 @@ function MyPositionsSummary() {
   const availableBorrow = usePositions(
     (state) => state.availableBorrowPowerUSD
   );
+
+  const [isPositionsYieldsModalShown, setIsPositionsYieldsModalShown] =
+    useState<boolean>(false);
 
   const [keyMetrics, setKeyMetrics] = useState(initialKeyMetrics);
 
@@ -98,6 +104,19 @@ function MyPositionsSummary() {
     }
   }, [account, totalDeposits, totalDebt, totalAPY, availableBorrow]);
 
+  const mappedActions: {
+    [key: string]: () => void;
+  } = {
+    ['Borrow']: () => router.push(PATH.BORROW),
+    ['View yields']: () => setIsPositionsYieldsModalShown(true),
+  };
+
+  const getAction = (actionName?: string): (() => void) => {
+    return actionName
+      ? mappedActions[actionName]
+      : () => console.error('no action provided'); // TODO: add notification
+  };
+
   return (
     <Box mt={4}>
       <Card
@@ -110,16 +129,16 @@ function MyPositionsSummary() {
               <Metric
                 metric={m}
                 borderLeft={!isMobile && i > 0}
-                onClick={() => {
-                  if (m.action === 'Borrow more') {
-                    router.push('/borrow');
-                  }
-                }}
+                onClick={getAction(m.action)}
               />
             </Grid>
           ))}
         </Grid>
       </Card>
+      <PositionYieldsModal
+        open={isPositionsYieldsModalShown}
+        onClose={() => setIsPositionsYieldsModalShown(false)}
+      />
     </Box>
   );
 }
@@ -134,27 +153,27 @@ type MetricProps = {
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
   const { palette, breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const isMobile = useMediaQuery(breakpoints.down('md'));
 
-  const borderColor = palette.secondary.light; // TODO: should use a palette border color instead
-  const nameColor = palette.info.main;
-  const buttonSx = {
-    padding: '6px 16px 5px',
-    lineHeight: '0.875rem',
-    fontSize: '0.875rem',
-    backgroundColor: palette.secondary.main,
-    border: 'none',
-  };
+  const borderColor = palette.secondary.light;
+  const nameColor = palette.text.primary;
 
   return (
     <Box
       borderLeft={leftBorder ? `1px solid ${borderColor}` : ''}
       pl={leftBorder ? 4 : ''}
+      sx={{
+        ['@media screen and (max-width: 500px)']: {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          height: '100%',
+        },
+      }}
     >
       <Typography color={nameColor} fontSize="0.875rem">
         {metric.name}{' '}
         {metric.tooltip && (
-          // TODO: tooltip
           <Tooltip
             arrow
             title={
@@ -173,31 +192,55 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
       </Typography>
 
       {/* TODO: use helper to format balance */}
-      <Typography
-        fontSize="1.5rem"
-        color={metric.name === 'Positions at Risk' ? 'error' : 'inherit'}
+      <Stack
+        display="flex"
+        direction="row"
+        alignItems="center"
+        flex={1}
+        flexWrap="wrap"
+        gap={0.5}
+        sx={{
+          ['@media screen and (max-width: 500px)']: {
+            flexDirection: 'column',
+            alignItems: 'start',
+            justifyContent: 'space-between',
+          },
+        }}
       >
-        {metric.valueSym === '$'
-          ? `${formatValue(metric.value, {
-              style: 'currency',
-              maximumFractionDigits: 0,
-            })}`
-          : metric.valueSym === '%'
-          ? `${metric.value}%`
-          : metric.value}{' '}
-        {isMobile && <br />}
-        {metric.action && metric.value > 0 && (
-          // TODO: Button need refactoring in theme, variant need to change colors / background / borders, size need to change padding / fontsize
+        <Typography
+          fontSize="1.5rem"
+          color={metric.name === 'Positions at Risk' ? 'error' : 'inherit'}
+        >
+          {metric.valueSym === '$'
+            ? `${formatValue(metric.value, {
+                style: 'currency',
+                maximumFractionDigits: 0,
+              })}`
+            : metric.valueSym === '%'
+            ? `${metric.value}%`
+            : metric.value}{' '}
+          {isMobile && <br />}
+        </Typography>
+        {metric.action && metric.value !== 0 && (
           <Button
             variant="secondary2"
-            sx={buttonSx}
+            sx={{
+              marginLeft: isMobile ? '0rem' : '0.5rem',
+              marginTop: isMobile ? '0.5rem' : '0rem',
+              padding: '6px 16px 5px',
+              lineHeight: '0.875rem',
+              fontSize: '0.875rem',
+              backgroundColor: palette.secondary.main,
+              border: 'none',
+              color: palette.text.primary,
+            }}
             disabled={metric.value === '-'}
             onClick={onClick}
           >
             {metric.action}
           </Button>
         )}
-      </Typography>
+      </Stack>
     </Box>
   );
 };

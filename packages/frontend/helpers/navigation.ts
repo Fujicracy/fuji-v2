@@ -1,6 +1,7 @@
 import { BorrowingVault, Token, VaultWithFinancials } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
 
+import { PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { usePositions } from '../store/positions.store';
@@ -11,18 +12,18 @@ type Page = {
   path: string;
 };
 export const topLevelPages: Page[] = [
-  { title: 'Markets', path: '/markets' },
-  { title: 'Borrow', path: '/borrow' },
-  { title: 'Lend', path: '/lend' },
-  { title: 'My positions', path: '/my-positions' },
+  { title: 'Markets', path: PATH.MARKETS },
+  { title: 'Borrow', path: PATH.BORROW },
+  { title: 'Lend', path: PATH.LEND },
+  { title: 'My positions', path: PATH.MY_POSITIONS },
 ];
 if (process.env.NEXT_PUBLIC_APP_ENV === 'development') {
-  topLevelPages.push({ title: 'Theming', path: '/theming' }); // Design testing
+  topLevelPages.push({ title: 'Theming', path: PATH.THEMING }); // Design testing
 }
 
 export const myPositionPage: Page = {
   title: 'Position',
-  path: '/my-positions/[pid]',
+  path: PATH.POSITION,
 };
 
 export const isTopLevelUrl = (url: string) =>

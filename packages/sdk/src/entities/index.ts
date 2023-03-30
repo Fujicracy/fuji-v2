@@ -6,5 +6,4 @@ export * from './Currency';
 export * from './FujiError';
 export * from './native';
 export * from './NativeCurrency';
-export * from './StreamManager';
 export * from './Token';

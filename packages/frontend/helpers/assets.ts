@@ -1,6 +1,6 @@
 import { ChainId, Token } from '@x-fuji/sdk';
 
-import { LTV_RECOMMENDED_DECREASE } from '../constants/borrow';
+import { LTV_RECOMMENDED_DECREASE } from '../constants';
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt

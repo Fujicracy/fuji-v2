@@ -1,16 +1,19 @@
-import { Box, Divider, Grid, Typography, useTheme } from '@mui/material';
+import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
 import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
-import { NetworkIcon } from '../../Shared/Icons';
+import { chainName } from '../../../helpers/chains';
+import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
 import APRTooltip from '../../Shared/Tooltips/APRTooltip';
+import ProvidersTooltip from '../../Shared/Tooltips/ProvidersTooltip';
+import TooltipWrapper from '../../Shared/Tooltips/TooltipWrapper';
 
 type DetailsProps = {
   ltv: number;
   ltvThreshold: number;
-  providers: LendingProviderDetails[] | undefined;
-  vault: BorrowingVault | undefined;
   isMobile: boolean;
+  vault?: BorrowingVault;
+  providers?: LendingProviderDetails[];
 };
 
 function Details({
@@ -48,52 +51,30 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <Grid item>
-            <Typography variant="smallDark">
-              Collateral will be deposited into
-            </Typography>
-          </Grid>
-          <Grid item>
-            {providers?.length ? (
-              <Grid container alignItems="center">
-                <NetworkIcon
-                  network={vault?.chainId || ''}
-                  height={18}
-                  width={18}
-                />
-
-                <Typography ml="0.375rem" variant="small">
-                  {providers.find((p) => p.active)?.name}
-                </Typography>
-              </Grid>
-            ) : (
-              'n/a'
-            )}
-          </Grid>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Deposit Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: 'center' }}>
-            {providers?.length ? (
-              <Typography variant="small">
-                {providers[0].name}:{' '}
-                <span style={{ color: palette.success.main }}>
-                  {(
-                    parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
-                  ).toFixed(2)}
-                  %
-                </span>
-              </Typography>
-            ) : (
-              'n/a'
-            )}
-          </Box>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.success.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].depositRate, 27)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
         </Grid>
 
         <DetailDivider isMobile={isMobile} />
@@ -103,21 +84,57 @@ function Details({
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: 'center' }}>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} isBorrow />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.warning.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
+          <Grid item>
+            <Typography variant="smallDark">Collateral Deposited On</Typography>
+          </Grid>
+          <Grid item>
             {providers?.length ? (
-              <Typography variant="small">
-                {providers[0].name}:{' '}
-                <span style={{ color: palette.success.main }}>
-                  {(
-                    parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
-                  ).toFixed(2)}
-                  %
-                </span>
-              </Typography>
+              <Stack direction="row" gap={0.6} alignItems="center">
+                <ProviderIcon
+                  provider={providers.find((p) => p.active)?.name || ''}
+                  height={18}
+                  width={18}
+                />
+                <Typography variant="small">
+                  {providers.find((p) => p.active)?.name} on
+                </Typography>
+                <NetworkIcon
+                  network={vault?.chainId || ''}
+                  height={18}
+                  width={18}
+                />
+                <Typography variant="small">
+                  {chainName(vault?.chainId)}
+                </Typography>
+              </Stack>
             ) : (
               'n/a'
             )}
-          </Box>
+          </Grid>
         </Grid>
       </DetailContainer>
     </>
