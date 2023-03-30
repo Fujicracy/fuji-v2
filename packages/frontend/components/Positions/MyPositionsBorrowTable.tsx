@@ -72,7 +72,6 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     const entity = vaultFromAddress(row.address);
     showPosition(router, String(entity?.chainId), entity);
   }
-
   return (
     <MyPositionsBorrowTableContainer>
       {rows.length > 0 ? (
@@ -144,6 +143,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <LiquidationBox
               liquidationPrice={row.liquidationPrice}
               percentPriceDiff={row.percentPriceDiff}
+              ltv={row.ltv}
               recommendedLtv={recommendedLTV(row.ltvMax)}
             />
           </TableRow>

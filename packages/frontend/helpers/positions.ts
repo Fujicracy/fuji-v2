@@ -19,6 +19,7 @@ export type PositionRow = {
   oraclePrice: number | '-';
   percentPriceDiff: number | '-';
   address: string | undefined;
+  ltv: number | 0;
   ltvMax: number | 0;
 };
 
@@ -43,7 +44,8 @@ export function getRows(positions: Position[]): PositionRow[] {
       liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
       oraclePrice: pos.collateral.usdPrice,
       percentPriceDiff: pos.liquidationDiff,
-      ltvMax: pos.ltvMax,
+      ltv: pos.ltv * 100,
+      ltvMax: pos.ltvMax * 100,
     }));
     return rows;
   }
