@@ -38,7 +38,7 @@ type SelectTokenCardProps = {
   disabled: boolean;
   value: string;
   showMax: boolean;
-  maxAmount?: number;
+  maxAmount: number;
   onTokenChange: (token: Token) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
@@ -93,12 +93,11 @@ function TokenCard({
       return;
     }
 
-    const collateralValue = collateral.amount * collateral.usdPrice;
-    const ltvDiff =
-      ltv > recommendedLTV(ltvMax) ? 0 : recommendedLTV(ltvMax) - ltv;
+    const collateralValue = Number(collateral.input) * collateral.usdPrice;
+    const recommended = (recommendedLTV(ltvMax) * collateralValue) / 100;
 
-    const recommended = (ltvDiff * collateralValue) / 100;
-    handleInput(parseFloat(recommended.toFixed(4)).toString() ?? '0');
+    const finalValue = recommended > maxAmount ? maxAmount : recommended;
+    handleInput(parseFloat(finalValue.toFixed(4)).toString() ?? '0');
   };
 
   const handleTokenChange = (token: Token) => {

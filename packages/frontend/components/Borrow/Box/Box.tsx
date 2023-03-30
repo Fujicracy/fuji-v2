@@ -21,7 +21,7 @@ type BorrowBoxProps = {
   value: string;
   assetChange: AssetChange;
   showMax: boolean;
-  maxAmount?: number;
+  maxAmount: number;
   ltvMeta: LtvMeta;
   mode: Mode;
 };
