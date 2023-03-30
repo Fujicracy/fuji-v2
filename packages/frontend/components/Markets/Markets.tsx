@@ -1,29 +1,16 @@
-import {
-  Box,
-  Chip,
-  Grid,
-  Link,
-  Tab,
-  Tabs,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Grid, Link, Typography, useMediaQuery } from '@mui/material';
 import { useState } from 'react';
 
 import { theme } from '../../styles/theme';
+import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending/Lending';
 import MarketsTable from './MarketsTable';
 
 function Markets() {
-  const { palette } = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [currentTab, setCurrentTab] = useState(0);
   /* const [filterValue, setFilterValue] = useState("") */
   /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */
-
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
-    setCurrentTab(newValue);
 
   return (
     <Box>
@@ -50,29 +37,7 @@ function Markets() {
         alignItems="center"
         wrap="wrap"
       >
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          aria-label="Markets tabs"
-          sx={{ width: { xs: '100%', sm: 'auto' } }}
-          TabIndicatorProps={{ sx: { background: palette.text.primary } }}
-        >
-          <Tab label="Borrowing" />
-          <Tab
-            label={
-              <Grid container alignItems="center" gap={1}>
-                Lending
-                {!onMobile && (
-                  <Chip
-                    variant="gradient"
-                    label="Coming soon"
-                    sx={{ cursor: 'pointer' }}
-                  />
-                )}
-              </Grid>
-            }
-          />
-        </Tabs>
+        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
 
         {/* {currentTab === 0 && (
           <Stack
