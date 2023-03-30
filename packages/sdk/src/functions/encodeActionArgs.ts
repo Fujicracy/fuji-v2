@@ -1,16 +1,20 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from 'ethers';
-import invariant from 'tiny-invariant';
 
+import { FujiErrorCode } from '../constants';
+import { FujiResultError, FujiResultSuccess } from '../entities';
 import { RouterAction } from '../enums';
-import { RouterActionParams } from '../types';
+import { FujiResult, RouterActionParams } from '../types';
 
-export function encodeActionArgs(params: RouterActionParams): string {
+export function encodeActionArgs(
+  params: RouterActionParams
+): FujiResult<string> {
+  let result = '';
   if (
     params.action === RouterAction.DEPOSIT ||
     params.action === RouterAction.PAYBACK
   ) {
-    return defaultAbiCoder.encode(
+    result = defaultAbiCoder.encode(
       ['address', 'uint256', 'address', 'address'],
       [
         params.vault.value,
@@ -23,7 +27,7 @@ export function encodeActionArgs(params: RouterActionParams): string {
     params.action === RouterAction.BORROW ||
     params.action === RouterAction.WITHDRAW
   ) {
-    return defaultAbiCoder.encode(
+    result = defaultAbiCoder.encode(
       ['address', 'uint256', 'address', 'address'],
       [
         params.vault.value,
@@ -36,11 +40,13 @@ export function encodeActionArgs(params: RouterActionParams): string {
     params.action === RouterAction.PERMIT_BORROW ||
     params.action === RouterAction.PERMIT_WITHDRAW
   ) {
-    invariant(
-      params.deadline && params.v && params.r && params.s,
-      'Missing args in PERMIT_BORROW!'
-    );
-    return defaultAbiCoder.encode(
+    if (!(params.deadline && params.v && params.r && params.s)) {
+      return new FujiResultError(
+        FujiErrorCode.SDK,
+        'Missing args in PERMIT_BORROW!'
+      );
+    }
+    result = defaultAbiCoder.encode(
       [
         'address',
         'address',
@@ -63,7 +69,7 @@ export function encodeActionArgs(params: RouterActionParams): string {
       ]
     );
   } else if (params.action === RouterAction.X_TRANSFER) {
-    return defaultAbiCoder.encode(
+    result = defaultAbiCoder.encode(
       ['uint256', 'uint256', 'address', 'uint256', 'address', 'address'],
       [
         params.destDomain,
@@ -83,7 +89,7 @@ export function encodeActionArgs(params: RouterActionParams): string {
       ['uint8[]', 'bytes[]', 'uint256'],
       [innerActions, innerArgs, params.slippage]
     );
-    return defaultAbiCoder.encode(
+    result = defaultAbiCoder.encode(
       ['uint256', 'uint256', 'address', 'uint256', 'bytes'],
       [
         params.destDomain,
@@ -94,8 +100,8 @@ export function encodeActionArgs(params: RouterActionParams): string {
       ]
     );
   } else {
-    invariant(true, 'Unsupported action!');
+    return new FujiResultError(FujiErrorCode.SDK, 'Unsupported action!');
   }
 
-  return '';
+  return new FujiResultSuccess(result);
 }

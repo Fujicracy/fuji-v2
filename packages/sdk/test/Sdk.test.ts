@@ -378,12 +378,15 @@ describe('Sdk', () => {
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
-      const { data } = sdk.getTxDetails(
+      const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+      const { data } = result.data;
       expect(data).toBeTruthy();
     });
 
@@ -411,12 +414,15 @@ describe('Sdk', () => {
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
-      const { data } = sdk.getTxDetails(
+      const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+      const { data } = result.data;
       expect(data).toBeTruthy();
     });
 
@@ -440,12 +446,15 @@ describe('Sdk', () => {
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
-      const { data } = sdk.getTxDetails(
+      const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+      const { data } = result.data;
       expect(data).toBeTruthy();
     });
   });

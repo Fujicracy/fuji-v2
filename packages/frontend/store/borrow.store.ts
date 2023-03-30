@@ -784,15 +784,21 @@ export const useBorrow = create<BorrowStore>()(
 
           const srcChainId = transactionMeta.steps[0].chainId;
 
-          try {
-            set({ isExecuting: true });
+          set({ isExecuting: true });
 
-            const txRequest = sdk.getTxDetails(
-              actions,
-              srcChainId,
-              Address.from(address),
-              signature
-            );
+          const result = sdk.getTxDetails(
+            actions,
+            srcChainId,
+            Address.from(address),
+            signature
+          );
+          if (!result.success) {
+            console.error(result.error.message); // TODO: display error
+            return;
+          }
+          const txRequest = result.data;
+
+          try {
             const signer = provider.getSigner();
             const tx = await signer.sendTransaction(txRequest);
 

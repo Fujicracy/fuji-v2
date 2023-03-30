@@ -29,6 +29,7 @@ import { Previews } from './Previews';
 import {
   ChainConfig,
   ChainConnectionDetails,
+  FujiResult,
   FujiResultPromise,
   PermitParams,
   RouterActionParams,
@@ -353,7 +354,7 @@ export class Sdk {
     srcChainId: ChainId,
     account: Address,
     signature?: Signature
-  ): TransactionRequest {
+  ): FujiResult<TransactionRequest> {
     // dummy copy actionParams because of the immutabiltiy of Immer
     const _actionParams = actionParams.map((a) => ({ ...a }));
     const permitAction = Sdk.findPermitAction(_actionParams);
@@ -363,25 +364,44 @@ export class Sdk {
       permitAction.r = signature.r;
       permitAction.s = signature.s;
     } else if (permitAction && !signature) {
-      invariant(true, 'You need to sign the permit action first!');
+      return new FujiResultError(
+        FujiErrorCode.SDK,
+        'You need to sign the permit action first!'
+      );
     } else if (!permitAction && signature) {
-      invariant(true, 'No permit action although there is a signature!');
+      return new FujiResultError(
+        FujiErrorCode.SDK,
+        'No permit action although there is a signature!'
+      );
     }
 
     const actions = _actionParams.map(({ action }) => BigNumber.from(action));
-    const args = _actionParams.map(encodeActionArgs);
+    const result = _actionParams.map(encodeActionArgs);
+    const args: string[] = result
+      .filter((result): result is FujiResultSuccess<string> => result.success)
+      .map((result) => result.data);
+
+    if (args.length !== _actionParams.length) {
+      const error = result.find((r): r is FujiResultError => !r.success);
+      if (!error?.success)
+        return new FujiResultError(
+          error?.error.code ?? FujiErrorCode.SDK,
+          error?.error.message || 'Unknown error'
+        );
+    }
+
     const callData =
       ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
         actions,
         args,
       ]);
 
-    return {
+    return new FujiResultSuccess({
       from: account.value,
       to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
       data: callData,
       chainId: srcChainId,
-    };
+    });
   }
 
   /**
