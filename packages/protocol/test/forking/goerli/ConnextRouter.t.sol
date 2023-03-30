@@ -488,4 +488,30 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     connextRouter.xBundle(actions1, args1);
     assertEq(flasher.flashloanCalled(), true);
   }
+
+  function test_flashloanWithIncorrectActionAfter() public {
+    uint256 amount = 2 ether;
+    MockTestFlasher flasher = new MockTestFlasher();
+    deal(collateralAsset, ALICE, amount);
+
+    IRouter.Action[] memory actions1 = new IRouter.Action[](1);
+    actions1[0] = IRouter.Action.Flashloan;
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+
+    actions[0] = IRouter.Action.Swap;
+
+    bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
+
+    bytes[] memory args1 = new bytes[](1);
+    args1[0] =
+      abi.encode(address(flasher), collateralAsset, amount, address(connextRouter), requestorCall);
+
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
+
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_swapNotFirstAction.selector);
+    connextRouter.xBundle(actions1, args1);
+  }
 }
