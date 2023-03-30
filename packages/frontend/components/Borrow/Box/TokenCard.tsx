@@ -235,6 +235,7 @@ function TokenCard({
                 onClick={handleRecommended}
                 data-cy="max-btn"
                 mr="0.4rem"
+                mt="0.1rem"
               >
                 Recommended
               </Typography>
