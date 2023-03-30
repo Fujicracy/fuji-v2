@@ -11,6 +11,7 @@ import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
+import { DUST_AMOUNT } from '../../constants/borrow';
 import { ActionType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
@@ -112,7 +113,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       if (address && vault) {
         // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address));
-        const hasBalance = balance.deposit.gt(0) || balance.borrow.gt(0);
+        const hasBalance =
+          balance.deposit.gt(DUST_AMOUNT) || balance.borrow.gt(DUST_AMOUNT);
         setHasBalanceInVault(hasBalance);
       }
     })();
