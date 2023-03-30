@@ -57,7 +57,7 @@ describe('Sdk', () => {
         ChainId.ETHEREUM
       );
       expect(bals.success).toBeTruthy();
-      if (!bals.success) return; // Tested above
+      if (!bals.success) return;
 
       bals.data.forEach((bal) => {
         expect(parseFloat(formatUnits(bal))).toBeGreaterThan(0);
@@ -65,25 +65,25 @@ describe('Sdk', () => {
     });
 
     it('fails with tokens from different chains', async () => {
-      await expect(
-        async () =>
-          await sdk.getTokenBalancesFor(
-            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.MATIC]],
-            Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
-            ChainId.ETHEREUM
-          )
-      ).rejects.toThrowError('Token from a different chain!');
+      const result = await sdk.getTokenBalancesFor(
+        [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.MATIC]],
+        Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+        ChainId.ETHEREUM
+      );
+      expect(result.success).toBeFalsy();
+      if (result.success) return;
+      expect(result.error.message).toEqual('Token from a different chain!');
     });
 
     it('fails when tokens and chain differ', async () => {
-      await expect(
-        async () =>
-          await sdk.getTokenBalancesFor(
-            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
-            Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
-            ChainId.MATIC
-          )
-      ).rejects.toThrowError('Token from a different chain!');
+      const result = await sdk.getTokenBalancesFor(
+        [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
+        Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+        ChainId.MATIC
+      );
+      expect(result.success).toBeFalsy();
+      if (result.success) return;
+      expect(result.error.message).toEqual('Token from a different chain!');
     });
   });
 

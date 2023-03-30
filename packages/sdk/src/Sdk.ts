@@ -176,11 +176,16 @@ export class Sdk {
     account: Address,
     chainId: ChainId
   ): FujiResultPromise<BigNumber[]> {
-    try {
-      invariant(
-        !tokens.find((t) => t.chainId !== chainId),
-        'Token from a different chain!'
+    if (tokens.find((t) => t.chainId === chainId)) {
+      return new FujiResultError(
+        FujiErrorCode.SDK,
+        'Token from a different chain!',
+        {
+          chainId,
+        }
       );
+    }
+    try {
       const { multicallRpcProvider } = this.getConnectionFor(chainId);
       const balances = tokens
         .map((token) => token.setConnection(this._configParams))
@@ -192,11 +197,8 @@ export class Sdk {
       const result = await multicallRpcProvider.all(balances);
       return new FujiResultSuccess(result);
     } catch (e) {
-      const { code, message } = FujiError.handleError(
-        e,
-        FujiErrorCode.MULTICALL
-      );
-      return new FujiResultError(code, message, { chainId });
+      const message = FujiError.messageFromUnknownError(e);
+      return new FujiResultError(FujiErrorCode.MULTICALL, message, { chainId });
     }
   }
 

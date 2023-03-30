@@ -111,13 +111,19 @@ export async function batchLoad(
   account: Address | undefined,
   chain: Chain
 ): FujiResultPromise<VaultWithFinancials[]> {
-  try {
-    invariant(chain.connection, 'Chain connection not set!');
-    invariant(
-      !vaults.find((v) => v.chainId !== chain.chainId),
-      'Vault from a different chain!'
+  if (!chain.connection) {
+    return new FujiResultError(FujiErrorCode.SDK, 'Chain connection not set!', {
+      chainId: chain.chainId,
+    });
+  }
+  if (vaults.find((v) => v.chainId !== chain.chainId)) {
+    return new FujiResultError(
+      FujiErrorCode.SDK,
+      'Vault from a different chain!',
+      { chainId: chain.chainId }
     );
-
+  }
+  try {
     const { multicallRpcProvider } = chain.connection;
     const oracle = FujiOracle__factory.multicall(
       FUJI_ORACLE_ADDRESS[chain.chainId].value
@@ -172,7 +178,7 @@ export async function batchLoad(
 
     return new FujiResultSuccess(data);
   } catch (e: unknown) {
-    const { code, message } = FujiError.handleError(e, FujiErrorCode.MULTICALL);
-    return new FujiResultError(code, message);
+    const message = FujiError.messageFromUnknownError(e);
+    return new FujiResultError(FujiErrorCode.SDK, message);
   }
 }

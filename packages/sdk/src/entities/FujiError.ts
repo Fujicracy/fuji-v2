@@ -13,14 +13,8 @@ export class FujiError extends Error {
     this.info = info;
   }
 
-  static handleError(
-    e: unknown,
-    alternateCode: FujiErrorCode
-  ): { code: FujiErrorCode; message: string } {
-    return {
-      code: e instanceof String ? FujiErrorCode.SDK : alternateCode,
-      message: e instanceof Error ? e.message : String(e),
-    };
+  static messageFromUnknownError(e: unknown): string {
+    return e instanceof Error ? e.message : String(e);
   }
 }
 
