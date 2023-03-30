@@ -6,6 +6,7 @@ import {
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
 } from '../../../helpers/assets';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
@@ -22,6 +23,7 @@ type BorrowBoxProps = {
   showMax: boolean;
   maxAmount?: number;
   ltvMeta: LtvMeta;
+  mode: Mode;
 };
 
 function BorrowBox({
@@ -35,6 +37,7 @@ function BorrowBox({
   showMax,
   maxAmount,
   ltvMeta,
+  mode,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
     (state) => state.changeCollateralChain
@@ -60,6 +63,7 @@ function BorrowBox({
       }
     >
       <ChainSelect
+        mode={mode}
         label={
           type === 'collateral'
             ? actionType === ActionType.ADD

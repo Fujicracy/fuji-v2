@@ -168,6 +168,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               <BorrowBox
                 key={type}
                 type={type}
+                mode={mode}
                 showMax={!showLtv}
                 maxAmount={maxAmount}
                 assetChange={assetChange}
