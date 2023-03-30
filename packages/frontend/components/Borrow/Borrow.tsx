@@ -178,6 +178,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 isExecuting={isExecuting}
                 value={assetChange.input}
                 ltvMeta={dynamicLtvMeta}
+                basePosition={basePosition}
               />
             );
           })}

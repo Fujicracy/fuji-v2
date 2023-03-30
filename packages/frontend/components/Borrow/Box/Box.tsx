@@ -8,6 +8,7 @@ import {
   LtvMeta,
   Mode,
 } from '../../../helpers/assets';
+import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
 import TokenCard from './TokenCard';
@@ -24,6 +25,7 @@ type BorrowBoxProps = {
   maxAmount: number;
   ltvMeta: LtvMeta;
   mode: Mode;
+  basePosition: BasePosition;
 };
 
 function BorrowBox({
@@ -37,6 +39,7 @@ function BorrowBox({
   showMax,
   maxAmount,
   ltvMeta,
+  basePosition,
   mode,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
@@ -87,12 +90,14 @@ function BorrowBox({
         type={type}
         showMax={showMax}
         maxAmount={maxAmount}
+        isEditing={isEditing}
         assetChange={assetChange}
         actionType={actionType}
         disabled={isEditing}
         isExecuting={isExecuting}
         value={value}
         ltvMeta={ltvMeta}
+        basePosition={basePosition}
         onTokenChange={(token) =>
           type === 'collateral'
             ? changeCollateralToken(token)

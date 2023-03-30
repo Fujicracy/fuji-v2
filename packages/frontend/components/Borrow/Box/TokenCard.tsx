@@ -24,6 +24,7 @@ import {
   LtvMeta,
   recommendedLTV,
 } from '../../../helpers/assets';
+import { BasePosition } from '../../../helpers/positions';
 import { formatValue } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
@@ -42,6 +43,8 @@ type SelectTokenCardProps = {
   onTokenChange: (token: Token) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
+  basePosition: BasePosition;
+  isEditing: boolean;
 };
 
 function TokenCard({
@@ -56,6 +59,8 @@ function TokenCard({
   onTokenChange,
   onInputChange,
   ltvMeta,
+  basePosition,
+  isEditing,
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
@@ -93,8 +98,15 @@ function TokenCard({
       return;
     }
 
-    const collateralValue = Number(collateral.input) * collateral.usdPrice;
-    const recommended = (recommendedLTV(ltvMax) * collateralValue) / 100;
+    const collateralValue = isEditing
+      ? basePosition.futurePosition
+        ? basePosition.futurePosition.collateral.amount
+        : basePosition.position.collateral.amount
+      : Number(collateral.input);
+
+    const recommended =
+      (recommendedLTV(ltvMax) * collateralValue) / 100 -
+      (isEditing ? basePosition.position.debt.amount : 0);
 
     const finalValue = recommended > maxAmount ? maxAmount : recommended;
     handleInput(parseFloat(finalValue.toFixed(4)).toString() ?? '0');
