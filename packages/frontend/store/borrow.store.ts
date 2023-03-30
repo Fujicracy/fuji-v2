@@ -118,6 +118,8 @@ type BorrowActions = {
   updateLiquidation: () => void;
   updateVaultBalance: () => void;
 
+  updateAvailableRoutes: (routes: RouteMeta[]) => void;
+
   allow: (amount: number, type: AssetType, callback: () => void) => void;
   signPermit: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
@@ -206,6 +208,10 @@ export const useBorrow = create<BorrowStore>()(
           set({ mode, needsSignature: false });
         },
 
+        async updateAvailableRoutes(routes: RouteMeta[]) {
+          set({ availableRoutes: routes });
+        },
+
         async changeAll(collateral, debt, vault) {
           const collaterals = sdk.getCollateralForChain(collateral.chainId);
           const debts = sdk.getDebtForChain(debt.chainId);
@@ -251,7 +257,7 @@ export const useBorrow = create<BorrowStore>()(
           ]);
         },
 
-        changeAssetChain(type, chainId, updateVault) {
+        changeAssetChain(type, chainId: ChainId, updateVault) {
           const tokens =
             type === 'debt'
               ? sdk.getDebtForChain(chainId)
@@ -307,7 +313,7 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId, updateVault) {
+        changeCollateralChain(chainId: ChainId, updateVault) {
           get().changeAssetChain('collateral', chainId, updateVault);
         },
 
@@ -319,7 +325,7 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAssetValue('collateral', value);
         },
 
-        changeDebtChain(chainId, updateVault) {
+        changeDebtChain(chainId: ChainId, updateVault) {
           get().changeAssetChain('debt', chainId, updateVault);
         },
 
@@ -795,7 +801,6 @@ export const useBorrow = create<BorrowStore>()(
             return tx;
           } catch (e) {
             // TODO: what errors can we catch here?
-            console.error(e);
             useSnack.getState().display({
               type: 'warning',
               title:
