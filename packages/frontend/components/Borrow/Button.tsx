@@ -198,7 +198,7 @@ function BorrowButton({
     debtAmount !== 0 &&
     debtAmount <= MINIMUM_DEBT_AMOUNT
   ) {
-    return disabledButton('Need to borrow at least 1 USD');
+    return disabledButton('Need to borrow more than 1 USD');
   } else if (
     (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     collateralAmount > position.collateral.amount

@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
-import Snackbar from '../components/Shared/Snackbar';
+import Notification from '../components/Shared/Notification';
 import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
@@ -99,8 +99,8 @@ function MyApp({ Component, pageProps }: AppProps) {
             hash={currentTxHash}
             currentPage={router.pathname}
           />
-          <Snackbar />
           <SafetyNoticeModal />
+          <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>
     </>
