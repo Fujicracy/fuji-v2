@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
-import Snackbar from '../components/Shared/Snackbar';
+import Notification from '../components/Shared/Notification';
 import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
@@ -97,8 +97,8 @@ function MyApp({ Component, pageProps }: AppProps) {
           <div className="backdrop"></div>
           <Component {...pageProps} />
           <TransactionModal hash={currentTxHash} currentPage={currentPage} />
-          <Snackbar />
           <SafetyNoticeModal />
+          <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>
     </>
