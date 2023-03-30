@@ -163,7 +163,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               type === 'debt' && debtAmount && debtAmount < balance
                 ? debtAmount
                 : balance;
-            const showLtv = type === 'debt' && actionType === ActionType.ADD;
+            const showLtv =
+              type === 'debt' && actionType === ActionType.ADD && !isEditing;
             return (
               <BorrowBox
                 key={type}
