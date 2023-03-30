@@ -21,6 +21,7 @@ import {
   ActionType,
   AssetChange,
   AssetType,
+  LtvMeta,
   recommendedLTV,
 } from '../../../helpers/assets';
 import { formatValue } from '../../../helpers/values';
@@ -40,6 +41,7 @@ type SelectTokenCardProps = {
   maxAmount?: number;
   onTokenChange: (token: Token) => void;
   onInputChange: (value: string) => void;
+  ltvMeta: LtvMeta;
 };
 
 function TokenCard({
@@ -53,12 +55,12 @@ function TokenCard({
   maxAmount,
   onTokenChange,
   onInputChange,
+  ltvMeta,
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
   const { token, usdPrice, balances, selectableTokens } = assetChange;
   const collateral = useBorrow((state) => state.collateral);
-  const ltvMeta = useBorrow((state) => state.ltv);
 
   const balance = balances[token.symbol];
 
@@ -81,13 +83,21 @@ function TokenCard({
   };
 
   const handleRecommended = () => {
-    if (!collateral.input) return '0';
+    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
 
-    const recommended =
-      (Number(collateral.input) *
-        collateral.usdPrice *
-        recommendedLTV(ltvMax)) /
-      100;
+    if (
+      (ltv > recommendedLTV(ltvMax) && !value) ||
+      (!ltv && collateral.amount && !collateral.input)
+    ) {
+      handleInput('0');
+      return;
+    }
+
+    const collateralValue = collateral.amount * collateral.usdPrice;
+    const ltvDiff =
+      ltv > recommendedLTV(ltvMax) ? 0 : recommendedLTV(ltvMax) - ltv;
+
+    const recommended = (ltvDiff * collateralValue) / 100;
     handleInput(parseFloat(recommended.toFixed(4)).toString() ?? '0');
   };
 

@@ -174,6 +174,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 chainId={assetChange.chainId}
                 isExecuting={isExecuting}
                 value={assetChange.input}
+                ltvMeta={dynamicLtvMeta}
               />
             );
           })}
