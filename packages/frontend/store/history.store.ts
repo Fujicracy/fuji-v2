@@ -4,6 +4,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
+import { updateNativeBalance } from '../helpers/balances';
+import { hexToChainId } from '../helpers/chains';
 import {
   entryOutput,
   toHistoryRoutingStep,
@@ -11,6 +13,7 @@ import {
 } from '../helpers/history';
 import { getTransactionUrl, notify } from '../helpers/notifications';
 import { sdk } from '../services/sdk';
+import { useAuth } from './auth.store';
 import { useBorrow } from './borrow.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
@@ -119,8 +122,16 @@ export const useHistory = create<HistoryStore>()(
               if (!txHash) {
                 throw `Transaction step ${i} failed`;
               }
+
               const { rpcProvider } = sdk.getConnectionFor(s.chainId);
               const receipt = await rpcProvider.waitForTransaction(txHash);
+
+              // If the operation happened on the same chain as the wallet, update the balance
+              const walletChain = useAuth.getState().chain;
+              if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
+                updateNativeBalance();
+              }
+
               if (receipt.status === 0) {
                 throw `Transaction step ${i} failed`;
               }

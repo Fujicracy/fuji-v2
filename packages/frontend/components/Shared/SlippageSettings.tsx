@@ -13,7 +13,7 @@ import {
 import Image from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { DEFAULT_SLIPPAGE } from '../../constants/borrow';
+import { DEFAULT_SLIPPAGE } from '../../constants';
 import { useBorrow } from '../../store/borrow.store';
 import { colorTheme } from '../../styles/theme';
 

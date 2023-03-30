@@ -12,6 +12,7 @@ import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
+import { PATH } from '../../constants';
 import { ActionType, AssetType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
@@ -241,7 +242,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             }}
             onRedirectClick={(borrow) => {
               if (borrow) {
-                router.push('/borrow');
+                router.push(PATH.BORROW);
               } else {
                 showPosition(router, walletChain?.id, vault, false);
               }
