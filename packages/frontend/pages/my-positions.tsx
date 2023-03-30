@@ -1,15 +1,14 @@
-import { NextPage } from "next"
-import Head from "next/head"
-import { Container, useTheme, useMediaQuery } from "@mui/material"
+import { Container, useMediaQuery, useTheme } from '@mui/material';
+import { NextPage } from 'next';
+import Head from 'next/head';
 
-import Footer from "../components/Shared/Footer"
-import Header from "../components/Shared/Header"
-
-import MyPositions from "../components/Positions/MyPositions"
+import MyPositions from '../components/Positions/MyPositions';
+import Footer from '../components/Shared/Footer';
+import Header from '../components/Shared/Header/Header';
 
 const MyPositionPage: NextPage = () => {
-  const { breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const { breakpoints } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   return (
     <>
@@ -23,11 +22,11 @@ const MyPositionPage: NextPage = () => {
 
       <Container
         sx={{
-          mt: { xs: "2rem", sm: "4rem" },
-          mb: { xs: "7rem", sm: "0" },
-          pl: { xs: "1rem", sm: "1rem" },
-          pr: { xs: "1rem", sm: "1rem" },
-          minHeight: "75vh",
+          mt: { xs: '2rem', sm: '4rem' },
+          mb: { xs: '7rem', sm: '0' },
+          pl: { xs: '1rem', sm: '1rem' },
+          pr: { xs: '1rem', sm: '1rem' },
+          minHeight: '75vh',
         }}
       >
         <MyPositions />
@@ -35,7 +34,7 @@ const MyPositionPage: NextPage = () => {
 
       {!isMobile && <Footer />}
     </>
-  )
-}
+  );
+};
 
-export default MyPositionPage
+export default MyPositionPage;

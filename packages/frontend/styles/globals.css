@@ -1,15 +1,15 @@
-@font-face {
+/* @font-face {
   font-family: "Inter";
   font-style: normal;
   font-weight: 500;
   src: url("../public/assets/fonts/Inter-Regular.ttf");
-}
+} */
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: "Inter";
+  /* font-family: "Inter"; */
 }
 
 a {
@@ -48,7 +48,7 @@ body {
 }
 /* } */
 
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
@@ -84,8 +84,8 @@ input[type="number"] {
   --onboard-wallet-button-border-color: var(--border-color);
   --onboard-wallet-app-icon-border-color: var(--border-color);
 
-  --onboard-font-family-normal: "Inter";
+  /* --onboard-font-family-normal: "Inter";
   --onboard-font-family-semibold: "Inter";
-  --onboard-font-family-light: "Inter";
+  --onboard-font-family-light: "Inter"; */
 }
 /* <<< Onboard theme */

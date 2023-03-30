@@ -1,209 +1,211 @@
-import { createTheme } from "@mui/material"
+import { createTheme } from '@mui/material';
 
-declare module "@mui/material/Button" {
+declare module '@mui/material/Button' {
   interface ButtonPropsVariantOverrides {
-    primary: true
-    secondary: true
-    secondary2: true
-    ghost: true
-    gradient: true
-    small: true
-    rounded: true
+    primary: true;
+    secondary: true;
+    secondary2: true;
+    ghost: true;
+    gradient: true;
+    small: true;
+    rounded: true;
+    'white-outlined': true;
   }
 }
 
-declare module "@mui/material/Chip" {
+declare module '@mui/material/Chip' {
   interface ChipPropsVariantOverrides {
-    gradient: true
-    success: true
-    warning: true
-    number: true
-    routing: true
-    recommended: true
-    selected: true
+    gradient: true;
+    success: true;
+    warning: true;
+    number: true;
+    routing: true;
+    recommended: true;
+    selected: true;
+    currency: true;
   }
 }
 
-declare module "@mui/material/Paper" {
+declare module '@mui/material/Paper' {
   interface PaperPropsVariantOverrides {
-    currency: true
-    lending: true
+    position: true;
+    lending: true;
   }
 }
 
-declare module "@mui/material/Typography" {
+declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
-    display1: true
-    display2: true
-    body: true
-    body2: true
-    small: true
-    smallDark: true
-    xsmall: true
-    xsmallDark: true
-    xsmallLink: true
-    label: true
-    regularH4: true
+    display1: true;
+    display2: true;
+    body: true;
+    body2: true;
+    small: true;
+    smallDark: true;
+    xsmall: true;
+    xsmallDark: true;
+    xsmallLink: true;
+    label: true;
+    regularH4: true;
   }
 }
 
 const colorTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: 'dark',
     primary: {
-      main: "#F6145E",
-      light: "#FE3477",
-      dark: "#F0014F",
-      contrastText: "rgba(254, 52, 119, 0)",
+      main: '#F6145E',
+      light: '#FE3477',
+      dark: '#F0014F',
+      contrastText: 'rgba(254, 52, 119, 0)',
     },
     secondary: {
-      main: "#2D2F35",
-      light: "#3B404A",
-      dark: "#222429",
-      contrastText: "#191B1F",
+      main: '#2D2F35',
+      light: '#3B404A',
+      dark: '#222429',
+      contrastText: '#191B1F',
     },
     text: {
-      primary: "#E8E8E8",
-      secondary: "#E2E8F0",
-      disabled: "#6C7182",
+      primary: '#E8E8E8',
+      secondary: '#E2E8F0',
+      disabled: '#6C7182',
     },
     info: {
-      main: "#C3C5CB",
-      dark: "#787883",
+      main: '#C3C5CB',
+      dark: '#787883',
     },
     success: {
-      main: "#42FF00",
-      dark: "#0EC058",
+      main: '#42FF00',
+      dark: '#0EC058',
     },
     warning: {
-      main: "#F5AC37",
+      main: '#F5AC37',
     },
     error: {
-      main: "#FD4040",
-      dark: "#FC0A54",
+      main: '#FD4040',
+      dark: '#FC0A54',
     },
     background: {
-      paper: "black",
-      default: "#2D2F35",
+      paper: 'black',
+      default: '#2D2F35',
     },
   },
   typography: {
-    fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
+    // fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
   },
-})
+});
 
 const theme = createTheme(colorTheme, {
   typography: {
-    letterSpacing: "0%",
+    letterSpacing: '0%',
     display1: {
       fontWeight: 700,
-      fontSize: "3rem",
-      lineHeight: "120%",
+      fontSize: '3rem',
+      lineHeight: '120%',
     },
     display2: {
       fontWeight: 700,
-      fontSize: "2.75rem",
-      lineHeight: "120%",
+      fontSize: '2.75rem',
+      lineHeight: '120%',
     },
     h1: {
       fontWeight: 700,
-      fontSize: "2.5rem",
-      lineHeight: "120%",
+      fontSize: '2.5rem',
+      lineHeight: '120%',
     },
     h2: {
       fontWeight: 700,
-      fontSize: "2.25rem",
-      lineHeight: "150%",
+      fontSize: '2.25rem',
+      lineHeight: '150%',
     },
     h3: {
       fontWeight: 700,
-      fontSize: "1.875rem",
-      lineHeight: "150%",
+      fontSize: '1.875rem',
+      lineHeight: '150%',
     },
     h4: {
       fontWeight: 700,
-      fontSize: "1.5rem",
-      lineHeight: "150%",
+      fontSize: '1.5rem',
+      lineHeight: '150%',
     },
     regularH4: {
-      display: "block",
+      display: 'block',
       fontWeight: 600,
-      fontSize: "1.5rem",
-      lineHeight: "120%",
-      textOverflow: "ellipsis",
-      overflow: "hidden",
+      fontSize: '1.5rem',
+      lineHeight: '120%',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
     },
     h5: {
       fontWeight: 600,
-      fontSize: "1.25rem",
-      lineHeight: "150%",
+      fontSize: '1.25rem',
+      lineHeight: '150%',
     },
     h6: {
       fontWeight: 400,
-      fontSize: "1.125rem",
-      lineHeight: "160%",
+      fontSize: '1.125rem',
+      lineHeight: '160%',
     },
     body: {
       fontWeight: 400,
-      fontSize: "1rem",
-      lineHeight: "160%",
+      fontSize: '1rem',
+      lineHeight: '160%',
     },
     body2: {
       fontWeight: 700,
-      fontSize: "1rem",
-      lineHeight: "160%",
+      fontSize: '1rem',
+      lineHeight: '160%',
     },
     small: {
       fontWeight: 400,
-      fontSize: "0.875rem",
-      lineHeight: "160%",
-      textOverflow: "ellipsis",
-      overflow: "hidden",
+      fontSize: '0.875rem',
+      lineHeight: '160%',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
     },
     smallDark: {
       fontWeight: 400,
-      fontSize: "0.875rem",
-      lineHeight: "160%",
+      fontSize: '0.875rem',
+      lineHeight: '160%',
       color: colorTheme.palette.info.dark,
-      textOverflow: "ellipsis",
-      overflow: "hidden",
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
     },
     xsmall: {
       fontWeight: 400,
-      fontSize: "0.75rem",
+      fontSize: '0.75rem',
     },
     xsmallDark: {
       fontWeight: 400,
-      fontSize: "0.75rem",
-      lineHeight: "160%",
+      fontSize: '0.75rem',
+      lineHeight: '160%',
       color: colorTheme.palette.info.dark,
     },
     xsmallLink: {
       fontWeight: 400,
-      fontSize: "0.75rem",
-      cursor: "pointer",
-      ":hover": { color: colorTheme.palette.primary.main },
+      fontSize: '0.75rem',
+      cursor: 'pointer',
+      ':hover': { color: colorTheme.palette.primary.main },
     },
     label: {
       fontWeight: 700,
-      fontSize: "0.875rem",
-      lineHeight: "100%",
-      letterSpacing: "2%",
+      fontSize: '0.875rem',
+      lineHeight: '100%',
+      letterSpacing: '2%',
     },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          boxSizing: "border-box",
-          borderRadius: "0.5rem",
-          textTransform: "none",
-          fontSize: "1rem",
-          "&.Mui-disabled": {
+          boxSizing: 'border-box',
+          borderRadius: '0.5rem',
+          textTransform: 'none',
+          fontSize: '1rem',
+          '&.Mui-disabled': {
             opacity: 0.5,
             color: colorTheme.palette.text.secondary,
           },
-          "&:hover": {
+          '&:hover': {
             opacity: 0.9,
             borderColor: colorTheme.palette.primary,
           },
@@ -212,19 +214,19 @@ const theme = createTheme(colorTheme, {
       variants: [
         {
           props: {
-            variant: "primary",
+            variant: 'primary',
           },
           style: {
             background:
-              "linear-gradient(92.29deg, rgba(254, 52, 119, 0.8) 0%, rgba(240, 1, 79, 0.8) 100%)",
-            boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
-            padding: "0.75rem 1.25rem",
-            fontSize: "1rem",
+              'linear-gradient(92.29deg, rgba(254, 52, 119, 0.8) 0%, rgba(240, 1, 79, 0.8) 100%)',
+            boxShadow: '0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)',
+            padding: '0.75rem 1.25rem',
+            fontSize: '1rem',
           },
         },
         {
           props: {
-            variant: "secondary",
+            variant: 'secondary',
           },
           style: {
             background: colorTheme.palette.secondary.dark,
@@ -233,69 +235,78 @@ const theme = createTheme(colorTheme, {
         },
         {
           props: {
-            variant: "secondary2",
+            variant: 'white-outlined',
+          },
+          style: {
+            background: colorTheme.palette.secondary.dark,
+            border: `1px solid ${colorTheme.palette.text.primary}`,
+          },
+        },
+        {
+          props: {
+            variant: 'secondary2',
           },
           style: {
             background: colorTheme.palette.secondary.dark,
             border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
             color: colorTheme.palette.primary.main,
-            "&:hover": {
+            '&:hover': {
               borderColor: colorTheme.palette.primary.main,
             },
           },
         },
         {
           props: {
-            variant: "ghost",
+            variant: 'ghost',
           },
           style: {
-            background: "transparent",
+            background: 'transparent',
           },
         },
         {
           props: {
-            variant: "gradient",
+            variant: 'gradient',
           },
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
             border: `1px solid ${colorTheme.palette.primary.light}`,
-            textTransform: "none",
-            fontSize: "1rem",
+            textTransform: 'none',
+            fontSize: '1rem',
           },
         },
         {
           props: {
-            variant: "text",
+            variant: 'text',
           },
           style: {
             background:
-              "linear-gradient(92.29deg, rgba(254, 52, 119, 0.1) 0%, rgba(240, 1, 79, 0.1) 100%)",
-            borderRadius: "6.25rem",
-            padding: "0.438rem 1rem",
+              'linear-gradient(92.29deg, rgba(254, 52, 119, 0.1) 0%, rgba(240, 1, 79, 0.1) 100%)',
+            borderRadius: '6.25rem',
+            padding: '0.438rem 1rem',
           },
         },
         {
           props: {
-            variant: "small",
+            variant: 'small',
           },
           style: {
             color: colorTheme.palette.primary.main,
-            background: "transparent",
+            background: 'transparent',
             border: `1px solid ${colorTheme.palette.primary.dark}`,
-            textTransform: "capitalize",
-            padding: "0 .6rem",
-            fontSize: "0.75rem",
-            borderRadius: "1rem",
+            textTransform: 'capitalize',
+            padding: '0 .6rem',
+            fontSize: '0.75rem',
+            borderRadius: '1rem',
           },
         },
         {
-          props: { size: "large" },
-          style: { padding: ".7rem", fontSize: "1rem" },
+          props: { size: 'large' },
+          style: { padding: '.7rem', fontSize: '1rem' },
         },
         {
-          props: { variant: "rounded" },
+          props: { variant: 'rounded' },
           style: {
-            borderRadius: "50rem",
+            borderRadius: '50rem',
             color: colorTheme.palette.primary.light,
             border: `1px solid ${colorTheme.palette.primary.light}`,
           },
@@ -313,56 +324,56 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           background: colorTheme.palette.secondary.contrastText,
-          borderRadius: "0.75rem",
+          borderRadius: '0.75rem',
           // TODO: refacto and reomve, flex should not be part of card theming
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
         },
       },
       variants: [
         {
           props: {
-            variant: "outlined",
+            variant: 'outlined',
           },
           style: {
-            boxSizing: "border-box",
+            boxSizing: 'border-box',
             background: colorTheme.palette.secondary.dark,
             border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
-            flexDirection: "column",
-            borderRadius: "0.5rem",
-            padding: "1rem",
-            flex: "none",
+            flexDirection: 'column',
+            borderRadius: '0.5rem',
+            padding: '1rem',
+            flex: 'none',
             order: 1,
             flexGrow: 0,
           },
         },
         {
           props: {
-            variant: "currency",
+            variant: 'position',
           },
           style: {
-            borderRadius: "0.5rem",
+            borderRadius: '0.5rem',
             backgroundColor: colorTheme.palette.secondary.dark,
-            padding: "1rem",
-            display: "block",
-            width: "100%",
-            marginBottom: "1rem",
+            padding: '1rem',
+            display: 'block',
+            width: '100%',
+            marginBottom: '1rem',
           },
         },
         {
           props: {
-            variant: "lending",
+            variant: 'lending',
           },
           style: {
-            borderRadius: "0.75rem",
+            borderRadius: '0.75rem',
             backgroundColor: colorTheme.palette.secondary.contrastText,
             border: `1px solid ${colorTheme.palette.secondary.light}`,
-            alignItems: "center",
-            flexDirection: "column",
-            textAlign: "center",
+            alignItems: 'center',
+            flexDirection: 'column',
+            textAlign: 'center',
 
-            paddingBottom: "12.5rem",
+            paddingBottom: '12.5rem',
           },
         },
       ],
@@ -371,42 +382,42 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         select: {
           fontWeight: 400,
-          fontSize: "0.875rem",
-          lineHeight: "160%",
-          borderRadius: "2rem",
-          padding: ".25rem .5rem",
+          fontSize: '0.875rem',
+          lineHeight: '160%',
+          borderRadius: '2rem',
+          padding: '.25rem .5rem',
           color: colorTheme.palette.text.secondary,
         },
       },
       variants: [
         {
           props: {
-            variant: "outlined",
+            variant: 'outlined',
           },
           style: {
             background: colorTheme.palette.secondary.dark,
-            borderRadius: "6.25rem",
-            height: "2.25rem",
-            padding: "0.438rem 0.75rem",
+            borderRadius: '6.25rem',
+            height: '2.25rem',
+            padding: '0.438rem 0.75rem',
             fontWeight: 400,
-            fontSize: "0.875rem",
-            lineHeight: "160%",
+            fontSize: '0.875rem',
+            lineHeight: '160%',
           },
         },
       ],
     },
     MuiTooltip: {
       styleOverrides: {
-        cursor: "help",
+        cursor: 'help',
         tooltip: {
-          padding: "0.75rem 1rem",
-          fontSize: "0.875rem",
-          lineHeight: "1rem",
-          borderRadius: "0.5rem",
+          padding: '0.75rem 1rem',
+          fontSize: '0.875rem',
+          lineHeight: '1rem',
+          borderRadius: '0.5rem',
           background: colorTheme.palette.secondary.dark,
-          textAlign: "center",
+          textAlign: 'center',
           border: `1px solid ${colorTheme.palette.secondary.light}`,
-          boxShadow: "0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)",
+          boxShadow: '0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)',
         },
         arrow: {
           color: colorTheme.palette.secondary.light,
@@ -416,10 +427,10 @@ const theme = createTheme(colorTheme, {
     MuiLink: {
       styleOverrides: {
         root: {
-          textDecoration: "none",
+          textDecoration: 'none',
           color: colorTheme.palette.text.secondary,
-          cursor: "pointer",
-          ":hover": {
+          cursor: 'pointer',
+          ':hover': {
             color: colorTheme.palette.primary.main,
           },
         },
@@ -428,8 +439,8 @@ const theme = createTheme(colorTheme, {
     MuiDialog: {
       styleOverrides: {
         root: {
-          ".MuiPaper-root": {
-            borderRadius: "1.125rem",
+          '.MuiPaper-root': {
+            borderRadius: '1.125rem',
           },
         },
       },
@@ -438,97 +449,110 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           background: colorTheme.palette.secondary.contrastText,
-          padding: "0.3rem 0.5rem",
-          boxShadow: "none",
+          padding: '0.3rem 0.5rem',
+          boxShadow: 'none',
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          fontFamily: "Inherit",
+          fontFamily: 'Inherit',
           background: colorTheme.palette.secondary.dark,
-          height: "2.25rem",
-          fontSize: "0.75rem",
-          borderRadius: "6.25rem",
-          "& .MuiChip-deleteIcon": {
+          height: '2.25rem',
+          fontSize: '0.75rem',
+          borderRadius: '6.25rem',
+          '& .MuiChip-deleteIcon': {
             color: colorTheme.palette.text.primary,
           },
         },
       },
       variants: [
         {
-          props: { variant: "gradient" },
+          props: { variant: 'gradient' },
           style: {
             background: `linear-gradient(287.45deg, rgba(254, 52, 119, 0) 6.81%, ${colorTheme.palette.primary.dark} 120.29%)`,
             border: `1px solid ${colorTheme.palette.primary.light}`,
-            padding: "0.125rem 0",
-            height: "100%",
-            lineHeight: "160%",
+            padding: '0.125rem 0',
+            height: '100%',
+            lineHeight: '160%',
           },
         },
         {
           props: {
-            variant: "success",
+            variant: 'success',
           },
           style: {
             background: `${colorTheme.palette.success.main}33`,
             color: colorTheme.palette.success.main,
-            width: "2.52rem",
-            height: "1.438rem",
+            width: '2.52rem',
+            height: '1.438rem',
           },
         },
         {
           props: {
-            variant: "warning",
+            variant: 'warning',
           },
           style: {
             background: `${colorTheme.palette.warning.main}33`,
             color: colorTheme.palette.warning.main,
-            width: "2.47rem",
-            height: "1.438rem",
+            width: '2.47rem',
+            height: '1.438rem',
           },
         },
         {
           props: {
-            variant: "number",
+            variant: 'number',
           },
           style: {
-            width: "1.5rem",
-            height: "1.5rem",
+            width: '1.5rem',
+            height: '1.5rem',
             background: colorTheme.palette.secondary.light,
-            position: "relative",
+            position: 'relative',
             right: `${3 * 0.25}rem`,
           },
         },
         {
           props: {
-            variant: "routing",
+            variant: 'routing',
           },
           style: {
             background: colorTheme.palette.secondary.main,
-            height: "22px",
+            height: '22px',
           },
         },
         {
           props: {
-            variant: "recommended",
+            variant: 'recommended',
           },
           style: {
             background: colorTheme.palette.primary.main,
-            position: "relative",
-            bottom: ".7rem",
-            height: "22px",
+            position: 'relative',
+            bottom: '.7rem',
+            height: '22px',
           },
         },
         {
           props: {
-            variant: "selected",
+            variant: 'selected',
           },
           style: {
-            height: "22px",
+            height: '22px',
             color: colorTheme.palette.primary.main,
             border: `1px solid ${colorTheme.palette.primary.main}`,
+          },
+        },
+
+        {
+          props: {
+            variant: 'currency',
+          },
+          style: {
+            height: '28px',
+            fontSize: '0.9rem',
+            lineHeight: '100%',
+            backgroundColor: colorTheme.palette.secondary.light,
+            color: 'white',
           },
         },
       ],
@@ -536,8 +560,8 @@ const theme = createTheme(colorTheme, {
     MuiCardContent: {
       styleOverrides: {
         root: {
-          ":last-child": {
-            paddingBottom: "1rem",
+          ':last-child': {
+            paddingBottom: '1rem',
           },
         },
       },
@@ -546,12 +570,12 @@ const theme = createTheme(colorTheme, {
       variants: [
         {
           props: {
-            variant: "outlined",
+            variant: 'outlined',
           },
           style: {
             background: colorTheme.palette.secondary.contrastText,
             border: `1px solid ${colorTheme.palette.secondary.light}`,
-            borderRadius: "1.125rem",
+            borderRadius: '1.125rem',
           },
         },
       ],
@@ -560,7 +584,7 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         paper: {
           border: `1px solid ${colorTheme.palette.secondary.light}`,
-          borderRadius: "12px !important",
+          borderRadius: '12px !important',
         },
       },
     },
@@ -568,10 +592,10 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           color: colorTheme.palette.info.dark,
-          textTransform: "none",
-          fontSize: "0.875rem",
+          textTransform: 'none',
+          fontSize: '0.875rem',
           borderBottom: `1px solid ${colorTheme.palette.info.dark}`,
-          "&.Mui-selected": {
+          '&.Mui-selected': {
             color: colorTheme.palette.text.primary,
           },
         },
@@ -580,7 +604,7 @@ const theme = createTheme(colorTheme, {
     MuiTabs: {
       styleOverrides: {
         root: {
-          ".MuiTabs-indicator": {
+          '.MuiTabs-indicator': {
             backgroundColor: colorTheme.palette.text.primary,
           },
         },
@@ -589,21 +613,21 @@ const theme = createTheme(colorTheme, {
     MuiInputBase: {
       styleOverrides: {
         root: {
-          borderRadius: "0.5rem !important",
-          alignItems: "center",
+          borderRadius: '0.5rem !important',
+          alignItems: 'center',
         },
       },
     },
     MuiTextField: {
       styleOverrides: {
         root: {
-          borderRadius: "0.5rem",
+          borderRadius: '0.5rem',
         },
       },
       variants: [
         {
           props: {
-            variant: "outlined",
+            variant: 'outlined',
           },
           style: {
             background: colorTheme.palette.secondary.dark,
@@ -615,21 +639,21 @@ const theme = createTheme(colorTheme, {
     MuiTableContainer: {
       styleOverrides: {
         root: {
-          textAlign: "center",
-          borderRadius: "0.75rem",
+          textAlign: 'center',
+          borderRadius: '0.75rem',
           border: `1px solid ${colorTheme.palette.secondary.light}`,
           background: colorTheme.palette.secondary.contrastText,
-          fontSize: "0.75rem",
-          borderBottom: "none",
+          fontSize: '0.75rem',
+          borderBottom: 'none',
         },
       },
     },
     MuiTableHead: {
       styleOverrides: {
         root: {
-          ".MuiTableCell-head": {
+          '.MuiTableCell-head': {
             color: colorTheme.palette.info.main,
-            fontSize: "0.75rem",
+            fontSize: '0.75rem',
           },
         },
       },
@@ -637,11 +661,11 @@ const theme = createTheme(colorTheme, {
     MuiTableCell: {
       styleOverrides: {
         root: {
-          fontSize: "0.875rem",
+          fontSize: '0.875rem',
           fontWeight: 500,
           paddingTop: 0,
           paddingBottom: 0,
-          whiteSpace: "nowrap",
+          whiteSpace: 'nowrap',
         },
       },
     },
@@ -650,13 +674,13 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           border: `2px solid ${colorTheme.palette.secondary.light}`,
-          borderRadius: "1.125rem",
-          p: "1rem",
+          borderRadius: '1.125rem',
+          p: '1rem',
           color: colorTheme.palette.text.primary,
         },
       },
     },
   },
-})
+});
 
-export { theme, colorTheme }
+export { colorTheme, theme };

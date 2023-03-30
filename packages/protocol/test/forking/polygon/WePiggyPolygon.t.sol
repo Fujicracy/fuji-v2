@@ -21,13 +21,7 @@ contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
     providers[0] = wePiggy;
 
     deployVault(
-      registry[POLYGON_DOMAIN].wmatic,
-      registry[POLYGON_DOMAIN].usdc,
-      1250000000000000000,
-      100000000,
-      "WMATIC",
-      "USDC",
-      providers
+      registry[POLYGON_DOMAIN].wmatic, registry[POLYGON_DOMAIN].usdc, "WMATIC", "USDC", providers
     );
   }
 

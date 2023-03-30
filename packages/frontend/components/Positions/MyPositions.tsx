@@ -1,42 +1,29 @@
-import { useEffect, useState } from "react"
 import {
-  Typography,
+  Box,
   Chip,
   Stack,
-  Box,
   Tab,
   Tabs,
+  Typography,
   useMediaQuery,
   useTheme,
-} from "@mui/material"
+} from '@mui/material';
+import { useState } from 'react';
 
-import { usePositions } from "../../store/positions.store"
-import { useAuth } from "../../store/auth.store"
-
-import { PositionSummary } from "./PositionSummary"
-import { PositionsBorrowTable } from "./PositionBorrowTable"
+import { usePositions } from '../../store/positions.store';
+import Lending from '../Shared/Lending/Lending';
+import MyPositionsBorrowTable from './MyPositionsBorrowTable';
+import MyPositionsSummary from './MyPositionsSummary';
 
 function MyPositions() {
-  const { breakpoints } = useTheme()
-  const isMobile = useMediaQuery(breakpoints.down("sm"))
+  const { breakpoints } = useTheme();
+  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const [currentTab, setCurrentTab] = useState(0)
+  const [currentTab, setCurrentTab] = useState(0);
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
-    setCurrentTab(newValue)
+    setCurrentTab(newValue);
 
-  const account = useAuth((state) => state.address)
-  const fetchPositions = usePositions((state) => state.fetchUserPositions)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (account) {
-      setLoading(true)
-      ;(async () => {
-        await fetchPositions()
-        setLoading(false)
-      })()
-    }
-  }, [account, fetchPositions])
+  const loading = usePositions((state) => state.loading);
 
   return (
     <>
@@ -47,16 +34,15 @@ function MyPositions() {
         Fuji manages your borrowing and lending positions for maximum capital
         efficiency
       </Typography>
-      <PositionSummary />
+      <MyPositionsSummary />
       <Box mt={2} mb={3}>
         <Tabs
           value={currentTab}
           onChange={handleTabChange}
-          variant={isMobile ? "fullWidth" : "standard"}
+          variant={isMobile ? 'fullWidth' : 'standard'}
         >
           <Tab label="Borrowing" />
           <Tab
-            disabled
             label={
               <Stack direction="row" alignItems="center" gap={1}>
                 Lending
@@ -64,7 +50,7 @@ function MyPositions() {
                   <Chip
                     variant="gradient"
                     label="Coming soon"
-                    sx={{ cursor: "pointer" }}
+                    sx={{ cursor: 'pointer' }}
                   />
                 )}
               </Stack>
@@ -72,9 +58,16 @@ function MyPositions() {
           />
         </Tabs>
       </Box>
-      {currentTab === 0 && <PositionsBorrowTable loading={loading} />}
+
+      {currentTab === 0 ? (
+        <MyPositionsBorrowTable loading={loading} />
+      ) : (
+        <Box sx={{ height: '31rem', width: '100%' }}>
+          <Lending />
+        </Box>
+      )}
     </>
-  )
+  );
 }
 
-export default MyPositions
+export default MyPositions;
