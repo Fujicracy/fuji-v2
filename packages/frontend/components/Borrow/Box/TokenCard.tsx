@@ -66,6 +66,7 @@ function TokenCard({
 
   const { token, usdPrice, balances, selectableTokens } = assetChange;
   const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
 
   const balance = balances[token.symbol];
 
@@ -79,8 +80,13 @@ function TokenCard({
   const close = () => setAnchorEl(null);
 
   const handleMax = () => {
-    // const amount = type === "debt" ? 50 : balance
-    handleInput(maxAmount?.toString() ?? '0');
+    const amount =
+      actionType === ActionType.REMOVE && type === 'collateral'
+        ? basePosition.position.collateral.amount -
+          (basePosition.position.debt.amount - Number(debt.input)) /
+            (ltvMax * collateral.usdPrice)
+        : maxAmount.toString();
+    handleInput(String(amount));
   };
 
   const handleInput = (val: string) => {
