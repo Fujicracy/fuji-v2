@@ -42,7 +42,6 @@ const ChainSelect = ({
       </Typography>
       {showTooltip ? (
         <TooltipWrapper
-          defaultOpen
           placement="top"
           title={
             <Box
