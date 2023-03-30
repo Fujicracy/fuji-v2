@@ -4,6 +4,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { DUST_AMOUNT } from '../constants/borrow';
 import { AssetType } from '../helpers/assets';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -37,7 +38,12 @@ export const usePositions = create<PositionsStore>()(
       fetchUserPositions: async () => {
         set({ loading: true });
         const addr = useAuth.getState().address;
-        const positions = await getPositionsWithBalance(addr);
+        const allPositions = await getPositionsWithBalance(addr);
+
+        const positions = allPositions.filter(
+          (p) =>
+            p.collateral.amount > DUST_AMOUNT && p.debt.amount > DUST_AMOUNT
+        );
 
         const totalDepositsUSD = getTotalSum(positions, 'collateral');
         const totalDebtUSD = getTotalSum(positions, 'debt');

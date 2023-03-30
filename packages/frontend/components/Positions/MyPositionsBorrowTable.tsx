@@ -14,7 +14,6 @@ import {
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-import { DUST_AMOUNT } from '../../constants/borrow';
 import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
@@ -38,12 +37,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const { palette } = useTheme();
   const router = useRouter();
   const account = useAuth((state) => state.address);
-  const allPositions = usePositions((state) => state.positions);
+  const positions = usePositions((state) => state.positions);
   const [rows, setRows] = useState<PositionRow[]>([]);
-
-  const positions = allPositions.filter(
-    (p) => p.collateral.amount > DUST_AMOUNT && p.debt.amount > DUST_AMOUNT
-  );
 
   useEffect(() => {
     (() => {
