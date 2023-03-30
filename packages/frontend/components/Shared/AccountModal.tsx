@@ -1,6 +1,7 @@
 import CheckIcon from '@mui/icons-material/Check';
 import CircleIcon from '@mui/icons-material/Circle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ErrorIcon from '@mui/icons-material/Error';
 import LaunchIcon from '@mui/icons-material/Launch';
 import {
   Box,
@@ -242,19 +243,24 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const { palette } = useTheme();
 
+  const iconSx = {
+    background: `${palette.success.main}`,
+    color:
+      entry.status === HistoryEntryStatus.ERROR
+        ? palette.error.main
+        : palette.success.dark,
+    borderRadius: '100%',
+    fontSize: '20px',
+    mr: '-1rem',
+  };
+
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: '-1rem' }} />
+    ) : entry.status === HistoryEntryStatus.ERROR ? (
+      <ErrorIcon sx={iconSx} />
     ) : (
-      <CheckIcon
-        sx={{
-          background: `${palette.success.main}1A`,
-          color: palette.success.dark,
-          borderRadius: '100%',
-          fontSize: '20px',
-          mr: '-1rem',
-        }}
-      />
+      <CheckIcon sx={iconSx} />
     );
 
   const firstTitle =
