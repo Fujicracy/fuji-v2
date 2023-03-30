@@ -225,7 +225,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             isEditing={isEditing}
             actionType={actionType}
             hasBalanceInVault={hasBalanceInVault}
-            onLoginClick={login}
+            onLoginClick={() => login()}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {
