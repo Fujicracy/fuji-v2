@@ -65,6 +65,19 @@ struct ExecuteArgs {
   bytes sequencerSignature;
 }
 
+/**
+ * @notice Enum representing status of destination transfer
+ * @dev Status is only assigned on the destination domain, will always be "none" for the
+ * origin domains
+ * @return uint - Index of value in enum
+ */
+enum DestinationTransferStatus {
+  None, // 0
+  Reconciled, // 1
+  Executed, // 2
+  Completed // 3 - executed + reconciled
+}
+
 interface IConnext {
   function xcall(
     uint32 _destination,
@@ -84,6 +97,8 @@ interface IConnext {
     returns (bool success, bytes memory returnData);
 
   function bumpTransfer(bytes32 transferId) external payable;
+
+  function transferStatus(bytes32 _transferId) external view returns (DestinationTransferStatus);
 }
 
 interface IXReceiver {
