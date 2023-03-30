@@ -179,38 +179,20 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             )
           })}
 
-          <Stack
-            direction="row"
-            m="1rem 0"
-            justifyContent="space-between"
-            onClick={() => {
-              !isEditing &&
-                !onMobile &&
-                address &&
-                availableRoutes.length > 0 &&
-                setShowRoutingModal(true)
-            }}
-            sx={{ cursor: address && "pointer" }}
-          >
-            <Typography variant="smallDark">Optimized Route</Typography>
-            {availableRoutes.length === 0 ? (
-              <></>
-            ) : availableRoutes.length === 1 ? (
-              <Typography variant="h6" sx={{ fontSize: "0.875rem" }}>
-                <u>
-                  {actionType === ActionType.ADD
-                    ? `${chainName(collateral.chainId)} > ${chainName(
-                        debt.chainId
-                      )}`
-                    : `${chainName(debt.chainId)} > ${chainName(
-                        collateral.chainId
-                      )}`}
-                </u>
-              </Typography>
-            ) : (
+          {availableRoutes.length > 1 ? (
+            <Stack
+              direction="row"
+              mt="1rem"
+              justifyContent="space-between"
+              onClick={() => {
+                !isEditing && !onMobile && address && setShowRoutingModal(true)
+              }}
+              sx={{ cursor: address && "pointer" }}
+            >
+              <Typography variant="smallDark">Routes</Typography>
               <Stack direction="row">
                 <Typography variant="h6" sx={{ fontSize: "0.875rem" }}>
-                  View all {availableRoutes.length} Routes
+                  View all Routes
                 </Typography>
                 <ArrowForwardIosIcon
                   viewBox="0 0 24 24"
@@ -220,9 +202,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                   }}
                 />
               </Stack>
-            )}
-          </Stack>
-          <Box mb="1rem">
+            </Stack>
+          ) : (
+            <></>
+          )}
+
+          <Box m="1rem 0">
             <Fees />
           </Box>
 
