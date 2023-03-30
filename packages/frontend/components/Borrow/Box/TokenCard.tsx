@@ -21,10 +21,10 @@ import {
   ActionType,
   AssetChange,
   AssetType,
-  LtvMeta,
   recommendedLTV,
 } from '../../../helpers/assets';
 import { formatValue } from '../../../helpers/values';
+import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
 import { TokenIcon } from '../../Shared/Icons';
@@ -36,7 +36,6 @@ type SelectTokenCardProps = {
   isExecuting: boolean;
   disabled: boolean;
   value: string;
-  ltvMeta: LtvMeta;
   showMax: boolean;
   maxAmount?: number;
   onTokenChange: (token: Token) => void;
@@ -51,7 +50,6 @@ function TokenCard({
   isExecuting,
   disabled,
   value,
-  ltvMeta,
   maxAmount,
   onTokenChange,
   onInputChange,
@@ -59,6 +57,8 @@ function TokenCard({
   const { palette } = useTheme();
 
   const { token, usdPrice, balances, selectableTokens } = assetChange;
+  const collateral = useBorrow((state) => state.collateral);
+  const ltvMeta = useBorrow((state) => state.ltv);
 
   const balance = balances[token.symbol];
 
@@ -78,6 +78,17 @@ function TokenCard({
 
   const handleInput = (val: string) => {
     onInputChange(val);
+  };
+
+  const handleRecommended = () => {
+    if (!collateral.input) return '0';
+
+    const recommended =
+      (Number(collateral.input) *
+        collateral.usdPrice *
+        recommendedLTV(ltvMax)) /
+      100;
+    handleInput(parseFloat(recommended.toFixed(4)).toString() ?? '0');
   };
 
   const handleTokenChange = (token: Token) => {
@@ -197,6 +208,16 @@ function TokenCard({
 
             <Stack direction="row">
               <Typography
+                variant="xsmall"
+                align="center"
+                className={styles.maxBtn}
+                onClick={handleRecommended}
+                data-cy="max-btn"
+                mr="0.4rem"
+              >
+                Recommended
+              </Typography>
+              <Typography
                 variant="smallDark"
                 color={
                   !ltv
@@ -215,24 +236,6 @@ function TokenCard({
                 }}
               >
                 LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
-              </Typography>
-              <Typography
-                variant="smallDark"
-                sx={{
-                  '&::before': {
-                    content: '"Recommended: "',
-                  },
-                  ['@media screen and (max-width: 370px)']: {
-                    fontSize: '0.7rem',
-                  },
-                  ['@media screen and (max-width: 320px)']: {
-                    '&::before': {
-                      content: '"Rec. "',
-                    },
-                  },
-                }}
-              >
-                ({recommendedLTV(ltvMax)}%)
               </Typography>
             </Stack>
           </>

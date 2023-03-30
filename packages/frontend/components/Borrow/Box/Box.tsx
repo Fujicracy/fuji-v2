@@ -1,12 +1,7 @@
 import { Box } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 
-import {
-  ActionType,
-  AssetChange,
-  AssetType,
-  LtvMeta,
-} from '../../../helpers/assets';
+import { ActionType, AssetChange, AssetType } from '../../../helpers/assets';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
 import TokenCard from './TokenCard';
@@ -18,7 +13,6 @@ type BorrowBoxProps = {
   chainId: ChainId;
   isExecuting: boolean;
   value: string;
-  ltvMeta: LtvMeta;
   assetChange: AssetChange;
   showMax: boolean;
   maxAmount?: number;
@@ -32,7 +26,6 @@ function BorrowBox({
   chainId,
   isExecuting,
   value,
-  ltvMeta,
   showMax,
   maxAmount,
 }: BorrowBoxProps) {
@@ -88,7 +81,6 @@ function BorrowBox({
         disabled={isEditing}
         isExecuting={isExecuting}
         value={value}
-        ltvMeta={ltvMeta}
         onTokenChange={(token) =>
           type === 'collateral'
             ? changeCollateralToken(token)
