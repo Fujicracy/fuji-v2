@@ -1,3 +1,4 @@
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import {
   Box,
   Card,
@@ -11,7 +12,8 @@ import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
-import { DUST_AMOUNT_IN_WEI } from '../../constants/borrow';
+import { PATH } from '../../constants';
+import { DUST_AMOUNT_IN_WEI } from '../../constants';
 import { ActionType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
@@ -183,33 +185,35 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             );
           })}
 
-          <Stack
-            direction="row"
-            m="1rem 0"
-            justifyContent="space-between"
-            onClick={() => {
-              !isEditing &&
-                !onMobile &&
-                address &&
-                availableRoutes.length > 0 &&
-                setShowRoutingModal(true);
-            }}
-            sx={{ cursor: address && 'pointer' }}
-          >
-            <Typography variant="small">Route</Typography>
-            <Typography variant="small">
-              <u>
-                {actionType === ActionType.ADD
-                  ? `${chainName(collateral.chainId)} > ${chainName(
-                      debt.chainId
-                    )}`
-                  : `${chainName(debt.chainId)} > ${chainName(
-                      collateral.chainId
-                    )}`}
-              </u>
-            </Typography>
-          </Stack>
-          <Box mb="1rem">
+          {availableRoutes.length > 1 ? (
+            <Stack
+              direction="row"
+              mt="1rem"
+              justifyContent="space-between"
+              onClick={() => {
+                !isEditing && !onMobile && address && setShowRoutingModal(true);
+              }}
+              sx={{ cursor: address && 'pointer' }}
+            >
+              <Typography variant="smallDark">Routes</Typography>
+              <Stack direction="row">
+                <Typography variant="h6" sx={{ fontSize: '0.875rem' }}>
+                  View all Routes
+                </Typography>
+                <ArrowForwardIosIcon
+                  viewBox="0 0 24 24"
+                  sx={{
+                    fontSize: 24,
+                    p: '5px',
+                  }}
+                />
+              </Stack>
+            </Stack>
+          ) : (
+            <></>
+          )}
+
+          <Box m="1rem 0">
             <Fees />
           </Box>
 
@@ -236,7 +240,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {
               if (borrow) {
-                router.push('/borrow');
+                router.push(PATH.BORROW);
               } else {
                 showPosition(router, walletChain?.id, vault, false);
               }

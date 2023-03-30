@@ -1,8 +1,9 @@
-import { Box, Divider, Grid, Typography, useTheme } from '@mui/material';
+import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
 import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
-import { NetworkIcon } from '../../Shared/Icons';
+import { chainName } from '../../../helpers/chains';
+import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
 import APRTooltip from '../../Shared/Tooltips/APRTooltip';
 
 type DetailsProps = {
@@ -60,17 +61,24 @@ function Details({
           </Grid>
           <Grid item>
             {providers?.length ? (
-              <Grid container alignItems="center">
+              <Stack direction="row" gap={0.6} alignItems="center">
+                <ProviderIcon
+                  provider={providers.find((p) => p.active)?.name || ''}
+                  height={18}
+                  width={18}
+                />
+                <Typography variant="small">
+                  {providers.find((p) => p.active)?.name} on
+                </Typography>
                 <NetworkIcon
                   network={vault?.chainId || ''}
                   height={18}
                   width={18}
                 />
-
-                <Typography ml="0.375rem" variant="small">
-                  {providers.find((p) => p.active)?.name}
+                <Typography variant="small">
+                  {chainName(vault?.chainId)}
                 </Typography>
-              </Grid>
+              </Stack>
             ) : (
               'n/a'
             )}

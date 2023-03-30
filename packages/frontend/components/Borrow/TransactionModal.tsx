@@ -28,6 +28,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
+import { PATH } from '../../constants';
 import { chainName } from '../../helpers/chains';
 import { transactionUrl } from '../../helpers/chains';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
@@ -153,7 +154,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     closeModal();
     const vault = vaultFromAddress(entry.vaultAddr);
     if (!vault) {
-      router.push('/my-positions');
+      router.push(PATH.MY_POSITIONS);
       return;
     }
     showPosition(router, undefined, vault);

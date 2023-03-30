@@ -10,9 +10,16 @@ import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { PATH } from '../../constants';
 import { useAuth } from '../../store/auth.store';
 
-function EmptyState({ reason }: { reason: 'no-wallet' | 'no-positions' }) {
+function EmptyState({
+  reason,
+  minHeight,
+}: {
+  reason: 'no-wallet' | 'no-positions';
+  minHeight?: string;
+}) {
   const { palette } = useTheme();
 
   const router = useRouter();
@@ -44,7 +51,7 @@ function EmptyState({ reason }: { reason: 'no-wallet' | 'no-positions' }) {
           ),
           button: {
             label: 'Borrow',
-            action: () => router.push('/borrow'),
+            action: () => router.push(PATH.BORROW),
           },
         };
   }, [reason, login, router]);
@@ -58,7 +65,7 @@ function EmptyState({ reason }: { reason: 'no-wallet' | 'no-positions' }) {
       >
         <Box
           sx={{
-            minHeight: '25rem',
+            minHeight: minHeight || '25rem',
             display: 'flex',
             flexDirection: 'column',
             pt: '3rem',

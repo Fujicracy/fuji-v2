@@ -19,7 +19,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from '../constants/borrow';
+import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -28,6 +28,7 @@ import {
   LtvMeta,
   Mode,
 } from '../helpers/assets';
+import { fetchBalances } from '../helpers/balances';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
@@ -101,6 +102,7 @@ type BorrowActions = {
   changeActiveVault: (v: BorrowingVault) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
+  changeBalances: (type: AssetType, balances: Record<string, number>) => void;
 
   updateAllProviders: () => void;
   updateTokenPrice: (type: AssetType) => void;
@@ -112,8 +114,8 @@ type BorrowActions = {
   updateLtv: () => void;
   updateLiquidation: () => void;
   updateVaultBalance: () => void;
-
   allow: (type: AssetType) => void;
+  updateAvailableRoutes: (routes: RouteMeta[]) => void;
   signPermit: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
@@ -201,6 +203,10 @@ export const useBorrow = create<BorrowStore>()(
           set({ mode, needsSignature: false });
         },
 
+        async updateAvailableRoutes(routes: RouteMeta[]) {
+          set({ availableRoutes: routes });
+        },
+
         async changeAll(collateral, debt, vault) {
           const collaterals = sdk.getCollateralForChain(collateral.chainId);
           const debts = sdk.getDebtForChain(debt.chainId);
@@ -246,7 +252,7 @@ export const useBorrow = create<BorrowStore>()(
           ]);
         },
 
-        changeAssetChain(type, chainId, updateVault) {
+        changeAssetChain(type, chainId: ChainId, updateVault) {
           const tokens =
             type === 'debt'
               ? sdk.getDebtForChain(chainId)
@@ -302,7 +308,7 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId, updateVault) {
+        changeCollateralChain(chainId: ChainId, updateVault) {
           get().changeAssetChain('collateral', chainId, updateVault);
         },
 
@@ -314,7 +320,7 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAssetValue('collateral', value);
         },
 
-        changeDebtChain(chainId, updateVault) {
+        changeDebtChain(chainId: ChainId, updateVault) {
           get().changeAssetChain('debt', chainId, updateVault);
         },
 
@@ -382,18 +388,12 @@ export const useBorrow = create<BorrowStore>()(
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
           const chainId = token.chainId;
+          const balances = await fetchBalances(tokens, address, chainId);
 
-          const rawBalances = await sdk.getTokenBalancesFor(
-            tokens,
-            Address.from(address),
-            chainId
-          );
-          const balances: Record<string, number> = {};
-          rawBalances.forEach((b, i) => {
-            const value = parseFloat(formatUnits(b, tokens[i].decimals));
-            balances[tokens[i].symbol] = value;
-          });
+          get().changeBalances(type, balances);
+        },
 
+        async changeBalances(type, balances) {
           set(
             produce((state: BorrowState) => {
               if (type === 'debt') {
@@ -796,7 +796,6 @@ export const useBorrow = create<BorrowStore>()(
             return tx;
           } catch (e) {
             // TODO: what errors can we catch here?
-            console.error(e);
             useSnack.getState().display({
               type: 'warning',
               title:

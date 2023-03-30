@@ -148,3 +148,14 @@ jobs:
         uses: "google-github-actions/deploy-appengine@v0"
         with:
           deliverables: "frontend-app.yaml"
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: fuji-dao
+          SENTRY_PROJECT: fuji-v2
+          # SENTRY_URL: https://sentry.io/
+        with:
+          environment: production
+          sourcemaps: '${{ env.GITHUB_WORKSPACE }}/packages/frontend/.next/static/chunks'

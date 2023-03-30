@@ -82,8 +82,8 @@ function BorrowBox({
         showTooltip={isEditing && type === 'debt'}
         onChange={(chainId) =>
           type === 'collateral'
-            ? changeCollateralChain(chainId, !isEditing)
-            : changeDebtChain(chainId, !isEditing)
+            ? changeCollateralChain(chainId, true)
+            : changeDebtChain(chainId, true)
         }
       />
       <TokenCard

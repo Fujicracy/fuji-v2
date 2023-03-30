@@ -11,6 +11,12 @@ import { useEffect } from 'react';
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
 import Snackbar from '../components/Shared/Snackbar';
+import { PATH } from '../constants';
+import {
+  changeERC20PollingPolicy,
+  pollBalances,
+  stopPolling,
+} from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
@@ -29,6 +35,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const currentTxHash = useHistory((state) => state.inModal);
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
   const updateVault = useBorrow((state) => state.updateVault);
+  const updateAvailableRoutes = useBorrow(
+    (state) => state.updateAvailableRoutes
+  );
 
   useEffect(() => {
     mixpanel.init('030ddddf19623797be516b634956d108', {
@@ -46,12 +55,27 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [address, fetchPositions, updateVault]);
 
   useEffect(() => {
+    if (address) {
+      pollBalances();
+    } else {
+      stopPolling();
+    }
+    return () => {
+      stopPolling();
+    };
+  }, [address]);
+
+  useEffect(() => {
     const handleRouteChange = (url: string) => {
       const isTop = isTopLevelUrl(url);
       if (isTop && address) {
+        updateAvailableRoutes([]);
         fetchPositions();
         updateVault();
       }
+      const should =
+        url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
+      changeERC20PollingPolicy(should);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {

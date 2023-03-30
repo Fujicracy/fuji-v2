@@ -12,7 +12,7 @@ import { ethers, utils } from 'ethers';
 import { create, StoreApi } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { fujiLogo } from '../constants/ui';
+import { fujiLogo } from '../constants';
 import { chainIdToHex, onboardChains } from '../helpers/chains';
 
 const walletConnect = walletConnectModule({
