@@ -561,7 +561,7 @@ const theme = createTheme(colorTheme, {
       styleOverrides: {
         root: {
           ':last-child': {
-            paddingBottom: '1rem',
+            paddingBottom: '0rem',
           },
         },
       },

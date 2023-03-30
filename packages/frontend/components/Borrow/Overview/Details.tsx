@@ -5,13 +5,15 @@ import { formatUnits } from 'ethers/lib/utils';
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
 import APRTooltip from '../../Shared/Tooltips/APRTooltip';
+import ProvidersTooltip from '../../Shared/Tooltips/ProvidersTooltip';
+import TooltipWrapper from '../../Shared/Tooltips/TooltipWrapper';
 
 type DetailsProps = {
   ltv: number;
   ltvThreshold: number;
-  providers: LendingProviderDetails[] | undefined;
-  vault: BorrowingVault | undefined;
   isMobile: boolean;
+  vault?: BorrowingVault;
+  providers?: LendingProviderDetails[];
 };
 
 function Details({
@@ -49,10 +51,65 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="smallDark">Deposit Interest (APR)</Typography>
+            <APRTooltip />
+          </div>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.success.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].depositRate, 27)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="smallDark">Borrow Interest (APR)</Typography>
+            <APRTooltip />
+          </div>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} isBorrow />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.warning.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
           <Grid item>
-            <Typography variant="smallDark">
-              Collateral will be deposited into
-            </Typography>
+            <Typography variant="smallDark">Collateral Deposited On</Typography>
           </Grid>
           <Grid item>
             {providers?.length ? (
@@ -78,54 +135,6 @@ function Details({
               'n/a'
             )}
           </Grid>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">Deposit Interest (APR)</Typography>
-            <APRTooltip />
-          </div>
-          <Box sx={{ alignItems: 'center' }}>
-            {providers?.length ? (
-              <Typography variant="small">
-                {providers[0].name}:{' '}
-                <span style={{ color: palette.success.main }}>
-                  {(
-                    parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
-                  ).toFixed(2)}
-                  %
-                </span>
-              </Typography>
-            ) : (
-              'n/a'
-            )}
-          </Box>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-            <APRTooltip />
-          </div>
-          <Box sx={{ alignItems: 'center' }}>
-            {providers?.length ? (
-              <Typography variant="small">
-                {providers[0].name}:{' '}
-                <span style={{ color: palette.success.main }}>
-                  {(
-                    parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
-                  ).toFixed(2)}
-                  %
-                </span>
-              </Typography>
-            ) : (
-              'n/a'
-            )}
-          </Box>
         </Grid>
       </DetailContainer>
     </>
