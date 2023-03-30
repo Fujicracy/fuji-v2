@@ -4,7 +4,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { DUST_AMOUNT } from '../constants/borrow';
+import { DUST_AMOUNT } from '../constants';
 import { AssetType } from '../helpers/assets';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -32,7 +32,7 @@ export type PositionsStore = PositionsState & PositionsActions;
 
 export const usePositions = create<PositionsStore>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
 
       fetchUserPositions: async () => {
