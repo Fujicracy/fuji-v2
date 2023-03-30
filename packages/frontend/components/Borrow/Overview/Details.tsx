@@ -1,17 +1,18 @@
-import { Box, Divider, Grid, Stack, Typography, useTheme } from "@mui/material"
-import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
-import { NetworkIcon, ProviderIcon } from "../../Shared/Icons"
-import { formatUnits } from "ethers/lib/utils"
-import APRTooltip from "../../Shared/Tooltips/APRTooltip"
-import { chainName } from "../../../helpers/chains"
+import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
+import { formatUnits } from 'ethers/lib/utils';
+
+import { chainName } from '../../../helpers/chains';
+import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
+import APRTooltip from '../../Shared/Tooltips/APRTooltip';
 
 type DetailsProps = {
-  ltv: number
-  ltvThreshold: number
-  providers: LendingProviderDetails[] | undefined
-  vault: BorrowingVault | undefined
-  isMobile: boolean
-}
+  ltv: number;
+  ltvThreshold: number;
+  providers: LendingProviderDetails[] | undefined;
+  vault: BorrowingVault | undefined;
+  isMobile: boolean;
+};
 
 function Details({
   ltv,
@@ -20,7 +21,7 @@ function Details({
   vault,
   isMobile,
 }: DetailsProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   return (
     <>
@@ -33,7 +34,7 @@ function Details({
           <Typography variant="smallDark">Current Loan-to-Value</Typography>
 
           <Typography variant="small">
-            {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : "n/a"}
+            {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
           </Typography>
         </Grid>
 
@@ -57,7 +58,7 @@ function Details({
             {providers?.length ? (
               <Stack direction="row" gap={0.6} alignItems="center">
                 <ProviderIcon
-                  provider={providers.find((p) => p.active)?.name || ""}
+                  provider={providers.find((p) => p.active)?.name || ''}
                   height={18}
                   width={18}
                 />
@@ -65,7 +66,7 @@ function Details({
                   {providers.find((p) => p.active)?.name} on
                 </Typography>
                 <NetworkIcon
-                  network={vault?.chainId || ""}
+                  network={vault?.chainId || ''}
                   height={18}
                   width={18}
                 />
@@ -74,7 +75,7 @@ function Details({
                 </Typography>
               </Stack>
             ) : (
-              "n/a"
+              'n/a'
             )}
           </Grid>
         </Grid>
@@ -82,14 +83,14 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Deposit Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: "center" }}>
+          <Box sx={{ alignItems: 'center' }}>
             {providers?.length ? (
               <Typography variant="small">
-                {providers[0].name}:{" "}
+                {providers[0].name}:{' '}
                 <span style={{ color: palette.success.main }}>
                   {(
                     parseFloat(formatUnits(providers[0].depositRate, 27)) * 100
@@ -98,7 +99,7 @@ function Details({
                 </span>
               </Typography>
             ) : (
-              "n/a"
+              'n/a'
             )}
           </Box>
         </Grid>
@@ -106,14 +107,14 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
             <APRTooltip />
           </div>
-          <Box sx={{ alignItems: "center" }}>
+          <Box sx={{ alignItems: 'center' }}>
             {providers?.length ? (
               <Typography variant="small">
-                {providers[0].name}:{" "}
+                {providers[0].name}:{' '}
                 <span style={{ color: palette.success.main }}>
                   {(
                     parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
@@ -122,21 +123,21 @@ function Details({
                 </span>
               </Typography>
             ) : (
-              "n/a"
+              'n/a'
             )}
           </Box>
         </Grid>
       </DetailContainer>
     </>
-  )
+  );
 }
 
-export default Details
+export default Details;
 
 type DetailContainerProps = {
-  children: React.ReactNode
-  isMobile: boolean
-}
+  children: React.ReactNode;
+  isMobile: boolean;
+};
 
 function DetailContainer({ children, isMobile }: DetailContainerProps) {
   return isMobile ? (
@@ -145,9 +146,9 @@ function DetailContainer({ children, isMobile }: DetailContainerProps) {
     </Grid>
   ) : (
     <>{children} </>
-  )
+  );
 }
 
 function DetailDivider({ isMobile }: { isMobile: boolean }) {
-  return isMobile ? <></> : <Divider sx={{ mt: 2, mb: 2 }} />
+  return isMobile ? <></> : <Divider sx={{ mt: 2, mb: 2 }} />;
 }

@@ -63,31 +63,31 @@ We use [zustand](https://github.com/pmndrs/zustand) as our primary store for our
 The major drawback is, compared to writing logic in a component: when an action changes the state, you have to manually run dependencies (i.e., computed properties or data that need to be re-fetched -because they depend on something that has changed). This action is a good demonstration:
 
 ```ts
-  async changeCollateralChain(chainId) {
-    const tokens =
-      type === "debt"
-        ? sdk.getDebtForChain(parseInt(chainId, 16))
-        : sdk.getCollateralForChain(parseInt(chainId, 16))
+changeAssetChain(type, chainId, updateVault) {
+  const tokens =
+    type === "debt"
+      ? sdk.getDebtForChain(chainId)
+      : sdk.getCollateralForChain(chainId)
 
-    set(
-      produce((state: BorrowState) => {
-        if (type === "debt") {
-          state.debt.chainId = chainId
-          state.debt.selectableTokens = tokens
-          state.debt.token = tokens[0]
-        } else {
-          state.collateral.chainId = chainId
-          state.collateral.selectableTokens = tokens
-          state.collateral.token = tokens[0]
-        }
-      })
-    )
+  set(
+    produce((state: BorrowState) => {
+      const t = type === "debt" ? state.debt : state.collateral
+      t.chainId = chainId
+      t.selectableTokens = tokens
+      t.token = tokens[0]
+    })
+  )
+  get().updateTokenPrice(type)
+  get().updateBalances(type)
 
-    get().updateTokenPrice(type)
-    get().updateBalances(type)
+  if (updateVault) {
     get().updateVault()
-    get().updateAllowance(type)
-  },
+  } else {
+    get().updateTransactionMeta()
+  }
+
+  get().updateAllowance(type)
+},
 ```
 
 I wrote most of the store with this logic: `changeXX` is a primary value, and `upateXX` is an action to change a secondary - computed / fetched - value.

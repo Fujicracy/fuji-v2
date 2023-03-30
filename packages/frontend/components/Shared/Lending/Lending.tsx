@@ -1,12 +1,12 @@
-import { useState } from "react"
-import { Card, Typography, useTheme } from "@mui/material"
-import Image from "next/image"
+import { Card, Typography, useTheme } from '@mui/material';
+import Image from 'next/image';
+import { useState } from 'react';
 // import { useAuth } from "../../store/auth.store"
 
 function Lending() {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
   // const [email, setEmail] = useState("")
-  const [isSubmitted] = useState(false)
+  const [isSubmitted] = useState(false);
   // const [errorMessage, setErrorMessage] = useState("")
   // const address = useAuth((state) => state.address)
   // const login = useAuth((state) => state.login)
@@ -30,9 +30,9 @@ function Lending() {
     <Card
       variant="lending"
       sx={{
-        p: { xs: "1rem", md: "8rem 27.5rem" },
-        width: "100%",
-        height: "100%",
+        p: { xs: '1rem', md: '8rem 27.5rem' },
+        width: '100%',
+        height: '100%',
       }}
       raised
     >
@@ -43,24 +43,24 @@ function Lending() {
         height={64}
         style={{
           background: palette.secondary.dark,
-          borderRadius: "100%",
+          borderRadius: '100%',
         }}
       />
       <Typography variant="h4" mt="1.375rem">
         Himalaya Lend
         <br />
-        {isSubmitted && "You’re on the waitlist!"}
+        {isSubmitted && 'You’re on the waitlist!'}
       </Typography>
 
       <Typography
         color={palette.info.main}
         variant="small"
         m="1rem"
-        sx={{ width: { xs: "100%", sm: "22.5rem" } }}
+        sx={{ width: { xs: '100%', sm: '22.5rem' } }}
       >
         {!isSubmitted
-          ? "Retail and insituition lending interest rate optimization. Be the first to use our beta platform"
-          : "Want to cut to the front? Fill out this survey to be one of the first to gain access."}
+          ? 'Retail and insituition lending interest rate optimization. Be the first to use our beta platform'
+          : 'Want to cut to the front? Fill out this survey to be one of the first to gain access.'}
       </Typography>
 
       {/*{!address ? (*/}
@@ -111,7 +111,7 @@ function Lending() {
       {/*  </>*/}
       {/*)}*/}
     </Card>
-  )
+  );
 }
 
-export default Lending
+export default Lending;

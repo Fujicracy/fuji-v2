@@ -1,4 +1,4 @@
-import { ActionType, Mode } from "./assets"
+import { ActionType, Mode } from './assets';
 
 export function modeForContext(
   isEditing: boolean,
@@ -6,17 +6,17 @@ export function modeForContext(
   collateral: number,
   debt: number
 ): Mode {
-  if (!isEditing) return Mode.DEPOSIT_AND_BORROW
+  if (!isEditing) return Mode.DEPOSIT_AND_BORROW;
   if ((collateral > 0 && debt > 0) || (collateral === 0 && debt === 0)) {
     return ActionType.ADD === actionType
       ? Mode.DEPOSIT_AND_BORROW
-      : Mode.PAYBACK_AND_WITHDRAW
+      : Mode.PAYBACK_AND_WITHDRAW;
   } else if (collateral > 0) {
-    return ActionType.ADD === actionType ? Mode.DEPOSIT : Mode.WITHDRAW
+    return ActionType.ADD === actionType ? Mode.DEPOSIT : Mode.WITHDRAW;
   } else if (debt > 0) {
-    return ActionType.ADD === actionType ? Mode.BORROW : Mode.PAYBACK
+    return ActionType.ADD === actionType ? Mode.BORROW : Mode.PAYBACK;
   }
-  return Mode.DEPOSIT_AND_BORROW
+  return Mode.DEPOSIT_AND_BORROW;
 }
 
 export const failureForMode = (
@@ -29,5 +29,5 @@ export const failureForMode = (
       (!collateral || !debt)) ||
     ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) && !collateral) ||
     ((mode === Mode.BORROW || mode === Mode.PAYBACK) && !debt)
-  )
-}
+  );
+};

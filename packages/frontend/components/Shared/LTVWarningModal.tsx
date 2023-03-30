@@ -1,12 +1,12 @@
-import { Button, Typography, Box, Dialog, Paper } from "@mui/material"
-import { useTheme } from "@mui/material/styles"
+import { Box, Button, Dialog, Paper, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 type LTVWarningModalProps = {
-  open: boolean
-  ltv: number
-  onClose: () => void
-  action: () => void
-}
+  open: boolean;
+  ltv: number;
+  onClose: () => void;
+  action: () => void;
+};
 
 export function LTVWarningModal({
   open,
@@ -14,31 +14,31 @@ export function LTVWarningModal({
   action,
   ltv,
 }: LTVWarningModalProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   const message = `The Loan-to-Value of your position becomes ${ltv.toFixed(
     0
-  )}% that's very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes.`
+  )}% that's very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes.`;
 
   return (
     <Dialog open={open}>
       <Paper
         variant="outlined"
         sx={{
-          maxWidth: "30rem",
-          p: { xs: "1rem", sm: "1.5rem" },
-          textAlign: "center",
+          maxWidth: '30rem',
+          p: { xs: '1rem', sm: '1.5rem' },
+          textAlign: 'center',
         }}
       >
         <Typography variant="h5" color={palette.text.primary}>
           Warning
         </Typography>
 
-        <Typography mt="1rem" textAlign="start" sx={{ fontSize: "1rem" }}>
+        <Typography mt="1rem" textAlign="start" sx={{ fontSize: '1rem' }}>
           {message}
         </Typography>
 
-        <Typography mt="0.5rem" textAlign="start" sx={{ fontSize: "1rem" }}>
+        <Typography mt="0.5rem" textAlign="start" sx={{ fontSize: '1rem' }}>
           Please, make sure you understand the risks associated with this
           operation. We highly recommend you change the amount of the collateral
           and/or the debt so that your position LTV reaches a healthier level.
@@ -47,9 +47,9 @@ export function LTVWarningModal({
         <Box
           mt="1.5rem"
           sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: "1rem", sm: "2rem" },
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: '1rem', sm: '2rem' },
           }}
         >
           <Button
@@ -73,7 +73,7 @@ export function LTVWarningModal({
         </Box>
       </Paper>
     </Dialog>
-  )
+  );
 }
 
-export default LTVWarningModal
+export default LTVWarningModal;

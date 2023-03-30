@@ -1,9 +1,9 @@
-import React from "react"
-import { Tooltip, useTheme } from "@mui/material"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { Tooltip, useTheme } from '@mui/material';
+import React from 'react';
 
 function APRTooltip() {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   return (
     <Tooltip
@@ -12,14 +12,14 @@ function APRTooltip() {
     >
       <InfoOutlinedIcon
         sx={{
-          ml: "0.4rem",
-          fontSize: "0.875rem",
+          ml: '0.4rem',
+          fontSize: '0.875rem',
           color: palette.info.dark,
-          display: { xs: "none", sm: "inline" },
+          display: { xs: 'none', sm: 'inline' },
         }}
       />
     </Tooltip>
-  )
+  );
 }
 
-export default APRTooltip
+export default APRTooltip;

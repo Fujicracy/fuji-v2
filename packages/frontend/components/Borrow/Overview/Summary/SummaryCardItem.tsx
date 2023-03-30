@@ -1,16 +1,17 @@
-import React from "react"
-import { Card, Chip, Grid, Typography, useTheme } from "@mui/material"
-import { Stack } from "@mui/system"
-import { liquidationColor } from "../../../../helpers/positions"
+import { Card, Chip, Grid, Typography, useTheme } from '@mui/material';
+import { Stack } from '@mui/system';
+import React from 'react';
+
+import { liquidationColor } from '../../../../helpers/positions';
 
 type SummaryCardItemProps = {
-  title: string
-  amount: string
-  footer: string
-  value?: number
-  extra?: string | number
-  isMobile: boolean
-}
+  title: string;
+  amount: string;
+  footer: string;
+  value?: number;
+  extra?: string | number;
+  isMobile: boolean;
+};
 
 function SummaryCardItem({
   title,
@@ -20,42 +21,46 @@ function SummaryCardItem({
   extra,
   isMobile,
 }: SummaryCardItemProps) {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   if (isMobile) {
-    const shouldHaveParenthesis = title !== "Current Price"
-    const content = `${amount} ${shouldHaveParenthesis ? "(" : ""}${footer}${
-      shouldHaveParenthesis ? ")" : ""
-    }`
+    const shouldHaveParenthesis =
+      title !== 'Current Price' && title !== 'Borrowed Value';
+    const content = `${amount} ${shouldHaveParenthesis ? '(' : ''}${
+      title !== 'Borrowed Value' ? footer : ''
+    }${shouldHaveParenthesis ? ')' : ''}`;
 
     return (
-      <Grid item sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Grid item sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="smallDark">{title}</Typography>
-        <Typography variant="small">{content}</Typography>
+        <Typography variant="small" sx={{ textAlign: 'right' }}>
+          {content}
+        </Typography>
       </Grid>
-    )
+    );
   }
   return (
     <Grid item xs={6}>
       <Card variant="position">
         <Typography variant="smallDark">{title}</Typography>
         <Stack
-          direction={"row"}
-          alignItems="left"
-          justifyContent={"center-vertical"}
+          direction="row"
+          alignItems="right"
+          justifyContent={'center-vertical'}
+          sx={{ textAlign: 'right' }}
         >
           <Typography variant="regularH4" mb="0.5rem">
             {amount}
           </Typography>
           {extra && (
             <Chip
-              sx={{ marginLeft: "0.5rem" }}
+              sx={{ marginLeft: '0.5rem' }}
               label={`${extra} after`}
-              variant={"currency"}
+              variant={'currency'}
             />
           )}
         </Stack>
-        {footer && footer.includes("below current price") ? (
+        {footer && footer.includes('below current price') ? (
           <Typography
             variant="smallDark"
             mb="1rem"
@@ -65,9 +70,9 @@ function SummaryCardItem({
                 : palette.info.dark,
             }}
           >
-            {footer.split("below current price")[0]}
+            {footer.split('below current price')[0]}
             <Typography variant="smallDark" mb="1rem">
-              {footer.split("%")[1]}
+              {footer.split('%')[1]}
             </Typography>
           </Typography>
         ) : (
@@ -77,12 +82,12 @@ function SummaryCardItem({
         )}
       </Card>
     </Grid>
-  )
+  );
 }
 
-export default SummaryCardItem
+export default SummaryCardItem;
 
 SummaryCardItem.defaultProps = {
   extra: undefined,
   value: undefined,
-}
+};

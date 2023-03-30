@@ -1,12 +1,13 @@
-import { Divider, Stack, Typography } from "@mui/material"
-import { BorrowingVault, LendingProviderDetails } from "@x-fuji/sdk"
-import { DocsTooltip } from "../../Shared/Tooltips"
-import VaultsMenu from "./VaultsMenu"
+import { Divider, Stack, Typography } from '@mui/material';
+import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
+
+import { DocsTooltip } from '../../Shared/Tooltips';
+import VaultsMenu from './VaultsMenu';
 
 type TitleProps = {
-  providers: LendingProviderDetails[] | undefined
-  vault: BorrowingVault | undefined
-}
+  providers: LendingProviderDetails[] | undefined;
+  vault: BorrowingVault | undefined;
+};
 
 function Title({ providers, vault }: TitleProps) {
   return (
@@ -28,9 +29,9 @@ function Title({ providers, vault }: TitleProps) {
           </Stack>
         )}
       </Stack>
-      <Divider sx={{ mt: "1rem", mb: "1.5rem" }} />
+      <Divider sx={{ mt: '1rem', mb: '1.5rem' }} />
     </>
-  )
+  );
 }
 
-export default Title
+export default Title;

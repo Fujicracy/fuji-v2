@@ -1,25 +1,25 @@
-import { Tooltip } from "@mui/material"
-import React, { useEffect, useRef, useState } from "react"
+import { Tooltip } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
 
 type WithTooltipProps = {
-  title: React.ReactElement | string
-  children: React.ReactElement
+  title: React.ReactElement | string;
+  children: React.ReactElement;
   placement:
-    | "left"
-    | "right"
-    | "top"
-    | "bottom"
-    | "top-start"
-    | "top-end"
-    | "bottom-start"
-    | "bottom-end"
-    | "right-start"
-    | "right-end"
-    | "left-start"
-    | "left-end"
-    | undefined
-  defaultOpen?: boolean
-}
+    | 'left'
+    | 'right'
+    | 'top'
+    | 'bottom'
+    | 'top-start'
+    | 'top-end'
+    | 'bottom-start'
+    | 'bottom-end'
+    | 'right-start'
+    | 'right-end'
+    | 'left-start'
+    | 'left-end'
+    | undefined;
+  defaultOpen?: boolean;
+};
 
 function TooltipWrapper({
   title,
@@ -27,28 +27,28 @@ function TooltipWrapper({
   placement,
   defaultOpen,
 }: WithTooltipProps) {
-  const [open, setOpen] = useState(Boolean(defaultOpen))
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [open, setOpen] = useState(Boolean(defaultOpen));
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearHideTimer = () => {
-    timerRef.current && clearTimeout(timerRef.current)
-  }
+    timerRef.current && clearTimeout(timerRef.current);
+  };
 
   useEffect(() => {
     if (defaultOpen) {
       timerRef.current = setTimeout(() => {
-        setOpen(false)
-        clearHideTimer()
-      }, 5000)
+        setOpen(false);
+        clearHideTimer();
+      }, 5000);
     }
 
     return () => {
-      clearHideTimer()
-    }
-  }, [defaultOpen])
+      clearHideTimer();
+    };
+  }, [defaultOpen]);
 
   return (
-    <div style={{ display: "inline" }} onMouseOver={clearHideTimer}>
+    <div style={{ display: 'inline' }} onMouseOver={clearHideTimer}>
       <Tooltip
         title={title}
         placement={placement}
@@ -56,12 +56,12 @@ function TooltipWrapper({
         onOpen={() => setOpen(true)}
         open={open}
         arrow
-        sx={{ display: { xs: "inline", sm: "none" } }}
+        sx={{ display: { xs: 'inline', sm: 'none' } }}
       >
-        <div style={{ cursor: "pointer" }}>{children}</div>
+        <div style={{ cursor: 'pointer' }}>{children}</div>
       </Tooltip>
     </div>
-  )
+  );
 }
 
-export default TooltipWrapper
+export default TooltipWrapper;
