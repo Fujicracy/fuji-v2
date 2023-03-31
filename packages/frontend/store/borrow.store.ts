@@ -723,7 +723,11 @@ export const useBorrow = create<BorrowStore>()(
               message: 'Allowance is successful',
               type: 'success',
               isTransaction: true,
-              link: getTransactionUrl(approval) || '',
+              link:
+                getTransactionUrl({
+                  hash: approval.hash,
+                  chainId: token.chainId,
+                }) || '',
             });
           } catch (e) {
             changeAllowance('error');
