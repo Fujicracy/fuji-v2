@@ -271,7 +271,6 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
         )} ${firstStep.token.symbol}`
       : '';
 
-  const connector = firstStep ? ' and ' : '';
   const secondTitle =
     secondStep && secondStep.token
       ? `${secondStep.step.toString()} ${formatUnits(
@@ -279,6 +278,8 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
           secondStep.token.decimals
         )} ${secondStep.token.symbol}`
       : '';
+
+  const connector = secondTitle ? ' and ' : '';
 
   const title = capitalize(firstTitle + connector + secondTitle);
 
