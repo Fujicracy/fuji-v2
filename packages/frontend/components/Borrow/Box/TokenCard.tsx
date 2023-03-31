@@ -235,17 +235,6 @@ function TokenCard({
 
             <Stack direction="row">
               <Typography
-                variant="xsmall"
-                align="center"
-                className={styles.maxBtn}
-                onClick={handleRecommended}
-                data-cy="max-btn"
-                mr="0.4rem"
-                mt="0.1rem"
-              >
-                Recommended
-              </Typography>
-              <Typography
                 variant="smallDark"
                 color={
                   !ltv
@@ -264,6 +253,27 @@ function TokenCard({
                 }}
               >
                 LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
+              </Typography>
+
+              <Typography
+                variant="smallDark"
+                sx={{
+                  cursor: 'pointer',
+                  '&::before': {
+                    content: '"Recommended: "',
+                  },
+                  ['@media screen and (max-width: 370px)']: {
+                    fontSize: '0.7rem',
+                  },
+                  ['@media screen and (max-width: 320px)']: {
+                    '&::before': {
+                      content: '"Rec. "',
+                    },
+                  },
+                }}
+                onClick={handleRecommended}
+              >
+                ({recommendedLTV(ltvMax)}%)
               </Typography>
             </Stack>
           </>
