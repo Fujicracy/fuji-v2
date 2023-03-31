@@ -31,7 +31,7 @@ import {
 import { fetchBalances } from '../helpers/balances';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
-import { notify } from '../helpers/notifications';
+import { getTransactionUrl, notify } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -719,8 +719,15 @@ export const useBorrow = create<BorrowStore>()(
             await approval.wait();
 
             changeAllowance('ready', amount);
+            notify({
+              message: '',
+              type: 'success',
+              isTransaction: true,
+              link: getTransactionUrl(approval) || '',
+            });
           } catch (e) {
             changeAllowance('error');
+            notify({ message: 'Allowance was not successful', type: 'error' });
           }
         },
 
