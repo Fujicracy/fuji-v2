@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   productionBrowserSourceMaps: true,
+  // TODO: remove when ready for prod
   async redirects() {
     return [
       {
-        source: '/',
-        destination: '/markets',
+        source: '/markets',
+        destination: '/',
         permanent: true,
       },
     ];

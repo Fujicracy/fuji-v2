@@ -13,8 +13,8 @@ const MyPositionPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>My positions - Fuji-v2</title>
-        <meta name="description" content="See and manage your open positions" />
+        <title>My positions - Fuji V2 Himalaya</title>
+        <meta name="description" content="Manage your open positions" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

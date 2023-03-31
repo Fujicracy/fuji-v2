@@ -17,9 +17,6 @@ export const topLevelPages: Page[] = [
   { title: 'Lend', path: PATH.LEND },
   { title: 'My positions', path: PATH.MY_POSITIONS },
 ];
-if (process.env.NEXT_PUBLIC_APP_ENV === 'development') {
-  topLevelPages.push({ title: 'Theming', path: PATH.THEMING }); // Design testing
-}
 
 export const myPositionPage: Page = {
   title: 'Position',

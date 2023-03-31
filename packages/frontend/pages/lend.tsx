@@ -19,8 +19,8 @@ const MarketsPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Markets - xFuji</title>
-        <meta name="description" content="Lend and get interest" />
+        <title>Lending - Fuji V2 Himalaya</title>
+        <meta name="description" content="Lend assets and earn interest" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

@@ -100,14 +100,10 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   return (
     <>
       <Head>
-        <title>{`${isEditing ? 'Position' : 'Borrow'} - xFuji`}</title>
+        <title>Position - Fuji V2 Himalaya</title>
         <meta
           name="description"
-          content={`${
-            isEditing
-              ? 'position detail'
-              : 'borrow at the best rate on any chain'
-          }`}
+          content="Deposit, borrow and repay your positions from any chain."
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
