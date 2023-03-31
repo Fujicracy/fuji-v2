@@ -720,7 +720,7 @@ export const useBorrow = create<BorrowStore>()(
 
             changeAllowance('ready', amount);
             notify({
-              message: '',
+              message: 'Allowance is successful',
               type: 'success',
               isTransaction: true,
               link: getTransactionUrl(approval) || '',

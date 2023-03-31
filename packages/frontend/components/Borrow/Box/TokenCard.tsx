@@ -85,7 +85,7 @@ function TokenCard({
         ? basePosition.position.collateral.amount -
           (basePosition.position.debt.amount - Number(debt.input)) /
             ((ltvMax / 100) * collateral.usdPrice)
-        : maxAmount.toString();
+        : maxAmount;
     handleInput(String(amount));
   };
 
