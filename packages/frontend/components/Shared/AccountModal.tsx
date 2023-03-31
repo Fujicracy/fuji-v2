@@ -1,7 +1,7 @@
 import CheckIcon from '@mui/icons-material/Check';
 import CircleIcon from '@mui/icons-material/Circle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ErrorIcon from '@mui/icons-material/Error';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import LaunchIcon from '@mui/icons-material/Launch';
 import {
   Box,
@@ -243,24 +243,20 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const { palette } = useTheme();
 
-  const iconSx = {
-    background: `${palette.success.main}`,
-    color:
-      entry.status === HistoryEntryStatus.ERROR
-        ? palette.error.main
-        : palette.success.dark,
-    borderRadius: '100%',
-    fontSize: '20px',
-    mr: '-1rem',
-  };
-
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: '-1rem' }} />
     ) : entry.status === HistoryEntryStatus.ERROR ? (
-      <ErrorIcon sx={iconSx} />
+      <ErrorOutlineIcon />
     ) : (
-      <CheckIcon sx={iconSx} />
+      <CheckIcon
+        sx={{
+          backgroundColor: palette.success.dark,
+          borderRadius: '100%',
+          padding: '0.2rem',
+        }}
+        fontSize="small"
+      />
     );
 
   const firstTitle =
@@ -284,8 +280,15 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const title = capitalize(firstTitle + connector + secondTitle);
 
   return (
-    <ListItemButton sx={{ px: '1.25rem', py: '.25rem' }} onClick={onClick}>
-      <ListItem secondaryAction={listAction} sx={{ p: 0, pr: '3rem' }}>
+    <ListItemButton
+      sx={{
+        px: '1.25rem',
+        py: '.25rem',
+        '& .MuiListItemSecondaryAction-root': { right: 0 },
+      }}
+      onClick={onClick}
+    >
+      <ListItem secondaryAction={listAction} sx={{ p: 0 }}>
         <ListItemText sx={{ m: 0 }}>
           <Typography variant="xsmall">{title}</Typography>
         </ListItemText>
