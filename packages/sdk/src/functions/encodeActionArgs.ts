@@ -84,7 +84,15 @@ export function encodeActionArgs(
     const innerActions = params.innerActions.map(({ action }) =>
       BigNumber.from(action)
     );
-    const innerArgs = params.innerActions.map(encodeActionArgs);
+    const innerResult = params.innerActions.map(encodeActionArgs);
+    const error = innerResult.find((r): r is FujiResultError => !r.success);
+    if (error)
+      return new FujiResultError(error.error.code, error.error.message);
+
+    const innerArgs: string[] = (
+      innerResult as FujiResultSuccess<string>[]
+    ).map((r) => r.data);
+
     const callData = defaultAbiCoder.encode(
       ['uint8[]', 'bytes[]', 'uint256'],
       [innerActions, innerArgs, params.slippage]

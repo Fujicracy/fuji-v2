@@ -177,7 +177,7 @@ export class Sdk {
     account: Address,
     chainId: ChainId
   ): FujiResultPromise<BigNumber[]> {
-    if (tokens.find((t) => t.chainId === chainId)) {
+    if (tokens.find((t) => t.chainId !== chainId)) {
       return new FujiResultError(
         FujiErrorCode.SDK,
         'Token from a different chain!',
@@ -377,18 +377,14 @@ export class Sdk {
 
     const actions = _actionParams.map(({ action }) => BigNumber.from(action));
     const result = _actionParams.map(encodeActionArgs);
-    const args: string[] = result
-      .filter((result): result is FujiResultSuccess<string> => result.success)
-      .map((result) => result.data);
 
-    if (args.length !== _actionParams.length) {
-      const error = result.find((r): r is FujiResultError => !r.success);
-      if (!error?.success)
-        return new FujiResultError(
-          error?.error.code ?? FujiErrorCode.SDK,
-          error?.error.message || 'Unknown error'
-        );
-    }
+    const error = result.find((r): r is FujiResultError => !r.success);
+    if (error)
+      return new FujiResultError(error.error.code, error.error.message);
+
+    const args: string[] = (result as FujiResultSuccess<string>[]).map(
+      (r) => r.data
+    );
 
     const callData =
       ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
