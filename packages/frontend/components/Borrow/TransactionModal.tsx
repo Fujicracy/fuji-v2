@@ -24,7 +24,6 @@ import StepConnector, {
 import { styled, useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -118,26 +117,18 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                   `${action} ${amount} ${token.symbol} ${preposition} ${chain}`
                 );
 
-          const icon =
-            step === RoutingStep.X_TRANSFER ? (
-              <Image
-                src="/assets/images/logo/connext.svg"
-                height={32}
-                width={32}
-                alt="Connext"
-              />
-            ) : (
-              <NetworkIcon network={chain} height={32} width={32} />
-            );
-
           return {
             label,
             chainId,
             txHash,
-            link: step === RoutingStep.X_TRANSFER ? connextScanLink : link,
+            link,
             description:
               step === RoutingStep.X_TRANSFER ? 'Connext' : `${chain} Network`,
-            icon: () => <Box sx={style}>{icon}</Box>,
+            icon: () => (
+              <Box sx={style}>
+                <NetworkIcon network={chain} height={32} width={32} />
+              </Box>
+            ),
           };
         })
         // remove "START", "END" and steps with no token
