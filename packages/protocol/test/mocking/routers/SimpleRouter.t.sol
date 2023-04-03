@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "forge-std/Test.sol";
 
 import "forge-std/console2.sol";
+import {MockRoutines} from "../MockRoutines.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -23,6 +24,7 @@ import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
 import {MockProvider} from "../../../src/mocks/MockProvider.sol";
 import {MockERC20} from "../../../src/mocks/MockERC20.sol";
 import {MockOracle} from "../../../src/mocks/MockOracle.sol";
+import {MockSwapper} from "../../../src/mocks/MockSwapper.sol";
 import {Chief} from "../../../src/Chief.sol";
 import {CoreRoles} from "../../../src/access/CoreRoles.sol";
 import {IVaultPermissions} from "../../../src/interfaces/IVaultPermissions.sol";
@@ -34,7 +36,7 @@ contract SelfDestructor {
   }
 }
 
-contract SimpleRouterUnitTests is MockingSetup {
+contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Withdraw(
@@ -503,5 +505,51 @@ contract SimpleRouterUnitTests is MockingSetup {
 
     assertEq(vault.balanceOf(ALICE), amount);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+  }
+
+  function test_attackViaSwapper() public {
+    MockSwapper swapper = new MockSwapper(oracle);
+    // This test WBTC is assumed to be 18 decimals for testing simplicity
+    MockERC20 tWBTC = new MockERC20("Test WBTC", "tWBTC");
+    // Chainlink type price in 8 decimals.
+    uint256 usdPerWBTCPrice = 30000e8;
+    oracle.setUSDPriceOf(address(tWBTC), usdPerWBTCPrice);
+
+    do_deposit(amount, vault, ALICE);
+
+    // alice signs a permit withdrawal for the router for some reason
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+    );
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+    // Attacker front-runs permit and creates attack bundle
+    address ATTACKER = BOB;
+    IRouter.Action[] memory attackActions = new IRouter.Action[](3);
+    bytes[] memory attackArgs = new bytes[](3);
+
+    attackActions[0] = IRouter.Action.PermitWithdraw;
+    attackArgs[0] =
+      abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
+    attackActions[1] = IRouter.Action.Withdraw;
+    attackArgs[1] =
+      abi.encode(address(vault), amount, address(simpleRouter), address(simpleRouter), ALICE);
+    attackActions[2] = IRouter.Action.Swap;
+    attackArgs[2] = abi.encode(
+      address(swapper),
+      collateralAsset,
+      address(tWBTC),
+      amount,
+      (usdPerWBTCPrice * 1e18) / USD_PER_ETH_PRICE,
+      ATTACKER,
+      ATTACKER,
+      0
+    );
+
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    vm.startPrank(ATTACKER);
+    simpleRouter.xBundle(attackActions, attackArgs);
+    vm.stopPrank();
   }
 }
