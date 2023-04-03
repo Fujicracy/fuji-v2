@@ -514,4 +514,62 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_swapNotFirstAction.selector);
     connextRouter.xBundle(actions1, args1);
   }
+
+  function test_flashClose() public {
+    uint256 amount = 2 ether;
+
+    MockTestFlasher flasher = new MockTestFlasher();
+    deal(collateralAsset, ALICE, amount);
+
+    //deposit in GOERLI
+    do_deposit(amount, vault, ALICE);
+
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(address(vault)), address(connextRouter), amount);
+    vm.stopPrank();
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
+    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+
+    //withdraw from goerli and transfer amount/2 w/ call to optimism
+    IRouter.Action[] memory originActions = new IRouter.Action[](2);
+    bytes[] memory originArgs = new bytes[](2);
+    originActions[0] = IRouter.Action.Withdraw;
+    originArgs[0] = abi.encode(address(vault), amount / 2, address(connextRouter), ALICE);
+    originActions[1] = IRouter.Action.XTransferWithCall;
+
+    //flashloan in optimism
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    bytes[] memory destArgs = new bytes[](1);
+    destActions[0] = IRouter.Action.Flashloan;
+
+    // Perform a flashclose
+    IRouter.Action[] memory destInnerActions = new IRouter.Action[](4);
+    bytes[] memory destInnerArgs = new bytes[](4);
+    destInnerActions[0] = IRouter.Action.Payback;
+    destInnerArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
+    destInnerActions[1] = IRouter.Action.PermitWithdraw;
+    destInnerActions[2] = IRouter.Action.Withdraw;
+    destInnerActions[3] = IRouter.Action.Swap;
+
+    //flashloan parameters
+    bytes memory requestorCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, destInnerActions, destInnerArgs);
+    //optimism args for flashloan
+    destArgs[0] = abi.encode(
+      address(flasher), collateralAsset, amount, address(connextRouter), requestorCalldata
+    );
+    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+
+    //origin args for xTransfer amount/2 WithCall flashloan
+    originArgs[1] =
+      abi.encode(destDomain, slippageThreshold, collateralAsset, amount / 2, destCallData);
+
+    vm.expectEmit(false, false, false, false);
+    emit Dispatch("", 1, "", "");
+    connextRouter.xBundle(originActions, originArgs);
+  }
 }
