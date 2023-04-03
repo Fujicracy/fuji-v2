@@ -27,7 +27,7 @@ export const myPositionPage: Page = {
 };
 
 export const isTopLevelUrl = (url: string) =>
-  topLevelPages.find((p) => p.path === url);
+  topLevelPages.some((p) => p.path === url);
 
 export const showPosition = async (
   router: NextRouter,
@@ -56,7 +56,7 @@ export const showPosition = async (
   }
 
   const positions = usePositions.getState().positions;
-  if (positions?.find((p) => p.vault?.address.value === vault.address.value)) {
+  if (positions?.some((p) => p.vault?.address.value === vault.address.value)) {
     router.push(`/my-positions/${vault.address.value}-${vault.chainId}`);
   } else {
     router.push(`/borrow`);
