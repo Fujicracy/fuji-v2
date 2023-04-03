@@ -35,6 +35,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault);
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : [];
+  const mode = useBorrow((state) => state.mode);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
@@ -61,11 +62,13 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
 
       <LTVProgressBar
         borrowLimit={borrowLimit(
+          mode,
           futurePosition
             ? futurePosition.collateral.amount
             : collateralInput
             ? parseFloat(collateralInput)
             : 0,
+          parseFloat(collateralInput),
           collateral.usdPrice,
           dynamicLtv
         )}
