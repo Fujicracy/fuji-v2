@@ -8,6 +8,7 @@ function Footer() {
   return (
     <footer
       style={{
+        display: 'none',
         width: '100%',
         bottom: 0,
         color: palette.text.secondary,
