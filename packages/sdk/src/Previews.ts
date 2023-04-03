@@ -1,13 +1,25 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
-import invariant from 'tiny-invariant';
 
-import { CHAIN, CONNEXT_ROUTER_ADDRESS, DEFAULT_SLIPPAGE } from './constants';
+import {
+  CHAIN,
+  CONNEXT_ROUTER_ADDRESS,
+  DEFAULT_SLIPPAGE,
+  FujiErrorCode,
+} from './constants';
 import { LENDING_PROVIDERS } from './constants/lending-providers';
-import { Address, BorrowingVault, Token } from './entities';
+import {
+  Address,
+  BorrowingVault,
+  FujiError,
+  FujiResultError,
+  FujiResultSuccess,
+  Token,
+} from './entities';
 import { Chain } from './entities/Chain';
 import { ChainId, RouterAction, RoutingStep } from './enums';
 import { Nxtp } from './Nxtp';
+import { FujiResult, FujiResultPromise } from './types';
 import { MetaRoutingResult } from './types/MetaRoutingResult';
 import { PreviewResult } from './types/PreviewResult';
 import {
@@ -31,7 +43,7 @@ export class Previews {
     tokenIn: Token,
     account: Address,
     slippage?: number
-  ): Promise<PreviewResult> {
+  ): FujiResultPromise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
     const _slippage = slippage ?? DEFAULT_SLIPPAGE;
@@ -46,26 +58,36 @@ export class Previews {
       const innerActions = [
         this._deposit(vault, amountIn, account, connextRouter),
       ];
-      actions = [
-        this._xTransferWithCall(
-          vault.chainId,
-          tokenIn,
-          amountIn,
-          _slippage,
-          innerActions
-        ),
-      ];
+      const xTransferResult = this._xTransferWithCall(
+        vault.chainId,
+        tokenIn,
+        amountIn,
+        _slippage,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     }
 
-    const { estimateTime, estimateSlippage, bridgeFee, steps } =
-      await this.inflowRoutingDetails(
-        RoutingStep.DEPOSIT,
-        vault,
-        amountIn,
-        tokenIn
-      );
-
-    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
+    const result = await this.inflowRoutingDetails(
+      RoutingStep.DEPOSIT,
+      vault,
+      amountIn,
+      tokenIn
+    );
+    if (!result.success) {
+      return result;
+    }
+    const { estimateTime, estimateSlippage, bridgeFee, steps } = result.data;
+    return new FujiResultSuccess({
+      actions,
+      bridgeFee,
+      steps,
+      estimateTime,
+      estimateSlippage,
+    });
   }
 
   async borrow(
@@ -76,7 +98,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<PreviewResult> {
+  ): FujiResultPromise<PreviewResult> {
     const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
@@ -93,17 +115,22 @@ export class Previews {
     ) {
       // start from chain A, borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
+
+      const xTransferResult = this._xTransfer(
+        tokenOut.chainId,
+        vault.debt,
+        amountOut,
+        account,
+        connextRouter,
+        _slippage
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
       actions = [
         this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
         this._borrow(vault, amountOut, connextRouter, account),
-        this._xTransfer(
-          tokenOut.chainId,
-          vault.debt,
-          amountOut,
-          account,
-          connextRouter,
-          _slippage
-        ),
+        xTransferResult.data,
       ];
     } else if (
       srcChainId !== vault.chainId &&
@@ -115,29 +142,39 @@ export class Previews {
         this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
         this._borrow(vault, amountOut, connextRouter, account),
       ];
-      actions = [
-        this._xTransferWithCall(
-          vault.chainId,
-          { address: Address.from(AddressZero) } as Token,
-          BigNumber.from(0),
-          0,
-          innerActions
-        ),
-      ];
+      const xTransferResult = this._xTransferWithCall(
+        vault.chainId,
+        { address: Address.from(AddressZero) } as Token,
+        BigNumber.from(0),
+        0,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    const { estimateTime, estimateSlippage, bridgeFee, steps } =
-      await this.outflowRoutingDetails(
-        RoutingStep.BORROW,
-        vault,
-        srcChainId,
-        amountOut,
-        tokenOut
-      );
-
-    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
+    const result = await this.outflowRoutingDetails(
+      RoutingStep.BORROW,
+      vault,
+      srcChainId,
+      amountOut,
+      tokenOut
+    );
+    if (!result.success) {
+      return result;
+    }
+    const { estimateTime, estimateSlippage, bridgeFee, steps } = result.data;
+    return new FujiResultSuccess({
+      actions,
+      bridgeFee,
+      steps,
+      estimateTime,
+      estimateSlippage,
+    });
   }
 
   async payback(
@@ -146,7 +183,7 @@ export class Previews {
     tokenIn: Token,
     account: Address,
     slippage?: number
-  ): Promise<PreviewResult> {
+  ): FujiResultPromise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
 
     const _slippage = slippage ?? DEFAULT_SLIPPAGE;
@@ -161,26 +198,36 @@ export class Previews {
       const innerActions = [
         this._payback(vault, amountIn, account, connextRouter),
       ];
-      actions = [
-        this._xTransferWithCall(
-          vault.chainId,
-          tokenIn,
-          amountIn,
-          _slippage,
-          innerActions
-        ),
-      ];
+      const xTransferResult = this._xTransferWithCall(
+        vault.chainId,
+        tokenIn,
+        amountIn,
+        _slippage,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     }
 
-    const { estimateTime, estimateSlippage, bridgeFee, steps } =
-      await this.inflowRoutingDetails(
-        RoutingStep.PAYBACK,
-        vault,
-        amountIn,
-        tokenIn
-      );
-
-    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
+    const result = await this.inflowRoutingDetails(
+      RoutingStep.PAYBACK,
+      vault,
+      amountIn,
+      tokenIn
+    );
+    if (!result.success) {
+      return result;
+    }
+    const { estimateTime, estimateSlippage, bridgeFee, steps } = result.data;
+    return new FujiResultSuccess({
+      actions,
+      bridgeFee,
+      steps,
+      estimateTime,
+      estimateSlippage,
+    });
   }
 
   async withdraw(
@@ -191,7 +238,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<PreviewResult> {
+  ): FujiResultPromise<PreviewResult> {
     const _slippage = slippage ?? DEFAULT_SLIPPAGE;
 
     let actions: RouterActionParams[] = [];
@@ -208,6 +255,17 @@ export class Previews {
     ) {
       // start from chain A, withdraw to chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
+      const xTransferResult = this._xTransfer(
+        tokenOut.chainId,
+        vault.collateral,
+        amountOut,
+        account,
+        connextRouter,
+        _slippage
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
       actions = [
         this._permitWithdraw(
           vault,
@@ -217,14 +275,7 @@ export class Previews {
           deadline
         ),
         this._withdraw(vault, amountOut, connextRouter, account),
-        this._xTransfer(
-          tokenOut.chainId,
-          vault.collateral,
-          amountOut,
-          account,
-          connextRouter,
-          _slippage
-        ),
+        xTransferResult.data,
       ];
     } else if (
       srcChainId !== vault.chainId &&
@@ -242,29 +293,39 @@ export class Previews {
         ),
         this._withdraw(vault, amountOut, connextRouter, account),
       ];
-      actions = [
-        this._xTransferWithCall(
-          vault.chainId,
-          { address: Address.from(AddressZero) } as Token,
-          BigNumber.from(0),
-          0,
-          innerActions
-        ),
-      ];
+      const xTransferResult = this._xTransferWithCall(
+        vault.chainId,
+        { address: Address.from(AddressZero) } as Token,
+        BigNumber.from(0),
+        0,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    const { estimateTime, estimateSlippage, bridgeFee, steps } =
-      await this.outflowRoutingDetails(
-        RoutingStep.WITHDRAW,
-        vault,
-        srcChainId,
-        amountOut,
-        tokenOut
-      );
-
-    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
+    const result = await this.outflowRoutingDetails(
+      RoutingStep.WITHDRAW,
+      vault,
+      srcChainId,
+      amountOut,
+      tokenOut
+    );
+    if (!result.success) {
+      return result;
+    }
+    const { estimateTime, estimateSlippage, bridgeFee, steps } = result.data;
+    return new FujiResultSuccess({
+      actions,
+      bridgeFee,
+      steps,
+      estimateTime,
+      estimateSlippage,
+    });
   }
 
   /********** Combo Previews ***********/
@@ -300,7 +361,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<PreviewResult> {
+  ): FujiResultPromise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
@@ -317,18 +378,22 @@ export class Previews {
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
       // deposit and borrow on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
+      const xTransferResult = this._xTransfer(
+        destChainId,
+        vault.debt,
+        amountOut,
+        account,
+        connextRouter,
+        _slippage
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
       actions = [
         this._deposit(vault, amountIn, account, account),
         this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
         this._borrow(vault, amountOut, connextRouter, account),
-        this._xTransfer(
-          destChainId,
-          vault.debt,
-          amountOut,
-          account,
-          connextRouter,
-          _slippage
-        ),
+        xTransferResult.data,
       ];
     } else if (srcChainId !== destChainId && destChainId === vault.chainId) {
       // transfer from chain A and deposit and borrow on chain B
@@ -338,29 +403,39 @@ export class Previews {
         this._permitBorrow(vault, amountOut, account, account, deadline),
         this._borrow(vault, amountOut, account, account),
       ];
-      actions = [
-        this._xTransferWithCall(
-          destChainId,
-          tokenIn,
-          amountIn,
-          _slippage,
-          innerActions
-        ),
-      ];
+      const xTransferResult = this._xTransferWithCall(
+        destChainId,
+        tokenIn,
+        amountIn,
+        _slippage,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    const { estimateTime, estimateSlippage, bridgeFee, steps } =
-      await this.depositAndBorrowRoutingDetails(
-        vault,
-        amountIn,
-        amountOut,
-        tokenIn,
-        tokenOut
-      );
-
-    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
+    const result = await this.depositAndBorrowRoutingDetails(
+      vault,
+      amountIn,
+      amountOut,
+      tokenIn,
+      tokenOut
+    );
+    if (!result.success) {
+      return result;
+    }
+    const { estimateTime, estimateSlippage, bridgeFee, steps } = result.data;
+    return new FujiResultSuccess({
+      actions,
+      bridgeFee,
+      steps,
+      estimateTime,
+      estimateSlippage,
+    });
   }
 
   /**
@@ -395,7 +470,7 @@ export class Previews {
     account: Address,
     deadline?: number,
     slippage?: number
-  ): Promise<PreviewResult> {
+  ): FujiResultPromise<PreviewResult> {
     const srcChainId = tokenIn.chainId;
     const destChainId = tokenOut.chainId;
 
@@ -412,6 +487,17 @@ export class Previews {
     } else if (srcChainId !== destChainId && srcChainId === vault.chainId) {
       // payback and withdraw on chain A and transfer to chain B
       const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
+      const xTransferResult = this._xTransfer(
+        destChainId,
+        vault.collateral,
+        amountOut,
+        account,
+        connextRouter,
+        _slippage
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
       actions = [
         this._payback(vault, amountIn, account, account),
         this._permitWithdraw(
@@ -422,14 +508,7 @@ export class Previews {
           deadline
         ),
         this._withdraw(vault, amountOut, connextRouter, account),
-        this._xTransfer(
-          destChainId,
-          vault.collateral,
-          amountOut,
-          account,
-          connextRouter,
-          _slippage
-        ),
+        xTransferResult.data,
       ];
     } else if (srcChainId !== destChainId && destChainId === vault.chainId) {
       // transfer from chain A and payback and withdraw on chain B
@@ -439,29 +518,39 @@ export class Previews {
         this._permitWithdraw(vault, amountOut, account, account, deadline),
         this._withdraw(vault, amountOut, account, account),
       ];
-      actions = [
-        this._xTransferWithCall(
-          destChainId,
-          tokenIn,
-          amountIn,
-          _slippage,
-          innerActions
-        ),
-      ];
+      const xTransferResult = this._xTransferWithCall(
+        destChainId,
+        tokenIn,
+        amountIn,
+        _slippage,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    const { estimateTime, estimateSlippage, bridgeFee, steps } =
-      await this.paybackAndWithdrawRoutingDetails(
-        vault,
-        amountIn,
-        amountOut,
-        tokenIn,
-        tokenOut
-      );
-
-    return { actions, bridgeFee, steps, estimateTime, estimateSlippage };
+    const result = await this.paybackAndWithdrawRoutingDetails(
+      vault,
+      amountIn,
+      amountOut,
+      tokenIn,
+      tokenOut
+    );
+    if (!result.success) {
+      return result;
+    }
+    const { estimateTime, estimateSlippage, bridgeFee, steps } = result.data;
+    return new FujiResultSuccess({
+      actions,
+      bridgeFee,
+      steps,
+      estimateTime,
+      estimateSlippage,
+    });
   }
   /********** Routing Details ***********/
 
@@ -471,7 +560,7 @@ export class Previews {
     vault: BorrowingVault,
     amountIn: BigNumber,
     tokenIn: Token
-  ): Promise<MetaRoutingResult> {
+  ): FujiResultPromise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -494,12 +583,16 @@ export class Previews {
       );
     } else {
       // transfer from chain A and deposit/payback on chain B
-      const r = await this._callNxtp(
+      const result = await this._callNxtp(
         tokenIn.chain,
         vault.chain,
         tokenIn,
         amountIn
       );
+      if (!result.success) {
+        return result;
+      }
+      const r = result.data;
       estimateSlippage = r.estimateSlippage;
 
       steps.push(
@@ -509,7 +602,12 @@ export class Previews {
       );
     }
 
-    return { steps, estimateSlippage, estimateTime, bridgeFee };
+    return new FujiResultSuccess({
+      steps,
+      estimateSlippage,
+      estimateTime,
+      bridgeFee,
+    });
   }
 
   // BORROW or WITHDRAW
@@ -519,7 +617,7 @@ export class Previews {
     srcChainId: ChainId,
     amountOut: BigNumber,
     tokenOut: Token
-  ): Promise<MetaRoutingResult> {
+  ): FujiResultPromise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -545,12 +643,16 @@ export class Previews {
       tokenOut.chainId !== vault.chainId
     ) {
       // start from chain A, borrow/withdraw on chain A and transfer to chain B
-      const r = await this._callNxtp(
+      const result = await this._callNxtp(
         CHAIN[srcChainId],
         vault.chain,
         vaultToken,
         amountOut
       );
+      if (!result.success) {
+        return result;
+      }
+      const r = result.data;
       bridgeFee = r.bridgeFee;
       estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
@@ -577,10 +679,15 @@ export class Previews {
         this._step(RoutingStep.END, vault.chainId, amountOut, tokenOut)
       );
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    return { steps, estimateSlippage, estimateTime, bridgeFee };
+    return new FujiResultSuccess({
+      steps,
+      estimateSlippage,
+      estimateTime,
+      bridgeFee,
+    });
   }
 
   /**
@@ -599,7 +706,7 @@ export class Previews {
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<MetaRoutingResult> {
+  ): FujiResultPromise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     // TODO: estimate time
@@ -637,12 +744,16 @@ export class Previews {
       tokenIn.chainId === vault.chainId
     ) {
       // deposit and borrow on chain A and transfer to chain B
-      const r = await this._callNxtp(
+      const result = await this._callNxtp(
         tokenIn.chain,
         tokenOut.chain,
         vault.debt,
         amountOut
       );
+      if (!result.success) {
+        return result;
+      }
+      const r = result.data;
       bridgeFee = r.bridgeFee;
       estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
@@ -675,12 +786,16 @@ export class Previews {
       tokenOut.chainId === vault.chainId
     ) {
       // transfer from chain A and deposit and borrow on chain B
-      const r = await this._callNxtp(
+      const result = await this._callNxtp(
         tokenIn.chain,
         tokenOut.chain,
         tokenIn,
         amountIn
       );
+      if (!result.success) {
+        return result;
+      }
+      const r = result.data;
       estimateSlippage = r.estimateSlippage;
 
       steps.push(
@@ -702,10 +817,15 @@ export class Previews {
         this._step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
       );
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    return { steps, estimateSlippage, estimateTime, bridgeFee };
+    return new FujiResultSuccess({
+      steps,
+      estimateSlippage,
+      estimateTime,
+      bridgeFee,
+    });
   }
 
   /**
@@ -724,7 +844,7 @@ export class Previews {
     amountOut: BigNumber,
     tokenIn: Token,
     tokenOut: Token
-  ): Promise<MetaRoutingResult> {
+  ): FujiResultPromise<MetaRoutingResult> {
     const activeProvider = vault.activeProvider;
 
     let estimateSlippage = BigNumber.from(0);
@@ -762,12 +882,16 @@ export class Previews {
       tokenIn.chainId === vault.chainId
     ) {
       // payback and withdraw on chain A and transfer to chain B
-      const r = await this._callNxtp(
+      const result = await this._callNxtp(
         tokenIn.chain,
         tokenOut.chain,
         vault.collateral,
         amountOut
       );
+      if (!result.success) {
+        return result;
+      }
+      const r = result.data;
       bridgeFee = r.bridgeFee;
       estimateSlippage = r.estimateSlippage;
       // Transfer will pass through the fast path
@@ -800,12 +924,16 @@ export class Previews {
       tokenOut.chainId === vault.chainId
     ) {
       // transfer from chain A and payback and withdraw on chain B
-      const r = await this._callNxtp(
+      const result = await this._callNxtp(
         tokenIn.chain,
         tokenOut.chain,
         tokenIn,
         amountIn
       );
+      if (!result.success) {
+        return result;
+      }
+      const r = result.data;
       estimateSlippage = r.estimateSlippage;
 
       steps.push(
@@ -827,10 +955,15 @@ export class Previews {
         this._step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
       );
     } else {
-      invariant(true, '3-chain transfers are not enabled yet!');
+      return new FujiResultError('3-chain transfers are not enabled yet!');
     }
 
-    return { steps, estimateSlippage, estimateTime, bridgeFee };
+    return new FujiResultSuccess({
+      steps,
+      estimateSlippage,
+      estimateTime,
+      bridgeFee,
+    });
   }
 
   /********** Actions ***********/
@@ -940,11 +1073,15 @@ export class Previews {
     receiver: Address,
     sender: Address,
     slippage: number
-  ): XTransferParams {
+  ): FujiResult<XTransferParams> {
     const destDomain = CHAIN[destChainId].connextDomain;
-    invariant(destDomain, 'Chain is not available on Connext!');
+    if (!destDomain) {
+      return new FujiResultError(
+        `Chain ${destChainId} is not available on Connext!`
+      );
+    }
 
-    return {
+    return new FujiResultSuccess({
       action: RouterAction.X_TRANSFER,
       destDomain,
       slippage,
@@ -952,7 +1089,7 @@ export class Previews {
       asset: asset.address,
       receiver: receiver,
       sender,
-    };
+    });
   }
 
   private _xTransferWithCall(
@@ -961,18 +1098,21 @@ export class Previews {
     amount: BigNumber,
     slippage: number,
     innerActions: RouterActionParams[]
-  ): XTransferWithCallParams {
+  ): FujiResult<XTransferWithCallParams> {
     const destDomain = CHAIN[destChainId].connextDomain;
-    invariant(destDomain, `Chain ${destChainId} is not available on Connext!`);
-
-    return {
+    if (!destDomain) {
+      return new FujiResultError(
+        `Chain ${destChainId} is not available on Connext!`
+      );
+    }
+    return new FujiResultSuccess({
       action: RouterAction.X_TRANSFER_WITH_CALL,
       destDomain,
       amount,
       asset: asset.address,
       slippage,
       innerActions,
-    };
+    });
   }
 
   /********** Misc ***********/
@@ -999,25 +1139,32 @@ export class Previews {
     destChain: Chain,
     token: Token,
     amount: BigNumber
-  ): Promise<{
+  ): FujiResultPromise<{
     received: BigNumber;
     estimateSlippage: BigNumber;
     bridgeFee: BigNumber;
   }> {
-    const nxtp = await Nxtp.getOrCreate(token.chain.chainType);
+    try {
+      const nxtp = await Nxtp.getOrCreate(token.chain.chainType);
 
-    const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-      await nxtp.pool.calculateAmountReceived(
-        srcChain.getConnextDomain(),
-        destChain.getConnextDomain(),
-        token.address.value,
-        amount
-      );
+      const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+        await nxtp.pool.calculateAmountReceived(
+          srcChain.getConnextDomain(),
+          destChain.getConnextDomain(),
+          token.address.value,
+          amount
+        );
 
-    return {
-      received: amountReceived as BigNumber,
-      estimateSlippage: (originSlippage as BigNumber).add(destinationSlippage),
-      bridgeFee: routerFee as BigNumber,
-    };
+      return new FujiResultSuccess({
+        received: amountReceived as BigNumber,
+        estimateSlippage: (originSlippage as BigNumber).add(
+          destinationSlippage
+        ),
+        bridgeFee: routerFee as BigNumber,
+      });
+    } catch (e) {
+      const message = FujiError.messageFromUnknownError(e);
+      return new FujiResultError(message, FujiErrorCode.CONNEXT);
+    }
   }
 }
