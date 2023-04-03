@@ -55,6 +55,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
         liquidationDiff={liquidationDiff}
         liquidationPrice={liquidationPrice}
         recommendedLtv={recommendedLtv}
+        ltvMax={ltvMax}
         isMobile={isMobile}
       />
 

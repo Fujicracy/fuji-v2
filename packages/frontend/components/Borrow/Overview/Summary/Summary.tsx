@@ -13,6 +13,7 @@ type SummaryProps = {
   liquidationDiff: number;
   liquidationPrice: number;
   recommendedLtv: number;
+  ltvMax: number;
   isMobile: boolean;
 };
 function Summary({
@@ -25,6 +26,7 @@ function Summary({
   liquidationPrice,
   recommendedLtv,
   isMobile,
+  ltvMax,
 }: SummaryProps) {
   const info: SummaryCardItemInfo[] = [
     {
@@ -78,7 +80,7 @@ function Summary({
           : undefined,
       data: {
         amount: liquidationDiff,
-        recommended: recommendedLtv,
+        recommended: ltvMax - recommendedLtv,
       },
     },
     {

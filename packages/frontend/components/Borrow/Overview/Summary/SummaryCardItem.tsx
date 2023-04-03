@@ -2,7 +2,7 @@ import { Card, Chip, Grid, Typography, useTheme } from '@mui/material';
 import { Stack } from '@mui/system';
 import React from 'react';
 
-import { liquidationColor } from '../../../../helpers/positions';
+import { belowPriceColor } from '../../../../helpers/positions';
 
 export type SummaryCardItemInfo = {
   title: string;
@@ -63,7 +63,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
             mb="1rem"
             sx={{
               color: data.amount
-                ? liquidationColor(data.amount, data.recommended, palette)
+                ? belowPriceColor(data.amount, data.recommended, palette)
                 : palette.info.dark,
             }}
           >

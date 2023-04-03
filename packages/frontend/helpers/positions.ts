@@ -212,3 +212,13 @@ export function liquidationColor(
     ? palette.success.main
     : palette.warning.main;
 }
+
+export function belowPriceColor(
+  percentage: number | string,
+  min: number | undefined,
+  palette: Palette
+) {
+  if (typeof percentage === 'string' || !min) return palette.info.main;
+  if (percentage <= 5) return palette.error.main;
+  return percentage <= min ? palette.warning.main : palette.success.main;
+}
