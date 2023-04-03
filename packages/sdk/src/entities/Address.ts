@@ -7,13 +7,8 @@ export class Address {
   private _address: string;
 
   constructor(addr: string) {
-    if (addr !== AddressZero) {
-      const result = validateAndParseAddress(addr);
-      if (!result.success) {
-        invariant(false, result.error.message);
-      }
-      this._address = result.data;
-    } else this._address = addr;
+    if (addr !== AddressZero) this._address = validateAndParseAddress(addr);
+    else this._address = addr;
   }
 
   static from(addr: string): Address {
