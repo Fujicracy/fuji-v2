@@ -179,8 +179,8 @@ export class Sdk {
   ): FujiResultPromise<BigNumber[]> {
     if (tokens.find((t) => t.chainId !== chainId)) {
       return new FujiResultError(
-        FujiErrorCode.SDK,
         'Token from a different chain!',
+        FujiErrorCode.SDK,
         {
           chainId,
         }
@@ -199,7 +199,7 @@ export class Sdk {
       return new FujiResultSuccess(result);
     } catch (e) {
       const message = FujiError.messageFromUnknownError(e);
-      return new FujiResultError(FujiErrorCode.MULTICALL, message, { chainId });
+      return new FujiResultError(message, FujiErrorCode.MULTICALL, { chainId });
     }
   }
 
@@ -241,10 +241,7 @@ export class Sdk {
   ): FujiResultPromise<VaultWithFinancials[]> {
     const chain = CHAIN[chainId];
     if (!chain.isDeployed) {
-      return new FujiResultError(
-        FujiErrorCode.SDK,
-        `${chain.name} not deployed`
-      );
+      return new FujiResultError(`${chain.name} not deployed`);
     }
     const vaults = VAULT_LIST[chainId].map((v) =>
       v.setConnection(this._configParams)
@@ -294,7 +291,7 @@ export class Sdk {
         ? `DefiLlama API call failed with a message: ${e.message}`
         : 'DefiLlama API call failed with an unexpected error!';
       console.error(message);
-      return new FujiResultError(FujiErrorCode.LLAMA, message);
+      return new FujiResultError(message, FujiErrorCode.LLAMA);
     }
   }
 
@@ -364,13 +361,9 @@ export class Sdk {
       permitAction.r = signature.r;
       permitAction.s = signature.s;
     } else if (permitAction && !signature) {
-      return new FujiResultError(
-        FujiErrorCode.SDK,
-        'You need to sign the permit action first!'
-      );
+      return new FujiResultError('You need to sign the permit action first!');
     } else if (!permitAction && signature) {
       return new FujiResultError(
-        FujiErrorCode.SDK,
         'No permit action although there is a signature!'
       );
     }
@@ -380,7 +373,7 @@ export class Sdk {
 
     const error = result.find((r): r is FujiResultError => !r.success);
     if (error)
-      return new FujiResultError(error.error.code, error.error.message);
+      return new FujiResultError(error.error.message, error.error.code);
 
     const args: string[] = (result as FujiResultSuccess<string>[]).map(
       (r) => r.data

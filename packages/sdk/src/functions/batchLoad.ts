@@ -37,10 +37,7 @@ const getDetailsCalls = (
   oracle: FujiOracleMulticall
 ): FujiResult<Call<Detail>[]> => {
   if (!v.multicallContract) {
-    return new FujiResultError(
-      FujiErrorCode.SDK,
-      'BorrowingVault multicallContract not set!'
-    );
+    return new FujiResultError('BorrowingVault multicallContract not set!');
   }
 
   return new FujiResultSuccess([
@@ -66,10 +63,7 @@ const getDetailsCalls = (
 
 const getProvidersCalls = (v: BorrowingVault): FujiResult<Call<Rate>[]> => {
   if (!v.allProviders) {
-    return new FujiResultError(
-      FujiErrorCode.SDK,
-      'BorrowingVault allProviders not set!'
-    );
+    return new FujiResultError('BorrowingVault allProviders not set!');
   }
 
   return new FujiResultSuccess(
@@ -94,7 +88,6 @@ const setResults = (
 ): FujiResult<VaultWithFinancials> => {
   if (!v.activeProvider || !v.allProviders) {
     return new FujiResultError(
-      FujiErrorCode.SDK,
       'BorrowingVault activeProvider and allProviders not set!'
     );
   }
@@ -123,15 +116,17 @@ export async function batchLoad(
   chain: Chain
 ): FujiResultPromise<VaultWithFinancials[]> {
   if (!chain.connection) {
-    return new FujiResultError(FujiErrorCode.SDK, 'Chain connection not set!', {
+    return new FujiResultError('Chain connection not set!', FujiErrorCode.SDK, {
       chainId: chain.chainId,
     });
   }
   if (vaults.find((v) => v.chainId !== chain.chainId)) {
     return new FujiResultError(
-      FujiErrorCode.SDK,
       'Vault from a different chain!',
-      { chainId: chain.chainId }
+      FujiErrorCode.SDK,
+      {
+        chainId: chain.chainId,
+      }
     );
   }
   try {
@@ -143,7 +138,7 @@ export async function batchLoad(
     const batchResult = vaults.map((v) => getDetailsCalls(v, account, oracle));
     let error = batchResult.find((r): r is FujiResultError => !r.success);
     if (error)
-      return new FujiResultError(error.error.code, error.error.message);
+      return new FujiResultError(error.error.message, error.error.code);
 
     const detailsBatch = (
       batchResult as FujiResultSuccess<Call<Detail>[]>[]
@@ -166,7 +161,7 @@ export async function batchLoad(
     const ratesResult = vaults.map((v) => getProvidersCalls(v));
     error = ratesResult.find((r): r is FujiResultError => !r.success);
     if (error)
-      return new FujiResultError(error.error.code, error.error.message);
+      return new FujiResultError(error.error.message, error.error.code);
 
     const ratesBatch = (ratesResult as FujiResultSuccess<Call<Rate>[]>[]).map(
       (r) => r.data
@@ -201,7 +196,7 @@ export async function batchLoad(
     });
     error = result.find((r): r is FujiResultError => !r.success);
     if (error)
-      return new FujiResultError(error.error.code, error.error.message);
+      return new FujiResultError(error.error.message, error.error.code);
     const data = (result as FujiResultSuccess<VaultWithFinancials>[]).map(
       (r) => r.data
     );
@@ -209,6 +204,6 @@ export async function batchLoad(
     return new FujiResultSuccess(data);
   } catch (e: unknown) {
     const message = FujiError.messageFromUnknownError(e);
-    return new FujiResultError(FujiErrorCode.SDK, message);
+    return new FujiResultError(message);
   }
 }

@@ -1,7 +1,6 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from 'ethers';
 
-import { FujiErrorCode } from '../constants';
 import { FujiResultError, FujiResultSuccess } from '../entities';
 import { RouterAction } from '../enums';
 import { FujiResult, RouterActionParams } from '../types';
@@ -41,10 +40,7 @@ export function encodeActionArgs(
     params.action === RouterAction.PERMIT_WITHDRAW
   ) {
     if (!(params.deadline && params.v && params.r && params.s)) {
-      return new FujiResultError(
-        FujiErrorCode.SDK,
-        'Missing args in PERMIT_BORROW!'
-      );
+      return new FujiResultError('Missing args in PERMIT_BORROW!');
     }
     result = defaultAbiCoder.encode(
       [
@@ -87,7 +83,7 @@ export function encodeActionArgs(
     const innerResult = params.innerActions.map(encodeActionArgs);
     const error = innerResult.find((r): r is FujiResultError => !r.success);
     if (error)
-      return new FujiResultError(error.error.code, error.error.message);
+      return new FujiResultError(error.error.message, error.error.code);
 
     const innerArgs: string[] = (
       innerResult as FujiResultSuccess<string>[]
@@ -108,7 +104,7 @@ export function encodeActionArgs(
       ]
     );
   } else {
-    return new FujiResultError(FujiErrorCode.SDK, 'Unsupported action!');
+    return new FujiResultError('Unsupported action!');
   }
 
   return new FujiResultSuccess(result);
