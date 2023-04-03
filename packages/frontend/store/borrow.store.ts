@@ -12,7 +12,7 @@ import {
   Token,
 } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
-import { ethers, Signature } from 'ethers';
+import { BigNumber, ethers, Signature } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import produce, { setAutoFreeze } from 'immer';
 import { create } from 'zustand';
@@ -796,7 +796,11 @@ export const useBorrow = create<BorrowStore>()(
               signature
             );
             const signer = provider.getSigner();
-            const tx = await signer.sendTransaction(txRequest);
+            const estimated = await signer.estimateGas(txRequest);
+            // increase by 20% to prevent outOfGas tx failing
+            const gasLimit = estimated.add(estimated.div(BigNumber.from('2')));
+
+            const tx = await signer.sendTransaction({ ...txRequest, gasLimit });
 
             if (tx) {
               notify({
