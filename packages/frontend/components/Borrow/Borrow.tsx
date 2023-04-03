@@ -65,13 +65,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const updateTokenPrice = useBorrow((state) => state.updateTokenPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
-  const { position, futurePosition } = basePosition;
+  const { position, editedPosition } = basePosition;
 
   const dynamicLtvMeta = {
-    ltv: futurePosition ? futurePosition.ltv : position.ltv,
-    ltvMax: futurePosition ? futurePosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
-    ltvThreshold: futurePosition
-      ? futurePosition.ltvThreshold
+    ltv: editedPosition ? editedPosition.ltv : position.ltv,
+    ltvMax: editedPosition ? editedPosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvThreshold: editedPosition
+      ? editedPosition.ltvThreshold
       : position.ltvThreshold,
   };
 

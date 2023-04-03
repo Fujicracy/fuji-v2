@@ -9,7 +9,7 @@ type SummaryProps = {
   collateralInput: string;
   debt: AssetMeta;
   debtInput: string;
-  futurePosition: Position | undefined;
+  editedPosition: Position | undefined;
   liquidationDiff: number;
   liquidationPrice: number;
   recommendedLtv: number;
@@ -21,7 +21,7 @@ function Summary({
   collateralInput,
   debt,
   debtInput,
-  futurePosition,
+  editedPosition,
   liquidationDiff,
   liquidationPrice,
   recommendedLtv,
@@ -38,10 +38,10 @@ function Summary({
         style: 'currency',
       }),
       extra:
-        futurePosition &&
+        editedPosition &&
         collateralInput !== '' &&
         parseFloat(collateralInput) !== 0
-          ? formatValue(futurePosition.collateral.amount, {
+          ? formatValue(editedPosition.collateral.amount, {
               maximumFractionDigits: 3,
             })
           : undefined,
@@ -55,8 +55,8 @@ function Summary({
         maximumFractionDigits: 2,
       })} ${debt.token.symbol}`,
       extra:
-        futurePosition && debtInput && parseFloat(debtInput) !== 0
-          ? formatValue(futurePosition.debt.amount * debt.usdPrice, {
+        editedPosition && debtInput && parseFloat(debtInput) !== 0
+          ? formatValue(editedPosition.debt.amount * debt.usdPrice, {
               style: 'currency',
             })
           : undefined,
@@ -72,9 +72,9 @@ function Summary({
           ? `~${liquidationDiff.toFixed(0)}% below current price`
           : `n/a`,
       extra:
-        futurePosition &&
+        editedPosition &&
         (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
-          ? formatValue(futurePosition.liquidationPrice, {
+          ? formatValue(editedPosition.liquidationPrice, {
               style: 'currency',
             })
           : undefined,

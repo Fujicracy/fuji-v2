@@ -20,7 +20,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const { position, futurePosition } = basePosition;
+  const { position, editedPosition } = basePosition;
   const {
     collateral,
     debt,
@@ -40,7 +40,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
 
-  const dynamicLtv = futurePosition ? futurePosition.ltv : ltv;
+  const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
 
   return (
@@ -52,7 +52,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
         collateralInput={collateralInput}
         debt={debt}
         debtInput={debtInput}
-        futurePosition={futurePosition}
+        editedPosition={editedPosition}
         liquidationDiff={liquidationDiff}
         liquidationPrice={liquidationPrice}
         recommendedLtv={recommendedLtv}
@@ -63,8 +63,8 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
       <LTVProgressBar
         borrowLimit={borrowLimit(
           mode,
-          futurePosition
-            ? futurePosition.collateral.amount
+          editedPosition
+            ? editedPosition.collateral.amount
             : collateralInput
             ? parseFloat(collateralInput)
             : 0,

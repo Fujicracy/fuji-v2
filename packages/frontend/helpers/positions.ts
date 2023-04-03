@@ -67,14 +67,14 @@ function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
 }
 
 /**
- * @returns The future position according to intended changes in `collateral` or `debt`.
+ * @returns The edited position according to intended changes in `collateral` or `debt`.
  *
  * @param collateral input changes as `AssetChange`
  * @param debt input changes as `AssetChange`
  * @param position
  * @param mode
  */
-export function viewFuturePosition(
+export function viewEditedPosition(
   collateral: AssetChange,
   debt: AssetChange,
   current: Position,
@@ -128,13 +128,13 @@ export function viewFuturePosition(
 
 export type BasePosition = {
   position: Position;
-  futurePosition?: Position;
+  editedPosition?: Position;
 };
 
 export function viewDynamicPosition(
   dynamic: boolean,
   position: Position | undefined,
-  futurePosition: Position | undefined = undefined
+  editedPosition: Position | undefined = undefined
 ): BasePosition {
   const baseCollateral = useBorrow.getState().collateral;
   const baseDebt = useBorrow.getState().debt;
@@ -161,7 +161,7 @@ export function viewDynamicPosition(
         ? position.liquidationPrice
         : baseLiquidation.liquidationPrice,
     },
-    futurePosition,
+    editedPosition,
   };
 }
 

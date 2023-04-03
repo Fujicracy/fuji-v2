@@ -105,8 +105,8 @@ function TokenCard({
     }
 
     const collateralValue = isEditing
-      ? basePosition.futurePosition
-        ? basePosition.futurePosition.collateral.amount
+      ? basePosition.editedPosition
+        ? basePosition.editedPosition.collateral.amount
         : basePosition.position.collateral.amount
       : Number(collateral.input);
 
