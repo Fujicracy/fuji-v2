@@ -361,7 +361,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1'),
         parseUnits('1', 6),
@@ -371,6 +371,9 @@ describe('Sdk', () => {
         123456789
       );
 
+      expect(preview.success).toBeTruthy();
+      if (!preview.success) return;
+      const { actions } = preview.data;
       const permitBorrow = actions.find(
         (a) => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
@@ -399,7 +402,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1', 6),
         parseUnits('1'),
@@ -408,6 +411,9 @@ describe('Sdk', () => {
         Address.from(owner.address),
         123456789
       );
+      expect(preview.success).toBeTruthy();
+      if (!preview.success) return;
+      const { actions } = preview.data;
 
       const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
@@ -431,7 +437,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1', 6),
         parseUnits('1'),
@@ -440,6 +446,9 @@ describe('Sdk', () => {
         Address.from(owner.address),
         123456789
       );
+      expect(preview.success).toBeTruthy();
+      if (!preview.success) return;
+      const { actions } = preview.data;
 
       const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
