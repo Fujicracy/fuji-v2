@@ -249,6 +249,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         tokensToCheck = _addTokenToList(assetOut, tokensToCheck);
         _safeApprove(assetIn, address(swapper), amountIn);
 
+        if (receiver != address(this)) {
+          beneficiary = _checkBeneficiary(beneficiary, receiver);
+        }
+        if (sweeper != address(this)) {
+          beneficiary = _checkBeneficiary(beneficiary, sweeper);
+        }
+
         swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
       } else if (action == Action.Flashloan) {
         // FLASHLOAN
