@@ -109,12 +109,22 @@ export const useHistory = create<HistoryStore>()(
 
           try {
             const srcChainId = entry.steps[0].chainId;
-            const connextTransferId = await sdk.getTransferId(srcChainId, hash);
-            const stepsWithHash = await sdk.watchTxStatus(
+            const connextTransferResult = await sdk.getTransferId(
+              srcChainId,
+              hash
+            );
+            if (!connextTransferResult.success) {
+              throw connextTransferResult.error.message;
+            }
+            const connextTransferId = connextTransferResult.data;
+            const stepsWithHashResult = await sdk.watchTxStatus(
               hash,
               toRoutingStepDetails(entry.steps)
             );
-
+            if (!stepsWithHashResult.success) {
+              throw stepsWithHashResult.error.message;
+            }
+            const stepsWithHash = stepsWithHashResult.data;
             for (let i = 0; i < stepsWithHash.length; i++) {
               const s = stepsWithHash[i];
               console.debug('waiting', s.step, '...');
