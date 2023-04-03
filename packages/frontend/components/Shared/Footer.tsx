@@ -1,27 +1,28 @@
-import React from "react"
-import { useTheme } from "@mui/material/styles"
-import { Box, Grid, Link, Typography } from "@mui/material"
-import TwitterIcon from "@mui/icons-material/Twitter"
-import TelegramIcon from "@mui/icons-material/Telegram"
-import { DiscordIcon } from "./Icons"
+import TelegramIcon from '@mui/icons-material/Telegram';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import { Box, Grid, Link, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import React from 'react';
+
+import { DiscordIcon } from './Icons';
 
 type Social = {
-  id: string
-  url: string
-  image: React.ReactElement
-}
+  id: string;
+  url: string;
+  image: React.ReactElement;
+};
 
 function Footer() {
-  const { palette } = useTheme()
+  const { palette } = useTheme();
 
   const socials: Social[] = [
     {
-      id: "twitter",
-      url: "https://twitter.com/FujiFinance",
+      id: 'twitter',
+      url: 'https://twitter.com/FujiFinance',
       image: (
         <TwitterIcon
           sx={{
-            "&:hover": {
+            '&:hover': {
               color: palette.primary.main,
               textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
             },
@@ -30,12 +31,12 @@ function Footer() {
       ),
     },
     {
-      id: "telegram",
-      url: "https://t.me/joinchat/U4cKWNCUevKVsrtY",
+      id: 'telegram',
+      url: 'https://t.me/joinchat/U4cKWNCUevKVsrtY',
       image: (
         <TelegramIcon
           sx={{
-            "&:hover": {
+            '&:hover': {
               color: palette.primary.main,
               textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
             },
@@ -44,25 +45,25 @@ function Footer() {
       ),
     },
     {
-      id: "discord",
-      url: "https://discord.com/invite/dnvJeEMeDJ",
+      id: 'discord',
+      url: 'https://discord.com/invite/dnvJeEMeDJ',
       image: <DiscordIcon />,
     },
-  ]
+  ];
 
   return (
     <footer
       style={{
-        width: "100%",
+        width: '100%',
         bottom: 0,
         color: palette.text.secondary,
       }}
     >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          margin: "1.5rem",
+          display: 'flex',
+          justifyContent: 'space-between',
+          margin: '1.5rem',
         }}
       >
         <Box justifyContent="space-around">
@@ -72,7 +73,7 @@ function Footer() {
               target="_blank"
               key={social.id}
               rel="noreferrer"
-              sx={{ ml: "0.813rem" }}
+              sx={{ ml: '0.813rem' }}
             >
               {social.image}
             </Link>
@@ -100,7 +101,7 @@ function Footer() {
         </Typography>
       </div>
     </footer>
-  )
+  );
 }
 
-export default Footer
+export default Footer;

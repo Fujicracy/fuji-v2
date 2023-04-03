@@ -5,12 +5,17 @@ import {
 import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
 
 import {
+  CHAIN_BLOCK_EXPLORER_URL,
+  CHAIN_COINGECKO_KEY,
+  CHAIN_LLAMA_KEY,
+  CHAIN_NAME,
+} from '../constants/chain-properties';
+import {
   ALCHEMY_WSS_URL,
   INFURA_RPC_URL,
   INFURA_WSS_URL,
 } from '../constants/rpcs';
 import { ChainId, ChainType, ConnextDomain } from '../enums';
-import { ChainCoingeckoKey, ChainLlamaKey } from '../enums/ChainKey';
 import { ChainConfig } from '../types/ChainConfig';
 import { ChainConnectionDetails } from '../types/ChainConnectionDetails';
 
@@ -20,19 +25,20 @@ export class Chain {
 
   connextDomain?: ConnextDomain;
 
-  coingeckoKey: ChainCoingeckoKey;
-  llamaKey: ChainLlamaKey;
+  coingeckoKey: string;
+  llamaKey: string;
 
   isDeployed: boolean;
 
   connection?: ChainConnectionDetails;
 
+  name: string; // Convenience property
+  blockExplorerUrl: string; // Convenience property
+
   constructor(
     id: ChainId,
     type: ChainType,
     connextDomain: ConnextDomain | undefined,
-    coingecko: ChainCoingeckoKey,
-    llama: ChainLlamaKey,
     isDeployed?: boolean
   ) {
     this.chainId = id;
@@ -40,9 +46,13 @@ export class Chain {
 
     this.connextDomain = connextDomain;
 
-    this.coingeckoKey = coingecko;
-    this.llamaKey = llama;
     this.isDeployed = isDeployed as boolean;
+
+    this.coingeckoKey = CHAIN_COINGECKO_KEY[id];
+    this.llamaKey = CHAIN_LLAMA_KEY[id];
+
+    this.name = CHAIN_NAME[id];
+    this.blockExplorerUrl = CHAIN_BLOCK_EXPLORER_URL[id];
   }
 
   getConnextDomain(): string {
