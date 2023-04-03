@@ -116,9 +116,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address));
 
-        const hasBalance =
-          balance.deposit.gt(DUST_AMOUNT_IN_WEI) ||
-          balance.borrow.gt(DUST_AMOUNT_IN_WEI);
+        const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
         setHasBalanceInVault(hasBalance);
       }
     })();

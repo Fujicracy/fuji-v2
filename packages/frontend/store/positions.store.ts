@@ -41,8 +41,7 @@ export const usePositions = create<PositionsStore>()(
         const allPositions = await getPositionsWithBalance(addr);
 
         const positions = allPositions.filter(
-          (p) =>
-            p.collateral.amount > DUST_AMOUNT && p.debt.amount > DUST_AMOUNT
+          (p) => p.collateral.amount > DUST_AMOUNT
         );
 
         const totalDepositsUSD = getTotalSum(positions, 'collateral');
