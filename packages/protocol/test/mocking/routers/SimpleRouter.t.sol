@@ -511,9 +511,14 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     MockSwapper swapper = new MockSwapper(oracle);
     // This test WBTC is assumed to be 18 decimals for testing simplicity
     MockERC20 tWBTC = new MockERC20("Test WBTC", "tWBTC");
+    vm.label(address(tWBTC), "testWBTC");
     // Chainlink type price in 8 decimals.
     uint256 usdPerWBTCPrice = 30000e8;
+    oracle.setUSDPriceOf(collateralAsset, USD_PER_ETH_PRICE); // ensure ETH price persist
     oracle.setUSDPriceOf(address(tWBTC), usdPerWBTCPrice);
+
+    uint256 price = oracle.getPriceOf(address(tWBTC), collateralAsset, 18);
+    assertGt(price, 0);
 
     do_deposit(amount, vault, ALICE);
 
@@ -533,23 +538,27 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     attackArgs[0] =
       abi.encode(address(vault), ALICE, address(simpleRouter), amount, deadline, v, r, s);
     attackActions[1] = IRouter.Action.Withdraw;
-    attackArgs[1] =
-      abi.encode(address(vault), amount, address(simpleRouter), address(simpleRouter), ALICE);
+    attackArgs[1] = abi.encode(address(vault), amount, address(simpleRouter), ALICE);
     attackActions[2] = IRouter.Action.Swap;
     attackArgs[2] = abi.encode(
       address(swapper),
       collateralAsset,
       address(tWBTC),
       amount,
-      (usdPerWBTCPrice * 1e18) / USD_PER_ETH_PRICE,
+      5e16,
       ATTACKER,
       ATTACKER,
-      0
+      0 // not handling slippage in these tests.
     );
 
     vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    // Ensure the withdraw action executes in `bundleInternal()`
+    vm.expectEmit(true, true, true, true);
+    emit Withdraw(address(simpleRouter), address(simpleRouter), ALICE, amount, amount);
     vm.startPrank(ATTACKER);
     simpleRouter.xBundle(attackActions, attackArgs);
     vm.stopPrank();
+
+    assertEq(tWBTC.balanceOf(ATTACKER), 0);
   }
 }
