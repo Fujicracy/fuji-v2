@@ -84,7 +84,7 @@ function TokenCard({
       actionType === ActionType.REMOVE && type === 'collateral'
         ? basePosition.position.collateral.amount -
           (basePosition.position.debt.amount - Number(debt.input)) /
-            ((ltvMax / 100) * collateral.usdPrice)
+            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
         : maxAmount;
     handleInput(String(amount));
   };
