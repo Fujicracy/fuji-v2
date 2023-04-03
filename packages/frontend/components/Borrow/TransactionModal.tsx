@@ -179,8 +179,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           <Typography variant="h6">
             Transaction{' '}
             {entry.status === HistoryEntryStatus.ONGOING && 'processing...'}
-            {entry.status === HistoryEntryStatus.DONE && 'succeeded'}
-            {entry.status === HistoryEntryStatus.ERROR && 'error'}
+            {entry.status === HistoryEntryStatus.DONE && 'Success!'}
+            {entry.status === HistoryEntryStatus.ERROR && 'Error'}
           </Typography>
         </Box>
         <DialogContent>

@@ -78,7 +78,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
         rows.map((row, i) => (
           <TableRow
             key={i}
-            sx={{ cursor: 'pointer' }}
+            sx={{ cursor: 'pointer', height: '4.3rem' }}
             onClick={() => handleClick(row)}
           >
             <TableCell>
