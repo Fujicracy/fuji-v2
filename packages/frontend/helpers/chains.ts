@@ -71,6 +71,6 @@ function explorerUrl(
   value: string,
   type: 'tx' | 'address'
 ) {
-  if (!id) return;
+  if (id === undefined) return;
   return CHAIN_BLOCK_EXPLORER_URL[id] + type + '/' + value;
 }

@@ -87,7 +87,7 @@ function LTVProgressBar({
           <Grid item marginRight="3rem">
             <Stack direction="row" alignItems="center">
               <Tooltip
-                title="This area is dangerous, if you exceed this threshold you can get liquidated."
+                title="Maximum portion of collateral value that can be borrowed. It's advisable not to exceed this threshold as you might be at risk of liquidation."
                 placement="top"
               >
                 <InfoOutlinedIcon
@@ -99,7 +99,7 @@ function LTVProgressBar({
                 />
               </Tooltip>
               <ClickableTooltip
-                title="This area is dangerous, if you exceed this threshold you can get liquidated."
+                title="Maximum portion of collateral value that can be borrowed. It's advisable not to exceed this threshold as you might be at risk of liquidation."
                 placement="top"
               >
                 <InfoOutlinedIcon
@@ -191,7 +191,7 @@ function LTVProgressBar({
             <Typography variant="xsmall">LTV</Typography>
             <Tooltip
               arrow
-              title="Loan-To-Value -- a financial ratio that compares the amount of money being borrowed to the market price of the collateral."
+              title="The amount you borrow divided by the amount of collateral you provide is known as your Loan To Value ratio."
             >
               <InfoOutlinedIcon
                 sx={{
@@ -211,7 +211,7 @@ function LTVProgressBar({
           >
             <Tooltip
               arrow
-              title="The maximum amount of borrowing power based on you collateral's market price."
+              title="Maximum USD value borrowable based on the collaterals you have provided."
             >
               <InfoOutlinedIcon
                 sx={{

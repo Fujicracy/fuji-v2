@@ -14,7 +14,7 @@ import Footer from '../../components/Shared/Footer';
 import {
   BasePosition,
   viewDynamicPosition,
-  viewFuturePosition,
+  viewEditedPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
@@ -53,21 +53,21 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
 
   useEffect(() => {
     let matchPosition: Position | undefined;
-    let futurePosition: Position | undefined;
+    let editedPosition: Position | undefined;
     if (address && positions.length > 0 && query) {
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       );
-      futurePosition = matchPosition
-        ? viewFuturePosition(baseCollateral, baseDebt, matchPosition, mode)
+      editedPosition = matchPosition
+        ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
         : undefined;
     }
     const basePosition = viewDynamicPosition(
       !isEditing,
       matchPosition,
-      futurePosition
+      editedPosition
     );
     setBasePosition(basePosition);
   }, [
@@ -143,7 +143,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
             <Grid item sm={12} md={7}>
-              <Overview basePosition={basePosition} />
+              <Overview isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>
         )}

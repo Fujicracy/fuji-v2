@@ -2,7 +2,6 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import LaunchIcon from '@mui/icons-material/Launch';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Button,
@@ -25,7 +24,6 @@ import StepConnector, {
 import { styled, useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -37,7 +35,6 @@ import { vaultFromAddress } from '../../helpers/positions';
 import { camelize } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { HistoryEntryStatus, useHistory } from '../../store/history.store';
-import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import { NetworkIcon } from '../Shared/Icons';
 
@@ -65,12 +62,10 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
 
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ''));
   const entry = useHistory((state) => state.byHash[hash || '']);
-  const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [activeStep] = useState(2);
-  const [loading, setLoading] = useState(false);
 
   const action =
     entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
@@ -83,25 +78,6 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   if (!entry) {
     return <></>;
   }
-
-  const onClick = async () => {
-    // If the user is editing a position, we need to refresh positions
-    if (currentPage === myPositionPage.path) {
-      setLoading(true);
-      await fetchPositions();
-      setLoading(false);
-      closeModal();
-      return;
-    }
-
-    closeModal();
-    const vault = vaultFromAddress(entry.vaultAddr);
-    if (!vault) {
-      router.push(PATH.MY_POSITIONS);
-      return;
-    }
-    showPosition(router, undefined, vault);
-  };
 
   const steps = entry
     ? (entry.steps
@@ -141,31 +117,39 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                   `${action} ${amount} ${token.symbol} ${preposition} ${chain}`
                 );
 
-          const icon =
-            step === RoutingStep.X_TRANSFER ? (
-              <Image
-                src="/assets/images/logo/connext.svg"
-                height={32}
-                width={32}
-                alt="Connext"
-              />
-            ) : (
-              <NetworkIcon network={chain} height={32} width={32} />
-            );
-
           return {
             label,
             chainId,
             txHash,
-            link: step === RoutingStep.X_TRANSFER ? connextScanLink : link,
+            link,
             description:
               step === RoutingStep.X_TRANSFER ? 'Connext' : `${chain} Network`,
-            icon: () => <Box sx={style}>{icon}</Box>,
+            icon: () => (
+              <Box sx={style}>
+                <NetworkIcon network={chain} height={32} width={32} />
+              </Box>
+            ),
           };
         })
         // remove "START", "END" and steps with no token
         .filter((s) => s.label !== 'Invalid') as ValidStep[])
     : [];
+
+  const onClick = async () => {
+    // If the user is editing a position, we just need to close the modal
+    if (currentPage === myPositionPage.path) {
+      closeModal();
+      return;
+    }
+
+    closeModal();
+    const vault = vaultFromAddress(entry.vaultAddr);
+    if (!vault) {
+      router.push(PATH.MY_POSITIONS);
+      return;
+    }
+    showPosition(router, undefined, vault);
+  };
 
   return (
     <Dialog
@@ -186,8 +170,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           <Typography variant="h6">
             Transaction{' '}
             {entry.status === HistoryEntryStatus.ONGOING && 'processing...'}
-            {entry.status === HistoryEntryStatus.DONE && 'succeeded'}
-            {entry.status === HistoryEntryStatus.ERROR && 'error'}
+            {entry.status === HistoryEntryStatus.DONE && 'Success!'}
+            {entry.status === HistoryEntryStatus.ERROR && 'Error'}
           </Typography>
         </Box>
         <DialogContent>
@@ -203,7 +187,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                     <Box>
                       <Typography variant="body">{step.label}</Typography>
                       <br />
-                      {step.txHash && (
+                      {step.txHash && step.link && (
                         <Link
                           href={step.link}
                           target="_blank"
@@ -258,15 +242,9 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                 <AddTokenButton token={action.token} />
               </Box>
             )}
-            <LoadingButton
-              loading={loading}
-              fullWidth
-              variant="gradient"
-              size="large"
-              onClick={onClick}
-            >
+            <Button fullWidth variant="gradient" size="large" onClick={onClick}>
               View Position
-            </LoadingButton>
+            </Button>
           </Stack>
         )}
         {connextScanLink && (
