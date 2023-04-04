@@ -78,6 +78,7 @@ export const borrowLimit = (
   price: number,
   maxLtv: number
 ): number => {
+  if (!balance) return 0;
   const amount =
     mode === Mode.WITHDRAW ||
     mode === Mode.PAYBACK ||
