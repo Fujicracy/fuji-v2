@@ -84,6 +84,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     undefined
   );
   const [isLTVModalShown, setIsLTVModalShown] = useState(false);
+  const [isConfirmationModalShown, setIsConfirmationModalShown] =
+    useState(false);
   const [ltvModalAction, setLTVModalAction] = useState(() => () => {
     console.error('Invalid function called');
   });
@@ -230,6 +232,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               </Box>
             )}
 
+          <Box onClick={() => setIsConfirmationModalShown(true)}>test</Box>
+
           <BorrowButton
             address={address}
             collateral={collateral}
@@ -282,8 +286,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         handleClose={() => setShowRoutingModal(false)}
       />
       <ConfirmTransactionModal
-        open={true}
-        onClose={() => console.log()}
+        open={isConfirmationModalShown}
+        onClose={() => setIsConfirmationModalShown(false)}
         collateral={collateral}
         debt={debt}
       />

@@ -9,11 +9,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { Token } from '@x-fuji/sdk';
+import { RoutingStep, RoutingStepDetails, Token } from '@x-fuji/sdk';
+import { formatUnits } from 'ethers/lib/utils';
 
 import { AssetChange } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
-import { formatValue } from '../../helpers/values';
+import { RouteMeta } from '../../helpers/routing';
+import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
+import { useBorrow } from '../../store/borrow.store';
 import { NetworkIcon } from './Icons';
 import TokenIcon from './Icons/TokenIcon';
 
@@ -31,6 +34,7 @@ export function ConfirmTransactionModal({
   onClose,
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
+  const availableRoutes = useBorrow((state) => state.availableRoutes);
 
   return (
     <Dialog
@@ -69,6 +73,8 @@ export function ConfirmTransactionModal({
         />
 
         <AssetBox type="debt" token={debt.token} value={debt.input || '0'} />
+
+        <RouteBox route={availableRoutes[0]} />
 
         <Button
           variant="gradient"
@@ -147,10 +153,138 @@ function AssetBox({
         textAlign="start"
         mt=".5rem"
         variant="xsmall"
-        sx={{ width: '50%' }}
+        sx={{ width: '60%' }}
       >
         The designated network where your debt position will be on.
       </Typography>
+    </Card>
+  );
+}
+
+function RouteBox({ route }: { route: RouteMeta }) {
+  const { palette } = useTheme();
+
+  const steps = route.steps.filter(
+    (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
+  );
+
+  function description(step: RoutingStepDetails) {
+    if (step.lendingProvider) {
+      const preposition = step.step === RoutingStep.DEPOSIT ? 'to' : 'from';
+      return (
+        <Typography align="center" variant="xsmall">
+          {`${preposition} ${step.lendingProvider.name} on `}
+          <NetworkIcon
+            network={chainName(step.chainId)}
+            height={14}
+            width={14}
+          />
+        </Typography>
+      );
+    }
+    if (step.step === RoutingStep.X_TRANSFER) {
+      return (
+        <Typography align="center" variant="xsmall">
+          from
+          <NetworkIcon
+            network={chainName(step.token?.chainId)}
+            height={14}
+            width={14}
+          />
+          to
+          <NetworkIcon
+            network={chainName(step.chainId)}
+            height={14}
+            width={14}
+          />
+        </Typography>
+      );
+    }
+
+    return <></>;
+  }
+
+  function textForStep({ step, amount, token, chainId }: RoutingStepDetails) {
+    switch (step) {
+      case RoutingStep.DEPOSIT:
+      case RoutingStep.BORROW:
+      case RoutingStep.PAYBACK:
+      case RoutingStep.WITHDRAW:
+        return camelize(
+          `${step.toString()} ${toNotSoFixed(
+            formatUnits(amount ?? 0, token?.decimals || 18)
+          )} ${token?.symbol}`
+        );
+      case RoutingStep.X_TRANSFER:
+        return camelize(
+          `${step.toString()} ${toNotSoFixed(
+            formatUnits(amount ?? 0, token?.decimals || 18)
+          )} ${token?.symbol}`
+        );
+      default:
+        return camelize(step);
+    }
+  }
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        borderColor: palette.secondary.light,
+        mt: '1rem',
+        width: '100%',
+      }}
+    >
+      <Stack
+        width="100%"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Typography variant="small">Route</Typography>
+
+        <Typography variant="small">via Connext Network</Typography>
+      </Stack>
+
+      <Divider sx={{ m: '0.75rem 0', height: '1px', width: '100%' }} />
+
+      <Stack
+        width="100%"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{
+          maxWidth: '30rem',
+        }}
+      >
+        {steps.map((step, i) => (
+          <Stack
+            key={i}
+            direction="column"
+            sx={{
+              p: '0.375rem 0.75rem',
+              backgroundColor: '#35353B',
+              borderRadius: '6px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Typography
+              align="center"
+              variant="xsmall"
+              sx={{ maxWidth: '6.5rem' }}
+            >
+              {textForStep(step)}
+            </Typography>
+            <Typography
+              align="center"
+              variant="xsmall"
+              sx={{ maxWidth: '6.5rem' }}
+            >
+              {description(step)}
+            </Typography>
+          </Stack>
+        ))}
+      </Stack>
     </Card>
   );
 }
