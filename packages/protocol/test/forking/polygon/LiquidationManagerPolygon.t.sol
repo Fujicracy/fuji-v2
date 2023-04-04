@@ -253,7 +253,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOfDebt(TREASURY), 0);
   }
 
-  function test_liquidateOnlyHealthyUsers() public {
+  function test_attemptLiquidateOnlyHealthyUsers() public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
 
