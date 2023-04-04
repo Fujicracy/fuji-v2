@@ -281,7 +281,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
       />
-      <ConfirmTransactionModal open={true} onClose={() => console.log()} />
+      <ConfirmTransactionModal
+        open={true}
+        onClose={() => console.log()}
+        collateral={collateral}
+        debt={debt}
+      />
       <LTVWarningModal
         open={isLTVModalShown}
         ltv={dynamicLtvMeta.ltv}
