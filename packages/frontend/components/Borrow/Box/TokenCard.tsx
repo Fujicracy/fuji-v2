@@ -25,7 +25,7 @@ import {
   recommendedLTV,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
-import { formatValue } from '../../../helpers/values';
+import { formatValue, validAmount } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
@@ -90,7 +90,8 @@ function TokenCard({
   };
 
   const handleInput = (val: string) => {
-    onInputChange(val);
+    const value = validAmount(val, token.decimals);
+    onInputChange(value);
   };
 
   const handleRecommended = () => {
@@ -115,7 +116,7 @@ function TokenCard({
       (isEditing ? basePosition.position.debt.amount : 0);
 
     const finalValue = recommended > maxAmount ? maxAmount : recommended;
-    handleInput(parseFloat(finalValue.toFixed(4)).toString() ?? '0');
+    handleInput(String(finalValue));
   };
 
   const handleTokenChange = (token: Token) => {
