@@ -22,12 +22,14 @@ import { NetworkIcon } from './Icons';
 function ChainSelect() {
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [hexChainId, setChainId] = useAuth((state) => [
     state.chain?.id,
     state.changeChain,
   ]);
   const chainId = hexToChainId(hexChainId);
   const networkName = chainName(chainId);
+  const isSupported = chains.some((chain) => chain.chainId === chainId);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isOpen = Boolean(anchorEl);
@@ -35,6 +37,7 @@ function ChainSelect() {
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const selectChain = (chainId: ChainId) => {
     setChainId(chainId);
     setAnchorEl(null);
@@ -42,7 +45,7 @@ function ChainSelect() {
 
   return (
     <>
-      {networkName ? (
+      {networkName && isSupported ? (
         <Chip
           label={
             <Stack direction="row" alignItems="center" spacing={1}>
@@ -62,7 +65,7 @@ function ChainSelect() {
         <Chip
           label={
             <Stack direction="row" spacing={1} alignItems="center">
-              <WarningAmberIcon fontSize="inherit" />
+              <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
               <Typography fontSize="inherit">Switch network</Typography>
               <KeyboardArrowDownIcon sx={{ ml: '0px !important' }} />
             </Stack>

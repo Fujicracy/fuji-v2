@@ -30,7 +30,7 @@ function RoutingModal({ open, handleClose }: RoutingModalProps) {
   }
 
   return (
-    <Dialog fullWidth maxWidth="md" onClose={() => handleClose()} open={open}>
+    <Dialog fullWidth maxWidth="md" onClose={handleClose} open={open}>
       <DialogContent
         sx={{
           p: '1.5rem',

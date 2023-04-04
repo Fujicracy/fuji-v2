@@ -114,12 +114,12 @@ export const useAuth = create<AuthStore>()(
         onOnboardChange(set, get);
       },
 
-      login: async (options?) => {
+      login: async (options) => {
         const wallets = await onboard.connectWallet(options);
 
-        if (!wallets[0]) {
+        if (!wallets[0] || !wallets[0].accounts[0]) {
           set({ status: 'disconnected' });
-          throw 'Cannot login';
+          throw 'Failure trying to login';
         }
 
         const json = JSON.stringify(wallets.map(({ label }) => label));
@@ -212,8 +212,8 @@ function onOnboardChange(
 
     if (!w[0] && get().status === 'disconnected') {
       return;
-    } else if (!w[0]) {
-      // Triggered when user disconnect from its wallet
+    } else if (!w[0] || !w[0].accounts[0]) {
+      // Triggered when user disconnects from its wallet
       return get().logout();
     }
 

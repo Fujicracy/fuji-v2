@@ -4,6 +4,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { DUST_AMOUNT } from '../constants';
 import { AssetType } from '../helpers/assets';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -20,7 +21,6 @@ type PositionsState = {
 
 type PositionsActions = {
   fetchUserPositions: () => void;
-  // getPositionsAtRisk: () => void
 };
 
 const initialState: PositionsState = {
@@ -38,7 +38,11 @@ export const usePositions = create<PositionsStore>()(
       fetchUserPositions: async () => {
         set({ loading: true });
         const addr = useAuth.getState().address;
-        const positions = await getPositionsWithBalance(addr);
+        const allPositions = await getPositionsWithBalance(addr);
+
+        const positions = allPositions.filter(
+          (p) => p.collateral.amount > DUST_AMOUNT
+        );
 
         const totalDepositsUSD = getTotalSum(positions, 'collateral');
         const totalDebtUSD = getTotalSum(positions, 'debt');
@@ -64,17 +68,17 @@ export const usePositions = create<PositionsStore>()(
         const availableBorrowPowerUSD =
           getCurrentAvailableBorrowingPower(positions);
 
-        set({
-          positions,
-          totalDepositsUSD,
-          totalDebtUSD,
-          totalAPY: parseFloat(totalAPY.toFixed(2)),
-          availableBorrowPowerUSD,
-          loading: false,
+        set(() => {
+          return {
+            positions,
+            totalDepositsUSD,
+            totalDebtUSD,
+            totalAPY: parseFloat(totalAPY.toFixed(2)),
+            availableBorrowPowerUSD,
+            loading: false,
+          };
         });
       },
-
-      // getPositionsAtRisk: async () => { },
     }),
     {
       enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',

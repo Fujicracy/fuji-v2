@@ -6,10 +6,14 @@ import { formatValue } from '../../helpers/values';
 type LiquidationBoxProps = {
   liquidationPrice: number | '-';
   percentPriceDiff: number | '-';
+  ltv: number;
+  recommendedLtv: number;
 };
 function LiquidationBox({
   liquidationPrice,
   percentPriceDiff,
+  ltv,
+  recommendedLtv,
 }: LiquidationBoxProps) {
   const { palette } = useTheme();
   const displayPercent = () => {
@@ -20,12 +24,12 @@ function LiquidationBox({
         <span>
           <Typography
             variant="small"
-            color={liquidationColor(percentPriceDiff, palette)}
+            color={liquidationColor(ltv, recommendedLtv, palette)}
           >
             ~{percentPriceDiff}%{' '}
           </Typography>
           <Typography variant="small" color={palette.info.main}>
-            above
+            below
           </Typography>
         </span>
       );

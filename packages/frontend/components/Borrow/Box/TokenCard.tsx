@@ -24,7 +24,9 @@ import {
   LtvMeta,
   recommendedLTV,
 } from '../../../helpers/assets';
+import { BasePosition } from '../../../helpers/positions';
 import { formatValue } from '../../../helpers/values';
+import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
 import { TokenIcon } from '../../Shared/Icons';
@@ -36,29 +38,35 @@ type SelectTokenCardProps = {
   isExecuting: boolean;
   disabled: boolean;
   value: string;
-  ltvMeta: LtvMeta;
-  core: boolean;
-  maxAmount?: number;
+  showMax: boolean;
+  maxAmount: number;
   onTokenChange: (token: Token) => void;
   onInputChange: (value: string) => void;
+  ltvMeta: LtvMeta;
+  basePosition: BasePosition;
+  isEditing: boolean;
 };
 
 function TokenCard({
   type,
-  core,
+  showMax,
   assetChange,
   actionType,
   isExecuting,
   disabled,
   value,
-  ltvMeta,
   maxAmount,
   onTokenChange,
   onInputChange,
+  ltvMeta,
+  basePosition,
+  isEditing,
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
   const { token, usdPrice, balances, selectableTokens } = assetChange;
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
 
   const balance = balances[token.symbol];
 
@@ -72,12 +80,49 @@ function TokenCard({
   const close = () => setAnchorEl(null);
 
   const handleMax = () => {
-    // const amount = type === "debt" ? 50 : balance
-    handleInput(maxAmount?.toString() ?? '0');
+    const amount =
+      actionType === ActionType.REMOVE && type === 'collateral'
+        ? basePosition.position.collateral.amount -
+          (basePosition.position.debt.amount - Number(debt.input)) /
+            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
+        : maxAmount;
+    handleInput(String(amount));
   };
 
   const handleInput = (val: string) => {
     onInputChange(val);
+  };
+
+  const handleRecommended = () => {
+    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
+
+    if (
+      (ltv > recommendedLTV(ltvMax) && !value) ||
+      (!ltv && collateral.amount && !collateral.input)
+    ) {
+      handleInput('0');
+      return;
+    }
+
+    const collateralValue = isEditing
+      ? basePosition.editedPosition
+        ? basePosition.editedPosition.collateral.amount
+        : basePosition.position.collateral.amount
+      : Number(collateral.input);
+
+    console.log(
+      collateralValue,
+      collateral.usdPrice,
+      recommendedLTV(ltvMax),
+      maxAmount
+    );
+
+    const recommended =
+      (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
+      (isEditing ? basePosition.position.debt.amount : 0);
+
+    const finalValue = recommended > maxAmount ? maxAmount : recommended;
+    handleInput(parseFloat(finalValue.toFixed(4)).toString() ?? '0');
   };
 
   const handleTokenChange = (token: Token) => {
@@ -148,7 +193,7 @@ function TokenCard({
       </div>
 
       <div className={styles.cardLine} style={{ marginTop: '1rem' }}>
-        {core ? (
+        {showMax ? (
           <>
             <Typography variant="small" sx={{ width: '11rem' }}>
               {formatValue(usdPrice * +value, { style: 'currency' })}
@@ -192,7 +237,7 @@ function TokenCard({
                 },
               }}
             >
-              {formatValue(usdPrice * +value)}
+              {`$${formatValue(usdPrice * +value)}`}
             </Typography>
 
             <Stack direction="row">
@@ -216,9 +261,11 @@ function TokenCard({
               >
                 LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
               </Typography>
+
               <Typography
                 variant="smallDark"
                 sx={{
+                  cursor: 'pointer',
                   '&::before': {
                     content: '"Recommended: "',
                   },
@@ -231,6 +278,7 @@ function TokenCard({
                     },
                   },
                 }}
+                onClick={handleRecommended}
               >
                 ({recommendedLTV(ltvMax)}%)
               </Typography>

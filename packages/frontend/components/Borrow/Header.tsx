@@ -85,12 +85,13 @@ function BorrowHeader({
           sx={{
             marginTop: 3,
             marginBottom: 3,
+            flexWrap: 'wrap',
+            gap: 1,
           }}
         >
           {[ActionType.ADD, ActionType.REMOVE].map((p) => (
             <TabChip
               key={`${p}`}
-              sx={p === ActionType.REMOVE ? { marginLeft: 1 } : {}}
               selected={actionType === p}
               label={`${p === ActionType.ADD ? 'Add' : 'Remove'} Position`}
               onClick={() => {

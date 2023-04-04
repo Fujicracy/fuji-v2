@@ -4760,10 +4760,10 @@
     ethers "5.5.4"
     joi "^17.6.1"
 
-"@web3-onboard/core@^2.15.4":
-  version "2.15.4"
-  resolved "https://registry.yarnpkg.com/@web3-onboard/core/-/core-2.15.4.tgz#120608663b4e99a1a6bcce368e2e24e142f0e438"
-  integrity sha512-+PJZNwDuYJmZaLTVWvsnPteNwHslBKD2QgKuDWOArvfWF0v10AwzHbjbdt1AvcHjJZNGuFwMbVRpfcuntV/mbA==
+"@web3-onboard/core@^2.15.5":
+  version "2.15.5"
+  resolved "https://registry.yarnpkg.com/@web3-onboard/core/-/core-2.15.5.tgz#c28af0c0b3e6ea10c6c1c1698949423ad0ebf4a2"
+  integrity sha512-Fxtc/hSgPYasJ3Uvjd1qxeRWMIkHWup8B5r+v2PzRE5EdNy81F5EtbcyY8t7MmaIwDx4ol4UpkReX+IKBPVmwA==
   dependencies:
     "@unstoppabledomains/resolution" "^8.0"
     "@web3-onboard/common" "^2.2.3"
@@ -4780,22 +4780,22 @@
     svelte "^3.49.0"
     svelte-i18n "^3.3.13"
 
-"@web3-onboard/injected-wallets@^2.8.1":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@web3-onboard/injected-wallets/-/injected-wallets-2.8.1.tgz#106ff2ebbf8ff15397c2430ed8880f95b13b8c7e"
-  integrity sha512-8iEhBfAO5M7e0nYIqQPGTHTQvQug/usO4L/Qg47yhQ32Y9vHJDee3STA1T3kQZkGF6B0e43LzjyQ4MMpgHI6tQ==
+"@web3-onboard/injected-wallets@^2.8.2":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@web3-onboard/injected-wallets/-/injected-wallets-2.8.2.tgz#38449f27f9378e3d888b7d4b3e648f800375953b"
+  integrity sha512-So0sTJqeABEK2i2zUjro7pRVobmnYMHPy9NKo/Yh7rvbAHZBhcN63uyGUoDq4AfM2QeELAqw5HHKNV/JcMKAww==
   dependencies:
     "@web3-onboard/common" "^2.2.3"
     joi "^17.6.1"
     lodash.uniqby "^4.7.0"
 
-"@web3-onboard/react@^2.6.5":
-  version "2.6.5"
-  resolved "https://registry.yarnpkg.com/@web3-onboard/react/-/react-2.6.5.tgz#05e2ac79fc5f162cdd3a4b7e93b18142eb3ad86f"
-  integrity sha512-aE50BR5YKIIJwWv6ob6e0H4DwCIG2NpjKGS0s4UzjSsctFgjc9McAWj6CJI8T7F8u34LAI0zFyvVQMobPzNXVw==
+"@web3-onboard/react@^2.6.6":
+  version "2.6.6"
+  resolved "https://registry.yarnpkg.com/@web3-onboard/react/-/react-2.6.6.tgz#a03f521fc015b303f4a05cead440137fb4827294"
+  integrity sha512-MYIfzqkp/sH8gvfK3ptSG6YLw4uQedXGs+fdmknjYrHdx5kV0PgD+vhsCRAQQP79tvm+Hnz/5Fj5Zf0lglNi8Q==
   dependencies:
     "@web3-onboard/common" "^2.2.3"
-    "@web3-onboard/core" "^2.15.4"
+    "@web3-onboard/core" "^2.15.5"
     use-sync-external-store "1.0.0"
 
 "@web3-onboard/walletconnect@^2.3.1":

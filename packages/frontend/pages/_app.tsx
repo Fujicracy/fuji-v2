@@ -33,7 +33,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const address = useAuth((state) => state.address);
   const router = useRouter();
 
-  const currentPage = `/${router.pathname.substring(1)}`;
   const currentTxHash = useHistory((state) => state.inModal);
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
   const updateVault = useBorrow((state) => state.updateVault);
@@ -106,7 +105,10 @@ function MyApp({ Component, pageProps }: AppProps) {
         <ThemeProvider theme={theme}>
           <div className="backdrop"></div>
           <Component {...pageProps} />
-          <TransactionModal hash={currentTxHash} currentPage={currentPage} />
+          <TransactionModal
+            hash={currentTxHash}
+            currentPage={router.pathname}
+          />
           <SafetyNoticeModal />
           <Notification />
         </ThemeProvider>
