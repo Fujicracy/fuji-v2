@@ -275,7 +275,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
         )} ${secondStep.token.symbol}`
       : '';
 
-  const connector = secondTitle ? ' and ' : '';
+  const connector = firstTitle && secondTitle ? ' and ' : '';
 
   const title = capitalize(firstTitle + connector + secondTitle);
 
