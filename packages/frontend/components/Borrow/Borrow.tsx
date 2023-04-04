@@ -22,6 +22,7 @@ import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import LTVWarningModal from '../Shared/LTVWarningModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
+import WarningInfo from '../Shared/WarningInfo';
 import AllowanceModal from './AllowanceModal';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
@@ -215,6 +216,16 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           </Box>
 
           {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
+
+          {!isEditing && hasBalanceInVault && (
+            <Box mb={2}>
+              <WarningInfo
+                text={
+                  "Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. But if you're trying to open a similar position on a different network, please select an alternate route."
+                }
+              />
+            </Box>
+          )}
 
           <BorrowButton
             address={address}
