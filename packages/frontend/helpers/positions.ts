@@ -32,8 +32,8 @@ export const getPositionsWithBalance = async (
     // Should we keep going with the returnd vaults? Don't think so
     const firstError = result.errors[0];
     return new FujiResultError(
-      firstError.code,
       firstError.message,
+      firstError.code,
       firstError.info
     );
   }
