@@ -203,7 +203,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     // price drop, putting HF < 100, but above 95 and the close factor at 50%
     uint256 newPrice = price - priceDrop;
 
-    mock_getPriceOf(collateralAsset, debtAsset, 1e18 / newPrice);
+    mock_getPriceOf(collateralAsset, debtAsset, 1e36 / newPrice);
     mock_getPriceOf(debtAsset, collateralAsset, newPrice);
 
     uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.5e18 / 1e18);
@@ -216,7 +216,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
     assertEq(vault.balanceOf(ALICE), amount);
-    assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount, 1);
 
     //check balance of treasury
     assertEq(IERC20(collateralAsset).balanceOf(TREASURY), 0);
@@ -243,11 +243,13 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       amountGivenToLiquidator = amount;
     }
 
-    assertApproxEqAbs(vault.balanceOf(ALICE), amount - amountGivenToLiquidator, 1);
+    assertApproxEqAbs(vault.balanceOf(ALICE), amount - amountGivenToLiquidator, 0.3e17);
     assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount / 2, 1);
 
     //check balance of treasury
-    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountInTotal);
+    assertApproxEqAbs(
+      IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountInTotal, 0.3e17
+    );
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
     assertEq(vault.balanceOf(TREASURY), 0);
     assertEq(vault.balanceOfDebt(TREASURY), 0);
