@@ -20,6 +20,7 @@ import { showPosition } from '../../helpers/navigation';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
+import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
 import LTVWarningModal from '../Shared/LTVWarningModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
 import WarningInfo from '../Shared/WarningInfo';
@@ -280,6 +281,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
       />
+      <ConfirmTransactionModal open={true} onClose={() => console.log()} />
       <LTVWarningModal
         open={isLTVModalShown}
         ltv={dynamicLtvMeta.ltv}
