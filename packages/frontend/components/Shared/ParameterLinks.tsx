@@ -1,16 +1,17 @@
-import React from "react"
+import TwitterIcon from '@mui/icons-material/Twitter';
 import {
   Link,
   ListItemText,
   MenuItem,
   Typography,
   useTheme,
-} from "@mui/material"
-import TwitterIcon from "@mui/icons-material/Twitter"
-import { DiscordIcon } from "./Icons"
+} from '@mui/material';
+import React from 'react';
 
-export default function ParameterLinks() {
-  const { palette } = useTheme()
+import { DiscordIcon } from './Icons';
+
+function ParameterLinks() {
+  const { palette } = useTheme();
 
   return (
     <>
@@ -57,5 +58,7 @@ export default function ParameterLinks() {
         </MenuItem>
       </Link>
     </>
-  )
+  );
 }
+
+export default ParameterLinks;

@@ -10,4 +10,4 @@ export const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="n
 <stop offset="0.854082" stop-color="#FE0B5C"/>
 </linearGradient>
 </defs>
-</svg>`
+</svg>`;
