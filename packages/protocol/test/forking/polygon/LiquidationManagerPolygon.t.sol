@@ -87,6 +87,40 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     );
   }
 
+  /**
+   * @param vault_ in where owner is being liquidated
+   * @param owner that is being liquidated
+   * @param price of liquidation in 1e18 decimals.
+   */
+  function estimate_gainedShares(
+    BorrowingVault vault_,
+    address owner,
+    uint256 price
+  )
+    internal
+    view
+    returns (uint256 gainedShares)
+  {
+    // Compute `gainedShares` amount that the liquidator will receive.
+    uint256 discountedPrice = price.mulDiv(vault_.LIQUIDATION_PENALTY(), 1e18);
+    uint256 debt = vault_.balanceOfDebt(owner);
+    uint256 assets = debt.mulDiv(vault_.getLiquidationFactor(owner), discountedPrice);
+    gainedShares = vault_.convertToShares(assets);
+  }
+
+  function estimate_liqManagerFlashloanPayback(
+    IFlasher flasher_,
+    IVault vault_,
+    uint256 debt
+  )
+    internal
+    view
+    returns (uint256)
+  {
+    uint256 payback = debt + flasher_.computeFlashloanFee(vault_.debtAsset(), debt);
+    return _utils_getAmountInSwap(vault_.asset(), vault_.debtAsset(), payback);
+  }
+
   function _utils_getLiquidationThresholdValue(
     uint256 price,
     uint256 deposit,
@@ -140,7 +174,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     // enough for user to be liquidated
     // liquidation is still profitable
     uint256 liquidationPrice = (currentPrice * 75) / 100;
-    uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
+    uint256 inversePrice = 1e36 / liquidationPrice;
 
     mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
     mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
@@ -206,12 +240,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     mock_getPriceOf(collateralAsset, debtAsset, 1e36 / newPrice);
     mock_getPriceOf(debtAsset, collateralAsset, newPrice);
 
-    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.5e18 / 1e18);
-    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18) / 1e18 + flashloanFee;
-    //amount of collateral to swap to repay flashloan
-    uint256 amountInTotal =
-      _utils_getAmountInSwap(collateralAsset, debtAsset, amountToRepayFlashloan);
-
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
@@ -224,31 +252,32 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOf(TREASURY), 0);
     assertEq(vault.balanceOfDebt(TREASURY), 0);
 
-    //liquidate ALICE
+    // liquidate ALICE
+    uint256 gainedShares =
+      estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE, newPrice);
+
     address[] memory users = new address[](1);
     users[0] = ALICE;
 
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, borrowAmount * 0.5e18 / 1e18, flasher, swapper);
+    liquidationManager.liquidate(users, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
 
-    uint256 discountedPrice = (newPrice * 0.9e18) / 1e18;
-    uint256 amountGivenToLiquidator = (borrowAmount * 0.5e18) / discountedPrice;
+    assertEq(vault.balanceOf(ALICE), (amount - gainedShares));
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), (borrowAmount * 0.5e18) / 1e18, 1);
 
-    if (amountGivenToLiquidator >= amount) {
-      amountGivenToLiquidator = amount;
-    }
+    // amount of collateral to pay flashloan back during liquidation through LiquidationManager
+    uint256 collatPayback =
+      estimate_liqManagerFlashloanPayback(flasher, vault, (borrowAmount * 0.5e18) / 1e18);
 
-    assertApproxEqAbs(vault.balanceOf(ALICE), amount - amountGivenToLiquidator, 0.3e17);
-    assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount / 2, 1);
-
-    //check balance of treasury
-    assertApproxEqAbs(
-      IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountInTotal, 0.3e17
+    // check balance of treasury
+    assertGe(
+      IERC20(collateralAsset).balanceOf(TREASURY),
+      vault.convertToAssets(gainedShares) - collatPayback
     );
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
     assertEq(vault.balanceOf(TREASURY), 0);

@@ -178,9 +178,9 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
       mockOracle = new MockOracle();
 
-      // WETH and DAI prices by Nov 11h 2022
-      mockOracle.setUSDPriceOf(collateralAsset, 796341757142697);
-      mockOracle.setUSDPriceOf(debtAsset, 100000000);
+      // WETH assumed 2k usd/eth, dai = 1 usd
+      mockOracle.setUSDPriceOf(collateralAsset, 2000e8);
+      mockOracle.setUSDPriceOf(debtAsset, 1e8);
       oracle = mockOracle;
     }
   }

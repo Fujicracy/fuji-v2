@@ -36,7 +36,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
 
   address public immutable treasury;
 
-  //keepers
+  /// @dev Keeper addresses allowed to liquidate via this manager.
   mapping(address => bool) public allowedExecutor;
 
   bytes32 private _entryPoint;
@@ -184,17 +184,17 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       revert LiquidationManager__getFlashloan_flashloanFailed();
     }
 
-    //approve amount to all liquidations
+    // Approve amount to all liquidations
     debtAsset.safeApprove(address(vault), debtAmount);
 
     bool liquidatedUsers = false;
 
-    uint256 collateralAmount = 0;
+    uint256 gainedShares = 0;
 
     for (uint256 i = 0; i < users.length; i++) {
       if (vault.getHealthFactor(users[i]) < 1e18) {
         liquidatedUsers = true;
-        collateralAmount += vault.liquidate(users[i], address(this));
+        gainedShares += vault.liquidate(users[i], address(this));
       }
     }
 
@@ -202,19 +202,20 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       revert LiquidationManager__liquidate_noUsersToLiquidate();
     }
 
+    uint256 withdrawable = vault.convertToAssets(gainedShares);
     uint256 maxWithdrawAmount = vault.maxWithdraw(address(this));
 
-    //TODO check this condition after precision in vault is fixed
-    if (collateralAmount > maxWithdrawAmount) {
-      collateralAmount = maxWithdrawAmount;
+    // TODO check this condition after precision in vault is fixed
+    if (withdrawable > maxWithdrawAmount) {
+      withdrawable = maxWithdrawAmount;
     }
 
-    //sell shares for collateralAsset
-    vault.withdraw(collateralAmount, address(this), address(this));
+    // Withdraw the "withdrawable" shares in exchange for collateralAsset
+    vault.withdraw(withdrawable, address(this), address(this));
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debtAmount);
 
-    //swap amount to payback the flashloan
+    // Swap amount to payback the flashloan
     uint256 amountToSwap = debtAmount + flashloanFee - debtAsset.balanceOf(address(this));
     uint256 amountIn =
       swapper.getAmountIn(address(collateralAsset), address(debtAsset), amountToSwap);
@@ -230,11 +231,11 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       0
     );
 
-    //repay flashloan
+    // Repay flashloan
     debtAsset.safeTransfer(address(flasher), debtAmount + flashloanFee);
 
-    //send the rest to treasury
-    collateralAsset.safeTransfer(treasury, collateralAmount - amountIn);
+    // Send the rest to treasury
+    collateralAsset.safeTransfer(treasury, withdrawable - amountIn);
 
     // Re-initialize the `_entryPoint`.
     _entryPoint = "";
