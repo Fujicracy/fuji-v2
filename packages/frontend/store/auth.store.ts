@@ -33,9 +33,9 @@ export const onboard = init({
   chains: onboardChains,
   wallets: [injectedModule(), walletConnect],
   appMetadata: {
-    name: 'Fuji II - Himalaya',
+    name: 'Fuji V2 Himalaya',
     icon: fujiLogo, // svg string icon
-    description: 'Borrow in any chain, and always have the best rate',
+    description: 'Deposit, borrow and repay from any chain',
     recommendedInjectedWallets: [
       { name: 'MetaMask', url: 'https://metamask.io' },
       { name: 'Coinbase', url: 'https://wallet.coinbase.com/' },
