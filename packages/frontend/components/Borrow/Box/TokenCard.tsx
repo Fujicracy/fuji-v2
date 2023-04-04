@@ -110,13 +110,6 @@ function TokenCard({
         : basePosition.position.collateral.amount
       : Number(collateral.input);
 
-    console.log(
-      collateralValue,
-      collateral.usdPrice,
-      recommendedLTV(ltvMax),
-      maxAmount
-    );
-
     const recommended =
       (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
       (isEditing ? basePosition.position.debt.amount : 0);
