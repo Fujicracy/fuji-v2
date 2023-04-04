@@ -1,5 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close';
 import {
+  Box,
   Button,
   Card,
   Dialog,
@@ -11,6 +12,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep, RoutingStepDetails, Token } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
+import Image from 'next/image';
 
 import { AssetChange } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
@@ -42,14 +44,14 @@ export function ConfirmTransactionModal({
       onClose={onClose}
       sx={{
         '& .MuiDialog-paper': {
-          maxWidth: '30rem',
+          maxWidth: '35rem',
         },
       }}
     >
       <Paper
         variant="outlined"
         sx={{
-          maxWidth: '30rem',
+          maxWidth: '35rem',
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
@@ -172,7 +174,11 @@ function RouteBox({ route }: { route: RouteMeta }) {
     if (step.lendingProvider) {
       const preposition = step.step === RoutingStep.DEPOSIT ? 'to' : 'from';
       return (
-        <Typography align="center" variant="xsmall">
+        <Typography
+          align="center"
+          variant="xsmall"
+          sx={{ display: 'flex', gap: '0.25rem' }}
+        >
           {`${preposition} ${step.lendingProvider.name} on `}
           <NetworkIcon
             network={chainName(step.chainId)}
@@ -184,20 +190,24 @@ function RouteBox({ route }: { route: RouteMeta }) {
     }
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <Typography align="center" variant="xsmall">
-          from
+        <Stack flexDirection="row" alignItems="center" gap="0.25rem">
+          <Typography align="center" variant="xsmall">
+            from
+          </Typography>
           <NetworkIcon
             network={chainName(step.token?.chainId)}
             height={14}
             width={14}
           />
-          to
+          <Typography align="center" variant="xsmall">
+            to
+          </Typography>
           <NetworkIcon
             network={chainName(step.chainId)}
             height={14}
             width={14}
           />
-        </Typography>
+        </Stack>
       );
     }
 
@@ -250,39 +260,55 @@ function RouteBox({ route }: { route: RouteMeta }) {
 
       <Stack
         width="100%"
-        flexDirection="row"
-        alignItems="center"
         justifyContent="space-between"
         sx={{
+          flex: 1,
           maxWidth: '30rem',
+          flexWrap: 'wrap',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: 'center',
+          justifyContent: { xs: 'center', sm: 'space-between' },
+          gap: '0.5rem',
         }}
       >
         {steps.map((step, i) => (
-          <Stack
-            key={i}
-            direction="column"
-            sx={{
-              p: '0.375rem 0.75rem',
-              backgroundColor: '#35353B',
-              borderRadius: '6px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <Typography
-              align="center"
-              variant="xsmall"
-              sx={{ maxWidth: '6.5rem' }}
+          <>
+            {i !== 0 && (
+              <Box
+                sx={{
+                  ['@media screen and (max-width: 600px)']: {
+                    transform: 'rotate(90deg)',
+                  },
+                }}
+              >
+                <Image
+                  alt="Arrow icon"
+                  src="/assets/images/shared/doubleArrow.svg"
+                  height={10}
+                  width={6}
+                />
+              </Box>
+            )}
+            <Stack
+              key={i}
+              direction="column"
+              sx={{
+                p: '0.375rem 0.75rem',
+                backgroundColor: '#35353B',
+                borderRadius: '6px',
+                minWidth: '8rem',
+                flex: 1,
+                width: { xs: '100%', sm: 'unset' },
+              }}
             >
-              {textForStep(step)}
-            </Typography>
-            <Typography
-              align="center"
-              variant="xsmall"
-              sx={{ maxWidth: '6.5rem' }}
-            >
-              {description(step)}
-            </Typography>
-          </Stack>
+              <Typography align="left" variant="xsmall">
+                {textForStep(step)}
+              </Typography>
+              <Typography align="left" variant="xsmall" mt={0.5}>
+                {description(step)}
+              </Typography>
+            </Stack>
+          </>
         ))}
       </Stack>
     </Card>
