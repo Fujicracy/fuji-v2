@@ -510,10 +510,10 @@ export class Sdk {
 
     if (!connextTx) {
       const transferId = await this.getTransferId(srcChainId, srcTxHash);
-      if (!transferId)
+      if (!transferId.success || transferId.data === undefined)
         return new FujiResultError(
-          FujiErrorCode.TX,
           'Not cross-chain transaction',
+          FujiErrorCode.TX,
           {
             srcTxHash,
           }
@@ -521,12 +521,12 @@ export class Sdk {
       else
         return new FujiResultSuccess({
           status: ConnextTxStatus.UNKNOWN,
-          connextTransferId: transferId,
+          connextTransferId: transferId.data,
         });
     }
 
     if (Number(connextTx.origin_chain) !== srcChainId) {
-      return new FujiResultError(FujiErrorCode.SDK, 'Source chain mismatch', {
+      return new FujiResultError('Source chain mismatch', FujiErrorCode.SDK, {
         paramSrcChainId: srcChainId,
         connextSrcChainId: Number(connextTx.origin_chain),
       });
@@ -536,8 +536,8 @@ export class Sdk {
 
     if (connextTx.status === 'Reconciled' && connextTx.error_status) {
       return new FujiResultError(
-        FujiErrorCode.CONNEXT,
         connextTx.error_status,
+        FujiErrorCode.CONNEXT,
         { srcTxHash, connextTransferId }
       );
     }
@@ -555,7 +555,7 @@ export class Sdk {
     const { rpcProvider } = this.getConnectionFor(destChainId);
     const receipt = await rpcProvider.waitForTransaction(destTxHash);
     if (!receipt)
-      return new FujiResultError(FujiErrorCode.TX, 'Receipt not valid', {
+      return new FujiResultError('Receipt not valid', FujiErrorCode.TX, {
         destTxHash,
         connextTransferId,
       });
@@ -571,8 +571,8 @@ export class Sdk {
         });
       else
         return new FujiResultError(
-          FujiErrorCode.TX,
           'Transaction reverted on destination chain',
+          FujiErrorCode.TX,
           { destTxHash, connextTransferId }
         );
     }
@@ -590,8 +590,8 @@ export class Sdk {
 
     if (!e)
       return new FujiResultError(
-        FujiErrorCode.TX,
         'Cannot find XReceived event',
+        FujiErrorCode.TX,
         { destTxHash, connextTransferId }
       );
 
@@ -604,8 +604,8 @@ export class Sdk {
       });
     } else {
       return new FujiResultError(
-        FujiErrorCode.TX,
         'Transaction execution on destination chain failed',
+        FujiErrorCode.TX,
         { destTxHash, connextTransferId }
       );
     }
