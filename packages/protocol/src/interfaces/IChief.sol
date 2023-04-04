@@ -24,4 +24,11 @@ interface IChief is IAccessControl {
    * @param flasher address to check
    */
   function allowedFlasher(address flasher) external view returns (bool);
+
+  /**
+   * @notice Returns true if `swapper` is an allowed {ISwapper}.
+   *
+   * @param swapper address to check
+   */
+  function allowedSwapper(address swapper) external view returns (bool);
 }
