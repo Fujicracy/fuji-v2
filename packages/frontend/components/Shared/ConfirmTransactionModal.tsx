@@ -68,20 +68,20 @@ export function ConfirmTransactionModal({
       ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
       : 'n/a';
 
-  const editedBorrowLimit = editedPosition
+  const editedBorrow = editedPosition
     ? borrowLimit(
         mode,
         editedPosition.collateral.amount,
-        parseFloat(collateral.input),
+        parseFloat(collateral.input) || 0,
         collateral.usdPrice,
         editedPosition.ltv
       )
     : 0;
 
-  const positonBorrowLimit = borrowLimit(
+  const positonBorrow = borrowLimit(
     mode,
+    collateral.amount || 0,
     parseFloat(collateral.input) || 0,
-    parseFloat(collateral.input),
     collateral.usdPrice,
     position.ltv
   );
@@ -90,11 +90,11 @@ export function ConfirmTransactionModal({
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
-  const estBorrowLimit = `${formatValue(positonBorrowLimit, {
+  const estBorrow = `${formatValue(positonBorrow, {
     style: 'currency',
   })}${
     editedPosition
-      ? ` -> ${formatValue(editedBorrowLimit, { style: 'currency' })}`
+      ? ` -> ${formatValue(editedBorrow, { style: 'currency' })}`
       : ''
   }`;
   const liquidationPrice = `${formatValue(position.liquidationPrice, {
@@ -179,8 +179,8 @@ export function ConfirmTransactionModal({
         )}
 
         <InfoRow
-          title="Borrow Limit Left"
-          value={<Typography variant="small">{estBorrowLimit}</Typography>}
+          title="Borrow Value"
+          value={<Typography variant="small">{estBorrow}</Typography>}
         />
 
         <InfoRow
