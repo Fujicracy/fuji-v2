@@ -459,6 +459,7 @@ function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
           <>
             {i !== 0 && (
               <Box
+                key={i}
                 sx={{
                   ['@media screen and (max-width: 600px)']: {
                     transform: 'rotate(90deg)',
@@ -474,7 +475,7 @@ function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
               </Box>
             )}
             <Stack
-              key={i}
+              key={step.step}
               direction="column"
               sx={{
                 p: '0.375rem 0.75rem',
