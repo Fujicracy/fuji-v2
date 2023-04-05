@@ -78,13 +78,6 @@ export const borrowLimit = (
   price: number,
   maxLtv: number
 ): number => {
-  console.log('%cassets.ts line:81 object', 'color: #007acc;', {
-    mode,
-    balance,
-    input,
-    price,
-    maxLtv,
-  });
   const amount =
     mode === Mode.WITHDRAW ||
     mode === Mode.PAYBACK ||
