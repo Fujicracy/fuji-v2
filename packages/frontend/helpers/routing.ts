@@ -7,10 +7,11 @@ import {
   RoutingStepDetails,
   Token,
 } from '@x-fuji/sdk';
-import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import { formatUnits } from 'ethers/lib/utils';
 
 import { sdk } from '../services/sdk';
 import { Mode } from './assets';
+import { validBigNumberAmount } from './values';
 
 export type RouteMeta = {
   //gasFees: number
@@ -47,8 +48,8 @@ export const fetchRoutes = async (
       case Mode.DEPOSIT_AND_BORROW:
         preview = await sdk.previews.depositAndBorrow(
           vault,
-          parseUnits(collateralInput, collateralToken.decimals),
-          parseUnits(debtInput, debtToken.decimals),
+          validBigNumberAmount(collateralInput, collateralToken.decimals),
+          validBigNumberAmount(debtInput, debtToken.decimals),
           collateralToken,
           debtToken,
           Address.from(address),
@@ -59,7 +60,7 @@ export const fetchRoutes = async (
       case Mode.DEPOSIT:
         preview = await sdk.previews.deposit(
           vault,
-          parseUnits(collateralInput, collateralToken.decimals),
+          validBigNumberAmount(collateralInput, collateralToken.decimals),
           collateralToken,
           Address.from(address),
           slippage
@@ -69,7 +70,7 @@ export const fetchRoutes = async (
         preview = await sdk.previews.borrow(
           vault,
           collateralToken.chainId,
-          parseUnits(debtInput, debtToken.decimals),
+          validBigNumberAmount(debtInput, debtToken.decimals),
           debtToken,
           Address.from(address),
           undefined,
@@ -79,8 +80,8 @@ export const fetchRoutes = async (
       case Mode.PAYBACK_AND_WITHDRAW:
         preview = await sdk.previews.paybackAndWithdraw(
           vault,
-          parseUnits(debtInput, debtToken.decimals),
-          parseUnits(collateralInput, collateralToken.decimals),
+          validBigNumberAmount(debtInput, debtToken.decimals),
+          validBigNumberAmount(collateralInput, collateralToken.decimals),
           debtToken,
           collateralToken,
           Address.from(address),
@@ -92,7 +93,7 @@ export const fetchRoutes = async (
         preview = await sdk.previews.withdraw(
           vault,
           vault.collateral.chainId,
-          parseUnits(collateralInput, collateralToken.decimals),
+          validBigNumberAmount(collateralInput, collateralToken.decimals),
           collateralToken,
           Address.from(address),
           undefined,
@@ -102,7 +103,7 @@ export const fetchRoutes = async (
       case Mode.PAYBACK:
         preview = await sdk.previews.payback(
           vault,
-          parseUnits(debtInput, debtToken.decimals),
+          validBigNumberAmount(debtInput, debtToken.decimals),
           debtToken,
           Address.from(address),
           slippage

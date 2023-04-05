@@ -19,7 +19,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_TRESHOLD } from '../constants';
+import { DEFAULT_LTV_MAX, DEFAULT_LTV_THRESHOLD } from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -163,7 +163,7 @@ const initialState: BorrowState = {
   ltv: {
     ltv: 0,
     ltvMax: DEFAULT_LTV_MAX,
-    ltvThreshold: DEFAULT_LTV_TRESHOLD,
+    ltvThreshold: DEFAULT_LTV_THRESHOLD,
   },
 
   slippage: DEFAULT_SLIPPAGE,
@@ -343,7 +343,7 @@ export const useBorrow = create<BorrowStore>()(
             : DEFAULT_LTV_MAX;
           const ltvThreshold = vault.liqRatio
             ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
-            : DEFAULT_LTV_TRESHOLD;
+            : DEFAULT_LTV_THRESHOLD;
 
           set(
             produce((s: BorrowState) => {

@@ -117,13 +117,14 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                   `${action} ${amount} ${token.symbol} ${preposition} ${chain}`
                 );
 
+          const description = `${chain} Network`;
+
           return {
             label,
             chainId,
             txHash,
             link,
-            description:
-              step === RoutingStep.X_TRANSFER ? 'Connext' : `${chain} Network`,
+            description,
             icon: () => (
               <Box sx={style}>
                 <NetworkIcon network={chain} height={32} width={32} />
