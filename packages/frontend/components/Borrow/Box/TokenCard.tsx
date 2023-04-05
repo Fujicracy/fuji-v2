@@ -1,3 +1,4 @@
+import { keyframes } from '@emotion/react';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {
   ButtonBase,
@@ -15,7 +16,13 @@ import {
   useTheme,
 } from '@mui/material';
 import { Token } from '@x-fuji/sdk';
-import React, { MouseEvent, ReactElement, useState } from 'react';
+import React, {
+  MouseEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   ActionType,
@@ -45,6 +52,7 @@ type SelectTokenCardProps = {
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
   isEditing: boolean;
+  isFocusedByDefault: boolean;
 };
 
 function TokenCard({
@@ -61,6 +69,7 @@ function TokenCard({
   ltvMeta,
   basePosition,
   isEditing,
+  isFocusedByDefault,
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
@@ -78,6 +87,15 @@ function TokenCard({
     setAnchorEl(event.currentTarget);
   };
   const close = () => setAnchorEl(null);
+
+  const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
+    undefined
+  );
+  const [focused, setFocused] = useState<boolean>(false);
+
+  const handleRef = useCallback((node: HTMLInputElement) => {
+    setTextInput(node);
+  }, []);
 
   const handleMax = () => {
     const amount =
@@ -124,6 +142,21 @@ function TokenCard({
     close();
   };
 
+  useEffect(() => {
+    if (isFocusedByDefault) {
+      textInput?.focus();
+    }
+  }, [isFocusedByDefault, textInput]);
+
+  const blink = keyframes`
+    from {
+      visibility: visible;
+    }
+    to {
+      visibility: hidden;
+    }
+  `;
+
   return (
     <Card
       variant="outlined"
@@ -132,6 +165,8 @@ function TokenCard({
           (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
           Number(assetChange.input) > balance
             ? palette.error.dark
+            : focused
+            ? palette.info.main
             : palette.secondary.light,
       }}
     >
@@ -140,12 +175,21 @@ function TokenCard({
           id="collateral-amount"
           type="number"
           placeholder="0"
+          inputRef={handleRef}
           value={value}
           disabled={isExecuting}
           onChange={(e) => handleInput(e.target.value)}
           variant="standard"
           InputProps={{
             disableUnderline: true,
+          }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          sx={{
+            '&.MuiInputBase-input:focus': {
+              caretColor: 'auto',
+              animation: `${blink} 1s infinite`,
+            },
           }}
         />
         <ButtonBase
