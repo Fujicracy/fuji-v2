@@ -18,6 +18,7 @@ import { ActionType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
+import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
@@ -84,7 +85,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     useState(false);
   const [confirmationModalAction, setConfirmationModalAction] = useState(
     () => () => {
-      console.error('Invalid function called');
+      notify({ message: 'Invalid function called', type: 'error' });
     }
   );
 
@@ -230,8 +231,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 />
               </Box>
             )}
-
-          <Box onClick={() => setIsConfirmationModalShown(true)}>test</Box>
 
           <BorrowButton
             address={address}
