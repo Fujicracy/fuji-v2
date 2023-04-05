@@ -635,7 +635,7 @@ contract BorrowingVault is BaseVault {
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
     // Ensure liquidator receives no more shares than 'owner' owns.
-    uint256 existingShares = balanceOf(owner);
+    uint256 existingShares = maxRedeem(owner);
     if (gainedShares > existingShares) {
       gainedShares = existingShares;
     }

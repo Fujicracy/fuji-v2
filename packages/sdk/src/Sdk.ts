@@ -9,7 +9,9 @@ import {
   CHAIN,
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
+  CONNEXT_URL,
   DEBT_LIST,
+  URLS,
   VAULT_LIST,
 } from './constants';
 import { Address, Currency, Token } from './entities';
@@ -254,10 +256,8 @@ export class Sdk {
     const uri = {
       lendBorrow: defillamaproxy
         ? defillamaproxy + 'lendBorrow'
-        : 'https://yields.llama.fi/lendBorrow',
-      pools: defillamaproxy
-        ? defillamaproxy + 'pools'
-        : 'https://yields.llama.fi/pools',
+        : URLS.DEFILLAMA_LEND_BORROW,
+      pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
     };
     try {
       const [borrows, pools] = await Promise.all([
@@ -404,7 +404,7 @@ export class Sdk {
     transactionHash: string
   ): Promise<string | undefined> {
     const { rpcProvider } = this.getConnectionFor(chainId);
-    const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
+    const receipt = await rpcProvider.waitForTransaction(transactionHash);
     invariant(
       !!receipt,
       `Receipt not valid from tx with hash ${transactionHash}`
@@ -441,16 +441,12 @@ export class Sdk {
   ): Promise<string> {
     const chainStr = chainType === ChainType.MAINNET ? 'mainnet' : 'testnet';
     return new Promise((resolve) => {
-      const apiCall = () =>
-        axios.get(
-          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,xcall_transaction_hash`
-        );
-
+      const apiCall = () => axios.get(CONNEXT_URL(chainStr, transferId));
       const interval = () => {
         apiCall()
           .then(({ data }) => {
-            if (data.length > 0 && data[0].xcall_transaction_hash)
-              resolve(data[0].xcall_transaction_hash);
+            if (data.length > 0 && data[0].execute_transaction_hash)
+              resolve(data[0].execute_transaction_hash);
             else setTimeout(interval, 2000);
           })
           .catch((err) => console.error(err));
