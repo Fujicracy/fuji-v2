@@ -83,7 +83,7 @@ export function ConfirmTransactionModal({
   const editedBorrowLimit =
     collateralDiff * collateral.usdPrice * (editedPosition?.ltvMax || 1) -
     debtDiff * debt.usdPrice;
-  const positonBorrowLimit =
+  const positionBorrowLimit =
     collateral.amount * collateral.usdPrice * (position.ltvMax / 100) -
     debt.amount * debt.usdPrice;
 
@@ -91,7 +91,7 @@ export function ConfirmTransactionModal({
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
-  const estBorrow = `${formatValue(positonBorrowLimit, {
+  const estBorrow = `${formatValue(positionBorrowLimit, {
     style: 'currency',
   })}${
     editedPosition
