@@ -7,7 +7,7 @@ import {
   useTheme,
 } from '@mui/material';
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Borrow from '../../components/Borrow/Borrow';
 import Footer from '../../components/Shared/Footer';
@@ -100,7 +100,9 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   return (
     <>
       <Head>
-        <title>Position - Fuji V2 Himalaya</title>
+        <title>{`${
+          isEditing ? 'Position' : 'Borrow'
+        } - Fuji V2 Himalaya`}</title>
         <meta
           name="description"
           content="Deposit, borrow and repay your positions from any chain."
