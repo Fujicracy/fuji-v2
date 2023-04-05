@@ -124,22 +124,42 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
   /**
    * @param vault_ in where owner is being liquidated
    * @param owner that is being liquidated
-   * @param price of liquidation in 1e18 decimals.
    */
   function estimate_gainedShares(
     BorrowingVault vault_,
-    address owner,
-    uint256 price
+    address owner
   )
     internal
     view
     returns (uint256 gainedShares)
   {
-    // Compute `gainedShares` amount that the liquidator will receive.
-    uint256 discountedPrice = price.mulDiv(vault_.LIQUIDATION_PENALTY(), 1e18);
-    uint256 debt = vault_.balanceOfDebt(owner);
-    uint256 assets = debt.mulDiv(vault_.getLiquidationFactor(owner), discountedPrice);
-    gainedShares = vault_.convertToShares(assets);
+    uint256 debtRemaining;
+    uint8 debtDecimals;
+    uint8 assetDecimals;
+    {
+      // Compute `gainedShares` amount that the liquidator will receive.
+      debtDecimals = vault_.debtDecimals();
+      assetDecimals = IERC20Metadata(vault_.asset()).decimals();
+
+      uint256 price = oracle.getPriceOf(vault_.debtAsset(), vault_.asset(), debtDecimals);
+      uint256 discountedPrice = price.mulDiv(vault_.LIQUIDATION_PENALTY(), 1e18);
+      uint256 debt = vault_.balanceOfDebt(owner);
+      uint256 debtToCover = Math.mulDiv(debt, vault_.getLiquidationFactor(owner), 1e18);
+      debtRemaining = vault_.balanceOfDebt(owner) - debtToCover;
+      uint256 gainedAssets = Math.mulDiv(debtToCover, 10 ** assetDecimals, discountedPrice);
+      gainedShares = vault_.convertToShares(gainedAssets);
+    }
+    uint256 redeemableShares;
+    {
+      uint256 invPrice = oracle.getPriceOf(vault_.asset(), vault_.debtAsset(), assetDecimals);
+      uint256 lockedAssets =
+        (debtRemaining * 1e18 * invPrice) / (vault_.maxLtv() * 10 ** debtDecimals);
+      uint256 lockedShares = vault_.convertToShares(lockedAssets);
+      redeemableShares = vault_.balanceOf(owner) - lockedShares;
+    }
+    if (gainedShares > redeemableShares) {
+      gainedShares = redeemableShares;
+    }
   }
 
   function estimate_liqManagerFlashloanPayback(
@@ -359,8 +379,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOfDebt(TREASURY), 0);
 
     // liquidate ALICE
-    uint256 gainedShares =
-      estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE, newPrice);
+    uint256 gainedShares = estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE);
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
