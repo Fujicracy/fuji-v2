@@ -38,6 +38,7 @@ type ConfirmTransactionModalProps = {
   };
   open: boolean;
   onClose: () => void;
+  action: () => void;
 };
 
 export function ConfirmTransactionModal({
@@ -47,6 +48,7 @@ export function ConfirmTransactionModal({
   transactionMeta,
   open,
   onClose,
+  action,
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
   const mode = useBorrow((state) => state.mode);
@@ -189,9 +191,9 @@ export function ConfirmTransactionModal({
                 color={
                   !position.ltv
                     ? ''
-                    : position.ltv / 100 > position.ltvMax
+                    : position.ltv > position.ltvMax
                     ? palette.error.main
-                    : position.ltv / 100 > recommendedLTV(position.ltv)
+                    : position.ltv > recommendedLTV(position.ltvMax)
                     ? palette.warning.main
                     : palette.success.main
                 }
@@ -212,8 +214,8 @@ export function ConfirmTransactionModal({
                         ? ''
                         : editedPosition.ltv / 100 > editedPosition.ltvMax
                         ? palette.error.main
-                        : editedPosition.ltv / 100 >
-                          recommendedLTV(editedPosition.ltv)
+                        : editedPosition.ltv >
+                          recommendedLTV(editedPosition.ltvMax * 100)
                         ? palette.warning.main
                         : palette.success.main
                     }
@@ -231,17 +233,19 @@ export function ConfirmTransactionModal({
         />
 
         {dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 && (
-          <WarningInfo text="Warning: Your Loan-to-Value ratio is very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes." />
+          <Box mt="1rem">
+            <WarningInfo text="Warning: Your Loan-to-Value ratio is very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes." />
+          </Box>
         )}
 
         <Button
           variant="gradient"
           size="medium"
           fullWidth
-          onClick={() => console.log('test')}
+          onClick={action}
           data-cy="new-borrow-redirect"
           sx={{
-            mt: '1.375rem',
+            mt: '1.5rem',
           }}
         >
           Confirm
