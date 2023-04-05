@@ -12,7 +12,7 @@ function WarningInfo({ text }: { text: string }) {
       sx={{ flex: 1, backgroundColor: alpha(palette.warning.main, 0.1) }}
       borderRadius={2}
     >
-      <Stack flexDirection="row" alignItems="center" gap={1}>
+      <Stack flexDirection="row" alignItems="center" gap={2}>
         <Image
           src="/assets/images/shared/warning.svg"
           width={15}
@@ -23,6 +23,7 @@ function WarningInfo({ text }: { text: string }) {
           variant="xsmall"
           color={palette.warning.main}
           lineHeight="160%"
+          textAlign="left"
         >
           {text}
         </Typography>

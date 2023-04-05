@@ -22,6 +22,7 @@ import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
 import { FetchStatus, useBorrow } from '../../store/borrow.store';
 import { NetworkIcon } from './Icons';
 import TokenIcon from './Icons/TokenIcon';
+import WarningInfo from './WarningInfo';
 
 type ConfirmTransactionModalProps = {
   collateral: AssetChange;
@@ -51,6 +52,14 @@ export function ConfirmTransactionModal({
   const mode = useBorrow((state) => state.mode);
   const { steps } = transactionMeta;
   const { editedPosition, position } = basePosition;
+
+  const dynamicLtvMeta = {
+    ltv: editedPosition ? editedPosition.ltv : position.ltv,
+    ltvMax: editedPosition ? editedPosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvThreshold: editedPosition
+      ? editedPosition.ltvThreshold
+      : position.ltvThreshold,
+  };
 
   const estCost =
     transactionMeta.status === 'ready'
@@ -220,6 +229,10 @@ export function ConfirmTransactionModal({
           title="Liquidation Price"
           value={<Typography variant="small">{liquidationPrice}</Typography>}
         />
+
+        {dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 && (
+          <WarningInfo text="Warning: Your Loan-to-Value ratio is very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes." />
+        )}
 
         <Button
           variant="gradient"
