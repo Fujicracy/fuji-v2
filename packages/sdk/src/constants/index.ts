@@ -4,6 +4,7 @@ export * from './chains';
 export * from './collaterals';
 export * from './common';
 export * from './debts';
+export * from './errors';
 export * from './natives';
 export * from './rpcs';
 export * from './tokens';
