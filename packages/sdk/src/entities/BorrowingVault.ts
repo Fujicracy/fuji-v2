@@ -4,7 +4,6 @@ import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
-import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { CHAIN, CONNEXT_ROUTER_ADDRESS } from '../constants';
@@ -24,7 +23,6 @@ import {
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
 import { Chain } from './Chain';
-import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
 type AccountBalances = {
@@ -41,7 +39,7 @@ type AccountBalances = {
  * path of interacting with a BorrowingVault contract.
  */
 
-export class BorrowingVault extends StreamManager {
+export class BorrowingVault {
   /**
    * The chain ID on which this vault resides
    */
@@ -146,8 +144,6 @@ export class BorrowingVault extends StreamManager {
 
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
-
-    super();
 
     this.name = '';
     this.address = address;
@@ -310,30 +306,6 @@ export class BorrowingVault extends StreamManager {
     ]);
 
     return { deposit, borrow };
-  }
-
-  /**
-   * Returns a stream of deposit and borrow balances for an account.
-   *
-   * @param account - user address, wrapped in {@link Address}
-   * @throws if {@link setConnection} was not called beforehand
-   */
-  getBalancesStream(account: Address): Observable<AccountBalances> {
-    invariant(this.contract && this.wssProvider, 'Connection not set!');
-    const filters = [
-      this.contract.filters.Deposit(null, account.value),
-      this.contract.filters.Payback(null, account.value),
-      this.contract.filters.Borrow(null, null, account.value),
-      this.contract.filters.Withdraw(null, null, account.value),
-    ];
-
-    return this.streamFrom<Address, AccountBalances>(
-      this.wssProvider,
-      this.getBalances,
-      [account],
-      account,
-      filters
-    );
   }
 
   /**

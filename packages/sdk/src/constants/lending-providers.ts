@@ -64,5 +64,9 @@ export const LENDING_PROVIDERS: Record<
       name: 'Agave',
       llamaKey: 'acryptos',
     },
+    '0x305F31582b963A875c3ABD854B9C54D35798b3eF': {
+      name: 'Hundred',
+      llamaKey: 'abcd',
+    },
   },
 };
