@@ -26,6 +26,7 @@ type BorrowBoxProps = {
   ltvMeta: LtvMeta;
   mode: Mode;
   basePosition: BasePosition;
+  index: number;
 };
 
 function BorrowBox({
@@ -41,6 +42,7 @@ function BorrowBox({
   ltvMeta,
   basePosition,
   mode,
+  index,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
     (state) => state.changeCollateralChain
@@ -98,6 +100,7 @@ function BorrowBox({
         value={value}
         ltvMeta={ltvMeta}
         basePosition={basePosition}
+        isFocusedByDefault={index === 0}
         onTokenChange={(token) =>
           type === 'collateral'
             ? changeCollateralToken(token)

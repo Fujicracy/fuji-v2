@@ -15,7 +15,13 @@ import {
   useTheme,
 } from '@mui/material';
 import { Token } from '@x-fuji/sdk';
-import React, { MouseEvent, ReactElement, useState } from 'react';
+import React, {
+  MouseEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   ActionType,
@@ -45,6 +51,7 @@ type SelectTokenCardProps = {
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
   isEditing: boolean;
+  isFocusedByDefault: boolean;
 };
 
 function TokenCard({
@@ -61,6 +68,7 @@ function TokenCard({
   ltvMeta,
   basePosition,
   isEditing,
+  isFocusedByDefault,
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
@@ -78,6 +86,14 @@ function TokenCard({
     setAnchorEl(event.currentTarget);
   };
   const close = () => setAnchorEl(null);
+
+  const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
+    undefined
+  );
+
+  const handleRef = useCallback((node: HTMLInputElement) => {
+    setTextInput(node);
+  }, []);
 
   const handleMax = () => {
     const amount =
@@ -124,6 +140,12 @@ function TokenCard({
     close();
   };
 
+  useEffect(() => {
+    if (isFocusedByDefault) {
+      textInput?.focus();
+    }
+  }, [isFocusedByDefault, textInput]);
+
   return (
     <Card
       variant="outlined"
@@ -140,6 +162,7 @@ function TokenCard({
           id="collateral-amount"
           type="number"
           placeholder="0"
+          inputRef={handleRef}
           value={value}
           disabled={isExecuting}
           onChange={(e) => handleInput(e.target.value)}
