@@ -1,5 +1,4 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { ChainId } from '../enums';
@@ -77,53 +76,12 @@ export class Token extends AbstractCurrency {
   }
 
   /**
-   * {@inheritDoc AbstractCurrency.balanceOfStream}
-   * @throws if {@link setConnection} was not called beforehand
-   */
-  balanceOfStream(account: Address): Observable<BigNumber> {
-    invariant(this.contract && this.wssProvider, 'Connection not set!');
-
-    const filters = [
-      this.contract.filters.Transfer(account.value),
-      this.contract.filters.Transfer(null, account.value),
-    ];
-    return this.streamFrom<Address, BigNumber>(
-      this.wssProvider,
-      this.balanceOf,
-      [account],
-      account,
-      filters
-    );
-  }
-
-  /**
    * {@inheritDoc AbstractCurrency.allowance}
    * @throws if {@link setConnection} was not called
    */
   async allowance(owner: Address, spender: Address): Promise<BigNumber> {
     invariant(this.contract, 'Connection not set!');
     return this.contract.allowance(owner.value, spender.value);
-  }
-
-  /**
-   * Returns allowance that an owner has attributed to a spender as stream
-   *
-   * @param owner - address of currency owner, wrapped in {@link Address}
-   * @param spender - address of spender, wrapped in {@link Address}
-   *
-   * @throws if {@link setConnection} was not called beforehand
-   */
-  allowanceStream(owner: Address, spender: Address): Observable<BigNumber> {
-    invariant(this.contract && this.wssProvider, 'Connection not set!');
-
-    const filters = [this.contract.filters.Approval(owner.value)];
-    return this.streamFrom<Address, BigNumber>(
-      this.wssProvider,
-      this.allowance,
-      [owner, spender],
-      owner,
-      filters
-    );
   }
 
   /**
