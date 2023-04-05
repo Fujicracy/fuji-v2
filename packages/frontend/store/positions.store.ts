@@ -1,12 +1,13 @@
-import { Address } from '@x-fuji/sdk';
-import { BigNumber, BigNumberish } from 'ethers';
-import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { DUST_AMOUNT } from '../constants';
-import { AssetType } from '../helpers/assets';
-import { sdk } from '../services/sdk';
+import {
+  getAccrual,
+  getCurrentAvailableBorrowingPower,
+  getPositionsWithBalance,
+  getTotalSum,
+} from '../helpers/positions';
 import { useAuth } from './auth.store';
 import { Position } from './models/Position';
 
@@ -38,11 +39,18 @@ export const usePositions = create<PositionsStore>()(
       fetchUserPositions: async () => {
         set({ loading: true });
         const addr = useAuth.getState().address;
-        const allPositions = await getPositionsWithBalance(addr);
+        const result = addr
+          ? await getPositionsWithBalance(addr)
+          : { success: true, error: undefined, data: [] };
 
-        const positions = allPositions.filter(
-          (p) => p.collateral.amount > DUST_AMOUNT
-        );
+        if (!result.success) {
+          console.error(result.error?.message); // TODO: Show error message?
+        }
+        const positions = result.success
+          ? (result.data as Position[]).filter(
+              (p) => p.collateral.amount > DUST_AMOUNT
+            )
+          : [];
 
         const totalDepositsUSD = getTotalSum(positions, 'collateral');
         const totalDebtUSD = getTotalSum(positions, 'debt');
@@ -86,84 +94,3 @@ export const usePositions = create<PositionsStore>()(
     }
   )
 );
-
-function bigToFloat(
-  big: BigNumberish | undefined,
-  decimals: number | BigNumberish
-): number {
-  const value = big ?? parseUnits('0', 18);
-  return parseFloat(formatUnits(value, decimals));
-}
-
-function getTotalSum(positions: Position[], param: AssetType): number {
-  return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
-}
-
-async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
-  if (!addr) return [];
-
-  const account = Address.from(addr);
-  const allVaults = await sdk.getBorrowingVaultsFinancials(account);
-  const vaultsWithBalance = allVaults.filter((v) =>
-    v.depositBalance.gt(BigNumber.from('0'))
-  );
-
-  const vaults = vaultsWithBalance.map((v) => {
-    const p = {} as Position;
-    p.vault = v.vault;
-    p.collateral = {
-      amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
-      token: v.vault.collateral,
-      usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
-      get baseAPR() {
-        return v.activeProvider.depositAprBase;
-      },
-    };
-    p.debt = {
-      amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
-      token: v.vault.debt,
-      usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
-      get baseAPR() {
-        return v.activeProvider.borrowAprBase;
-      },
-    };
-    p.ltv =
-      (p.debt.amount * p.debt.usdPrice) /
-      (p.collateral.amount * p.collateral.usdPrice);
-    p.ltvMax = bigToFloat(v.vault.maxLtv, 18);
-    p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18);
-    p.liquidationPrice =
-      p.debt.usdPrice === 0
-        ? 0
-        : (p.debt.amount * p.debt.usdPrice) /
-          (p.ltvThreshold * p.collateral.amount);
-    p.liquidationDiff =
-      p.liquidationPrice === 0
-        ? 0
-        : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
-    return p;
-  });
-
-  return vaults;
-}
-
-export function getAccrual(
-  usdBalance: number,
-  baseAPR: number | undefined,
-  param: 'collateral' | 'debt'
-): number {
-  const factor = param === 'debt' ? -1 : 1;
-  // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
-  const aprDecimal = baseAPR ? baseAPR / 100 : 0;
-  // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
-  const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1;
-  return factor * usdBalance * apyDecimal;
-}
-
-function getCurrentAvailableBorrowingPower(positions: Position[]): number {
-  return positions.reduce((b, pos) => {
-    const collateralUsdValue = pos.collateral.amount * pos.collateral.usdPrice;
-    const debtUsdValue = pos.debt.amount * pos.debt.usdPrice;
-    return collateralUsdValue * pos.ltvMax - debtUsdValue + b;
-  }, 0);
-}

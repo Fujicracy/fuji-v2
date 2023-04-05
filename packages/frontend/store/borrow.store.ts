@@ -5,6 +5,10 @@ import {
   CONNEXT_ROUTER_ADDRESS,
   contracts,
   DEFAULT_SLIPPAGE,
+  FujiError,
+  FujiErrorCode,
+  FujiResultError,
+  FujiResultSuccess,
   LendingProviderDetails,
   RouterActionParams,
   RoutingStepDetails,
@@ -387,8 +391,12 @@ export const useBorrow = create<BorrowStore>()(
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
           const chainId = token.chainId;
-          const balances = await fetchBalances(tokens, address, chainId);
-
+          const result = await fetchBalances(tokens, address, chainId);
+          if (!result.success) {
+            console.error(result.error.message);
+            return;
+          }
+          const balances = result.data;
           get().changeBalances(type, balances);
         },
 
@@ -539,6 +547,15 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
 
+          const setError = (e: FujiError) => {
+            set(
+              produce((state: BorrowState) => {
+                state.transactionMeta.status = 'error';
+              })
+            );
+            console.error('Sdk error while attempting to set meta:', e.message);
+          };
+
           try {
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
@@ -563,25 +580,26 @@ export const useBorrow = create<BorrowStore>()(
                 );
               })
             );
-            const selectedValue = results.find(
-              (r) => r.data?.address === activeVault.address.value
+            const error = results.find((r): r is FujiResultError => !r.success);
+            if (error) {
+              setError(error.error);
+              return;
+            }
+            const availableRoutes: RouteMeta[] = (
+              results as FujiResultSuccess<RouteMeta>[]
+            ).map((r) => r.data);
+            const selectedRoute = availableRoutes.find(
+              (r) => r.address === activeVault.address.value
             );
-            if (
-              !selectedValue ||
-              (!selectedValue.error && !selectedValue.data)
-            ) {
-              throw 'Data not found';
+            if (!selectedRoute || !selectedRoute.actions.length) {
+              setError(
+                new FujiError(
+                  'No route found for active vault or route found with empty action array',
+                  FujiErrorCode.SDK
+                )
+              );
+              return;
             }
-            if (selectedValue.error) {
-              throw selectedValue.error;
-            }
-            const selectedRoute = selectedValue.data as RouteMeta;
-            if (!selectedRoute.actions.length) {
-              throw `empty action array returned by sdk.preview.xxx with params`;
-            }
-            const availableRoutes = results
-              .filter((r) => r.data)
-              .map((r) => r.data) as RouteMeta[];
 
             set({ availableRoutes });
             get().changeTransactionMeta(selectedRoute);
@@ -785,15 +803,21 @@ export const useBorrow = create<BorrowStore>()(
 
           const srcChainId = transactionMeta.steps[0].chainId;
 
-          try {
-            set({ isExecuting: true });
+          set({ isExecuting: true });
 
-            const txRequest = sdk.getTxDetails(
-              actions,
-              srcChainId,
-              Address.from(address),
-              signature
-            );
+          const result = sdk.getTxDetails(
+            actions,
+            srcChainId,
+            Address.from(address),
+            signature
+          );
+          if (!result.success) {
+            console.error(result.error.message); // TODO: display error
+            return;
+          }
+          const txRequest = result.data;
+
+          try {
             const signer = provider.getSigner();
             const estimated = await signer.estimateGas(txRequest);
             // increase by 20% to prevent outOfGas tx failing
