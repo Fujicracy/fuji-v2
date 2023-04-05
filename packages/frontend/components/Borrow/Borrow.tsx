@@ -51,6 +51,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const needsSignature = useBorrow((state) => state.needsSignature);
   const isSigning = useBorrow((state) => state.isSigning);
   const isExecuting = useBorrow((state) => state.isExecuting);
+  const transactionMeta = useBorrow((state) => state.transactionMeta);
   const metaStatus = useBorrow((state) => state.transactionMeta.status);
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
@@ -277,6 +278,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         onClose={() => setIsConfirmationModalShown(false)}
         collateral={collateral}
         debt={debt}
+        basePosition={basePosition}
+        transactionMeta={transactionMeta}
       />
       <LTVWarningModal
         open={isLTVModalShown}

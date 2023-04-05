@@ -15,17 +15,26 @@ import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
 
-import { AssetChange } from '../../helpers/assets';
+import { AssetChange, borrowLimit } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
-import { RouteMeta } from '../../helpers/routing';
+import { BasePosition } from '../../helpers/positions';
 import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
-import { useBorrow } from '../../store/borrow.store';
+import { FetchStatus, useBorrow } from '../../store/borrow.store';
 import { NetworkIcon } from './Icons';
 import TokenIcon from './Icons/TokenIcon';
 
 type ConfirmTransactionModalProps = {
   collateral: AssetChange;
   debt: AssetChange;
+  basePosition: BasePosition;
+  transactionMeta: {
+    status: FetchStatus;
+    gasFees: number;
+    bridgeFee: number;
+    estimateTime: number;
+    estimateSlippage: number;
+    steps: RoutingStepDetails[];
+  };
   open: boolean;
   onClose: () => void;
 };
@@ -33,11 +42,62 @@ type ConfirmTransactionModalProps = {
 export function ConfirmTransactionModal({
   collateral,
   debt,
+  basePosition,
+  transactionMeta,
   open,
   onClose,
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
-  const availableRoutes = useBorrow((state) => state.availableRoutes);
+  const mode = useBorrow((state) => state.mode);
+  const { steps } = transactionMeta;
+  const { editedPosition, position } = basePosition;
+
+  const estCost =
+    transactionMeta.status === 'ready'
+      ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
+      : 'n/a';
+
+  const editedBorrowLimit = editedPosition
+    ? borrowLimit(
+        mode,
+        editedPosition.collateral.amount,
+        parseFloat(collateral.input),
+        collateral.usdPrice,
+        editedPosition.ltv
+      )
+    : 0;
+
+  const positonBorrowLimit = borrowLimit(
+    mode,
+    parseFloat(collateral.input) || 0,
+    parseFloat(collateral.input),
+    collateral.usdPrice,
+    position.ltv
+  );
+
+  const getLtv = (value: number) => {
+    return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
+  };
+
+  const estBorrowLimit = `${formatValue(positonBorrowLimit, {
+    style: 'currency',
+  })}${
+    editedPosition
+      ? ` -> ${formatValue(editedBorrowLimit, { style: 'currency' })}`
+      : ''
+  }`;
+  const ltvRatio = `${getLtv(position.ltv)}${
+    editedPosition ? ` -> ${getLtv(editedPosition.ltv)}` : ''
+  }`;
+  const liquidationPrice = `${formatValue(position.liquidationPrice, {
+    style: 'currency',
+  })}${
+    editedPosition
+      ? ` -> ${formatValue(editedPosition?.liquidationPrice, {
+          style: 'currency',
+        })}`
+      : ''
+  }`;
 
   return (
     <Dialog
@@ -65,43 +125,64 @@ export function ConfirmTransactionModal({
           }}
           onClick={onClose}
         />
-        <Typography variant="h5" color={palette.text.primary}>
+        <Typography mb="1rem" variant="h5" color={palette.text.primary}>
           Confirm Transaction
         </Typography>
 
-        <AssetBox
-          type="collateral"
-          token={collateral.token}
-          value={collateral.input || '0'}
-        />
+        {collateral.input && collateral.input !== '0' ? (
+          <AssetBox
+            type="collateral"
+            token={collateral.token}
+            value={collateral.input}
+          />
+        ) : (
+          <></>
+        )}
 
-        <AssetBox type="debt" token={debt.token} value={debt.input || '0'} />
+        {debt.input && debt.input !== '0' ? (
+          <AssetBox type="debt" token={debt.token} value={debt.input} />
+        ) : (
+          <></>
+        )}
 
-        <RouteBox route={availableRoutes[0]} />
-
-        <InfoRow
-          title="Borrow Limit Left"
-          value={<Typography variant="small">$0 $100</Typography>}
-        />
-
-        <InfoRow
-          title="LTV Ratio"
-          value={<Typography variant="small">$0 $100</Typography>}
-        />
-
-        <InfoRow
-          title="Liquidation Price"
-          value={<Typography variant="small">$0 $100</Typography>}
-        />
+        {steps && steps.length > 0 && <RouteBox steps={steps} />}
 
         <InfoRow
           title="Estimated Cost"
-          value={<Typography variant="small">$0 $100</Typography>}
+          value={<Typography variant="small">{estCost}</Typography>}
         />
 
         <InfoRow
           title="Est.processing time"
-          value={<Typography variant="small">$0 $100</Typography>}
+          value={
+            <Typography variant="small">{`~${
+              transactionMeta.estimateTime / 60
+            } minutes`}</Typography>
+          }
+        />
+
+        {collateral.chainId !== debt.chainId && (
+          <InfoRow
+            title="Est. slippage"
+            value={
+              <Typography variant="small">{`~${transactionMeta.estimateSlippage} %`}</Typography>
+            }
+          />
+        )}
+
+        <InfoRow
+          title="Borrow Limit Left"
+          value={<Typography variant="small">{estBorrowLimit}</Typography>}
+        />
+
+        <InfoRow
+          title="LTV Ratio"
+          value={<Typography variant="small">{ltvRatio}</Typography>}
+        />
+
+        <InfoRow
+          title="Liquidation Price"
+          value={<Typography variant="small">{liquidationPrice}</Typography>}
         />
 
         <Button
@@ -137,7 +218,7 @@ function AssetBox({
       variant="outlined"
       sx={{
         borderColor: palette.secondary.light,
-        mt: '1rem',
+        m: '0.5rem 0 1rem 0',
         width: '100%',
       }}
     >
@@ -212,10 +293,10 @@ function InfoRow({ title, value }: { title: string; value: ReactNode }) {
   );
 }
 
-function RouteBox({ route }: { route: RouteMeta }) {
+function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
   const { palette } = useTheme();
 
-  const steps = route.steps.filter(
+  const stepsToShow = steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   );
 
@@ -264,7 +345,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
     return <></>;
   }
 
-  function textForStep({ step, amount, token, chainId }: RoutingStepDetails) {
+  function textForStep({ step, amount, token }: RoutingStepDetails) {
     switch (step) {
       case RoutingStep.DEPOSIT:
       case RoutingStep.BORROW:
@@ -321,7 +402,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
           gap: '0.5rem',
         }}
       >
-        {steps.map((step, i) => (
+        {stepsToShow.map((step, i) => (
           <>
             {i !== 0 && (
               <Box
