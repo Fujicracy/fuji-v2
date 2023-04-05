@@ -13,6 +13,7 @@ import { useTheme } from '@mui/material/styles';
 import { RoutingStep, RoutingStepDetails, Token } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
+import { ReactNode } from 'react';
 
 import { AssetChange } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
@@ -51,7 +52,7 @@ export function ConfirmTransactionModal({
       <Paper
         variant="outlined"
         sx={{
-          maxWidth: '35rem',
+          width: { xs: 'auto', sm: '33rem' },
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
@@ -77,6 +78,31 @@ export function ConfirmTransactionModal({
         <AssetBox type="debt" token={debt.token} value={debt.input || '0'} />
 
         <RouteBox route={availableRoutes[0]} />
+
+        <InfoRow
+          title="Borrow Limit Left"
+          value={<Typography variant="small">$0 $100</Typography>}
+        />
+
+        <InfoRow
+          title="LTV Ratio"
+          value={<Typography variant="small">$0 $100</Typography>}
+        />
+
+        <InfoRow
+          title="Liquidation Price"
+          value={<Typography variant="small">$0 $100</Typography>}
+        />
+
+        <InfoRow
+          title="Estimated Cost"
+          value={<Typography variant="small">$0 $100</Typography>}
+        />
+
+        <InfoRow
+          title="Est.processing time"
+          value={<Typography variant="small">$0 $100</Typography>}
+        />
 
         <Button
           variant="gradient"
@@ -155,11 +181,34 @@ function AssetBox({
         textAlign="start"
         mt=".5rem"
         variant="xsmall"
+        fontSize="0.75rem"
+        lineHeight="1.2rem"
+        color={palette.info.main}
         sx={{ width: '60%' }}
       >
         The designated network where your debt position will be on.
       </Typography>
     </Card>
+  );
+}
+
+function InfoRow({ title, value }: { title: string; value: ReactNode }) {
+  const { palette } = useTheme();
+
+  return (
+    <Stack
+      width="100%"
+      flexDirection="row"
+      alignItems="center"
+      justifyContent="space-between"
+      mt="0.6rem"
+    >
+      <Typography color={palette.info.main} variant="small">
+        {title}
+      </Typography>
+
+      {value}
+    </Stack>
   );
 }
 
@@ -177,6 +226,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
         <Typography
           align="center"
           variant="xsmall"
+          fontSize="0.75rem"
           sx={{ display: 'flex', gap: '0.25rem' }}
         >
           {`${preposition} ${step.lendingProvider.name} on `}
@@ -191,7 +241,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
         <Stack flexDirection="row" alignItems="center" gap="0.25rem">
-          <Typography align="center" variant="xsmall">
+          <Typography align="center" variant="xsmall" fontSize="0.75rem">
             from
           </Typography>
           <NetworkIcon
@@ -199,7 +249,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
             height={14}
             width={14}
           />
-          <Typography align="center" variant="xsmall">
+          <Typography align="center" variant="xsmall" fontSize="0.75rem">
             to
           </Typography>
           <NetworkIcon
@@ -241,7 +291,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
       variant="outlined"
       sx={{
         borderColor: palette.secondary.light,
-        mt: '1rem',
+        m: '1rem 0',
         width: '100%',
       }}
     >
@@ -285,7 +335,7 @@ function RouteBox({ route }: { route: RouteMeta }) {
                   alt="Arrow icon"
                   src="/assets/images/shared/doubleArrow.svg"
                   height={10}
-                  width={6}
+                  width={9}
                 />
               </Box>
             )}
