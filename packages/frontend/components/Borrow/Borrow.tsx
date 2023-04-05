@@ -219,20 +219,17 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
-          {!isEditing &&
-            hasBalanceInVault &&
-            transactionMeta.steps &&
-            (collateral.input || debt.input) && (
-              <Box mb={2}>
-                <WarningInfo
-                  text={`Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. ${
-                    availableRoutes.length > 1
-                      ? "But if you're trying to open a similar position with a different route, please select it above."
-                      : ''
-                  }`}
-                />
-              </Box>
-            )}
+          {!isEditing && hasBalanceInVault && transactionMeta.steps && (
+            <Box mb={2}>
+              <WarningInfo
+                text={`Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. ${
+                  availableRoutes.length > 1
+                    ? "But if you're trying to open a similar position with a different route, please select it above."
+                    : ''
+                }`}
+              />
+            </Box>
+          )}
 
           <BorrowButton
             address={address}
