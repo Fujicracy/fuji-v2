@@ -15,7 +15,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
 
-import { AssetChange, borrowLimit, recommendedLTV } from '../../helpers/assets';
+import { AssetChange, Mode, recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { BasePosition } from '../../helpers/positions';
 import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
@@ -51,9 +51,9 @@ export function ConfirmTransactionModal({
   action,
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
-  const mode = useBorrow((state) => state.mode);
   const { steps } = transactionMeta;
   const { editedPosition, position } = basePosition;
+  const mode = useBorrow((state) => state.mode);
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
@@ -68,33 +68,34 @@ export function ConfirmTransactionModal({
       ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
       : 'n/a';
 
-  const editedBorrow = editedPosition
-    ? borrowLimit(
-        mode,
-        editedPosition.collateral.amount,
-        parseFloat(collateral.input) || 0,
-        collateral.usdPrice,
-        editedPosition.ltv
-      )
-    : 0;
+  const addCollateralMode =
+    Mode.BORROW || mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.DEPOSIT;
+  const collateralDiff =
+    mode === addCollateralMode
+      ? collateral.amount + (Number(collateral.input) || 0)
+      : collateral.amount - (Number(collateral.input) || 0);
 
-  const positonBorrow = borrowLimit(
-    mode,
-    collateral.amount || 0,
-    parseFloat(collateral.input) || 0,
-    collateral.usdPrice,
-    position.ltv
-  );
+  const debtDiff =
+    mode === addCollateralMode
+      ? debt.amount + (Number(debt.input) || 0)
+      : debt.amount - (Number(debt.input) || 0);
+
+  const editedBorrowLimit =
+    collateralDiff * collateral.usdPrice * (editedPosition?.ltvMax || 1) -
+    debtDiff * debt.usdPrice;
+  const positonBorrowLimit =
+    collateral.amount * collateral.usdPrice * (position.ltvMax / 100) -
+    debt.amount * debt.usdPrice;
 
   const getLtv = (value: number): string => {
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
-  const estBorrow = `${formatValue(positonBorrow, {
+  const estBorrow = `${formatValue(positonBorrowLimit, {
     style: 'currency',
   })}${
     editedPosition
-      ? ` -> ${formatValue(editedBorrow, { style: 'currency' })}`
+      ? ` -> ${formatValue(editedBorrowLimit, { style: 'currency' })}`
       : ''
   }`;
   const liquidationPrice = `${formatValue(position.liquidationPrice, {
@@ -179,7 +180,7 @@ export function ConfirmTransactionModal({
         )}
 
         <InfoRow
-          title="Borrow Value"
+          title="Borrow Limit Left"
           value={<Typography variant="small">{estBorrow}</Typography>}
         />
 
