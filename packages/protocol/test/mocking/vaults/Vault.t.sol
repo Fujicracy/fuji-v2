@@ -181,9 +181,42 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
-
     vm.prank(ALICE);
     vault.withdraw(amount, ALICE, ALICE);
+  }
+
+  function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__beforeTokenTransfer_moreThanMax.selector);
+    vm.prank(ALICE);
+    vault.transfer(BOB, uint256(amount));
+  }
+
+  function test_tryTransferMaxRedeemWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+    uint256 maxTransferable = vault.maxRedeem(ALICE);
+
+    vm.prank(ALICE);
+    vault.transfer(BOB, maxTransferable);
+    assertEq(vault.balanceOf(BOB), maxTransferable);
+
+    uint256 nonTransferable = amount - maxTransferable;
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__beforeTokenTransfer_moreThanMax.selector);
+    vm.prank(ALICE);
+    vault.transfer(BOB, nonTransferable);
+
+    // Bob's shares haven't change.
+    assertEq(vault.balanceOf(BOB), maxTransferable);
   }
 
   function test_setMinAmount(uint256 min) public {

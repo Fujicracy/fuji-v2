@@ -59,6 +59,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
+  error BorrowingVault__beforeTokenTransfer_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
   error BorrowingVault__rebalance_invalidProvider();
@@ -149,6 +150,27 @@ contract BorrowingVault is BaseVault {
   /*///////////////////////////////
   /// Debt management overrides ///
   ///////////////////////////////*/
+
+  /**
+   * @dev Hook before all asset-share transfers.
+   * Requirements:
+   * - Must check `from` can move `amount` of shares.
+   *
+   * @param from address
+   * @param to address
+   * @param amount of shares
+   */
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
+    /**
+     * @dev Hook check activated only when called by OZ {ERC20-_transfer}
+     * User must not be able to transfer asset-shares locked as collateral
+     */
+    if (from != address(0) && to != address(0)) {
+      if (amount > maxRedeem(from)) {
+        revert BorrowingVault__beforeTokenTransfer_moreThanMax();
+      }
+    }
+  }
 
   /// @inheritdoc IVault
   function debtDecimals() public view override returns (uint8) {
