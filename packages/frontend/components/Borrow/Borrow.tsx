@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { PATH } from '../../constants';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
@@ -227,7 +227,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 <WarningInfo
                   text={`Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. ${
                     availableRoutes.length > 1
-                      ? "But if you're trying to open a similar position on different route, please select it above."
+                      ? "But if you're trying to open a similar position with a different route, please select it above."
                       : ''
                   }`}
                 />
