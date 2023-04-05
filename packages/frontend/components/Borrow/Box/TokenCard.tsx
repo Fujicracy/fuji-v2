@@ -1,3 +1,4 @@
+import { keyframes } from '@emotion/react';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {
   ButtonBase,
@@ -90,6 +91,7 @@ function TokenCard({
   const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
     undefined
   );
+  const [focused, setFocused] = useState<boolean>(false);
 
   const handleRef = useCallback((node: HTMLInputElement) => {
     setTextInput(node);
@@ -146,6 +148,15 @@ function TokenCard({
     }
   }, [isFocusedByDefault, textInput]);
 
+  const blink = keyframes`
+    from {
+      visibility: visible;
+    }
+    to {
+      visibility: hidden;
+    }
+  `;
+
   return (
     <Card
       variant="outlined"
@@ -154,6 +165,8 @@ function TokenCard({
           (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
           Number(assetChange.input) > balance
             ? palette.error.dark
+            : focused
+            ? palette.info.main
             : palette.secondary.light,
       }}
     >
@@ -169,6 +182,14 @@ function TokenCard({
           variant="standard"
           InputProps={{
             disableUnderline: true,
+          }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          sx={{
+            '&.MuiInputBase-input:focus': {
+              caretColor: 'auto',
+              animation: `${blink} 1s infinite`,
+            },
           }}
         />
         <ButtonBase
