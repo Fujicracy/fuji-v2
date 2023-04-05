@@ -119,8 +119,8 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset2, asset1, decimalsAsset2),
       abi.encode(asset1PerAsset2 / (10 ** (18 - decimalsAsset2)))
     );
-   }
- 
+  }
+
   /**
    * @param vault_ in where owner is being liquidated
    * @param owner that is being liquidated
