@@ -50,6 +50,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const needsSignature = useBorrow((state) => state.needsSignature);
   const isSigning = useBorrow((state) => state.isSigning);
   const isExecuting = useBorrow((state) => state.isExecuting);
+  const transactionMeta = useBorrow((state) => state.transactionMeta);
   const metaStatus = useBorrow((state) => state.transactionMeta.status);
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
@@ -220,12 +221,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {!isEditing &&
             hasBalanceInVault &&
+            transactionMeta.steps &&
             (collateral.input || debt.input) && (
               <Box mb={2}>
                 <WarningInfo
-                  text={
-                    "Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. But if you're trying to open a similar position on a different network, please select an alternate route."
-                  }
+                  text={`Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. ${
+                    availableRoutes.length > 1
+                      ? "But if you're trying to open a similar position on different route, please select it above."
+                      : ''
+                  }`}
                 />
               </Box>
             )}
