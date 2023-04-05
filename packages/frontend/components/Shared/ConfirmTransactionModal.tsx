@@ -15,7 +15,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
 
-import { AssetChange, borrowLimit } from '../../helpers/assets';
+import { AssetChange, borrowLimit, recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { BasePosition } from '../../helpers/positions';
 import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
@@ -75,7 +75,7 @@ export function ConfirmTransactionModal({
     position.ltv
   );
 
-  const getLtv = (value: number) => {
+  const getLtv = (value: number): string => {
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
@@ -85,9 +85,6 @@ export function ConfirmTransactionModal({
     editedPosition
       ? ` -> ${formatValue(editedBorrowLimit, { style: 'currency' })}`
       : ''
-  }`;
-  const ltvRatio = `${getLtv(position.ltv)}${
-    editedPosition ? ` -> ${getLtv(editedPosition.ltv)}` : ''
   }`;
   const liquidationPrice = `${formatValue(position.liquidationPrice, {
     style: 'currency',
@@ -177,7 +174,46 @@ export function ConfirmTransactionModal({
 
         <InfoRow
           title="LTV Ratio"
-          value={<Typography variant="small">{ltvRatio}</Typography>}
+          value={
+            <Stack flexDirection="row" alignItems="center">
+              <Typography
+                color={
+                  !position.ltv
+                    ? ''
+                    : position.ltv / 100 > position.ltvMax
+                    ? palette.error.main
+                    : position.ltv / 100 > recommendedLTV(position.ltv)
+                    ? palette.warning.main
+                    : palette.success.main
+                }
+                variant="small"
+              >
+                {getLtv(position.ltv)}
+              </Typography>
+              {editedPosition && (
+                <>
+                  <Typography ml={0.5} variant="small">
+                    {' '}
+                    {'->'}{' '}
+                  </Typography>
+                  <Typography
+                    ml={0.5}
+                    color={
+                      !editedPosition.ltv
+                        ? ''
+                        : editedPosition.ltv / 100 > editedPosition.ltvMax
+                        ? palette.error.main
+                        : editedPosition.ltv / 100 >
+                          recommendedLTV(editedPosition.ltv)
+                        ? palette.warning.main
+                        : palette.success.main
+                    }
+                    variant="small"
+                  >{`${getLtv(editedPosition.ltv)}`}</Typography>
+                </>
+              )}
+            </Stack>
+          }
         />
 
         <InfoRow
