@@ -49,6 +49,10 @@ const Header = () => {
   const router = useRouter();
   const currentPage = `/${router.pathname.substring(1)}`;
 
+  const isPageActive = (path: string) =>
+    (currentPage === '/' && path === '/') ||
+    (path !== '/' && currentPage.includes(path));
+
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [accountModalEl, setAccountModalEl] = useState<
     HTMLElement | undefined
@@ -91,7 +95,7 @@ const Header = () => {
         <Toolbar disableGutters>
           <Grid container justifyContent="space-between" alignItems="center">
             <Grid item>
-              <Link href="/markets" legacyBehavior>
+              <Link href="/" legacyBehavior>
                 <a className={styles.logoTitle}>
                   <Box
                     maxWidth={120}
@@ -228,10 +232,10 @@ const Header = () => {
               <Link key={page.path} href={page.path}>
                 <MenuItem
                   sx={{
-                    color: currentPage.includes(page.path.toLowerCase())
+                    color: isPageActive(page.path.toLowerCase())
                       ? 'primary.main'
                       : 'text.primary',
-                    textShadow: currentPage.includes(page.path.toLowerCase())
+                    textShadow: isPageActive(page.path.toLowerCase())
                       ? `${palette.primary.main} 0rem 0rem 0.125rem`
                       : '',
                     '&:hover': {

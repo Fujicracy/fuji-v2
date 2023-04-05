@@ -1,5 +1,6 @@
 import { BigNumber } from 'ethers';
-import { parseUnits } from 'ethers/lib/utils';
+import { BigNumberish } from 'ethers';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
 
 export const validAmount = (
   amount: string | number,
@@ -19,6 +20,14 @@ export const validBigNumberAmount = (
 ): BigNumber => {
   const valid = validAmount(amount, decimals);
   return parseUnits(valid, decimals);
+};
+
+export const bigToFloat = (
+  big: BigNumberish | undefined,
+  decimals: number | BigNumberish
+): number => {
+  const value = big ?? parseUnits('0', 18);
+  return parseFloat(formatUnits(value, decimals));
 };
 
 export const formatValue = (

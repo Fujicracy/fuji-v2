@@ -1,4 +1,4 @@
-import { create, SdkBase, SdkPool } from '@connext/sdk';
+import { create, SdkBase, SdkPool, SdkUtils } from '@connext/sdk';
 import warning from 'tiny-warning';
 
 import { CHAIN } from './constants/chains';
@@ -8,11 +8,13 @@ export class Nxtp {
   private static _connextSdk?: {
     base: SdkBase;
     pool: SdkPool;
+    utils: SdkUtils;
   };
 
   static async getOrCreate(chainType: ChainType = ChainType.MAINNET): Promise<{
     base: SdkBase;
     pool: SdkPool;
+    utils: SdkUtils;
   }> {
     if (this._connextSdk) return this._connextSdk;
 
@@ -29,7 +31,7 @@ export class Nxtp {
         }
       });
 
-    const { sdkBase, sdkPool } = await create({
+    const { sdkBase, sdkPool, sdkUtils } = await create({
       network: chainType === ChainType.MAINNET ? 'mainnet' : 'testnet',
       chains,
       logLevel: 'error',
@@ -37,6 +39,7 @@ export class Nxtp {
     return {
       base: sdkBase,
       pool: sdkPool,
+      utils: sdkUtils,
     };
   }
 }
