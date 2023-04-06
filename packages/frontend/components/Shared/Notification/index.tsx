@@ -10,17 +10,20 @@ function Notification() {
   const AUTO_CLOSE_TIME = 5000;
   /** Describes notification queue */
   const IS_NEWEST_ON_TOP = false;
-  /** Describes behaviour closes notification by onClick Mouse Event */
+  /** Describes behavior closes notification by onClick Mouse Event */
   const IS_CLOSED_ON_CLICK = false;
+  /** Max number of notifications */
+  const LIMIT = 3;
 
   return (
     <ToastContainer
       position={POSITION}
       autoClose={AUTO_CLOSE_TIME}
-      hideProgressBar
       newestOnTop={IS_NEWEST_ON_TOP}
       closeOnClick={IS_CLOSED_ON_CLICK}
+      limit={LIMIT}
       rtl={false}
+      hideProgressBar
       pauseOnFocusLoss
       pauseOnHover
     />
