@@ -1,14 +1,22 @@
+import { getAddress } from '@ethersproject/address';
 import { AddressZero } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
-
-import { validateAndParseAddress } from '../functions/validateAndParseAddress';
 
 export class Address {
   private _address: string;
 
   constructor(addr: string) {
-    if (addr !== AddressZero) this._address = validateAndParseAddress(addr);
-    else this._address = addr;
+    if (addr !== AddressZero) {
+      try {
+        const checksummedAddress = getAddress(addr);
+        if (addr !== checksummedAddress)
+          console.warn(`${addr} is not checksummed.`);
+        //warning(address === checksummedAddress, `${address} is not checksummed.`);
+        this._address = checksummedAddress;
+      } catch (error) {
+        invariant(false, `${addr} is not a valid address.`);
+      }
+    } else this._address = addr;
   }
 
   static from(addr: string): Address {

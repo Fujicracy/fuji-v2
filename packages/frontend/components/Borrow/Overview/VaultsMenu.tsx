@@ -32,14 +32,15 @@ function VaultsMenu({ providers }: VaultsMenuProps) {
   //)
   //if (!selectedRoute) return <></>
   // if (props.routes.length < 2) {
+
   return (
     <Stack direction="row" alignItems="center" spacing={1}>
       <Chip variant="success" label="A+" />
       <Box display="flex" alignItems="center">
         {providers &&
-          providers.map((p) => (
+          providers.map((p, index) => (
             <ProviderIcon
-              key={p.name}
+              key={index}
               provider={p.name}
               height={16}
               width={16}

@@ -6,7 +6,9 @@ import {
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
 } from '../../../helpers/assets';
+import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
 import TokenCard from './TokenCard';
@@ -18,10 +20,13 @@ type BorrowBoxProps = {
   chainId: ChainId;
   isExecuting: boolean;
   value: string;
-  ltvMeta: LtvMeta;
   assetChange: AssetChange;
-  core: boolean;
-  maxAmount?: number;
+  showMax: boolean;
+  maxAmount: number;
+  ltvMeta: LtvMeta;
+  mode: Mode;
+  basePosition: BasePosition;
+  index: number;
 };
 
 function BorrowBox({
@@ -32,9 +37,12 @@ function BorrowBox({
   chainId,
   isExecuting,
   value,
-  ltvMeta,
-  core,
+  showMax,
   maxAmount,
+  ltvMeta,
+  basePosition,
+  mode,
+  index,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
     (state) => state.changeCollateralChain
@@ -60,6 +68,7 @@ function BorrowBox({
       }
     >
       <ChainSelect
+        mode={mode}
         label={
           type === 'collateral'
             ? actionType === ActionType.ADD
@@ -72,6 +81,7 @@ function BorrowBox({
         type={type}
         value={chainId}
         disabled={(isEditing && type === 'debt') || isExecuting}
+        showTooltip={isEditing && type === 'debt'}
         onChange={(chainId) =>
           type === 'collateral'
             ? changeCollateralChain(chainId, true)
@@ -80,14 +90,17 @@ function BorrowBox({
       />
       <TokenCard
         type={type}
-        core={core}
+        showMax={showMax}
         maxAmount={maxAmount}
+        isEditing={isEditing}
         assetChange={assetChange}
         actionType={actionType}
         disabled={isEditing}
         isExecuting={isExecuting}
         value={value}
         ltvMeta={ltvMeta}
+        basePosition={basePosition}
+        isFocusedByDefault={index === 0}
         onTokenChange={(token) =>
           type === 'collateral'
             ? changeCollateralToken(token)

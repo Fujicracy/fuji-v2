@@ -1,6 +1,7 @@
 import { Chain as OnboardChain } from '@web3-onboard/common';
 import {
   CHAIN,
+  Chain,
   CHAIN_BLOCK_EXPLORER_URL,
   CHAIN_NAME,
   ChainId,
@@ -11,8 +12,8 @@ import {
 const chainsWithType = (type: ChainType) =>
   Object.values(CHAIN).filter((c) => c.isDeployed && c.chainType === type);
 
-export const chains = chainsWithType(ChainType.MAINNET);
-export const testChains = chainsWithType(ChainType.TESTNET);
+export const chains: Chain[] = chainsWithType(ChainType.MAINNET);
+export const testChains: Chain[] = chainsWithType(ChainType.TESTNET);
 
 // if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
 //   chains.push(...testChains)
@@ -71,6 +72,6 @@ function explorerUrl(
   value: string,
   type: 'tx' | 'address'
 ) {
-  if (!id) return;
+  if (id === undefined) return;
   return CHAIN_BLOCK_EXPLORER_URL[id] + type + '/' + value;
 }

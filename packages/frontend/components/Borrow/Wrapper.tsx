@@ -3,18 +3,23 @@ import {
   Container,
   Divider,
   Grid,
+  Stack,
+  Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import Head from 'next/head';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import Borrow from '../../components/Borrow/Borrow';
 import Footer from '../../components/Shared/Footer';
+import { PATH } from '../../constants';
 import {
   BasePosition,
   viewDynamicPosition,
-  viewFuturePosition,
+  viewEditedPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
@@ -31,7 +36,8 @@ type BorrowWrapperProps = {
 };
 
 function BorrowWrapper({ query }: BorrowWrapperProps) {
-  const { breakpoints } = useTheme();
+  const { breakpoints, palette } = useTheme();
+  const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   const address = useAuth((state) => state.address);
@@ -53,21 +59,21 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
 
   useEffect(() => {
     let matchPosition: Position | undefined;
-    let futurePosition: Position | undefined;
+    let editedPosition: Position | undefined;
     if (address && positions.length > 0 && query) {
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       );
-      futurePosition = matchPosition
-        ? viewFuturePosition(baseCollateral, baseDebt, matchPosition, mode)
+      editedPosition = matchPosition
+        ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
         : undefined;
     }
     const basePosition = viewDynamicPosition(
       !isEditing,
       matchPosition,
-      futurePosition
+      editedPosition
     );
     setBasePosition(basePosition);
   }, [
@@ -119,13 +125,36 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
 
       <Container
         sx={{
-          mt: { xs: '0', sm: '4rem' },
+          mt: { xs: '0', sm: '5rem' },
           mb: { xs: '7rem', sm: '0' },
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },
           minHeight: '75vh',
         }}
       >
+        {isEditing && (
+          <Stack
+            flexDirection="row"
+            alignItems="center"
+            onClick={() => router.push(PATH.MY_POSITIONS)}
+            sx={{
+              cursor: 'pointer',
+              mt: { xs: '0', sm: '-2.5rem' },
+              mb: '1rem',
+            }}
+          >
+            <Image
+              src="/assets/images/shared/arrowBack.svg"
+              height={14}
+              width={16}
+              alt="Arrow Back"
+            />
+            <Typography variant="small" ml="0.75rem" color={palette.info.main}>
+              View all active positions
+            </Typography>
+          </Stack>
+        )}
+
         {loading ? (
           <Grid
             container
@@ -143,7 +172,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
             <Grid item sm={12} md={7}>
-              <Overview basePosition={basePosition} />
+              <Overview isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>
         )}

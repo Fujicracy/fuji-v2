@@ -13,6 +13,7 @@ import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import {
   groupByPair,
   MarketRow,
@@ -43,37 +44,39 @@ function MarketsTable() {
     const vaults = sdk.getAllBorrowingVaults();
     const rowsBase = vaults.map(setBase);
     setRows(groupByPair(rowsBase));
-    (async () => {
-      try {
-        // try both calls
-        const financials = await sdk.getBorrowingVaultsFinancials(addr);
-        const rowsFin = financials.map((fin, i) =>
-          setFinancials(rowsBase[i], Status.Ready, fin)
-        );
-        setRows(groupByPair(rowsFin));
 
-        const llamas = await sdk.getLlamaFinancials(financials);
-        const rowsLlama = llamas.map((llama, i) =>
-          setLlamas(rowsFin[i], Status.Ready, llama)
-        );
-        setRows(groupByPair(rowsLlama));
-      } catch (e) {
-        try {
-          // re-try the first one
-          // set llamas to error, assuming in the first try llama failed
-          const financials = await sdk.getBorrowingVaultsFinancials(addr);
-          const rows = financials
-            .map((fin, i) => setFinancials(rowsBase[i], Status.Ready, fin))
-            .map((r) => setLlamas(r, Status.Error));
-          setRows(groupByPair(rows));
-        } catch (e) {
-          // set both to errors
-          const rows = rowsBase
-            .map((r) => setFinancials(r, Status.Error))
-            .map((r) => setLlamas(r, Status.Error));
-          setRows(groupByPair(rows));
-        }
+    (async () => {
+      const result = await getAllBorrowingVaultFinancials(addr);
+
+      result.errors.forEach((error) => {
+        console.error(error.message); // TODO: Show error message for each?
+      });
+
+      if (result.data.length === 0) {
+        const rows = rowsBase
+          .map((r) => setFinancials(r, Status.Error))
+          .map((r) => setLlamas(r, Status.Error));
+        setRows(groupByPair(rows));
+        return;
       }
+
+      const financials = result.data;
+      const rowsFin = financials.map((fin, i) =>
+        setFinancials(rowsBase[i], Status.Ready, fin)
+      );
+      setRows(groupByPair(rowsFin));
+
+      const llamaResult = await sdk.getLlamaFinancials(financials);
+      if (!llamaResult.success) {
+        const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
+        setRows(groupByPair(rows));
+        return;
+      }
+
+      const rowsLlama = llamaResult.data.map((llama, i) =>
+        setLlamas(rowsFin[i], Status.Ready, llama)
+      );
+      setRows(groupByPair(rowsLlama));
     })();
   }, [address]);
 
