@@ -48,7 +48,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
-  uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
     setUpFork(POLYGON_DOMAIN);
@@ -190,7 +189,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       price / 1e18 > 0 && deposit / 1e18 > 0 && borrowAmount / 1e18 > 0,
       "Price, deposit, and borrowAmount should be 1e18"
     );
-    return (price - ((borrowAmount * 1e36) / (deposit * LIQUIDATION_RATIO)));
+    return (price - ((borrowAmount * 1e36) / (deposit * DEFAULT_LIQ_RATIO)));
   }
 
   function _utils_getLiquidationThresholdValue(
@@ -216,18 +215,18 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     if (depositDecimals >= borrowDecimals) {
       if (price < borrowAmount * 10 ** borrowDiff) {
         threshold = (borrowAmount * 10 ** borrowDiff - price) * 1e36
-          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
       } else {
         threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
-          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
       }
     } else {
       if (price < borrowAmount * 10 ** borrowDiff) {
         threshold = (borrowAmount * 10 ** borrowDiff - price) * 1e36
-          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
       } else {
         threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
-          / (deposit * 10 ** depositDiff * LIQUIDATION_RATIO);
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
       }
     }
   }
@@ -352,9 +351,9 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 priceDropThresholdToMaxLiq =
-      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((95e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
     uint256 priceDropThresholdToDiscountLiq =
-      price - ((100e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
     priceDrop =
@@ -694,8 +693,8 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     // Modify price, putting ALICE HF < 100, but above 95, so that the liquidation factor is 50%
-    // 10% increase in price will put in range.
-    uint256 newPrice = (oracle.getPriceOf(collateralUSDC, debtWETH, 18) * 110) / 100;
+    // 12.5% increase in WETH price will put in range.
+    uint256 newPrice = (oracle.getPriceOf(collateralUSDC, debtWETH, 18) * 1125) / 1000;
 
     mock_getPriceOfWithDecimals(
       collateralUSDC,
