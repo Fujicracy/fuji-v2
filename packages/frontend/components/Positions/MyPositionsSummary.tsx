@@ -111,10 +111,8 @@ function MyPositionsSummary() {
     ['View yields']: () => setIsPositionsYieldsModalShown(true),
   };
 
-  const getAction = (actionName?: string): (() => void) => {
-    return actionName
-      ? mappedActions[actionName]
-      : () => console.error('no action provided'); // TODO: add notification
+  const getAction = (actionName?: string): (() => void) | undefined => {
+    return actionName ? mappedActions[actionName] : undefined;
   };
 
   return (
@@ -148,7 +146,7 @@ export default MyPositionsSummary;
 type MetricProps = {
   metric: MetricSummary;
   borderLeft: boolean;
-  onClick: () => void;
+  onClick: (() => void) | undefined;
 };
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {

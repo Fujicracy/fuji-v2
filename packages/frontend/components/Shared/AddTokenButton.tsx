@@ -43,7 +43,7 @@ export default AddTokenButton;
 
 async function addTokenToMetamask(token: SerializableToken) {
   if (!ethereum) {
-    console.error('var ethereum is undefined, user may not have mmask');
+    console.error('var ethereum is undefined, user may not have metamask');
     return;
   }
   const { symbol, decimals, address } = token;

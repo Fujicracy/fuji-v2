@@ -523,7 +523,6 @@ export const useBorrow = create<BorrowStore>()(
             allProviders[v.address.value] = providers;
           }
 
-          // TODO: status fetching ?
           set({ allProviders });
         },
 
@@ -553,15 +552,6 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
 
-          const setError = (e: FujiError) => {
-            set(
-              produce((state: BorrowState) => {
-                state.transactionMeta.status = 'error';
-              })
-            );
-            console.error('Sdk error while attempting to set meta:', e.message);
-          };
-
           try {
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
@@ -588,8 +578,7 @@ export const useBorrow = create<BorrowStore>()(
             );
             const error = results.find((r): r is FujiResultError => !r.success);
             if (error) {
-              setError(error.error);
-              return;
+              throw error.error;
             }
             const availableRoutes: RouteMeta[] = (
               results as FujiResultSuccess<RouteMeta>[]
@@ -598,13 +587,10 @@ export const useBorrow = create<BorrowStore>()(
               (r) => r.address === activeVault.address.value
             );
             if (!selectedRoute || !selectedRoute.actions.length) {
-              setError(
-                new FujiError(
-                  'No route found for active vault or route found with empty action array',
-                  FujiErrorCode.SDK
-                )
+              throw new FujiError(
+                'No route found for active vault or route found with empty action array',
+                FujiErrorCode.SDK
               );
-              return;
             }
 
             set({ availableRoutes });
@@ -615,7 +601,8 @@ export const useBorrow = create<BorrowStore>()(
                 state.transactionMeta.status = 'error';
               })
             );
-            console.error('Sdk error while attempting to set meta:', e);
+            const message = e instanceof FujiError ? e.message : String(e);
+            notify({ type: 'error', message });
           }
         },
 
