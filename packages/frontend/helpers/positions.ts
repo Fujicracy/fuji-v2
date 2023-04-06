@@ -124,6 +124,8 @@ export type PositionRow = {
   oraclePrice: number | '-';
   percentPriceDiff: number | '-';
   address: string | undefined;
+  ltv: number | 0;
+  ltvMax: number | 0;
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -149,6 +151,8 @@ export function getRows(positions: Position[]): PositionRow[] {
       liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
       oraclePrice: pos.collateral.usdPrice,
       percentPriceDiff: pos.liquidationDiff,
+      ltv: pos.ltv * 100,
+      ltvMax: pos.ltvMax * 100,
     }));
   }
 }
@@ -162,14 +166,14 @@ function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
 }
 
 /**
- * @returns The future position according to intended changes in `collateral` or `debt`.
+ * @returns The edited position according to intended changes in `collateral` or `debt`.
  *
  * @param collateral input changes as `AssetChange`
  * @param debt input changes as `AssetChange`
  * @param position
  * @param mode
  */
-export function viewFuturePosition(
+export function viewEditedPosition(
   collateral: AssetChange,
   debt: AssetChange,
   current: Position,
@@ -223,13 +227,13 @@ export function viewFuturePosition(
 
 export type BasePosition = {
   position: Position;
-  futurePosition?: Position;
+  editedPosition?: Position;
 };
 
 export function viewDynamicPosition(
   dynamic: boolean,
   position: Position | undefined,
-  futurePosition: Position | undefined = undefined
+  editedPosition: Position | undefined = undefined
 ): BasePosition {
   const baseCollateral = useBorrow.getState().collateral;
   const baseDebt = useBorrow.getState().debt;
@@ -256,7 +260,7 @@ export function viewDynamicPosition(
         ? position.liquidationPrice
         : baseLiquidation.liquidationPrice,
     },
-    futurePosition,
+    editedPosition,
   };
 }
 
@@ -299,9 +303,21 @@ export function vaultFromAddress(address: string | undefined) {
 
 export function liquidationColor(
   percentage: number | string,
+  recommended: number | undefined,
   palette: Palette
 ) {
-  if (typeof percentage === 'string') return palette.info.main;
-  if (percentage < 20) return palette.error.main;
-  return palette.success.main;
+  if (typeof percentage === 'string' || !recommended) return palette.info.main;
+  return percentage <= recommended
+    ? palette.success.main
+    : palette.warning.main;
+}
+
+export function belowPriceColor(
+  percentage: number | string,
+  min: number | undefined,
+  palette: Palette
+) {
+  if (typeof percentage === 'string' || !min) return palette.info.main;
+  if (percentage <= 5) return palette.error.main;
+  return percentage <= min ? palette.warning.main : palette.success.main;
 }

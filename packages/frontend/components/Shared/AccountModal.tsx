@@ -1,6 +1,7 @@
 import CheckIcon from '@mui/icons-material/Check';
 import CircleIcon from '@mui/icons-material/Circle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import LaunchIcon from '@mui/icons-material/Launch';
 import {
   Box,
@@ -54,7 +55,7 @@ function AccountModal({
   const walletName = useAuth((state) => state.walletName);
 
   const historyEntries = useHistory((state) =>
-    state.allTxns.map((hash) => state.byHash[hash]).slice(0, 3)
+    state.allTxns.map((hash) => state.byHash[hash]).slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
   const clearAll = useHistory((state) => state.clearAll);
@@ -245,15 +246,16 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: '-1rem' }} />
+    ) : entry.status === HistoryEntryStatus.ERROR ? (
+      <ErrorOutlineIcon />
     ) : (
       <CheckIcon
         sx={{
-          background: `${palette.success.main}1A`,
-          color: palette.success.dark,
+          backgroundColor: palette.success.dark,
           borderRadius: '100%',
-          fontSize: '20px',
-          mr: '-1rem',
+          padding: '0.2rem',
         }}
+        fontSize="small"
       />
     );
 
@@ -265,7 +267,6 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
         )} ${firstStep.token.symbol}`
       : '';
 
-  const connector = firstStep ? ' and ' : '';
   const secondTitle =
     secondStep && secondStep.token
       ? `${secondStep.step.toString()} ${formatUnits(
@@ -274,11 +275,20 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
         )} ${secondStep.token.symbol}`
       : '';
 
+  const connector = firstTitle && secondTitle ? ' and ' : '';
+
   const title = capitalize(firstTitle + connector + secondTitle);
 
   return (
-    <ListItemButton sx={{ px: '1.25rem', py: '.25rem' }} onClick={onClick}>
-      <ListItem secondaryAction={listAction} sx={{ p: 0, pr: '3rem' }}>
+    <ListItemButton
+      sx={{
+        px: '1.25rem',
+        py: '.25rem',
+        '& .MuiListItemSecondaryAction-root': { right: 0 },
+      }}
+      onClick={onClick}
+    >
+      <ListItem secondaryAction={listAction} sx={{ p: 0 }}>
         <ListItemText sx={{ m: 0 }}>
           <Typography variant="xsmall">{title}</Typography>
         </ListItemText>

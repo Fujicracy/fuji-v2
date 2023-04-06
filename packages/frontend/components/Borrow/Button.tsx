@@ -85,6 +85,8 @@ function BorrowButton({
   }`;
 
   const loadingButtonTitle =
+    (collateral.allowance.status === 'allowing' && 'Approving') ||
+    (debt.allowance.status === 'allowing' && 'Approving') ||
     (isSigning && '(1/2) Signing...') ||
     (isExecuting &&
       `(${executionStep}/${executionStep}) ${
@@ -126,8 +128,28 @@ function BorrowButton({
     </Button>
   );
 
+  const loadingButton = (disabled: boolean, loading: boolean) => (
+    <LoadingButton
+      variant="gradient"
+      size="large"
+      loadingPosition="start"
+      startIcon={<></>}
+      fullWidth
+      disabled={disabled}
+      loading={loading}
+      onClick={() => clickWithLTVCheck(onClick)}
+    >
+      {loadingButtonTitle}
+    </LoadingButton>
+  );
+
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
+  } else if (
+    collateral.allowance.status === 'allowing' ||
+    debt.allowance.status === 'allowing'
+  ) {
+    return loadingButton(false, true);
   } else if (
     collateral.chainId !== debt.chainId &&
     debt.token.symbol === 'DAI'
@@ -202,32 +224,18 @@ function BorrowButton({
   ) {
     return disabledButton('wtf?');
   } else {
-    return (
-      <LoadingButton
-        variant="gradient"
-        size="large"
-        loadingPosition="start"
-        startIcon={<></>}
-        fullWidth
-        disabled={
-          !(
-            (metaStatus === 'ready' &&
-              (mode === Mode.DEPOSIT_AND_BORROW ||
-                mode === Mode.PAYBACK_AND_WITHDRAW) &&
-              collateralAmount > 0 &&
-              debtAmount > 0) ||
-            ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) &&
-              collateralAmount > 0) ||
-            ((mode === Mode.BORROW || mode === Mode.PAYBACK) && debtAmount > 0)
-          )
-        }
-        loading={
-          isSigning || isExecuting || availableVaultStatus === 'fetching'
-        }
-        onClick={() => clickWithLTVCheck(onClick)}
-      >
-        {loadingButtonTitle}
-      </LoadingButton>
+    return loadingButton(
+      !(
+        (metaStatus === 'ready' &&
+          (mode === Mode.DEPOSIT_AND_BORROW ||
+            mode === Mode.PAYBACK_AND_WITHDRAW) &&
+          collateralAmount > 0 &&
+          debtAmount > 0) ||
+        ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) &&
+          collateralAmount > 0) ||
+        ((mode === Mode.BORROW || mode === Mode.PAYBACK) && debtAmount > 0)
+      ),
+      isSigning || isExecuting || availableVaultStatus === 'fetching'
     );
   }
 }
