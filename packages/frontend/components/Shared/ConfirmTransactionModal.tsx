@@ -505,7 +505,7 @@ function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
               key={step.step}
               direction="column"
               sx={{
-                p: '0.375rem 0.75rem',
+                p: '0.375rem 0.45rem',
                 backgroundColor: '#35353B',
                 borderRadius: '6px',
                 minWidth: '8rem',
