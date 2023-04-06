@@ -15,7 +15,11 @@ import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
 
-import { AssetChange, recommendedLTV } from '../../helpers/assets';
+import {
+  AssetChange,
+  borrowLimitWithDebt,
+  recommendedLTV,
+} from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { BasePosition } from '../../helpers/positions';
 import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
@@ -67,35 +71,19 @@ export function ConfirmTransactionModal({
       ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
       : 'n/a';
 
-  const editedBorrowLimit =
-    (editedPosition?.collateral.amount || 0) *
-      collateral.usdPrice *
-      (editedPosition?.ltvMax || 1) -
-    (editedPosition?.debt.amount || 0) * debt.usdPrice;
-  const positionBorrowLimit =
-    position.collateral.amount * collateral.usdPrice * (position.ltvMax / 100) -
-    position.debt.amount * debt.usdPrice;
+  const editedBorrowLimit = borrowLimitWithDebt({
+    position: editedPosition,
+    maxLtv: editedPosition?.ltvMax,
+  });
+
+  const positionBorrowLimit = borrowLimitWithDebt({
+    position,
+    maxLtv: position.ltvMax / 100,
+  });
 
   const getLtv = (value: number): string => {
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
-
-  const estBorrow = `${formatValue(positionBorrowLimit, {
-    style: 'currency',
-  })}${
-    editedPosition
-      ? ` -> ${formatValue(editedBorrowLimit, { style: 'currency' })}`
-      : ''
-  }`;
-  const liquidationPrice = `${formatValue(position.liquidationPrice, {
-    style: 'currency',
-  })}${
-    editedPosition
-      ? ` -> ${formatValue(editedPosition?.liquidationPrice, {
-          style: 'currency',
-        })}`
-      : ''
-  }`;
 
   return (
     <Dialog
@@ -170,7 +158,29 @@ export function ConfirmTransactionModal({
 
         <InfoRow
           title="Borrow Limit Left"
-          value={<Typography variant="small">{estBorrow}</Typography>}
+          value={
+            <Stack flexDirection="row" alignItems="center">
+              <Typography variant="small">
+                {formatValue(positionBorrowLimit, {
+                  style: 'currency',
+                })}
+              </Typography>
+              {editedPosition && (
+                <>
+                  <Image
+                    src="/assets/images/shared/arrowRight.svg"
+                    alt="Arrow Right"
+                    width={14}
+                    height={10}
+                    style={{ marginLeft: '0.25rem' }}
+                  />
+                  <Typography ml={0.5} variant="small">
+                    {formatValue(editedBorrowLimit, { style: 'currency' })}
+                  </Typography>
+                </>
+              )}
+            </Stack>
+          }
         />
 
         <InfoRow
@@ -193,10 +203,13 @@ export function ConfirmTransactionModal({
               </Typography>
               {editedPosition && (
                 <>
-                  <Typography ml={0.5} variant="small">
-                    {' '}
-                    {'->'}{' '}
-                  </Typography>
+                  <Image
+                    src="/assets/images/shared/arrowRight.svg"
+                    alt="Arrow Right"
+                    width={14}
+                    height={10}
+                    style={{ marginLeft: '0.25rem' }}
+                  />
                   <Typography
                     ml={0.5}
                     color={
@@ -219,7 +232,31 @@ export function ConfirmTransactionModal({
 
         <InfoRow
           title="Liquidation Price"
-          value={<Typography variant="small">{liquidationPrice}</Typography>}
+          value={
+            <Stack flexDirection="row" alignItems="center">
+              <Typography variant="small">
+                {formatValue(position.liquidationPrice, {
+                  style: 'currency',
+                })}
+              </Typography>
+              {editedPosition && (
+                <>
+                  <Image
+                    src="/assets/images/shared/arrowRight.svg"
+                    alt="Arrow Right"
+                    width={14}
+                    height={10}
+                    style={{ marginLeft: '0.25rem' }}
+                  />
+                  <Typography ml={0.5} variant="small">
+                    {formatValue(editedPosition?.liquidationPrice, {
+                      style: 'currency',
+                    })}
+                  </Typography>
+                </>
+              )}
+            </Stack>
+          }
         />
 
         {dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 && (
