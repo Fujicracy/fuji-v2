@@ -1,40 +1,39 @@
-import { Chip } from '@mui/material';
-import { SxProps, useTheme } from '@mui/material/styles';
+import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
 type TabChipProps = {
   selected: boolean;
   label: string;
-  sx: SxProps | undefined;
   onClick: () => void;
 };
 
-function TabChip({ selected, label, sx, onClick }: TabChipProps) {
-  const { palette, typography } = useTheme();
-  const variant = selected ? 'outlined' : 'filled';
-  const style = selected
-    ? { borderColor: palette.error.main }
-    : {
-        background: palette.secondary.main,
-        color: palette.text.disabled,
-      };
+function TabChip({ selected, label, onClick }: TabChipProps) {
+  const { palette } = useTheme();
 
   return (
-    <Chip
-      variant={variant}
-      label={label}
+    <Box
       sx={{
-        ...style,
-        height: 44,
-        fontSize: typography.body1,
-        paddingLeft: 1,
-        paddingRight: 1,
-        ...sx,
+        cursor: 'pointer',
+        flex: 1,
+        backgroundColor: selected ? '#35353B' : 'transparent',
+        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
       onClick={() => {
         onClick();
       }}
-    />
+    >
+      <Typography
+        color={palette.text.primary}
+        fontSize="1rem"
+        lineHeight="160%"
+      >
+        {label}
+      </Typography>
+    </Box>
   );
 }
 

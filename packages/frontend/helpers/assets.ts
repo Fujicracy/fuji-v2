@@ -85,7 +85,8 @@ export const borrowLimit = (
     mode === Mode.PAYBACK_AND_WITHDRAW
       ? balance - input
       : balance + input;
-  return (amount * price * maxLtv) / 100;
+  const value = (amount * price * maxLtv) / 100;
+  return value > 0 ? value : 0;
 };
 
 export function borrowLimitWithDebt({

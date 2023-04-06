@@ -1,7 +1,10 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 
 import { ActionType } from '../../helpers/assets';
+import { useBorrow } from '../../store/borrow.store';
 import { NetworkIcon } from '../Shared/Icons';
+import { TokenIcon } from '../Shared/Icons';
 import SlippageSettings from '../Shared/SlippageSettings';
 import TabChip from '../Shared/TabChip';
 import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
@@ -21,7 +24,10 @@ function BorrowHeader({
   onActionTypeChange,
   isCrossChainOperation,
 }: BorrowHeaderProps) {
+  const { palette } = useTheme();
   const networkMessage = `Your position is currently on the ${chainName} Network`;
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
 
   return (
     <>
@@ -32,9 +38,35 @@ function BorrowHeader({
           alignItems="center"
           height="40px"
         >
-          <Typography variant="body2" height="40px" lineHeight="40px">
-            Manage your position
-          </Typography>
+          <Stack direction="row" justifyContent="start" alignItems="center">
+            <Box sx={{ position: 'relative' }}>
+              <TokenIcon token={debt.token} height={40} width={40} />
+              <TokenIcon
+                token={collateral.token}
+                height={16}
+                width={16}
+                sx={{
+                  position: 'absolute',
+                  botton: 0,
+                  right: 0,
+                  transform: 'translateY(-100%)',
+                }}
+              />
+            </Box>
+            <Box ml="0.75rem">
+              <Typography variant="h5" fontSize="1.25rem" lineHeight="150%">
+                Debt: {debt.token.symbol}
+              </Typography>
+              <Typography
+                variant="small"
+                fontSize="0.875rem"
+                lineHeight="22.4px"
+              >
+                Collateral: {collateral.token.symbol}
+              </Typography>
+            </Box>
+          </Stack>
+
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -86,14 +118,21 @@ function BorrowHeader({
             marginTop: 3,
             marginBottom: 3,
             flexWrap: 'wrap',
-            gap: 1,
+            gap: '0.25rem',
+            p: '0.1875rem',
+            height: '2.875rem',
+            backgroundColor: palette.secondary.dark,
+            borderRadius: '0.75rem',
+            border: `1px solid ${alpha(palette.secondary.light, 0.5)}`,
           }}
         >
           {[ActionType.ADD, ActionType.REMOVE].map((p) => (
             <TabChip
               key={`${p}`}
               selected={actionType === p}
-              label={`${p === ActionType.ADD ? 'Add' : 'Remove'} Position`}
+              label={
+                p === ActionType.ADD ? 'Deposit / Borrow' : 'Withdraw / Payback'
+              }
               onClick={() => {
                 onActionTypeChange(p);
               }}

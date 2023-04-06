@@ -170,6 +170,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             return (
               <BorrowBox
                 key={type}
+                index={index}
                 type={type}
                 mode={mode}
                 showMax={!showLtv}

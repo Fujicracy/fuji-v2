@@ -19,6 +19,8 @@ function Fees() {
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const show = showTransactionDetails && transactionMeta.status === 'ready';
 
+  const crossChainTx = collateral.chainId !== debt.chainId;
+
   const handleClick = () => {
     if (transactionMeta.status === 'ready') {
       setShowTransactionDetails(!showTransactionDetails);
@@ -57,15 +59,17 @@ function Fees() {
       </Stack>
 
       <Collapse in={show} sx={{ width: '100%' }}>
-        <Fee
-          label="Bridge fee"
-          value={`~$${toNotSoFixed(transactionMeta.bridgeFee)}`}
-        />
+        {crossChainTx && (
+          <Fee
+            label="Bridge fee"
+            value={`~$${toNotSoFixed(transactionMeta.bridgeFee)}`}
+          />
+        )}
         <Fee
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
         />
-        {collateral.chainId !== debt.chainId && (
+        {crossChainTx && (
           <Fee
             label="Est. slippage"
             value={`~${transactionMeta.estimateSlippage} %`}

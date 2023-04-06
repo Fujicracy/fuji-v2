@@ -1,4 +1,10 @@
-import { Address, ChainId, Token } from '@x-fuji/sdk';
+import {
+  Address,
+  ChainId,
+  FujiResultPromise,
+  FujiResultSuccess,
+  Token,
+} from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
 import { BALANCE_POLLING_INTERVAL } from '../constants';
@@ -11,18 +17,24 @@ export const fetchBalances = async (
   tokens: Token[],
   address: string,
   chainId: ChainId
-) => {
-  const rawBalances = await sdk.getTokenBalancesFor(
+): FujiResultPromise<Record<string, number>> => {
+  const result = await sdk.getTokenBalancesFor(
     tokens,
     Address.from(address),
     chainId
   );
+  if (!result.success) {
+    return result;
+  }
+
+  const rawBalances = result.data;
+
   const balances: Record<string, number> = {};
   rawBalances.forEach((b, i) => {
     const value = parseFloat(formatUnits(b, tokens[i].decimals));
     balances[tokens[i].symbol] = value;
   });
-  return balances;
+  return new FujiResultSuccess(balances);
 };
 
 export const updateNativeBalance = (addr?: string) => {
@@ -53,16 +65,18 @@ const checkBalance = async (
   type: AssetType,
   asset: AssetChange
 ) => {
-  const balances = await fetchBalances(
+  const result = await fetchBalances(
     asset.selectableTokens,
     address,
     asset.token.chainId
   );
 
-  // Check again
-  if (isExecutingTx()) {
+  // Check if the call was successful and if we're now executing a tx
+  if (!result.success || isExecutingTx()) {
     return;
   }
+
+  const balances = result.data;
 
   // Grab again in case it changed while we were fetching
   const current =

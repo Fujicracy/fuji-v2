@@ -1,3 +1,35 @@
+import { BigNumber } from 'ethers';
+import { BigNumberish } from 'ethers';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+
+export const validAmount = (
+  amount: string | number,
+  decimals: number
+): string => {
+  const value = typeof amount === 'number' ? amount.toString() : amount;
+  if (value.indexOf('.') === -1) return value;
+
+  const arr = value.split('.');
+  const fraction = arr[1].substring(0, decimals);
+  return arr[0] + '.' + fraction;
+};
+
+export const validBigNumberAmount = (
+  amount: string,
+  decimals: number
+): BigNumber => {
+  const valid = validAmount(amount, decimals);
+  return parseUnits(valid, decimals);
+};
+
+export const bigToFloat = (
+  big: BigNumberish | undefined,
+  decimals: number | BigNumberish
+): number => {
+  const value = big ?? parseUnits('0', 18);
+  return parseFloat(formatUnits(value, decimals));
+};
+
 export const formatValue = (
   value: string | number | undefined,
   params: Intl.NumberFormatOptions = {}
