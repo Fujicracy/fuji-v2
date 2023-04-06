@@ -1,4 +1,5 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 
 import { ActionType } from '../../helpers/assets';
 import { useBorrow } from '../../store/borrow.store';
@@ -23,6 +24,7 @@ function BorrowHeader({
   onActionTypeChange,
   isCrossChainOperation,
 }: BorrowHeaderProps) {
+  const { palette } = useTheme();
   const networkMessage = `Your position is currently on the ${chainName} Network`;
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
@@ -116,14 +118,21 @@ function BorrowHeader({
             marginTop: 3,
             marginBottom: 3,
             flexWrap: 'wrap',
-            gap: 1,
+            gap: '0.25rem',
+            p: '0.1875rem',
+            height: '2.875rem',
+            backgroundColor: palette.secondary.dark,
+            borderRadius: '0.75rem',
+            border: `1px solid ${alpha(palette.secondary.light, 0.5)}`,
           }}
         >
           {[ActionType.ADD, ActionType.REMOVE].map((p) => (
             <TabChip
               key={`${p}`}
               selected={actionType === p}
-              label={`${p === ActionType.ADD ? 'Add' : 'Remove'} Position`}
+              label={
+                p === ActionType.ADD ? 'Deposit / Borrow' : 'Withdraw / Payback'
+              }
               onClick={() => {
                 onActionTypeChange(p);
               }}
