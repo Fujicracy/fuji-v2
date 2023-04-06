@@ -598,22 +598,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     emit Withdraw(caller, receiver, owner, assets, shares);
   }
 
-  /**
-   * @dev Hook before all token-share transfers.
-   * Requirements:
-   * - Must check `from` can move `amount` of shares.
-   *
-   * @param from address
-   * @param to address
-   * @param amount of shares
-   */
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
-    to;
-    if (from != address(0)) {
-      require(amount <= maxRedeem(from), "Transfer more than max");
-    }
-  }
-
   /*//////////////////////////////////////////////////
       Debt management: based on IERC4626 semantics
   //////////////////////////////////////////////////*/
