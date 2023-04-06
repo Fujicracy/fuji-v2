@@ -43,6 +43,14 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
 
+  const limit = borrowLimit(
+    mode,
+    editedPosition ? editedPosition.collateral.amount : 0,
+    Number(collateralInput),
+    collateral.usdPrice,
+    ltvMax
+  );
+
   return (
     <Container isMobile={isMobile}>
       {!isMobile && <Title providers={providers} vault={vault} />}
@@ -61,17 +69,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
       />
 
       <LTVProgressBar
-        borrowLimit={borrowLimit(
-          mode,
-          editedPosition
-            ? editedPosition.collateral.amount
-            : collateralInput
-            ? parseFloat(collateralInput)
-            : 0,
-          parseFloat(collateralInput),
-          collateral.usdPrice,
-          dynamicLtv
-        )}
+        borrowLimit={limit}
         value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
         maxLTV={ltvMax}
         recommendedLTV={recommendedLtv}
