@@ -4,6 +4,7 @@ import {
   ChainId,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  DEFAULT_SLIPPAGE,
   FujiError,
   FujiErrorCode,
   FujiResultError,
@@ -15,18 +16,14 @@ import {
   Token,
 } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
-import { ethers, Signature } from 'ethers';
+import { BigNumber, ethers, Signature } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import produce, { setAutoFreeze } from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import {
-  DEFAULT_LTV_MAX,
-  DEFAULT_LTV_TRESHOLD,
-  DEFAULT_SLIPPAGE,
-} from '../constants';
+import { DEFAULT_LTV_MAX, DEFAULT_LTV_THRESHOLD } from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -38,7 +35,7 @@ import {
 import { fetchBalances } from '../helpers/balances';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
-import { notify } from '../helpers/notifications';
+import { getTransactionUrl, notify } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -121,10 +118,8 @@ type BorrowActions = {
   updateLtv: () => void;
   updateLiquidation: () => void;
   updateVaultBalance: () => void;
-
+  allow: (type: AssetType) => void;
   updateAvailableRoutes: (routes: RouteMeta[]) => void;
-
-  allow: (amount: number, type: AssetType, callback: () => void) => void;
   signPermit: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
@@ -173,7 +168,7 @@ const initialState: BorrowState = {
   ltv: {
     ltv: 0,
     ltvMax: DEFAULT_LTV_MAX,
-    ltvThreshold: DEFAULT_LTV_TRESHOLD,
+    ltvThreshold: DEFAULT_LTV_THRESHOLD,
   },
 
   slippage: DEFAULT_SLIPPAGE,
@@ -353,7 +348,7 @@ export const useBorrow = create<BorrowStore>()(
             : DEFAULT_LTV_MAX;
           const ltvThreshold = vault.liqRatio
             ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
-            : DEFAULT_LTV_TRESHOLD;
+            : DEFAULT_LTV_THRESHOLD;
 
           set(
             produce((s: BorrowState) => {
@@ -423,7 +418,7 @@ export const useBorrow = create<BorrowStore>()(
             type === 'debt' ? get().debt.token : get().collateral.token;
 
           let tokenValue = await token.getPriceUSD();
-          const isTestNet = testChains.find((c) => c.chainId === token.chainId);
+          const isTestNet = testChains.some((c) => c.chainId === token.chainId);
           if (token.symbol === 'WETH' && isTestNet) {
             tokenValue = 1242.42; // fix bc weth has no value on testnet
           }
@@ -688,12 +683,13 @@ export const useBorrow = create<BorrowStore>()(
 
         /**
          * Allow fuji contract to spend on behalf of the user an amount
-         * Token are deduced from collateral
-         * @param amount
-         * @param afterSuccess
+         * Token are deduced from collateral or debt
+         * @param type
          */
-        async allow(amount, type, afterSuccess?) {
-          const token = (type === 'debt' ? get().debt : get().collateral).token;
+        async allow(type) {
+          const { token, input } =
+            type === 'debt' ? get().debt : get().collateral;
+          const amount = parseFloat(input);
           const userAddress = useAuth.getState().address;
           const provider = useAuth.getState().provider;
           const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value;
@@ -728,9 +724,19 @@ export const useBorrow = create<BorrowStore>()(
             await approval.wait();
 
             changeAllowance('ready', amount);
-            afterSuccess && afterSuccess();
+            notify({
+              message: 'Allowance is successful',
+              type: 'success',
+              isTransaction: true,
+              link:
+                getTransactionUrl({
+                  hash: approval.hash,
+                  chainId: token.chainId,
+                }) || '',
+            });
           } catch (e) {
             changeAllowance('error');
+            notify({ message: 'Allowance was not successful', type: 'error' });
           }
         },
 
@@ -801,7 +807,11 @@ export const useBorrow = create<BorrowStore>()(
 
           try {
             const signer = provider.getSigner();
-            const tx = await signer.sendTransaction(txRequest);
+            const estimated = await signer.estimateGas(txRequest);
+            // increase by 20% to prevent outOfGas tx failing
+            const gasLimit = estimated.add(estimated.div(BigNumber.from('2')));
+
+            const tx = await signer.sendTransaction({ ...txRequest, gasLimit });
 
             if (tx) {
               notify({

@@ -1,10 +1,8 @@
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useState } from 'react';
 
-import { getTokenImage } from '../../helpers/paths';
+import { addTokenToMetamask } from '../../helpers/metamask';
 import { SerializableToken } from '../../store/history.store';
-
-declare const ethereum: any; // eslint-disable-line
 
 type ButtonAddTokenProps = {
   token: SerializableToken;
@@ -40,30 +38,3 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 }
 
 export default AddTokenButton;
-
-async function addTokenToMetamask(token: SerializableToken) {
-  if (!ethereum) {
-    console.error('var ethereum is undefined, user may not have metamask');
-    return;
-  }
-  const { symbol, decimals, address } = token;
-  const { protocol, host } = window.location;
-  const image = `${protocol}${host}${getTokenImage(token.symbol)}`;
-
-  const success = await ethereum.request({
-    method: 'wallet_watchAsset',
-    params: {
-      type: 'ERC20', // Initially only supports ERC20, but eventually more!
-      options: {
-        address: address,
-        symbol,
-        decimals,
-        image,
-      },
-    },
-  });
-
-  if (!success) {
-    throw 'await ethereum.request is false or undefined';
-  }
-}

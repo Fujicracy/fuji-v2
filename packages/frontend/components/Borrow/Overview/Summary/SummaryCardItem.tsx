@@ -2,33 +2,30 @@ import { Card, Chip, Grid, Typography, useTheme } from '@mui/material';
 import { Stack } from '@mui/system';
 import React from 'react';
 
-import { liquidationColor } from '../../../../helpers/positions';
+import { belowPriceColor } from '../../../../helpers/positions';
 
-type SummaryCardItemProps = {
+export type SummaryCardItemInfo = {
   title: string;
   amount: string;
   footer: string;
-  value?: number;
+  data?: { amount: number; recommended: number };
   extra?: string | number;
+};
+
+type SummaryCardItemProps = {
+  info: SummaryCardItemInfo;
   isMobile: boolean;
 };
 
-function SummaryCardItem({
-  title,
-  amount,
-  footer,
-  value,
-  extra,
-  isMobile,
-}: SummaryCardItemProps) {
+function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
   const { palette } = useTheme();
+  const { title, amount, footer, data, extra } = info;
 
   if (isMobile) {
-    const shouldHaveParenthesis =
-      title !== 'Current Price' && title !== 'Borrowed Value';
-    const content = `${amount} ${shouldHaveParenthesis ? '(' : ''}${
-      title !== 'Borrowed Value' ? footer : ''
-    }${shouldHaveParenthesis ? ')' : ''}`;
+    const shouldHaveParenthesis = title !== 'Current Price';
+    const content = `${amount} ${shouldHaveParenthesis ? '(' : ''}${footer}${
+      shouldHaveParenthesis ? ')' : ''
+    }`;
 
     return (
       <Grid item sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -60,13 +57,13 @@ function SummaryCardItem({
             />
           )}
         </Stack>
-        {footer && footer.includes('below current price') ? (
+        {footer && data && footer.includes('below current price') ? (
           <Typography
             variant="smallDark"
             mb="1rem"
             sx={{
-              color: value
-                ? liquidationColor(value, palette)
+              color: data.amount
+                ? belowPriceColor(data.amount, data.recommended, palette)
                 : palette.info.dark,
             }}
           >
@@ -86,8 +83,3 @@ function SummaryCardItem({
 }
 
 export default SummaryCardItem;
-
-SummaryCardItem.defaultProps = {
-  extra: undefined,
-  value: undefined,
-};

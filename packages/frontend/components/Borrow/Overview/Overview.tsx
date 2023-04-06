@@ -12,14 +12,15 @@ import Summary from './Summary/Summary';
 import Title from './Title';
 
 type OverviewProps = {
+  isEditing: boolean;
   basePosition: BasePosition;
 };
 
-function Overview({ basePosition }: OverviewProps) {
+function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const { position, futurePosition } = basePosition;
+  const { position, editedPosition } = basePosition;
   const {
     collateral,
     debt,
@@ -34,14 +35,21 @@ function Overview({ basePosition }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault);
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : [];
+  const mode = useBorrow((state) => state.mode);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
 
-  const dynamicLtv = futurePosition ? futurePosition.ltv : ltv;
-  const dynamicLtvThreshold = futurePosition
-    ? futurePosition.ltvThreshold
-    : ltvThreshold;
+  const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
+  const recommendedLtv = recommendedLTV(ltvMax);
+
+  const limit = borrowLimit(
+    mode,
+    editedPosition ? editedPosition.collateral.amount : 0,
+    Number(collateralInput),
+    collateral.usdPrice,
+    ltvMax
+  );
 
   return (
     <Container isMobile={isMobile}>
@@ -52,34 +60,29 @@ function Overview({ basePosition }: OverviewProps) {
         collateralInput={collateralInput}
         debt={debt}
         debtInput={debtInput}
-        futurePosition={futurePosition}
+        editedPosition={editedPosition}
         liquidationDiff={liquidationDiff}
         liquidationPrice={liquidationPrice}
+        recommendedLtv={recommendedLtv}
+        ltvMax={ltvMax}
         isMobile={isMobile}
       />
 
       <LTVProgressBar
-        borrowLimit={borrowLimit(
-          futurePosition
-            ? futurePosition.collateral.amount
-            : collateralInput
-            ? parseFloat(collateralInput)
-            : 0,
-          collateral.usdPrice,
-          dynamicLtv
-        )}
+        borrowLimit={limit}
         value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
         maxLTV={ltvMax}
-        recommendedLTV={recommendedLTV(ltvMax)}
+        recommendedLTV={recommendedLtv}
         isMobile={isMobile}
       />
 
       <Details
-        ltv={dynamicLtv}
-        ltvThreshold={dynamicLtvThreshold}
+        ltv={ltv}
+        ltvThreshold={ltvThreshold}
         providers={providers}
         vault={vault}
         isMobile={isMobile}
+        isEditing={isEditing}
       />
     </Container>
   );

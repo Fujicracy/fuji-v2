@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
 import {
@@ -71,14 +72,13 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     const entity = vaultFromAddress(row.address);
     showPosition(router, String(entity?.chainId), entity);
   }
-
   return (
     <MyPositionsBorrowTableContainer>
       {rows.length > 0 ? (
         rows.map((row, i) => (
           <TableRow
             key={i}
-            sx={{ cursor: 'pointer' }}
+            sx={{ cursor: 'pointer', height: '4.3rem' }}
             onClick={() => handleClick(row)}
           >
             <TableCell>
@@ -143,6 +143,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
             <LiquidationBox
               liquidationPrice={row.liquidationPrice}
               percentPriceDiff={row.percentPriceDiff}
+              ltv={row.ltv}
+              recommendedLtv={recommendedLTV(row.ltvMax)}
             />
           </TableRow>
         ))

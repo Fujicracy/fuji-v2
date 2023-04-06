@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -56,17 +57,29 @@ const Header = () => {
   const [accountModalEl, setAccountModalEl] = useState<
     HTMLElement | undefined
   >();
-  const showAccountModal = Boolean(accountModalEl);
+  const [showAccountModal, setShowAccountModal] = useState(false);
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
     setAnchorElNav(event.currentTarget);
 
   const handleCloseNavMenu = () => setAnchorElNav(null);
   const isNavMenuOpen = Boolean(anchorElNav);
 
-  const e2eConnect = () =>
-    login({ autoSelect: { label: 'MetaMask', disableModals: true } });
-
   const formattedAddress = hiddenAddress(address);
+
+  const handleOpenAccountModal = (
+    show: boolean,
+    element: HTMLElement | undefined
+  ) => {
+    setShowAccountModal(show);
+    setAccountModalEl(element);
+  };
+
+  const handleLogin = (testing: boolean) => {
+    const options: ConnectOptions | undefined = testing
+      ? { autoSelect: { label: 'MetaMask', disableModals: true } }
+      : undefined;
+    login(options);
+  };
 
   return (
     <AppBar position="static">
@@ -107,7 +120,7 @@ const Header = () => {
               <Box
                 sx={{
                   flexGrow: 1,
-                  display: { xs: 'flex', md: 'none' },
+                  display: { xs: 'flex', lg: 'none' },
                   alignItems: 'center',
                 }}
               >
@@ -122,11 +135,11 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={() => login()}
+                      onClick={() => handleLogin(false)}
                     />
                     <Button
                       data-cy="login"
-                      onClick={e2eConnect}
+                      onClick={() => handleLogin(true)}
                       sx={{ position: 'absolute', visibility: 'hidden' }}
                     >
                       e2e
@@ -181,29 +194,24 @@ const Header = () => {
                         </ListItemText>
                       </MenuItem>
                     ))}
+                    {address && <Divider />}
                     {address && (
-                      <>
-                        <Divider />
-                        <MenuItem
-                          onClick={() => {
-                            handleCloseNavMenu();
-                            setAccountModalEl(
-                              anchorElNav ? anchorElNav : undefined
-                            );
-                          }}
-                        >
-                          <ListItemText>
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                            >
-                              <Typography variant="small">
-                                {formattedAddress}
-                              </Typography>
-                            </Stack>
-                          </ListItemText>
-                        </MenuItem>
-                      </>
+                      <MenuItem
+                        onClick={() => {
+                          handleCloseNavMenu();
+                          setAccountModalEl(
+                            anchorElNav ? anchorElNav : undefined
+                          );
+                        }}
+                      >
+                        <ListItemText>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="small">
+                              {formattedAddress}
+                            </Typography>
+                          </Stack>
+                        </ListItemText>
+                      </MenuItem>
                     )}
                     <Divider />
                     <ParameterLinks />
@@ -248,7 +256,7 @@ const Header = () => {
             columnGap="0.5rem"
             justifyContent="flex-end"
             alignItems="center"
-            sx={{ display: { xs: 'none', md: 'flex' } }}
+            sx={{ display: { xs: 'none', lg: 'flex' } }}
           >
             {status === 'disconnected' && (
               <>
@@ -261,11 +269,11 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={() => login()}
+                  onClick={() => handleLogin(false)}
                 />
                 <Button
                   data-cy="login"
-                  onClick={e2eConnect}
+                  onClick={() => handleLogin(true)}
                   sx={{ position: 'absolute', visibility: 'hidden' }}
                 >
                   e2e
@@ -282,7 +290,7 @@ const Header = () => {
                     balance={balance}
                     formattedAddress={formattedAddress}
                     ens={ens}
-                    onClick={(e) => setAccountModalEl(e)}
+                    onClick={(e) => handleOpenAccountModal(true, e)}
                   />
                 </Grid>
                 <Grid item>
@@ -297,7 +305,7 @@ const Header = () => {
         <AccountModal
           isOpen={showAccountModal}
           anchorEl={accountModalEl}
-          closeAccountModal={() => setAccountModalEl(undefined)}
+          closeAccountModal={() => handleOpenAccountModal(false, undefined)}
           address={address}
         />
       )}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { DUST_AMOUNT } from '../constants';
 import {
   getAccrual,
   getCurrentAvailableBorrowingPower,
@@ -21,7 +22,6 @@ type PositionsState = {
 
 type PositionsActions = {
   fetchUserPositions: () => void;
-  // getPositionsAtRisk: () => void
 };
 
 const initialState: PositionsState = {
@@ -46,7 +46,11 @@ export const usePositions = create<PositionsStore>()(
         if (!result.success) {
           console.error(result.error?.message); // TODO: Show? Happens a lot in background.
         }
-        const positions = result.success ? (result.data as Position[]) : [];
+        const positions = result.success
+          ? (result.data as Position[]).filter(
+              (p) => p.collateral.amount > DUST_AMOUNT
+            )
+          : [];
 
         const totalDepositsUSD = getTotalSum(positions, 'collateral');
         const totalDebtUSD = getTotalSum(positions, 'debt');
@@ -72,17 +76,17 @@ export const usePositions = create<PositionsStore>()(
         const availableBorrowPowerUSD =
           getCurrentAvailableBorrowingPower(positions);
 
-        set({
-          positions,
-          totalDepositsUSD,
-          totalDebtUSD,
-          totalAPY: parseFloat(totalAPY.toFixed(2)),
-          availableBorrowPowerUSD,
-          loading: false,
+        set(() => {
+          return {
+            positions,
+            totalDepositsUSD,
+            totalDebtUSD,
+            totalAPY: parseFloat(totalAPY.toFixed(2)),
+            availableBorrowPowerUSD,
+            loading: false,
+          };
         });
       },
-
-      // getPositionsAtRisk: async () => { },
     }),
     {
       enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',

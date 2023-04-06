@@ -15,6 +15,7 @@ import { getTransactionUrl, notify } from '../helpers/notifications';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useBorrow } from './borrow.store';
+import { usePositions } from './positions.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
@@ -181,6 +182,8 @@ export const useHistory = create<HistoryStore>()(
               });
             }
             get().update(hash, { status: HistoryEntryStatus.DONE });
+
+            usePositions.getState().fetchUserPositions();
           } catch (e) {
             notify({
               type: 'error',

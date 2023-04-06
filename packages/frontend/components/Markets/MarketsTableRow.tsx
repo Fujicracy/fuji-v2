@@ -128,7 +128,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell
           align="right"
-          width="130px"
+          width="140px"
           sx={{ color: palette.warning.main }}
         >
           {loaderOrError(row.borrowApr.status)}
@@ -216,13 +216,13 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="130px">
+        <SizableTableCell align="right" width="140px">
           <Chip
             variant={row.safetyRating.value === 'A+' ? 'success' : 'warning'}
             label={row.safetyRating.value}
           />
         </SizableTableCell>
-        <SizableTableCell align="right" width="130px">
+        <SizableTableCell align="right" width="140px">
           {loaderOrError(row.liquidity.status)}
           {row.liquidity.status === Status.Ready &&
             formatValue(row.liquidity.value, {

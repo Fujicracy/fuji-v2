@@ -72,9 +72,18 @@ export const needsAllowance = (
 };
 
 export const borrowLimit = (
-  amount: number,
+  mode: Mode,
+  balance: number,
+  input: number,
   price: number,
   maxLtv: number
 ): number => {
-  return (amount * price * maxLtv) / 100;
+  const amount =
+    mode === Mode.WITHDRAW ||
+    mode === Mode.PAYBACK ||
+    mode === Mode.PAYBACK_AND_WITHDRAW
+      ? balance - input
+      : balance + input;
+  const value = (amount * price * maxLtv) / 100;
+  return value > 0 ? value : 0;
 };
