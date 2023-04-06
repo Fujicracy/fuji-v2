@@ -15,11 +15,11 @@ import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { ReactNode } from 'react';
 
-import { AssetChange, Mode, recommendedLTV } from '../../helpers/assets';
+import { AssetChange, recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { BasePosition } from '../../helpers/positions';
 import { camelize, formatValue, toNotSoFixed } from '../../helpers/values';
-import { FetchStatus, useBorrow } from '../../store/borrow.store';
+import { FetchStatus } from '../../store/borrow.store';
 import { NetworkIcon } from './Icons';
 import TokenIcon from './Icons/TokenIcon';
 import WarningInfo from './WarningInfo';
@@ -53,7 +53,6 @@ export function ConfirmTransactionModal({
   const { palette } = useTheme();
   const { steps } = transactionMeta;
   const { editedPosition, position } = basePosition;
-  const mode = useBorrow((state) => state.mode);
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
@@ -68,24 +67,14 @@ export function ConfirmTransactionModal({
       ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
       : 'n/a';
 
-  const addCollateralMode =
-    Mode.BORROW || mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.DEPOSIT;
-  const collateralDiff =
-    mode === addCollateralMode
-      ? collateral.amount + (Number(collateral.input) || 0)
-      : collateral.amount - (Number(collateral.input) || 0);
-
-  const debtDiff =
-    mode === addCollateralMode
-      ? debt.amount + (Number(debt.input) || 0)
-      : debt.amount - (Number(debt.input) || 0);
-
   const editedBorrowLimit =
-    collateralDiff * collateral.usdPrice * (editedPosition?.ltvMax || 1) -
-    debtDiff * debt.usdPrice;
+    (editedPosition?.collateral.amount || 0) *
+      collateral.usdPrice *
+      (editedPosition?.ltvMax || 1) -
+    (editedPosition?.debt.amount || 0) * debt.usdPrice;
   const positionBorrowLimit =
-    collateral.amount * collateral.usdPrice * (position.ltvMax / 100) -
-    debt.amount * debt.usdPrice;
+    position.collateral.amount * collateral.usdPrice * (position.ltvMax / 100) -
+    position.debt.amount * debt.usdPrice;
 
   const getLtv = (value: number): string => {
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
@@ -121,7 +110,7 @@ export function ConfirmTransactionModal({
       <Paper
         variant="outlined"
         sx={{
-          width: { xs: 'auto', sm: '33rem' },
+          width: { xs: 'auto', sm: '35rem' },
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
