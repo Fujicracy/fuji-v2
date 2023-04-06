@@ -14,14 +14,14 @@ function DocsTooltip({ fontSize }: DocsTooltipProps) {
       arrow
       title={
         <span>
-          We take into account variables such as liquidity, audits and team
-          behind each protocol, you can read more on our risk framework{' '}
+          Our risk framework considers various factors including liquidity,
+          audits, and the team profile of each protocol.{' '}
           <Link
             href="https://docs.fujidao.org/"
             target="_blank"
             rel="noreferrer"
           >
-            <u> here</u>
+            <u> Learn more</u>
           </Link>
         </span>
       }

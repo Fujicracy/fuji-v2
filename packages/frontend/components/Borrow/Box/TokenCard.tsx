@@ -1,3 +1,4 @@
+import { keyframes } from '@emotion/react';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {
   ButtonBase,
@@ -15,7 +16,13 @@ import {
   useTheme,
 } from '@mui/material';
 import { Token } from '@x-fuji/sdk';
-import React, { MouseEvent, ReactElement, useState } from 'react';
+import React, {
+  MouseEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   ActionType,
@@ -24,7 +31,9 @@ import {
   LtvMeta,
   recommendedLTV,
 } from '../../../helpers/assets';
-import { formatValue } from '../../../helpers/values';
+import { BasePosition } from '../../../helpers/positions';
+import { formatValue, validAmount } from '../../../helpers/values';
+import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
 import { TokenIcon } from '../../Shared/Icons';
@@ -36,29 +45,37 @@ type SelectTokenCardProps = {
   isExecuting: boolean;
   disabled: boolean;
   value: string;
-  ltvMeta: LtvMeta;
-  core: boolean;
-  maxAmount?: number;
+  showMax: boolean;
+  maxAmount: number;
   onTokenChange: (token: Token) => void;
   onInputChange: (value: string) => void;
+  ltvMeta: LtvMeta;
+  basePosition: BasePosition;
+  isEditing: boolean;
+  isFocusedByDefault: boolean;
 };
 
 function TokenCard({
   type,
-  core,
+  showMax,
   assetChange,
   actionType,
   isExecuting,
   disabled,
   value,
-  ltvMeta,
   maxAmount,
   onTokenChange,
   onInputChange,
+  ltvMeta,
+  basePosition,
+  isEditing,
+  isFocusedByDefault,
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
   const { token, usdPrice, balances, selectableTokens } = assetChange;
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
 
   const balance = balances[token.symbol];
 
@@ -71,19 +88,74 @@ function TokenCard({
   };
   const close = () => setAnchorEl(null);
 
+  const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
+    undefined
+  );
+  const [focused, setFocused] = useState<boolean>(false);
+
+  const handleRef = useCallback((node: HTMLInputElement) => {
+    setTextInput(node);
+  }, []);
+
   const handleMax = () => {
-    // const amount = type === "debt" ? 50 : balance
-    handleInput(maxAmount?.toString() ?? '0');
+    const amount =
+      actionType === ActionType.REMOVE && type === 'collateral'
+        ? basePosition.position.collateral.amount -
+          (basePosition.position.debt.amount - Number(debt.input)) /
+            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
+        : maxAmount;
+    handleInput(String(amount));
   };
 
   const handleInput = (val: string) => {
-    onInputChange(val);
+    const value = validAmount(val, token.decimals);
+    onInputChange(value);
+  };
+
+  const handleRecommended = () => {
+    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
+
+    if (
+      (ltv > recommendedLTV(ltvMax) && !value) ||
+      (!ltv && collateral.amount && !collateral.input)
+    ) {
+      handleInput('0');
+      return;
+    }
+
+    const collateralValue = isEditing
+      ? basePosition.editedPosition
+        ? basePosition.editedPosition.collateral.amount
+        : basePosition.position.collateral.amount
+      : Number(collateral.input);
+
+    const recommended =
+      (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
+      (isEditing ? basePosition.position.debt.amount : 0);
+
+    const finalValue = recommended > maxAmount ? maxAmount : recommended;
+    handleInput(String(finalValue));
   };
 
   const handleTokenChange = (token: Token) => {
     onTokenChange(token);
     close();
   };
+
+  useEffect(() => {
+    if (isFocusedByDefault) {
+      textInput?.focus();
+    }
+  }, [isFocusedByDefault, textInput]);
+
+  const blink = keyframes`
+    from {
+      visibility: visible;
+    }
+    to {
+      visibility: hidden;
+    }
+  `;
 
   return (
     <Card
@@ -93,6 +165,8 @@ function TokenCard({
           (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
           Number(assetChange.input) > balance
             ? palette.error.dark
+            : focused
+            ? palette.info.main
             : palette.secondary.light,
       }}
     >
@@ -101,12 +175,21 @@ function TokenCard({
           id="collateral-amount"
           type="number"
           placeholder="0"
+          inputRef={handleRef}
           value={value}
           disabled={isExecuting}
           onChange={(e) => handleInput(e.target.value)}
           variant="standard"
           InputProps={{
             disableUnderline: true,
+          }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          sx={{
+            '&.MuiInputBase-input:focus': {
+              caretColor: 'auto',
+              animation: `${blink} 1s infinite`,
+            },
           }}
         />
         <ButtonBase
@@ -148,7 +231,7 @@ function TokenCard({
       </div>
 
       <div className={styles.cardLine} style={{ marginTop: '1rem' }}>
-        {core ? (
+        {showMax ? (
           <>
             <Typography variant="small" sx={{ width: '11rem' }}>
               {formatValue(usdPrice * +value, { style: 'currency' })}
@@ -192,7 +275,7 @@ function TokenCard({
                 },
               }}
             >
-              {formatValue(usdPrice * +value)}
+              {`$${formatValue(usdPrice * +value)}`}
             </Typography>
 
             <Stack direction="row">
@@ -216,9 +299,11 @@ function TokenCard({
               >
                 LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
               </Typography>
+
               <Typography
                 variant="smallDark"
                 sx={{
+                  cursor: 'pointer',
                   '&::before': {
                     content: '"Recommended: "',
                   },
@@ -231,6 +316,7 @@ function TokenCard({
                     },
                   },
                 }}
+                onClick={handleRecommended}
               >
                 ({recommendedLTV(ltvMax)}%)
               </Typography>
