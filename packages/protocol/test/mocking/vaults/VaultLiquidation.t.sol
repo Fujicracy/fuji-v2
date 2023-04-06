@@ -30,7 +30,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
-  uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
+  uint256 public constant LIQUIDATION_RATIO = DEFAULT_LIQ_RATIO;
 
   function setUp() public {
     flasher = new MockFlasher();
