@@ -17,6 +17,7 @@ export function notify({ message, type, link, isTransaction }: NotifyArgs) {
   const options: Partial<ToastOptions> = {
     position: toast.POSITION.TOP_RIGHT,
     theme: 'dark',
+    toastId: type + message + link + isTransaction,
   };
 
   if (link) {
