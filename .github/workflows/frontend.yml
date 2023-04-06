@@ -41,8 +41,8 @@ jobs:
       - run: yarn workspace @x-fuji/frontend run lint
       - run: yarn workspace @x-fuji/frontend run prettier --check
 
-  deploy:
-    name: Deploy Staging
+  deploy-pr:
+    name: Deploy Staging for PR
     if: github.ref != 'refs/heads/main'
     permissions:
       contents: "read"
@@ -102,3 +102,60 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           repo-token-user-login: "github-actions[bot]" # The user.login for temporary GitHub tokens
           allow-repeats: false
+
+  deploy-main:
+    name: Deploy Main Staging
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: "read"
+      id-token: "write"
+      pull-requests: write
+
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: "actions/checkout@v3"
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
+
+      - uses: "google-github-actions/auth@v0"
+        with:
+          workload_identity_provider: "${{ secrets.WIF_PROVIDER_NAME }}"
+          service_account: "${{ secrets.APPENGINE_DEPLOY_SA_EMAIL }}"
+
+      - name: Add service name with PR and env variables
+        run: |
+          echo service: v2-staging-main >> frontend-app.yaml
+          echo NEXT_PUBLIC_INFURA_KEY=${{ secrets.INFURA_ID }} >> packages/frontend/.env
+          echo NEXT_PUBLIC_APP_ENV=production >> packages/frontend/.env
+
+      - name: Build
+        run: yarn workspace @x-fuji/frontend build
+
+      - name: Deploy
+        id: "deploy"
+        uses: "google-github-actions/deploy-appengine@v0"
+        with:
+          deliverables: "frontend-app.yaml"
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: fuji-dao
+          SENTRY_PROJECT: fuji-v2
+          # SENTRY_URL: https://sentry.io/
+        with:
+          environment: production
+          sourcemaps: 'packages/frontend/.next/static/chunks'

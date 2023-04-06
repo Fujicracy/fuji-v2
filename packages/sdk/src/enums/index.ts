@@ -1,6 +1,6 @@
 export { ChainId } from './ChainId';
-export { ChainCoingeckoKey, ChainLlamaKey } from './ChainKey';
 export { ChainType } from './ChainType';
 export { ConnextDomain } from './ConnextDomain';
+export { ConnextTxStatus } from './ConnextTxStatus';
 export { RouterAction } from './RouterAction';
 export { RoutingStep } from './RoutingStep';

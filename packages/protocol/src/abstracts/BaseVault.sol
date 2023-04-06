@@ -187,7 +187,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Called during {ERC20-transferFrom} to decrease allowance.
    * Requirements:
    * - Must be overriden to call {VaultPermissions-_spendWithdrawAllowance}.
-   * - Msut convert `shares` to `assets` before calling internal functions.
+   * - Must convert `shares` to `assets` before calling internal functions.
    *
    * @param owner of `shares`
    * @param operator allowed to act on `owners` behalf
@@ -203,6 +203,20 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     internal
   {
     _spendWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
+  }
+
+  /**
+   * @dev Called during {ERC20-transferFrom} to decrease allowance.
+   * Requirements:
+   * - Must be overriden to call {VaultPermissions-_spendWithdrawAllowance}.
+   * - Must convert `shares` to `assets` before calling internal functions.
+   *
+   * @param owner of `shares`
+   * @param receiver to whom `shares` will be spent
+   * @param shares amount to spend
+   */
+  function _spendAllowance(address owner, address receiver, uint256 shares) internal override {
+    _spendWithdrawAllowance(owner, receiver, receiver, convertToAssets(shares));
   }
 
   /*//////////////////////////////////////////
@@ -582,22 +596,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
-  }
-
-  /**
-   * @dev Hook before all token-share transfers.
-   * Requirements:
-   * - Must check `from` can move `amount` of shares.
-   *
-   * @param from address
-   * @param to address
-   * @param amount of shares
-   */
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
-    to;
-    if (from != address(0)) {
-      require(amount <= maxRedeem(from), "Transfer more than max");
-    }
   }
 
   /*//////////////////////////////////////////////////

@@ -40,6 +40,9 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
 
   MockOracle mockOracle;
 
+  uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
+  uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
+
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
 
@@ -75,7 +78,9 @@ contract AttackDoubleDeposit is DSTestPlus, CoreRoles {
       address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
   }
 

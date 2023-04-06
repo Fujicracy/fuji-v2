@@ -58,6 +58,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
   event AllowFlasher(address indexed flasher, bool allowed);
 
   /**
+   * @dev Emitted when a new swapper is allowed/disallowed.
+   *
+   * @param swapper address of the swapper
+   * @param allowed "true" to allow, "false" to disallow
+   */
+  event AllowSwapper(address indexed swapper, bool allowed);
+
+  /**
    * @dev Emitted when a new factory is alllowed/disallowed.
    *
    * @param factory address of the factory
@@ -89,6 +97,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   error Chief__onlyTimelock_callerIsNotTimelock();
   error Chief__checkRatingValue_notInRange();
   error Chief__checkValidVault_notValidVault();
+  error Chief__allowSwapper_noAllowChange();
 
   /**
    * @dev When `permissionlessDeployments` is "false", only addresses with this role
@@ -107,6 +116,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   mapping(address => uint256) public vaultSafetyRating;
   mapping(address => bool) public allowedVaultFactory;
   mapping(address => bool) public allowedFlasher;
+  mapping(address => bool) public allowedSwapper;
 
   modifier onlyTimelock() {
     if (msg.sender != timelock) {
@@ -265,6 +275,27 @@ contract Chief is CoreRoles, AccessControl, IChief {
     allowedFlasher[flasher] = allowed;
 
     emit AllowFlasher(flasher, allowed);
+  }
+
+  /**
+   * @notice Sets `swapper` as an authorized address for swap operations.
+   *
+   * @param swapper Address of the swapper to allow/disallow.
+   * @param allowed "true" to allow, "false" to disallow.
+   *
+   * @dev Requirements:
+   *  - `swapper` must be a non-zero address.
+   *  - `allowed` must be different the previously recorded for the same `swapper`.
+   *  - Emits a `AllowSwapper` event.
+   */
+  function allowSwapper(address swapper, bool allowed) external onlyTimelock {
+    _checkInputIsNotZeroAddress(swapper);
+    if (allowedSwapper[swapper] == allowed) {
+      revert Chief__allowSwapper_noAllowChange();
+    }
+    allowedSwapper[swapper] = allowed;
+
+    emit AllowSwapper(swapper, allowed);
   }
 
   /**

@@ -159,6 +159,7 @@ contract YieldVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256) {
+    // There is no restriction on asset-share movements in a {YieldVault}.
     return convertToAssets(balanceOf(owner));
   }
 

@@ -1,82 +1,63 @@
-import { formatUnits, parseUnits } from "ethers/lib/utils"
+import { Address, FujiError, VaultWithFinancials } from '@x-fuji/sdk';
 
-import {
-  Address,
-  BorrowingVault,
-  RouterActionParams,
-  RoutingStep,
-  RoutingStepDetails,
-  Token,
-} from "@x-fuji/sdk"
-import { sdk } from "../services/sdk"
-import { LTV_RECOMMENDED_DECREASE } from "../constants/borrow"
+import { sdk } from '../services/sdk';
+import { ActionType, Mode } from './assets';
+import { chains } from './chains';
 
-export type RouteMeta = {
-  //gasFees: number
-  estimateSlippage: number
-  bridgeFee: number
-  estimateTime: number
-  steps: RoutingStepDetails[]
-  actions: RouterActionParams[]
-  address: string
-  recommended: boolean
+export function modeForContext(
+  isEditing: boolean,
+  actionType: ActionType,
+  collateral: number,
+  debt: number
+): Mode {
+  if (!isEditing) return Mode.DEPOSIT_AND_BORROW;
+  if ((collateral > 0 && debt > 0) || (collateral === 0 && debt === 0)) {
+    return ActionType.ADD === actionType
+      ? Mode.DEPOSIT_AND_BORROW
+      : Mode.PAYBACK_AND_WITHDRAW;
+  } else if (collateral > 0) {
+    return ActionType.ADD === actionType ? Mode.DEPOSIT : Mode.WITHDRAW;
+  } else if (debt > 0) {
+    return ActionType.ADD === actionType ? Mode.BORROW : Mode.PAYBACK;
+  }
+  return Mode.DEPOSIT_AND_BORROW;
 }
+
+export const failureForMode = (
+  mode: Mode,
+  collateral: string | undefined,
+  debt: string | undefined
+): boolean => {
+  return (
+    ((mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
+      (!collateral || !debt)) ||
+    ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) && !collateral) ||
+    ((mode === Mode.BORROW || mode === Mode.PAYBACK) && !debt)
+  );
+};
 
 /*
-  I'm sure we'll refactor this at some point. Not ideal implementation. 
-  Object is, we need to grab the previews for all vaults and not stop in case one crashes,
-  plus saving the corresponding address and return everything for the caller to handle.
+  Convenience function that calls the SDK to get all the vaults with 
+  financials and returns both the data and errors.
 */
-export const fetchRoutes = async (
-  vault: BorrowingVault,
-  collateralToken: Token,
-  debtToken: Token,
-  collateralInput: string,
-  debtInput: string,
-  address: string,
-  recommended: boolean
-): Promise<{
-  data?: RouteMeta
-  error?: Error
-}> => {
-  const result: {
-    data?: RouteMeta
-    error?: Error
-  } = {}
-  try {
-    const preview = await sdk.previews.depositAndBorrow(
-      vault,
-      parseUnits(collateralInput, collateralToken.decimals),
-      parseUnits(debtInput, debtToken.decimals),
-      collateralToken,
-      debtToken,
-      new Address(address)
-    )
-    const { bridgeFee, estimateSlippage, estimateTime, actions, steps } =
-      preview
+export const getAllBorrowingVaultFinancials = async (
+  address: Address | undefined
+): Promise<{ data: VaultWithFinancials[]; errors: FujiError[] }> => {
+  const data: VaultWithFinancials[] = [];
+  const errors: FujiError[] = [];
 
-    const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER)
-    const _bridgeFee = bridgeStep
-      ? formatUnits(bridgeFee, bridgeStep.token?.decimals ?? 18)
-      : "0"
-
-    result.data = {
-      address: vault.address.value,
-      recommended,
-      bridgeFee: Number(_bridgeFee),
-      // slippage is in basis points
-      estimateSlippage: estimateSlippage.toNumber() / 100,
-      estimateTime,
-      actions,
-      steps,
+  for (let index = 0; index < chains.length; index++) {
+    const chain = chains[index];
+    const result = await sdk.getBorrowingVaultsFinancials(
+      chain.chainId,
+      address
+    );
+    if (result.success) {
+      data.push(...result.data);
+    } else {
+      errors.push(result.error);
     }
-    return result
-  } catch (e) {
-    if (e instanceof Error) result.error = e
   }
-  return result
-}
 
-export const recommendedLTV = (ltvMax: number): number => {
-  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0
-}
+  return { data, errors };
+};
