@@ -30,7 +30,6 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
-  uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
     flasher = new MockFlasher();
@@ -72,7 +71,7 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
       price / 1e18 > 0 && deposit / 1e18 > 0 && borrowAmount / 1e18 > 0,
       "Price, deposit, and borrowAmount should be 1e18"
     );
-    return (price - ((borrowAmount * 1e36) / (deposit * LIQUIDATION_RATIO)));
+    return (price - ((borrowAmount * 1e36) / (deposit * DEFAULT_LIQ_RATIO)));
   }
 
   function _utils_checkMaxLTV(uint256 amount, uint256 borrowAmount) internal view returns (bool) {
@@ -146,9 +145,9 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 priceDropThresholdToMaxLiq =
-      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((95e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
     uint256 priceDropThresholdToDiscountLiq =
-      price - ((100e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
     priceDrop =
