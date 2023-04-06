@@ -81,20 +81,20 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     _callWithTimelock(address(chief), executionCall);
   }
 
-  function mock_getPriceOf(address asset1, address asset2, uint256 price) internal {
+  function mock_getPriceOf(address currency, address commodity, uint256 priceIn18Decimals) internal {
     vm.mockCall(
       address(oracle),
-      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset1, asset2, 18),
-      abi.encode(price)
+      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, currency, commodity, 18),
+      abi.encode(priceIn18Decimals)
     );
   }
 
   function mock_getPriceOfWithDecimals(
-    address asset1,
-    address asset2,
-    uint256 price,
-    uint256 decimalsAsset1,
-    uint256 decimalsAsset2
+    address currency,
+    address commodity,
+    uint256 priceIn18Decimals,
+    uint256 currencyDecimals,
+    uint256 commodityDecimals
   )
     internal
   {
@@ -103,21 +103,23 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     //   "For this to work, price has to be 1e18. Make sure asset1 is worth more than asset2"
     // );
 
-    uint256 asset2PerAsset1 = price;
-    uint256 asset1PerAsset2 = 1e36 / asset2PerAsset1; //this is in 18 decimals
+    uint256 currencyPerCommodity = priceIn18Decimals;
+    uint256 commodityPerCurrency = 1e36 / priceIn18Decimals; //this is in 18 decimals
 
     //price is in 1e18 -> make price in requested decimals by dividing by 10^(18-decimals)
     vm.mockCall(
       address(oracle),
-      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset1, asset2, decimalsAsset1),
-      abi.encode(asset2PerAsset1 / (10 ** (18 - decimalsAsset1)))
+      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, currency, commodity, currencyDecimals),
+      abi.encode(currencyPerCommodity / (10 ** (18 - currencyDecimals)))
     );
 
     //price is in 1e18 -> make price in requested decimals by dividing by 10^(18-decimals)
     vm.mockCall(
       address(oracle),
-      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset2, asset1, decimalsAsset2),
-      abi.encode(asset1PerAsset2 / (10 ** (18 - decimalsAsset2)))
+      abi.encodeWithSelector(
+        IFujiOracle.getPriceOf.selector, commodity, currency, commodityDecimals
+      ),
+      abi.encode(commodityPerCurrency / (10 ** (18 - commodityDecimals)))
     );
   }
 
@@ -661,89 +663,72 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
   }
 
-  function test_partialLiquidationLess18Decimals(uint256 priceDrop) public {
-    //deploy vault with debt asset with less than 18 decimals
+  function test_partialLiquidationLess18Decimals() public {
+    //
+    /**
+     * @dev Deploy new vault with asset having less than 18 decimals
+     * NOTE:
+     * Need to use AaveV2 in this test because Foundry cannot persist
+     * storage in AaveV3 due to complex delegate calls in within.
+     * Give it a try.
+     */
     ILendingProvider aave = new AaveV2Polygon();
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = aave;
-    deployVault(
-      registry[POLYGON_DOMAIN].usdc, registry[POLYGON_DOMAIN].weth, "USDC", "WETH", providers
-    );
+
+    address collateralUSDC = registry[POLYGON_DOMAIN].usdc;
+    address debtWETH = registry[POLYGON_DOMAIN].weth;
+
+    deployVault(collateralUSDC, debtWETH, "USDC", "WETH", providers);
+
+    // Test requires re-assigning role for some reason, DO NOT REMOVE.
     _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
 
-    //defining useful variables
-    uint256 depositDiff = 1e18 / (10 ** IERC20Metadata(collateralAsset).decimals());
-    uint256 borrowDiff = 1e18 / (10 ** IERC20Metadata(debtAsset).decimals());
+    uint256 currentPrice =
+      oracle.getPriceOf(collateralUSDC, debtWETH, IERC20Metadata(collateralUSDC).decimals());
 
-    uint256 amount = 2500 * 10 ** IERC20Metadata(collateralAsset).decimals(); // 2500 USDC
-    uint256 borrowAmount = 1 * 10 ** IERC20Metadata(debtAsset).decimals(); // 1 WETH
-
-    // Make price in 1e18 decimals.
-    uint256 scaledUSDPerWETHPrice = 1e36 / oracle.getPriceOf(collateralAsset, debtAsset, 18);
-
-    vm.assume(
-      priceDrop
-        > _utils_getLiquidationThresholdValue(
-          scaledUSDPerWETHPrice,
-          amount,
-          borrowAmount,
-          IERC20Metadata(collateralAsset).decimals(),
-          IERC20Metadata(debtAsset).decimals()
-        )
-    );
-
-    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
-    uint256 priceDropThresholdToMaxLiq = price
-      - ((95e16 * (borrowAmount * borrowDiff) * 1e18) / (amount * depositDiff * LIQUIDATION_RATIO));
-    uint256 priceDropThresholdToDiscountLiq = price
-      - ((100e16 * (borrowAmount * borrowDiff) * 1e18) / (amount * depositDiff * LIQUIDATION_RATIO));
-
-    //priceDrop between thresholds
-    priceDrop =
-      bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
+    uint256 borrowAmount = 1 * 10 ** IERC20Metadata(debtWETH).decimals(); // 1 WETH
+    uint256 amount =
+      (borrowAmount * currentPrice * 135) / (100 * 10 ** IERC20Metadata(debtWETH).decimals());
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    // price drop, putting HF < 100, but above 95 and the close factor at 50%
-    uint256 newPrice = price - priceDrop;
+    // Modify price, putting ALICE HF < 100, but above 95, so that the liquidation factor is 50%
+    // 10% increase in price will put in range.
+    uint256 newPrice = (oracle.getPriceOf(collateralUSDC, debtWETH, 18) * 110) / 100;
 
     mock_getPriceOfWithDecimals(
-      debtAsset,
-      collateralAsset,
+      collateralUSDC,
+      debtWETH,
       newPrice,
-      IERC20Metadata(debtAsset).decimals(),
-      IERC20Metadata(collateralAsset).decimals()
+      IERC20Metadata(collateralUSDC).decimals(),
+      IERC20Metadata(debtWETH).decimals()
     );
 
-    // make sure hf is between 95 and 100
-    assertApproxEqAbs(vault.getHealthFactor(ALICE), 975e15, 25e16);
+    //  Ensure HF is between 95 and 100
+    assertApproxEqAbs(vault.getHealthFactor(ALICE), 975e15, 2.5e16);
 
     uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18) / 1e18
-      + flasher.computeFlashloanFee(debtAsset, borrowAmount * 0.5e18 / 1e18);
+      + flasher.computeFlashloanFee(debtWETH, borrowAmount * 0.5e18 / 1e18);
     //amount of collateral to swap to repay flashloan
-    uint256 amountInTotal =
-      _utils_getAmountInSwap(collateralAsset, debtAsset, amountToRepayFlashloan);
+    uint256 amountInTotal = _utils_getAmountInSwap(collateralUSDC, debtWETH, amountToRepayFlashloan);
 
-    //liquidate ALICE
+    uint256 gainedShares = estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE);
+
+    // Liquidate ALICE
     address[] memory users = new address[](1);
     users[0] = ALICE;
 
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, borrowAmount * 0.5e18 / 1e18, flasher, swapper);
+    liquidationManager.liquidate(users, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper);
     vm.stopPrank();
 
-    uint256 discountedPrice = (newPrice * 0.9e18) / 1e18;
+    // check balance of user
+    assertEq(vault.balanceOf(ALICE), amount - gainedShares);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), (borrowAmount * 0.5e18) / 1e18, 1);
 
-    uint256 amountGivenToLiquidator = _utils_getAmountGivenToLiquidator(
-      amount, borrowAmount, collateralAsset, debtAsset, price, discountedPrice
-    );
-
-    //check balance of user
-    assertApproxEqAbs(vault.balanceOf(ALICE), amount - amountGivenToLiquidator, 1);
-    assertApproxEqAbs(vault.balanceOfDebt(ALICE), borrowAmount / 2, 1);
-
-    //check balance of treasury
-    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), amountGivenToLiquidator - amountInTotal);
-    assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+    // //check balance of treasury
+    assertEq(IERC20(collateralUSDC).balanceOf(TREASURY), gainedShares - amountInTotal);
+    assertEq(IERC20(debtWETH).balanceOf(TREASURY), 0);
   }
 }
