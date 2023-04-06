@@ -64,7 +64,9 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       address(chief),
       "Fuji-V2 WETH-USDT Vault Shares",
       "fv2WETHUSDT",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
     vm.label(address(vault2), "Vault2");
   }

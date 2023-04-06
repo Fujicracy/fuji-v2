@@ -58,6 +58,9 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   address public collateralAsset;
   address public debtAsset;
 
+  uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
+  uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
+
   constructor() {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
@@ -199,7 +202,9 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       address(chief),
       "Fuji-V2 WETH-USDC Vault Shares",
       "fv2WETHUSDC",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
   }
 
@@ -234,7 +239,9 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       address(chief),
       nameVault,
       symbolVault,
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
   }
 
