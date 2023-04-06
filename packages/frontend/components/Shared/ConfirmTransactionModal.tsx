@@ -17,8 +17,8 @@ import { ReactNode } from 'react';
 
 import {
   AssetChange,
-  borrowLimitWithDebt,
   recommendedLTV,
+  remainingBorrowLimit,
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { BasePosition } from '../../helpers/positions';
@@ -60,7 +60,7 @@ export function ConfirmTransactionModal({
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: editedPosition ? editedPosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvMax: position.ltvMax,
     ltvThreshold: editedPosition
       ? editedPosition.ltvThreshold
       : position.ltvThreshold,
@@ -71,15 +71,19 @@ export function ConfirmTransactionModal({
       ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
       : 'n/a';
 
-  const editedBorrowLimit = borrowLimitWithDebt({
-    position: editedPosition,
-    maxLtv: editedPosition?.ltvMax,
-  });
+  const positionBorrowLimit = remainingBorrowLimit(
+    position.collateral,
+    position.debt,
+    position.ltvMax
+  );
 
-  const positionBorrowLimit = borrowLimitWithDebt({
-    position,
-    maxLtv: position.ltvMax / 100,
-  });
+  const editedBorrowLimit =
+    editedPosition &&
+    remainingBorrowLimit(
+      editedPosition.collateral,
+      editedPosition.debt,
+      position.ltvMax
+    );
 
   const getLtv = (value: number): string => {
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
