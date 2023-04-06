@@ -30,7 +30,7 @@ type MetricSummary = {
 const initialKeyMetrics: MetricSummary[] = [
   { name: 'Total Deposits', value: '-', valueSym: '$' },
   { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' }, // TODO: tooltip
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' },
   {
     name: 'Available to Borrow',
     value: '-',
@@ -189,7 +189,6 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
         )}
       </Typography>
 
-      {/* TODO: use helper to format balance */}
       <Stack
         display="flex"
         direction="row"

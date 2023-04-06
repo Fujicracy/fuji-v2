@@ -494,7 +494,6 @@ export const useBorrow = create<BorrowStore>()(
           );
           const [vault] = availableVaults;
           if (!vault) {
-            // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
             console.error('No available vault');
             set({ availableVaultsStatus: 'error' });
             return;
@@ -695,7 +694,7 @@ export const useBorrow = create<BorrowStore>()(
           const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value;
 
           if (!provider || !userAddress) {
-            throw 'Missing provider (check auth slice) or missing user address';
+            return;
           }
 
           const changeAllowance = (
@@ -766,12 +765,14 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ signature });
           } catch (e: any) {
-            if (e.code === 'ACTION_REJECTED') {
-              notify({
-                type: 'error',
-                message: 'Signature was canceled by the user.',
-              });
-            }
+            const message =
+              e.code === 'ACTION_REJECTED'
+                ? 'Signature was canceled by the user.'
+                : e.message;
+            notify({
+              type: 'error',
+              message,
+            });
           } finally {
             set({ isSigning: false });
           }
@@ -800,7 +801,7 @@ export const useBorrow = create<BorrowStore>()(
             signature
           );
           if (!result.success) {
-            console.error(result.error.message); // TODO: display error
+            notify({ type: 'error', message: result.error.message });
             return;
           }
           const txRequest = result.data;
@@ -822,7 +823,7 @@ export const useBorrow = create<BorrowStore>()(
             return tx;
           } catch (e) {
             notify({
-              type: 'warning',
+              type: 'error',
               message:
                 'The transaction was canceled by the user or cannot be submitted.',
             });

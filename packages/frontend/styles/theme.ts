@@ -325,7 +325,7 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: '0.75rem',
-          // TODO: refacto and reomve, flex should not be part of card theming
+          // TODO: refactor and remove, flex should not be part of card theming
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'flex-start',
