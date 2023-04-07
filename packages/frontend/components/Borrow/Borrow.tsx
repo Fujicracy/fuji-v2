@@ -8,7 +8,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Address } from '@x-fuji/sdk';
+import { Address, RoutingStep } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -21,6 +21,7 @@ import { showPosition } from '../../helpers/navigation';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
+import { NetworkIcon } from '../Shared/Icons';
 import LTVWarningModal from '../Shared/LTVWarningModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
 import WarningInfo from '../Shared/WarningInfo';
@@ -142,6 +143,61 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       : action();
   };
 
+  const warningContent = useMemo(() => {
+    const start = transactionMeta.steps.find(
+      (item) => item.step === RoutingStep.START
+    );
+    const end = transactionMeta.steps.find(
+      (item) => item.step === RoutingStep.END
+    );
+
+    return (
+      <>
+        {`Based on your selection, we\'ve noticed that you have an open ${start?.token?.symbol}/${end?.token?.symbol} position on`}
+        <NetworkIcon
+          network={chainName(end?.chainId)}
+          height={14}
+          width={14}
+          sx={{
+            display: 'inline',
+            margin: '0 .25rem',
+            height: '14px',
+          }}
+        />
+        {`${chainName(end?.chainId)}. You may proceed to manage it.`}
+        {availableRoutes.length > 1 && (
+          <>
+            <br />
+            {
+              "If you're trying to open a similar position on another chain, please."
+            }
+            <Typography
+              variant="xsmall"
+              lineHeight="160%"
+              textAlign="left"
+              onClick={() => {
+                !onMobile && address && setShowRoutingModal(true);
+              }}
+              style={
+                !onMobile
+                  ? { textDecoration: 'underline', cursor: 'pointer' }
+                  : {}
+              }
+            >
+              select a different route
+            </Typography>
+          </>
+        )}
+      </>
+    );
+  }, [availableRoutes, transactionMeta, onMobile, address]);
+
+  const shouldWarningBeDisplayed =
+    !isEditing &&
+    hasBalanceInVault &&
+    transactionMeta.steps &&
+    (collateral.input || debt.input);
+
   return (
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
@@ -220,15 +276,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
-          {!isEditing && hasBalanceInVault && transactionMeta.steps && (
+          {shouldWarningBeDisplayed && (
             <Box mb={2}>
-              <WarningInfo
-                text={`Note: We've noticed that you have an open position based on your selection. You may proceed to manage it. ${
-                  availableRoutes.length > 1
-                    ? "But if you're trying to open a similar position with a different route, please select it above."
-                    : ''
-                }`}
-              />
+              <WarningInfo text={warningContent} />
             </Box>
           )}
 
