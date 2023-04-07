@@ -131,7 +131,12 @@ export function ConfirmTransactionModal({
           <></>
         )}
 
-        {steps && steps.length > 0 && <RouteBox steps={steps} />}
+        {steps && steps.length > 0 && (
+          <RouteBox
+            steps={steps}
+            isCrossChainTransaction={collateral.chainId !== debt.chainId}
+          />
+        )}
 
         <InfoRow
           title="Estimated Cost"
@@ -373,7 +378,13 @@ function InfoRow({ title, value }: { title: string; value: ReactNode }) {
   );
 }
 
-function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
+function RouteBox({
+  steps,
+  isCrossChainTransaction,
+}: {
+  steps: RoutingStepDetails[];
+  isCrossChainTransaction: boolean;
+}) {
   const { palette } = useTheme();
 
   const stepsToShow = steps.filter(
@@ -464,7 +475,9 @@ function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
       >
         <Typography variant="small">Route</Typography>
 
-        <Typography variant="small">via Connext Network</Typography>
+        {isCrossChainTransaction && (
+          <Typography variant="small">via Connext Network</Typography>
+        )}
       </Stack>
 
       <Divider sx={{ m: '0.75rem 0', height: '1px', width: '100%' }} />
