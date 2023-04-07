@@ -88,10 +88,12 @@ export function ConfirmTransactionModal({
       open={open}
       onClose={onClose}
       sx={{
-        '-ms-overflow-style': 'none',
-        'scrollbar-width': 'none',
-        '&::-webkit-scrollbar': {
-          display: 'none',
+        '& .MuiPaper-root': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
         },
         '& .MuiDialog-paper': {
           maxWidth: '35rem',
