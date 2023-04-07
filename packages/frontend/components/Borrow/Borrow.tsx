@@ -193,10 +193,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [availableRoutes, transactionMeta, onMobile, address]);
 
   const shouldWarningBeDisplayed =
-    !isEditing &&
-    hasBalanceInVault &&
-    transactionMeta.steps &&
-    (collateral.input || debt.input);
+    !isEditing && hasBalanceInVault && transactionMeta.steps;
 
   return (
     <>
