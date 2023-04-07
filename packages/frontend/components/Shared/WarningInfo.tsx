@@ -1,9 +1,9 @@
 import { Box, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import Image from 'next/image';
-import React from 'react';
+import React, { ReactNode } from 'react';
 
-function WarningInfo({ text }: { text: string }) {
+function WarningInfo({ text }: { text: string | ReactNode }) {
   const { palette } = useTheme();
 
   return (
@@ -12,7 +12,7 @@ function WarningInfo({ text }: { text: string }) {
       sx={{ flex: 1, backgroundColor: alpha(palette.warning.main, 0.1) }}
       borderRadius={2}
     >
-      <Stack flexDirection="row" alignItems="center" gap={2}>
+      <Stack flexDirection="row" alignItems="center" gap={1.5}>
         <Image
           src="/assets/images/shared/warning.svg"
           width={15}
