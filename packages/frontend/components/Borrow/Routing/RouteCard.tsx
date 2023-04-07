@@ -17,11 +17,12 @@ import {
 
 type RouteCardProps = {
   route: RouteMeta;
+  isEditing: boolean;
   selected: boolean;
   onChange: () => void;
 };
 
-function RouteCard({ route, selected, onChange }: RouteCardProps) {
+function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   const { palette } = useTheme();
   console.log(route.steps);
   const bridgeStep = route.steps.find((s) => s.step === RoutingStep.X_TRANSFER);
@@ -31,6 +32,10 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
   const steps = route.steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   );
+
+  const isMock =
+    steps.filter((s) => s.amount && s.amount.gt(0) && s.step !== 'bridge')
+      .length < (isEditing ? 1 : 2);
 
   function iconForStep(step: RoutingStepDetails) {
     if (step.step === RoutingStep.X_TRANSFER) {
@@ -50,9 +55,11 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
       case RoutingStep.PAYBACK:
       case RoutingStep.WITHDRAW:
         return camelize(
-          `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
-          )} ${token?.symbol}`
+          `${step.toString()} ${
+            isMock
+              ? ''
+              : toNotSoFixed(formatUnits(amount ?? 0, token?.decimals || 18))
+          } ${token?.symbol}`
         );
       case RoutingStep.X_TRANSFER:
         return camelize(
@@ -113,7 +120,7 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
 
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
-          {bridgeStep && (
+          {bridgeStep && !isMock && (
             <>
               <Chip
                 variant="routing"
@@ -136,7 +143,7 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
               </Tooltip>
             </>
           )}
-          {bridgeStep && route.estimateSlippage !== undefined && (
+          {bridgeStep && !isMock && route.estimateSlippage !== undefined && (
             <>
               <Tooltip
                 arrow
@@ -185,11 +192,13 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
           />
           <Box>
             <Typography variant="body">
-              {roundStepAmount(startStep)} {startStep?.token?.symbol}
+              {`${isMock ? '' : roundStepAmount(startStep)} ${
+                startStep?.token?.symbol
+              }`}
             </Typography>
             <br />
             <Typography variant="xsmall">
-              on {chainName(startStep?.chainId)}
+              from {chainName(startStep?.chainId)}
             </Typography>
           </Box>
         </Stack>
@@ -197,7 +206,9 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
         <Stack direction="row">
           <Box textAlign="right" mr="0.75rem">
             <Typography variant="body">
-              {roundStepAmount(endStep)} {endStep?.token?.symbol}
+              {`Get ${isMock ? '' : roundStepAmount(endStep)} ${
+                endStep?.token?.symbol
+              }`}
             </Typography>
             <br />
             <Typography variant="xsmall">
