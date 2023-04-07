@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { ReactNode } from 'react';
 
 import {
+  ActionType,
   AssetChange,
   borrowLimitWithDebt,
   recommendedLTV,
@@ -41,6 +42,8 @@ type ConfirmTransactionModalProps = {
     steps: RoutingStepDetails[];
   };
   open: boolean;
+  isEditing: boolean;
+  actionType: ActionType;
   onClose: () => void;
   action: () => void;
 };
@@ -50,6 +53,8 @@ export function ConfirmTransactionModal({
   debt,
   basePosition,
   transactionMeta,
+  isEditing,
+  actionType,
   open,
   onClose,
   action,
@@ -118,6 +123,8 @@ export function ConfirmTransactionModal({
         {collateral.input && collateral.input !== '0' ? (
           <AssetBox
             type="collateral"
+            isEditing={isEditing}
+            actionType={actionType}
             token={collateral.token}
             value={collateral.input}
           />
@@ -126,7 +133,13 @@ export function ConfirmTransactionModal({
         )}
 
         {debt.input && debt.input !== '0' ? (
-          <AssetBox type="debt" token={debt.token} value={debt.input} />
+          <AssetBox
+            type="debt"
+            isEditing={isEditing}
+            actionType={actionType}
+            token={debt.token}
+            value={debt.input}
+          />
         ) : (
           <></>
         )}
@@ -291,12 +304,28 @@ function AssetBox({
   type,
   token,
   value,
+  isEditing,
+  actionType,
 }: {
   type: 'debt' | 'collateral';
   token: Token;
   value: string;
+  isEditing: boolean;
+  actionType: ActionType;
 }) {
   const { palette } = useTheme();
+  const labelMap =
+    isEditing && actionType === ActionType.REMOVE
+      ? { debt: 'Payback', collateral: 'Withdraw' }
+      : { debt: 'Borrow', collateral: 'Deposit' };
+  console.log(
+    '%cConfirmTransactionModal.tsx line:316 object',
+    'color: #007acc;',
+    isEditing,
+    actionType
+  );
+
+  const label = labelMap[type];
 
   return (
     <Card
@@ -313,9 +342,7 @@ function AssetBox({
         alignItems="center"
         justifyContent="space-between"
       >
-        <Typography variant="small">
-          {type === 'debt' ? 'Borrow' : 'Deposit Collateral'}
-        </Typography>
+        <Typography variant="small">{label}</Typography>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
           <TokenIcon token={token} height={16} width={16} />

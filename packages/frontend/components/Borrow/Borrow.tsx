@@ -276,6 +276,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         debt={debt}
         basePosition={basePosition}
         transactionMeta={transactionMeta}
+        isEditing={isEditing}
+        actionType={actionType}
         action={() => {
           setIsConfirmationModalShown(false);
           confirmationModalAction();
