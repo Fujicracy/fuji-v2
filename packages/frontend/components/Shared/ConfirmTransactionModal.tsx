@@ -130,29 +130,31 @@ export function ConfirmTransactionModal({
           Confirm Transaction
         </Typography>
 
-        {collateral.input && collateral.input !== '0' ? (
-          <AssetBox
-            type="collateral"
-            isEditing={isEditing}
-            actionType={actionType}
-            token={collateral.token}
-            value={collateral.input}
-          />
-        ) : (
-          <></>
-        )}
+        <Stack>
+          {collateral.input && collateral.input !== '0' ? (
+            <AssetBox
+              type="collateral"
+              isEditing={isEditing}
+              actionType={actionType}
+              token={collateral.token}
+              value={collateral.input}
+            />
+          ) : (
+            <></>
+          )}
 
-        {debt.input && debt.input !== '0' ? (
-          <AssetBox
-            type="debt"
-            isEditing={isEditing}
-            actionType={actionType}
-            token={debt.token}
-            value={debt.input}
-          />
-        ) : (
-          <></>
-        )}
+          {debt.input && debt.input !== '0' ? (
+            <AssetBox
+              type="debt"
+              isEditing={isEditing}
+              actionType={actionType}
+              token={debt.token}
+              value={debt.input}
+            />
+          ) : (
+            <></>
+          )}
+        </Stack>
 
         {steps && steps.length > 0 && (
           <RouteBox
@@ -336,8 +338,12 @@ function AssetBox({
       variant="outlined"
       sx={{
         borderColor: palette.secondary.light,
-        m: '0.5rem 0 1rem 0',
+        m: '0.5rem 0',
         width: '100%',
+        order:
+          isEditing && actionType === ActionType.REMOVE && type === 'debt'
+            ? 1
+            : 2,
       }}
     >
       <Stack
@@ -475,7 +481,7 @@ function RouteBox({
       variant="outlined"
       sx={{
         borderColor: palette.secondary.light,
-        m: '1rem 0',
+        m: '0.5rem 0 1rem 0',
         width: '100%',
       }}
     >
