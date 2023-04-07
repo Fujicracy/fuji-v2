@@ -333,6 +333,19 @@ function AssetBox({
 
   const label = labelMap[type];
 
+  const descriptionMap =
+    isEditing && actionType === ActionType.REMOVE
+      ? {
+          debt: 'The network where the debt will be paid back',
+          collateral: 'The network from where the collateral will be withdrawn',
+        }
+      : {
+          debt: 'The network where the loan will be taken out',
+          collateral: 'The network where the collateral will be deposited on',
+        };
+
+  const description = descriptionMap[type];
+
   return (
     <Card
       variant="outlined"
@@ -363,6 +376,34 @@ function AssetBox({
           </Typography>
         </Stack>
       </Stack>
+
+      <Divider sx={{ m: '0.75rem 0', height: '1px', width: '100%' }} />
+
+      <Stack
+        width="100%"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Typography variant="small">Network</Typography>
+
+        <Stack flexDirection="row" alignItems="center" gap={0.75}>
+          <NetworkIcon network={token.chainId} height={16} width={16} />
+          <Typography variant="small">{chainName(token.chainId)}</Typography>
+        </Stack>
+      </Stack>
+
+      <Typography
+        textAlign="start"
+        mt=".5rem"
+        variant="xsmall"
+        fontSize="0.75rem"
+        lineHeight="1.2rem"
+        color={palette.info.main}
+        sx={{ width: '100%' }}
+      >
+        {description}
+      </Typography>
     </Card>
   );
 }
