@@ -93,7 +93,7 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
       step.amount ?? BigNumber.from('0'),
       step.token?.decimals ?? 18
     );
-    return Number(formatted).toFixed(3);
+    return toNotSoFixed(formatted);
   }
 
   return (
