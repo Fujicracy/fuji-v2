@@ -13,7 +13,7 @@ function Notification() {
   /** Describes behavior closes notification by onClick Mouse Event */
   const IS_CLOSED_ON_CLICK = false;
   /** Max number of notifications */
-  const LIMIT = 3;
+  const LIMIT = 5;
 
   return (
     <ToastContainer
