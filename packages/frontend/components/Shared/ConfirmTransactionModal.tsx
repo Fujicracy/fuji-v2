@@ -145,12 +145,7 @@ export function ConfirmTransactionModal({
           )}
         </Stack>
 
-        {steps && steps.length > 0 && (
-          <RouteBox
-            steps={steps}
-            isCrossChainTransaction={collateral.chainId !== debt.chainId}
-          />
-        )}
+        {steps && steps.length > 0 && <RouteBox steps={steps} />}
 
         <InfoRow
           title="Estimated Cost"

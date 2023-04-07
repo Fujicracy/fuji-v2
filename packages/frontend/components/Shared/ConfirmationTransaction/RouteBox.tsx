@@ -8,14 +8,12 @@ import { chainName } from '../../../helpers/chains';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
 import { NetworkIcon } from '../Icons';
 
-function RouteBox({
-  steps,
-  isCrossChainTransaction,
-}: {
-  steps: RoutingStepDetails[];
-  isCrossChainTransaction: boolean;
-}) {
+function RouteBox({ steps }: { steps: RoutingStepDetails[] }) {
   const { palette } = useTheme();
+
+  const start = steps.find((item) => item.step === RoutingStep.START);
+  const end = steps.find((item) => item.step === RoutingStep.END);
+  const isCrossChain = start?.chainId !== end?.chainId;
 
   const stepsToShow = steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
@@ -108,7 +106,7 @@ function RouteBox({
       >
         <Typography variant="small">Route</Typography>
 
-        {isCrossChainTransaction && (
+        {isCrossChain && (
           <Typography variant="small">via Connext Network</Typography>
         )}
       </Stack>
