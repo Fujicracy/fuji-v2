@@ -743,19 +743,19 @@ export const useBorrow = create<BorrowStore>()(
           const actions = get().actions;
           const vault = get().activeVault;
           const provider = useAuth.getState().provider;
-          if (!actions || !vault || !provider) {
-            throw 'Unexpected undefined value';
-          }
-
-          const permitAction = Sdk.findPermitAction(actions);
-          if (!permitAction) {
-            console.error('No permit action found');
-            return set({ isSigning: false });
-          }
-
-          set({ isSigning: true });
 
           try {
+            if (!actions || !vault || !provider) {
+              throw 'Unexpected undefined value';
+            }
+
+            const permitAction = Sdk.findPermitAction(actions);
+            if (!permitAction) {
+              throw 'No permit action found';
+            }
+
+            set({ isSigning: true });
+
             const { domain, types, value } = await vault.signPermitFor(
               permitAction
             );
@@ -764,11 +764,13 @@ export const useBorrow = create<BorrowStore>()(
             const signature = ethers.utils.splitSignature(s);
 
             set({ signature });
-          } catch (e: any) {
+          } catch (e) {
             const message =
-              e.code === 'ACTION_REJECTED'
-                ? 'Signature was canceled by the user.'
-                : e.message;
+              e instanceof Error
+                ? e.message === 'user rejected signing' // Thrown by ethers.js
+                  ? 'Signature was canceled by the user.'
+                  : e.message
+                : String(e);
             notify({
               type: 'error',
               message,

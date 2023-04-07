@@ -44,7 +44,8 @@ export const usePositions = create<PositionsStore>()(
           : { success: true, error: undefined, data: [] };
 
         if (!result.success) {
-          console.error(result.error?.message); // TODO: Show? Happens a lot in background.
+          // TODO: Show? Happens a lot in background, we need a good strategy
+          console.error(result.error?.message);
         }
         const positions = result.success
           ? (result.data as Position[]).filter(

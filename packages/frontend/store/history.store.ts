@@ -218,10 +218,6 @@ export const useHistory = create<HistoryStore>()(
         },
 
         openModal(hash) {
-          const entry = get().byHash[hash];
-          if (!entry) {
-            console.error('No entry in history for hash', hash);
-          }
           set({ inModal: hash });
         },
 
