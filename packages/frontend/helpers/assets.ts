@@ -1,7 +1,7 @@
 import { ChainId, Token } from '@x-fuji/sdk';
 
 import { LTV_RECOMMENDED_DECREASE } from '../constants';
-import { Position } from '../store/models/Position';
+import { AssetMeta } from '../store/models/Position';
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -72,35 +72,20 @@ export const needsAllowance = (
   );
 };
 
-export const borrowLimit = (
-  mode: Mode,
-  balance: number,
-  input: number,
+export const maxBorrowLimit = (
+  collateral: number,
   price: number,
   maxLtv: number
 ): number => {
-  const amount =
-    mode === Mode.WITHDRAW ||
-    mode === Mode.PAYBACK ||
-    mode === Mode.PAYBACK_AND_WITHDRAW
-      ? balance - input
-      : balance + input;
-  return (amount * price * maxLtv) / 100;
+  const value = (collateral * price * maxLtv) / 100;
+  return value > 0 ? value : 0;
 };
 
-export function borrowLimitWithDebt({
-  position,
-  maxLtv,
-}: {
-  position?: Position;
-  maxLtv?: number;
-}): number {
-  if (!position) return 0;
-
-  return (
-    (position?.collateral.amount || 0) *
-      position.collateral.usdPrice *
-      (maxLtv || 1) -
-    (position?.debt.amount || 0) * position?.debt.usdPrice
-  );
-}
+export const remainingBorrowLimit = (
+  collateral: AssetMeta,
+  debt: AssetMeta,
+  maxLtv: number
+): number => {
+  const max = maxBorrowLimit(collateral.amount, collateral.usdPrice, maxLtv);
+  return max - debt.amount * debt.usdPrice;
+};

@@ -1,10 +1,109 @@
 import { Palette } from '@mui/material';
+import {
+  Address,
+  FujiResultError,
+  FujiResultPromise,
+  FujiResultSuccess,
+} from '@x-fuji/sdk';
+import { BigNumber } from 'ethers';
 
 import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
-import { AssetChange, Mode } from './assets';
-import { formatNumber } from './values';
+import { AssetChange, AssetType, Mode } from './assets';
+import { getAllBorrowingVaultFinancials } from './borrow';
+import { bigToFloat, formatNumber } from './values';
+
+export const getTotalSum = (
+  positions: Position[],
+  param: AssetType
+): number => {
+  return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
+};
+
+export const getPositionsWithBalance = async (
+  addr: string
+): FujiResultPromise<Position[]> => {
+  const account = Address.from(addr);
+
+  const result = await getAllBorrowingVaultFinancials(account);
+
+  if (result.errors.length > 0) {
+    // Should we keep going with the returnd vaults? Don't think so
+    const firstError = result.errors[0];
+    return new FujiResultError(
+      firstError.message,
+      firstError.code,
+      firstError.info
+    );
+  }
+
+  const allVaults = result.data;
+  const vaultsWithBalance = allVaults.filter((v) =>
+    v.depositBalance.gt(BigNumber.from('0'))
+  );
+
+  const vaults = vaultsWithBalance.map((v) => {
+    const p = {} as Position;
+    p.vault = v.vault;
+    p.collateral = {
+      amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
+      token: v.vault.collateral,
+      usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
+      get baseAPR() {
+        return v.activeProvider.depositAprBase;
+      },
+    };
+    p.debt = {
+      amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
+      token: v.vault.debt,
+      usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
+      get baseAPR() {
+        return v.activeProvider.borrowAprBase;
+      },
+    };
+    p.ltv =
+      (p.debt.amount * p.debt.usdPrice) /
+      (p.collateral.amount * p.collateral.usdPrice);
+    p.ltvMax = bigToFloat(v.vault.maxLtv, 18);
+    p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18);
+    p.liquidationPrice =
+      p.debt.usdPrice === 0
+        ? 0
+        : (p.debt.amount * p.debt.usdPrice) /
+          (p.ltvThreshold * p.collateral.amount);
+    p.liquidationDiff =
+      p.liquidationPrice === 0
+        ? 0
+        : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    return p;
+  });
+
+  return new FujiResultSuccess(vaults);
+};
+
+export const getAccrual = (
+  usdBalance: number,
+  baseAPR: number | undefined,
+  param: 'collateral' | 'debt'
+): number => {
+  const factor = param === 'debt' ? -1 : 1;
+  // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
+  const aprDecimal = baseAPR ? baseAPR / 100 : 0;
+  // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
+  const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1;
+  return factor * usdBalance * apyDecimal;
+};
+
+export const getCurrentAvailableBorrowingPower = (
+  positions: Position[]
+): number => {
+  return positions.reduce((b, pos) => {
+    const collateralUsdValue = pos.collateral.amount * pos.collateral.usdPrice;
+    const debtUsdValue = pos.debt.amount * pos.debt.usdPrice;
+    return collateralUsdValue * pos.ltvMax - debtUsdValue + b;
+  }, 0);
+};
 
 export type PositionRow = {
   chainId: number | undefined;

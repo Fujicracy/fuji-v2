@@ -3,6 +3,8 @@ export * from './ChainConfig';
 export * from './ChainConnectionDetails';
 export * from './ChainTokenList';
 export * from './ChainVaultList';
+export * from './ConnextTxDetails';
+export * from './FujiResult';
 export * from './LendingProvider';
 export * from './MetaRoutingResult';
 export * from './NativeMap';

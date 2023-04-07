@@ -2,7 +2,7 @@ import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
-import { borrowLimit, recommendedLTV } from '../../../helpers/assets';
+import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import Container from './Container';
@@ -35,13 +35,18 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault);
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : [];
-  const mode = useBorrow((state) => state.mode);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
 
   const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
+
+  const borrowLimit = maxBorrowLimit(
+    editedPosition ? editedPosition.collateral.amount : Number(collateralInput),
+    collateral.usdPrice,
+    ltvMax
+  );
 
   return (
     <Container isMobile={isMobile}>
@@ -61,17 +66,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
       />
 
       <LTVProgressBar
-        borrowLimit={borrowLimit(
-          mode,
-          editedPosition
-            ? editedPosition.collateral.amount
-            : collateralInput
-            ? parseFloat(collateralInput)
-            : 0,
-          parseFloat(collateralInput),
-          collateral.usdPrice,
-          dynamicLtv
-        )}
+        borrowLimit={borrowLimit}
         value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
         maxLTV={ltvMax}
         recommendedLTV={recommendedLtv}
