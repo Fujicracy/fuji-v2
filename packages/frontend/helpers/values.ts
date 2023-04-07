@@ -63,9 +63,12 @@ export const formatNumber = (
 };
 
 export const toNotSoFixed = (v: number | string | undefined): string => {
+  // Need to improve this function's performance
   if (!v) return '0';
-  const value: number = typeof v === 'number' ? v : Number(v);
+  const value: number = typeof v === 'number' ? v : parseFloat(v);
+  if (isNaN(value)) return '0';
   const leadingZeroes = -Math.floor(Math.log(value) / Math.log(10) + 1); // Account leading zeroes
+  if (!isFinite(leadingZeroes)) return '0';
   const to = leadingZeroes > 0 ? 1 + leadingZeroes : 2;
   return Number(value.toFixed(to)).toString(); // Remove trailing zeroes
 };
