@@ -47,6 +47,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_noBalanceChange();
   error BaseRouter__bundleInternal_insufficientETH();
   error BaseRouter__bundleInternal_notBeneficiary();
+  error BaseRouter__bundleInternal_notAllowedSwapper();
+  error BaseRouter__bundleInternal_notAllowedFlasher();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
@@ -245,6 +247,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
         );
 
+        if (!chief.allowedSwapper(address(swapper))) {
+          revert BaseRouter__bundleInternal_notAllowedSwapper();
+        }
+
         tokensToCheck = _addTokenToList(assetIn, tokensToCheck);
         tokensToCheck = _addTokenToList(assetOut, tokensToCheck);
         _safeApprove(assetIn, address(swapper), amountIn);
@@ -269,6 +275,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           bytes memory requestorCalldata
         ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
 
+        if (!chief.allowedFlasher(address(flasher))) {
+          revert BaseRouter__bundleInternal_notAllowedFlasher();
+        }
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
