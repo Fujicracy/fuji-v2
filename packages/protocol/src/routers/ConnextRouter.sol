@@ -247,7 +247,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
-    _safePullTokenFrom(asset, sender, receiver, amount);
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
@@ -288,7 +288,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     address receiver = _getBeneficiaryFromCalldata(callData);
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
-    _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
+    _safePullTokenFrom(asset, msg.sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
@@ -311,7 +311,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
-      );
+    );
 
     return beneficiary_;
   }

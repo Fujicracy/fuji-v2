@@ -151,7 +151,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
         tokensToCheck = _addTokenToList(token, tokensToCheck);
-        _safePullTokenFrom(token, sender, receiver, amount);
+        _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.deposit(amount, receiver);
@@ -181,7 +181,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         address token = vault.debtAsset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
         tokensToCheck = _addTokenToList(token, tokensToCheck);
-        _safePullTokenFrom(token, sender, receiver, amount);
+        _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.payback(amount, receiver);
@@ -331,18 +331,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    *
    * @param token ERC-20 token address
    * @param sender address to pull tokens from
-   * @param owner address on the behalf of which we act
    * @param amount amount of tokens to be pulled
    */
-  function _safePullTokenFrom(
-    address token,
-    address sender,
-    address owner,
-    uint256 amount
-  )
-    internal
-  {
-    if (sender != address(this) && (sender == owner || sender == msg.sender)) {
+  function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
+    if (sender != address(this) && sender == msg.sender) {
       SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
     }
   }
