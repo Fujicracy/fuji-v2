@@ -103,21 +103,8 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     return toNotSoFixed(formatted);
   }
 
-  return (
-    <Paper
-      sx={{
-        border: `2px solid ${
-          selected ? palette.primary.main : palette.secondary.light
-        }`,
-        p: `${route.recommended ? '0' : '1.5rem'} 1.5rem 0 1.5rem`,
-        marginTop: '1rem',
-        cursor: 'pointer',
-        background: palette.secondary.dark,
-      }}
-      onClick={onChange}
-    >
-      {route.recommended && <Chip variant="recommended" label="Recommended" />}
-
+  function renderHeader() {
+    return (
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
           {bridgeStep && !isMock && (
@@ -183,7 +170,44 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
           label={selected ? 'Selected' : 'Click To Select'}
         />
       </Stack>
+    );
+  }
 
+  function renderStep(
+    step: RoutingStepDetails,
+    index: number,
+    maxWidth: string
+  ) {
+    return (
+      <Stack key={index} direction="column" alignItems="center">
+        {iconForStep(step)}
+        <Typography
+          m="0.375rem"
+          align="center"
+          variant="xsmall"
+          sx={{ maxWidth }}
+        >
+          {textForStep(step)}
+        </Typography>
+      </Stack>
+    );
+  }
+
+  return (
+    <Paper
+      sx={{
+        border: `2px solid ${
+          selected ? palette.primary.main : palette.secondary.light
+        }`,
+        p: `${route.recommended ? '0' : '1.5rem'} 1.5rem 0 1.5rem`,
+        marginTop: '1rem',
+        cursor: 'pointer',
+        background: palette.secondary.dark,
+      }}
+      onClick={onChange}
+    >
+      {route.recommended && <Chip variant="recommended" label="Recommended" />}
+      {renderHeader()}
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
           <TokenWithNetworkIcon
@@ -244,33 +268,11 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
             >
               {bridgeStep ? (
                 <Stack direction="column" alignItems="center">
-                  <>
-                    {iconForStep(bridgeStep)}
-                    <Typography
-                      m="0.375rem"
-                      variant="xsmall"
-                      align="center"
-                      sx={{ maxWidth: '9rem' }}
-                    >
-                      {textForStep(bridgeStep)}
-                    </Typography>
-                  </>
+                  {renderStep(bridgeStep, 0, '9rem')}
                 </Stack>
               ) : (
                 <Stack direction="row" justifyContent="space-around">
-                  {steps.map((step, i) => (
-                    <Stack key={i} direction="column">
-                      {iconForStep(step)}
-                      <Typography
-                        m="0.375rem"
-                        align="center"
-                        variant="xsmall"
-                        sx={{ maxWidth: '6.5rem' }}
-                      >
-                        {textForStep(step)}
-                      </Typography>
-                    </Stack>
-                  ))}
+                  {steps.map((step, i) => renderStep(step, i, '6.5rem'))}
                 </Stack>
               )}
             </Box>
@@ -294,19 +296,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
             }}
           >
             <Stack direction="row" justifyContent="space-around">
-              {steps.map((step, i) => (
-                <Stack key={i} direction="column">
-                  {iconForStep(step)}
-                  <Typography
-                    m="0.375rem"
-                    align="center"
-                    variant="xsmall"
-                    sx={{ maxWidth: '6.5rem' }}
-                  >
-                    {textForStep(step)}
-                  </Typography>
-                </Stack>
-              ))}
+              {steps.map((step, i) => renderStep(step, i, '6.5rem'))}
             </Stack>
           </Box>
         </Box>
