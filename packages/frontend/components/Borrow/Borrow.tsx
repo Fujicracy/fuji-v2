@@ -5,6 +5,7 @@ import {
   CardContent,
   Stack,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { Address, RoutingStep } from '@x-fuji/sdk';
@@ -38,7 +39,7 @@ type BorrowProps = {
 function Borrow({ isEditing, basePosition }: BorrowProps) {
   const router = useRouter();
   const theme = useTheme();
-  const onMobile = false; // useMediaQuery(theme.breakpoints.down('md'));
+  const onMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const address = useAuth((state) => state.address);
   const walletChain = useAuth((state) => state.chain);
