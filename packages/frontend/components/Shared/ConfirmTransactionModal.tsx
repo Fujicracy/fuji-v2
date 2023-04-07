@@ -411,7 +411,10 @@ function RouteBox({
 
   function description(step: RoutingStepDetails) {
     if (step.lendingProvider) {
-      const preposition = step.step === RoutingStep.DEPOSIT ? 'to' : 'from';
+      const withToPrepositions = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK];
+      const preposition = withToPrepositions.includes(step.step)
+        ? 'to'
+        : 'from';
       return (
         <Typography
           align="center"
