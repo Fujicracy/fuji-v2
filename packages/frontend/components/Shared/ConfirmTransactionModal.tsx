@@ -1,7 +1,7 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
 
 import {
@@ -83,6 +83,10 @@ export function ConfirmTransactionModal({
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
+  const start = steps.find((item) => item.step === RoutingStep.START);
+  const end = steps.find((item) => item.step === RoutingStep.END);
+  const isCrossChain = start?.chainId !== end?.chainId;
+
   return (
     <Dialog
       open={open}
@@ -147,7 +151,7 @@ export function ConfirmTransactionModal({
           )}
         </Stack>
 
-        {steps && steps.length > 0 && <RouteBox steps={steps} />}
+        {steps && steps.length > 0 && <RouteBox steps={steps} isCrossChain />}
 
         <InfoRow
           title="Estimated Cost"
@@ -163,7 +167,7 @@ export function ConfirmTransactionModal({
           }
         />
 
-        {collateral.chainId !== debt.chainId && (
+        {isCrossChain && (
           <InfoRow
             title="Est. slippage"
             value={
