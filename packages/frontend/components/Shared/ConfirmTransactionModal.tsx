@@ -95,8 +95,14 @@ export function ConfirmTransactionModal({
       open={open}
       onClose={onClose}
       sx={{
+        '-ms-overflow-style': 'none',
+        'scrollbar-width': 'none',
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
         '& .MuiDialog-paper': {
           maxWidth: '35rem',
+          width: { xs: '80%', sm: '35rem' },
         },
       }}
     >
@@ -318,12 +324,6 @@ function AssetBox({
     isEditing && actionType === ActionType.REMOVE
       ? { debt: 'Payback', collateral: 'Withdraw' }
       : { debt: 'Borrow', collateral: 'Deposit' };
-  console.log(
-    '%cConfirmTransactionModal.tsx line:316 object',
-    'color: #007acc;',
-    isEditing,
-    actionType
-  );
 
   const label = labelMap[type];
 
@@ -367,8 +367,17 @@ function InfoRow({ title, value }: { title: string; value: ReactNode }) {
       alignItems="center"
       justifyContent="space-between"
       mt="0.6rem"
+      flexWrap="wrap"
     >
-      <Typography color={palette.info.main} variant="small">
+      <Typography
+        sx={{
+          ['@media screen and (max-width: 370px)']: {
+            fontSize: '0.7rem',
+          },
+        }}
+        color={palette.info.main}
+        variant="small"
+      >
         {title}
       </Typography>
 
