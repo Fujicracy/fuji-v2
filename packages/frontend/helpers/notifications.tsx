@@ -6,9 +6,11 @@ import { toast, ToastOptions } from 'react-toastify';
 
 import { transactionUrl } from './chains';
 
+type NotificationType = 'error' | 'info' | 'success' | 'warning';
+
 type NotifyArgs = {
   message: string;
-  type: 'error' | 'info' | 'success' | 'warning';
+  type: NotificationType;
   link?: string;
   isTransaction?: boolean;
 };
@@ -60,7 +62,7 @@ export function CustomToastWithLink({
   type,
 }: {
   link: string;
-  type: 'error' | 'info' | 'success' | 'warning';
+  type: NotificationType;
   message?: string;
 }) {
   return (
