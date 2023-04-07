@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Box,
   Button,
@@ -7,6 +8,7 @@ import {
   Divider,
   Paper,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -385,7 +387,26 @@ function AssetBox({
         alignItems="center"
         justifyContent="space-between"
       >
-        <Typography variant="small">Network</Typography>
+        <Stack flexDirection="row" alignItems="center">
+          <Typography variant="small">Network</Typography>
+
+          {!isEditing && (
+            <Tooltip
+              title="If you wish to open a position on a different chain, please select an alternative route."
+              placement="top"
+            >
+              <InfoOutlinedIcon
+                sx={{
+                  ml: '0.313rem',
+                  fontSize: '0.875rem',
+                  display: { xs: 'none', sm: 'inline' },
+                  color: '#919191',
+                  cursor: 'pointer',
+                }}
+              />
+            </Tooltip>
+          )}
+        </Stack>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
           <NetworkIcon network={token.chainId} height={16} width={16} />
