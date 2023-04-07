@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
+import { ERROR_MESSAGES } from '../constants';
 import { updateNativeBalance } from '../helpers/balances';
 import { hexToChainId } from '../helpers/chains';
 import {
@@ -187,8 +188,7 @@ export const useHistory = create<HistoryStore>()(
           } catch (e) {
             notify({
               type: 'error',
-              message:
-                'The transaction cannot be processed, please try again later.',
+              message: ERROR_MESSAGES.TX_PROCESS,
             });
 
             get().update(hash, { status: HistoryEntryStatus.ERROR });

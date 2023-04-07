@@ -23,7 +23,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_THRESHOLD } from '../constants';
+import {
+  DEFAULT_LTV_MAX,
+  DEFAULT_LTV_THRESHOLD,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -724,7 +729,7 @@ export const useBorrow = create<BorrowStore>()(
 
             changeAllowance('ready', amount);
             notify({
-              message: 'Allowance is successful',
+              message: SUCCESS_MESSAGES.ALLOWANCE,
               type: 'success',
               isTransaction: true,
               link:
@@ -735,7 +740,7 @@ export const useBorrow = create<BorrowStore>()(
             });
           } catch (e) {
             changeAllowance('error');
-            notify({ message: 'Allowance was not successful', type: 'error' });
+            notify({ message: ERROR_MESSAGES.ALLOWANCE, type: 'error' });
           }
         },
 
@@ -768,7 +773,7 @@ export const useBorrow = create<BorrowStore>()(
             const message =
               e instanceof Error
                 ? e.message === 'user rejected signing' // Thrown by ethers.js
-                  ? 'Signature was canceled by the user.'
+                  ? ERROR_MESSAGES.CANCEL_SIGNATURE
                   : e.message
                 : String(e);
             notify({
@@ -819,15 +824,14 @@ export const useBorrow = create<BorrowStore>()(
             if (tx) {
               notify({
                 type: 'success',
-                message: 'The transaction was submitted successfully.',
+                message: SUCCESS_MESSAGES.TX,
               });
             }
             return tx;
           } catch (e) {
             notify({
               type: 'error',
-              message:
-                'The transaction was canceled by the user or cannot be submitted.',
+              message: ERROR_MESSAGES.TX,
             });
           } finally {
             set({ isExecuting: false });
