@@ -134,7 +134,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
           minHeight: '75vh',
         }}
       >
-        {isEditing && (
+        {isEditing && !loading && (
           <Stack
             flexDirection="row"
             alignItems="center"
