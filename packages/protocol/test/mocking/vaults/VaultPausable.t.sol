@@ -16,7 +16,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
   event PausedForceAll(address account);
   event UnpausedForceAll(address account);
 
-  address[] public vaults;
+  IPausableVault[] public vaults;
 
   BorrowingVault public vault2;
 
@@ -47,11 +47,11 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
         );
 
     // Set up {Chief-_vaults} manually to bypass vault factory set-up.
-    address[] memory vaults_ = new address[](2);
-    vaults_[0] = address(vault);
-    vaults_[1] = address(vault2);
+    IPausableVault[] memory vaults_ = new IPausableVault[](2);
+    vaults_[0] = IPausableVault(address(vault));
+    vaults_[1] = IPausableVault(address(vault2));
 
-    vaults = vaults;
+    vaults = vaults_;
 
     bytes memory executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, vault2, true);
     _callWithTimelock(address(chief), executionCall);

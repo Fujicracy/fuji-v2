@@ -314,9 +314,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
    * @dev Requirements:
    *  - Must be restricted to `PAUSER_ROLE`.
    */
-  function pauseForceVaults(address[] calldata vaults) external onlyRole(PAUSER_ROLE) {
-    bytes memory callData = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
-    _changePauseState(vaults, callData);
+  function pauseForceVaults(IPausableVault[] calldata vaults) external onlyRole(PAUSER_ROLE) {
+    bytes memory data = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
+    _changePauseState(vaults, data);
   }
 
   /**
@@ -327,7 +327,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
    * @dev Requirements:
    *  - Must be restricted to `UNPAUSER_ROLE`.
    */
-  function unpauseForceVaults(address[] calldata vaults) external onlyRole(UNPAUSER_ROLE) {
+  function unpauseForceVaults(IPausableVault[] calldata vaults) external onlyRole(UNPAUSER_ROLE) {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.unpauseForceAll.selector);
     _changePauseState(vaults, callData);
   }
@@ -342,7 +342,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *  - Must be restricted to `PAUSER_ROLE`.
    */
   function pauseActionInVaults(
-    address[] memory vaults,
+    IPausableVault[] calldata vaults,
     IPausableVault.VaultActions action
   )
     external
@@ -362,13 +362,13 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *  - Must be restricted to `PAUSER_ROLE`.
    */
   function upauseActionInVaults(
-    address[] memory vaults,
+    IPausableVault[] calldata vaults,
     IPausableVault.VaultActions action
   )
     external
     onlyRole(UNPAUSER_ROLE)
   {
-    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, uint8(action));
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, action);
     _changePauseState(vaults, callData);
   }
 
@@ -392,12 +392,13 @@ contract Chief is CoreRoles, AccessControl, IChief {
   /**
    * @dev Executes pause state changes.
    *
-   * @param callData encoded data containing pause or unpause commands.
+   * @param vaults to change pause state
+   * @param data encoded data containing pause or unpause commands.
    */
-  function _changePauseState(address[] memory vaults, bytes memory callData) internal {
+  function _changePauseState(IPausableVault[] memory vaults, bytes memory data) internal {
     uint256 alength = vaults.length;
     for (uint256 i; i < alength;) {
-      address(vaults[i]).functionCall(callData, ": pause call failed");
+      address(vaults[i]).functionCall(data, ": pause call failed");
       unchecked {
         ++i;
       }
