@@ -105,11 +105,11 @@ export const useHistory = create<HistoryStore>()(
 
         async watch(hash) {
           const entry = get().byHash[hash];
-          if (!entry) {
-            throw `No entry in history for hash ${hash}`;
-          }
 
           try {
+            if (!entry) {
+              throw `No entry in history for hash ${hash}`;
+            }
             const srcChainId = entry.steps[0].chainId;
             const connextTransferResult = await sdk.getTransferId(
               srcChainId,

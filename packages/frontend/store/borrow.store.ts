@@ -794,7 +794,11 @@ export const useBorrow = create<BorrowStore>()(
             !provider ||
             (needsSignature && !signature)
           ) {
-            throw 'Unexpected undefined param';
+            notify({
+              type: 'error',
+              message: ERROR_MESSAGES.UNEXPECTED_UNDEFINED,
+            });
+            return;
           }
 
           const srcChainId = transactionMeta.steps[0].chainId;
