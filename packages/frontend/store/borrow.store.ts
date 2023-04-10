@@ -38,7 +38,6 @@ import {
   Mode,
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
-import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
 import { getTransactionUrl, notify } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
@@ -532,10 +531,10 @@ export const useBorrow = create<BorrowStore>()(
           }
 
           const { activeVault, collateral, debt, mode, slippage } = get();
-          if (
-            !activeVault ||
-            failureForMode(mode, collateral.input, debt.input)
-          ) {
+          const collateralInput =
+            collateral.input === '' ? '0' : collateral.input;
+          const debtInput = debt.input === '' ? '0' : debt.input;
+          if (!activeVault) {
             return set(
               produce((state: BorrowState) => {
                 state.transactionMeta.status = 'error';
@@ -567,8 +566,8 @@ export const useBorrow = create<BorrowStore>()(
                   v,
                   collateral.token,
                   debt.token,
-                  collateral.input,
-                  debt.input,
+                  collateralInput,
+                  debtInput,
                   address,
                   recommended,
                   slippage

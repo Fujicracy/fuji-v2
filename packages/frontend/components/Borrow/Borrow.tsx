@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { PATH } from '../../constants';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
@@ -23,6 +23,7 @@ import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import LTVWarningModal from '../Shared/LTVWarningModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
+import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
@@ -49,6 +50,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const needsSignature = useBorrow((state) => state.needsSignature);
   const isSigning = useBorrow((state) => state.isSigning);
   const isExecuting = useBorrow((state) => state.isExecuting);
+  const transactionMeta = useBorrow((state) => state.transactionMeta);
   const metaStatus = useBorrow((state) => state.transactionMeta.status);
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
@@ -140,6 +142,44 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       : action();
   };
 
+  const warningContent = useMemo(() => {
+    return (
+      <>
+        {`Based on your selection, we\'ve noticed that you have an open ${
+          vault?.collateral?.symbol
+        }/${vault?.debt?.symbol}
+        position on ${chainName(
+          vault?.chainId
+        )}. You may proceed to manage it. `}
+        {availableRoutes.length > 1 && (
+          <>
+            {
+              "If you're trying to open a similar position on another chain, please "
+            }
+            <Typography
+              variant="xsmall"
+              lineHeight="160%"
+              textAlign="left"
+              onClick={() => {
+                !onMobile && address && setShowRoutingModal(true);
+              }}
+              style={
+                !onMobile
+                  ? { textDecoration: 'underline', cursor: 'pointer' }
+                  : {}
+              }
+            >
+              select a different route.
+            </Typography>
+          </>
+        )}
+      </>
+    );
+  }, [availableRoutes, onMobile, address, vault]);
+
+  const shouldWarningBeDisplayed =
+    !isEditing && hasBalanceInVault && transactionMeta.steps;
+
   return (
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
@@ -218,6 +258,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
+          {shouldWarningBeDisplayed && (
+            <Box mb={2}>
+              <WarningInfo text={warningContent} />
+            </Box>
+          )}
+
           <BorrowButton
             address={address}
             collateral={collateral}
@@ -252,6 +298,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         </CardContent>
       </Card>
       <RoutingModal
+        isEditing={isEditing}
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
       />
