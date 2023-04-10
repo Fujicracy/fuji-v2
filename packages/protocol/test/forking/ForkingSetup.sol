@@ -206,6 +206,10 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       DEFAULT_MAX_LTV,
       DEFAULT_LIQ_RATIO
     );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function deployVault(
@@ -243,6 +247,10 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       DEFAULT_MAX_LTV,
       DEFAULT_LIQ_RATIO
     );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {

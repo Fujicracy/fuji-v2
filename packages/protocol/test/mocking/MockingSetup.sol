@@ -82,7 +82,8 @@ contract MockingSetup is CoreRoles, Test {
       DEFAULT_LIQ_RATIO
     );
 
-    bytes memory executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, vault, true);
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
   }
 
