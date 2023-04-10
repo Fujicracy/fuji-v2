@@ -2,7 +2,6 @@ import '../styles/globals.css';
 
 import { ThemeProvider } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
-import mixpanel from 'mixpanel-browser';
 import { AppProps } from 'next/app';
 import { Inter } from 'next/font/google';
 import { useRouter } from 'next/router';
@@ -36,9 +35,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
   useEffect(() => {
-    mixpanel.init('030ddddf19623797be516b634956d108', {
-      debug: process.env.NEXT_PUBLIC_APP_ENV === 'development',
-    });
     initErrorReporting();
     initAuth();
   }, [initAuth]);
