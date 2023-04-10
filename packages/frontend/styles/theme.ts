@@ -90,7 +90,7 @@ const colorTheme = createTheme({
     },
   },
   typography: {
-    // fontFamily: "Inter", // Need to be specified here instead of above otherwise it use the default mui font family
+    fontFamily: 'Inter', // Need to be specified here instead of above otherwise it use the default mui font family
   },
 });
 
