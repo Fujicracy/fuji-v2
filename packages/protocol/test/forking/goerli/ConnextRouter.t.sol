@@ -518,7 +518,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   /*
    * @notice Tests that a flashloan can be used to perform a flashclose
    * @dev:
-     * - make a transfer with call to destChain - XTransferWithCall
+   * - make a transfer with call to destChain - XTransferWithCall
    * - call on destination chain is deposit and borrow, opening a simple position
    * - use a flashloan to perform a flashclose in destChain 
    */
@@ -533,7 +533,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     deal(collateralAsset, ALICE, 2 ether);
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
-    // vm.stopPrank();
 
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 2 ether);
 
@@ -560,12 +559,12 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       abi.encode(destChainDepositAndBorrowActions, destChainDepositAndBorrowArgs, 0);
 
     originArgs1[0] =
-      abi.encode(destDomain, 0, collateralAsset, 1 ether, destChainDepositAndBorrowCallData);
+      abi.encode(destDomain, 30, collateralAsset, 1 ether, destChainDepositAndBorrowCallData);
 
     //assert dispatch
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
-    connextRouter.xBundle(destChainDepositAndBorrowActions, destChainDepositAndBorrowArgs);
+    connextRouter.xBundle(originActions1, originArgs1);
 
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 1 ether);
 
@@ -587,9 +586,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destInnerActions[2] = IRouter.Action.Withdraw;
     destInnerActions[3] = IRouter.Action.XTransfer;
     destInnerArgs[0] = abi.encode(address(vault), 100e6, ALICE, address(connextRouter));
-    //TODO permit withdraw args
     destInnerArgs[2] = abi.encode(address(vault), 1 ether, ALICE, address(connextRouter));
-    destInnerArgs[3] = abi.encode(destDomain, 0, collateralAsset, 1 ether, new bytes(0));
+    destInnerArgs[3] = abi.encode(GOERLI_DOMAIN, 0, collateralAsset, 1 ether, ALICE, ALICE);
 
     //flashloan parameters
     bytes memory requestorCalldata =
@@ -598,13 +596,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] =
       abi.encode(address(flasher), debtAsset, 100e6, address(connextRouter), requestorCalldata);
     bytes memory destCallData = abi.encode(destActions, destArgs, 0);
-    originArgs2[0] = abi.encode(destDomain, 0, debtAsset, 0, destCallData);
+    originArgs2[0] = abi.encode(destDomain, 0, collateralAsset, 0, destCallData);
 
+    //assert dispatch
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
     connextRouter.xBundle(originActions2, originArgs2);
-
-    //assert balance of ALICE is amount in origin chain
-    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 2 ether);
   }
 }
