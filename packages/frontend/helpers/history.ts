@@ -7,8 +7,40 @@ import {
 } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
-import { HistoryEntry, HistoryRoutingStep } from '../store/history.store';
 import { camelize } from './values';
+
+/**
+ * Contains all we need to instantiate a token with new Token()
+ */
+export type SerializableToken = {
+  chainId: ChainId;
+  address: string;
+  decimals: number;
+  symbol: string;
+  name?: string;
+};
+
+export enum HistoryEntryStatus {
+  ONGOING,
+  DONE,
+  ERROR,
+}
+
+export type HistoryEntry = {
+  hash: string;
+  steps: HistoryRoutingStep[];
+  status: HistoryEntryStatus;
+  connextTransferId?: string;
+  vaultAddr?: string;
+};
+
+export type HistoryRoutingStep = Omit<
+  RoutingStepDetails,
+  'txHash' | 'token'
+> & {
+  txHash?: string;
+  token?: SerializableToken;
+};
 
 export const toRoutingStepDetails = (
   s: HistoryRoutingStep[]

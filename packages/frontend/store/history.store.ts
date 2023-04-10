@@ -1,4 +1,4 @@
-import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -9,6 +9,8 @@ import { updateNativeBalance } from '../helpers/balances';
 import { hexToChainId } from '../helpers/chains';
 import {
   entryOutput,
+  HistoryEntry,
+  HistoryEntryStatus,
   toHistoryRoutingStep,
   toRoutingStepDetails,
 } from '../helpers/history';
@@ -20,45 +22,12 @@ import { usePositions } from './positions.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
-export enum HistoryEntryStatus {
-  ONGOING,
-  DONE,
-  ERROR,
-}
-
 type HistoryState = {
   allTxns: string[];
   ongoingTxns: string[];
   byHash: Record<string, HistoryEntry>;
 
   inModal?: string; // The tx hash displayed in modal
-};
-
-export type HistoryEntry = {
-  hash: string;
-  steps: HistoryRoutingStep[];
-  status: HistoryEntryStatus;
-  connextTransferId?: string;
-  vaultAddr?: string;
-};
-
-export type HistoryRoutingStep = Omit<
-  RoutingStepDetails,
-  'txHash' | 'token'
-> & {
-  txHash?: string;
-  token?: SerializableToken;
-};
-
-/**
- * Contains all we need to instanciate a token with new Token()
- */
-export type SerializableToken = {
-  chainId: ChainId;
-  address: string;
-  decimals: number;
-  symbol: string;
-  name?: string;
 };
 
 type HistoryActions = {
@@ -111,6 +80,7 @@ export const useHistory = create<HistoryStore>()(
               throw `No entry in history for hash ${hash}`;
             }
             const srcChainId = entry.steps[0].chainId;
+
             const connextTransferResult = await sdk.getTransferId(
               srcChainId,
               hash
