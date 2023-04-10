@@ -47,6 +47,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_noBalanceChange();
   error BaseRouter__bundleInternal_insufficientETH();
   error BaseRouter__bundleInternal_notBeneficiary();
+  error BaseRouter__checkVaultInput_notActiveVault();
   error BaseRouter__bundleInternal_notAllowedSwapper();
   error BaseRouter__bundleInternal_notAllowedFlasher();
   error BaseRouter__safeTransferETH_transferFailed();
@@ -148,6 +149,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        _checkVaultInput(address(vault));
+
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
         tokensToCheck = _addTokenToList(token, tokensToCheck);
@@ -160,6 +163,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        _checkVaultInput(address(vault));
+
         beneficiary = _checkBeneficiary(beneficiary, owner);
         tokensToCheck = _addTokenToList(vault.asset(), tokensToCheck);
 
@@ -169,6 +174,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        _checkVaultInput(address(vault));
+
         beneficiary = _checkBeneficiary(beneficiary, owner);
         tokensToCheck = _addTokenToList(vault.debtAsset(), tokensToCheck);
 
@@ -177,6 +184,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // PAYBACK
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
+
+        _checkVaultInput(address(vault));
 
         address token = vault.debtAsset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
@@ -199,6 +208,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ) = abi.decode(
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
+
+        _checkVaultInput(address(vault));
+
         vault.permitWithdraw(owner, receiver, amount, deadline, v, r, s);
         beneficiary = _checkBeneficiary(beneficiary, owner);
       } else if (action == Action.PermitBorrow) {
@@ -215,6 +227,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         ) = abi.decode(
           args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
+
+        _checkVaultInput(address(vault));
 
         vault.permitBorrow(owner, receiver, amount, deadline, v, r, s);
         beneficiary = _checkBeneficiary(beneficiary, owner);
@@ -489,6 +503,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         revert BaseRouter__bundleInternal_notBeneficiary();
       }
       return user;
+    }
+  }
+
+  function _checkVaultInput(address vault_) internal view {
+    if (!chief.isVaultActive(vault_)) {
+      revert BaseRouter__checkVaultInput_notActiveVault();
     }
   }
 
