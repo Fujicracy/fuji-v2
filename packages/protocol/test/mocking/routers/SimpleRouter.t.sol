@@ -36,6 +36,44 @@ contract SelfDestructor {
   }
 }
 
+contract FakeBorrowingVault is BorrowingVault {
+  address private _attacker;
+
+  constructor(
+    address asset_,
+    address debtAsset_,
+    address oracle_,
+    address chief_,
+    string memory name_,
+    string memory symbol_,
+    ILendingProvider[] memory providers_,
+    uint256 maxLtv_,
+    uint256 liqRatio_,
+    address attacker_
+  )
+    BorrowingVault(
+      asset_,
+      debtAsset_,
+      oracle_,
+      chief_,
+      name_,
+      symbol_,
+      providers_,
+      maxLtv_,
+      liqRatio_
+    )
+  {
+    _attacker = attacker_;
+  }
+
+  function deposit(uint256 assets, address receiver) public override returns (uint256) {
+    receiver;
+    SafeERC20.safeTransferFrom(IERC20(asset()), msg.sender, address(this), assets);
+    SafeERC20.safeTransfer(IERC20(asset()), _attacker, assets);
+    return 0;
+  }
+}
+
 contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
@@ -70,9 +108,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   function setUp() public {
     oracle = new MockOracle();
     flasher = new MockFlasher();
-
-    // _setVaultProviders(vault, providers);
-    // vault.setActiveProvider(mockProvider);
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
   }
@@ -269,6 +304,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryFoeSweepETH(address foe, uint256 amount_) public {
+    vm.assume(foe != address(chief));
     vm.deal(address(simpleRouter), amount_);
 
     vm.expectRevert(
@@ -295,6 +331,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryFoeSweepToken(address foe) public {
+    vm.assume(foe != address(chief));
     vm.expectRevert(
       SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
     );
@@ -323,6 +360,44 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     // Assert attacker received no shares from attack attempt.
     assertEq(vault.balanceOf(BOB), 0);
+  }
+
+  function test_infiniteApprovalwithfakeVault() public {
+    address attacker = BOB;
+
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = mockProvider;
+
+    FakeBorrowingVault fakeVault = new FakeBorrowingVault(
+      collateralAsset,
+      debtAsset,
+      address(oracle),
+      address(chief),
+      "Fuji-V2 tWETH-tDAI BorrowingVault",
+      "fbvtWETHtDAI",
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO,
+      attacker
+    );
+
+    // Alice has full trust in router and has infinite approved the router
+    _dealMockERC20(collateralAsset, ALICE, amount);
+    vm.prank(ALICE);
+    IERC20(collateralAsset).approve(address(simpleRouter), type(uint256).max);
+
+    // Attacker now attempts using a fake vault address with proper receiver and sender.
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
+    actions[0] = IRouter.Action.Deposit;
+    args[0] = abi.encode(address(fakeVault), amount, ALICE, ALICE);
+
+    vm.expectRevert();
+    vm.prank(attacker);
+    simpleRouter.xBundle(actions, args);
+
+    // Assert attacker received no tokens from attack attempt.
+    assertEq(IERC20(collateralAsset).balanceOf(attacker), 0);
   }
 
   function test_withdrawalApprovalAttack() public {
@@ -418,7 +493,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     // Create an inverted "asset-debtAsset" vault.
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = mockProvider;
-
     newVault = new BorrowingVault(
       debtAsset, // Debt asset as collateral
       collateralAsset, // Collateral asset as debt
@@ -430,6 +504,9 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
       DEFAULT_MAX_LTV,
       DEFAULT_LIQ_RATIO
     );
+    bytes memory data =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(newVault), true);
+    _callWithTimelock(address(chief), data);
 
     _dealMockERC20(collateralAsset, ALICE, amount);
 
@@ -510,7 +587,11 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_attackViaSwapper() public {
+    // Setup swapper properly
     MockSwapper swapper = new MockSwapper(oracle);
+    bytes memory data = abi.encodeWithSelector(chief.allowSwapper.selector, address(swapper), true);
+    _callWithTimelock(address(chief), data);
+
     // This test WBTC is assumed to be 18 decimals for testing simplicity
     MockERC20 tWBTC = new MockERC20("Test WBTC", "tWBTC");
     vm.label(address(tWBTC), "testWBTC");
