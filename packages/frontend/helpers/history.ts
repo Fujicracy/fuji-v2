@@ -1,12 +1,19 @@
 import {
   Address,
   ChainId,
+  FujiErrorCode,
+  FujiResult,
+  FujiResultError,
+  FujiResultSuccess,
   RoutingStep,
   RoutingStepDetails,
   Token,
 } from '@x-fuji/sdk';
+import { ethers } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 
+import { CONFIRMATIONS } from '../constants';
+import { sdk } from '../services/sdk';
 import { camelize } from './values';
 
 /**
@@ -110,4 +117,37 @@ export const stepFromEntry = (
   type: RoutingStep
 ): HistoryRoutingStep | undefined => {
   return entry.steps.find((s) => s.step === type);
+};
+
+export const watchTransaction = async (
+  chainId: ChainId,
+  txHash: string,
+  callback: (sarasa: FujiResult<ethers.providers.TransactionReceipt>) => void
+) => {
+  const { rpcProvider } = sdk.getConnectionFor(chainId);
+
+  const onBlock = async () => {
+    const currentReceipt = await rpcProvider.getTransactionReceipt(txHash);
+    if (currentReceipt && currentReceipt.confirmations > CONFIRMATIONS) {
+      console.log(
+        `Transaction ${txHash} has been confirmed ${currentReceipt.confirmations} times.`
+      );
+      done();
+      callback(new FujiResultSuccess(currentReceipt));
+    }
+  };
+
+  const onError = (error: Error) => {
+    console.error(`Transaction ${txHash} failed: ${error}`);
+    done();
+    callback(new FujiResultError(error.message, FujiErrorCode.ONCHAIN));
+  };
+
+  const done = () => {
+    rpcProvider.removeListener('block', onBlock);
+    rpcProvider.removeListener('error', onError);
+  };
+
+  rpcProvider.on('block', onBlock);
+  rpcProvider.on('error', onError);
 };
