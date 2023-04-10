@@ -120,7 +120,7 @@ function RouteBox({
         justifyContent="space-between"
         sx={{
           flex: 1,
-          maxWidth: '30rem',
+          maxWidth: '38rem',
           flexWrap: 'wrap',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: 'center',

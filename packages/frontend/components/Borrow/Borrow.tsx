@@ -139,7 +139,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     changeMode(mode);
   }, [changeMode, isEditing, collateral.input, debt.input, actionType]);
 
-  const proceedWithConfirmation = (action: () => void) => {
+  const proceedWithConfirmation = (action?: () => void) => {
     setConfirmationModalAction(() => action);
     setIsConfirmationModalShown(true);
   };
@@ -329,7 +329,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         actionType={actionType}
         action={() => {
           setIsConfirmationModalShown(false);
-          confirmationModalAction();
+          confirmationModalAction && confirmationModalAction();
         }}
       />
     </>

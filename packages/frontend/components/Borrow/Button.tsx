@@ -38,7 +38,7 @@ type BorrowButtonProps = {
   onApproveClick: (type: AssetType) => void;
   onRedirectClick: (position: boolean) => void;
   onClick: () => void;
-  withConfirmation: (action: () => void) => void;
+  withConfirmation: (action?: () => void) => void;
 };
 
 function BorrowButton({
