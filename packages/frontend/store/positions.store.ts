@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { DUST_AMOUNT } from '../constants';
+import { DUST_AMOUNT, ERROR_MESSAGES } from '../constants';
+import { notify } from '../helpers/notifications';
 import {
   getAccrual,
   getCurrentAvailableBorrowingPower,
@@ -44,8 +45,8 @@ export const usePositions = create<PositionsStore>()(
           : { success: true, error: undefined, data: [] };
 
         if (!result.success) {
-          // TODO: Show? Happens a lot in background, we need a good strategy
           console.error(result.error?.message);
+          notify({ type: 'error', message: ERROR_MESSAGES.POSITIONS });
         }
         const positions = result.success
           ? (result.data as Position[]).filter(

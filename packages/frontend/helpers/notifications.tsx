@@ -24,7 +24,6 @@ export function notify({ message, type, link, isTransaction }: NotifyArgs) {
 
   if (link) {
     toast(getLinkNotification({ message, link, isTransaction, type }), options);
-
     return;
   }
 
