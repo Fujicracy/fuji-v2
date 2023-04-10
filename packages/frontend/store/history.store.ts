@@ -23,11 +23,11 @@ import { usePositions } from './positions.store';
 export type HistoryStore = HistoryState & HistoryActions;
 
 type HistoryState = {
-  allTxns: string[];
-  ongoingTxns: string[];
+  allTransactions: string[];
+  ongoingTransactions: string[];
   byHash: Record<string, HistoryEntry>;
 
-  inModal?: string; // The tx hash displayed in modal
+  inModalHash?: string; // The tx hash displayed in modal
 };
 
 type HistoryActions = {
@@ -41,8 +41,8 @@ type HistoryActions = {
 };
 
 const initialState: HistoryState = {
-  allTxns: [],
-  ongoingTxns: [],
+  allTransactions: [],
+  ongoingTransactions: [],
   byHash: {},
 };
 
@@ -62,10 +62,10 @@ export const useHistory = create<HistoryStore>()(
 
           set(
             produce((s: HistoryState) => {
-              s.inModal = hash;
+              s.inModalHash = hash;
               s.byHash[hash] = entry;
-              s.allTxns = [hash, ...s.allTxns];
-              s.ongoingTxns = [hash, ...s.ongoingTxns];
+              s.allTransactions = [hash, ...s.allTransactions];
+              s.ongoingTransactions = [hash, ...s.ongoingTransactions];
             })
           );
 
@@ -163,8 +163,10 @@ export const useHistory = create<HistoryStore>()(
 
             get().update(hash, { status: HistoryEntryStatus.ERROR });
           } finally {
-            const ongoingTxns = get().ongoingTxns.filter((h) => h !== hash);
-            set({ ongoingTxns });
+            const ongoingTransactions = get().ongoingTransactions.filter(
+              (h) => h !== hash
+            );
+            set({ ongoingTransactions });
           }
         },
 
@@ -184,15 +186,15 @@ export const useHistory = create<HistoryStore>()(
         clearAll() {
           useHistory.persist.clearStorage();
           set(initialState);
-          // set({ allTxns: [...get().ongoingTxns] })
+          // set({ allTransactions: [...get().ongoingTransactions] })
         },
 
         openModal(hash) {
-          set({ inModal: hash });
+          set({ inModalHash: hash });
         },
 
         closeModal() {
-          set({ inModal: '' });
+          set({ inModalHash: '' });
         },
       }),
       {
@@ -210,7 +212,7 @@ export const useHistory = create<HistoryStore>()(
           if (!state) {
             return console.error('no state');
           }
-          for (const hash of state.ongoingTxns) {
+          for (const hash of state.ongoingTransactions) {
             state.watch(hash);
           }
         };

@@ -33,7 +33,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const address = useAuth((state) => state.address);
   const router = useRouter();
 
-  const currentTxHash = useHistory((state) => state.inModal);
+  const currentTxHash = useHistory((state) => state.inModalHash);
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
   const updateVault = useBorrow((state) => state.updateVault);
   const updateAvailableRoutes = useBorrow(
