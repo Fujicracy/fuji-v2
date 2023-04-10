@@ -81,6 +81,9 @@ contract MockingSetup is CoreRoles, Test {
       DEFAULT_MAX_LTV,
       DEFAULT_LIQ_RATIO
     );
+
+    bytes memory executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, vault, true);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {

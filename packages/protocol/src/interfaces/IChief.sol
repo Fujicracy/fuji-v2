@@ -19,6 +19,13 @@ interface IChief is IAccessControl {
   function addrMapper() external view returns (address);
 
   /**
+   * @notice Returns true if `vault` is active.
+   *
+   * @param vault to check status
+   */
+  function isVaultActive(address vault) external view returns (bool);
+
+  /**
    * @notice Returns true if `flasher` is an allowed {IFlasher}.
    *
    * @param flasher address to check

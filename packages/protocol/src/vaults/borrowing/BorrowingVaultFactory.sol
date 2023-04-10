@@ -117,7 +117,7 @@ contract BorrowingVaultFactory is VaultDeployer {
 
     emit DeployBorrowingVault(
       vault, vdata.asset, vdata.debtAsset, vdata.name, vdata.symbol, vdata.salt
-    );
+      );
   }
 
   /**
