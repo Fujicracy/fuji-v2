@@ -25,13 +25,13 @@ import { formatUnits } from 'ethers/lib/utils';
 import { useState } from 'react';
 
 import { addressUrl, hexToChainId } from '../../helpers/chains';
-import { stepFromEntry } from '../../helpers/history';
-import { useAuth } from '../../store/auth.store';
 import {
   HistoryEntry,
   HistoryEntryStatus,
-  useHistory,
-} from '../../store/history.store';
+  stepFromEntry,
+} from '../../helpers/history';
+import { useAuth } from '../../store/auth.store';
+import { useHistory } from '../../store/history.store';
 
 type AccountModalProps = {
   isOpen: boolean;

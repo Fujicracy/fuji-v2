@@ -30,11 +30,12 @@ import { useState } from 'react';
 import { PATH } from '../../constants';
 import { chainName } from '../../helpers/chains';
 import { transactionUrl } from '../../helpers/chains';
+import { HistoryEntryStatus } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
 import { camelize } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
-import { HistoryEntryStatus, useHistory } from '../../store/history.store';
+import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import { NetworkIcon } from '../Shared/Icons';
 
