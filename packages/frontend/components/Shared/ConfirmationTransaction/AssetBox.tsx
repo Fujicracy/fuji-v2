@@ -1,25 +1,25 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Card, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { Token } from '@x-fuji/sdk';
+import { RoutingStepDetails } from '@x-fuji/sdk';
+import { BigNumber } from 'ethers';
+import { formatUnits } from 'ethers/lib/utils';
 
 import { ActionType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
-import { formatValue } from '../../../helpers/values';
+import { toNotSoFixed } from '../../../helpers/values';
 import { NetworkIcon, TokenIcon } from '../Icons';
 
 function AssetBox({
   type,
-  token,
-  value,
   isEditing,
   actionType,
+  step,
 }: {
   type: 'debt' | 'collateral';
-  token: Token;
-  value: string;
   isEditing: boolean;
   actionType: ActionType;
+  step: RoutingStepDetails;
 }) {
   const { palette } = useTheme();
   const labelMap =
@@ -64,11 +64,14 @@ function AssetBox({
         <Typography variant="small">{label}</Typography>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
-          <TokenIcon token={token} height={16} width={16} />
+          <TokenIcon token={step.token || ''} height={16} width={16} />
           <Typography variant="small">
-            {`${formatValue(value, {
-              maximumFractionDigits: 3,
-            })} ${token.symbol}`}
+            {`${toNotSoFixed(
+              formatUnits(
+                step.amount ?? BigNumber.from('0'),
+                step.token?.decimals ?? 18
+              )
+            )} ${step.token?.symbol}`}
           </Typography>
         </Stack>
       </Stack>
@@ -103,8 +106,8 @@ function AssetBox({
         </Stack>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
-          <NetworkIcon network={token.chainId} height={16} width={16} />
-          <Typography variant="small">{chainName(token.chainId)}</Typography>
+          <NetworkIcon network={step.chainId} height={16} width={16} />
+          <Typography variant="small">{chainName(step.chainId)}</Typography>
         </Stack>
       </Stack>
 

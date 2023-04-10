@@ -321,8 +321,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
-        collateral={collateral}
-        debt={debt}
         basePosition={basePosition}
         transactionMeta={transactionMeta}
         isEditing={isEditing}

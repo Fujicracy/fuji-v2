@@ -126,3 +126,26 @@ export const fetchRoutes = async (
     steps,
   });
 };
+
+export function mapSteps(steps: RoutingStepDetails[]): {
+  start?: RoutingStepDetails;
+  end?: RoutingStepDetails;
+  collateralStep?: RoutingStepDetails;
+  borrowStep?: RoutingStepDetails;
+} {
+  const collateralSteps = [RoutingStep.DEPOSIT, RoutingStep.WITHDRAW];
+  const borrowSteps = [RoutingStep.BORROW, RoutingStep.PAYBACK];
+  const start = steps.find((item) => item.step === RoutingStep.START);
+  const end = steps.find((item) => item.step === RoutingStep.END);
+  const collateralStep = steps.find((item) =>
+    collateralSteps.includes(item.step)
+  );
+  const borrowStep = steps.find((item) => borrowSteps.includes(item.step));
+
+  return {
+    start,
+    end,
+    collateralStep,
+    borrowStep,
+  };
+}

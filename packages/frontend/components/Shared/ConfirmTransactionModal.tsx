@@ -1,16 +1,16 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
 
 import {
   ActionType,
-  AssetChange,
   recommendedLTV,
   remainingBorrowLimit,
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
+import { mapSteps } from '../../helpers/routing';
 import { formatValue } from '../../helpers/values';
 import { FetchStatus } from '../../store/borrow.store';
 import AssetBox from './ConfirmationTransaction/AssetBox';
@@ -19,8 +19,6 @@ import RouteBox from './ConfirmationTransaction/RouteBox';
 import WarningInfo from './WarningInfo';
 
 type ConfirmTransactionModalProps = {
-  collateral: AssetChange;
-  debt: AssetChange;
   basePosition: BasePosition;
   transactionMeta: {
     status: FetchStatus;
@@ -38,8 +36,6 @@ type ConfirmTransactionModalProps = {
 };
 
 export function ConfirmTransactionModal({
-  collateral,
-  debt,
   basePosition,
   transactionMeta,
   isEditing,
@@ -83,8 +79,7 @@ export function ConfirmTransactionModal({
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
-  const start = steps.find((item) => item.step === RoutingStep.START);
-  const end = steps.find((item) => item.step === RoutingStep.END);
+  const { start, end, collateralStep, borrowStep } = mapSteps(steps);
   const isCrossChain = start?.chainId !== end?.chainId;
 
   return (
@@ -126,28 +121,22 @@ export function ConfirmTransactionModal({
         </Typography>
 
         <Stack>
-          {collateral.input && collateral.input !== '0' ? (
+          {collateralStep && (
             <AssetBox
               type="collateral"
               isEditing={isEditing}
               actionType={actionType}
-              token={collateral.token}
-              value={collateral.input}
+              step={collateralStep}
             />
-          ) : (
-            <></>
           )}
 
-          {debt.input && debt.input !== '0' ? (
+          {borrowStep && (
             <AssetBox
               type="debt"
               isEditing={isEditing}
               actionType={actionType}
-              token={debt.token}
-              value={debt.input}
+              step={borrowStep}
             />
-          ) : (
-            <></>
           )}
         </Stack>
 
