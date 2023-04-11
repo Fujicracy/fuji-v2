@@ -246,7 +246,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: '-1rem' }} />
-    ) : entry.status === HistoryEntryStatus.ERROR ? (
+    ) : entry.status === HistoryEntryStatus.FAILURE ? (
       <ErrorOutlineIcon />
     ) : (
       <CheckIcon

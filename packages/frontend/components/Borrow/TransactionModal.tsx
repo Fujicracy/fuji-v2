@@ -30,27 +30,15 @@ import { useState } from 'react';
 import { PATH } from '../../constants';
 import { chainName } from '../../helpers/chains';
 import { transactionUrl } from '../../helpers/chains';
-import { HistoryEntryStatus } from '../../helpers/history';
+import { HistoryEntryStatus, validSteps } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
+import { statusForStep, TransactionStep } from '../../helpers/transactions';
 import { camelize } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import { NetworkIcon } from '../Shared/Icons';
-
-type InvalidStep = {
-  label: 'Invalid';
-};
-type ValidStep = {
-  label: string;
-  description: string;
-  chainId: number;
-  txHash?: string;
-  link?: string;
-  icon: () => JSX.Element;
-};
-type TransactionStep = InvalidStep | ValidStep;
 
 type TransactionModalProps = {
   hash?: string;
@@ -79,63 +67,63 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   if (!entry) {
     return <></>;
   }
+  const validatedSteps = validSteps(entry.steps);
+  const srcChainId = entry.steps[0].chainId;
 
-  const steps = entry
-    ? (entry.steps
-        .map((s): TransactionStep => {
-          const { step, txHash, chainId, token } = s;
-          const chain = chainName(chainId);
-          const amount = token && formatUnits(s.amount ?? 0, token.decimals);
-          const link = txHash && transactionUrl(chainId, txHash);
+  const steps = validatedSteps.map((s): TransactionStep => {
+    const { step, chainId, token } = s;
+    const chain = chainName(chainId);
+    const amount = token && formatUnits(s.amount ?? 0, token.decimals);
 
-          const style = {
-            background: theme.palette.secondary.light,
-            mr: '0.5rem',
-            p: '0.5rem 0.5rem 0.3rem 0.5rem',
-            borderRadius: '100%',
-            zIndex: 1,
-          };
+    const txHash =
+      s.step !== RoutingStep.X_TRANSFER && chainId === srcChainId
+        ? entry.hash
+        : undefined;
+    const link = txHash && transactionUrl(chainId, txHash);
 
-          const action = step.toString();
-          const preposition =
-            step === RoutingStep.DEPOSIT
-              ? 'on'
-              : [
-                  RoutingStep.X_TRANSFER,
-                  RoutingStep.BORROW,
-                  RoutingStep.PAYBACK,
-                ].includes(step)
-              ? 'to'
-              : 'from';
+    const style = {
+      background: theme.palette.secondary.light,
+      mr: '0.5rem',
+      p: '0.5rem 0.5rem 0.3rem 0.5rem',
+      borderRadius: '100%',
+      zIndex: 1,
+    };
 
-          const label =
-            step === RoutingStep.START ||
-            step === RoutingStep.END ||
-            !token ||
-            !amount
-              ? 'Invalid'
-              : camelize(
-                  `${action} ${amount} ${token.symbol} ${preposition} ${chain}`
-                );
+    const action = step.toString();
+    const preposition =
+      step === RoutingStep.DEPOSIT
+        ? 'on'
+        : [
+            RoutingStep.X_TRANSFER,
+            RoutingStep.BORROW,
+            RoutingStep.PAYBACK,
+          ].includes(step)
+        ? 'to'
+        : 'from';
 
-          const description = `${chain} Network`;
+    const name = s.lendingProvider?.name;
 
-          return {
-            label,
-            chainId,
-            txHash,
-            link,
-            description,
-            icon: () => (
-              <Box sx={style}>
-                <NetworkIcon network={chain} height={32} width={32} />
-              </Box>
-            ),
-          };
-        })
-        // remove "START", "END" and steps with no token
-        .filter((s) => s.label !== 'Invalid') as ValidStep[])
-    : [];
+    const label = camelize(
+      `${action} ${amount}${token?.symbol} ${name ? preposition : ''} ${
+        name ?? ''
+      }`
+    );
+
+    const description = `${chain} Network`;
+
+    return {
+      label,
+      chainId,
+      txHash,
+      link,
+      description,
+      icon: () => (
+        <Box sx={style}>
+          <NetworkIcon network={chain} height={32} width={32} />
+        </Box>
+      ),
+    };
+  });
 
   const onClick = async () => {
     // If the user is editing a position, we just need to close the modal
@@ -172,8 +160,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           <Typography variant="h6">
             Transaction{' '}
             {entry.status === HistoryEntryStatus.ONGOING && 'processing...'}
-            {entry.status === HistoryEntryStatus.DONE && 'Success!'}
-            {entry.status === HistoryEntryStatus.ERROR && 'Error'}
+            {entry.status === HistoryEntryStatus.SUCCESS && 'Success!'}
+            {entry.status === HistoryEntryStatus.FAILURE && 'Error'}
           </Typography>
         </Box>
         <DialogContent>
@@ -182,51 +170,53 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             orientation="vertical"
             connector={<CustomConnector />}
           >
-            {steps?.map((step) => (
-              <Step key={step.label}>
-                <StepLabel StepIconComponent={step.icon}>
-                  <Stack direction="row" justifyContent="space-between">
-                    <Box>
-                      <Typography variant="body">{step.label}</Typography>
-                      <br />
-                      {step.txHash && step.link && (
-                        <Link
-                          href={step.link}
-                          target="_blank"
-                          variant="smallDark"
-                        >
-                          {step.description}
-                          <LaunchIcon
+            {steps?.map((step) => {
+              const status = statusForStep(step, entry);
+              return (
+                <Step key={step.label}>
+                  <StepLabel StepIconComponent={step.icon}>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Box>
+                        <Typography variant="body">{step.label}</Typography>
+                        <br />
+                        {step.txHash && step.link && (
+                          <Link
+                            href={step.link}
+                            target="_blank"
+                            variant="smallDark"
+                          >
+                            {step.description}
+                            <LaunchIcon
+                              sx={{
+                                ml: '0.3rem',
+                                fontSize: '0.6rem',
+                                color: theme.palette.info.dark,
+                              }}
+                            />
+                          </Link>
+                        )}
+                      </Box>
+                      <Box>
+                        {status === HistoryEntryStatus.SUCCESS ? (
+                          <CheckIcon
                             sx={{
-                              ml: '0.3rem',
-                              fontSize: '0.6rem',
-                              color: theme.palette.info.dark,
+                              backgroundColor: theme.palette.success.dark,
+                              borderRadius: '100%',
+                              padding: '0.4rem',
                             }}
+                            fontSize="large"
                           />
-                        </Link>
-                      )}
-                    </Box>
-                    <Box>
-                      {step.txHash ||
-                      entry.status === HistoryEntryStatus.DONE ? (
-                        <CheckIcon
-                          sx={{
-                            backgroundColor: theme.palette.success.dark,
-                            borderRadius: '100%',
-                            padding: '0.4rem',
-                          }}
-                          fontSize="large"
-                        />
-                      ) : entry.status === HistoryEntryStatus.ONGOING ? (
-                        <CircularProgress size={32} />
-                      ) : (
-                        <ErrorOutlineIcon />
-                      )}
-                    </Box>
-                  </Stack>
-                </StepLabel>
-              </Step>
-            ))}
+                        ) : entry.status === HistoryEntryStatus.ONGOING ? (
+                          <CircularProgress size={32} />
+                        ) : (
+                          <ErrorOutlineIcon />
+                        )}
+                      </Box>
+                    </Stack>
+                  </StepLabel>
+                </Step>
+              );
+            })}
           </Stepper>
         </DialogContent>
         {entry.status === HistoryEntryStatus.ONGOING && (
@@ -237,7 +227,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             </Typography>
           </Card>
         )}
-        {entry.status === HistoryEntryStatus.DONE && (
+        {entry.status === HistoryEntryStatus.SUCCESS && (
           <Stack sx={{ mt: '2rem' }} spacing={1}>
             {action?.token?.chainId === activeChainId && (
               <Box mb="2rem" textAlign="center">

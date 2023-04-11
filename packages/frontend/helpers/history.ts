@@ -1,21 +1,16 @@
-import {
-  Address,
-  ChainId,
-  FujiErrorCode,
-  FujiResult,
-  FujiResultError,
-  FujiResultSuccess,
-  RoutingStep,
-  RoutingStepDetails,
-  Token,
-} from '@x-fuji/sdk';
-import { ethers } from 'ethers';
-import { formatUnits } from 'ethers/lib/utils';
+import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 
-import { CONFIRMATIONS } from '../constants';
-import { sdk } from '../services/sdk';
-import { camelize } from './values';
+import { useAuth } from '../store/auth.store';
+import { useBorrow } from '../store/borrow.store';
+import { updateNativeBalance } from './balances';
+import { hexToChainId } from './chains';
 
+export enum HistoryEntryStatus {
+  ONGOING,
+  BRIDGING,
+  SUCCESS,
+  FAILURE,
+}
 /**
  * Contains all we need to instantiate a token with new Token()
  */
@@ -27,53 +22,38 @@ export type SerializableToken = {
   name?: string;
 };
 
-export enum HistoryEntryStatus {
-  ONGOING,
-  DONE,
-  ERROR,
-}
-
 export type HistoryEntry = {
   hash: string;
   steps: HistoryRoutingStep[];
   status: HistoryEntryStatus;
   connextTransferId?: string;
   vaultAddr?: string;
+  isCrossChain: boolean;
+  sourceCompleted?: boolean; // Not proud about this one
 };
 
-export type HistoryRoutingStep = Omit<
-  RoutingStepDetails,
-  'txHash' | 'token'
-> & {
-  txHash?: string;
+export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
   token?: SerializableToken;
 };
 
-export const toRoutingStepDetails = (
-  s: HistoryRoutingStep[]
-): RoutingStepDetails[] => {
-  return s.map((s) => ({
-    ...s,
-    txHash: undefined,
-    token: s.token
-      ? new Token(
-          s.token.chainId,
-          Address.from(s.token.address),
-          s.token.decimals,
-          s.token.symbol,
-          s.token.name
-        )
-      : undefined,
-  }));
+export const validSteps = (
+  steps: HistoryRoutingStep[]
+): HistoryRoutingStep[] => {
+  return steps.filter(
+    (s) =>
+      s.step !== RoutingStep.START &&
+      s.step !== RoutingStep.END &&
+      s.token &&
+      s.amount
+  );
 };
 
 export const toHistoryRoutingStep = (
-  s: RoutingStepDetails[]
+  steps: RoutingStepDetails[]
 ): HistoryRoutingStep[] => {
-  return s.map((s: RoutingStepDetails) => {
+  return steps.map((s: RoutingStepDetails) => {
     return {
       ...s,
-      txHash: undefined,
       token: s.token
         ? {
             chainId: s.token.chainId,
@@ -87,31 +67,6 @@ export const toHistoryRoutingStep = (
   });
 };
 
-export const entryOutput = (
-  step: RoutingStepDetails,
-  hash: string
-): {
-  title: string;
-  transactionUrl: {
-    hash: string;
-    chainId: ChainId;
-  };
-} => {
-  const stepAction = camelize(step.step.toString());
-  const stepAmount =
-    step.amount && formatUnits(step.amount, step.token?.decimals);
-  const title = `${stepAction} ${stepAmount} ${step.token?.symbol}}`;
-  const chainId = step.chainId;
-
-  return {
-    title,
-    transactionUrl: {
-      hash,
-      chainId,
-    },
-  };
-};
-
 export const stepFromEntry = (
   entry: HistoryEntry,
   type: RoutingStep
@@ -119,35 +74,29 @@ export const stepFromEntry = (
   return entry.steps.find((s) => s.step === type);
 };
 
-export const watchTransaction = async (
-  chainId: ChainId,
-  txHash: string,
-  callback: (sarasa: FujiResult<ethers.providers.TransactionReceipt>) => void
+export const triggerUpdatesFromSteps = (
+  steps: HistoryRoutingStep[],
+  chainId: ChainId
 ) => {
-  const { rpcProvider } = sdk.getConnectionFor(chainId);
-
-  const onBlock = async () => {
-    const currentReceipt = await rpcProvider.getTransactionReceipt(txHash);
-    if (currentReceipt && currentReceipt.confirmations > CONFIRMATIONS) {
-      console.log(
-        `Transaction ${txHash} has been confirmed ${currentReceipt.confirmations} times.`
-      );
-      done();
-      callback(new FujiResultSuccess(currentReceipt));
+  const result = validSteps(steps).filter((s) => s.chainId === chainId);
+  result.forEach((s) => {
+    if (s.step === RoutingStep.DEPOSIT || s.step === RoutingStep.WITHDRAW) {
+      useBorrow.getState().updateBalances('collateral');
+    } else if (
+      s.step === RoutingStep.BORROW ||
+      s.step === RoutingStep.PAYBACK
+    ) {
+      useBorrow.getState().updateBalances('debt');
     }
-  };
-
-  const onError = (error: Error) => {
-    console.error(`Transaction ${txHash} failed: ${error}`);
-    done();
-    callback(new FujiResultError(error.message, FujiErrorCode.ONCHAIN));
-  };
-
-  const done = () => {
-    rpcProvider.removeListener('block', onBlock);
-    rpcProvider.removeListener('error', onError);
-  };
-
-  rpcProvider.on('block', onBlock);
-  rpcProvider.on('error', onError);
+    if (s.step === RoutingStep.DEPOSIT) {
+      useBorrow.getState().updateAllowance('collateral');
+    } else if (s.step === RoutingStep.PAYBACK) {
+      useBorrow.getState().updateAllowance('debt');
+    }
+    // If the operation happened on the same chain as the wallet, update the balance
+    const walletChain = useAuth.getState().chain;
+    if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
+      updateNativeBalance();
+    }
+  });
 };

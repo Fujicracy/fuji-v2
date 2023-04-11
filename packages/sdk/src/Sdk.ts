@@ -33,7 +33,6 @@ import {
   FujiResultPromise,
   PermitParams,
   RouterActionParams,
-  RoutingStepDetails,
   VaultWithFinancials,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
@@ -391,37 +390,6 @@ export class Sdk {
       data: callData,
       chainId: srcChainId,
     });
-  }
-
-  /**
-   * Based on the `steps` tracks the tx status and resolves with txHash.
-   *
-   * @param transactionHash - hash of the tx on the source chain.
-   * @param steps - array of the steps obtained from `sdk.previews.METHOD`.
-   */
-  async watchTxStatus(
-    transactionHash: string,
-    steps: RoutingStepDetails[]
-  ): FujiResultPromise<RoutingStepDetails[]> {
-    const srcChainId = steps[0].chainId;
-    const chainType = CHAIN[srcChainId].chainType;
-    const transferIdResult = await this.getTransferId(
-      srcChainId,
-      transactionHash
-    );
-    if (!transferIdResult.success) {
-      return transferIdResult;
-    }
-    const transferId = transferIdResult.data;
-
-    const srcTxHash = Promise.resolve(transactionHash);
-    const destTxHash = this.getDestTxHash(transferId ?? '', chainType);
-
-    const data = steps.map((step) => ({
-      ...step,
-      txHash: step.chainId === srcChainId ? srcTxHash : destTxHash,
-    }));
-    return new FujiResultSuccess(data);
   }
 
   /**

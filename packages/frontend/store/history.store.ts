@@ -1,23 +1,18 @@
-import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStepDetails } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
 import { NOTIFICATION_MESSAGES } from '../constants';
-import { updateNativeBalance } from '../helpers/balances';
-import { hexToChainId } from '../helpers/chains';
 import {
-  entryOutput,
   HistoryEntry,
   HistoryEntryStatus,
   toHistoryRoutingStep,
-  toRoutingStepDetails,
+  triggerUpdatesFromSteps,
 } from '../helpers/history';
-import { getTransactionUrl, notify } from '../helpers/notifications';
-import { sdk } from '../services/sdk';
-import { useAuth } from './auth.store';
-import { useBorrow } from './borrow.store';
+import { notify } from '../helpers/notifications';
+import { watchTransaction } from '../helpers/transactions';
 import { usePositions } from './positions.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
@@ -53,9 +48,14 @@ export const useHistory = create<HistoryStore>()(
         ...initialState,
 
         async add(hash, vaultAddr, steps) {
+          const srcChainId = steps[0].chainId;
+          const destChainId = steps[steps.length - 1].chainId;
+          const isCrossChain = srcChainId !== destChainId;
+
           const entry = {
             vaultAddr,
             hash,
+            isCrossChain,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
           };
@@ -75,98 +75,133 @@ export const useHistory = create<HistoryStore>()(
         async watch(hash) {
           const entry = get().entries[hash];
 
-          try {
-            if (!entry) {
-              throw `No entry in history for hash ${hash}`;
-            }
-            const srcChainId = entry.steps[0].chainId;
-
-            const connextTransferResult = await sdk.getTransferId(
-              srcChainId,
-              hash
-            );
-            if (!connextTransferResult.success) {
-              throw connextTransferResult.error.message;
-            }
-            const connextTransferId = connextTransferResult.data;
-            const stepsWithHashResult = await sdk.watchTxStatus(
-              hash,
-              toRoutingStepDetails(entry.steps)
-            );
-            if (!stepsWithHashResult.success) {
-              throw stepsWithHashResult.error.message;
-            }
-            const stepsWithHash = stepsWithHashResult.data;
-            for (let i = 0; i < stepsWithHash.length; i++) {
-              const s = stepsWithHash[i];
-              console.debug('waiting', s.step, '...');
-              const txHash = await s.txHash;
-              if (!txHash) {
-                throw `Transaction step ${i} failed`;
-              }
-
-              const { rpcProvider } = sdk.getConnectionFor(s.chainId);
-              const receipt = await rpcProvider.waitForTransaction(txHash);
-
-              // If the operation happened on the same chain as the wallet, update the balance
-              const walletChain = useAuth.getState().chain;
-              if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
-                updateNativeBalance();
-              }
-
-              if (receipt.status === 0) {
-                throw `Transaction step ${i} failed`;
-              }
-              console.debug('success', s.step, txHash);
-              set(
-                produce((s: HistoryState) => {
-                  s.entries[hash].steps[i].txHash = txHash;
-                  s.entries[hash].connextTransferId = connextTransferId;
-                })
-              );
-
-              if (
-                s.step === RoutingStep.DEPOSIT ||
-                s.step === RoutingStep.WITHDRAW
-              ) {
-                useBorrow.getState().updateBalances('collateral');
-              } else if (
-                s.step === RoutingStep.BORROW ||
-                s.step === RoutingStep.PAYBACK
-              ) {
-                useBorrow.getState().updateBalances('debt');
-              }
-
-              if (s.step === RoutingStep.DEPOSIT) {
-                useBorrow.getState().updateAllowance('collateral');
-              } else if (s.step === RoutingStep.PAYBACK) {
-                useBorrow.getState().updateAllowance('debt');
-              }
-
-              const { title, transactionUrl } = entryOutput(s, txHash);
-
-              notify({
-                type: 'success',
-                message: title,
-                link: getTransactionUrl(transactionUrl),
-                isTransaction: true,
-              });
-            }
-            get().update(hash, { status: HistoryEntryStatus.DONE });
-
-            usePositions.getState().fetchUserPositions();
-          } catch (e) {
-            notify({
-              type: 'error',
-              message: NOTIFICATION_MESSAGES.TX_FAILURE,
-            });
-
-            get().update(hash, { status: HistoryEntryStatus.ERROR });
-          } finally {
+          const remove = () => {
             const ongoingTransactions = get().ongoingTransactions.filter(
               (h) => h !== hash
             );
             set({ ongoingTransactions });
+          };
+
+          const finish = (success: boolean) => {
+            const status = success
+              ? HistoryEntryStatus.SUCCESS
+              : HistoryEntryStatus.FAILURE;
+            get().update(hash, { status });
+
+            notify({
+              type: success ? 'success' : 'error',
+              message: success
+                ? NOTIFICATION_MESSAGES.TX_SUCCESS
+                : NOTIFICATION_MESSAGES.TX_FAILURE,
+            });
+
+            if (success) {
+              usePositions.getState().fetchUserPositions();
+            }
+          };
+
+          if (!entry) {
+            remove();
+            return;
+          }
+          try {
+            const srcChainId = entry.steps[0].chainId;
+            const result = await watchTransaction(srcChainId, hash);
+            if (!result.success) {
+              throw result.error;
+            }
+            triggerUpdatesFromSteps(entry.steps, srcChainId);
+            if (!entry.isCrossChain) {
+              finish(true);
+              return;
+            }
+            set(
+              produce((s: HistoryState) => {
+                s.entries[hash].sourceCompleted = true;
+                s.entries[hash].status = HistoryEntryStatus.BRIDGING;
+              })
+            );
+            // TODO: Poll -> sdk.getConnextTxDetails()
+            // Success
+
+            // const connextTransferResult = await sdk.getTransferId(
+            //   srcChainId,
+            //   hash
+            // );
+            // if (!connextTransferResult.success) {
+            //   throw connextTransferResult.error.message;
+            // }
+            // const connextTransferId = connextTransferResult.data;
+            // const stepsWithHashResult = await sdk.watchTxStatus(
+            //   hash,
+            //   toRoutingStepDetails(entry.steps)
+            // );
+            // if (!stepsWithHashResult.success) {
+            //   throw stepsWithHashResult.error.message;
+            // }
+            // const stepsWithHash = stepsWithHashResult.data;
+            // for (let i = 0; i < stepsWithHash.length; i++) {
+            //   const s = stepsWithHash[i];
+            //   console.debug('waiting', s.step, '...');
+            //   const txHash = await s.txHash;
+            //   if (!txHash) {
+            //     throw `Transaction step ${i} failed`;
+            //   }
+
+            //   const { rpcProvider } = sdk.getConnectionFor(s.chainId);
+            //   const receipt = await rpcProvider.waitForTransaction(txHash);
+
+            // // If the operation happened on the same chain as the wallet, update the balance
+            // const walletChain = useAuth.getState().chain;
+            // if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
+            //   updateNativeBalance();
+            // }
+
+            //   if (receipt.status === 0) {
+            //     throw `Transaction step ${i} failed`;
+            //   }
+            //   console.debug('success', s.step, txHash);
+            // set(
+            //   produce((s: HistoryState) => {
+            //     s.entries[hash].steps[i].txHash = txHash;
+            //     s.entries[hash].connextTransferId = connextTransferId;
+            //   })
+            // );
+
+            // if (
+            //   s.step === RoutingStep.DEPOSIT ||
+            //   s.step === RoutingStep.WITHDRAW
+            // ) {
+            //   useBorrow.getState().updateBalances('collateral');
+            // } else if (
+            //   s.step === RoutingStep.BORROW ||
+            //   s.step === RoutingStep.PAYBACK
+            // ) {
+            //   useBorrow.getState().updateBalances('debt');
+            // }
+
+            // if (s.step === RoutingStep.DEPOSIT) {
+            //   useBorrow.getState().updateAllowance('collateral');
+            // } else if (s.step === RoutingStep.PAYBACK) {
+            //   useBorrow.getState().updateAllowance('debt');
+            // }
+
+            //   const { title, transactionUrl } = entryOutput(s, txHash);
+
+            //   notify({
+            //     type: 'success',
+            //     message: title,
+            //     link: getTransactionUrl(transactionUrl),
+            //     isTransaction: true,
+            //   });
+            // }
+            // get().update(hash, { status: HistoryEntryStatus.DONE });
+
+            // usePositions.getState().fetchUserPositions();
+          } catch (e) {
+            finish(false);
+          } finally {
+            remove();
           }
         },
 
