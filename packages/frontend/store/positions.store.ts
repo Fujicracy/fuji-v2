@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { DUST_AMOUNT, ERROR_MESSAGES } from '../constants';
+import { DUST_AMOUNT, NOTIFICATION_MESSAGES } from '../constants';
 import { notify } from '../helpers/notifications';
 import {
   getAccrual,
@@ -46,7 +46,10 @@ export const usePositions = create<PositionsStore>()(
 
         if (!result.success) {
           console.error(result.error?.message);
-          notify({ type: 'error', message: ERROR_MESSAGES.POSITIONS });
+          notify({
+            type: 'error',
+            message: NOTIFICATION_MESSAGES.POSITIONS_FAILURE,
+          });
         }
         const positions = result.success
           ? (result.data as Position[]).filter(

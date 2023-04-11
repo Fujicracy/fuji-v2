@@ -5,7 +5,7 @@ import { ToastContainer, ToastPosition } from 'react-toastify';
 /** Custom component for notifications. */
 function Notification() {
   /** Describes notification position */
-  const POSITION: ToastPosition = 'top-right';
+  const POSITION: ToastPosition = 'top-left';
   /** Closes notification after delay  */
   const AUTO_CLOSE_TIME = 5000;
   /** Describes notification queue */

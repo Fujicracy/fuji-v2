@@ -10,3 +10,8 @@ export enum PATH {
   POSITION = '/my-positions/[pid]',
   THEMING = '/theming',
 }
+
+export enum SOCIAL_URL {
+  DISCORD = 'https://discord.com/invite/dnvJeEMeDJ',
+  TWITTER = 'https://twitter.com/FujiFinance',
+}

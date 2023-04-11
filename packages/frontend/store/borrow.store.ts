@@ -26,8 +26,8 @@ import { devtools } from 'zustand/middleware';
 import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_THRESHOLD,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
+  NOTIFICATION_MESSAGES,
+  SOCIAL_URL,
 } from '../constants';
 import {
   AllowanceStatus,
@@ -125,7 +125,7 @@ type BorrowActions = {
   updateVaultBalance: () => void;
   allow: (type: AssetType) => void;
   updateAvailableRoutes: (routes: RouteMeta[]) => void;
-  signPermit: () => void;
+  sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
 };
@@ -729,7 +729,7 @@ export const useBorrow = create<BorrowStore>()(
 
             changeAllowance('ready', amount);
             notify({
-              message: SUCCESS_MESSAGES.ALLOWANCE,
+              message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
               isTransaction: true,
               link:
@@ -740,11 +740,14 @@ export const useBorrow = create<BorrowStore>()(
             });
           } catch (e) {
             changeAllowance('error');
-            notify({ message: ERROR_MESSAGES.ALLOWANCE, type: 'error' });
+            notify({
+              message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
+              type: 'error',
+            });
           }
         },
 
-        async signPermit() {
+        async sign() {
           const actions = get().actions;
           const vault = get().activeVault;
           const provider = useAuth.getState().provider;
@@ -761,6 +764,10 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ isSigning: true });
 
+            notify({
+              type: 'info',
+              message: NOTIFICATION_MESSAGES.SIGNATURE_PENDING,
+            });
             const { domain, types, value } = await vault.signPermitFor(
               permitAction
             );
@@ -773,7 +780,7 @@ export const useBorrow = create<BorrowStore>()(
             const message =
               e instanceof Error
                 ? e.message === 'user rejected signing' // Thrown by ethers.js
-                  ? ERROR_MESSAGES.CANCEL_SIGNATURE
+                  ? NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
                   : e.message
                 : String(e);
             notify({
@@ -796,7 +803,7 @@ export const useBorrow = create<BorrowStore>()(
           ) {
             notify({
               type: 'error',
-              message: ERROR_MESSAGES.UNEXPECTED_UNDEFINED,
+              message: NOTIFICATION_MESSAGES.UNEXPECTED_UNDEFINED,
             });
             return;
           }
@@ -828,14 +835,20 @@ export const useBorrow = create<BorrowStore>()(
             if (tx) {
               notify({
                 type: 'success',
-                message: SUCCESS_MESSAGES.TX,
+                message: NOTIFICATION_MESSAGES.TX_SUCCESS,
               });
             }
             return tx;
-          } catch (e) {
+          } catch (e: any) {
+            const userCancelled = 'code' in e && e.code === 'ACTION_REJECTED';
+            const message = userCancelled
+              ? NOTIFICATION_MESSAGES.TX_CANCELLED
+              : NOTIFICATION_MESSAGES.TX_FAILURE;
+            const link = userCancelled ? SOCIAL_URL.DISCORD : undefined;
             notify({
               type: 'error',
-              message: ERROR_MESSAGES.TX,
+              message,
+              link,
             });
           } finally {
             set({ isExecuting: false });
@@ -844,7 +857,7 @@ export const useBorrow = create<BorrowStore>()(
 
         async signAndExecute() {
           if (get().needsSignature) {
-            await get().signPermit();
+            await get().sign();
           }
 
           const tx = await get().execute();

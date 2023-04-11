@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { ERROR_MESSAGES } from '../constants';
+import { NOTIFICATION_MESSAGES } from '../constants';
 import { updateNativeBalance } from '../helpers/balances';
 import { hexToChainId } from '../helpers/chains';
 import {
@@ -158,7 +158,7 @@ export const useHistory = create<HistoryStore>()(
           } catch (e) {
             notify({
               type: 'error',
-              message: ERROR_MESSAGES.TX_PROCESS,
+              message: NOTIFICATION_MESSAGES.TX_FAILURE,
             });
 
             get().update(hash, { status: HistoryEntryStatus.ERROR });
