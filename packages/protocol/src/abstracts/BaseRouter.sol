@@ -476,10 +476,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _checkBeneficiary(address beneficiary, address user) internal pure returns (address) {
     if (beneficiary == address(0)) {
       return user;
+    } else if (beneficiary != user) {
+      revert BaseRouter__bundleInternal_notBeneficiary();
     } else {
-      if (beneficiary != user) {
-        revert BaseRouter__bundleInternal_notBeneficiary();
-      }
       return user;
     }
   }
