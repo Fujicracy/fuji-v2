@@ -8,6 +8,7 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Goerli} from "../../../src/providers/goerli/AaveV3Goerli.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
+import {IVaultPermissions} from "../../../src/interfaces/IVaultPermissions.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {MockProviderV0} from "../../../src/mocks/MockProviderV0.sol";
@@ -460,9 +461,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     actions1[0] = IRouter.Action.Flashloan;
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
-    bytes[] memory args = new bytes[](1);
-
     actions[0] = IRouter.Action.XTransferWithCall;
+
+    bytes[] memory args = new bytes[](1);
 
     IRouter.Action[] memory destActions = new IRouter.Action[](1);
     bytes[] memory destArgs = new bytes[](1);
@@ -498,9 +499,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     actions1[0] = IRouter.Action.Flashloan;
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
-    bytes[] memory args = new bytes[](1);
-
     actions[0] = IRouter.Action.Swap;
+
+    bytes[] memory args = new bytes[](1);
 
     bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
 
@@ -602,5 +603,59 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
     connextRouter.xBundle(originActions2, originArgs2);
+  }
+
+  function test_flashCloseXTransferAttack() public {
+    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+
+    // Setup test such that the router has withdrawAllowance for some reason.
+    deal(collateralAsset, ALICE, 2 ether);
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(vault), 2 ether);
+    vault.deposit(2 ether, ALICE);
+    IVaultPermissions(address(vault)).increaseWithdrawAllowance(
+      address(connextRouter), address(connextRouter), 2 ether
+    );
+    vm.stopPrank();
+
+    // attacker
+    address attacker = BOB;
+
+    //XTransferWithCall from origin chain
+    IRouter.Action[] memory originActions = new IRouter.Action[](2);
+    originActions[0] = IRouter.Action.Withdraw;
+    originActions[1] = IRouter.Action.XTransferWithCall;
+
+    bytes[] memory originArgs = new bytes[](2);
+    originArgs[0] = abi.encode(address(vault), 1 ether, address(connextRouter), ALICE);
+
+    // flashloan in optimism
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    destActions[0] = IRouter.Action.Flashloan;
+
+    bytes[] memory destArgs = new bytes[](1);
+
+    // Perform a flashclose
+    IRouter.Action[] memory destInnerActions = new IRouter.Action[](1);
+    bytes[] memory destInnerArgs = new bytes[](1);
+    destInnerActions[0] = IRouter.Action.Deposit;
+    destInnerArgs[0] = abi.encode(address(vault), 1 ether, attacker, address(connextRouter));
+
+    // Attacker creates dumb flashloan action at destination to attempt bypass checks
+    bytes memory attackCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, destInnerActions, destInnerArgs);
+    // Args for flashloan
+    address supposedDestinationFlasher = 0x000000000000000000000000000000000000001a;
+    destArgs[0] = abi.encode(
+      supposedDestinationFlasher, debtAsset, 1 wei, address(connextRouter), attackCalldata
+    );
+
+    bytes memory destCallData = abi.encode(destActions, destArgs, 0);
+
+    originArgs[1] = abi.encode(destDomain, 0, collateralAsset, 0, destCallData);
+
+    // Expect revert due to wrong beneficiary in cross transaction
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    connextRouter.xBundle(originActions, originArgs);
   }
 }
