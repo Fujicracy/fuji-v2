@@ -32,7 +32,6 @@
     "@web3-onboard/react": "^2.6.6",
     "@web3-onboard/walletconnect": "^2.3.1",
     "@x-fuji/sdk": "0.1.0",
-    "d3-scale": "^4.0.2",
     "debounce": "^1.2.1",
     "ethers": "^5.7.0",
     "immer": "^9.0.16",
