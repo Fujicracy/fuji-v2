@@ -20,6 +20,7 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
+import {LibBytes} from "../libraries/LibBytes.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
   /**
@@ -357,9 +358,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (,,,, bytes memory requestorCalldata) =
         abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
 
-      (Action[] memory newActions, bytes[] memory newArgs) =
-        this.decodeFlashloanData(requestorCalldata);
-      //TODO do decode with assembly
+      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
+        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
+      );
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.Swap) {
@@ -396,26 +397,5 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     routerByDomain[domain] = router;
 
     emit NewRouterAdded(router, domain);
-  }
-
-  /**
-   * @notice Helper function to decode the calldata of a flashloan.
-   *
-   * @param data to decode
-   *
-   * @return actions to execute in {BaseRouter-xBundle}
-   * @return args to execute in {BaseRouter-xBundle}
-   *
-   * @dev To decode the data encoded with selector,
-   * the first 4 bytes need to be removed. It's not possible
-   * to do it using bytes memory in the original function,
-   * so this helper function is used.
-   */
-  function decodeFlashloanData(bytes calldata data)
-    public
-    pure
-    returns (Action[] memory actions, bytes[] memory args)
-  {
-    return abi.decode(data[4:], (Action[], bytes[]));
   }
 }
