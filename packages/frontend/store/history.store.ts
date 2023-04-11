@@ -23,11 +23,11 @@ import { usePositions } from './positions.store';
 export type HistoryStore = HistoryState & HistoryActions;
 
 type HistoryState = {
-  allTransactions: string[];
+  transactions: string[];
   ongoingTransactions: string[];
-  byHash: Record<string, HistoryEntry>;
+  entries: Record<string, HistoryEntry>;
 
-  inModalHash?: string; // The tx hash displayed in modal
+  currentTxHash?: string; // The tx hash displayed in modal
 };
 
 type HistoryActions = {
@@ -41,9 +41,9 @@ type HistoryActions = {
 };
 
 const initialState: HistoryState = {
-  allTransactions: [],
+  transactions: [],
   ongoingTransactions: [],
-  byHash: {},
+  entries: {},
 };
 
 export const useHistory = create<HistoryStore>()(
@@ -62,9 +62,9 @@ export const useHistory = create<HistoryStore>()(
 
           set(
             produce((s: HistoryState) => {
-              s.inModalHash = hash;
-              s.byHash[hash] = entry;
-              s.allTransactions = [hash, ...s.allTransactions];
+              s.currentTxHash = hash;
+              s.entries[hash] = entry;
+              s.transactions = [hash, ...s.transactions];
               s.ongoingTransactions = [hash, ...s.ongoingTransactions];
             })
           );
@@ -73,7 +73,7 @@ export const useHistory = create<HistoryStore>()(
         },
 
         async watch(hash) {
-          const entry = get().byHash[hash];
+          const entry = get().entries[hash];
 
           try {
             if (!entry) {
@@ -120,8 +120,8 @@ export const useHistory = create<HistoryStore>()(
               console.debug('success', s.step, txHash);
               set(
                 produce((s: HistoryState) => {
-                  s.byHash[hash].steps[i].txHash = txHash;
-                  s.byHash[hash].connextTransferId = connextTransferId;
+                  s.entries[hash].steps[i].txHash = txHash;
+                  s.entries[hash].connextTransferId = connextTransferId;
                 })
               );
 
@@ -171,14 +171,14 @@ export const useHistory = create<HistoryStore>()(
         },
 
         update(hash, patch) {
-          const entry = get().byHash[hash];
+          const entry = get().entries[hash];
           if (!entry) {
             throw `No entry in history for hash ${hash}`;
           }
 
           set(
             produce((s: HistoryState) => {
-              s.byHash[hash] = { ...s.byHash[hash], ...patch };
+              s.entries[hash] = { ...s.entries[hash], ...patch };
             })
           );
         },
@@ -186,15 +186,14 @@ export const useHistory = create<HistoryStore>()(
         clearAll() {
           useHistory.persist.clearStorage();
           set(initialState);
-          // set({ allTransactions: [...get().ongoingTransactions] })
         },
 
         openModal(hash) {
-          set({ inModalHash: hash });
+          set({ currentTxHash: hash });
         },
 
         closeModal() {
-          set({ inModalHash: '' });
+          set({ currentTxHash: '' });
         },
       }),
       {

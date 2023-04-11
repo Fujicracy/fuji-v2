@@ -62,7 +62,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ''));
-  const entry = useHistory((state) => state.byHash[hash || '']);
+  const entry = useHistory((state) => state.entries[hash || '']);
 
   const closeModal = useHistory((state) => state.closeModal);
 

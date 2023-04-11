@@ -55,7 +55,7 @@ function AccountModal({
   const walletName = useAuth((state) => state.walletName);
 
   const historyEntries = useHistory((state) =>
-    state.allTransactions.map((hash) => state.byHash[hash]).slice(0, 10)
+    state.transactions.map((hash) => state.entries[hash]).slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
   const clearAll = useHistory((state) => state.clearAll);
