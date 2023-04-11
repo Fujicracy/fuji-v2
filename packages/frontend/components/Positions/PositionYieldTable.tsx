@@ -165,8 +165,8 @@ function PositionYieldTableContainer({
   return (
     <TableContainer
       sx={{
-        '-ms-overflow-style': 'none',
-        'scrollbar-width': 'none',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
         '&::-webkit-scrollbar': {
           display: 'none',
         },

@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
+import React from 'react';
 
 import { chainName } from '../../../helpers/chains';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
@@ -129,10 +130,9 @@ function RouteBox({
         }}
       >
         {stepsToShow.map((step, i) => (
-          <>
+          <React.Fragment key={i}>
             {i !== 0 && (
               <Box
-                key={i}
                 sx={{
                   ['@media screen and (max-width: 600px)']: {
                     transform: 'rotate(90deg)',
@@ -148,7 +148,6 @@ function RouteBox({
               </Box>
             )}
             <Stack
-              key={step.step}
               direction="column"
               sx={{
                 p: '0.375rem 0.45rem',
@@ -166,7 +165,7 @@ function RouteBox({
                 {description(step)}
               </Typography>
             </Stack>
-          </>
+          </React.Fragment>
         ))}
       </Stack>
     </Card>
