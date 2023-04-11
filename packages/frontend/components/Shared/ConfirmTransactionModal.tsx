@@ -140,7 +140,9 @@ export function ConfirmTransactionModal({
           )}
         </Stack>
 
-        {steps && steps.length > 0 && <RouteBox steps={steps} isCrossChain />}
+        {steps && steps.length > 0 && (
+          <RouteBox steps={steps} isCrossChain={isCrossChain} />
+        )}
 
         <InfoRow
           title="Estimated Cost"
