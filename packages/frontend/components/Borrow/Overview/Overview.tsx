@@ -5,6 +5,7 @@ import React from 'react';
 import { borrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
+import APYChart from '../Analytics/APYChart';
 import Container from './Container';
 import Details from './Details';
 import LTVProgressBar from './LTVProgressBar';
@@ -54,6 +55,8 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   return (
     <Container isMobile={isMobile}>
       {!isMobile && <Title providers={providers} vault={vault} />}
+
+      <APYChart />
 
       <Summary
         collateral={collateral}
