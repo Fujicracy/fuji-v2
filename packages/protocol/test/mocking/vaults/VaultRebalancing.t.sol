@@ -189,7 +189,9 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
       address(chief),
       "Fuji-V2 tWETH-tDAI BorrowingVault",
       "fbvtWETHtDAI",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
 
     yvault = new YieldVault(

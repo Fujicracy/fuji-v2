@@ -98,7 +98,9 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
       address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
 
     compoundV3.getDepositRateFor(v);
