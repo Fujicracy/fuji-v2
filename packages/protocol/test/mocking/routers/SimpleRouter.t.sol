@@ -424,7 +424,9 @@ contract SimpleRouterUnitTests is MockingSetup {
       address(chief),
       "Fuji-V2 DAI Vault Shares",
       "fv2DAI",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
 
     _dealMockERC20(collateralAsset, ALICE, amount);

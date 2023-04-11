@@ -1,6 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { MaxUint256 } from '@ethersproject/constants';
-import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
 import { ChainConfig } from '../types/ChainConfig';
@@ -25,26 +24,10 @@ export abstract class NativeCurrency extends AbstractCurrency {
   }
 
   /**
-   * {@inheritDoc AbstractCurrency.balanceOfStream}
-   * @throws if {@link AbstractCurrency.setConnection} was not called
-   * @experimental
-   */
-  balanceOfStream(_account: Address): Observable<BigNumber> {
-    invariant(false, 'Not implemented!');
-  }
-
-  /**
    * {@inheritDoc AbstractCurrency.allowance}
    */
   async allowance(_owner: Address, _spender: Address): Promise<BigNumber> {
     return Promise.resolve(MaxUint256);
-  }
-
-  /**
-   * {@inheritDoc AbstractCurrency.allowanceStream}
-   */
-  allowanceStream(_owner: Address, _spender: Address): Observable<BigNumber> {
-    invariant(false, 'Not implemented!');
   }
 
   /**

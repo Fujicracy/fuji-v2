@@ -17,13 +17,12 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
-  uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
     _grantRoleChief(LIQUIDATOR_ROLE, BOB);
   }
 
-  function mock_getPriceOf(address asset1, address asset2, uint256 price) internal {
+  function mock_setPriceOf(address asset1, address asset2, uint256 price) internal {
     vm.mockCall(
       address(oracle),
       abi.encodeWithSelector(MockOracle.getPriceOf.selector, asset1, asset2, 18),
@@ -32,7 +31,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   }
 
   function _utils_checkMaxLTV(uint96 amount, uint96 borrowAmount) internal view returns (bool) {
-    uint256 maxLtv = 75 * 1e16;
+    uint256 maxLtv = DEFAULT_MAX_LTV;
 
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
     uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
@@ -48,7 +47,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     returns (uint256)
   {
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    return (amount * LIQUIDATION_RATIO * price) / (borrowAmount * 10 ** ASSET_DECIMALS);
+    return (amount * DEFAULT_LIQ_RATIO * price) / (borrowAmount * 10 ** ASSET_DECIMALS);
   }
 
   function _utils_getFutureHealthFactor(
@@ -61,11 +60,11 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     returns (uint256)
   {
     uint256 priceBefore = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    return (amount * LIQUIDATION_RATIO * (priceBefore - priceDrop))
+    return (amount * DEFAULT_LIQ_RATIO * (priceBefore - priceDrop))
       / (borrowAmount * 1e16 * 10 ** ASSET_DECIMALS);
   }
 
-  function _utils_getLiquidationThresholdValue(
+  function get_PriceDropToLiquidation(
     uint256 price,
     uint256 deposit,
     uint256 borrowAmount
@@ -78,7 +77,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       price / 1e18 > 0 && deposit / 1e18 > 0 && borrowAmount / 1e18 > 0,
       "Price, deposit, and borrowAmount should be 1e18"
     );
-    return (price - ((borrowAmount * 1e36) / (deposit * LIQUIDATION_RATIO)));
+    return (price - ((borrowAmount * 1e36) / (deposit * DEFAULT_LIQ_RATIO)));
   }
 
   function _utils_checkLiquidateMaxFuture(
@@ -91,7 +90,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     returns (bool)
   {
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    uint256 hf = (amount * LIQUIDATION_RATIO * (price - priceDrop))
+    uint256 hf = (amount * DEFAULT_LIQ_RATIO * (price - priceDrop))
       / (borrowAmount * 1e18 * 10 ** ASSET_DECIMALS);
 
     return hf <= 95;
@@ -107,7 +106,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     returns (bool)
   {
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    uint256 hf = (amount * LIQUIDATION_RATIO * (price - priceDrop))
+    uint256 hf = (amount * DEFAULT_LIQ_RATIO * (price - priceDrop))
       / (borrowAmount * 1e18 * 10 ** ASSET_DECIMALS);
 
     return hf > 95 && hf < 100;
@@ -181,9 +180,42 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
-
     vm.prank(ALICE);
     vault.withdraw(amount, ALICE, ALICE);
+  }
+
+  function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__beforeTokenTransfer_moreThanMax.selector);
+    vm.prank(ALICE);
+    vault.transfer(BOB, uint256(amount));
+  }
+
+  function test_tryTransferMaxRedeemWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+    uint256 maxTransferable = vault.maxRedeem(ALICE);
+
+    vm.prank(ALICE);
+    vault.transfer(BOB, maxTransferable);
+    assertEq(vault.balanceOf(BOB), maxTransferable);
+
+    uint256 nonTransferable = amount - maxTransferable;
+
+    vm.expectRevert(BorrowingVault.BorrowingVault__beforeTokenTransfer_moreThanMax.selector);
+    vm.prank(ALICE);
+    vault.transfer(BOB, nonTransferable);
+
+    // Bob's shares haven't change.
+    assertEq(vault.balanceOf(BOB), maxTransferable);
   }
 
   function test_setMinAmount(uint256 min) public {
@@ -255,14 +287,15 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     uint256 borrowAmount = 1000e18;
     // Make price in 1e18 decimals.
     uint256 scaledUSDPerETHPrice = USD_PER_ETH_PRICE * 1e10;
-    vm.assume(
-      priceDrop > _utils_getLiquidationThresholdValue(scaledUSDPerETHPrice, amount, borrowAmount)
-    );
-    priceDrop = bound(priceDrop, 751e18, scaledUSDPerETHPrice);
+    vm.assume(priceDrop > get_PriceDropToLiquidation(scaledUSDPerETHPrice, amount, borrowAmount));
+    // This bounds priceDrop using 788e18
+    // It means ETH price is dropping anywhere between $788 usd/ETH and USD_PER_ETH_PRICE
+    priceDrop = bound(priceDrop, 788e18, scaledUSDPerETHPrice);
 
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
+
     uint256 priceDropThresholdToMaxLiq =
-      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((95e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     uint256 liquidatorFactor_0 = vault.getLiquidationFactor(ALICE);
     assertEq(liquidatorFactor_0, 0);
@@ -274,12 +307,12 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     if (priceDrop > priceDropThresholdToMaxLiq) {
       uint256 newPrice = (price - priceDrop);
-      mock_getPriceOf(debtAsset, collateralAsset, newPrice);
+      mock_setPriceOf(debtAsset, collateralAsset, newPrice);
       uint256 liquidatorFactor = vault.getLiquidationFactor(ALICE);
       assertEq(liquidatorFactor, 1e18);
     } else {
       uint256 newPrice = (price - priceDrop);
-      mock_getPriceOf(debtAsset, collateralAsset, newPrice);
+      mock_setPriceOf(debtAsset, collateralAsset, newPrice);
       uint256 liquidatorFactor = vault.getLiquidationFactor(ALICE);
       assertEq(liquidatorFactor, 0.5e18);
     }
@@ -312,8 +345,8 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     uint256 liquidationPrice = (currentPrice * 10) / 100;
     uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
 
-    mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
-    mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
+    mock_setPriceOf(collateralAsset, debtAsset, inversePrice);
+    mock_setPriceOf(debtAsset, collateralAsset, liquidationPrice);
 
     _dealMockERC20(debtAsset, BOB, borrowAmount);
 
@@ -350,15 +383,13 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     // Make price in 1e18 decimals.
     uint256 scaledUSDPerETHPrice = USD_PER_ETH_PRICE * 1e10;
 
-    vm.assume(
-      priceDrop > _utils_getLiquidationThresholdValue(scaledUSDPerETHPrice, amount, borrowAmount)
-    );
+    vm.assume(priceDrop > get_PriceDropToLiquidation(scaledUSDPerETHPrice, amount, borrowAmount));
 
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 priceDropThresholdToMaxLiq =
-      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((95e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
     uint256 priceDropThresholdToDiscountLiq =
-      price - ((100e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
     priceDrop =
@@ -369,8 +400,8 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     // price drop, putting HF < 100, but above 95 and the close factor at 50%
     uint256 newPrice = price - priceDrop;
 
-    mock_getPriceOf(collateralAsset, debtAsset, 1e18 / newPrice);
-    mock_getPriceOf(debtAsset, collateralAsset, newPrice);
+    mock_setPriceOf(collateralAsset, debtAsset, 1e18 / newPrice);
+    mock_setPriceOf(debtAsset, collateralAsset, newPrice);
     uint256 liquidatorAmount = borrowAmount;
     _dealMockERC20(debtAsset, BOB, liquidatorAmount);
 

@@ -39,7 +39,9 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
             address(chief),
             'Fuji-V2 tWETH-tDAI BorrowingVault',
             'fbvtWETHtDAI',
-            providers
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
         );
 
     // Set up {Chief-_vaults} manually to bypass vault factory set-up.
