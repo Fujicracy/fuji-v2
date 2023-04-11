@@ -61,6 +61,7 @@ const Tooltip = ({ point }: any) => {
   return (
     <Box
       sx={{
+        zIndex: 9999,
         width: '16rem',
         background: palette.secondary.dark,
         p: '0.75rem 1rem',
@@ -113,7 +114,7 @@ function APYChart() {
     ],
     fill: [{ match: '*', id: 'gradientA' }],
     tooltip: Tooltip,
-    margin: { top: 0, right: 50, bottom: 50, left: 50 },
+    margin: { top: 0, right: 10, bottom: 50, left: 30 },
     xScale: { type: 'point' },
     yScale: { type: 'linear', min: 0, max: 'auto' },
     enableArea: true,
@@ -158,7 +159,7 @@ function APYChart() {
   };
 
   return (
-    <Box width={700} height={400}>
+    <Box width="100%" height={400}>
       <ResponsiveLine {...config} />
     </Box>
   );
