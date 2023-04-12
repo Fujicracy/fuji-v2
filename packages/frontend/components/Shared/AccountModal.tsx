@@ -30,6 +30,7 @@ import {
   HistoryEntryStatus,
   stepFromEntry,
 } from '../../helpers/history';
+import { toNotSoFixed } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 
@@ -261,17 +262,15 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const firstTitle =
     firstStep && firstStep.token
-      ? `${firstStep.step.toString()} ${formatUnits(
-          firstStep.amount ?? 0,
-          firstStep.token.decimals
+      ? `${firstStep.step.toString()} ${toNotSoFixed(
+          formatUnits(firstStep.amount ?? 0, firstStep.token.decimals)
         )} ${firstStep.token.symbol}`
       : '';
 
   const secondTitle =
     secondStep && secondStep.token
-      ? `${secondStep.step.toString()} ${formatUnits(
-          secondStep.amount ?? 0,
-          secondStep.token.decimals
+      ? `${secondStep.step.toString()} ${toNotSoFixed(
+          formatUnits(secondStep.amount ?? 0, secondStep.token.decimals)
         )} ${secondStep.token.symbol}`
       : '';
 

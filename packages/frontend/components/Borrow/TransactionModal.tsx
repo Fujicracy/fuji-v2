@@ -104,7 +104,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     const name = s.lendingProvider?.name;
 
     const label = camelize(
-      `${action} ${amount}${token?.symbol} ${name ? preposition : ''} ${
+      `${action} ${amount} ${token?.symbol} ${name ? preposition : ''} ${
         name ?? ''
       }`
     );
