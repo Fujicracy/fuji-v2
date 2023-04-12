@@ -7,10 +7,10 @@ import { hexToChainId } from './chains';
 
 export enum HistoryEntryStatus {
   ONGOING,
-  BRIDGING,
   SUCCESS,
   FAILURE,
 }
+
 /**
  * Contains all we need to instantiate a token with new Token()
  */
@@ -22,14 +22,21 @@ export type SerializableToken = {
   name?: string;
 };
 
+export type HistoryEntryChain = {
+  chainId: ChainId;
+  hash: string;
+  status: HistoryEntryStatus;
+};
+
 export type HistoryEntry = {
   hash: string;
   steps: HistoryRoutingStep[];
   status: HistoryEntryStatus;
   connextTransferId?: string;
-  vaultAddr?: string;
-  isCrossChain: boolean;
-  sourceCompleted?: boolean; // Not proud about this one
+  vaultAddress?: string;
+  sourceChain: HistoryEntryChain;
+  isCrossChain: boolean; // Convenience
+  destinationChain?: HistoryEntryChain;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {

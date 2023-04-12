@@ -7,6 +7,7 @@ import { devtools } from 'zustand/middleware';
 import { NOTIFICATION_MESSAGES } from '../constants';
 import {
   HistoryEntry,
+  HistoryEntryChain,
   HistoryEntryStatus,
   toHistoryRoutingStep,
   triggerUpdatesFromSteps,
@@ -47,14 +48,20 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        async add(hash, vaultAddr, steps) {
+        async add(hash, vaultAddress, steps) {
           const srcChainId = steps[0].chainId;
           const destChainId = steps[steps.length - 1].chainId;
           const isCrossChain = srcChainId !== destChainId;
+          const sourceChain: HistoryEntryChain = {
+            chainId: srcChainId,
+            status: HistoryEntryStatus.ONGOING,
+            hash,
+          };
 
           const entry = {
-            vaultAddr,
+            vaultAddress,
             hash,
+            sourceChain,
             isCrossChain,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
@@ -86,7 +93,29 @@ export const useHistory = create<HistoryStore>()(
             const status = success
               ? HistoryEntryStatus.SUCCESS
               : HistoryEntryStatus.FAILURE;
+
             get().update(hash, { status });
+            set(
+              produce((s: HistoryState) => {
+                const entry = s.entries[hash];
+                entry.status = success
+                  ? HistoryEntryStatus.SUCCESS
+                  : HistoryEntryStatus.FAILURE;
+                if (
+                  entry.isCrossChain &&
+                  entry.destinationChain &&
+                  entry.sourceChain.status === HistoryEntryStatus.SUCCESS
+                ) {
+                  entry.destinationChain.status = success
+                    ? HistoryEntryStatus.SUCCESS
+                    : HistoryEntryStatus.FAILURE;
+                } else {
+                  entry.sourceChain.status = success
+                    ? HistoryEntryStatus.SUCCESS
+                    : HistoryEntryStatus.FAILURE;
+                }
+              })
+            );
 
             notify({
               type: success ? 'success' : 'error',
@@ -105,22 +134,23 @@ export const useHistory = create<HistoryStore>()(
             return;
           }
           try {
-            const srcChainId = entry.steps[0].chainId;
-            const result = await watchTransaction(srcChainId, hash);
+            const result = await watchTransaction(
+              entry.sourceChain.chainId,
+              hash
+            );
             if (!result.success) {
               throw result.error;
             }
-            triggerUpdatesFromSteps(entry.steps, srcChainId);
+            triggerUpdatesFromSteps(entry.steps, entry.sourceChain.chainId);
+            set(
+              produce((s: HistoryState) => {
+                s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
+              })
+            );
             if (!entry.isCrossChain) {
               finish(true);
               return;
             }
-            set(
-              produce((s: HistoryState) => {
-                s.entries[hash].sourceCompleted = true;
-                s.entries[hash].status = HistoryEntryStatus.BRIDGING;
-              })
-            );
             // TODO: Poll -> sdk.getConnextTxDetails()
             // Success
 

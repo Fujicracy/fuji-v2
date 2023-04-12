@@ -133,7 +133,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     }
 
     closeModal();
-    const vault = vaultFromAddress(entry.vaultAddr);
+    const vault = vaultFromAddress(entry.vaultAddress);
     if (!vault) {
       router.push(PATH.MY_POSITIONS);
       return;

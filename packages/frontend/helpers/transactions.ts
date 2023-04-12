@@ -39,15 +39,14 @@ export const statusForStep = (
   step: TransactionStep,
   entry: HistoryEntry
 ): HistoryEntryStatus => {
-  const srcChainId = entry.steps[0].chainId;
-  if (entry.status === HistoryEntryStatus.BRIDGING) {
-    return step.chainId === srcChainId
-      ? HistoryEntryStatus.SUCCESS
-      : HistoryEntryStatus.ONGOING;
-  } else if (entry.status === HistoryEntryStatus.FAILURE) {
-    return step.chainId === srcChainId && entry.sourceCompleted === true
-      ? HistoryEntryStatus.SUCCESS
-      : HistoryEntryStatus.FAILURE;
+  if (step.chainId === entry.sourceChain.chainId) {
+    return entry.sourceChain.status;
+  }
+  if (
+    entry.destinationChain &&
+    step.chainId === entry.destinationChain.chainId
+  ) {
+    return entry.destinationChain.status;
   }
   return entry.status;
 };
