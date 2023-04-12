@@ -170,10 +170,10 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
           </Grid>
         ) : (
           <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={4.5}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
-            <Grid item sm={12} md={7}>
+            <Grid item sm={12} md={7.5}>
               <Overview isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>
