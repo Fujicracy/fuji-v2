@@ -69,18 +69,26 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
   }
   const validatedSteps = validSteps(entry.steps);
 
-  const steps = validatedSteps.map((s): TransactionStep => {
+  const steps = validatedSteps.map((s, i): TransactionStep => {
     const { step, chainId, token } = s;
-    const chain = chainName(chainId);
+
+    const realChainId =
+      s.step !== RoutingStep.X_TRANSFER
+        ? chainId
+        : i > 0 && s.token
+        ? s.token.chainId
+        : chainId;
+
+    const chain = chainName(realChainId);
     const amount = token && formatUnits(s.amount ?? 0, token.decimals);
 
     const txHash =
-      s.step !== RoutingStep.X_TRANSFER
-        ? chainId === entry.sourceChain.chainId
-          ? entry.hash
-          : entry.destinationChain?.hash
-        : undefined;
-    const link = txHash && transactionUrl(chainId, txHash);
+      s.step !== RoutingStep.X_TRANSFER &&
+      realChainId === entry.sourceChain.chainId
+        ? entry.hash
+        : entry.destinationChain?.hash;
+
+    const link = txHash && transactionUrl(realChainId, txHash);
 
     const style = {
       background: theme.palette.secondary.light,
