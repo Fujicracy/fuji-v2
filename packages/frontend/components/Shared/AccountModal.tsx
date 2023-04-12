@@ -150,7 +150,7 @@ function AccountModal({
             <Box>
               <a
                 href={addressUrl(chainId, address)}
-                target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                target="_blank"
                 rel="noreferrer"
               >
                 <Stack

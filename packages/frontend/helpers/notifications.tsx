@@ -6,9 +6,11 @@ import { toast, ToastOptions } from 'react-toastify';
 
 import { transactionUrl } from './chains';
 
+type NotificationType = 'error' | 'info' | 'success' | 'warning';
+
 type NotifyArgs = {
   message: string;
-  type: 'error' | 'info' | 'success' | 'warning';
+  type: NotificationType;
   link?: string;
   isTransaction?: boolean;
 };
@@ -17,11 +19,11 @@ export function notify({ message, type, link, isTransaction }: NotifyArgs) {
   const options: Partial<ToastOptions> = {
     position: toast.POSITION.TOP_RIGHT,
     theme: 'dark',
+    toastId: type + message + link + isTransaction,
   };
 
   if (link) {
     toast(getLinkNotification({ message, link, isTransaction, type }), options);
-
     return;
   }
 
@@ -59,7 +61,7 @@ export function CustomToastWithLink({
   type,
 }: {
   link: string;
-  type: 'error' | 'info' | 'success' | 'warning';
+  type: NotificationType;
   message?: string;
 }) {
   return (

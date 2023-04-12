@@ -23,7 +23,6 @@ function Markets() {
             Optimize your lending vaults for better yield
             <Link href="#">
               {' '}
-              {/* TODO: Asked to Ivan the link but waiting answer */}
               <u>learn more</u>
             </Link>
           </span>

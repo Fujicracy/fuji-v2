@@ -14,13 +14,11 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   const handleClick = async () => {
     setStatus('loading');
-    // TODO: what if asset chain is !== current chain ??
     try {
       await addTokenToMetamask(token);
       setStatus('success');
     } catch (e) {
       // user probably rejected
-      console.error('>>>', e);
       setStatus('error');
     }
   };

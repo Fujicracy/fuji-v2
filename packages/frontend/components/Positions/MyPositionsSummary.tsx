@@ -30,7 +30,7 @@ type MetricSummary = {
 const initialKeyMetrics: MetricSummary[] = [
   { name: 'Total Deposits', value: '-', valueSym: '$' },
   { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' }, // TODO: tooltip
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' },
   {
     name: 'Available to Borrow',
     value: '-',
@@ -111,10 +111,8 @@ function MyPositionsSummary() {
     ['View yields']: () => setIsPositionsYieldsModalShown(true),
   };
 
-  const getAction = (actionName?: string): (() => void) => {
-    return actionName
-      ? mappedActions[actionName]
-      : () => console.error('no action provided'); // TODO: add notification
+  const getAction = (actionName?: string): (() => void) | undefined => {
+    return actionName ? mappedActions[actionName] : undefined;
   };
 
   return (
@@ -148,7 +146,7 @@ export default MyPositionsSummary;
 type MetricProps = {
   metric: MetricSummary;
   borderLeft: boolean;
-  onClick: () => void;
+  onClick: (() => void) | undefined;
 };
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
@@ -191,7 +189,6 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
         )}
       </Typography>
 
-      {/* TODO: use helper to format balance */}
       <Stack
         display="flex"
         direction="row"

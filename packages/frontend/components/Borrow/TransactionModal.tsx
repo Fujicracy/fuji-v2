@@ -257,7 +257,6 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             </Link>
           </Stack>
         )}
-        {/* TODO: in case of error ??? */}
       </Paper>
     </Dialog>
   );

@@ -23,7 +23,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_THRESHOLD } from '../constants';
+import {
+  DEFAULT_LTV_MAX,
+  DEFAULT_LTV_THRESHOLD,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -493,7 +498,6 @@ export const useBorrow = create<BorrowStore>()(
           );
           const [vault] = availableVaults;
           if (!vault) {
-            // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
             console.error('No available vault');
             set({ availableVaultsStatus: 'error' });
             return;
@@ -517,7 +521,6 @@ export const useBorrow = create<BorrowStore>()(
             allProviders[v.address.value] = providers;
           }
 
-          // TODO: status fetching ?
           set({ allProviders });
         },
 
@@ -547,15 +550,6 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
 
-          const setError = (e: FujiError) => {
-            set(
-              produce((state: BorrowState) => {
-                state.transactionMeta.status = 'error';
-              })
-            );
-            console.error('Sdk error while attempting to set meta:', e.message);
-          };
-
           try {
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
@@ -582,8 +576,7 @@ export const useBorrow = create<BorrowStore>()(
             );
             const error = results.find((r): r is FujiResultError => !r.success);
             if (error) {
-              setError(error.error);
-              return;
+              throw error.error;
             }
             const availableRoutes: RouteMeta[] = (
               results as FujiResultSuccess<RouteMeta>[]
@@ -592,13 +585,10 @@ export const useBorrow = create<BorrowStore>()(
               (r) => r.address === activeVault.address.value
             );
             if (!selectedRoute || !selectedRoute.actions.length) {
-              setError(
-                new FujiError(
-                  'No route found for active vault or route found with empty action array',
-                  FujiErrorCode.SDK
-                )
+              throw new FujiError(
+                'No route found for active vault or route found with empty action array',
+                FujiErrorCode.SDK
               );
-              return;
             }
 
             set({ availableRoutes });
@@ -609,7 +599,8 @@ export const useBorrow = create<BorrowStore>()(
                 state.transactionMeta.status = 'error';
               })
             );
-            console.error('Sdk error while attempting to set meta:', e);
+            const message = e instanceof FujiError ? e.message : String(e);
+            notify({ type: 'error', message });
           }
         },
 
@@ -707,7 +698,7 @@ export const useBorrow = create<BorrowStore>()(
           const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value;
 
           if (!provider || !userAddress) {
-            throw 'Missing provider (check auth slice) or missing user address';
+            return;
           }
 
           const changeAllowance = (
@@ -737,7 +728,7 @@ export const useBorrow = create<BorrowStore>()(
 
             changeAllowance('ready', amount);
             notify({
-              message: 'Allowance is successful',
+              message: SUCCESS_MESSAGES.ALLOWANCE,
               type: 'success',
               isTransaction: true,
               link:
@@ -748,7 +739,7 @@ export const useBorrow = create<BorrowStore>()(
             });
           } catch (e) {
             changeAllowance('error');
-            notify({ message: 'Allowance was not successful', type: 'error' });
+            notify({ message: ERROR_MESSAGES.ALLOWANCE, type: 'error' });
           }
         },
 
@@ -756,19 +747,19 @@ export const useBorrow = create<BorrowStore>()(
           const actions = get().actions;
           const vault = get().activeVault;
           const provider = useAuth.getState().provider;
-          if (!actions || !vault || !provider) {
-            throw 'Unexpected undefined value';
-          }
-
-          const permitAction = Sdk.findPermitAction(actions);
-          if (!permitAction) {
-            console.error('No permit action found');
-            return set({ isSigning: false });
-          }
-
-          set({ isSigning: true });
 
           try {
+            if (!actions || !vault || !provider) {
+              throw 'Unexpected undefined value';
+            }
+
+            const permitAction = Sdk.findPermitAction(actions);
+            if (!permitAction) {
+              throw 'No permit action found';
+            }
+
+            set({ isSigning: true });
+
             const { domain, types, value } = await vault.signPermitFor(
               permitAction
             );
@@ -777,13 +768,17 @@ export const useBorrow = create<BorrowStore>()(
             const signature = ethers.utils.splitSignature(s);
 
             set({ signature });
-          } catch (e: any) {
-            if (e.code === 'ACTION_REJECTED') {
-              notify({
-                type: 'error',
-                message: 'Signature was canceled by the user.',
-              });
-            }
+          } catch (e) {
+            const message =
+              e instanceof Error
+                ? e.message === 'user rejected signing' // Thrown by ethers.js
+                  ? ERROR_MESSAGES.CANCEL_SIGNATURE
+                  : e.message
+                : String(e);
+            notify({
+              type: 'error',
+              message,
+            });
           } finally {
             set({ isSigning: false });
           }
@@ -798,7 +793,11 @@ export const useBorrow = create<BorrowStore>()(
             !provider ||
             (needsSignature && !signature)
           ) {
-            throw 'Unexpected undefined param';
+            notify({
+              type: 'error',
+              message: ERROR_MESSAGES.UNEXPECTED_UNDEFINED,
+            });
+            return;
           }
 
           const srcChainId = transactionMeta.steps[0].chainId;
@@ -812,7 +811,7 @@ export const useBorrow = create<BorrowStore>()(
             signature
           );
           if (!result.success) {
-            console.error(result.error.message); // TODO: display error
+            notify({ type: 'error', message: result.error.message });
             return;
           }
           const txRequest = result.data;
@@ -828,15 +827,14 @@ export const useBorrow = create<BorrowStore>()(
             if (tx) {
               notify({
                 type: 'success',
-                message: 'The transaction was submitted successfully.',
+                message: SUCCESS_MESSAGES.TX,
               });
             }
             return tx;
           } catch (e) {
             notify({
-              type: 'warning',
-              message:
-                'The transaction was canceled by the user or cannot be submitted.',
+              type: 'error',
+              message: ERROR_MESSAGES.TX,
             });
           } finally {
             set({ isExecuting: false });
