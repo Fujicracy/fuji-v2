@@ -1,12 +1,12 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 
 import { ActionType } from '../../helpers/assets';
 import { useBorrow } from '../../store/borrow.store';
 import { NetworkIcon } from '../Shared/Icons';
 import { TokenIcon } from '../Shared/Icons';
 import SlippageSettings from '../Shared/SlippageSettings';
-import TabChip from '../Shared/TabChip';
+import TabSwitch from '../Shared/TabSwitch';
 import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
 
 type BorrowHeaderProps = {
@@ -112,33 +112,15 @@ function BorrowHeader({
       )}
       <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
       {isEditing && (
-        <Stack
-          direction="row"
-          sx={{
-            marginTop: 3,
-            marginBottom: 3,
-            flexWrap: 'wrap',
-            gap: '0.25rem',
-            p: '0.1875rem',
-            height: '2.875rem',
-            backgroundColor: palette.secondary.dark,
-            borderRadius: '0.75rem',
-            border: `1px solid ${alpha(palette.secondary.light, 0.5)}`,
-          }}
-        >
-          {[ActionType.ADD, ActionType.REMOVE].map((p) => (
-            <TabChip
-              key={`${p}`}
-              selected={actionType === p}
-              label={
-                p === ActionType.ADD ? 'Deposit / Borrow' : 'Withdraw / Payback'
-              }
-              onClick={() => {
-                onActionTypeChange(p);
-              }}
-            />
-          ))}
-        </Stack>
+        <TabSwitch
+          size="large"
+          actions={[
+            { value: ActionType.ADD, label: 'Deposit / Borrow' },
+            { value: ActionType.REMOVE, label: 'Withdraw / Payback' },
+          ]}
+          selected={actionType}
+          onChange={onActionTypeChange}
+        />
       )}
     </>
   );
