@@ -23,6 +23,7 @@ import {
   Status,
 } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
+import { notify } from '../../helpers/notifications';
 import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
@@ -49,7 +50,10 @@ function MarketsTable() {
       const result = await getAllBorrowingVaultFinancials(addr);
 
       result.errors.forEach((error) => {
-        console.error(error.message); // TODO: Show error message for each?
+        notify({
+          type: 'error',
+          message: error.message,
+        });
       });
 
       if (result.data.length === 0) {
@@ -68,6 +72,10 @@ function MarketsTable() {
 
       const llamaResult = await sdk.getLlamaFinancials(financials);
       if (!llamaResult.success) {
+        notify({
+          type: 'error',
+          message: llamaResult.error.message,
+        });
         const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
         setRows(groupByPair(rows));
         return;

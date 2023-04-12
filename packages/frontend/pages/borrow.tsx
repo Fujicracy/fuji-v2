@@ -14,7 +14,7 @@ const BorrowPage: NextPage = () => {
   const changeDebtChain = useBorrow((state) => state.changeDebtChain);
 
   const walletChain = useAuth((state) => state.chain);
-  const [hasChain, setHasChain] = useState(false);
+  const [hasChain, setHasChain] = useState(walletChain ? false : true);
 
   useEffect(() => {
     changeFormType('create');

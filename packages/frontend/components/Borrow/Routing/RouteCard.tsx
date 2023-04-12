@@ -24,7 +24,6 @@ type RouteCardProps = {
 
 function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   const { palette } = useTheme();
-  console.log(route.steps);
   const bridgeStep = route.steps.find((s) => s.step === RoutingStep.X_TRANSFER);
   const startStep = route.steps.find((s) => s.step === RoutingStep.START);
   const endStep = route.steps.find((s) => s.step === RoutingStep.END);
