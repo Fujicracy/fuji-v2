@@ -23,7 +23,7 @@ export const handleCancelableMMActionError = (
   const userCancelled =
     error instanceof Error &&
     'code' in error &&
-    error.code === 'ACTION_REJECTED';
+    error['code'] === 'ACTION_REJECTED';
   const message = userCancelled
     ? cancelledMessage
     : failureMessage ?? String(error);
