@@ -24,8 +24,8 @@ export type SerializableToken = {
 
 export type HistoryEntryChain = {
   chainId: ChainId;
-  hash: string;
   status: HistoryEntryStatus;
+  hash?: string;
 };
 
 export type HistoryEntry = {
@@ -36,7 +36,7 @@ export type HistoryEntry = {
   vaultAddress?: string;
   sourceChain: HistoryEntryChain;
   isCrossChain: boolean; // Convenience
-  destinationChain?: HistoryEntryChain;
+  destinationChain: HistoryEntryChain | undefined;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
@@ -105,5 +105,14 @@ export const triggerUpdatesFromSteps = (
     if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
       updateNativeBalance();
     }
+  });
+};
+
+// Convenience function to wait for a certain amount of time when polling a cross-chain transaction
+export const wait = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(ms);
+    }, ms);
   });
 };

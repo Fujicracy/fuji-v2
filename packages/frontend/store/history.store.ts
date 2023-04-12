@@ -1,19 +1,24 @@
-import { RoutingStepDetails } from '@x-fuji/sdk';
+import { ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { NOTIFICATION_MESSAGES } from '../constants';
+import {
+  formatCrosschainNotificationMessage,
+  NOTIFICATION_MESSAGES,
+} from '../constants';
+import { chainName } from '../helpers/chains';
 import {
   HistoryEntry,
-  HistoryEntryChain,
   HistoryEntryStatus,
   toHistoryRoutingStep,
   triggerUpdatesFromSteps,
+  wait,
 } from '../helpers/history';
 import { notify } from '../helpers/notifications';
 import { watchTransaction } from '../helpers/transactions';
+import { sdk } from '../services/sdk';
 import { usePositions } from './positions.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
@@ -52,16 +57,23 @@ export const useHistory = create<HistoryStore>()(
           const srcChainId = steps[0].chainId;
           const destChainId = steps[steps.length - 1].chainId;
           const isCrossChain = srcChainId !== destChainId;
-          const sourceChain: HistoryEntryChain = {
+          const sourceChain = {
             chainId: srcChainId,
             status: HistoryEntryStatus.ONGOING,
             hash,
           };
+          const destinationChain = isCrossChain
+            ? {
+                chainId: destChainId,
+                status: HistoryEntryStatus.ONGOING,
+              }
+            : undefined;
 
           const entry = {
             vaultAddress,
             hash,
             sourceChain,
+            destinationChain,
             isCrossChain,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
@@ -89,12 +101,20 @@ export const useHistory = create<HistoryStore>()(
             set({ ongoingTransactions });
           };
 
-          const finish = (success: boolean) => {
-            const status = success
-              ? HistoryEntryStatus.SUCCESS
-              : HistoryEntryStatus.FAILURE;
+          if (!entry) {
+            remove();
+            return;
+          }
 
-            get().update(hash, { status });
+          const finish = (success: boolean) => {
+            triggerUpdatesFromSteps(
+              entry.steps,
+              entry.sourceChain.status === HistoryEntryStatus.SUCCESS &&
+                entry.destinationChain
+                ? entry.destinationChain?.chainId
+                : entry.sourceChain.chainId
+            );
+
             set(
               produce((s: HistoryState) => {
                 const entry = s.entries[hash];
@@ -129,10 +149,6 @@ export const useHistory = create<HistoryStore>()(
             }
           };
 
-          if (!entry) {
-            remove();
-            return;
-          }
           try {
             const result = await watchTransaction(
               entry.sourceChain.chainId,
@@ -141,93 +157,62 @@ export const useHistory = create<HistoryStore>()(
             if (!result.success) {
               throw result.error;
             }
-            triggerUpdatesFromSteps(entry.steps, entry.sourceChain.chainId);
             set(
               produce((s: HistoryState) => {
                 s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
               })
             );
-            if (!entry.isCrossChain) {
+            if (!entry.isCrossChain && entry.destinationChain) {
               finish(true);
               return;
             }
-            // TODO: Poll -> sdk.getConnextTxDetails()
-            // Success
-
-            // const connextTransferResult = await sdk.getTransferId(
-            //   srcChainId,
-            //   hash
-            // );
-            // if (!connextTransferResult.success) {
-            //   throw connextTransferResult.error.message;
-            // }
-            // const connextTransferId = connextTransferResult.data;
-            // const stepsWithHashResult = await sdk.watchTxStatus(
-            //   hash,
-            //   toRoutingStepDetails(entry.steps)
-            // );
-            // if (!stepsWithHashResult.success) {
-            //   throw stepsWithHashResult.error.message;
-            // }
-            // const stepsWithHash = stepsWithHashResult.data;
-            // for (let i = 0; i < stepsWithHash.length; i++) {
-            //   const s = stepsWithHash[i];
-            //   console.debug('waiting', s.step, '...');
-            //   const txHash = await s.txHash;
-            //   if (!txHash) {
-            //     throw `Transaction step ${i} failed`;
-            //   }
-
-            //   const { rpcProvider } = sdk.getConnectionFor(s.chainId);
-            //   const receipt = await rpcProvider.waitForTransaction(txHash);
-
-            // // If the operation happened on the same chain as the wallet, update the balance
-            // const walletChain = useAuth.getState().chain;
-            // if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
-            //   updateNativeBalance();
-            // }
-
-            //   if (receipt.status === 0) {
-            //     throw `Transaction step ${i} failed`;
-            //   }
-            //   console.debug('success', s.step, txHash);
-            // set(
-            //   produce((s: HistoryState) => {
-            //     s.entries[hash].steps[i].txHash = txHash;
-            //     s.entries[hash].connextTransferId = connextTransferId;
-            //   })
-            // );
-
-            // if (
-            //   s.step === RoutingStep.DEPOSIT ||
-            //   s.step === RoutingStep.WITHDRAW
-            // ) {
-            //   useBorrow.getState().updateBalances('collateral');
-            // } else if (
-            //   s.step === RoutingStep.BORROW ||
-            //   s.step === RoutingStep.PAYBACK
-            // ) {
-            //   useBorrow.getState().updateBalances('debt');
-            // }
-
-            // if (s.step === RoutingStep.DEPOSIT) {
-            //   useBorrow.getState().updateAllowance('collateral');
-            // } else if (s.step === RoutingStep.PAYBACK) {
-            //   useBorrow.getState().updateAllowance('debt');
-            // }
-
-            //   const { title, transactionUrl } = entryOutput(s, txHash);
-
-            //   notify({
-            //     type: 'success',
-            //     message: title,
-            //     link: getTransactionUrl(transactionUrl),
-            //     isTransaction: true,
-            //   });
-            // }
-            // get().update(hash, { status: HistoryEntryStatus.DONE });
-
-            // usePositions.getState().fetchUserPositions();
+            notify({
+              type: 'success',
+              message: formatCrosschainNotificationMessage(
+                chainName(entry.sourceChain.chainId),
+                chainName(entry.destinationChain?.chainId)
+              ),
+            });
+            let crosschainCallFinished = false;
+            while (!crosschainCallFinished) {
+              await wait(3000); // Wait for three seconds between each call
+              const crosschainResult = await sdk.getConnextTxDetails(
+                entry.sourceChain.chainId,
+                entry.hash
+              );
+              if (!crosschainResult.success) {
+                throw crosschainResult.error;
+              }
+              if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
+                crosschainCallFinished = true;
+              }
+              set(
+                produce((s: HistoryState) => {
+                  const e = s.entries[hash];
+                  if (
+                    crosschainResult.data.connextTransferId &&
+                    !e.connextTransferId
+                  ) {
+                    e.connextTransferId =
+                      crosschainResult.data.connextTransferId;
+                  }
+                  if (!e.destinationChain) return;
+                  if (
+                    crosschainResult.data.destTxHash &&
+                    !e.destinationChain?.hash
+                  ) {
+                    e.destinationChain.hash = crosschainResult.data.destTxHash;
+                  }
+                  if (
+                    crosschainResult.data.status === ConnextTxStatus.EXECUTED &&
+                    e.destinationChain.status !== HistoryEntryStatus.SUCCESS
+                  ) {
+                    e.destinationChain.status = HistoryEntryStatus.SUCCESS;
+                  }
+                })
+              );
+            }
+            finish(true);
           } catch (e) {
             finish(false);
           } finally {

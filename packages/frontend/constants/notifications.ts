@@ -8,5 +8,16 @@ export enum NOTIFICATION_MESSAGES {
   TX_SENT = 'Your transaction was submitted successfully and is waiting to get confirmed',
   TX_FAILURE = 'Your transaction failed. Please, try again later or ask for help in DISCORD',
   TX_SUCCESS = 'Your transaction was executed successfully',
+  TX_CROSSCHAIN = 'Your transaction was executed successfully on %CHAIN1% and it also needs to get confirmed on %CHAIN2%',
   UNEXPECTED_UNDEFINED = 'Unexpected undefined value',
+}
+
+export function formatCrosschainNotificationMessage(
+  chain1: string,
+  chain2: string
+): string {
+  return NOTIFICATION_MESSAGES.TX_CROSSCHAIN.replace(
+    '%CHAIN1%',
+    chain1
+  ).replace('%CHAIN2%', chain2);
 }
