@@ -1,7 +1,7 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Card, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 
@@ -17,17 +17,12 @@ function AssetBox({
   step: RoutingStepDetails;
 }) {
   const { palette } = useTheme();
-  const type = ['deposit', 'withdraw'].includes(step.step)
+  const type = [RoutingStep.DEPOSIT, RoutingStep.WITHDRAW].includes(step.step)
     ? 'collateral'
     : 'debt';
-  const isRemoveAction = ['withdraw', 'payback'].includes(step.step);
-
-  const labelMap =
-    isEditing && isRemoveAction
-      ? { debt: 'Payback', collateral: 'Withdraw' }
-      : { debt: 'Borrow', collateral: 'Deposit' };
-
-  const label = labelMap[type];
+  const isRemoveAction = [RoutingStep.WITHDRAW, RoutingStep.PAYBACK].includes(
+    step.step
+  );
 
   const descriptionMap =
     isEditing && isRemoveAction
@@ -57,7 +52,12 @@ function AssetBox({
         alignItems="center"
         justifyContent="space-between"
       >
-        <Typography variant="small">{label}</Typography>
+        <Typography
+          variant="small"
+          sx={{ '&::first-letter': { textTransform: 'capitalize' } }}
+        >
+          {step.step}
+        </Typography>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
           <TokenIcon token={step.token || ''} height={16} width={16} />
