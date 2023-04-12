@@ -68,7 +68,6 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     return <></>;
   }
   const validatedSteps = validSteps(entry.steps);
-  const srcChainId = entry.steps[0].chainId;
 
   const steps = validatedSteps.map((s): TransactionStep => {
     const { step, chainId, token } = s;
@@ -76,8 +75,10 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     const amount = token && formatUnits(s.amount ?? 0, token.decimals);
 
     const txHash =
-      s.step !== RoutingStep.X_TRANSFER && chainId === srcChainId
-        ? entry.hash
+      s.step !== RoutingStep.X_TRANSFER
+        ? chainId === entry.sourceChain.chainId
+          ? entry.hash
+          : entry.destinationChain?.hash
         : undefined;
     const link = txHash && transactionUrl(chainId, txHash);
 
