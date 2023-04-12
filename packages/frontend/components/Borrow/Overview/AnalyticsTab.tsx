@@ -1,4 +1,4 @@
-import { Stack } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import React, { useState } from 'react';
 
 import TabSwitch from '../../Shared/TabSwitch';
@@ -41,6 +41,19 @@ function AnalyticsTab() {
           width="14rem"
         />
       </Stack>
+
+      <Typography
+        variant="body2"
+        fontSize="1.125rem"
+        fontWeight={700}
+        lineHeight="1.8rem"
+      >
+        {'2.07%'}
+      </Typography>
+      <Typography variant="smallDark" fontSize="0.875rem" lineHeight="1.4rem">
+        {'Mar 15, 2023'}
+      </Typography>
+
       <APYChart />
     </>
   );
