@@ -159,7 +159,7 @@ function APYChart() {
   };
 
   return (
-    <Box width="100%" height={400}>
+    <Box width={700} height={400}>
       <ResponsiveLine {...config} />
     </Box>
   );
