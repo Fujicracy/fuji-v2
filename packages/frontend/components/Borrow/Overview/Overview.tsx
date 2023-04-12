@@ -1,6 +1,6 @@
 import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { borrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
@@ -20,6 +20,7 @@ type OverviewProps = {
 function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const [selectedTab, setSelectedTab] = useState<number>(0);
 
   const { position, editedPosition } = basePosition;
   const {
@@ -54,7 +55,14 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
 
   return (
     <Container isMobile={isMobile}>
-      {!isMobile && <Title providers={providers} vault={vault} />}
+      {!isMobile && (
+        <Title
+          providers={providers}
+          vault={vault}
+          selectedTab={selectedTab}
+          onTabClick={setSelectedTab}
+        />
+      )}
 
       <APYChart />
 

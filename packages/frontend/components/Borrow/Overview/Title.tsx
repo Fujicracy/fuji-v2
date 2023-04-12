@@ -5,20 +5,48 @@ import { DocsTooltip } from '../../Shared/Tooltips';
 import VaultsMenu from './VaultsMenu';
 
 type TitleProps = {
-  providers: LendingProviderDetails[] | undefined;
-  vault: BorrowingVault | undefined;
+  selectedTab: number;
+  onTabClick: (tab: number) => void;
+  providers?: LendingProviderDetails[];
+  vault?: BorrowingVault;
 };
 
-function Title({ providers, vault }: TitleProps) {
+function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
+  const tabs = ['Overview', 'Analytics'];
+
   return (
     <>
       <Stack
         direction="row"
         justifyContent="space-between"
-        alignItems="center"
-        height="40px"
+        alignItems="start"
+        height="56px"
       >
-        <Typography variant="body2">Overview</Typography>
+        <Stack
+          direction="row"
+          justifyContent="start"
+          alignItems="center"
+          sx={{ gap: '2rem', height: '100%' }}
+        >
+          {tabs.map((tab, i) => (
+            <Typography
+              key={i}
+              lineHeight="2.5rem"
+              sx={{
+                cursor: 'pointer',
+                pb: '1rem',
+                borderBottom:
+                  i === selectedTab
+                    ? '1px solid white'
+                    : '1px solid transparent',
+              }}
+              variant="body2"
+              onClick={() => onTabClick(i)}
+            >
+              {tab}
+            </Typography>
+          ))}
+        </Stack>
         {providers && vault && (
           <Stack direction="row" alignItems="center">
             <DocsTooltip />
@@ -29,7 +57,7 @@ function Title({ providers, vault }: TitleProps) {
           </Stack>
         )}
       </Stack>
-      <Divider sx={{ mt: '1rem', mb: '1.5rem' }} />
+      <Divider sx={{ mb: '1.5rem' }} />
     </>
   );
 }
