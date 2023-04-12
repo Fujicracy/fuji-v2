@@ -1,7 +1,7 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
 
 import {
@@ -10,7 +10,7 @@ import {
   remainingBorrowLimit,
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
-import { mapSteps } from '../../helpers/routing';
+import { isCrossChainTransaction } from '../../helpers/routing';
 import { formatValue } from '../../helpers/values';
 import { FetchStatus } from '../../store/borrow.store';
 import AssetBox from './ConfirmationTransaction/AssetBox';
@@ -35,11 +35,17 @@ type ConfirmTransactionModalProps = {
   action: () => void;
 };
 
+const routingSteps = [
+  RoutingStep.DEPOSIT,
+  RoutingStep.WITHDRAW,
+  RoutingStep.BORROW,
+  RoutingStep.PAYBACK,
+];
+
 export function ConfirmTransactionModal({
   basePosition,
   transactionMeta,
   isEditing,
-  actionType,
   open,
   onClose,
   action,
@@ -79,8 +85,7 @@ export function ConfirmTransactionModal({
     return value <= 100 && value >= 0 ? `${value.toFixed(0)}%` : 'n/a';
   };
 
-  const { start, end, collateralStep, borrowStep } = mapSteps(steps);
-  const isCrossChain = start?.chainId !== end?.chainId;
+  const isCrossChain = isCrossChainTransaction(steps);
 
   return (
     <Dialog
@@ -121,23 +126,11 @@ export function ConfirmTransactionModal({
         </Typography>
 
         <Stack>
-          {collateralStep && (
-            <AssetBox
-              type="collateral"
-              isEditing={isEditing}
-              actionType={actionType}
-              step={collateralStep}
-            />
-          )}
-
-          {borrowStep && (
-            <AssetBox
-              type="debt"
-              isEditing={isEditing}
-              actionType={actionType}
-              step={borrowStep}
-            />
-          )}
+          {steps
+            .filter((step) => routingSteps.includes(step.step))
+            .map((step) => (
+              <AssetBox key={step.step} isEditing={isEditing} step={step} />
+            ))}
         </Stack>
 
         {steps && steps.length > 0 && (

@@ -5,32 +5,32 @@ import { RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 
-import { ActionType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
 import { toNotSoFixed } from '../../../helpers/values';
 import { NetworkIcon, TokenIcon } from '../Icons';
 
 function AssetBox({
-  type,
   isEditing,
-  actionType,
   step,
 }: {
-  type: 'debt' | 'collateral';
   isEditing: boolean;
-  actionType: ActionType;
   step: RoutingStepDetails;
 }) {
   const { palette } = useTheme();
+  const type = ['deposit', 'withdraw'].includes(step.step)
+    ? 'collateral'
+    : 'debt';
+  const isRemoveAction = ['withdraw', 'payback'].includes(step.step);
+
   const labelMap =
-    isEditing && actionType === ActionType.REMOVE
+    isEditing && isRemoveAction
       ? { debt: 'Payback', collateral: 'Withdraw' }
       : { debt: 'Borrow', collateral: 'Deposit' };
 
   const label = labelMap[type];
 
   const descriptionMap =
-    isEditing && actionType === ActionType.REMOVE
+    isEditing && isRemoveAction
       ? {
           debt: 'The network where the debt will be paid back',
           collateral: 'The network from where the collateral will be withdrawn',
@@ -49,10 +49,6 @@ function AssetBox({
         borderColor: palette.secondary.light,
         m: '0.5rem 0',
         width: '100%',
-        order:
-          isEditing && actionType === ActionType.REMOVE && type === 'debt'
-            ? 1
-            : 2,
       }}
     >
       <Stack
