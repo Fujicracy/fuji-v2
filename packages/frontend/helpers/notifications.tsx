@@ -48,10 +48,13 @@ export function getLinkNotification({
   isTransaction?: boolean;
   type?: 'error' | 'info' | 'success' | 'warning';
 }) {
-  return isTransaction ? (
-    <CustomToastWithTransactionLink link={link} />
-  ) : (
-    <CustomToastWithLink link={link} message={message} type={type} />
+  return (
+    <CustomToastWithLink
+      link={link}
+      message={message}
+      type={type}
+      isTransaction={isTransaction}
+    />
   );
 }
 
@@ -59,10 +62,12 @@ export function CustomToastWithLink({
   link,
   message,
   type,
+  isTransaction,
 }: {
   link: string;
   type: NotificationType;
   message?: string;
+  isTransaction?: boolean;
 }) {
   return (
     <Stack direction="row" alignItems="center">
@@ -75,33 +80,13 @@ export function CustomToastWithLink({
       <Link ml="0.5rem" href={link} target="_blank">
         <Typography variant="body1" sx={{ fontSize: '1rem' }}>
           {message}
+          {isTransaction && (
+            <LaunchIcon
+              sx={{ paddingLeft: '0.2rem', paddingTop: '0.2rem' }}
+              fontSize="inherit"
+            />
+          )}
         </Typography>
-      </Link>
-    </Stack>
-  );
-}
-
-export function CustomToastWithTransactionLink({ link }: { link: string }) {
-  return (
-    <Stack direction="row" alignItems="center">
-      <Image
-        src={'/assets/images/shared/success.svg'}
-        width={20}
-        height={20}
-        alt="Success"
-      />
-      <Link
-        ml="0.5rem"
-        href={link}
-        target="_blank"
-        variant="body1"
-        sx={{ fontSize: '1rem' }}
-      >
-        View transaction{' '}
-        <LaunchIcon
-          sx={{ top: '1px', position: 'relative' }}
-          fontSize="inherit"
-        />
       </Link>
     </Stack>
   );
