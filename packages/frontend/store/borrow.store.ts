@@ -27,7 +27,6 @@ import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_THRESHOLD,
   NOTIFICATION_MESSAGES,
-  SOCIAL_URL,
 } from '../constants';
 import {
   AllowanceStatus,
@@ -40,6 +39,7 @@ import {
 import { fetchBalances } from '../helpers/balances';
 import { failureForMode } from '../helpers/borrow';
 import { testChains } from '../helpers/chains';
+import { handleCancelableMMActionError } from '../helpers/errors';
 import { getTransactionUrl, notify } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
@@ -777,16 +777,10 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ signature });
           } catch (e) {
-            const message =
-              e instanceof Error
-                ? e.message === 'user rejected signing' // Thrown by ethers.js
-                  ? NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
-                  : e.message
-                : String(e);
-            notify({
-              type: 'error',
-              message,
-            });
+            handleCancelableMMActionError(
+              e,
+              NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
+            );
           } finally {
             set({ isSigning: false });
           }
@@ -801,10 +795,6 @@ export const useBorrow = create<BorrowStore>()(
             !provider ||
             (needsSignature && !signature)
           ) {
-            notify({
-              type: 'error',
-              message: NOTIFICATION_MESSAGES.UNEXPECTED_UNDEFINED,
-            });
             return;
           }
 
@@ -839,17 +829,12 @@ export const useBorrow = create<BorrowStore>()(
               });
             }
             return tx;
-          } catch (e: any) {
-            const userCancelled = 'code' in e && e.code === 'ACTION_REJECTED';
-            const message = userCancelled
-              ? NOTIFICATION_MESSAGES.TX_CANCELLED
-              : NOTIFICATION_MESSAGES.TX_FAILURE;
-            const link = userCancelled ? SOCIAL_URL.DISCORD : undefined;
-            notify({
-              type: 'error',
-              message,
-              link,
-            });
+          } catch (e) {
+            handleCancelableMMActionError(
+              e,
+              NOTIFICATION_MESSAGES.TX_CANCELLED,
+              NOTIFICATION_MESSAGES.TX_FAILURE
+            );
           } finally {
             set({ isExecuting: false });
           }
