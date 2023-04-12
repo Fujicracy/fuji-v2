@@ -63,11 +63,12 @@ export const formatNumber = (
 };
 
 export const toNotSoFixed = (v: number | string | undefined): string => {
-  if (!v) return '0';
-  const value: number = typeof v === 'number' ? v : Number(v);
-  const leadingZeroes = -Math.floor(Math.log(value) / Math.log(10) + 1); // Account leading zeroes
-  const to = leadingZeroes > 0 ? 1 + leadingZeroes : 2;
-  return Number(value.toFixed(to)).toString(); // Remove trailing zeroes
+  if (!v) return '0.0';
+  const value: number = typeof v === 'number' ? v : parseFloat(v);
+  if (isNaN(value)) return '0.0';
+  const to =
+    value === 0 ? 1 : Math.max(1, 2 - Math.floor(Math.log10(Math.abs(value))));
+  return value.toFixed(to).replace(/\.?0+$/, '');
 };
 
 export const camelize = (str: string) => {
