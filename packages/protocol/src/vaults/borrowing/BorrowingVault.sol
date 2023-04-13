@@ -417,8 +417,13 @@ contract BorrowingVault is BaseVault {
     view
     returns (uint256 assets)
   {
+    uint256 totalDebt = totalDebt();
     uint256 supply = debtSharesSupply;
-    return (supply == 0) ? shares : shares.mulDiv(totalDebt(), supply, rounding);
+
+    if (totalDebt == 0 && supply > 0 && supply > totalDebt) {
+      //TODO PAUSE WITHDRAW
+    }
+    return (supply == 0) ? shares : shares.mulDiv(totalDebt, supply, rounding);
   }
 
   /**
@@ -726,10 +731,12 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__correctDebt_noNeedForCorrection();
     }
 
-    //amount is to high
+    //amount is too high
     if (amount > vaultDebtShares - vaultDebt) {
       revert BorrowingVault__correctDebt_invalidAmount();
     }
+
+    //TODO DECIDE IF WE UNPAUSE HERE
 
     _executeProviderAction(amount, "borrow", activeProvider);
     SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, amount);
