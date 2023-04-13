@@ -142,7 +142,7 @@ export const useHistory = create<HistoryStore>()(
               message: success
                 ? NOTIFICATION_MESSAGES.TX_SUCCESS
                 : NOTIFICATION_MESSAGES.TX_FAILURE,
-              length: success
+              duration: success
                 ? NotificationDuration.LONG
                 : NotificationDuration.MEDIUM,
             });

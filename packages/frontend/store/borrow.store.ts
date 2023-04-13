@@ -841,7 +841,7 @@ export const useBorrow = create<BorrowStore>()(
               notify({
                 type: 'success',
                 message: NOTIFICATION_MESSAGES.TX_SENT,
-                length: NotificationDuration.LONG,
+                duration: NotificationDuration.LONG,
               });
             }
             return tx;
