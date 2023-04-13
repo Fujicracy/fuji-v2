@@ -10,17 +10,21 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IV2Pool} from "../../../src/interfaces/aaveV2/IV2Pool.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {PausableVault} from "../../../src/abstracts/PausableVault.sol";
 
 contract DenialOfServiceTest is Routines, ForkingSetup {
   using SafeERC20 for IERC20;
+
+  uint256 public constant TREASURY_PK = 0xF;
+  address public TREASURY = vm.addr(TREASURY_PK);
 
   ILendingProvider public aaveV2;
 
   uint256 public TROUBLEMAKER_PK = 0x1122;
   address public TROUBLEMAKER = vm.addr(TROUBLEMAKER_PK);
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+  uint256 public constant DEPOSIT_AMOUNT = 1 ether;
+  uint256 public constant BORROW_AMOUNT = 800 * 1e6;
 
   IV2Pool public aaveV2pool;
 
@@ -121,7 +125,8 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
 
     BorrowingVault bvault = BorrowingVault(payable(address(vault)));
 
-    bytes memory data = abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected);
+    bytes memory data =
+      abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected, TREASURY);
     _callWithTimelock(address(vault), data);
     skip(2 days);
 
@@ -153,6 +158,48 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
 
     //check the actual corrected amount is in the vault
     assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
-    assertEq(IERC20(debtAsset).balanceOf(address(vault)), amountCorrected);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), amountCorrected);
+  }
+
+  function test_pauseUntilCorrectDebt() public {
+    uint256 amountCorrected = BORROW_AMOUNT;
+
+    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
+    do_borrow(BORROW_AMOUNT, vault, ALICE);
+
+    // Troublemaker pays vaults debt
+    deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
+    vm.startPrank(TROUBLEMAKER);
+    //TODO check this after rounding issue is fixed
+    //approve more than needed because of rounding issues
+    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT + 10);
+    //pay full amount, sometimes bigger than BORROW_AMOUNT
+    aaveV2pool.repay(
+      vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
+    );
+    vm.stopPrank();
+
+    //try to withdraw and check it fails
+    //TODO do this expect revert correctly
+    // vm.expectRevert( PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    // vm.expectRevert();
+    do_withdraw(DEPOSIT_AMOUNT - 1, vault, ALICE);
+
+    BorrowingVault bvault = BorrowingVault(payable(address(vault)));
+    bytes memory data =
+      abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected, TREASURY);
+    _callWithTimelock(address(vault), data);
+    skip(2 days);
+
+    //try to payback and withdraw and check it works
+    do_payback(BORROW_AMOUNT, vault, ALICE);
+    do_withdraw(DEPOSIT_AMOUNT, vault, ALICE);
+
+    //DEPOSIT_AMOUNT has built up some interest after the call with timelock (lets assume 1%)
+    assertApproxEqAbs(vault.balanceOf(ALICE), 0, DEPOSIT_AMOUNT / 100);
+
+    //check the actual corrected amount is in the vault
+    assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), amountCorrected);
   }
 }
