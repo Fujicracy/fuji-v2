@@ -73,9 +73,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     const { step, chainId, token } = s;
 
     const realChainId =
-      s.step !== RoutingStep.X_TRANSFER
-        ? chainId
-        : i > 0 && s.token
+      s.step === RoutingStep.X_TRANSFER && i > 0 && s.token
         ? s.token.chainId
         : chainId;
 
@@ -83,7 +81,6 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     const amount = token && formatUnits(s.amount ?? 0, token.decimals);
 
     const txHash =
-      s.step !== RoutingStep.X_TRANSFER &&
       realChainId === entry.sourceChain.chainId
         ? entry.hash
         : entry.destinationChain?.hash;
@@ -122,10 +119,10 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
 
     return {
       label,
-      chainId,
       txHash,
       link,
       description,
+      chainId: realChainId,
       icon: () => (
         <Box sx={style}>
           <NetworkIcon network={chain} height={32} width={32} />
