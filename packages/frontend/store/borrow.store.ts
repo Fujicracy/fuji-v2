@@ -246,10 +246,14 @@ export const useBorrow = create<BorrowStore>()(
 
           await get().changeActiveVault(vault);
 
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          );
+          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+
+          if (!result.success) {
+            console.error(result.error.message);
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+          const availableVaults = result.data;
           set({ availableVaults });
 
           await Promise.all([
@@ -498,10 +502,15 @@ export const useBorrow = create<BorrowStore>()(
 
           const collateral = get().collateral.token;
           const debt = get().debt.token;
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          );
+          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+
+          if (!result.success) {
+            console.error(result.error.message);
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+
+          const availableVaults = result.data;
           const [vault] = availableVaults;
           if (!vault) {
             console.error('No available vault');
