@@ -13,6 +13,7 @@ import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { NOTIFICATION_MESSAGES } from '../../constants';
 import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import {
   groupByPair,
@@ -49,12 +50,12 @@ function MarketsTable() {
     (async () => {
       const result = await getAllBorrowingVaultFinancials(addr);
 
-      result.errors.forEach((error) => {
+      if (result.errors.length > 0) {
         notify({
           type: 'error',
-          message: error.message,
+          message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
         });
-      });
+      }
 
       if (result.data.length === 0) {
         const rows = rowsBase

@@ -1,6 +1,7 @@
 export enum NOTIFICATION_MESSAGES {
   ALLOWANCE_FAILURE = 'Allowance was not successful',
   ALLOWANCE_SUCCESS = 'Allowance is successful',
+  MARKETS_FAILURE = `We're having a hard time fetching some on-chain data and some market information may be inaccurate`,
   SIGNATURE_PENDING = 'Please, sign the permit from your wallet',
   SIGNATURE_CANCELLED = 'You rejected signing the permit',
   POSITIONS_FAILURE = `We're having a hard time fetching some on-chain data and some of the positions may be inaccurate`,
