@@ -162,7 +162,7 @@ export const useHistory = create<HistoryStore>()(
                 s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
               })
             );
-            if (!entry.isCrossChain && entry.destinationChain) {
+            if (!entry.isCrossChain && !entry.destinationChain) {
               finish(true);
               return;
             }
