@@ -2,32 +2,56 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import { Link, Stack, Typography } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 import Image from 'next/image';
-import { toast, ToastOptions } from 'react-toastify';
+import { Id, toast, ToastOptions } from 'react-toastify';
 
 import { transactionUrl } from './chains';
 
 type NotificationType = 'error' | 'info' | 'success' | 'warning';
 
-type NotifyArgs = {
+export type NotificationId = Id;
+
+export enum NotificationDuration {
+  SHORT = 3000,
+  MEDIUM = 5000,
+  LONG = 7500,
+}
+
+type NotificationArguments = {
   message: string;
   type: NotificationType;
   link?: string;
   isTransaction?: boolean;
+  sticky?: boolean;
+  duration?: NotificationDuration;
 };
 
-export function notify({ message, type, link, isTransaction }: NotifyArgs) {
+export function notify({
+  message,
+  type,
+  link,
+  isTransaction,
+  sticky,
+  duration,
+}: NotificationArguments) {
   const options: Partial<ToastOptions> = {
-    position: toast.POSITION.TOP_RIGHT,
+    position: toast.POSITION.TOP_LEFT,
     theme: 'dark',
     toastId: type + message + link + isTransaction,
+    autoClose: sticky ? false : duration ?? NotificationDuration.MEDIUM,
   };
 
   if (link) {
-    toast(getLinkNotification({ message, link, isTransaction, type }), options);
-    return;
+    return toast(
+      getLinkNotification({ message, link, isTransaction, type }),
+      options
+    );
   }
 
-  toast[type](message, options);
+  return toast[type](message, options);
+}
+
+export function dismiss(id: NotificationId) {
+  toast.dismiss(id);
 }
 
 export function getTransactionUrl(transaction: {

@@ -16,7 +16,7 @@ import {
   triggerUpdatesFromSteps,
   wait,
 } from '../helpers/history';
-import { notify } from '../helpers/notifications';
+import { NotificationDuration, notify } from '../helpers/notifications';
 import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { usePositions } from './positions.store';
@@ -142,6 +142,9 @@ export const useHistory = create<HistoryStore>()(
               message: success
                 ? NOTIFICATION_MESSAGES.TX_SUCCESS
                 : NOTIFICATION_MESSAGES.TX_FAILURE,
+              length: success
+                ? NotificationDuration.LONG
+                : NotificationDuration.MEDIUM,
             });
 
             if (success) {

@@ -39,7 +39,13 @@ import {
 import { fetchBalances } from '../helpers/balances';
 import { testChains } from '../helpers/chains';
 import { handleCancelableMMActionError } from '../helpers/errors';
-import { getTransactionUrl, notify } from '../helpers/notifications';
+import {
+  dismiss,
+  getTransactionUrl,
+  NotificationDuration,
+  NotificationId,
+  notify,
+} from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -750,7 +756,7 @@ export const useBorrow = create<BorrowStore>()(
           const actions = get().actions;
           const vault = get().activeVault;
           const provider = useAuth.getState().provider;
-
+          let notificationId: NotificationId | undefined;
           try {
             if (!actions || !vault || !provider) {
               throw 'Unexpected undefined value';
@@ -763,9 +769,10 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ isSigning: true });
 
-            notify({
+            notificationId = notify({
               type: 'info',
               message: NOTIFICATION_MESSAGES.SIGNATURE_PENDING,
+              sticky: true,
             });
             const { domain, types, value } = await vault.signPermitFor(
               permitAction
@@ -781,6 +788,9 @@ export const useBorrow = create<BorrowStore>()(
               NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
             );
           } finally {
+            if (notificationId) {
+              dismiss(notificationId);
+            }
             set({ isSigning: false });
           }
         },
@@ -796,6 +806,11 @@ export const useBorrow = create<BorrowStore>()(
           ) {
             return;
           }
+          const notificationId = notify({
+            type: 'info',
+            message: NOTIFICATION_MESSAGES.TX_PENDING,
+            sticky: true,
+          });
 
           const srcChainId = transactionMeta.steps[0].chainId;
 
@@ -808,6 +823,7 @@ export const useBorrow = create<BorrowStore>()(
             signature
           );
           if (!result.success) {
+            dismiss(notificationId);
             notify({ type: 'error', message: result.error.message });
             return;
           }
@@ -825,6 +841,7 @@ export const useBorrow = create<BorrowStore>()(
               notify({
                 type: 'success',
                 message: NOTIFICATION_MESSAGES.TX_SENT,
+                length: NotificationDuration.LONG,
               });
             }
             return tx;
@@ -835,6 +852,7 @@ export const useBorrow = create<BorrowStore>()(
               NOTIFICATION_MESSAGES.TX_FAILURE
             );
           } finally {
+            dismiss(notificationId);
             set({ isExecuting: false });
           }
         },
