@@ -621,7 +621,7 @@ export const useBorrow = create<BorrowStore>()(
               })
             );
             const message = e instanceof FujiError ? e.message : String(e);
-            notify({ type: 'error', message });
+            console.error(message);
           }
         },
 
