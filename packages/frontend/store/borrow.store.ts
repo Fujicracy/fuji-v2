@@ -751,7 +751,6 @@ export const useBorrow = create<BorrowStore>()(
             notify({
               message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
-              isTransaction: true,
               link:
                 getTransactionUrl({
                   hash: approval.hash,
@@ -857,6 +856,10 @@ export const useBorrow = create<BorrowStore>()(
                 type: 'success',
                 message: NOTIFICATION_MESSAGES.TX_SENT,
                 duration: NotificationDuration.LONG,
+                link: getTransactionUrl({
+                  hash: tx.hash,
+                  chainId: srcChainId,
+                }),
               });
             }
             return tx;

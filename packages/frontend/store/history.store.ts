@@ -16,7 +16,11 @@ import {
   triggerUpdatesFromSteps,
   wait,
 } from '../helpers/history';
-import { NotificationDuration, notify } from '../helpers/notifications';
+import {
+  getTransactionUrl,
+  NotificationDuration,
+  notify,
+} from '../helpers/notifications';
 import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { usePositions } from './positions.store';
@@ -115,17 +119,19 @@ export const useHistory = create<HistoryStore>()(
                 : entry.sourceChain.chainId
             );
 
+            const isDestination =
+              entry.isCrossChain &&
+              entry.destinationChain &&
+              entry.sourceChain.status === HistoryEntryStatus.SUCCESS;
+
             set(
               produce((s: HistoryState) => {
                 const entry = s.entries[hash];
                 entry.status = success
                   ? HistoryEntryStatus.SUCCESS
                   : HistoryEntryStatus.FAILURE;
-                if (
-                  entry.isCrossChain &&
-                  entry.destinationChain &&
-                  entry.sourceChain.status === HistoryEntryStatus.SUCCESS
-                ) {
+
+                if (isDestination && entry.destinationChain) {
                   entry.destinationChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
@@ -137,6 +143,11 @@ export const useHistory = create<HistoryStore>()(
               })
             );
 
+            const linkHash =
+              isDestination && entry.destinationChain
+                ? entry.destinationChain.hash
+                : entry.hash;
+
             notify({
               type: success ? 'success' : 'error',
               message: success
@@ -145,6 +156,15 @@ export const useHistory = create<HistoryStore>()(
               duration: success
                 ? NotificationDuration.LONG
                 : NotificationDuration.MEDIUM,
+              link: linkHash
+                ? getTransactionUrl({
+                    hash: linkHash,
+                    chainId:
+                      isDestination && entry.destinationChain
+                        ? entry.destinationChain.chainId
+                        : entry.sourceChain.chainId,
+                  })
+                : undefined,
             });
 
             if (success) {
@@ -175,6 +195,10 @@ export const useHistory = create<HistoryStore>()(
                 chainName(entry.sourceChain.chainId),
                 chainName(entry.destinationChain?.chainId)
               ),
+              link: getTransactionUrl({
+                hash: entry.hash,
+                chainId: entry.sourceChain.chainId,
+              }),
             });
             let crosschainCallFinished = false;
             while (!crosschainCallFinished) {

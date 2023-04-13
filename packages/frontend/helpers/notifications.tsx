@@ -20,7 +20,6 @@ type NotificationArguments = {
   message: string;
   type: NotificationType;
   link?: string;
-  isTransaction?: boolean;
   sticky?: boolean;
   duration?: NotificationDuration;
 };
@@ -29,22 +28,18 @@ export function notify({
   message,
   type,
   link,
-  isTransaction,
   sticky,
   duration,
 }: NotificationArguments) {
   const options: Partial<ToastOptions> = {
     position: toast.POSITION.TOP_LEFT,
     theme: 'dark',
-    toastId: type + message + link + isTransaction,
+    toastId: type + message + link,
     autoClose: sticky ? false : duration ?? NotificationDuration.MEDIUM,
   };
 
   if (link) {
-    return toast(
-      getLinkNotification({ message, link, isTransaction, type }),
-      options
-    );
+    return toast(getLinkNotification({ message, link, type }), options);
   }
 
   return toast[type](message, options);
@@ -64,34 +59,23 @@ export function getTransactionUrl(transaction: {
 export function getLinkNotification({
   message,
   link,
-  isTransaction,
   type = 'info',
 }: {
   link: string;
   message?: string;
-  isTransaction?: boolean;
-  type?: 'error' | 'info' | 'success' | 'warning';
+  type?: NotificationType;
 }) {
-  return (
-    <CustomToastWithLink
-      link={link}
-      message={message}
-      type={type}
-      isTransaction={isTransaction}
-    />
-  );
+  return <CustomToastWithLink link={link} message={message} type={type} />;
 }
 
 export function CustomToastWithLink({
   link,
   message,
   type,
-  isTransaction,
 }: {
   link: string;
   type: NotificationType;
   message?: string;
-  isTransaction?: boolean;
 }) {
   return (
     <Stack direction="row" alignItems="center">
@@ -104,12 +88,10 @@ export function CustomToastWithLink({
       <Link ml="0.5rem" href={link} target="_blank">
         <Typography variant="body1" sx={{ fontSize: '1rem' }}>
           {message}
-          {isTransaction && (
-            <LaunchIcon
-              sx={{ paddingLeft: '0.2rem', paddingTop: '0.2rem' }}
-              fontSize="inherit"
-            />
-          )}
+          <LaunchIcon
+            sx={{ paddingLeft: '0.2rem', paddingTop: '0.2rem' }}
+            fontSize="inherit"
+          />
         </Typography>
       </Link>
     </Stack>
