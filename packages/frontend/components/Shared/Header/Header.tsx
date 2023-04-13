@@ -16,11 +16,11 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
 import { topLevelPages } from '../../../helpers/navigation';
@@ -47,11 +47,17 @@ const Header = () => {
   );
   const { palette } = useTheme();
   const router = useRouter();
-  const currentPage = `/${router.pathname.substring(1)}`;
+  const currentPage = router.asPath;
 
-  const isPageActive = (path: string) =>
-    (currentPage === '/' && path === '/') ||
-    (path !== '/' && currentPage.includes(path));
+  const isPageActive = useCallback(
+    (path: string) => {
+      return (
+        (currentPage === '/' && path === '/') ||
+        (path !== '/' && currentPage.includes(path))
+      );
+    },
+    [currentPage]
+  );
 
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [accountModalEl, setAccountModalEl] = useState<
@@ -92,8 +98,16 @@ const Header = () => {
           },
         }}
       >
-        <Toolbar disableGutters>
-          <Grid container justifyContent="space-between" alignItems="center">
+        <Toolbar
+          disableGutters
+          sx={{ '@media (min-width: 600px)': { minHeight: '4.75rem' } }}
+        >
+          <Grid
+            container
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ width: { xs: '100%', lg: 'unset' } }}
+          >
             <Grid item>
               <Link href="/" legacyBehavior>
                 <a className={styles.logoTitle}>
@@ -101,10 +115,7 @@ const Header = () => {
                     maxWidth={120}
                     maxHeight={50}
                     sx={{
-                      maxWidth: '120px',
-                      ['@media screen and (max-width: 346px)']: {
-                        maxWidth: '100px',
-                      },
+                      width: '12rem',
                     }}
                   >
                     <img
@@ -225,23 +236,28 @@ const Header = () => {
             sx={{
               flexGrow: 1,
               display: { xs: 'none', lg: 'flex' },
+              ml: '1rem',
               justifyContent: 'center',
+              gap: '0.25rem',
             }}
           >
             {topLevelPages.map((page) => (
               <Link key={page.path} href={page.path}>
                 <MenuItem
                   sx={{
+                    lineHeight: '160%',
+                    fontSize: '1rem',
                     color: isPageActive(page.path.toLowerCase())
-                      ? 'primary.main'
-                      : 'text.primary',
-                    textShadow: isPageActive(page.path.toLowerCase())
-                      ? `${palette.primary.main} 0rem 0rem 0.125rem`
-                      : '',
+                      ? palette.text.primary
+                      : palette.info.main,
+                    background: isPageActive(page.path.toLowerCase())
+                      ? alpha('#25262A', 0.7)
+                      : 'transparent',
+                    p: '0.25rem 1rem',
+                    borderRadius: '10px',
                     '&:hover': {
-                      color: 'primary.main',
-                      background: 'transparent',
-                      textShadow: `${palette.primary.main} 0rem 0rem 0.125rem`,
+                      color: palette.text.primary,
+                      background: alpha('#25262A', 0.7),
                     },
                   }}
                 >
