@@ -715,8 +715,9 @@ contract BorrowingVault is BaseVault {
    * the relationship between debt and debt shares occurs.
    *
    * @param  amount to be borrowed
+   * @param  treasury address to receive the borrowed amount
    */
-  function correctDebt(uint256 amount) external onlyTimelock {
+  function correctDebt(uint256 amount, address treasury) external onlyTimelock {
     uint256 vaultDebt = totalDebt();
     uint256 vaultDebtShares = debtSharesSupply;
 
@@ -731,5 +732,6 @@ contract BorrowingVault is BaseVault {
     }
 
     _executeProviderAction(amount, "borrow", activeProvider);
+    SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, amount);
   }
 }
