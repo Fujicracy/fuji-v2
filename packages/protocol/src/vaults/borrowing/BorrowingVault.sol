@@ -69,6 +69,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
   error BorrowingVault__correctDebt_noNeedForCorrection();
   error BorrowingVault__correctDebt_invalidAmount();
+  error BorrowingVault__withdraw_debtNeedsCorrection();
 
   /*///////////////////
    Liquidation controls
@@ -274,6 +275,37 @@ contract BorrowingVault is BaseVault {
     return shares;
   }
 
+  /**
+   * @dev Checks if vault debt has been paid off externally and pauses the vault if so.
+   * Will call withdraw if normal conditions are met.
+   *
+   * @param caller or {msg.sender}
+   * @param receiver to whom `assets` amount will be transferred to
+   * @param owner to whom `shares` will be burned
+   * @param assets amount transferred during this withraw
+   * @param shares amount burned to `owner` during this withdraw
+   */
+  function _withdraw(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 assets,
+    uint256 shares
+  )
+    internal
+    override
+    whenNotPaused(VaultActions.Withdraw)
+  {
+    uint256 totalDebt = totalDebt();
+    uint256 supply = debtSharesSupply;
+
+    if (totalDebt == 0 && supply > 0 && supply > totalDebt) {
+      _pause(VaultActions.Withdraw);
+      revert BorrowingVault__withdraw_debtNeedsCorrection();
+    }
+    super._withdraw(caller, receiver, owner, assets, shares);
+  }
+
   /*///////////////////////
       Borrow allowances 
   ///////////////////////*/
@@ -420,9 +452,6 @@ contract BorrowingVault is BaseVault {
     uint256 totalDebt = totalDebt();
     uint256 supply = debtSharesSupply;
 
-    if (totalDebt == 0 && supply > 0 && supply > totalDebt) {
-      //TODO PAUSE WITHDRAW
-    }
     return (supply == 0) ? shares : shares.mulDiv(totalDebt, supply, rounding);
   }
 
@@ -737,6 +766,7 @@ contract BorrowingVault is BaseVault {
     }
 
     //TODO DECIDE IF WE UNPAUSE HERE
+    _unpause(VaultActions.Withdraw);
 
     _executeProviderAction(amount, "borrow", activeProvider);
     SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, amount);

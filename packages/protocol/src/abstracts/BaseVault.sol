@@ -575,6 +575,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 shares
   )
     internal
+    virtual
     whenNotPaused(VaultActions.Withdraw)
   {
     _burn(owner, shares);
