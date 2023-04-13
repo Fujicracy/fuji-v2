@@ -36,8 +36,16 @@ contract AttackPermits is MockingSetup, Routines {
     // Alice signs a message for `simpleRouter` to borrow 800 tDAI.
     uint256 newBorrowAmount = 800e18;
 
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
+
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), ALICE, newBorrowAmount, 0, address(vault)
+      ALICE,
+      address(simpleRouter),
+      ALICE,
+      newBorrowAmount,
+      0,
+      address(vault),
+      pretendedActionArgsHash
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
@@ -69,8 +77,16 @@ contract AttackPermits is MockingSetup, Routines {
     // funds. Therefore 'receiver` is also `operator`.
     uint256 newBorrowAmount = 800e18;
 
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
+
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), address(simpleRouter), newBorrowAmount, 0, address(vault)
+      ALICE,
+      address(simpleRouter),
+      address(simpleRouter),
+      newBorrowAmount,
+      0,
+      address(vault),
+      pretendedActionArgsHash
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =

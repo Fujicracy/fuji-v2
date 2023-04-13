@@ -77,13 +77,6 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
 
     do_depositAndBorrow(withdrawAmount, flashAmount, vault, ALICE);
 
-    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(router), address(router), withdrawAmount, 0, address(vault)
-    );
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
-
     // construct inner actions
     IRouter.Action[] memory innerActions = new IRouter.Action[](4);
     bytes[] memory innerArgs = new bytes[](4);
@@ -95,7 +88,7 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
 
     innerArgs[0] = abi.encode(address(vault), flashAmount, ALICE, address(router));
     innerArgs[1] =
-      abi.encode(address(vault), ALICE, address(router), withdrawAmount, deadline, v, r, s);
+      LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, address(router), withdrawAmount);
     innerArgs[2] = abi.encode(address(vault), withdrawAmount, address(router), ALICE);
 
     uint256 fee = flasher.computeFlashloanFee(debtAsset, flashAmount);
@@ -110,7 +103,19 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       0,
       address(router)
     );
-    // ------------
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(innerActions, innerArgs);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(router), address(router), withdrawAmount, 0, address(vault), actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+    // Replace permit action arguments, now with the signature values.
+    innerArgs[1] =
+      abi.encode(address(vault), ALICE, address(router), withdrawAmount, deadline, v, r, s);
 
     bytes memory requestorCalldata =
       abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
@@ -134,13 +139,6 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     uint256 borrowAmount = 1000e6;
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    LibSigUtils.Permit memory permitW = LibSigUtils.buildPermitStruct(
-      ALICE, address(router), address(router), amount, 0, address(vault)
-    );
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
-
     // construct inner actions
     IRouter.Action[] memory innerActions = new IRouter.Action[](7);
     bytes[] memory innerArgs = new bytes[](7);
@@ -153,23 +151,18 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     innerActions[5] = IRouter.Action.Borrow; // at vault2
     innerActions[6] = IRouter.Action.Swap;
 
-    // at initial vault
+    // At initial vault
     innerArgs[0] = abi.encode(address(vault), borrowAmount, ALICE, address(router));
-    innerArgs[1] = abi.encode(address(vault), ALICE, address(router), amount, deadline, v, r, s);
+    innerArgs[1] =
+      LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, address(router), amount);
     innerArgs[2] = abi.encode(address(vault), amount, address(router), ALICE);
 
-    // at vault2
+    // At vault2
     uint256 fee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
     // borrow more to account for swap fees
-    LibSigUtils.Permit memory permitB = LibSigUtils.buildPermitStruct(
-      ALICE, address(router), address(router), borrowAmount + fee * 30, 0, address(vault2)
-    );
-
-    (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(vault2));
-
     innerArgs[3] = abi.encode(address(vault2), amount, ALICE, address(router));
-    innerArgs[4] = abi.encode(
-      address(vault2), ALICE, address(router), borrowAmount + fee * 30, deadline, v, r, s
+    innerArgs[4] = LibSigUtils.getZeroPermitEncodedArgs(
+      address(vault2), ALICE, address(router), borrowAmount + fee * 30
     );
     innerArgs[5] = abi.encode(address(vault2), borrowAmount + fee * 30, address(router), ALICE);
 
@@ -185,7 +178,36 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       0,
       address(router)
     );
-    // ------------
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(innerActions, innerArgs);
+
+    LibSigUtils.Permit memory permitW;
+    {
+      permitW = LibSigUtils.buildPermitStruct(
+        ALICE, address(router), address(router), amount, 0, address(vault), actionArgsHash
+      );
+    }
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
+
+    // Replace innerArgs[1], now with the signature values.
+    innerArgs[1] = abi.encode(address(vault), ALICE, address(router), amount, deadline, v, r, s);
+
+    LibSigUtils.Permit memory permitB;
+    {
+      uint256 borrowSum = borrowAmount + fee * 30;
+      permitB = LibSigUtils.buildPermitStruct(
+        ALICE, address(router), address(router), borrowSum, 0, address(vault2), actionArgsHash
+      );
+    }
+
+    (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(vault2));
+
+    // Replace innerArgs[4], now with the signature values.
+    innerArgs[4] = abi.encode(
+      address(vault2), ALICE, address(router), borrowAmount + fee * 30, deadline, v, r, s
+    );
 
     bytes memory requestorCalldata =
       abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);

@@ -32,6 +32,20 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
+   * @dev TODO
+   */
+  struct PermitArgs {
+    IVaultPermissions vault;
+    address owner;
+    address receiver;
+    uint256 amount;
+    uint256 deadline;
+    uint8 v;
+    bytes32 r;
+    bytes32 s;
+  }
+
+  /**
    * @dev Emitted when `caller` is updated according to `allowed` boolean
    * to perform cross-chain calls.
    *
@@ -57,6 +71,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__allowCaller_noAllowChange();
 
   IWETH9 public immutable WETH9;
+
+  bytes32 private constant ZERO_BYTES32 =
+    0x0000000000000000000000000000000000000000000000000000000000000000;
 
   /// @dev Apply it on entry cross-chain calls functions as required.
   mapping(address => bool) public isAllowedCaller;
@@ -129,6 +146,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     address beneficiary;
 
     /**
+     * @dev TODO
+     */
+    bytes32 actionArgsHash;
+
+    /**
      * @dev Stores token balances of this contract at a given moment.
      * It's used to ensure there're no changes in balances at the
      * end of a transaction.
@@ -196,42 +218,22 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         vault.payback(amount, receiver);
       } else if (action == Action.PermitWithdraw) {
         // PERMIT WITHDRAW
-        (
-          IVaultPermissions vault,
-          address owner,
-          address receiver,
-          uint256 amount,
-          uint256 deadline,
-          uint8 v,
-          bytes32 r,
-          bytes32 s
-        ) = abi.decode(
-          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
-        );
+        if (actionArgsHash == ZERO_BYTES32) {
+          actionArgsHash = _getActionArgsHash(actions, args);
+        }
 
-        _checkVaultInput(address(vault));
-
-        vault.permitWithdraw(owner, receiver, amount, deadline, v, r, s);
-        beneficiary = _checkBeneficiary(beneficiary, owner);
+        // Scoped code in new private function to avoid "Stack too deep"
+        address owner_ = _handlePermitAction(args[i], actionArgsHash, 1);
+        beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.PermitBorrow) {
         // PERMIT BORROW
-        (
-          IVaultPermissions vault,
-          address owner,
-          address receiver,
-          uint256 amount,
-          uint256 deadline,
-          uint8 v,
-          bytes32 r,
-          bytes32 s
-        ) = abi.decode(
-          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
-        );
+        if (actionArgsHash == ZERO_BYTES32) {
+          actionArgsHash = _getActionArgsHash(actions, args);
+        }
 
-        _checkVaultInput(address(vault));
-
-        vault.permitBorrow(owner, receiver, amount, deadline, v, r, s);
-        beneficiary = _checkBeneficiary(beneficiary, owner);
+        // Scoped code in new private function to avoid "Stack too deep"
+        address owner_ = _handlePermitAction(args[i], actionArgsHash, 2);
+        beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 
@@ -322,6 +324,103 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       }
     }
     _checkNoBalanceChange(tokensToCheck, nativeBalance);
+  }
+
+  /**
+   * @dev TODO
+   */
+  function _handlePermitAction(
+    bytes memory arg,
+    bytes32 actionArgsHash_,
+    uint256 permit
+  )
+    private
+    returns (address)
+  {
+    PermitArgs memory loaded;
+    {
+      (
+        loaded.vault,
+        loaded.owner,
+        loaded.receiver,
+        loaded.amount,
+        loaded.deadline,
+        loaded.v,
+        loaded.r,
+        loaded.s
+      ) = abi.decode(
+        arg, (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+      );
+    }
+
+    _checkVaultInput(address(loaded.vault));
+
+    if (permit == 1) {
+      loaded.vault.permitWithdraw(
+        loaded.owner,
+        loaded.receiver,
+        loaded.amount,
+        loaded.deadline,
+        actionArgsHash_,
+        loaded.v,
+        loaded.r,
+        loaded.s
+      );
+    } else if (permit == 2) {
+      loaded.vault.permitBorrow(
+        loaded.owner,
+        loaded.receiver,
+        loaded.amount,
+        loaded.deadline,
+        actionArgsHash_,
+        loaded.v,
+        loaded.r,
+        loaded.s
+      );
+    }
+
+    return loaded.owner;
+  }
+
+  /**
+   * @dev TODO
+   */
+  function _getZeroPermitEncodedArgs(
+    IVaultPermissions vault,
+    address owner,
+    address receiver,
+    uint256 amount
+  )
+    private
+    pure
+    returns (bytes memory)
+  {
+    return abi.encode(vault, owner, receiver, amount, 0, 0, ZERO_BYTES32, ZERO_BYTES32);
+  }
+
+  /**
+   * @dev TODO
+   */
+  function _getActionArgsHash(
+    IRouter.Action[] memory actions,
+    bytes[] memory args
+  )
+    private
+    pure
+    returns (bytes32)
+  {
+    uint256 len = actions.length;
+    for (uint256 i; i < len; i++) {
+      if (actions[i] == IRouter.Action.PermitWithdraw || actions[i] == IRouter.Action.PermitBorrow)
+      {
+        // Need to replace permit `args` at `index` with the `zeroPermitArg`.
+        (IVaultPermissions vault, address owner, address receiver, uint256 amount,,,,) = abi.decode(
+          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+        );
+        args[i] = _getZeroPermitEncodedArgs(vault, owner, receiver, amount);
+      }
+    }
+    return keccak256(abi.encode(actions, args));
   }
 
   /**

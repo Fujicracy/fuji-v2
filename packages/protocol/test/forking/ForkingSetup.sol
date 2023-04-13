@@ -315,13 +315,15 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     address receiver,
     uint256 amount,
     uint256 plusNonce,
-    address vault_
+    address vault_,
+    bytes32 actionArgsHash
   )
     internal
     returns (bytes memory arg)
   {
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(owner, operator, owner, amount, plusNonce, vault_);
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      owner, operator, owner, amount, plusNonce, vault_, actionArgsHash
+    );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitBorrowArgs(permit, ownerPrivateKey, vault_);
@@ -348,11 +350,22 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(vault_, amount, beneficiary, router);
-
-    args[1] = _buildPermitAsBytes(
-      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
-    );
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, beneficiary, beneficiary, borrowAmount);
     args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = _buildPermitAsBytes(
+      beneficiary,
+      beneficiaryPrivateKey,
+      router,
+      beneficiary,
+      borrowAmount,
+      0,
+      vault_,
+      actionArgsHash
+    );
 
     callData = abi.encode(actions, args, slippage);
   }
@@ -375,11 +388,22 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(vault_, amount, beneficiary, router);
-
-    args[1] = _buildPermitAsBytes(
-      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
-    );
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, beneficiary, beneficiary, borrowAmount);
     args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = _buildPermitAsBytes(
+      beneficiary,
+      beneficiaryPrivateKey,
+      router,
+      beneficiary,
+      borrowAmount,
+      0,
+      vault_,
+      actionArgsHash
+    );
 
     return (actions, args);
   }
