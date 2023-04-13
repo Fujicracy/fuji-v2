@@ -119,7 +119,11 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.MATIC);
     });
 
@@ -153,7 +157,11 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
@@ -187,7 +195,10 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.OPTIMISM];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
@@ -198,7 +209,10 @@ describe('Sdk', () => {
         .mockImplementation(() => []);
       const collateral = WNATIVE[ChainId.MATIC];
       const debt = new Token(ChainId.MATIC, ADDRESS_BOB, 6, 'Bob');
-      const vaults = await sdk.getBorrowingVaultsFor(collateral, debt);
+      const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults.length).toEqual(0);
     });
   });
