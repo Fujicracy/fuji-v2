@@ -18,7 +18,7 @@ function BalanceAddon({
   onClick,
 }: BalanceAddonProps) {
   const { palette } = useTheme();
-  const active = useHistory((state) => state.ongoingTxns.length);
+  const active = useHistory((state) => state.ongoingTransactions.length);
 
   const [bal] = balance ? Object.values<string>(balance) : [''];
   const [token] = balance ? Object.keys(balance) : [''];

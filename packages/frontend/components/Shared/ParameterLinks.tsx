@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import React from 'react';
 
+import { SOCIAL_URL } from '../../constants';
 import { DiscordIcon } from './Icons';
 
 function ParameterLinks() {
@@ -15,11 +16,7 @@ function ParameterLinks() {
 
   return (
     <>
-      <Link
-        href="https://discord.com/invite/dnvJeEMeDJ"
-        target="_blank"
-        rel="noreferrer"
-      >
+      <Link href={SOCIAL_URL.DISCORD} target="_blank" rel="noreferrer">
         <MenuItem>
           <ListItemText>
             <Typography color={palette.info.main} variant="small">
@@ -29,11 +26,7 @@ function ParameterLinks() {
           <DiscordIcon size={14} color={palette.info.main} />
         </MenuItem>
       </Link>
-      <Link
-        href="https://discord.com/invite/dnvJeEMeDJ"
-        target="_blank"
-        rel="noreferrer"
-      >
+      <Link href={SOCIAL_URL.DISCORD} target="_blank" rel="noreferrer">
         <MenuItem>
           <ListItemText>
             <Typography color={palette.info.main} variant="small">
@@ -43,11 +36,7 @@ function ParameterLinks() {
           <DiscordIcon size={14} color={palette.info.main} />
         </MenuItem>
       </Link>
-      <Link
-        href="https://twitter.com/FujiFinance"
-        target="_blank"
-        rel="noreferrer"
-      >
+      <Link href={SOCIAL_URL.TWITTER} target="_blank" rel="noreferrer">
         <MenuItem>
           <ListItemText>
             <Typography color={palette.info.main} variant="small">

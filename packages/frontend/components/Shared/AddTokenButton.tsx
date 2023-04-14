@@ -1,8 +1,8 @@
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useState } from 'react';
 
+import { SerializableToken } from '../../helpers/history';
 import { addTokenToMetamask } from '../../helpers/metamask';
-import { SerializableToken } from '../../store/history.store';
 
 type ButtonAddTokenProps = {
   token: SerializableToken;
@@ -25,7 +25,9 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   return (
     <LoadingButton
-      variant="rounded"
+      variant="ghost"
+      fullWidth
+      size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
       disabled={status === 'success'}

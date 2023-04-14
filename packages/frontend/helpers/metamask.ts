@@ -1,4 +1,4 @@
-import { SerializableToken } from '../store/history.store';
+import { SerializableToken } from './history';
 import { getTokenImage } from './paths';
 
 declare const ethereum: any; // eslint-disable-line

@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending/Lending';
+import Lending from '../Shared/Lending';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
 

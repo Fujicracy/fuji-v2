@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending/Lending';
+import Lending from '../Shared/Lending';
 import MarketsTable from './MarketsTable';
 
 function Markets() {

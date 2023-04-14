@@ -1,40 +1,66 @@
-import {
-  Address,
-  ChainId,
-  RoutingStep,
-  RoutingStepDetails,
-  Token,
-} from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
+import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 
-import { HistoryEntry, HistoryRoutingStep } from '../store/history.store';
-import { camelize } from './values';
+import { useAuth } from '../store/auth.store';
+import { useBorrow } from '../store/borrow.store';
+import { updateNativeBalance } from './balances';
+import { hexToChainId } from './chains';
 
-export const toRoutingStepDetails = (
-  s: HistoryRoutingStep[]
-): RoutingStepDetails[] => {
-  return s.map((s) => ({
-    ...s,
-    txHash: undefined,
-    token: s.token
-      ? new Token(
-          s.token.chainId,
-          Address.from(s.token.address),
-          s.token.decimals,
-          s.token.symbol,
-          s.token.name
-        )
-      : undefined,
-  }));
+export enum HistoryEntryStatus {
+  ONGOING,
+  SUCCESS,
+  FAILURE,
+}
+
+/**
+ * Contains all we need to instantiate a token with new Token()
+ */
+export type SerializableToken = {
+  chainId: ChainId;
+  address: string;
+  decimals: number;
+  symbol: string;
+  name?: string;
+};
+
+export type HistoryEntryChain = {
+  chainId: ChainId;
+  status: HistoryEntryStatus;
+  hash?: string;
+};
+
+export type HistoryEntry = {
+  hash: string;
+  steps: HistoryRoutingStep[];
+  status: HistoryEntryStatus;
+  connextTransferId?: string;
+  vaultAddress?: string;
+  sourceChain: HistoryEntryChain;
+  isCrossChain: boolean; // Convenience
+  destinationChain: HistoryEntryChain | undefined;
+};
+
+export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
+  token?: SerializableToken;
+};
+
+export const validSteps = (
+  steps: HistoryRoutingStep[]
+): HistoryRoutingStep[] => {
+  return steps.filter(
+    (s) =>
+      s.step !== RoutingStep.START &&
+      s.step !== RoutingStep.END &&
+      s.token &&
+      s.amount
+  );
 };
 
 export const toHistoryRoutingStep = (
-  s: RoutingStepDetails[]
+  steps: RoutingStepDetails[]
 ): HistoryRoutingStep[] => {
-  return s.map((s: RoutingStepDetails) => {
+  return steps.map((s: RoutingStepDetails) => {
     return {
       ...s,
-      txHash: undefined,
       token: s.token
         ? {
             chainId: s.token.chainId,
@@ -48,34 +74,45 @@ export const toHistoryRoutingStep = (
   });
 };
 
-export const entryOutput = (
-  step: RoutingStepDetails,
-  hash: string
-): {
-  title: string;
-  transactionUrl: {
-    hash: string;
-    chainId: ChainId;
-  };
-} => {
-  const stepAction = camelize(step.step.toString());
-  const stepAmount =
-    step.amount && formatUnits(step.amount, step.token?.decimals);
-  const title = `${stepAction} ${stepAmount} ${step.token?.symbol}}`;
-  const chainId = step.chainId;
-
-  return {
-    title,
-    transactionUrl: {
-      hash,
-      chainId,
-    },
-  };
-};
-
 export const stepFromEntry = (
   entry: HistoryEntry,
   type: RoutingStep
 ): HistoryRoutingStep | undefined => {
   return entry.steps.find((s) => s.step === type);
+};
+
+export const triggerUpdatesFromSteps = (
+  steps: HistoryRoutingStep[],
+  chainId: ChainId
+) => {
+  const result = validSteps(steps).filter((s) => s.chainId === chainId);
+  result.forEach((s) => {
+    if (s.step === RoutingStep.DEPOSIT || s.step === RoutingStep.WITHDRAW) {
+      useBorrow.getState().updateBalances('collateral');
+    } else if (
+      s.step === RoutingStep.BORROW ||
+      s.step === RoutingStep.PAYBACK
+    ) {
+      useBorrow.getState().updateBalances('debt');
+    }
+    if (s.step === RoutingStep.DEPOSIT) {
+      useBorrow.getState().updateAllowance('collateral');
+    } else if (s.step === RoutingStep.PAYBACK) {
+      useBorrow.getState().updateAllowance('debt');
+    }
+    // If the operation happened on the same chain as the wallet, update the balance
+    const walletChain = useAuth.getState().chain;
+    if (walletChain && hexToChainId(walletChain.id) === s.chainId) {
+      updateNativeBalance();
+    }
+  });
+};
+
+// Convenience function to wait for a certain amount of time when polling a cross-chain transaction
+export const wait = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(ms);
+    }, ms);
+  });
 };

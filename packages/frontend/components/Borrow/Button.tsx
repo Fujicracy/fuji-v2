@@ -85,19 +85,10 @@ function BorrowButton({
   }`;
 
   const loadingButtonTitle =
-    (collateral.allowance.status === 'allowing' && 'Approving') ||
-    (debt.allowance.status === 'allowing' && 'Approving') ||
+    (collateral.allowance.status === 'allowing' && 'Approving...') ||
+    (debt.allowance.status === 'allowing' && 'Approving...') ||
     (isSigning && '(1/2) Signing...') ||
-    (isExecuting &&
-      `(${executionStep}/${executionStep}) ${
-        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
-          ? 'Borrowing'
-          : mode === Mode.DEPOSIT
-          ? 'Depositing'
-          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
-          ? 'Withdrawing'
-          : 'Repaying'
-      }...`) ||
+    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
     actionTitle;
 
   const regularButton = (

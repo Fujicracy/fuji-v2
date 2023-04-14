@@ -26,8 +26,7 @@ import { devtools } from 'zustand/middleware';
 import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_THRESHOLD,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
+  NOTIFICATION_MESSAGES,
 } from '../constants';
 import {
   AllowanceStatus,
@@ -39,7 +38,14 @@ import {
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { testChains } from '../helpers/chains';
-import { getTransactionUrl, notify } from '../helpers/notifications';
+import { handleCancelableMMActionError } from '../helpers/errors';
+import {
+  dismiss,
+  getTransactionUrl,
+  NotificationDuration,
+  NotificationId,
+  notify,
+} from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -124,7 +130,7 @@ type BorrowActions = {
   updateVaultBalance: () => void;
   allow: (type: AssetType) => void;
   updateAvailableRoutes: (routes: RouteMeta[]) => void;
-  signPermit: () => void;
+  sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
 };
@@ -240,10 +246,14 @@ export const useBorrow = create<BorrowStore>()(
 
           await get().changeActiveVault(vault);
 
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          );
+          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+
+          if (!result.success) {
+            console.error(result.error.message);
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+          const availableVaults = result.data;
           set({ availableVaults });
 
           await Promise.all([
@@ -421,7 +431,13 @@ export const useBorrow = create<BorrowStore>()(
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
 
-          let tokenValue = await token.getPriceUSD();
+          const result = await token.getPriceUSD();
+          if (!result.success) {
+            console.error(result.error.message);
+            return;
+          }
+
+          let tokenValue = result.data;
           const isTestNet = testChains.some((c) => c.chainId === token.chainId);
           if (token.symbol === 'WETH' && isTestNet) {
             tokenValue = 1242.42; // fix bc weth has no value on testnet
@@ -492,10 +508,15 @@ export const useBorrow = create<BorrowStore>()(
 
           const collateral = get().collateral.token;
           const debt = get().debt.token;
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          );
+          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+
+          if (!result.success) {
+            console.error(result.error.message);
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+
+          const availableVaults = result.data;
           const [vault] = availableVaults;
           if (!vault) {
             console.error('No available vault');
@@ -600,7 +621,7 @@ export const useBorrow = create<BorrowStore>()(
               })
             );
             const message = e instanceof FujiError ? e.message : String(e);
-            notify({ type: 'error', message });
+            console.error(message);
           }
         },
 
@@ -728,9 +749,8 @@ export const useBorrow = create<BorrowStore>()(
 
             changeAllowance('ready', amount);
             notify({
-              message: SUCCESS_MESSAGES.ALLOWANCE,
+              message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
-              isTransaction: true,
               link:
                 getTransactionUrl({
                   hash: approval.hash,
@@ -739,15 +759,18 @@ export const useBorrow = create<BorrowStore>()(
             });
           } catch (e) {
             changeAllowance('error');
-            notify({ message: ERROR_MESSAGES.ALLOWANCE, type: 'error' });
+            notify({
+              message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
+              type: 'error',
+            });
           }
         },
 
-        async signPermit() {
+        async sign() {
           const actions = get().actions;
           const vault = get().activeVault;
           const provider = useAuth.getState().provider;
-
+          let notificationId: NotificationId | undefined;
           try {
             if (!actions || !vault || !provider) {
               throw 'Unexpected undefined value';
@@ -760,6 +783,11 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ isSigning: true });
 
+            notificationId = notify({
+              type: 'info',
+              message: NOTIFICATION_MESSAGES.SIGNATURE_PENDING,
+              sticky: true,
+            });
             const { domain, types, value } = await vault.signPermitFor(
               permitAction
             );
@@ -769,17 +797,14 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ signature });
           } catch (e) {
-            const message =
-              e instanceof Error
-                ? e.message === 'user rejected signing' // Thrown by ethers.js
-                  ? ERROR_MESSAGES.CANCEL_SIGNATURE
-                  : e.message
-                : String(e);
-            notify({
-              type: 'error',
-              message,
-            });
+            handleCancelableMMActionError(
+              e,
+              NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
+            );
           } finally {
+            if (notificationId) {
+              dismiss(notificationId);
+            }
             set({ isSigning: false });
           }
         },
@@ -793,12 +818,13 @@ export const useBorrow = create<BorrowStore>()(
             !provider ||
             (needsSignature && !signature)
           ) {
-            notify({
-              type: 'error',
-              message: ERROR_MESSAGES.UNEXPECTED_UNDEFINED,
-            });
             return;
           }
+          const notificationId = notify({
+            type: 'info',
+            message: NOTIFICATION_MESSAGES.TX_PENDING,
+            sticky: true,
+          });
 
           const srcChainId = transactionMeta.steps[0].chainId;
 
@@ -811,6 +837,7 @@ export const useBorrow = create<BorrowStore>()(
             signature
           );
           if (!result.success) {
+            dismiss(notificationId);
             notify({ type: 'error', message: result.error.message });
             return;
           }
@@ -827,23 +854,30 @@ export const useBorrow = create<BorrowStore>()(
             if (tx) {
               notify({
                 type: 'success',
-                message: SUCCESS_MESSAGES.TX,
+                message: NOTIFICATION_MESSAGES.TX_SENT,
+                duration: NotificationDuration.LONG,
+                link: getTransactionUrl({
+                  hash: tx.hash,
+                  chainId: srcChainId,
+                }),
               });
             }
             return tx;
           } catch (e) {
-            notify({
-              type: 'error',
-              message: ERROR_MESSAGES.TX,
-            });
+            handleCancelableMMActionError(
+              e,
+              NOTIFICATION_MESSAGES.TX_CANCELLED,
+              NOTIFICATION_MESSAGES.TX_NOT_SENT
+            );
           } finally {
+            dismiss(notificationId);
             set({ isExecuting: false });
           }
         },
 
         async signAndExecute() {
           if (get().needsSignature) {
-            await get().signPermit();
+            await get().sign();
           }
 
           const tx = await get().execute();
