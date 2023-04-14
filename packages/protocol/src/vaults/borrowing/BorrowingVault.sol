@@ -765,8 +765,10 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__correctDebt_invalidAmount();
     }
 
-    //TODO DECIDE IF WE UNPAUSE HERE
-    _unpause(VaultActions.Withdraw);
+    //TODO decide if we unpause here
+    if (paused(VaultActions.Withdraw)) {
+      _unpause(VaultActions.Withdraw);
+    }
 
     _executeProviderAction(amount, "borrow", activeProvider);
     SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, amount);
