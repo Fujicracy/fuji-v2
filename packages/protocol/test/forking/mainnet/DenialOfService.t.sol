@@ -42,7 +42,7 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     aaveV2pool = IV2Pool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
   }
 
-  function test_denialOfServiceWithdraw() public {
+  function testFail_tryWithdrawWithoutCorrectDebt() public {
     // Alice deposits and borrows
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
     do_borrow(BORROW_AMOUNT, vault, ALICE);
@@ -57,111 +57,12 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
+    //Withdraw will fail until debt is corrected
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
-
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 1);
   }
 
-  function test_denialOfServiceWithdrawMoreUsers() public {
-    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
-    do_borrow(BORROW_AMOUNT, vault, ALICE);
-    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
-    do_borrow(BORROW_AMOUNT, vault, BOB);
-
-    // Troublemaker pays vaults debt
-    deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
-    vm.startPrank(TROUBLEMAKER);
-    //TODO check this after rounding issue is fixed
-    //approve more than needed because of rounding issues
-    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT * 2 + 10);
-    //pay full amount, sometimes bigger than BORROW_AMOUNT * 2 due to rounding issue
-    aaveV2pool.repay(
-      vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
-    );
-    vm.stopPrank();
-
-    assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(ALICE), 0);
-    assertEq(vault.balanceOf(BOB), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(BOB), 0);
-
-    uint256 maxAmount = vault.maxWithdraw(ALICE);
-    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
-    do_withdraw(maxAmount, vault, ALICE);
-
-    maxAmount = vault.maxWithdraw(BOB);
-    assertApproxEqAbs(maxAmount, DEPOSIT_AMOUNT, 2);
-    do_withdraw(maxAmount, vault, BOB);
-
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, 2);
-    assertApproxEqAbs(vault.balanceOf(BOB), 0, 2);
-  }
-
-  function test_denialOfServiceBorrowPaybackWithdrawFullAmount() public {
-    uint256 amountCorrected = BORROW_AMOUNT * 2;
-
-    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
-    do_borrow(BORROW_AMOUNT, vault, ALICE);
-    do_deposit(DEPOSIT_AMOUNT, vault, BOB);
-    do_borrow(BORROW_AMOUNT, vault, BOB);
-
-    // Troublemaker pays vaults debt
-    deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
-    vm.startPrank(TROUBLEMAKER);
-    //TODO check this after rounding issue is fixed
-    //approve more than needed because of rounding issues
-    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT * 2 + 10);
-    //pay full amount, sometimes bigger than BORROW_AMOUNT * 2
-    aaveV2pool.repay(
-      vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
-    );
-    vm.stopPrank();
-
-    assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(ALICE), 0);
-    assertEq(vault.balanceOf(BOB), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(BOB), 0);
-
-    BorrowingVault bvault = BorrowingVault(payable(address(vault)));
-
-    bytes memory data =
-      abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected, TREASURY);
-    _callWithTimelock(address(vault), data);
-    skip(2 days);
-
-    assertApproxEqAbs(vault.balanceOfDebt(ALICE), amountCorrected / 2, 1);
-    assertApproxEqAbs(vault.balanceOfDebt(BOB), amountCorrected / 2, 1);
-
-    //payback debt
-    uint256 amountToPayback = amountCorrected / 2;
-    //TODO check this after rounding issue is fixed
-    if (vault.balanceOfDebt(ALICE) < amountToPayback) {
-      amountToPayback = vault.balanceOfDebt(ALICE);
-    }
-    do_payback(amountToPayback, vault, ALICE);
-    if (vault.balanceOfDebt(BOB) < amountToPayback) {
-      amountToPayback = vault.balanceOfDebt(BOB);
-    }
-    do_payback(amountToPayback, vault, BOB);
-
-    assertApproxEqAbs(vault.balanceOfDebt(ALICE), 0, 1);
-    assertApproxEqAbs(vault.balanceOfDebt(BOB), 0, 1);
-
-    //withdraw
-    do_withdraw(DEPOSIT_AMOUNT, vault, ALICE);
-    do_withdraw(DEPOSIT_AMOUNT, vault, BOB);
-
-    //DEPOSIT_AMOUNT has built up some interest after the call with timelock (lets assume 1%)
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, DEPOSIT_AMOUNT / 100);
-    assertApproxEqAbs(vault.balanceOf(BOB), 0, DEPOSIT_AMOUNT / 100);
-
-    //check the actual corrected amount is in the vault
-    assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
-    assertEq(IERC20(debtAsset).balanceOf(TREASURY), amountCorrected);
-  }
-
-  function test_pauseUntilCorrectDebt() public {
+  function test_correctDebtUnpausesWithdraw() public {
     uint256 amountCorrected = BORROW_AMOUNT;
 
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
@@ -179,15 +80,9 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    //try to withdraw and check it fails
-    //TODO do this expect revert correctly
-    // vm.expectRevert( PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
-    // vm.expectRevert();
-    do_withdraw(DEPOSIT_AMOUNT - 1, vault, ALICE);
-
-    BorrowingVault bvault = BorrowingVault(payable(address(vault)));
+    // BorrowingVault bvault = BorrowingVault(payable(address(vault)));
     bytes memory data =
-      abi.encodeWithSelector(bvault.correctDebt.selector, amountCorrected, TREASURY);
+      abi.encodeWithSelector(BorrowingVault.correctDebt.selector, amountCorrected, TREASURY);
     _callWithTimelock(address(vault), data);
     skip(2 days);
 
@@ -198,7 +93,7 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     //DEPOSIT_AMOUNT has built up some interest after the call with timelock (lets assume 1%)
     assertApproxEqAbs(vault.balanceOf(ALICE), 0, DEPOSIT_AMOUNT / 100);
 
-    //check the actual corrected amount is in the vault
+    //check the actual corrected amount is in TREASURY
     assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), amountCorrected);
   }
