@@ -152,18 +152,28 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
       open={true}
       onClose={closeModal}
       sx={{
-        '.MuiPaper-root': { width: isMobile ? '100%' : '430px' },
+        '.MuiPaper-root': { width: isMobile ? '100%' : '480px' },
         backdropFilter: { xs: 'blur(0.313rem)', sm: 'none' },
       }}
     >
       <Paper variant="outlined" sx={{ p: { xs: '1rem', sm: '1.5rem' } }}>
-        <CloseIcon
-          sx={{ cursor: 'pointer', float: 'right' }}
-          onClick={closeModal}
-          fontSize="small"
-        />
-        <Box textAlign="center" mt="1.625rem" mb="2.5rem">
-          <Typography variant="h6">
+        <Box
+          width="2rem"
+          height="2rem"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: theme.palette.secondary.main,
+            borderRadius: '100px',
+            cursor: 'pointer',
+            float: 'right',
+          }}
+        >
+          <CloseIcon onClick={closeModal} fontSize="small" />
+        </Box>
+        <Box textAlign={isMobile ? 'left' : 'center'} mb="2rem">
+          <Typography variant="h6" fontWeight={500}>
             Transaction{' '}
             {entry.status === HistoryEntryStatus.ONGOING && 'processing...'}
             {entry.status === HistoryEntryStatus.SUCCESS && 'Success!'}
@@ -234,9 +244,9 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           </Card>
         )}
         {entry.status === HistoryEntryStatus.SUCCESS && (
-          <Stack sx={{ mt: '2rem' }} spacing={1}>
+          <Stack sx={{ mt: '1rem' }} spacing={1}>
             {action?.token?.chainId === activeChainId && (
-              <Box mb="2rem" textAlign="center">
+              <Box mb="1rem" textAlign="center">
                 <AddTokenButton token={action.token} />
               </Box>
             )}
