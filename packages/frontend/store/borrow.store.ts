@@ -867,7 +867,7 @@ export const useBorrow = create<BorrowStore>()(
             handleCancelableMMActionError(
               e,
               NOTIFICATION_MESSAGES.TX_CANCELLED,
-              NOTIFICATION_MESSAGES.TX_FAILURE
+              NOTIFICATION_MESSAGES.TX_NOT_SENT
             );
           } finally {
             dismiss(notificationId);
