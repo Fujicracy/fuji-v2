@@ -218,6 +218,7 @@ export const useHistory = create<HistoryStore>()(
                   const e = s.entries[hash];
                   if (
                     crosschainResult.data.connextTransferId &&
+                    crosschainResult.data.status !== ConnextTxStatus.UNKNOWN &&
                     !e.connextTransferId
                   ) {
                     e.connextTransferId =
