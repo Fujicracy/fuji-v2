@@ -169,8 +169,9 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             cursor: 'pointer',
             float: 'right',
           }}
+          onClick={closeModal}
         >
-          <CloseIcon onClick={closeModal} fontSize="small" />
+          <CloseIcon fontSize="small" />
         </Box>
         <Box textAlign={isMobile ? 'left' : 'center'} mb="2rem">
           <Typography variant="h6" fontWeight={500}>
