@@ -219,10 +219,12 @@ export const useHistory = create<HistoryStore>()(
                   if (
                     crosschainResult.data.connextTransferId &&
                     crosschainResult.data.status !== ConnextTxStatus.UNKNOWN &&
-                    !e.connextTransferId
+                    !e.connext
                   ) {
-                    e.connextTransferId =
-                      crosschainResult.data.connextTransferId;
+                    e.connext = {
+                      transferId: crosschainResult.data.connextTransferId,
+                      timestamp: Date.now(),
+                    };
                   }
                   if (!e.destinationChain) return;
                   if (
