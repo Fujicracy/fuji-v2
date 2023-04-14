@@ -108,7 +108,7 @@ function MyPositionsSummary() {
     [key: string]: () => void;
   } = {
     ['Borrow']: () => router.push(PATH.BORROW),
-    ['View yields']: () => setIsPositionsYieldsModalShown(true),
+    ['Details']: () => setIsPositionsYieldsModalShown(true),
   };
 
   const getAction = (actionName?: string): (() => void) | undefined => {
