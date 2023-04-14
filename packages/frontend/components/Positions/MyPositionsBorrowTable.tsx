@@ -25,6 +25,7 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
+import ExtraTableSpace from '../Shared/ExtraTableSpace';
 import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
@@ -72,82 +73,86 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     const entity = vaultFromAddress(row.address);
     showPosition(router, String(entity?.chainId), entity);
   }
+
   return (
     <MyPositionsBorrowTableContainer>
       {rows.length > 0 ? (
-        rows.map((row, i) => (
-          <TableRow
-            key={i}
-            sx={{ cursor: 'pointer', height: '4.3rem' }}
-            onClick={() => handleClick(row)}
-          >
-            <TableCell>
-              <Stack direction="row" alignItems="center">
-                <TokenWithNetworkIcon
-                  token={row.debt.symbol}
-                  network={chainName(row.chainId)}
-                  innertTop="1.1rem"
-                />
-                {row.debt.symbol}
-              </Stack>
-            </TableCell>
-            <TableCell>
-              <Stack direction="row" alignItems="center" gap={1}>
-                <TokenIcon
-                  token={row.collateral.symbol}
-                  width={32}
-                  height={32}
-                />
-                {row.collateral.symbol}
-              </Stack>
-            </TableCell>
-            <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {row.apr}%
-              </Typography>
-            </TableCell>
-            <TableCell align="right">
-              <Box pt={1} pb={1}>
-                <Typography variant="small">
-                  {formatValue(row.debt.usdValue, {
-                    style: 'currency',
-                    minimumFractionDigits: 0,
-                  })}
+        <>
+          {rows.map((row, i) => (
+            <TableRow
+              key={i}
+              sx={{ cursor: 'pointer', height: '4.3rem' }}
+              onClick={() => handleClick(row)}
+            >
+              <TableCell>
+                <Stack direction="row" alignItems="center">
+                  <TokenWithNetworkIcon
+                    token={row.debt.symbol}
+                    network={chainName(row.chainId)}
+                    innertTop="1.1rem"
+                  />
+                  {row.debt.symbol}
+                </Stack>
+              </TableCell>
+              <TableCell>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  <TokenIcon
+                    token={row.collateral.symbol}
+                    width={32}
+                    height={32}
+                  />
+                  {row.collateral.symbol}
+                </Stack>
+              </TableCell>
+              <TableCell align="right">
+                <Typography variant="small" color={palette.warning.main}>
+                  {row.apr}%
                 </Typography>
-                <br />
-                <Typography variant="small" color={palette.info.main}>
-                  {formatValue(row.debt.amount)} {row.debt.symbol}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell align="right">
-              <Box pt={1} pb={1}>
-                <Typography variant="small">
-                  {formatValue(row.collateral.usdValue, {
-                    style: 'currency',
-                    maximumFractionDigits: 0,
-                  })}
-                </Typography>
-                <br />
-                <Typography variant="small" color={palette.info.main}>
-                  {formatValue(row.collateral.amount)} {row.collateral.symbol}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell align="right">
-              {formatValue(row.oraclePrice, {
-                style: 'currency',
-                minimumFractionDigits: 0,
-              })}
-            </TableCell>
-            <LiquidationBox
-              liquidationPrice={row.liquidationPrice}
-              percentPriceDiff={row.percentPriceDiff}
-              ltv={row.ltv}
-              recommendedLtv={recommendedLTV(row.ltvMax)}
-            />
-          </TableRow>
-        ))
+              </TableCell>
+              <TableCell align="right">
+                <Box pt={1} pb={1}>
+                  <Typography variant="small">
+                    {formatValue(row.debt.usdValue, {
+                      style: 'currency',
+                      minimumFractionDigits: 0,
+                    })}
+                  </Typography>
+                  <br />
+                  <Typography variant="small" color={palette.info.main}>
+                    {formatValue(row.debt.amount)} {row.debt.symbol}
+                  </Typography>
+                </Box>
+              </TableCell>
+              <TableCell align="right">
+                <Box pt={1} pb={1}>
+                  <Typography variant="small">
+                    {formatValue(row.collateral.usdValue, {
+                      style: 'currency',
+                      maximumFractionDigits: 0,
+                    })}
+                  </Typography>
+                  <br />
+                  <Typography variant="small" color={palette.info.main}>
+                    {formatValue(row.collateral.amount)} {row.collateral.symbol}
+                  </Typography>
+                </Box>
+              </TableCell>
+              <TableCell align="right">
+                {formatValue(row.oraclePrice, {
+                  style: 'currency',
+                  minimumFractionDigits: 0,
+                })}
+              </TableCell>
+              <LiquidationBox
+                liquidationPrice={row.liquidationPrice}
+                percentPriceDiff={row.percentPriceDiff}
+                ltv={row.ltv}
+                recommendedLtv={recommendedLTV(row.ltvMax)}
+              />
+            </TableRow>
+          ))}
+          <ExtraTableSpace colSpan={7} itemLength={rows.length} max={5} />
+        </>
       ) : (
         <EmptyState reason="no-positions" />
       )}

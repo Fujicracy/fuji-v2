@@ -180,7 +180,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             {entry.status === HistoryEntryStatus.FAILURE && 'Error'}
           </Typography>
         </Box>
-        <DialogContent>
+        <DialogContent sx={{ p: 0 }}>
           <Stepper
             activeStep={activeStep}
             orientation="vertical"
@@ -193,6 +193,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                   <StepLabel StepIconComponent={step.icon}>
                     <Stack
                       direction="row"
+                      alignItems="center"
                       justifyContent="space-between"
                       gap={2}
                     >
