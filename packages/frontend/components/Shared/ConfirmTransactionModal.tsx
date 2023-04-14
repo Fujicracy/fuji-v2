@@ -138,12 +138,12 @@ export function ConfirmTransactionModal({
         )}
 
         <InfoRow
-          title="Estimated Cost"
+          title="Est. cost"
           value={<Typography variant="small">{estCost}</Typography>}
         />
 
         <InfoRow
-          title="Est.processing time"
+          title="Est. processing time"
           value={
             <Typography variant="small">{`~${
               transactionMeta.estimateTime / 60
@@ -161,7 +161,7 @@ export function ConfirmTransactionModal({
         )}
 
         <InfoRow
-          title="Borrow Limit Left"
+          title="Borrow limit left"
           value={
             <Stack flexDirection="row" alignItems="center">
               <Typography variant="small">
@@ -188,7 +188,7 @@ export function ConfirmTransactionModal({
         />
 
         <InfoRow
-          title="LTV Ratio"
+          title="Loan-to-value ratio"
           value={
             <Stack flexDirection="row" alignItems="center">
               <Typography
@@ -235,7 +235,7 @@ export function ConfirmTransactionModal({
         />
 
         <InfoRow
-          title="Liquidation Price"
+          title="Liquidation price"
           value={
             <Stack flexDirection="row" alignItems="center">
               <Typography variant="small">

@@ -28,9 +28,9 @@ type MetricSummary = {
 };
 
 const initialKeyMetrics: MetricSummary[] = [
-  { name: 'Total Deposits', value: '-', valueSym: '$' },
-  { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' },
+  { name: 'Total Deposits Value', value: '-', valueSym: '$' },
+  { name: 'Total Debt Value', value: '-', valueSym: '$' },
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'Details' },
   {
     name: 'Available to Borrow',
     value: '-',
@@ -47,25 +47,25 @@ function updateKeyMetricsSummary(
 ): MetricSummary[] {
   return [
     {
-      name: 'Total Deposits',
-      value: totalDeposits_ === undefined ? '-' : totalDeposits_,
+      name: 'Total Deposits Value',
+      value: totalDeposits_ ?? '-',
       valueSym: '$',
     },
     {
-      name: 'Total Debt',
-      value: totalDebt_ === undefined ? '-' : totalDebt_,
+      name: 'Total Debt Value',
+      value: totalDebt_ ?? '-',
       valueSym: '$',
     },
     {
-      name: 'Net APY',
-      value: totalAPY_ === undefined ? '-' : totalAPY_,
+      name: 'Total Net APY',
+      value: totalAPY_ ?? '-',
       valueSym: '%',
       tooltip: true,
-      action: 'View yields',
+      action: 'Details',
     },
     {
       name: 'Available to Borrow',
-      value: availableBorrow_ === undefined ? '-' : availableBorrow_,
+      value: availableBorrow_ ?? '-',
       valueSym: '$',
       action: 'Borrow',
     },
