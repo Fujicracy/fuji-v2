@@ -25,8 +25,8 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import ExtraTableSpace from '../Shared/ExtraTableSpace';
 import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
+import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
 
