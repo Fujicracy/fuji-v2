@@ -181,7 +181,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             {entry.status === HistoryEntryStatus.FAILURE && 'Error'}
           </Typography>
         </Box>
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ p: 0, overflowX: 'hidden' }}>
           <Stepper
             activeStep={activeStep}
             orientation="vertical"
