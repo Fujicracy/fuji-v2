@@ -255,25 +255,30 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
             </Typography>
           </Card>
         )}
-        {entry.status === HistoryEntryStatus.SUCCESS && (
-          <Stack sx={{ mt: '1rem' }} spacing={1}>
-            {action?.token?.chainId === activeChainId && (
-              <Box mb="1rem" textAlign="center">
-                <AddTokenButton token={action.token} />
-              </Box>
-            )}
-            <Button fullWidth variant="gradient" size="large" onClick={onClick}>
-              View Position
-            </Button>
-          </Stack>
-        )}
         {connextScanLink && (
           <Stack sx={{ mt: '1rem' }} spacing={1}>
             <Link href={connextScanLink} target="_blank" variant="inherit">
-              <Button fullWidth variant="ghost">
+              <Button size="medium" fullWidth variant="secondary">
                 View transaction on ConnextScan
               </Button>
             </Link>
+          </Stack>
+        )}
+        {entry.status === HistoryEntryStatus.SUCCESS && (
+          <Stack sx={{ mt: connextScanLink ? '0.5rem' : '1rem' }} spacing={1}>
+            <Button
+              fullWidth
+              variant="gradient"
+              size="medium"
+              onClick={onClick}
+            >
+              View Position
+            </Button>
+            {action?.token?.chainId === activeChainId && (
+              <Box textAlign="center">
+                <AddTokenButton token={action.token} />
+              </Box>
+            )}
           </Stack>
         )}
       </Paper>

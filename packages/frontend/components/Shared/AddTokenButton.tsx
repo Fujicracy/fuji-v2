@@ -25,9 +25,9 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   return (
     <LoadingButton
-      variant="secondary"
+      variant="ghost"
       fullWidth
-      size="large"
+      size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
       disabled={status === 'success'}
