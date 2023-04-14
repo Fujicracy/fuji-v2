@@ -186,6 +186,11 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
               justifyContent="right"
               alignItems="center"
               flexWrap="nowrap"
+              sx={
+                row.integratedProtocols.value.length > 1
+                  ? { margin: '-0.25rem' }
+                  : {}
+              }
             >
               {row.integratedProtocols.value.map((name, i) => (
                 <Tooltip key={name} title={name} arrow>
