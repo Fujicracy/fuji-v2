@@ -216,6 +216,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                         {status === HistoryEntryStatus.SUCCESS ? (
                           <CheckIcon
                             sx={{
+                              width: '2rem',
+                              height: '2rem',
                               backgroundColor: theme.palette.success.dark,
                               borderRadius: '100%',
                               padding: '0.4rem',
@@ -225,7 +227,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                         ) : entry.status === HistoryEntryStatus.ONGOING ? (
                           <CircularProgress size={32} />
                         ) : (
-                          <ErrorOutlineIcon />
+                          <ErrorOutlineIcon viewBox="0 0 32 32" />
                         )}
                       </Box>
                     </Stack>
