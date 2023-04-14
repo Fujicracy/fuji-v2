@@ -80,7 +80,6 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    // BorrowingVault bvault = BorrowingVault(payable(address(vault)));
     bytes memory data =
       abi.encodeWithSelector(BorrowingVault.correctDebt.selector, amountCorrected, TREASURY);
     _callWithTimelock(address(vault), data);
