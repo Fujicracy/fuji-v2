@@ -73,7 +73,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     const { step, chainId, token } = s;
 
     const realChainId =
-      s.step === RoutingStep.X_TRANSFER && i > 0 && s.token
+      s.step === RoutingStep.X_TRANSFER && i === 0 && s.token
         ? s.token.chainId
         : chainId;
 
