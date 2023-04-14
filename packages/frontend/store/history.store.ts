@@ -111,13 +111,7 @@ export const useHistory = create<HistoryStore>()(
           }
 
           const finish = (success: boolean) => {
-            triggerUpdatesFromSteps(
-              entry.steps,
-              entry.sourceChain.status === HistoryEntryStatus.SUCCESS &&
-                entry.destinationChain
-                ? entry.destinationChain?.chainId
-                : entry.sourceChain.chainId
-            );
+            triggerUpdatesFromSteps(entry.steps);
 
             const isDestination =
               entry.isCrossChain &&
