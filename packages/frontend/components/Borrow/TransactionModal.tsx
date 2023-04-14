@@ -152,25 +152,36 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
       open={true}
       onClose={closeModal}
       sx={{
-        '.MuiPaper-root': { width: isMobile ? '100%' : '430px' },
+        '.MuiPaper-root': { width: isMobile ? '100%' : '480px' },
         backdropFilter: { xs: 'blur(0.313rem)', sm: 'none' },
       }}
     >
       <Paper variant="outlined" sx={{ p: { xs: '1rem', sm: '1.5rem' } }}>
-        <CloseIcon
-          sx={{ cursor: 'pointer', float: 'right' }}
+        <Box
+          width="2rem"
+          height="2rem"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: theme.palette.secondary.main,
+            borderRadius: '100px',
+            cursor: 'pointer',
+            float: 'right',
+          }}
           onClick={closeModal}
-          fontSize="small"
-        />
-        <Box textAlign="center" mt="1.625rem" mb="2.5rem">
-          <Typography variant="h6">
+        >
+          <CloseIcon fontSize="small" />
+        </Box>
+        <Box textAlign={isMobile ? 'left' : 'center'} mb="2rem">
+          <Typography variant="h6" fontWeight={500}>
             Transaction{' '}
             {entry.status === HistoryEntryStatus.ONGOING && 'processing...'}
             {entry.status === HistoryEntryStatus.SUCCESS && 'Success!'}
             {entry.status === HistoryEntryStatus.FAILURE && 'Error'}
           </Typography>
         </Box>
-        <DialogContent>
+        <DialogContent sx={{ p: 0 }}>
           <Stepper
             activeStep={activeStep}
             orientation="vertical"
@@ -181,15 +192,24 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
               return (
                 <Step key={step.label}>
                   <StepLabel StepIconComponent={step.icon}>
-                    <Stack direction="row" justifyContent="space-between">
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      gap={2}
+                    >
                       <Box>
-                        <Typography variant="body">{step.label}</Typography>
+                        <Typography variant="body" fontSize="0.875rem">
+                          {step.label}
+                        </Typography>
                         <br />
                         {step.txHash && step.link && (
                           <Link
                             href={step.link}
                             target="_blank"
                             variant="smallDark"
+                            fontSize="0.75rem"
+                            color={theme.palette.info.dark}
                           >
                             {step.description}
                             <LaunchIcon
@@ -206,6 +226,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                         {status === HistoryEntryStatus.SUCCESS ? (
                           <CheckIcon
                             sx={{
+                              width: '2rem',
+                              height: '2rem',
                               backgroundColor: theme.palette.success.dark,
                               borderRadius: '100%',
                               padding: '0.4rem',
@@ -215,7 +237,7 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
                         ) : entry.status === HistoryEntryStatus.ONGOING ? (
                           <CircularProgress size={32} />
                         ) : (
-                          <ErrorOutlineIcon />
+                          <ErrorOutlineIcon viewBox="0 0 32 32" />
                         )}
                       </Box>
                     </Stack>
@@ -226,32 +248,37 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           </Stepper>
         </DialogContent>
         {entry.status === HistoryEntryStatus.ONGOING && (
-          <Card variant="outlined" sx={{ mt: 3, maxWidth: '100%' }}>
-            <Typography variant="small" textAlign="center">
+          <Card variant="outlined" sx={{ mt: '2rem', maxWidth: '100%' }}>
+            <Typography variant="small" textAlign="center" fontSize="0.875rem">
               This step takes a few minutes to process. If you close this
               window, your transaction will still be processed.
             </Typography>
           </Card>
         )}
-        {entry.status === HistoryEntryStatus.SUCCESS && (
-          <Stack sx={{ mt: '2rem' }} spacing={1}>
-            {action?.token?.chainId === activeChainId && (
-              <Box mb="2rem" textAlign="center">
-                <AddTokenButton token={action.token} />
-              </Box>
-            )}
-            <Button fullWidth variant="gradient" size="large" onClick={onClick}>
-              View Position
-            </Button>
-          </Stack>
-        )}
         {connextScanLink && (
           <Stack sx={{ mt: '1rem' }} spacing={1}>
             <Link href={connextScanLink} target="_blank" variant="inherit">
-              <Button fullWidth variant="ghost">
+              <Button size="medium" fullWidth variant="secondary">
                 View transaction on ConnextScan
               </Button>
             </Link>
+          </Stack>
+        )}
+        {entry.status === HistoryEntryStatus.SUCCESS && (
+          <Stack sx={{ mt: connextScanLink ? '0.5rem' : '1rem' }} spacing={1}>
+            <Button
+              fullWidth
+              variant="gradient"
+              size="medium"
+              onClick={onClick}
+            >
+              View Position
+            </Button>
+            {action?.token?.chainId === activeChainId && (
+              <Box textAlign="center">
+                <AddTokenButton token={action.token} />
+              </Box>
+            )}
           </Stack>
         )}
       </Paper>
