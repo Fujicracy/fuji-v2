@@ -191,15 +191,23 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
               return (
                 <Step key={step.label}>
                   <StepLabel StepIconComponent={step.icon}>
-                    <Stack direction="row" justifyContent="space-between">
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      gap={2}
+                    >
                       <Box>
-                        <Typography variant="body">{step.label}</Typography>
+                        <Typography variant="body" fontSize="0.875rem">
+                          {step.label}
+                        </Typography>
                         <br />
                         {step.txHash && step.link && (
                           <Link
                             href={step.link}
                             target="_blank"
                             variant="smallDark"
+                            fontSize="0.75rem"
+                            color={theme.palette.info.dark}
                           >
                             {step.description}
                             <LaunchIcon
@@ -238,8 +246,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           </Stepper>
         </DialogContent>
         {entry.status === HistoryEntryStatus.ONGOING && (
-          <Card variant="outlined" sx={{ mt: 3, maxWidth: '100%' }}>
-            <Typography variant="small" textAlign="center">
+          <Card variant="outlined" sx={{ mt: '2rem', maxWidth: '100%' }}>
+            <Typography variant="small" textAlign="center" fontSize="0.875rem">
               This step takes a few minutes to process. If you close this
               window, your transaction will still be processed.
             </Typography>
