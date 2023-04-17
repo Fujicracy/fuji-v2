@@ -92,6 +92,8 @@ type BorrowState = {
   actions?: RouterActionParams[];
 
   isExecuting: boolean;
+
+  allowChainOverride: boolean;
 };
 export type FetchStatus = 'initial' | 'fetching' | 'ready' | 'error';
 
@@ -133,6 +135,8 @@ type BorrowActions = {
   sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
+
+  changeChainOverride: (allow: boolean) => void;
 };
 
 const initialChainId = ChainId.MATIC;
@@ -201,6 +205,8 @@ const initialState: BorrowState = {
   needsSignature: true,
   isSigning: false,
   isExecuting: false,
+
+  allowChainOverride: true,
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -890,6 +896,10 @@ export const useBorrow = create<BorrowStore>()(
 
             get().changeInputValues('', '');
           }
+        },
+
+        changeChainOverride(allowChainOverride) {
+          set({ allowChainOverride });
         },
       }),
       {
