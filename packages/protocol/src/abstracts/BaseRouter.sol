@@ -162,7 +162,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // WITHDRAW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
-
+          
         _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
@@ -173,7 +173,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // BORROW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
-
+          
         _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
@@ -498,10 +498,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _checkBeneficiary(address beneficiary, address user) internal pure returns (address) {
     if (beneficiary == address(0)) {
       return user;
+    } else if (beneficiary != user) {
+      revert BaseRouter__bundleInternal_notBeneficiary();
     } else {
-      if (beneficiary != user) {
-        revert BaseRouter__bundleInternal_notBeneficiary();
-      }
       return user;
     }
   }
