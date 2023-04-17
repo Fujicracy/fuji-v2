@@ -2,11 +2,17 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import { Link, Stack, Typography } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 import Image from 'next/image';
-import { Id, Slide, toast, ToastOptions } from 'react-toastify';
+import {
+  CloseButtonProps,
+  Id,
+  Slide,
+  toast,
+  ToastOptions,
+} from 'react-toastify';
 
 import { transactionUrl } from './chains';
 
-type NotificationType = 'error' | 'info' | 'success' | 'warning';
+type NotificationType = 'error' | 'info' | 'success';
 
 export type NotificationLinkType = 'tx' | 'discord' | 'other';
 
@@ -59,6 +65,16 @@ export function getTransactionLink(
   return undefined;
 }
 
+const CloseButton = ({ closeToast }: CloseButtonProps) => (
+  <Image
+    width={20}
+    height={20}
+    src={`/assets/images/notifications/close.svg`}
+    alt={`close icon`}
+    onClick={closeToast}
+  />
+);
+
 export function notify({
   message,
   type,
@@ -72,6 +88,15 @@ export function notify({
     theme: 'dark',
     toastId: type + message + link,
     autoClose: sticky ? false : duration ?? NotificationDuration.MEDIUM,
+    icon: () => (
+      <Image
+        width={20}
+        height={20}
+        src={`/assets/images/notifications/${type}.svg`}
+        alt={`${type} icon`}
+      />
+    ),
+    closeButton: CloseButton,
   };
 
   if (link) {
