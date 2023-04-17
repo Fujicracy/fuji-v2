@@ -15,6 +15,7 @@ import {
   Stack,
   Toolbar,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
@@ -35,6 +36,9 @@ import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
 
 const Header = () => {
+  const theme = useTheme();
+  const router = useRouter();
+
   const { address, ens, status, balance, login } = useAuth(
     (state) => ({
       status: state.status,
@@ -45,8 +49,9 @@ const Header = () => {
     }),
     shallow
   );
-  const { palette } = useTheme();
-  const router = useRouter();
+
+  const { palette } = theme;
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentPage = router.asPath;
 
   const isPageActive = useCallback(
@@ -112,7 +117,7 @@ const Header = () => {
               <Link href="/" legacyBehavior>
                 <a className={styles.logoTitle}>
                   <Box
-                    maxWidth={120}
+                    maxWidth={isMobile ? 120 : 180}
                     maxHeight={50}
                     sx={{
                       width: '12rem',
@@ -121,7 +126,11 @@ const Header = () => {
                     <img
                       src="/assets/images/logo/logo-title.svg"
                       alt="Logo Fuji"
-                      style={{ width: '100%', height: 'auto' }}
+                      style={
+                        isMobile
+                          ? { width: '100%', height: 'auto' }
+                          : { marginLeft: '10px', height: '30px' }
+                      }
                     />
                   </Box>
                 </a>
