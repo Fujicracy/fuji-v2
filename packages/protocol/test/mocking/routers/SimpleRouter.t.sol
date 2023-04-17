@@ -332,7 +332,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryFoeSweepETH(address foe, uint256 amount_) public {
-    vm.assume(foe != address(chief));
+    vm.assume(foe != address(this));
     vm.deal(address(simpleRouter), amount_);
 
     vm.expectRevert(
