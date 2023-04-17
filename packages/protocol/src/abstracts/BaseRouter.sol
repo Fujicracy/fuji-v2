@@ -21,6 +21,8 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 
+import "forge-std/console.sol";
+
 abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
@@ -410,17 +412,22 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     returns (bytes32)
   {
     uint256 len = actions.length;
+
+    // Modify ONLY the new bytes array. Memory changes used during different function calls persist.
+    bytes[] memory modArgs = new bytes[](len);
     for (uint256 i; i < len; i++) {
+      modArgs[i] = args[i];
       if (actions[i] == IRouter.Action.PermitWithdraw || actions[i] == IRouter.Action.PermitBorrow)
       {
         // Need to replace permit `args` at `index` with the `zeroPermitArg`.
         (IVaultPermissions vault, address owner, address receiver, uint256 amount,,,,) = abi.decode(
-          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+          modArgs[i],
+          (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
         );
-        args[i] = _getZeroPermitEncodedArgs(vault, owner, receiver, amount);
+        modArgs[i] = _getZeroPermitEncodedArgs(vault, owner, receiver, amount);
       }
     }
-    return keccak256(abi.encode(actions, args));
+    return keccak256(abi.encode(actions, modArgs));
   }
 
   /**
