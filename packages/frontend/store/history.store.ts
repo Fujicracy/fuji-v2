@@ -17,7 +17,7 @@ import {
   wait,
 } from '../helpers/history';
 import {
-  getTransactionUrl,
+  getTransactionLink,
   NotificationDuration,
   notify,
 } from '../helpers/notifications';
@@ -157,7 +157,7 @@ export const useHistory = create<HistoryStore>()(
                 ? NotificationDuration.LONG
                 : NotificationDuration.MEDIUM,
               link: linkHash
-                ? getTransactionUrl({
+                ? getTransactionLink({
                     hash: linkHash,
                     chainId:
                       isDestination && entry.destinationChain
@@ -195,7 +195,7 @@ export const useHistory = create<HistoryStore>()(
                 chainName(entry.sourceChain.chainId),
                 chainName(entry.destinationChain?.chainId)
               ),
-              link: getTransactionUrl({
+              link: getTransactionLink({
                 hash: entry.hash,
                 chainId: entry.sourceChain.chainId,
               }),

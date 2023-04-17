@@ -41,7 +41,7 @@ import { testChains } from '../helpers/chains';
 import { handleCancelableMMActionError } from '../helpers/errors';
 import {
   dismiss,
-  getTransactionUrl,
+  getTransactionLink,
   NotificationDuration,
   NotificationId,
   notify,
@@ -751,11 +751,10 @@ export const useBorrow = create<BorrowStore>()(
             notify({
               message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
-              link:
-                getTransactionUrl({
-                  hash: approval.hash,
-                  chainId: token.chainId,
-                }) || '',
+              link: getTransactionLink({
+                hash: approval.hash,
+                chainId: token.chainId,
+              }),
             });
           } catch (e) {
             changeAllowance('error');
@@ -856,7 +855,7 @@ export const useBorrow = create<BorrowStore>()(
                 type: 'success',
                 message: NOTIFICATION_MESSAGES.TX_SENT,
                 duration: NotificationDuration.LONG,
-                link: getTransactionUrl({
+                link: getTransactionLink({
                   hash: tx.hash,
                   chainId: srcChainId,
                 }),
