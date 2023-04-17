@@ -38,7 +38,7 @@ type NotificationArguments = {
 };
 
 type NotificationWithLinkProps = {
-  link: NotificationLink;
+  link?: NotificationLink;
   message?: string;
   type: NotificationType;
 };
@@ -88,74 +88,53 @@ export function notify({
     theme: 'dark',
     toastId: type + message + link,
     autoClose: sticky ? false : duration ?? NotificationDuration.MEDIUM,
-    icon: () => (
-      <Image
-        width={20}
-        height={20}
-        src={`/assets/images/notifications/${type}.svg`}
-        alt={`${type} icon`}
-      />
-    ),
+    icon: null,
     closeButton: CloseButton,
   };
 
-  if (link) {
-    return toast(
-      getLinkNotification({
-        message,
-        link,
-        type,
-      }),
-      options
-    );
-  }
-
-  return toast[type](message, options);
+  return toast(
+    <CustomToast link={link} message={message} type={type} />,
+    options
+  );
 }
 
 export function dismiss(id: NotificationId) {
   toast.dismiss(id);
 }
 
-export function getLinkNotification({
-  message,
-  link,
-  type = 'info',
-}: NotificationWithLinkProps) {
-  return <CustomToastWithLink link={link} message={message} type={type} />;
-}
-
-export function CustomToastWithLink({
+export function CustomToast({
   link,
   message,
   type,
 }: NotificationWithLinkProps) {
   return (
-    <Stack direction="row" alignItems="center">
+    <Stack direction="row">
       <Image
-        src={`/assets/images/shared/${type}.svg`}
+        src={`/assets/images/notifications/${type}.svg`}
         width={20}
         height={20}
         alt={type}
+        style={{}}
       />
-      <Stack sx={{ marginLeft: '0.75rem' }}>
+      <Stack sx={{ marginLeft: '0.75rem', marginTop: '-0.25rem' }}>
         <Typography variant="body1" sx={{ fontSize: '1rem' }}>
           {message}
         </Typography>
-        {}
-        <Link href={link.url} target="_blank">
-          <Typography sx={{ fontSize: '0.75rem' }}>
-            {link.type === 'tx'
-              ? 'View Transaction'
-              : link.type === 'discord'
-              ? 'Go to Discord'
-              : 'Open'}
-            <LaunchIcon
-              sx={{ paddingLeft: '0.2rem', paddingTop: '0.2rem' }}
-              fontSize="inherit"
-            />
-          </Typography>
-        </Link>
+        {link && (
+          <Link href={link.url} target="_blank">
+            <Typography sx={{ fontSize: '0.75rem' }}>
+              {link.type === 'tx'
+                ? 'View Transaction'
+                : link.type === 'discord'
+                ? 'Go to Discord'
+                : 'Open'}
+              <LaunchIcon
+                sx={{ paddingLeft: '0.2rem', paddingTop: '0.2rem' }}
+                fontSize="inherit"
+              />
+            </Typography>
+          </Link>
+        )}
       </Stack>
     </Stack>
   );
