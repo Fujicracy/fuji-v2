@@ -1,5 +1,5 @@
 import LaunchIcon from '@mui/icons-material/Launch';
-import { Link, Stack, Typography } from '@mui/material';
+import { Link, Stack, Typography, useTheme } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 import Image from 'next/image';
 import {
@@ -107,6 +107,7 @@ export function CustomToast({
   message,
   type,
 }: NotificationWithLinkProps) {
+  const { palette } = useTheme();
   return (
     <Stack direction="row">
       <Image
@@ -122,16 +123,21 @@ export function CustomToast({
         </Typography>
         {link && (
           <Link href={link.url} target="_blank">
-            <Typography sx={{ fontSize: '0.75rem' }}>
+            <Typography
+              sx={{
+                fontSize: '0.75rem',
+                color: palette.info.main,
+                '&:hover': {
+                  color: palette.text.primary,
+                },
+              }}
+            >
               {link.type === 'tx'
-                ? 'View Transaction'
+                ? 'View Transaction '
                 : link.type === 'discord'
-                ? 'Go to Discord'
-                : 'Open'}
-              <LaunchIcon
-                sx={{ paddingLeft: '0.2rem', paddingTop: '0.2rem' }}
-                fontSize="inherit"
-              />
+                ? 'Go to Discord '
+                : 'Open '}
+              <LaunchIcon sx={{ verticalAlign: 'middle' }} fontSize="inherit" />
             </Typography>
           </Link>
         )}
