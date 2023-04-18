@@ -294,9 +294,9 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
     borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
     left: '12px',
     position: 'relative',
-    marginTop: '-2rem',
+    marginTop: '-2.5rem',
     height: '6rem',
-    marginBottom: '-2rem',
+    marginBottom: '-2.5rem',
     width: 'fit-content',
   },
 }));
