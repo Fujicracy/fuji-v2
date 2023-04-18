@@ -35,6 +35,8 @@ type HistoryState = {
   entries: Record<string, HistoryEntry>;
 
   currentTxHash?: string; // The tx hash displayed in modal
+
+  watching: string[];
 };
 
 type HistoryActions = {
@@ -57,6 +59,7 @@ const initialState: HistoryState = {
   transactions: [],
   ongoingTransactions: [],
   entries: {},
+  watching: [],
 };
 
 export const useHistory = create<HistoryStore>()(
@@ -117,6 +120,10 @@ export const useHistory = create<HistoryStore>()(
 
         async watch(transaction) {
           const { hash } = transaction;
+
+          if (get().watching.includes(hash)) return;
+          set((state) => ({ watching: [...state.watching, hash] }));
+
           const entry = get().entries[hash];
 
           const remove = () => {
@@ -321,8 +328,13 @@ export const useHistory = create<HistoryStore>()(
         name: 'xFuji/history',
       }
     ),
+
     {
       name: 'xFuji/history',
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['watching'].includes(key))
+        ),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
