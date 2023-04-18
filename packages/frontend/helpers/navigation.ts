@@ -56,6 +56,11 @@ export const showPosition = async (
   if (positions?.some((p) => p.vault?.address.value === vault.address.value)) {
     router.push(`/my-positions/${vault.address.value}-${vault.chainId}`);
   } else {
+    // I'm not exactly thrilled about this solution, but it works for now
+    useBorrow.getState().changeChainOverride(false);
+    setTimeout(() => {
+      useBorrow.getState().changeChainOverride(true);
+    }, 1000);
     router.push(`/borrow`);
   }
 };

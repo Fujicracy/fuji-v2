@@ -72,7 +72,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: editedPosition ? editedPosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvMax: position.ltvMax,
     ltvThreshold: editedPosition
       ? editedPosition.ltvThreshold
       : position.ltvThreshold,

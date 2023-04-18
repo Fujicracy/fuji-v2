@@ -32,7 +32,7 @@ function Lending() {
       sx={{
         p: { xs: '1rem', md: '8rem 27.5rem' },
         width: '100%',
-        height: '100%',
+        height: '600px',
       }}
       raised
     >

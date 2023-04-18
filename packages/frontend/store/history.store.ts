@@ -17,7 +17,7 @@ import {
   wait,
 } from '../helpers/history';
 import {
-  getTransactionUrl,
+  getTransactionLink,
   NotificationDuration,
   notify,
 } from '../helpers/notifications';
@@ -157,7 +157,7 @@ export const useHistory = create<HistoryStore>()(
                 ? NotificationDuration.LONG
                 : NotificationDuration.MEDIUM,
               link: linkHash
-                ? getTransactionUrl({
+                ? getTransactionLink({
                     hash: linkHash,
                     chainId:
                       isDestination && entry.destinationChain
@@ -189,17 +189,25 @@ export const useHistory = create<HistoryStore>()(
               finish(true);
               return;
             }
-            notify({
-              type: 'success',
-              message: formatCrosschainNotificationMessage(
-                chainName(entry.sourceChain.chainId),
-                chainName(entry.destinationChain?.chainId)
-              ),
-              link: getTransactionUrl({
-                hash: entry.hash,
-                chainId: entry.sourceChain.chainId,
-              }),
-            });
+            if (!entry.sourceChain.shown) {
+              notify({
+                type: 'success',
+                message: formatCrosschainNotificationMessage(
+                  chainName(entry.sourceChain.chainId),
+                  chainName(entry.destinationChain?.chainId)
+                ),
+                link: getTransactionLink({
+                  hash: entry.hash,
+                  chainId: entry.sourceChain.chainId,
+                }),
+              });
+              set(
+                produce((s: HistoryState) => {
+                  s.entries[hash].sourceChain.shown = true;
+                })
+              );
+            }
+
             let crosschainCallFinished = false;
             while (!crosschainCallFinished) {
               await wait(3000); // Wait for three seconds between each call

@@ -41,7 +41,7 @@ import { testChains } from '../helpers/chains';
 import { handleCancelableMMActionError } from '../helpers/errors';
 import {
   dismiss,
-  getTransactionUrl,
+  getTransactionLink,
   NotificationDuration,
   NotificationId,
   notify,
@@ -92,6 +92,8 @@ type BorrowState = {
   actions?: RouterActionParams[];
 
   isExecuting: boolean;
+
+  allowChainOverride: boolean;
 };
 export type FetchStatus = 'initial' | 'fetching' | 'ready' | 'error';
 
@@ -133,6 +135,8 @@ type BorrowActions = {
   sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
+
+  changeChainOverride: (allow: boolean) => void;
 };
 
 const initialChainId = ChainId.MATIC;
@@ -201,6 +205,8 @@ const initialState: BorrowState = {
   needsSignature: true,
   isSigning: false,
   isExecuting: false,
+
+  allowChainOverride: true,
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -751,11 +757,10 @@ export const useBorrow = create<BorrowStore>()(
             notify({
               message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
-              link:
-                getTransactionUrl({
-                  hash: approval.hash,
-                  chainId: token.chainId,
-                }) || '',
+              link: getTransactionLink({
+                hash: approval.hash,
+                chainId: token.chainId,
+              }),
             });
           } catch (e) {
             changeAllowance('error');
@@ -856,7 +861,7 @@ export const useBorrow = create<BorrowStore>()(
                 type: 'success',
                 message: NOTIFICATION_MESSAGES.TX_SENT,
                 duration: NotificationDuration.LONG,
-                link: getTransactionUrl({
+                link: getTransactionLink({
                   hash: tx.hash,
                   chainId: srcChainId,
                 }),
@@ -891,6 +896,10 @@ export const useBorrow = create<BorrowStore>()(
 
             get().changeInputValues('', '');
           }
+        },
+
+        changeChainOverride(allowChainOverride) {
+          set({ allowChainOverride });
         },
       }),
       {

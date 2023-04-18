@@ -11,6 +11,7 @@ import { RouteMeta } from '../../../helpers/routing';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
 import {
   NetworkIcon,
+  ProviderIcon,
   TokenIcon,
   TokenWithNetworkIcon,
 } from '../../Shared/Icons';
@@ -47,18 +48,42 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     return <></>;
   }
 
-  function textForStep({ step, amount, token, chainId }: RoutingStepDetails) {
+  function textForStep({
+    step,
+    amount,
+    token,
+    chainId,
+    lendingProvider,
+  }: RoutingStepDetails) {
     switch (step) {
       case RoutingStep.DEPOSIT:
       case RoutingStep.BORROW:
       case RoutingStep.PAYBACK:
       case RoutingStep.WITHDRAW:
-        return camelize(
-          `${step.toString()} ${
-            isMock
-              ? ''
-              : toNotSoFixed(formatUnits(amount ?? 0, token?.decimals || 18))
-          } ${token?.symbol}`
+        return (
+          <>
+            {camelize(
+              `${step.toString()} ${
+                isMock
+                  ? ''
+                  : toNotSoFixed(
+                      formatUnits(amount ?? 0, token?.decimals || 18)
+                    )
+              } ${token?.symbol}`
+            )}
+            {lendingProvider && (
+              <>
+                {' to '}
+                <ProviderIcon
+                  style={{ verticalAlign: 'middle' }}
+                  provider={lendingProvider.name}
+                  height={14}
+                  width={14}
+                />
+                {` ${lendingProvider?.name}`}
+              </>
+            )}
+          </>
         );
       case RoutingStep.X_TRANSFER:
         return camelize(

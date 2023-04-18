@@ -13,8 +13,10 @@ const BorrowPage: NextPage = () => {
   );
   const changeDebtChain = useBorrow((state) => state.changeDebtChain);
 
+  const allowChainOverride = useBorrow((state) => state.allowChainOverride);
+
   const walletChain = useAuth((state) => state.chain);
-  const [hasChain, setHasChain] = useState(walletChain ? false : true);
+  const [hasChain, setHasChain] = useState(false);
 
   useEffect(() => {
     changeFormType('create');
@@ -24,11 +26,17 @@ const BorrowPage: NextPage = () => {
     if (walletChain && !hasChain) {
       setHasChain(true);
       const chainId = hexToChainId(walletChain.id);
-      if (!chainId) return;
+      if (!allowChainOverride || !chainId) return;
       changeCollateralChain(chainId, false);
       changeDebtChain(chainId, false);
     }
-  }, [hasChain, walletChain, changeCollateralChain, changeDebtChain]);
+  }, [
+    allowChainOverride,
+    hasChain,
+    walletChain,
+    changeCollateralChain,
+    changeDebtChain,
+  ]);
 
   return <BorrowWrapper />;
 };
