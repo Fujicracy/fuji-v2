@@ -46,7 +46,7 @@ type HistoryActions = {
   ) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
   clearAll: () => void;
-  watchAll: () => void;
+  watchAll: (address: string) => void;
   watch: (transaction: HistoryTransaction) => void;
 
   openModal: (hash: string) => void;
@@ -106,8 +106,10 @@ export const useHistory = create<HistoryStore>()(
           get().watch(transaction);
         },
 
-        watchAll() {
-          const ongoingTransactions = get().ongoingTransactions;
+        watchAll(address) {
+          const ongoingTransactions = get().ongoingTransactions.filter(
+            (t) => t.address === address
+          );
           for (const hash of ongoingTransactions) {
             get().watch(hash);
           }

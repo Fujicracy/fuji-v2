@@ -55,7 +55,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     if (address && prevAddressRef.current !== address) {
-      watchAll();
+      watchAll(address);
     }
     prevAddressRef.current = address;
   }, [address, ongoingTransactions, watchAll]);
