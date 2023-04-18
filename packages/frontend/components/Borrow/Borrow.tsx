@@ -12,12 +12,11 @@ import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { PATH } from '../../constants';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
 import { ActionType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
-import { showPosition } from '../../helpers/navigation';
+import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
@@ -286,7 +285,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {
               if (borrow) {
-                router.push(PATH.BORROW);
+                showBorrow(router);
               } else {
                 showPosition(router, walletChain?.id, vault, false);
               }
