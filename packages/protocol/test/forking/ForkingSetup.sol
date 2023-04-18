@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
@@ -277,7 +278,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
   function _getPermitBorrowArgs(
     LibSigUtils.Permit memory permit,
-    uint256 ownerPrivateKey,
+    uint256 ownerPKey,
     address vault_
   )
     internal
@@ -286,13 +287,13 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
     bytes32 digest =
       LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
-    (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    (v, r, s) = vm.sign(ownerPKey, digest);
     deadline = permit.deadline;
   }
 
   function _getPermitWithdrawArgs(
     LibSigUtils.Permit memory permit,
-    uint256 ownerPrivateKey,
+    uint256 ownerPKey,
     address vault_
   )
     internal
@@ -301,7 +302,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     bytes32 structHash = LibSigUtils.getStructHashWithdraw(permit);
     bytes32 digest =
       LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
-    (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    (v, r, s) = vm.sign(ownerPKey, digest);
     deadline = permit.deadline;
   }
 
@@ -310,7 +311,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
    */
   function _buildPermitAsBytes(
     address owner,
-    uint256 ownerPrivateKey,
+    uint256 ownerPKey,
     address operator,
     address receiver,
     uint256 amount,
@@ -322,18 +323,18 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     returns (bytes memory arg)
   {
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      owner, operator, owner, amount, plusNonce, vault_, actionArgsHash
+      owner, operator, receiver, amount, plusNonce, vault_, actionArgsHash
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ownerPrivateKey, vault_);
+      _getPermitBorrowArgs(permit, ownerPKey, vault_);
 
     arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
   }
 
   function _getDepositAndBorrowCallData(
-    address beneficiary,
-    uint256 beneficiaryPrivateKey,
+    address owner,
+    uint256 ownerPKey,
     uint256 amount,
     uint256 borrowAmount,
     address router,
@@ -349,23 +350,31 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, beneficiary, router);
-    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, beneficiary, beneficiary, borrowAmount);
-    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+    args[0] = abi.encode(vault_, amount, owner, router);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, owner, owner, borrowAmount);
+    args[2] = abi.encode(vault_, borrowAmount, owner, owner);
 
     bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
+    console.log("forkingSetup_actionArgsHash");
+    console.logBytes32(actionArgsHash);
+    console.log("forkingSetup_getDepositAndBorrowCalldata@-1");
+    console.logBytes(args[1]);
+
     // Replace permit action arguments, now with the signature values.
     args[1] = _buildPermitAsBytes(
-      beneficiary,
-      beneficiaryPrivateKey,
-      router,
-      beneficiary,
-      borrowAmount,
-      0,
-      vault_,
-      actionArgsHash
+      owner, // owner
+      ownerPKey, // owner pkey to sign
+      router, // operator
+      owner, // receiver
+      borrowAmount, // amount
+      0, // plus nonce
+      vault_, // vault
+      actionArgsHash // actions args hash
     );
+
+    console.log("forkingSetup_getDepositAndBorrowCalldata@-2");
+    console.logBytes(args[1]);
 
     callData = abi.encode(actions, args, slippage);
   }
