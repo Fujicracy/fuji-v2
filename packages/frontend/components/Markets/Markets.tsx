@@ -1,4 +1,4 @@
-import { Box, Grid, Link, Typography, useMediaQuery } from '@mui/material';
+import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
 import { useState } from 'react';
 
 import { theme } from '../../styles/theme';
@@ -16,17 +16,9 @@ function Markets() {
     <Box>
       <Typography variant="h4">Markets</Typography>
       <Typography variant="body">
-        {currentTab === 0 || onMobile ? (
-          'Fuji aggregates the best borrowing interest rates available across the markets'
-        ) : (
-          <span>
-            Optimize your lending vaults for better yield
-            <Link href="#">
-              {' '}
-              <u>learn more</u>
-            </Link>
-          </span>
-        )}
+        {currentTab === 0 || onMobile
+          ? 'Fuji aggregates the best borrowing rates across different markets'
+          : 'Fuji aggregates different markets and provides the best lending rates cross-chain'}
       </Typography>
       <Grid
         container

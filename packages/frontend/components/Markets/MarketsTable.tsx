@@ -159,7 +159,7 @@ function MarketsTable() {
               >
                 <Tooltip
                   arrow
-                  title="Fuji refinances between these protocols to find the best yield"
+                  title="In the background, Fuji rebalances between these protocols to provide the best terms."
                   placement="top"
                 >
                   <InfoOutlinedIcon

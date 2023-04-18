@@ -170,13 +170,13 @@ function MyPositionsBorrowTableHeader() {
   return (
     <TableHead>
       <TableRow sx={{ height: '2.625rem' }}>
-        <TableCell>Borrow</TableCell>
-        <TableCell>Collateral</TableCell>
-        <TableCell align="right">Debt APR</TableCell>
-        <TableCell align="right">Borrowed</TableCell>
-        <TableCell align="right">Collateral value</TableCell>
+        <TableCell>Borrowed asset</TableCell>
+        <TableCell>Collateral asset</TableCell>
+        <TableCell align="right">Borrow APR</TableCell>
+        <TableCell align="right">Borrowed amount</TableCell>
+        <TableCell align="right">Collateral provided</TableCell>
         <TableCell align="right">Oracle price</TableCell>
-        <TableCell align="right">Liquidation Price</TableCell>
+        <TableCell align="right">Liquidation price</TableCell>
       </TableRow>
     </TableHead>
   );
