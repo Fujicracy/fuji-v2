@@ -47,6 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     if (address) {
+      updatePollingPolicy(router.asPath);
       pollBalances();
     } else {
       stopPolling();
@@ -54,7 +55,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     return () => {
       stopPolling();
     };
-  }, [address]);
+  }, [address, router]);
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
@@ -62,15 +63,19 @@ function MyApp({ Component, pageProps }: AppProps) {
       if (isTop && address) {
         fetchPositions();
       }
-      const should =
-        url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
-      changeERC20PollingPolicy(should);
+      updatePollingPolicy(url);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {
       router.events.off('routeChangeStart', handleRouteChange);
     };
   });
+
+  function updatePollingPolicy(url: string) {
+    const should =
+      url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
+    changeERC20PollingPolicy(should);
+  }
 
   return (
     <>
