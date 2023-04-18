@@ -11,7 +11,11 @@ html,
 body {
   padding: 0;
   margin: 0;
-  /* font-family: "Inter"; */
+  font-family: 'Inter';
+}
+
+.MuiTypography-root {
+  font-family: 'Inter';
 }
 
 a {
