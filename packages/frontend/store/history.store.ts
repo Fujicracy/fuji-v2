@@ -189,17 +189,25 @@ export const useHistory = create<HistoryStore>()(
               finish(true);
               return;
             }
-            notify({
-              type: 'success',
-              message: formatCrosschainNotificationMessage(
-                chainName(entry.sourceChain.chainId),
-                chainName(entry.destinationChain?.chainId)
-              ),
-              link: getTransactionLink({
-                hash: entry.hash,
-                chainId: entry.sourceChain.chainId,
-              }),
-            });
+            if (!entry.sourceChain.shown) {
+              notify({
+                type: 'success',
+                message: formatCrosschainNotificationMessage(
+                  chainName(entry.sourceChain.chainId),
+                  chainName(entry.destinationChain?.chainId)
+                ),
+                link: getTransactionLink({
+                  hash: entry.hash,
+                  chainId: entry.sourceChain.chainId,
+                }),
+              });
+              set(
+                produce((s: HistoryState) => {
+                  s.entries[hash].sourceChain.shown = true;
+                })
+              );
+            }
+
             let crosschainCallFinished = false;
             while (!crosschainCallFinished) {
               await wait(3000); // Wait for three seconds between each call
