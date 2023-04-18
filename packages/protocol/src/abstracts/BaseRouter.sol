@@ -32,7 +32,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev TODO
+   * @dev Struct used internally containing the arguments of a IRouter.Action.Permit* to store
+   * and pass in memory and avoid "stack too deep" errors.
    */
   struct PermitArgs {
     IVaultPermissions vault;
@@ -153,7 +154,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     address beneficiary;
 
     /**
-     * @dev TODO
+     * @dev Hash generated during execution of "_bundleInternal()" that should
+     * match the signed permit.
+     * This argument is used in {VaultPermissions-PermitWithdraw} and
+     * {VaultPermissions-PermitBorrow}
      */
     bytes32 actionArgsHash;
 
@@ -306,7 +310,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev TODO
+   * @dev Handles both permit actions logic flow.
+   * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
+   *
+   * @param arg of the ongoing action
+   * @param actionArgsHash_ created previously withing `_bundleInternal()` to be used in permit check
+   * @param permit internal control number, either 1 for permitWithdraw, or 2 for permitBorrow
    */
   function _handlePermitAction(
     bytes memory arg,
@@ -362,7 +371,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev TODO
+   * @dev Returns the `zeroPermitEncodedArgs` which is required to create
+   * the `actionArgsHash` used during permit signature
+   *
+   * @param vault that will execute action
+   * @param owner owner of the assets
+   * @param receiver of the assets after action
+   * @param amount of assets being permitted in action
    */
   function _getZeroPermitEncodedArgs(
     IVaultPermissions vault,
@@ -378,7 +393,17 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev TODO
+   * @dev Returns the `actionsArgsHash` required in
+   * {VaultPermissions-permitWithdraw} or {VaultPermissions-permitBorrow}.
+   * Requirements:
+   * - Must replace arguments in IRouter.Action.PermitWithdraw for "zeroPermit".
+   * - Must replace arguments in IRouter.Action.PermitBorrow for "zeroPermit".
+   * - Must replace `beforeSlipped` amount in cross-chain txs that had slippage.
+   *
+   *
+   * @param actions being executed in this `_bundleInternal`
+   * @param args provided in `_bundleInternal`
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
    */
   function _getActionArgsHash(
     IRouter.Action[] memory actions,
@@ -426,7 +451,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
-   * @dev TODO
+   * @dev Handles swap actions logic flow.
+   * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
+   * Requirements:
+   * - Must return updated "beneficiary" and "tokensToCheck".
+   *
+   * @param arg of the ongoing action
+   * @param beneficiary_ passed through `_bundleInternal()`
+   * @param tokensToCheck_ passed through `_bundleInternal()`
    */
   function _handleSwapAction(
     bytes memory arg,

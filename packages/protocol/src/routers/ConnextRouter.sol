@@ -190,7 +190,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /**
-   * @dev TODO
+   * @notice Function selector created to allow try-catch procedure in Connext message data
+   * passing.Including argument for `beforeSlipepd` not available in {BaseRouter-xBundle}.
+   *
+   * @param actions an array of actions that will be executed in a row
+   * @param args an array of encoded inputs needed to execute each action
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
+   *
+   * @dev Requirements:
+   * - Must only be called within the context of this same contract.
    */
   function xBundleConnext(
     Action[] calldata actions,
