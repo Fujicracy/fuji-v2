@@ -5,6 +5,11 @@ import { useBorrow } from '../store/borrow.store';
 import { updateNativeBalance } from './balances';
 import { hexToChainId } from './chains';
 
+export type HistoryTransaction = {
+  address: string;
+  hash: string;
+};
+
 export enum HistoryEntryStatus {
   ONGOING,
   SUCCESS,
@@ -35,6 +40,7 @@ export type HistoryEntryConnext = {
 
 export type HistoryEntry = {
   hash: string;
+  address: string;
   steps: HistoryRoutingStep[];
   status: HistoryEntryStatus;
   connext?: HistoryEntryConnext;

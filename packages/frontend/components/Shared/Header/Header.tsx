@@ -296,7 +296,7 @@ const Header = () => {
                 </Button>
               </>
             )}
-            {status === 'connected' && (
+            {status === 'connected' && address && (
               <>
                 <Grid item>
                   <ChainSelect />
@@ -304,7 +304,7 @@ const Header = () => {
                 <Grid item>
                   <BalanceAddon
                     balance={balance}
-                    formattedAddress={formattedAddress}
+                    address={address}
                     ens={ens}
                     onClick={(e) => handleOpenAccountModal(true, e)}
                   />

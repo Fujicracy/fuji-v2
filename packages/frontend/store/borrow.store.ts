@@ -887,7 +887,7 @@ export const useBorrow = create<BorrowStore>()(
             const vaultAddr = get().activeVault?.address.value as string;
             useHistory
               .getState()
-              .add(tx.hash, vaultAddr, get().transactionMeta.steps);
+              .add(tx.hash, tx.from, vaultAddr, get().transactionMeta.steps);
 
             get().changeInputValues('', '');
           }

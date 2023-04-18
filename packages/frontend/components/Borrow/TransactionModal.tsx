@@ -30,7 +30,11 @@ import { useState } from 'react';
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
 import { chainName } from '../../helpers/chains';
 import { transactionUrl } from '../../helpers/chains';
-import { HistoryEntryStatus, validSteps } from '../../helpers/history';
+import {
+  HistoryEntry,
+  HistoryEntryStatus,
+  validSteps,
+} from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
 import { statusForStep, TransactionStep } from '../../helpers/transactions';
@@ -42,32 +46,30 @@ import { NetworkIcon } from '../Shared/Icons';
 import WarningInfo from '../Shared/WarningInfo';
 
 type TransactionModalProps = {
-  hash?: string;
+  entry: HistoryEntry;
   currentPage: string;
 };
-function TransactionModal({ hash, currentPage }: TransactionModalProps) {
+function TransactionModal({ entry, currentPage }: TransactionModalProps) {
   const theme = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const activeChainId = useAuth((state) => parseInt(state.chain?.id || ''));
-  const entry = useHistory((state) => state.entries[hash || '']);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [activeStep] = useState(2);
 
-  const action =
-    entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
-    entry?.steps.find((s) => s.step === RoutingStep.WITHDRAW);
+  if (!entry) return <></>;
 
-  const connextScanLink = entry?.connext
+  const action =
+    entry.steps.find((s) => s.step === RoutingStep.BORROW) ||
+    entry.steps.find((s) => s.step === RoutingStep.WITHDRAW);
+
+  const connextScanLink = entry.connext
     ? `https://amarok.connextscan.io/tx/${entry.connext.transferId}`
     : undefined;
 
-  if (!entry) {
-    return <></>;
-  }
   const validatedSteps = validSteps(entry.steps);
 
   const steps = validatedSteps.map((s, i): TransactionStep => {

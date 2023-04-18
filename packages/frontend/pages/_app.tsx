@@ -6,7 +6,7 @@ import { AppProps } from 'next/app';
 import { Inter } from 'next/font/google';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
@@ -27,12 +27,20 @@ import { theme } from '../styles/theme';
 const inter = Inter({ subsets: ['latin'] });
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const initAuth = useAuth((state) => state.init);
-  const address = useAuth((state) => state.address);
   const router = useRouter();
 
+  const address = useAuth((state) => state.address);
+  const initAuth = useAuth((state) => state.init);
+
   const currentTxHash = useHistory((state) => state.currentTxHash);
+  const ongoingTransactions = useHistory((state) => state.ongoingTransactions);
+  const entries = useHistory((state) => state.entries);
+  const watchAll = useHistory((state) => state.watchAll);
+
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
+
+  const entry = address && currentTxHash && entries[currentTxHash];
+  const prevAddressRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     initErrorReporting();
@@ -44,6 +52,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       fetchPositions();
     }
   }, [address, fetchPositions]);
+
+  useEffect(() => {
+    if (address && prevAddressRef.current !== address) {
+      watchAll();
+    }
+    prevAddressRef.current = address;
+  }, [address, ongoingTransactions, watchAll]);
 
   useEffect(() => {
     if (address) {
@@ -93,10 +108,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         <ThemeProvider theme={theme}>
           <div className="backdrop"></div>
           <Component {...pageProps} />
-          <TransactionModal
-            hash={currentTxHash}
-            currentPage={router.pathname}
-          />
+          {entry && entry.address === address && (
+            <TransactionModal entry={entry} currentPage={router.pathname} />
+          )}
           <SafetyNoticeModal />
           <Notification />
         </ThemeProvider>
