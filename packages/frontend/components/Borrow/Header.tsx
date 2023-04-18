@@ -131,7 +131,9 @@ function BorrowHeader({
               key={`${p}`}
               selected={actionType === p}
               label={
-                p === ActionType.ADD ? 'Deposit / Borrow' : 'Withdraw / Payback'
+                p === ActionType.ADD
+                  ? 'Deposit / Borrow'
+                  : 'Payback / Withdraw '
               }
               onClick={() => {
                 onActionTypeChange(p);

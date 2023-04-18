@@ -15,7 +15,7 @@ export const topLevelPages: Page[] = [
   { title: 'Markets', path: PATH.MARKETS },
   { title: 'Borrow', path: PATH.BORROW },
   { title: 'Lend', path: PATH.LEND },
-  { title: 'My positions', path: PATH.MY_POSITIONS },
+  { title: 'My Positions', path: PATH.MY_POSITIONS },
 ];
 
 export const myPositionPage: Page = {
