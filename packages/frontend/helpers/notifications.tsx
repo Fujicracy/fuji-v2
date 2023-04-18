@@ -72,6 +72,7 @@ const CloseButton = ({ closeToast }: CloseButtonProps) => (
     src={`/assets/images/notifications/close.svg`}
     alt={`close icon`}
     onClick={closeToast}
+    style={{ marginTop: '0.5rem', cursor: 'pointer' }}
   />
 );
 
@@ -109,16 +110,23 @@ export function CustomToast({
 }: NotificationWithLinkProps) {
   const { palette } = useTheme();
   return (
-    <Stack direction="row">
+    <Stack direction="row" sx={{ p: '2px' }}>
       <Image
         src={`/assets/images/notifications/${type}.svg`}
-        width={20}
-        height={20}
+        width={24}
+        height={24}
         alt={type}
         style={{}}
       />
-      <Stack sx={{ marginLeft: '0.75rem', marginTop: '-0.25rem' }}>
-        <Typography variant="body1" sx={{ fontSize: '1rem' }}>
+      <Stack sx={{ marginLeft: '1rem' }}>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: '1rem',
+            color: palette.text.primary,
+            lineHeight: '160%',
+          }}
+        >
           {message}
         </Typography>
         {link && (
@@ -126,7 +134,9 @@ export function CustomToast({
             <Typography
               sx={{
                 fontSize: '0.75rem',
-                color: palette.info.main,
+                mt: '0.25rem',
+                lineHeight: '160%',
+                color: palette.info.dark,
                 '&:hover': {
                   color: palette.text.primary,
                 },

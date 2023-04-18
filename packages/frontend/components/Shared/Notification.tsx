@@ -20,6 +20,10 @@ function Notification() {
       hideProgressBar
       pauseOnFocusLoss
       pauseOnHover
+      toastStyle={{
+        paddingRight: '1rem',
+        width: '20.5rem',
+      }}
     />
   );
 }
