@@ -21,8 +21,6 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 
-import "forge-std/console.sol";
-
 abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
@@ -239,8 +237,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (actionArgsHash == ZERO_BYTES32) {
           actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
-        console.log("inside@internalBundle");
-        console.logBytes32(actionArgsHash);
 
         // Scoped code in new private function to avoid "Stack too deep"
         address owner_ = _handlePermitAction(args[i], actionArgsHash, 2);

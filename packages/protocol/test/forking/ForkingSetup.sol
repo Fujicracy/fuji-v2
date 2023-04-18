@@ -356,11 +356,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
-    console.log("forkingSetup_actionArgsHash");
-    console.logBytes32(actionArgsHash);
-    console.log("forkingSetup_getDepositAndBorrowCalldata@-1");
-    console.logBytes(args[1]);
-
     // Replace permit action arguments, now with the signature values.
     args[1] = _buildPermitAsBytes(
       owner, // owner
@@ -372,9 +367,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       vault_, // vault
       actionArgsHash // actions args hash
     );
-
-    console.log("forkingSetup_getDepositAndBorrowCalldata@-2");
-    console.logBytes(args[1]);
 
     callData = abi.encode(actions, args, slippage);
   }
