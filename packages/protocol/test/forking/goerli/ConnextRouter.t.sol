@@ -473,8 +473,12 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   }
 
   function test_simpleFlashloan() public {
-    uint256 amount = 2 ether;
+    // Setup flasher accordingly
     MockTestFlasher flasher = new MockTestFlasher();
+    bytes memory data = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), data);
+
+    uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
 
     // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
@@ -517,8 +521,12 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   }
 
   function test_flashloanWithIncorrectActionAfter() public {
-    uint256 amount = 2 ether;
+    // Setup flasher accordingly
     MockTestFlasher flasher = new MockTestFlasher();
+    bytes memory data = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), data);
+
+    uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
 
     IRouter.Action[] memory actions1 = new IRouter.Action[](1);
