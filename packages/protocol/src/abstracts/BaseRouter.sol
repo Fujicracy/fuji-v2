@@ -98,7 +98,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   /// @inheritdoc IRouter
   function xBundle(Action[] calldata actions, bytes[] calldata args) external payable override {
-    _bundleInternal(actions, args);
+    _bundleInternal(actions, args, 0);
   }
 
   /**
@@ -133,8 +133,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    *
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
    */
-  function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
+  function _bundleInternal(
+    Action[] memory actions,
+    bytes[] memory args,
+    uint256 beforeSlipped
+  )
+    internal
+  {
     uint256 len = actions.length;
     if (len != args.length) {
       revert BaseRouter__bundleInternal_paramsMismatch();
@@ -221,7 +228,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       } else if (action == Action.PermitWithdraw) {
         // PERMIT WITHDRAW
         if (actionArgsHash == ZERO_BYTES32) {
-          actionArgsHash = _getActionArgsHash(actions, args);
+          actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
 
         // Scoped code in new private function to avoid "Stack too deep"
@@ -230,8 +237,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       } else if (action == Action.PermitBorrow) {
         // PERMIT BORROW
         if (actionArgsHash == ZERO_BYTES32) {
-          actionArgsHash = _getActionArgsHash(actions, args);
+          actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
+        console.log("inside@internalBundle");
+        console.logBytes32(actionArgsHash);
 
         // Scoped code in new private function to avoid "Stack too deep"
         address owner_ = _handlePermitAction(args[i], actionArgsHash, 2);
@@ -252,35 +261,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           revert BaseRouter__bundleInternal_swapNotFirstAction();
         }
 
-        (
-          ISwapper swapper,
-          address assetIn,
-          address assetOut,
-          uint256 amountIn,
-          uint256 amountOut,
-          address receiver,
-          address sweeper,
-          uint256 minSweepOut
-        ) = abi.decode(
-          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
-        );
-
-        if (!chief.allowedSwapper(address(swapper))) {
-          revert BaseRouter__bundleInternal_notAllowedSwapper();
-        }
-
-        tokensToCheck = _addTokenToList(assetIn, tokensToCheck);
-        tokensToCheck = _addTokenToList(assetOut, tokensToCheck);
-        _safeApprove(assetIn, address(swapper), amountIn);
-
-        if (receiver != address(this)) {
-          beneficiary = _checkBeneficiary(beneficiary, receiver);
-        }
-        if (sweeper != address(this)) {
-          beneficiary = _checkBeneficiary(beneficiary, sweeper);
-        }
-
-        swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
+        (beneficiary, tokensToCheck) = _handleSwapAction(args[i], beneficiary, tokensToCheck);
       } else if (action == Action.Flashloan) {
         // FLASHLOAN
 
@@ -405,7 +386,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    */
   function _getActionArgsHash(
     IRouter.Action[] memory actions,
-    bytes[] memory args
+    bytes[] memory args,
+    uint256 beforeSlipped
   )
     private
     pure
@@ -413,10 +395,27 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   {
     uint256 len = actions.length;
 
-    // Modify ONLY the new bytes array. Memory changes used during different function calls persist.
+    /**
+     * @dev We intend to ONLY modify the new bytes array.
+     * "memory" in solidity persists within internal calls.
+     */
     bytes[] memory modArgs = new bytes[](len);
     for (uint256 i; i < len; i++) {
       modArgs[i] = args[i];
+      if (
+        i == 0 && beforeSlipped != 0
+          && (actions[i] == IRouter.Action.Deposit || actions[i] == IRouter.Action.Payback)
+      ) {
+        // if `beforeSlipped` == 0 means there was no slippage in an attempted cross-chain tx
+        // or tx is single chain.
+        (IVault vault, uint256 slippedAmount, address receiver, address sender) =
+          abi.decode(modArgs[i], (IVault, uint256, address, address));
+        if (beforeSlipped != slippedAmount) {
+          // For Deposit, and Payback actions if beforeSlipped != slippedAmount replace
+          // to obtain "original" intended transfer value signed in `actionArgsHash`.
+          modArgs[i] = abi.encode(vault, beforeSlipped, receiver, sender);
+        }
+      }
       if (actions[i] == IRouter.Action.PermitWithdraw || actions[i] == IRouter.Action.PermitBorrow)
       {
         // Need to replace permit `args` at `index` with the `zeroPermitArg`.
@@ -428,6 +427,47 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       }
     }
     return keccak256(abi.encode(actions, modArgs));
+  }
+
+  /**
+   * @dev TODO
+   */
+  function _handleSwapAction(
+    bytes memory arg,
+    address beneficiary_,
+    Snapshot[] memory tokensToCheck_
+  )
+    internal
+    returns (address, Snapshot[] memory)
+  {
+    (
+      ISwapper swapper,
+      address assetIn,
+      address assetOut,
+      uint256 amountIn,
+      uint256 amountOut,
+      address receiver,
+      address sweeper,
+      uint256 minSweepOut
+    ) = abi.decode(arg, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+
+    if (!chief.allowedSwapper(address(swapper))) {
+      revert BaseRouter__bundleInternal_notAllowedSwapper();
+    }
+
+    tokensToCheck_ = _addTokenToList(assetIn, tokensToCheck_);
+    tokensToCheck_ = _addTokenToList(assetOut, tokensToCheck_);
+    _safeApprove(assetIn, address(swapper), amountIn);
+
+    if (receiver != address(this)) {
+      beneficiary_ = _checkBeneficiary(beneficiary_, receiver);
+    }
+    if (sweeper != address(this)) {
+      beneficiary_ = _checkBeneficiary(beneficiary_, sweeper);
+    }
+
+    swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
+    return (beneficiary_, tokensToCheck_);
   }
 
   /**
