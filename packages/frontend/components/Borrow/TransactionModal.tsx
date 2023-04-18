@@ -27,7 +27,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
-import { PATH } from '../../constants';
+import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
 import { chainName } from '../../helpers/chains';
 import { transactionUrl } from '../../helpers/chains';
 import { HistoryEntryStatus, validSteps } from '../../helpers/history';
@@ -39,6 +39,7 @@ import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import { NetworkIcon } from '../Shared/Icons';
+import WarningInfo from '../Shared/WarningInfo';
 
 type TransactionModalProps = {
   hash?: string;
@@ -60,8 +61,8 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
     entry?.steps.find((s) => s.step === RoutingStep.BORROW) ||
     entry?.steps.find((s) => s.step === RoutingStep.WITHDRAW);
 
-  const connextScanLink = entry?.connextTransferId
-    ? `https://amarok.connextscan.io/tx/${entry.connextTransferId}`
+  const connextScanLink = entry?.connext
+    ? `https://amarok.connextscan.io/tx/${entry.connext.transferId}`
     : undefined;
 
   if (!entry) {
@@ -248,12 +249,29 @@ function TransactionModal({ hash, currentPage }: TransactionModalProps) {
           </Stepper>
         </DialogContent>
         {entry.status === HistoryEntryStatus.ONGOING && (
-          <Card variant="outlined" sx={{ mt: '2rem', maxWidth: '100%' }}>
-            <Typography variant="small" textAlign="center" fontSize="0.875rem">
-              This step takes a few minutes to process. If you close this
-              window, your transaction will still be processed.
-            </Typography>
-          </Card>
+          <>
+            <Card variant="outlined" sx={{ mt: '2rem', maxWidth: '100%' }}>
+              <Typography
+                variant="small"
+                textAlign="center"
+                fontSize="0.875rem"
+              >
+                This step takes a few minutes to process. If you close this
+                window, your transaction will still be processed.
+              </Typography>
+            </Card>
+            {entry.connext &&
+              Date.now() - entry.connext.timestamp >
+                CONNEXT_WARNING_DURATION && (
+                <Box sx={{ marginBottom: 2, marginTop: 2 }}>
+                  <WarningInfo
+                    text={
+                      'The operation takes longer than expected. You can visit ConnextScan below to check for potential issues. You might be required to connect with the same address and perform an action.'
+                    }
+                  />
+                </Box>
+              )}
+          </>
         )}
         {connextScanLink && (
           <Stack sx={{ mt: '1rem' }} spacing={1}>

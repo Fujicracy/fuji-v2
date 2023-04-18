@@ -28,11 +28,16 @@ export type HistoryEntryChain = {
   hash?: string;
 };
 
+export type HistoryEntryConnext = {
+  transferId: string;
+  timestamp: number;
+};
+
 export type HistoryEntry = {
   hash: string;
   steps: HistoryRoutingStep[];
   status: HistoryEntryStatus;
-  connextTransferId?: string;
+  connext?: HistoryEntryConnext;
   vaultAddress?: string;
   sourceChain: HistoryEntryChain;
   isCrossChain: boolean; // Convenience

@@ -1,4 +1,4 @@
-export const CONFIRMATIONS = 3;
+export const CONNEXT_WARNING_DURATION = 1000 * 60 * 10; // 10 minutes
 
 export const BALANCE_POLLING_INTERVAL = 15000;
 
