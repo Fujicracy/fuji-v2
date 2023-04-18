@@ -85,9 +85,9 @@ export const triggerUpdatesFromSteps = (steps: HistoryRoutingStep[]) => {
   const hasDepositStep = steps.some((s) => s.step === RoutingStep.DEPOSIT);
   const hasPaybackStep = steps.some((s) => s.step === RoutingStep.PAYBACK);
   const hasCollateralStep =
-    hasDepositStep ?? steps.some((s) => s.step === RoutingStep.WITHDRAW);
+    hasDepositStep || steps.some((s) => s.step === RoutingStep.WITHDRAW);
   const hasDebtStep =
-    steps.find((s) => s.step === RoutingStep.BORROW) ?? hasPaybackStep;
+    steps.find((s) => s.step === RoutingStep.BORROW) || hasPaybackStep;
 
   if (hasCollateralStep) {
     useBorrow.getState().updateBalances('collateral');
