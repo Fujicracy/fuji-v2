@@ -126,3 +126,10 @@ export const fetchRoutes = async (
     steps,
   });
 };
+
+export function isCrossChainTransaction(steps: RoutingStepDetails[]): boolean {
+  const start = steps.find((item) => item.step === RoutingStep.START);
+  const end = steps.find((item) => item.step === RoutingStep.END);
+
+  return start?.chainId !== end?.chainId;
+}

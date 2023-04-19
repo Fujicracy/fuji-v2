@@ -139,7 +139,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
           },
         }}
       >
-        {isEditing && (
+        {isEditing && !loading && (
           <Stack
             flexDirection="row"
             alignItems="center"

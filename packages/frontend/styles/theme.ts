@@ -101,31 +101,37 @@ const theme = createTheme(colorTheme, {
       fontWeight: 700,
       fontSize: '3rem',
       lineHeight: '120%',
+      color: colorTheme.palette.text.primary,
     },
     display2: {
       fontWeight: 700,
       fontSize: '2.75rem',
       lineHeight: '120%',
+      color: colorTheme.palette.text.primary,
     },
     h1: {
       fontWeight: 700,
       fontSize: '2.5rem',
       lineHeight: '120%',
+      color: colorTheme.palette.text.primary,
     },
     h2: {
       fontWeight: 700,
       fontSize: '2.25rem',
       lineHeight: '150%',
+      color: colorTheme.palette.text.primary,
     },
     h3: {
       fontWeight: 700,
       fontSize: '1.875rem',
       lineHeight: '150%',
+      color: colorTheme.palette.text.primary,
     },
     h4: {
       fontWeight: 700,
       fontSize: '1.5rem',
       lineHeight: '150%',
+      color: colorTheme.palette.text.primary,
     },
     regularH4: {
       display: 'block',
@@ -134,26 +140,31 @@ const theme = createTheme(colorTheme, {
       lineHeight: '120%',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
+      color: colorTheme.palette.text.primary,
     },
     h5: {
       fontWeight: 600,
       fontSize: '1.25rem',
       lineHeight: '150%',
+      color: colorTheme.palette.text.primary,
     },
     h6: {
       fontWeight: 400,
       fontSize: '1.125rem',
       lineHeight: '160%',
+      color: colorTheme.palette.text.primary,
     },
     body: {
       fontWeight: 400,
       fontSize: '1rem',
       lineHeight: '160%',
+      color: colorTheme.palette.text.primary,
     },
     body2: {
       fontWeight: 700,
       fontSize: '1rem',
       lineHeight: '160%',
+      color: colorTheme.palette.text.primary,
     },
     small: {
       fontWeight: 400,
@@ -161,6 +172,7 @@ const theme = createTheme(colorTheme, {
       lineHeight: '160%',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
+      color: colorTheme.palette.text.primary,
     },
     smallDark: {
       fontWeight: 400,
@@ -173,6 +185,7 @@ const theme = createTheme(colorTheme, {
     xsmall: {
       fontWeight: 400,
       fontSize: '0.75rem',
+      color: colorTheme.palette.text.primary,
     },
     xsmallDark: {
       fontWeight: 400,
@@ -185,12 +198,14 @@ const theme = createTheme(colorTheme, {
       fontSize: '0.75rem',
       cursor: 'pointer',
       ':hover': { color: colorTheme.palette.primary.main },
+      color: colorTheme.palette.text.primary,
     },
     label: {
       fontWeight: 700,
       fontSize: '0.875rem',
       lineHeight: '100%',
       letterSpacing: '2%',
+      color: colorTheme.palette.text.primary,
     },
   },
   components: {
@@ -325,7 +340,6 @@ const theme = createTheme(colorTheme, {
         root: {
           background: colorTheme.palette.secondary.contrastText,
           borderRadius: '0.75rem',
-          // TODO: refacto and reomve, flex should not be part of card theming
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'flex-start',

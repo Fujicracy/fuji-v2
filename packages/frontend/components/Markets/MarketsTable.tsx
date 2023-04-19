@@ -13,6 +13,7 @@ import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { NOTIFICATION_MESSAGES } from '../../constants';
 import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import {
   groupByPair,
@@ -23,6 +24,7 @@ import {
   Status,
 } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
+import { notify } from '../../helpers/notifications';
 import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
@@ -48,9 +50,12 @@ function MarketsTable() {
     (async () => {
       const result = await getAllBorrowingVaultFinancials(addr);
 
-      result.errors.forEach((error) => {
-        console.error(error.message); // TODO: Show error message for each?
-      });
+      if (result.errors.length > 0) {
+        notify({
+          type: 'error',
+          message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
+        });
+      }
 
       if (result.data.length === 0) {
         const rows = rowsBase
@@ -68,6 +73,10 @@ function MarketsTable() {
 
       const llamaResult = await sdk.getLlamaFinancials(financials);
       if (!llamaResult.success) {
+        notify({
+          type: 'error',
+          message: llamaResult.error.message,
+        });
         const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
         setRows(groupByPair(rows));
         return;
@@ -150,7 +159,7 @@ function MarketsTable() {
               >
                 <Tooltip
                   arrow
-                  title="Fuji refinances between these protocols to find the best yield"
+                  title="In the background, Fuji rebalances between these protocols to provide the best terms."
                   placement="top"
                 >
                   <InfoOutlinedIcon

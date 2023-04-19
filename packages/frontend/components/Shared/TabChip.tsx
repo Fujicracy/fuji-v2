@@ -31,6 +31,12 @@ function TabChip({ selected, label, onClick, size }: TabChipProps) {
         color={palette.text.primary}
         fontSize={size === 'large' ? '1rem' : '0.875rem'}
         lineHeight="160%"
+        textAlign="center"
+        sx={{
+          ['@media screen and (max-width: 390px)']: {
+            fontSize: '0.7rem',
+          },
+        }}
       >
         {label}
       </Typography>

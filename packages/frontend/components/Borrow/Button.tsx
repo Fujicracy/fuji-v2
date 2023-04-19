@@ -38,7 +38,7 @@ type BorrowButtonProps = {
   onApproveClick: (type: AssetType) => void;
   onRedirectClick: (position: boolean) => void;
   onClick: () => void;
-  ltvCheck: (action: () => void) => void;
+  withConfirmation: (action?: () => void) => void;
 };
 
 function BorrowButton({
@@ -62,7 +62,7 @@ function BorrowButton({
   onApproveClick,
   onRedirectClick,
   onClick,
-  ltvCheck,
+  withConfirmation,
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input);
   const debtAmount = parseFloat(debt.input);
@@ -85,19 +85,10 @@ function BorrowButton({
   }`;
 
   const loadingButtonTitle =
-    (collateral.allowance.status === 'allowing' && 'Approving') ||
-    (debt.allowance.status === 'allowing' && 'Approving') ||
+    (collateral.allowance.status === 'allowing' && 'Approving...') ||
+    (debt.allowance.status === 'allowing' && 'Approving...') ||
     (isSigning && '(1/2) Signing...') ||
-    (isExecuting &&
-      `(${executionStep}/${executionStep}) ${
-        mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW
-          ? 'Borrowing'
-          : mode === Mode.DEPOSIT
-          ? 'Depositing'
-          : mode === Mode.PAYBACK_AND_WITHDRAW || mode === Mode.WITHDRAW
-          ? 'Withdrawing'
-          : 'Repaying'
-      }...`) ||
+    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
     actionTitle;
 
   const regularButton = (
@@ -118,8 +109,8 @@ function BorrowButton({
     );
   };
 
-  const clickWithLTVCheck: (action: () => void) => void = (action) => {
-    ltvCheck(action);
+  const clickWithConfirmation: (action: () => void) => void = (action) => {
+    withConfirmation(action);
   };
 
   const disabledButton = (title: string) => (
@@ -137,7 +128,7 @@ function BorrowButton({
       fullWidth
       disabled={disabled}
       loading={loading}
-      onClick={() => clickWithLTVCheck(onClick)}
+      onClick={() => clickWithConfirmation(onClick)}
     >
       {loadingButtonTitle}
     </LoadingButton>
@@ -170,7 +161,7 @@ function BorrowButton({
     });
   } else if (isEditing && !hasBalanceInVault) {
     return regularButton('Borrow', () =>
-      clickWithLTVCheck(() => {
+      clickWithConfirmation(() => {
         onRedirectClick(true);
       })
     );
@@ -205,17 +196,9 @@ function BorrowButton({
   ) {
     return disabledButton('Withdraw more than allowed');
   } else if (needsAllowance(mode, 'collateral', collateral, collateralAmount)) {
-    return regularButton('Approve', () =>
-      clickWithLTVCheck(() => {
-        onApproveClick('collateral');
-      })
-    );
+    return regularButton('Approve', () => onApproveClick('collateral'));
   } else if (needsAllowance(mode, 'debt', debt, debtAmount)) {
-    return regularButton('Approve', () =>
-      clickWithLTVCheck(() => {
-        onApproveClick('debt');
-      })
-    );
+    return regularButton('Approve', () => onApproveClick('debt'));
   } else if (
     isEditing &&
     position.vault &&

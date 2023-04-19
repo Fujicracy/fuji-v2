@@ -119,7 +119,7 @@ export const useAuth = create<AuthStore>()(
 
         if (!wallets[0] || !wallets[0].accounts[0]) {
           set({ status: 'disconnected' });
-          throw 'Failure trying to login';
+          return;
         }
 
         const json = JSON.stringify(wallets.map(({ label }) => label));

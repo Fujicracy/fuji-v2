@@ -10,7 +10,7 @@ import Head from 'next/head';
 
 import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
-import Lending from '../components/Shared/Lending/Lending';
+import Lending from '../components/Shared/Lending';
 
 const MarketsPage: NextPage = () => {
   const { breakpoints } = useTheme();

@@ -8,11 +8,16 @@ import invariant from 'tiny-invariant';
 import { FUJI_ORACLE_ADDRESS, WNATIVE_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
-import { ChainConfig, ChainConnectionDetails } from '../types';
+import {
+  ChainConfig,
+  ChainConnectionDetails,
+  FujiResultPromise,
+} from '../types';
 import { FujiOracle__factory } from '../types/contracts/factories/src/FujiOracle__factory';
 import { Address } from './Address';
 import { Chain } from './Chain';
 import { Currency } from './Currency';
+import { FujiResultError, FujiResultSuccess } from './FujiError';
 import { Token } from './Token';
 
 /**
@@ -123,25 +128,32 @@ export abstract class AbstractCurrency {
    * @param owner - address of currency owner, wrapped in {@link Address}
    * @param spender - address of spender, wrapped in {@link Address}
    *
-   * @returns alllowed amount for token, but if currency is native, returns MaxUint256
+   * @returns allowed amount for token, but if currency is native, returns MaxUint256
    */
   abstract allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
   /**
    * Fetch currency price in USD.
    */
-  async getPriceUSD(): Promise<number> {
-    invariant(this.rpcProvider, 'Connection not set!');
+  async getPriceUSD(): FujiResultPromise<number> {
+    if (!this.rpcProvider) {
+      return new FujiResultError('Connection not set!');
+    }
     const addr = this.isNative ? WNATIVE_ADDRESS[this.chainId] : this.address;
 
-    return FujiOracle__factory.connect(
-      FUJI_ORACLE_ADDRESS[this.chainId].value,
-      this.rpcProvider
-    )
-      .getPriceOf(AddressZero, addr.value, this.decimals)
-      .then((price) =>
-        parseFloat(formatUnits(price.toString(), this.decimals))
-      );
+    try {
+      const result = await FujiOracle__factory.connect(
+        FUJI_ORACLE_ADDRESS[this.chainId].value,
+        this.rpcProvider
+      )
+        .getPriceOf(AddressZero, addr.value, this.decimals)
+        .then((price) =>
+          parseFloat(formatUnits(price.toString(), this.decimals))
+        );
+      return new FujiResultSuccess(result);
+    } catch (error) {
+      return new FujiResultError('Error getting token USD price');
+    }
   }
 
   /**

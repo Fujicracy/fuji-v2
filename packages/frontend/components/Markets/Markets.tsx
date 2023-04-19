@@ -1,9 +1,9 @@
-import { Box, Grid, Link, Typography, useMediaQuery } from '@mui/material';
+import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
 import { useState } from 'react';
 
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending/Lending';
+import Lending from '../Shared/Lending';
 import MarketsTable from './MarketsTable';
 
 function Markets() {
@@ -16,18 +16,9 @@ function Markets() {
     <Box>
       <Typography variant="h4">Markets</Typography>
       <Typography variant="body">
-        {currentTab === 0 || onMobile ? (
-          'Fuji aggregates the best borrowing interest rates available across the markets'
-        ) : (
-          <span>
-            Optimize your lending vaults for better yield
-            <Link href="#">
-              {' '}
-              {/* TODO: Asked to Ivan the link but waiting answer */}
-              <u>learn more</u>
-            </Link>
-          </span>
-        )}
+        {currentTab === 0 || onMobile
+          ? 'Fuji aggregates the best borrowing rates across different markets'
+          : 'Fuji aggregates different markets and provides the best lending rates cross-chain'}
       </Typography>
       <Grid
         container

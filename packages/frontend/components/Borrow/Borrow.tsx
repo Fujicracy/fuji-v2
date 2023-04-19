@@ -18,10 +18,11 @@ import { ActionType } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
+import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
-import LTVWarningModal from '../Shared/LTVWarningModal';
+import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';
@@ -71,7 +72,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: editedPosition ? editedPosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvMax: position.ltvMax,
     ltvThreshold: editedPosition
       ? editedPosition.ltvThreshold
       : position.ltvThreshold,
@@ -80,10 +81,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false);
-  const [isLTVModalShown, setIsLTVModalShown] = useState(false);
-  const [ltvModalAction, setLTVModalAction] = useState(() => () => {
-    console.error('Invalid function called');
-  });
+  const [isConfirmationModalShown, setIsConfirmationModalShown] =
+    useState(false);
+  const [confirmationModalAction, setConfirmationModalAction] = useState(
+    () => () => {
+      notify({ message: 'Invalid function called', type: 'error' });
+    }
+  );
 
   const shouldSignTooltipBeShown = useMemo(() => {
     return (
@@ -134,12 +138,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     changeMode(mode);
   }, [changeMode, isEditing, collateral.input, debt.input, actionType]);
 
-  const proceedWithLTVCheck = (action: () => void) => {
-    setLTVModalAction(() => action);
-    // Checks if ltv close to max ltv
-    dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
-      ? setIsLTVModalShown(true)
-      : action();
+  const proceedWithConfirmation = (action?: () => void) => {
+    setConfirmationModalAction(() => action);
+    setIsConfirmationModalShown(true);
   };
 
   const warningContent = useMemo(() => {
@@ -291,7 +292,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               }
             }}
             onClick={signAndExecute}
-            ltvCheck={proceedWithLTVCheck}
+            withConfirmation={proceedWithConfirmation}
           />
 
           <ConnextFooter />
@@ -302,13 +303,16 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
       />
-      <LTVWarningModal
-        open={isLTVModalShown}
-        ltv={dynamicLtvMeta.ltv}
-        onClose={() => setIsLTVModalShown(false)}
+      <ConfirmTransactionModal
+        open={isConfirmationModalShown}
+        onClose={() => setIsConfirmationModalShown(false)}
+        basePosition={basePosition}
+        transactionMeta={transactionMeta}
+        isEditing={isEditing}
+        actionType={actionType}
         action={() => {
-          setIsLTVModalShown(false);
-          ltvModalAction();
+          setIsConfirmationModalShown(false);
+          confirmationModalAction && confirmationModalAction();
         }}
       />
     </>

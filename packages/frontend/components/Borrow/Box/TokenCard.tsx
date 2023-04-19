@@ -24,6 +24,7 @@ import React, {
   useState,
 } from 'react';
 
+import { DUST_AMOUNT } from '../../../constants';
 import {
   ActionType,
   AssetChange,
@@ -98,9 +99,15 @@ function TokenCard({
   }, []);
 
   const handleMax = () => {
+    // when we do max withdrawal, we have to deduct a small amount,
+    // otherwise the tx can fail due to some unaccounted dust lefovers
+    const deductedCollateral = Math.max(
+      0,
+      basePosition.position.collateral.amount - DUST_AMOUNT / 100
+    );
     const amount =
       actionType === ActionType.REMOVE && type === 'collateral'
-        ? basePosition.position.collateral.amount -
+        ? deductedCollateral -
           (basePosition.position.debt.amount - Number(debt.input)) /
             ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
         : maxAmount;
@@ -133,8 +140,7 @@ function TokenCard({
       (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
       (isEditing ? basePosition.position.debt.amount : 0);
 
-    const finalValue = recommended > maxAmount ? maxAmount : recommended;
-    handleInput(String(finalValue));
+    handleInput(String(recommended));
   };
 
   const handleTokenChange = (token: Token) => {

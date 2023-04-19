@@ -32,7 +32,7 @@ function Lending() {
       sx={{
         p: { xs: '1rem', md: '8rem 27.5rem' },
         width: '100%',
-        height: '100%',
+        height: '600px',
       }}
       raised
     >
@@ -59,7 +59,7 @@ function Lending() {
         sx={{ width: { xs: '100%', sm: '22.5rem' } }}
       >
         {!isSubmitted
-          ? 'Retail and insituition lending interest rate optimization. Be the first to use our beta platform'
+          ? 'Optimize your lending rates cross-chain, switch with one click from a lending to a borrowing position. Coming soon...'
           : 'Want to cut to the front? Fill out this survey to be one of the first to gain access.'}
       </Typography>
 

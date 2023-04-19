@@ -1,8 +1,8 @@
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useState } from 'react';
 
+import { SerializableToken } from '../../helpers/history';
 import { addTokenToMetamask } from '../../helpers/metamask';
-import { SerializableToken } from '../../store/history.store';
 
 type ButtonAddTokenProps = {
   token: SerializableToken;
@@ -14,20 +14,20 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   const handleClick = async () => {
     setStatus('loading');
-    // TODO: what if asset chain is !== current chain ??
     try {
       await addTokenToMetamask(token);
       setStatus('success');
     } catch (e) {
       // user probably rejected
-      console.error('>>>', e);
       setStatus('error');
     }
   };
 
   return (
     <LoadingButton
-      variant="rounded"
+      variant="ghost"
+      fullWidth
+      size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
       disabled={status === 'success'}

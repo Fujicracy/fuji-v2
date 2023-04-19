@@ -1,106 +1,157 @@
 import LaunchIcon from '@mui/icons-material/Launch';
-import { Link, Stack, Typography } from '@mui/material';
+import { Link, Stack, Typography, useTheme } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 import Image from 'next/image';
-import { toast, ToastOptions } from 'react-toastify';
+import {
+  CloseButtonProps,
+  Id,
+  Slide,
+  toast,
+  ToastOptions,
+} from 'react-toastify';
 
 import { transactionUrl } from './chains';
 
-type NotifyArgs = {
-  message: string;
-  type: 'error' | 'info' | 'success' | 'warning';
-  link?: string;
-  isTransaction?: boolean;
+type NotificationType = 'error' | 'info' | 'success';
+
+export type NotificationLinkType = 'tx' | 'discord' | 'other';
+
+export type NotificationLink = {
+  url: string;
+  type: NotificationLinkType;
 };
 
-export function notify({ message, type, link, isTransaction }: NotifyArgs) {
-  const options: Partial<ToastOptions> = {
-    position: toast.POSITION.TOP_RIGHT,
-    theme: 'dark',
-  };
+export type NotificationId = Id;
 
-  if (link) {
-    toast(getLinkNotification({ message, link, isTransaction, type }), options);
-
-    return;
-  }
-
-  toast[type](message, options);
+export enum NotificationDuration {
+  SHORT = 3000,
+  MEDIUM = 5000,
+  LONG = 7500,
 }
 
-export function getTransactionUrl(transaction: {
+type NotificationArguments = {
+  message: string;
+  type: NotificationType;
+  link?: NotificationLink | undefined;
+  sticky?: boolean;
+  duration?: NotificationDuration;
+};
+
+type NotificationWithLinkProps = {
+  link?: NotificationLink;
+  message?: string;
+  type: NotificationType;
+};
+
+type NotificationTxLinkArguments = {
   chainId: ChainId;
   hash: string;
-}) {
+};
+
+export function getTransactionUrl(transaction: NotificationTxLinkArguments) {
   return transactionUrl(transaction.chainId, transaction.hash);
 }
 
-export function getLinkNotification({
+export function getTransactionLink(
+  transaction: NotificationTxLinkArguments
+): NotificationLink | undefined {
+  const url = getTransactionUrl(transaction);
+  if (url) {
+    return {
+      url,
+      type: 'tx',
+    };
+  }
+  return undefined;
+}
+
+const CloseButton = ({ closeToast }: CloseButtonProps) => (
+  <Image
+    width={20}
+    height={20}
+    src={`/assets/images/notifications/close.svg`}
+    alt={`close icon`}
+    onClick={closeToast}
+    style={{ marginTop: '0.5rem', cursor: 'pointer' }}
+  />
+);
+
+export function notify({
   message,
+  type,
   link,
-  isTransaction,
-  type = 'info',
-}: {
-  link: string;
-  message?: string;
-  isTransaction?: boolean;
-  type?: 'error' | 'info' | 'success' | 'warning';
-}) {
-  return isTransaction ? (
-    <CustomToastWithTransactionLink link={link} />
-  ) : (
-    <CustomToastWithLink link={link} message={message} type={type} />
+  sticky,
+  duration,
+}: NotificationArguments) {
+  const options: Partial<ToastOptions> = {
+    transition: Slide,
+    position: toast.POSITION.TOP_LEFT,
+    theme: 'dark',
+    toastId: type + message + link,
+    autoClose: sticky ? false : duration ?? NotificationDuration.MEDIUM,
+    icon: null,
+    closeButton: CloseButton,
+  };
+
+  return toast(
+    <CustomToast link={link} message={message} type={type} />,
+    options
   );
 }
 
-export function CustomToastWithLink({
+export function dismiss(id: NotificationId) {
+  toast.dismiss(id);
+}
+
+export function CustomToast({
   link,
   message,
   type,
-}: {
-  link: string;
-  type: 'error' | 'info' | 'success' | 'warning';
-  message?: string;
-}) {
+}: NotificationWithLinkProps) {
+  const { palette } = useTheme();
   return (
-    <Stack direction="row" alignItems="center">
+    <Stack direction="row" sx={{ p: '2px' }}>
       <Image
-        src={`/assets/images/shared/${type}.svg`}
-        width={20}
-        height={20}
+        src={`/assets/images/notifications/${type}.svg`}
+        width={24}
+        height={24}
         alt={type}
+        style={{}}
       />
-      <Link ml="0.5rem" href={link} target="_blank">
-        <Typography variant="body1" sx={{ fontSize: '1rem' }}>
+      <Stack sx={{ marginLeft: '1rem' }}>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: '1rem',
+            color: palette.text.primary,
+            lineHeight: '160%',
+          }}
+        >
           {message}
         </Typography>
-      </Link>
-    </Stack>
-  );
-}
-
-export function CustomToastWithTransactionLink({ link }: { link: string }) {
-  return (
-    <Stack direction="row" alignItems="center">
-      <Image
-        src={'/assets/images/shared/success.svg'}
-        width={20}
-        height={20}
-        alt="Success"
-      />
-      <Link
-        ml="0.5rem"
-        href={link}
-        target="_blank"
-        variant="body1"
-        sx={{ fontSize: '1rem' }}
-      >
-        View transaction{' '}
-        <LaunchIcon
-          sx={{ top: '1px', position: 'relative' }}
-          fontSize="inherit"
-        />
-      </Link>
+        {link && (
+          <Link href={link.url} target="_blank">
+            <Typography
+              sx={{
+                fontSize: '0.75rem',
+                mt: '0.25rem',
+                lineHeight: '160%',
+                color: palette.info.dark,
+                '&:hover': {
+                  color: palette.text.primary,
+                },
+              }}
+            >
+              {link.type === 'tx'
+                ? 'View Transaction '
+                : link.type === 'discord'
+                ? 'Go to Discord '
+                : 'Open '}
+              <LaunchIcon sx={{ verticalAlign: 'middle' }} fontSize="inherit" />
+            </Typography>
+          </Link>
+        )}
+      </Stack>
     </Stack>
   );
 }

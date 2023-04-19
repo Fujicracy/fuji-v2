@@ -25,13 +25,14 @@ import { formatUnits } from 'ethers/lib/utils';
 import { useState } from 'react';
 
 import { addressUrl, hexToChainId } from '../../helpers/chains';
-import { stepFromEntry } from '../../helpers/history';
-import { useAuth } from '../../store/auth.store';
 import {
   HistoryEntry,
   HistoryEntryStatus,
-  useHistory,
-} from '../../store/history.store';
+  stepFromEntry,
+} from '../../helpers/history';
+import { toNotSoFixed } from '../../helpers/values';
+import { useAuth } from '../../store/auth.store';
+import { useHistory } from '../../store/history.store';
 
 type AccountModalProps = {
   isOpen: boolean;
@@ -55,7 +56,7 @@ function AccountModal({
   const walletName = useAuth((state) => state.walletName);
 
   const historyEntries = useHistory((state) =>
-    state.allTxns.map((hash) => state.byHash[hash]).slice(0, 10)
+    state.transactions.map((hash) => state.entries[hash]).slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
   const clearAll = useHistory((state) => state.clearAll);
@@ -150,7 +151,7 @@ function AccountModal({
             <Box>
               <a
                 href={addressUrl(chainId, address)}
-                target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                target="_blank"
                 rel="noreferrer"
               >
                 <Stack
@@ -246,7 +247,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={{ mr: '-1rem' }} />
-    ) : entry.status === HistoryEntryStatus.ERROR ? (
+    ) : entry.status === HistoryEntryStatus.FAILURE ? (
       <ErrorOutlineIcon />
     ) : (
       <CheckIcon
@@ -261,17 +262,15 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const firstTitle =
     firstStep && firstStep.token
-      ? `${firstStep.step.toString()} ${formatUnits(
-          firstStep.amount ?? 0,
-          firstStep.token.decimals
+      ? `${firstStep.step.toString()} ${toNotSoFixed(
+          formatUnits(firstStep.amount ?? 0, firstStep.token.decimals)
         )} ${firstStep.token.symbol}`
       : '';
 
   const secondTitle =
     secondStep && secondStep.token
-      ? `${secondStep.step.toString()} ${formatUnits(
-          secondStep.amount ?? 0,
-          secondStep.token.decimals
+      ? `${secondStep.step.toString()} ${toNotSoFixed(
+          formatUnits(secondStep.amount ?? 0, secondStep.token.decimals)
         )} ${secondStep.token.symbol}`
       : '';
 
