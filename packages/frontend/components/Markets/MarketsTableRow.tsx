@@ -223,6 +223,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           <Chip
             variant={row.safetyRating.value === 'A+' ? 'success' : 'warning'}
             label={row.safetyRating.value}
+            sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
           />
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
