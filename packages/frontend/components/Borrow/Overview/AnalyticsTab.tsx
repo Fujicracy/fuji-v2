@@ -2,8 +2,10 @@ import { Grid, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
+import { useBorrow } from '../../../store/borrow.store';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
+import AnalyticsHeader from '../Analytics/AnalyticsHeader';
 import APYChart from '../Analytics/APYChart';
 import InfoBlock from '../Analytics/InfoBlock';
 
@@ -26,11 +28,16 @@ const chartPeriods = [
 
 function AnalyticsTab() {
   const { palette } = useTheme();
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
+
   const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
   const [selectedPeriod, setSelectedPeriod] = useState(chartPeriods[0].value);
 
   return (
     <>
+      <AnalyticsHeader collateral={collateral} debt={debt} />
+
       <Stack flexDirection="row" justifyContent="space-between">
         <TabSwitch
           actions={chartTabs}
