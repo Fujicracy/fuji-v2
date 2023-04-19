@@ -3,7 +3,6 @@ import '../styles/globals.css';
 import { ThemeProvider } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
 import { AppProps } from 'next/app';
-import { Inter } from 'next/font/google';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
 import { useEffect } from 'react';
@@ -23,8 +22,6 @@ import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
-
-const inter = Inter({ subsets: ['latin'] });
 
 function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init);
@@ -88,11 +85,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         })(window,document,'script','dataLayer','GTM-NSCGPLH');
       `}
       </Script>
-      <style jsx global>{`
-        html {
-          font-family: ${inter.style.fontFamily};
-        }
-      `}</style>
 
       <Web3OnboardProvider web3Onboard={onboard}>
         <ThemeProvider theme={theme}>
