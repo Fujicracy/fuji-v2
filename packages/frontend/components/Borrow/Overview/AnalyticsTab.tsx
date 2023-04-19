@@ -1,4 +1,4 @@
-import { Grid, Stack, Typography } from '@mui/material';
+import { Box, Grid, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
@@ -8,6 +8,7 @@ import TabSwitch from '../../Shared/TabSwitch';
 import AnalyticsHeader from '../Analytics/AnalyticsHeader';
 import APYChart from '../Analytics/APYChart';
 import InfoBlock from '../Analytics/InfoBlock';
+import PoolInfo from '../Analytics/PoolInfo';
 
 enum ChartTab {
   BORROW = 0,
@@ -94,6 +95,10 @@ function AnalyticsTab() {
           <InfoBlock label="Available Liquidity" value={'$250.0K'} />
         </Grid>
       </Grid>
+
+      <Box sx={{ mt: '2.5rem' }}>
+        <PoolInfo />
+      </Box>
     </>
   );
 }
