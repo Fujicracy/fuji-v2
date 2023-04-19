@@ -2,7 +2,7 @@ import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
-import { borrowLimit, recommendedLTV } from '../../../helpers/assets';
+import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import Details from './Details';
@@ -33,7 +33,6 @@ function OverviewTab({ basePosition, isEditing }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault);
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : [];
-  const mode = useBorrow((state) => state.mode);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
@@ -41,10 +40,8 @@ function OverviewTab({ basePosition, isEditing }: OverviewProps) {
   const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
 
-  const limit = borrowLimit(
-    mode,
-    editedPosition ? editedPosition.collateral.amount : 0,
-    Number(collateralInput),
+  const limit = maxBorrowLimit(
+    editedPosition ? editedPosition.collateral.amount : Number(collateralInput),
     collateral.usdPrice,
     ltvMax
   );

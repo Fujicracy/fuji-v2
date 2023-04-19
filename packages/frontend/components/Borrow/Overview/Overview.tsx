@@ -2,7 +2,6 @@ import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
-import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import AnalyticsTab from './AnalyticsTab';
@@ -24,18 +23,6 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault);
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : [];
-
-  const collateralInput = useBorrow((state) => state.collateral.input);
-  const debtInput = useBorrow((state) => state.debt.input);
-
-  const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
-  const recommendedLtv = recommendedLTV(ltvMax);
-
-  const borrowLimit = maxBorrowLimit(
-    editedPosition ? editedPosition.collateral.amount : Number(collateralInput),
-    collateral.usdPrice,
-    ltvMax
-  );
 
   return (
     <Container isMobile={isMobile}>
