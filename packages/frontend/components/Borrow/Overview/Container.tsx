@@ -128,7 +128,9 @@ function Container({ children, isMobile }: ContainerProps) {
           width: '100%',
         }}
       >
-        <CardContent sx={{ padding: 0, gap: '1rem' }}>{children}</CardContent>
+        <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
+          {children}
+        </CardContent>
       </Card>
     </Grid>
   );
