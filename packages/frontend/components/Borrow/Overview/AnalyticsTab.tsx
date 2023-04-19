@@ -1,8 +1,11 @@
-import { Stack, Typography } from '@mui/material';
+import { Grid, Stack, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
+import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
 import APYChart from '../Analytics/APYChart';
+import InfoBlock from '../Analytics/InfoBlock';
 
 enum ChartTab {
   BORROW = 0,
@@ -22,6 +25,7 @@ const chartPeriods = [
 ];
 
 function AnalyticsTab() {
+  const { palette } = useTheme();
   const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
   const [selectedPeriod, setSelectedPeriod] = useState(chartPeriods[0].value);
 
@@ -55,6 +59,34 @@ function AnalyticsTab() {
       </Typography>
 
       <APYChart />
+
+      <Grid container spacing={2} mt="2rem">
+        <Grid item xs={12} sm={6} lg={3}>
+          <InfoBlock
+            tooltip="test"
+            label="Active Provider"
+            value={
+              <Stack flexDirection="row" alignItems="center" gap="0.25rem">
+                <ProviderIcon provider={'test'} height={24} width={24} />
+                Aave
+              </Stack>
+            }
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <InfoBlock
+            tooltip="test"
+            label="Borrow APR"
+            value={<Typography color={palette.warning.main}>2.55%</Typography>}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <InfoBlock label="Total Borrow Amount" value={'$820.1K'} />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <InfoBlock label="Available Liquidity" value={'$250.0K'} />
+        </Grid>
+      </Grid>
     </>
   );
 }
