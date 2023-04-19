@@ -748,28 +748,18 @@ contract BorrowingVault is BaseVault {
    * a borrow is done with the amount that was repaid so no issues regarding
    * the relationship between debt and debt shares occurs.
    *
-   * @param  amount to be borrowed
    * @param  treasury address to receive the borrowed amount
    */
-  function correctDebt(uint256 amount, address treasury) external onlyTimelock {
+  function correctDebt(address treasury) external onlyTimelock {
     uint256 vaultDebt = totalDebt();
     uint256 vaultDebtShares = debtSharesSupply;
 
     //no need for correction
-    if (vaultDebt > vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
+    if (vaultDebt >= vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
       revert BorrowingVault__correctDebt_noNeedForCorrection();
     }
 
-    //amount is too high
-    if (amount > vaultDebtShares - vaultDebt) {
-      revert BorrowingVault__correctDebt_invalidAmount();
-    }
-
-    //TODO decide if we unpause here
-    if (paused(VaultActions.Withdraw)) {
-      _unpause(VaultActions.Withdraw);
-    }
-
+    uint256 amount = vaultDebtShares - vaultDebt;
     _executeProviderAction(amount, "borrow", activeProvider);
     SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, amount);
   }
