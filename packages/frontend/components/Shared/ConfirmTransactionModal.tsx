@@ -1,7 +1,7 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStep } from '@x-fuji/sdk';
 import Image from 'next/image';
 
 import {
@@ -11,8 +11,8 @@ import {
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
 import { isCrossChainTransaction } from '../../helpers/routing';
+import { TransactionMeta } from '../../helpers/transactions';
 import { formatValue } from '../../helpers/values';
-import { FetchStatus } from '../../store/borrow.store';
 import AssetBox from './ConfirmationTransaction/AssetBox';
 import InfoRow from './ConfirmationTransaction/InfoRow';
 import RouteBox from './ConfirmationTransaction/RouteBox';
@@ -20,14 +20,7 @@ import WarningInfo from './WarningInfo';
 
 type ConfirmTransactionModalProps = {
   basePosition: BasePosition;
-  transactionMeta: {
-    status: FetchStatus;
-    gasFees: number;
-    bridgeFee: number;
-    estimateTime: number;
-    estimateSlippage: number;
-    steps: RoutingStepDetails[];
-  };
+  transactionMeta: TransactionMeta;
   open: boolean;
   isEditing: boolean;
   actionType: ActionType;

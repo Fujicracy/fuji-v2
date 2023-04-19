@@ -14,6 +14,7 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { hexToChainId } from '../../helpers/chains';
+import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 
@@ -29,6 +30,7 @@ type BorrowButtonProps = {
   isSigning: boolean;
   isExecuting: boolean;
   availableVaultStatus: FetchStatus;
+  transactionMeta: TransactionMeta;
   mode: Mode;
   isEditing: boolean;
   actionType: ActionType;
@@ -53,6 +55,7 @@ function BorrowButton({
   isSigning,
   isExecuting,
   availableVaultStatus,
+  transactionMeta,
   mode,
   isEditing,
   actionType,
@@ -157,7 +160,12 @@ function BorrowButton({
     debt.token.symbol === 'DAI'
   ) {
     return disabledButton('Cross-chain DAI not supported');
-  } else if (!isEditing && hasBalanceInVault) {
+  } else if (
+    !isEditing &&
+    hasBalanceInVault &&
+    availableVaultStatus === 'ready' &&
+    transactionMeta.status === 'ready'
+  ) {
     return regularButton('Manage position', () => {
       onRedirectClick(false);
     });

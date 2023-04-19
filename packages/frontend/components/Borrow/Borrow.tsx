@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
 import { ActionType } from '../../helpers/assets';
@@ -88,6 +88,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     }
   );
 
+  const prevActionType = useRef<ActionType>(ActionType.ADD);
+
   const shouldSignTooltipBeShown = useMemo(() => {
     return (
       availableVaultStatus === 'ready' &&
@@ -112,17 +114,24 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [updateTokenPrice]);
 
   useEffect(() => {
-    changeInputValues('', '');
+    if (prevActionType.current !== actionType) {
+      changeInputValues('', '');
+      prevActionType.current = actionType;
+    }
   }, [actionType, changeInputValues]);
 
   useEffect(() => {
     (async () => {
       if (address && vault) {
-        // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address));
-
-        const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
-        setHasBalanceInVault(hasBalance);
+        const currentActiveVault = useBorrow.getState().activeVault;
+        if (
+          currentActiveVault &&
+          currentActiveVault.address.value === vault.address.value
+        ) {
+          const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
+          setHasBalanceInVault(hasBalance);
+        }
       }
     })();
   }, [address, vault]);
@@ -178,7 +187,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [availableRoutes, onMobile, address, vault]);
 
   const shouldWarningBeDisplayed =
-    !isEditing && hasBalanceInVault && transactionMeta.steps;
+    !isEditing &&
+    availableVaultStatus === 'ready' &&
+    transactionMeta.status === 'ready' &&
+    hasBalanceInVault;
 
   return (
     <>
@@ -276,6 +288,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             isSigning={isSigning}
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
+            transactionMeta={transactionMeta}
             mode={mode}
             isEditing={isEditing}
             actionType={actionType}

@@ -11,7 +11,6 @@ import {
   FujiResultSuccess,
   LendingProviderDetails,
   RouterActionParams,
-  RoutingStepDetails,
   Sdk,
   Token,
 } from '@x-fuji/sdk';
@@ -47,6 +46,7 @@ import {
   notify,
 } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
+import { TransactionMeta } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useHistory } from './history.store';
@@ -76,14 +76,7 @@ type BorrowState = {
 
   slippage: number;
 
-  transactionMeta: {
-    status: FetchStatus;
-    gasFees: number; // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
-    bridgeFee: number;
-    estimateTime: number;
-    estimateSlippage: number;
-    steps: RoutingStepDetails[];
-  };
+  transactionMeta: TransactionMeta;
   availableRoutes: RouteMeta[];
 
   needsSignature: boolean;
@@ -417,6 +410,13 @@ export const useBorrow = create<BorrowStore>()(
             console.error(result.error.message);
             return;
           }
+          const currentToken =
+            type === 'debt' ? get().debt.token : get().collateral.token;
+          if (
+            token.address !== currentToken.address ||
+            token.chainId !== currentToken.chainId
+          )
+            return;
           const balances = result.data;
           get().changeBalances(type, balances);
         },
@@ -442,6 +442,10 @@ export const useBorrow = create<BorrowStore>()(
             console.error(result.error.message);
             return;
           }
+
+          const currentToken =
+            type === 'debt' ? get().debt.token : get().collateral.token;
+          if (token.address !== currentToken.address) return;
 
           let tokenValue = result.data;
           const isTestNet = testChains.some((c) => c.chainId === token.chainId);
@@ -482,6 +486,15 @@ export const useBorrow = create<BorrowStore>()(
           );
           try {
             const res = await sdk.getAllowanceFor(token, Address.from(address));
+
+            const currentToken =
+              type === 'debt' ? get().debt.token : get().collateral.token;
+            if (
+              token.address !== currentToken.address ||
+              token.chainId !== currentToken.chainId
+            )
+              return;
+
             const value = parseFloat(formatUnits(res, token.decimals));
             set(
               produce((s: BorrowState) => {
@@ -674,10 +687,10 @@ export const useBorrow = create<BorrowStore>()(
             );
           }
 
-          const liquidationTreshold = get().ltv.ltvThreshold;
+          const liquidationThreshold = get().ltv.ltvThreshold;
 
           const liquidationPrice =
-            debtValue / (collateralAmount * (liquidationTreshold / 100));
+            debtValue / (collateralAmount * (liquidationThreshold / 100));
           const liquidationDiff = Math.round(
             (1 - liquidationPrice / collateralPrice) * 100
           );
@@ -700,6 +713,10 @@ export const useBorrow = create<BorrowStore>()(
           const { deposit, borrow } = await vault.getBalances(
             Address.from(address)
           );
+
+          const currentVault = get().activeVault;
+          if (vault.address.value !== currentVault?.address.value) return;
+
           set(
             produce((s: BorrowState) => {
               const dec = s.collateral.token.decimals;
