@@ -57,12 +57,12 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
     assertEq(vault.balanceOfDebt(ALICE), 0);
 
-    //Withdraw will fail until debt is corrected
+    //Withdraw will fail until debt is corrected and withdraw is unpaused
     uint256 maxAmount = vault.maxWithdraw(ALICE);
     do_withdraw(maxAmount, vault, ALICE);
   }
 
-  function test_correctDebtUnpausesWithdraw() public {
+  function test_correctDebtUnpauseAndWithdraw() public {
     uint256 amountCorrected = BORROW_AMOUNT;
 
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
@@ -80,8 +80,7 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    bytes memory data =
-      abi.encodeWithSelector(BorrowingVault.correctDebt.selector, amountCorrected, TREASURY);
+    bytes memory data = abi.encodeWithSelector(BorrowingVault.correctDebt.selector, TREASURY);
     _callWithTimelock(address(vault), data);
     skip(2 days);
 
