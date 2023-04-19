@@ -14,7 +14,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { PATH } from '../../constants';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
-import { ActionType } from '../../helpers/assets';
+import { ActionType, needsAllowance } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
@@ -90,12 +90,32 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   );
 
   const shouldSignTooltipBeShown = useMemo(() => {
+    const collateralAmount = parseFloat(collateral.input);
+    const debtAmount = parseFloat(debt.input);
+    const collateralAllowance = needsAllowance(
+      mode,
+      'collateral',
+      collateral,
+      collateralAmount
+    );
+    const debtNeedsAllowance = needsAllowance(mode, 'debt', debt, debtAmount);
+
     return (
+      (collateralAmount || debtAmount) &&
+      !(collateralAllowance || debtNeedsAllowance) &&
       availableVaultStatus === 'ready' &&
       !(!isEditing && hasBalanceInVault) &&
       needsSignature
     );
-  }, [availableVaultStatus, needsSignature, hasBalanceInVault, isEditing]);
+  }, [
+    availableVaultStatus,
+    needsSignature,
+    hasBalanceInVault,
+    isEditing,
+    collateral,
+    debt,
+    mode,
+  ]);
 
   useEffect(() => {
     if (address) {
