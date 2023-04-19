@@ -47,7 +47,6 @@ function BorrowHeader({
                 width={16}
                 sx={{
                   position: 'absolute',
-                  botton: 0,
                   right: 0,
                   transform: 'translateY(-100%)',
                 }}
