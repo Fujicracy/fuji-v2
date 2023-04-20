@@ -142,8 +142,9 @@ export const useHistory = create<HistoryStore>()(
 
           const finish = (success: boolean) => {
             const address = useAuth.getState().address;
-            if (address !== entry.address) return;
-            triggerUpdatesFromSteps(entry.steps);
+            if (address === entry.address) {
+              triggerUpdatesFromSteps(entry.steps);
+            }
 
             const isFinal =
               entry.chainCount > 1 &&
