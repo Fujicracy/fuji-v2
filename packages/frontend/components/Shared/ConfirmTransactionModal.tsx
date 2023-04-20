@@ -55,7 +55,6 @@ export function ConfirmTransactionModal({
   const { steps } = transactionMeta;
   const { editedPosition, position } = basePosition;
   const slippage = useBorrow((state) => state.slippage);
-  console.log('slippdage', slippage, transactionMeta.estimateSlippage);
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
