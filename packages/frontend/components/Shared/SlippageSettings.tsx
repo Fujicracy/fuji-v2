@@ -22,8 +22,8 @@ const slippageDefaultOptions: {
   label: string;
 }[] = [
   { value: 100, label: '1%' },
-  { value: 50, label: '0.5%' },
-  { value: DEFAULT_SLIPPAGE, label: '0.3%' },
+  { value: DEFAULT_SLIPPAGE, label: '0.5%' },
+  { value: 30, label: '0.3%' },
 ];
 
 function SlippageSettings() {
