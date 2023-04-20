@@ -1,10 +1,10 @@
-import { Box, Stack, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { linearGradientDef } from '@nivo/core';
 import { LineSvgProps, ResponsiveLine } from '@nivo/line';
-import { BigNumber } from 'ethers';
-import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
+
+import APYChartTooltip from '../../Borrow/Analytics/APYChartTooltip';
 
 const testData = [
   {
@@ -53,52 +53,6 @@ const testData = [
   },
 ];
 
-const Tooltip = ({ point }: any) => {
-  const { palette } = useTheme();
-
-  const date = point.data.date;
-
-  return (
-    <Box
-      sx={{
-        zIndex: 9999,
-        width: '16rem',
-        background: palette.secondary.dark,
-        p: '0.75rem 1rem',
-        borderRadius: '0.5rem',
-      }}
-    >
-      <Stack
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Typography variant="small">Fuji Vault APY</Typography>
-        <Typography
-          variant="small"
-          fontWeight={700}
-          color={palette.success.main}
-        >
-          {(parseFloat(formatUnits(BigNumber.from('0'), 27)) * 100).toFixed(2)}%
-        </Typography>
-      </Stack>
-      <Stack
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Typography variant="small">Other Lending Protocol</Typography>
-        <Typography variant="small" fontWeight={700} color={palette.info.dark}>
-          {(parseFloat(formatUnits(BigNumber.from('0'), 27)) * 100).toFixed(2)}%
-        </Typography>
-      </Stack>
-      <Typography variant="small" mt="0.5rem">
-        {date}
-      </Typography>
-    </Box>
-  );
-};
-
 function APYChart() {
   const { palette } = useTheme();
 
@@ -113,7 +67,7 @@ function APYChart() {
       ]),
     ],
     fill: [{ match: '*', id: 'gradientA' }],
-    tooltip: Tooltip,
+    tooltip: APYChartTooltip,
     margin: { top: 0, right: 10, bottom: 50, left: 30 },
     xScale: { type: 'point' },
     yScale: { type: 'linear', min: 0, max: 'auto' },
