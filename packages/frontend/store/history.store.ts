@@ -70,27 +70,29 @@ export const useHistory = create<HistoryStore>()(
 
         async add(hash, address, vaultAddress, steps) {
           const srcChainId = steps[0].chainId;
-          const destChainId = steps[steps.length - 1].chainId;
-          const isCrossChain = srcChainId !== destChainId;
+          const secondChainId = steps[steps.length - 1].chainId;
+          const chainCount = srcChainId === secondChainId ? 1 : 2;
+          const isCrossChain = chainCount > 1;
+
           const sourceChain = {
             chainId: srcChainId,
             status: HistoryEntryStatus.ONGOING,
             hash,
           };
-          const destinationChain = isCrossChain
+          const secondChain = isCrossChain
             ? {
-                chainId: destChainId,
+                chainId: secondChainId,
                 status: HistoryEntryStatus.ONGOING,
               }
             : undefined;
 
-          const entry = {
+          const entry: HistoryEntry = {
             vaultAddress,
             hash,
             address,
             sourceChain,
-            destinationChain,
-            isCrossChain,
+            secondChain,
+            chainCount,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
           };
@@ -144,15 +146,15 @@ export const useHistory = create<HistoryStore>()(
             triggerUpdatesFromSteps(
               entry.steps,
               entry.sourceChain.status === HistoryEntryStatus.SUCCESS &&
-                entry.destinationChain
-                ? entry.destinationChain?.chainId
+                entry.secondChain
+                ? entry.secondChain.chainId
                 : entry.sourceChain.chainId
             );
 
-            const isDestination =
-              entry.isCrossChain &&
-              entry.destinationChain &&
-              entry.sourceChain.status === HistoryEntryStatus.SUCCESS;
+            const isFinal =
+              entry.chainCount > 1 &&
+              entry.secondChain &&
+              entry.secondChain.status === HistoryEntryStatus.SUCCESS;
 
             set(
               produce((s: HistoryState) => {
@@ -161,8 +163,8 @@ export const useHistory = create<HistoryStore>()(
                   ? HistoryEntryStatus.SUCCESS
                   : HistoryEntryStatus.FAILURE;
 
-                if (isDestination && entry.destinationChain) {
-                  entry.destinationChain.status = success
+                if (isFinal && entry.secondChain) {
+                  entry.secondChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
                 } else {
@@ -174,8 +176,8 @@ export const useHistory = create<HistoryStore>()(
             );
 
             const linkHash =
-              isDestination && entry.destinationChain
-                ? entry.destinationChain.hash
+              isFinal && entry.secondChain
+                ? entry.secondChain.hash
                 : entry.hash;
 
             if (address === entry.address) {
@@ -191,8 +193,8 @@ export const useHistory = create<HistoryStore>()(
                   ? getTransactionUrl({
                       hash: linkHash,
                       chainId:
-                        isDestination && entry.destinationChain
-                          ? entry.destinationChain.chainId
+                        isFinal && entry.secondChain
+                          ? entry.secondChain.chainId
                           : entry.sourceChain.chainId,
                     })
                   : undefined,
@@ -217,7 +219,7 @@ export const useHistory = create<HistoryStore>()(
                 s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
               })
             );
-            if (!entry.isCrossChain && !entry.destinationChain) {
+            if (entry.chainCount === 1 && !entry.secondChain) {
               finish(true);
               return;
             }
@@ -227,7 +229,7 @@ export const useHistory = create<HistoryStore>()(
                 type: 'success',
                 message: formatCrosschainNotificationMessage(
                   chainName(entry.sourceChain.chainId),
-                  chainName(entry.destinationChain?.chainId)
+                  chainName(entry.secondChain?.chainId)
                 ),
                 link: getTransactionUrl({
                   hash: entry.hash,
@@ -261,18 +263,15 @@ export const useHistory = create<HistoryStore>()(
                       timestamp: Date.now(),
                     };
                   }
-                  if (!e.destinationChain) return;
-                  if (
-                    crosschainResult.data.destTxHash &&
-                    !e.destinationChain?.hash
-                  ) {
-                    e.destinationChain.hash = crosschainResult.data.destTxHash;
+                  if (!e.secondChain) return;
+                  if (crosschainResult.data.destTxHash && !e.secondChain.hash) {
+                    e.secondChain.hash = crosschainResult.data.destTxHash;
                   }
                   if (
                     crosschainResult.data.status === ConnextTxStatus.EXECUTED &&
-                    e.destinationChain.status !== HistoryEntryStatus.SUCCESS
+                    e.secondChain.status !== HistoryEntryStatus.SUCCESS
                   ) {
-                    e.destinationChain.status = HistoryEntryStatus.SUCCESS;
+                    e.secondChain.status = HistoryEntryStatus.SUCCESS;
                   }
                 })
               );

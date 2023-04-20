@@ -42,11 +42,8 @@ export const statusForStep = (
   if (step.chainId === entry.sourceChain.chainId) {
     return entry.sourceChain.status;
   }
-  if (
-    entry.destinationChain &&
-    step.chainId === entry.destinationChain.chainId
-  ) {
-    return entry.destinationChain.status;
+  if (entry.secondChain && step.chainId === entry.secondChain.chainId) {
+    return entry.secondChain.status;
   }
   return entry.status;
 };

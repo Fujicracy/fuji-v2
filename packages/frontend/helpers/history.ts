@@ -46,8 +46,8 @@ export type HistoryEntry = {
   connext?: HistoryEntryConnext;
   vaultAddress?: string;
   sourceChain: HistoryEntryChain;
-  isCrossChain: boolean; // Convenience
-  destinationChain: HistoryEntryChain | undefined;
+  secondChain?: HistoryEntryChain | undefined;
+  chainCount: number;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {

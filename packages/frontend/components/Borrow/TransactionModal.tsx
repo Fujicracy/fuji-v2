@@ -86,7 +86,7 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
     const txHash =
       realChainId === entry.sourceChain.chainId
         ? entry.hash
-        : entry.destinationChain?.hash;
+        : entry.secondChain?.hash;
 
     const link = txHash && transactionUrl(realChainId, txHash);
 
