@@ -42,7 +42,7 @@ contract MockSwapper is ISwapper {
 
     // Pull tokens from Router and burn them.
     MockERC20(assetIn).transferFrom(msg.sender, address(this), amountInMax);
-    MockERC20(assetIn).burn(msg.sender, amountInMax);
+    MockERC20(assetIn).burn(address(this), amountInMax);
 
     MockERC20(assetOut).mint(receiver, amountOut);
   }

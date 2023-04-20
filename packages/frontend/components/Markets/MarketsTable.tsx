@@ -1,5 +1,5 @@
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
-  Link,
   Stack,
   Table,
   TableBody,
@@ -8,14 +8,12 @@ import {
   TableRow,
   Tooltip,
   useTheme,
-} from "@mui/material"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import MarketsTableRow from "./MarketsTableRow"
-import { useEffect, useState } from "react"
-import { Address } from "@x-fuji/sdk"
-import { useAuth } from "../../store/auth.store"
-import { sdk } from "../../services/sdk"
-import { SizableTableCell } from "../Shared/SizableTableCell"
+} from '@mui/material';
+import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+
+import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import {
   groupByPair,
   MarketRow,
@@ -23,71 +21,86 @@ import {
   setFinancials,
   setLlamas,
   Status,
-} from "../../helpers/markets"
+} from '../../helpers/markets';
+import { showPosition } from '../../helpers/navigation';
+import { sdk } from '../../services/sdk';
+import { useAuth } from '../../store/auth.store';
+import SizableTableCell from '../Shared/SizableTableCell';
+import { DocsTooltip } from '../Shared/Tooltips';
+import MarketsTableRow from './MarketsTableRow';
 
-export default function MarketsTable() {
-  const { palette } = useTheme()
-  const address = useAuth((state) => state.address)
+function MarketsTable() {
+  const { palette } = useTheme();
+  const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
-  const [rows, setRows] = useState<MarketRow[]>([])
+  const [rows, setRows] = useState<MarketRow[]>([]);
+  const router = useRouter();
+
+  const walletChain = useAuth((state) => state.chain);
 
   useEffect(() => {
-    const addr = address ? Address.from(address) : undefined
+    const addr = address ? Address.from(address) : undefined;
 
-    const vaults = sdk.getAllBorrowingVaults()
-    const rowsBase = vaults.map(setBase)
-    setRows(groupByPair(rowsBase))
-    ;(async () => {
-      try {
-        // try both calls
-        const financials = await sdk.getBorrowingVaultsFinancials(addr)
-        const rowsFin = financials.map((fin, i) =>
-          setFinancials(rowsBase[i], Status.Ready, fin)
-        )
-        setRows(groupByPair(rowsFin))
+    const vaults = sdk.getAllBorrowingVaults();
+    const rowsBase = vaults.map(setBase);
+    setRows(groupByPair(rowsBase));
 
-        const llamas = await sdk.getLlamaFinancials(financials)
-        const rowsLlama = llamas.map((llama, i) =>
-          setLlamas(rowsFin[i], Status.Ready, llama)
-        )
-        setRows(groupByPair(rowsLlama))
-      } catch (e) {
-        try {
-          // re-try the first one
-          // set llamas to error, assuming in the first try llama failed
-          const financials = await sdk.getBorrowingVaultsFinancials(addr)
-          const rows = financials
-            .map((fin, i) => setFinancials(rowsBase[i], Status.Ready, fin))
-            .map((r) => setLlamas(r, Status.Error))
-          setRows(groupByPair(rows))
-        } catch (e) {
-          // set both to errors
-          const rows = rowsBase
-            .map((r) => setFinancials(r, Status.Error))
-            .map((r) => setLlamas(r, Status.Error))
-          setRows(groupByPair(rows))
-        }
+    (async () => {
+      const result = await getAllBorrowingVaultFinancials(addr);
+
+      result.errors.forEach((error) => {
+        console.error(error.message); // TODO: Show error message for each?
+      });
+
+      if (result.data.length === 0) {
+        const rows = rowsBase
+          .map((r) => setFinancials(r, Status.Error))
+          .map((r) => setLlamas(r, Status.Error));
+        setRows(groupByPair(rows));
+        return;
       }
-    })()
-  }, [address])
+
+      const financials = result.data;
+      const rowsFin = financials.map((fin, i) =>
+        setFinancials(rowsBase[i], Status.Ready, fin)
+      );
+      setRows(groupByPair(rowsFin));
+
+      const llamaResult = await sdk.getLlamaFinancials(financials);
+      if (!llamaResult.success) {
+        const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
+        setRows(groupByPair(rows));
+        return;
+      }
+
+      const rowsLlama = llamaResult.data.map((llama, i) =>
+        setLlamas(rowsFin[i], Status.Ready, llama)
+      );
+      setRows(groupByPair(rowsLlama));
+    })();
+  }, [address]);
+
+  const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
+    showPosition(router, walletChain?.id as string, entity);
+  };
 
   return (
     <TableContainer>
       <Table
         aria-label="Markets table"
         // border-collapse fix bug on borders on firefox with sticky column
-        sx={{ borderCollapse: "initial" }}
+        sx={{ borderCollapse: 'initial' }}
       >
         <TableHead>
-          <TableRow sx={{ height: "2.625rem" }}>
+          <TableRow sx={{ height: '2.625rem' }}>
             <SizableTableCell
               width="160px"
               sx={{
-                position: "sticky",
+                position: 'sticky',
                 left: 0,
                 zIndex: 1,
                 background: palette.secondary.contrastText,
-                pl: "48px",
+                pl: '48px',
               }}
               align="left"
             >
@@ -96,7 +109,7 @@ export default function MarketsTable() {
             <SizableTableCell align="left" width="120px">
               Collateral
             </SizableTableCell>
-            <SizableTableCell width="200px" align="left" sx={{ pl: "48px" }}>
+            <SizableTableCell width="200px" align="left" sx={{ pl: '48px' }}>
               Chain with the best rate
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
@@ -125,10 +138,10 @@ export default function MarketsTable() {
                 )} */}
               </Stack>
             </SizableTableCell>
-            <SizableTableCell width="140px" align="right">
+            <SizableTableCell width="130px" align="right">
               Collateral APR
             </SizableTableCell>
-            <SizableTableCell align="right" width="140px">
+            <SizableTableCell align="right" width="130px">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -141,7 +154,7 @@ export default function MarketsTable() {
                   placement="top"
                 >
                   <InfoOutlinedIcon
-                    sx={{ fontSize: "0.875rem", color: palette.info.main }}
+                    sx={{ fontSize: '0.875rem', color: palette.info.main }}
                   />
                 </Tooltip>
                 <span>Protocols</span>
@@ -154,28 +167,7 @@ export default function MarketsTable() {
                 spacing="0.25rem"
                 justifyContent="right"
               >
-                <Tooltip
-                  arrow
-                  title={
-                    <span>
-                      We take into account variables such as liquidity, audits
-                      and team behind each protocol, you can read more on our
-                      risk framework{" "}
-                      <Link
-                        href="https://docs.fujidao.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <u> here</u>
-                      </Link>
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: "0.875rem", color: palette.info.main }}
-                  />
-                </Tooltip>
+                <DocsTooltip />
                 <span>Safety Rating</span>
               </Stack>
             </SizableTableCell>
@@ -186,10 +178,12 @@ export default function MarketsTable() {
         </TableHead>
         <TableBody>
           {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} />
+            <MarketsTableRow key={i} row={row} onClick={handleClick} />
           ))}
         </TableBody>
       </Table>
     </TableContainer>
-  )
+  );
 }
+
+export default MarketsTable;
