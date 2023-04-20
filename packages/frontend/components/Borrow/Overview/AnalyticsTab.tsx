@@ -3,10 +3,10 @@ import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
+import APYChart from '../../Shared/Charts/APYChart';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
 import AnalyticsHeader from '../Analytics/AnalyticsHeader';
-import APYChart from '../Analytics/APYChart';
 import InfoBlock from '../Analytics/InfoBlock';
 import PoolInfo from '../Analytics/PoolInfo';
 
