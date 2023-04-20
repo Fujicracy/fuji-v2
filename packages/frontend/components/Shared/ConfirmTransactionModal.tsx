@@ -159,9 +159,9 @@ export function ConfirmTransactionModal({
 
         {isCrossChain && (
           <InfoRow
-            title="Est. slippage"
+            title="Slippage"
             value={
-              <Typography variant="small">{`~${transactionMeta.estimateSlippage} %`}</Typography>
+              <Typography variant="small">{`Est. ~${transactionMeta.estimateSlippage}% (max ${slippage}%)`}</Typography>
             }
           />
         )}
