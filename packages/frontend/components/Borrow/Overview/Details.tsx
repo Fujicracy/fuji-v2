@@ -4,7 +4,7 @@ import { formatUnits } from 'ethers/lib/utils';
 
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
-import APRTooltip from '../../Shared/Tooltips/APRTooltip';
+import InfoTooltip from '../../Shared/Tooltips/InfoTooltip';
 import ProvidersTooltip from '../../Shared/Tooltips/ProvidersTooltip';
 import TooltipWrapper from '../../Shared/Tooltips/TooltipWrapper';
 
@@ -58,7 +58,10 @@ function Details({
         <Grid container justifyContent="space-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Deposit Interest (APR)</Typography>
-            <APRTooltip />
+            <InfoTooltip
+              isDark
+              title="APR, or annual percentage rate, represents the price you pay to borrow money."
+            />
           </div>
           <TooltipWrapper
             placement="top-end"
@@ -87,7 +90,7 @@ function Details({
         <Grid container justifyContent="space-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-            <APRTooltip />
+            <InfoTooltip />
           </div>
           <TooltipWrapper
             placement="top-end"

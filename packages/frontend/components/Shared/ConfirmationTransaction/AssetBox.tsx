@@ -1,5 +1,4 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { Card, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { Card, Divider, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
@@ -8,6 +7,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import { chainName } from '../../../helpers/chains';
 import { toNotSoFixed } from '../../../helpers/values';
 import { NetworkIcon, TokenIcon } from '../Icons';
+import InfoTooltip from '../Tooltips/InfoTooltip';
 
 function AssetBox({
   isEditing,
@@ -84,20 +84,12 @@ function AssetBox({
           <Typography variant="small">Network</Typography>
 
           {!isEditing && (
-            <Tooltip
-              title="If you wish to open a position on a different chain, please select an alternative route."
-              placement="top"
-            >
-              <InfoOutlinedIcon
-                sx={{
-                  ml: '0.313rem',
-                  fontSize: '0.875rem',
-                  display: { xs: 'none', sm: 'inline' },
-                  color: '#919191',
-                  cursor: 'pointer',
-                }}
-              />
-            </Tooltip>
+            <InfoTooltip
+              title={
+                'If you wish to open a position on a different chain, please select an alternative route.'
+              }
+              isDark
+            />
           )}
         </Stack>
 

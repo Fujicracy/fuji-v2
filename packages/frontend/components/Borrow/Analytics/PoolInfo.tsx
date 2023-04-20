@@ -1,13 +1,13 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Divider,
   Grid,
-  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import React, { ReactNode } from 'react';
+
+import InfoTooltip from '../../Shared/Tooltips/InfoTooltip';
 
 function PoolInfo() {
   const { palette, breakpoints } = useTheme();
@@ -47,16 +47,7 @@ function PoolInfo() {
         <Grid container justifyContent="space-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Last Harvest</Typography>
-            <Tooltip arrow title="test">
-              <InfoOutlinedIcon
-                sx={{
-                  ml: '0.4rem',
-                  fontSize: '0.875rem',
-                  color: palette.info.dark,
-                  display: { xs: 'none', sm: 'inline' },
-                }}
-              />
-            </Tooltip>
+            <InfoTooltip title={'test'} isDark />
           </div>
           <Typography variant="small">30 minutes ago</Typography>
         </Grid>

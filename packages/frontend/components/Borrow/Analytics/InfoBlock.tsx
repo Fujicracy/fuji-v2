@@ -1,7 +1,8 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { Box, Stack, Tooltip, Typography, useMediaQuery } from '@mui/material';
+import { Box, Stack, Typography, useMediaQuery } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import React, { ReactNode } from 'react';
+
+import InfoTooltip from '../../Shared/Tooltips/InfoTooltip';
 
 type InfoBlockProps = {
   label: string;
@@ -25,18 +26,7 @@ function InfoBlock({ label, value, tooltip }: InfoBlockProps) {
         <Typography variant="smallDark" fontSize="0.75rem">
           {label}
         </Typography>
-        {tooltip && !isMobile && (
-          <Tooltip title={tooltip} placement="top">
-            <InfoOutlinedIcon
-              sx={{
-                ml: '0.313rem',
-                fontSize: '0.875rem',
-                display: { xs: 'none', sm: 'inline' },
-                cursor: 'pointer',
-              }}
-            />
-          </Tooltip>
-        )}
+        {tooltip && !isMobile && <InfoTooltip title={'test'} />}
       </Stack>
       <Typography
         fontSize="1rem"

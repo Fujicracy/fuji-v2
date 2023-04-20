@@ -1,4 +1,3 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Stack,
   Table,
@@ -6,7 +5,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   useTheme,
 } from '@mui/material';
 import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
@@ -29,6 +27,7 @@ import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import MarketsTableRow from './MarketsTableRow';
 
 function MarketsTable() {
@@ -157,15 +156,12 @@ function MarketsTable() {
                 spacing="0.25rem"
                 justifyContent="right"
               >
-                <Tooltip
-                  arrow
-                  title="In the background, Fuji rebalances between these protocols to provide the best terms."
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: '0.875rem', color: palette.info.main }}
-                  />
-                </Tooltip>
+                <InfoTooltip
+                  title={
+                    'In the background, Fuji rebalances between these protocols to provide the best terms.'
+                  }
+                  isLeft
+                />
                 <span>Protocols</span>
               </Stack>
             </SizableTableCell>
