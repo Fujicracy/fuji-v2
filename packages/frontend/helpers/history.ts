@@ -3,6 +3,11 @@ import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { updateNativeBalance } from './balances';
 
+export type HistoryTransaction = {
+  address: string;
+  hash: string;
+};
+
 export enum HistoryEntryStatus {
   ONGOING,
   SUCCESS,
@@ -34,13 +39,14 @@ export type HistoryEntryConnext = {
 
 export type HistoryEntry = {
   hash: string;
+  address: string;
   steps: HistoryRoutingStep[];
   status: HistoryEntryStatus;
   connext?: HistoryEntryConnext;
   vaultAddress?: string;
   sourceChain: HistoryEntryChain;
-  isCrossChain: boolean; // Convenience
-  destinationChain: HistoryEntryChain | undefined;
+  secondChain?: HistoryEntryChain | undefined;
+  chainCount: number;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
