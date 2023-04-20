@@ -83,6 +83,10 @@ function AccountModal({
     closeAccountModal();
   };
 
+  const handleClear = () => {
+    clearAll(address);
+  };
+
   const onLogout = () => {
     logout();
   };
@@ -201,7 +205,7 @@ function AccountModal({
               historyEntries.filter(
                 (entry) => entry.status === HistoryEntryStatus.ONGOING
               ).length !== historyEntries.length && (
-                <Typography variant="xsmallLink" onClick={clearAll}>
+                <Typography variant="xsmallLink" onClick={handleClear}>
                   clear all
                 </Typography>
               )}

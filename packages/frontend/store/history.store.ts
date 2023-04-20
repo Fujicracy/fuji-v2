@@ -34,7 +34,7 @@ type HistoryState = {
   ongoingTransactions: HistoryTransaction[];
   entries: Record<string, HistoryEntry>;
 
-  currentTxHash?: string; // The tx hash displayed in modal
+  currentTxHash?: string | undefined; // The tx hash displayed in modal
 
   watching: string[];
 };
@@ -47,9 +47,10 @@ type HistoryActions = {
     steps: RoutingStepDetails[]
   ) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
-  clearAll: () => void;
+  clearAll: (address: string) => void;
   watchAll: (address: string) => void;
   watch: (transaction: HistoryTransaction) => void;
+  clearStore: () => void;
 
   openModal: (hash: string) => void;
   closeModal: () => void;
@@ -298,8 +299,7 @@ export const useHistory = create<HistoryStore>()(
           );
         },
 
-        clearAll() {
-          const address = useAuth.getState().address;
+        clearAll(address) {
           const transactions = get().transactions.filter(
             (t) => t.address !== address
           );
@@ -313,6 +313,15 @@ export const useHistory = create<HistoryStore>()(
             }
           }
           set({ transactions, ongoingTransactions, entries });
+        },
+
+        clearStore() {
+          set({
+            transactions: [],
+            ongoingTransactions: [],
+            entries: {},
+            currentTxHash: undefined,
+          });
         },
 
         openModal(hash) {
@@ -348,8 +357,7 @@ export const useHistory = create<HistoryStore>()(
             (value) => typeof value === 'string'
           );
           if (hasString) {
-            state.transactions = [];
-            state.ongoingTransactions = [];
+            state.clearStore();
           }
         };
       },
