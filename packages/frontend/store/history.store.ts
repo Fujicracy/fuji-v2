@@ -18,7 +18,7 @@ import {
   wait,
 } from '../helpers/history';
 import {
-  getTransactionUrl,
+  getTransactionLink,
   NotificationDuration,
   notify,
 } from '../helpers/notifications';
@@ -143,13 +143,7 @@ export const useHistory = create<HistoryStore>()(
           const finish = (success: boolean) => {
             const address = useAuth.getState().address;
             if (address !== entry.address) return;
-            triggerUpdatesFromSteps(
-              entry.steps,
-              entry.sourceChain.status === HistoryEntryStatus.SUCCESS &&
-                entry.secondChain
-                ? entry.secondChain.chainId
-                : entry.sourceChain.chainId
-            );
+            triggerUpdatesFromSteps(entry.steps);
 
             const isFinal =
               entry.chainCount > 1 &&
@@ -190,7 +184,7 @@ export const useHistory = create<HistoryStore>()(
                   ? NotificationDuration.LONG
                   : NotificationDuration.MEDIUM,
                 link: linkHash
-                  ? getTransactionUrl({
+                  ? getTransactionLink({
                       hash: linkHash,
                       chainId:
                         isFinal && entry.secondChain
@@ -224,19 +218,25 @@ export const useHistory = create<HistoryStore>()(
               return;
             }
             const address = useAuth.getState().address;
-            if (address === entry.address) {
+            if (address === entry.address && !entry.sourceChain.shown) {
               notify({
                 type: 'success',
                 message: formatCrosschainNotificationMessage(
                   chainName(entry.sourceChain.chainId),
                   chainName(entry.secondChain?.chainId)
                 ),
-                link: getTransactionUrl({
+                link: getTransactionLink({
                   hash: entry.hash,
                   chainId: entry.sourceChain.chainId,
                 }),
               });
+              set(
+                produce((s: HistoryState) => {
+                  s.entries[hash].sourceChain.shown = true;
+                })
+              );
             }
+
             let crosschainCallFinished = false;
             while (!crosschainCallFinished) {
               await wait(3000); // Wait for three seconds between each call

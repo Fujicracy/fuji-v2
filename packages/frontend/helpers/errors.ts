@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { SOCIAL_URL } from '../constants';
-import { notify } from './notifications';
+import { NotificationLink, notify } from './notifications';
 
 export const initErrorReporting = () => {
   if (process.env.NEXT_PUBLIC_APP_ENV !== 'production') {
@@ -27,7 +27,9 @@ export const handleCancelableMMActionError = (
   const message = userCancelled
     ? cancelledMessage
     : failureMessage ?? String(error);
-  const link = userCancelled ? SOCIAL_URL.DISCORD : undefined;
+  const link: NotificationLink | undefined = userCancelled
+    ? { url: SOCIAL_URL.DISCORD, type: 'discord' }
+    : undefined;
   notify({
     type: 'error',
     message,

@@ -120,7 +120,17 @@ const ListItem = (props: ListItemProps) => {
         <NetworkIcon network={chainName} height={20} width={20} />
       </ListItemIcon>
       {!onMobile && (
-        <ListItemText sx={{ fontSize: '0.875rem' }}>{chainName}</ListItemText>
+        <ListItemText
+          sx={{
+            '& .MuiTypography-root': {
+              fontSize: '0.875rem',
+              lineHeight: '1.5rem',
+              fontWeight: 500,
+            },
+          }}
+        >
+          {chainName}
+        </ListItemText>
       )}
 
       {selected && (

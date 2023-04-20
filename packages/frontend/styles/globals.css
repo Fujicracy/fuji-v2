@@ -1,15 +1,21 @@
-/* @font-face {
-  font-family: "Inter";
+@font-face {
+  font-family: 'Inter';
+  src: url('../public/assets/fonts/Inter-Regular.woff2') format('woff2'),
+    url('../public/assets/fonts/Inter-Regular.ttf') format('ttf');
+  font-weight: normal;
   font-style: normal;
-  font-weight: 500;
-  src: url("../public/assets/fonts/Inter-Regular.ttf");
-} */
+  font-display: swap;
+}
 
 html,
 body {
   padding: 0;
   margin: 0;
-  /* font-family: "Inter"; */
+  font-family: 'Inter', sans-serif;
+}
+
+.MuiTypography-root {
+  font-family: 'Inter', sans-serif;
 }
 
 a {

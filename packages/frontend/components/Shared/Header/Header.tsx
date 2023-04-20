@@ -15,6 +15,7 @@ import {
   Stack,
   Toolbar,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
@@ -35,6 +36,9 @@ import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
 
 const Header = () => {
+  const theme = useTheme();
+  const router = useRouter();
+
   const { address, ens, status, balance, login } = useAuth(
     (state) => ({
       status: state.status,
@@ -45,8 +49,9 @@ const Header = () => {
     }),
     shallow
   );
-  const { palette } = useTheme();
-  const router = useRouter();
+
+  const { palette } = theme;
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentPage = router.asPath;
 
   const isPageActive = useCallback(
@@ -106,13 +111,13 @@ const Header = () => {
             container
             justifyContent="space-between"
             alignItems="center"
-            sx={{ width: { xs: '100%', lg: 'unset' } }}
+            sx={{ width: { xs: '100%', md: 'unset' } }}
           >
             <Grid item>
               <Link href="/" legacyBehavior>
                 <a className={styles.logoTitle}>
                   <Box
-                    maxWidth={120}
+                    maxWidth={isMobile ? 120 : 180}
                     maxHeight={50}
                     sx={{
                       width: '12rem',
@@ -121,7 +126,11 @@ const Header = () => {
                     <img
                       src="/assets/images/logo/logo-title.svg"
                       alt="Logo Fuji"
-                      style={{ width: '100%', height: 'auto' }}
+                      style={
+                        isMobile
+                          ? { width: '100%', height: 'auto' }
+                          : { marginLeft: '10px', height: '30px' }
+                      }
                     />
                   </Box>
                 </a>
@@ -131,7 +140,7 @@ const Header = () => {
               <Box
                 sx={{
                   flexGrow: 1,
-                  display: { xs: 'flex', lg: 'none' },
+                  display: { xs: 'flex', md: 'none' },
                   alignItems: 'center',
                 }}
               >
@@ -190,7 +199,7 @@ const Header = () => {
                   keepMounted
                   open={Boolean(anchorElNav)}
                   onClose={handleCloseNavMenu}
-                  sx={{ display: { xs: 'block', lg: 'none' } }}
+                  sx={{ display: { xs: 'block', md: 'none' } }}
                   TransitionComponent={Fade}
                 >
                   <MenuList>
@@ -235,7 +244,7 @@ const Header = () => {
           <MenuList
             sx={{
               flexGrow: 1,
-              display: { xs: 'none', lg: 'flex' },
+              display: { xs: 'none', md: 'flex' },
               ml: '1rem',
               justifyContent: 'center',
               gap: '0.25rem',
@@ -272,7 +281,7 @@ const Header = () => {
             columnGap="0.5rem"
             justifyContent="flex-end"
             alignItems="center"
-            sx={{ display: { xs: 'none', lg: 'flex' } }}
+            sx={{ display: { xs: 'none', md: 'flex' } }}
           >
             {status === 'disconnected' && (
               <>

@@ -14,7 +14,6 @@ import { devtools } from 'zustand/middleware';
 
 import { fujiLogo } from '../constants';
 import { chainIdToHex, onboardChains } from '../helpers/chains';
-import { notify } from '../helpers/notifications';
 
 const walletConnect = walletConnectModule({
   // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
@@ -120,7 +119,6 @@ export const useAuth = create<AuthStore>()(
 
         if (!wallets[0] || !wallets[0].accounts[0]) {
           set({ status: 'disconnected' });
-          notify({ type: 'error', message: 'Failure trying to login' });
           return;
         }
 
