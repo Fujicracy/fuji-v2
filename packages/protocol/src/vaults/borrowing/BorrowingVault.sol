@@ -68,7 +68,6 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__payback_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
   error BorrowingVault__correctDebt_noNeedForCorrection();
-  error BorrowingVault__correctDebt_invalidAmount();
   error BorrowingVault__withdraw_debtNeedsCorrection();
 
   /*///////////////////
@@ -296,10 +295,10 @@ contract BorrowingVault is BaseVault {
     override
     whenNotPaused(VaultActions.Withdraw)
   {
-    uint256 totalDebt = totalDebt();
+    uint256 totalDebt_ = totalDebt();
     uint256 supply = debtSharesSupply;
 
-    if (totalDebt == 0 && supply > 0 && supply > totalDebt) {
+    if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
       _pause(VaultActions.Withdraw);
       revert BorrowingVault__withdraw_debtNeedsCorrection();
     }
@@ -449,10 +448,8 @@ contract BorrowingVault is BaseVault {
     view
     returns (uint256 assets)
   {
-    uint256 totalDebt = totalDebt();
     uint256 supply = debtSharesSupply;
-
-    return (supply == 0) ? shares : shares.mulDiv(totalDebt, supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalDebt(), supply, rounding);
   }
 
   /**
@@ -754,13 +751,12 @@ contract BorrowingVault is BaseVault {
     uint256 vaultDebt = totalDebt();
     uint256 vaultDebtShares = debtSharesSupply;
 
-    //no need for correction
+    // Check if there is need for correction.
     if (vaultDebt >= vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
       revert BorrowingVault__correctDebt_noNeedForCorrection();
     }
 
-    uint256 amount = vaultDebtShares - vaultDebt;
-    _executeProviderAction(amount, "borrow", activeProvider);
-    SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, amount);
+    _executeProviderAction(vaultDebtShares, "borrow", activeProvider);
+    SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, vaultDebtShares);
   }
 }
