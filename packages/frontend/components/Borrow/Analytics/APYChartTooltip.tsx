@@ -5,12 +5,10 @@ import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
 
-const APYChartTooltip = ({
-  point,
-}: PointTooltipProps & { point: { data: { date: string } } }) => {
+const APYChartTooltip = ({ point }: PointTooltipProps) => {
   const { palette } = useTheme();
 
-  const date = point.data.date;
+  const date = (point.data as unknown as { date: string }).date;
 
   return (
     <Box
