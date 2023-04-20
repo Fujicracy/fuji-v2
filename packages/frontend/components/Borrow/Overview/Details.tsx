@@ -90,7 +90,10 @@ function Details({
         <Grid container justifyContent="space-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-            <InfoTooltip />
+            <InfoTooltip
+              isDark
+              title="APR, or annual percentage rate, represents the price you pay to borrow money."
+            />
           </div>
           <TooltipWrapper
             placement="top-end"
