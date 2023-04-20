@@ -51,7 +51,7 @@ function SlippageSettings() {
 
   useEffect(() => {
     if (textInput) {
-      if ([DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
+      if ([DEFAULT_SLIPPAGE, 30, 100].includes(slippage)) {
         setSlippageInput('');
         textInput?.blur();
       } else {
@@ -95,7 +95,7 @@ function SlippageSettings() {
 
   // Keeps focus on input when user click on menu wrapper and something different from default values is set.
   const handleNonfunctionalClick = () => {
-    if (![DEFAULT_SLIPPAGE, 50, 100].includes(slippage)) {
+    if (![DEFAULT_SLIPPAGE, 30, 100].includes(slippage)) {
       textInput?.focus();
     }
   };
