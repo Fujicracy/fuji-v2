@@ -3,7 +3,7 @@ import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import {
   ActionType,
@@ -88,6 +88,10 @@ export function ConfirmTransactionModal({
   };
 
   const isCrossChain = isCrossChainTransaction(steps);
+  const isEstimatedSlippageBiggerThanSelected = useMemo(
+    () => transactionMeta.estimateSlippage > slippage / 100,
+    [transactionMeta.estimateSlippage, slippage]
+  );
 
   return (
     <Dialog
@@ -271,7 +275,7 @@ export function ConfirmTransactionModal({
           </Box>
         )}
 
-        {isCrossChain && transactionMeta.estimateSlippage > slippage && (
+        {isCrossChain && isEstimatedSlippageBiggerThanSelected && (
           <Box mt="1rem">
             <WarningInfo
               text={
