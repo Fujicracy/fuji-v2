@@ -7,6 +7,7 @@ import {
   DEFAULT_SLIPPAGE,
   FujiError,
   FujiErrorCode,
+  FujiResult,
   FujiResultError,
   FujiResultSuccess,
   LendingProviderDetails,
@@ -570,7 +571,14 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
 
-          const { activeVault, collateral, debt, mode, slippage } = get();
+          const {
+            activeVault,
+            availableVaults,
+            collateral,
+            debt,
+            mode,
+            slippage,
+          } = get();
           const collateralInput =
             collateral.input === '' ? '0' : collateral.input;
           const debtInput = debt.input === '' ? '0' : debt.input;
@@ -594,9 +602,8 @@ export const useBorrow = create<BorrowStore>()(
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
-              formType === 'create'
-                ? get().availableVaults
-                : [get().activeVault as BorrowingVault];
+              formType === 'create' ? availableVaults : [activeVault];
+
             const results = await Promise.all(
               vaults.map((v, i) => {
                 const recommended = i === 0;
@@ -616,17 +623,26 @@ export const useBorrow = create<BorrowStore>()(
             );
             const error = results.find((r): r is FujiResultError => !r.success);
             if (error) {
-              throw error.error;
+              console.error(error);
+              //throw error.error;
             }
+            // filter valid routes
             const availableRoutes: RouteMeta[] = (
-              results as FujiResultSuccess<RouteMeta>[]
+              results.filter(
+                (r): r is FujiResult<RouteMeta> => r.success
+              ) as FujiResultSuccess<RouteMeta>[]
             ).map((r) => r.data);
             const selectedRoute = availableRoutes.find(
               (r) => r.address === activeVault.address.value
             );
-            if (!selectedRoute || !selectedRoute.actions.length) {
+            // no route means that the active vault has changed before the async call completed
+            if (!selectedRoute && formType === 'create') {
+              get().updateVault();
+              return;
+            }
+            if (!selectedRoute?.actions.length) {
               throw new FujiError(
-                'No route found for active vault or route found with empty action array',
+                'Route found with empty action array',
                 FujiErrorCode.SDK
               );
             }
