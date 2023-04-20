@@ -6,7 +6,9 @@ import {
 } from '@web3-onboard/core/dist/types';
 import injectedModule from '@web3-onboard/injected-wallets';
 import { init } from '@web3-onboard/react';
-import walletConnectModule from '@web3-onboard/walletconnect';
+import walletConnectModule, {
+  WalletConnectOptions,
+} from '@web3-onboard/walletconnect';
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
 import { create, StoreApi } from 'zustand';
@@ -15,8 +17,8 @@ import { devtools } from 'zustand/middleware';
 import { fujiLogo } from '../constants';
 import { chainIdToHex, onboardChains } from '../helpers/chains';
 
-const walletConnect = walletConnectModule({
-  // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
+const wcV1InitOptions: WalletConnectOptions = {
+  version: 1,
   qrcodeModalOptions: {
     mobileLinks: [
       'rainbow',
@@ -27,7 +29,14 @@ const walletConnect = walletConnectModule({
       'pillar',
     ],
   },
-});
+};
+
+const wcV2InitOptions: WalletConnectOptions = {
+  version: 2,
+  projectId: `${process.env.WALLET_CONNECT_V2_KEY}`,
+};
+
+const walletConnect = walletConnectModule(wcV2InitOptions || wcV1InitOptions);
 
 export const onboard = init({
   chains: onboardChains,
