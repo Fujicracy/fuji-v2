@@ -16,25 +16,13 @@ import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import TabSwitch from '../Shared/TabSwitch';
+import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import PositionYieldTable from './PositionYieldTable';
 
 type PositionYieldsModalProps = {
   open: boolean;
   onClose: () => void;
 };
-
-type PeriodOption = {
-  label: string;
-  value: number;
-};
-
-const periodOptions: PeriodOption[] = [
-  { label: '1D', value: 1 },
-  { label: '7D', value: 7 },
-  { label: '30D', value: 30 },
-  { label: '365D', value: 365 },
-];
 
 export function PositionYieldsModal({
   open,
@@ -47,7 +35,7 @@ export function PositionYieldsModal({
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
 
-  const [daysPeriod, setDaysPeriod] = useState<number>(periodOptions[0].value);
+  const [daysPeriod, setDaysPeriod] = useState<number>(1);
   const [currentTab, setCurrentTab] = useState(0);
   const [estEarnings, setEstEarnings] = useState(0);
 
@@ -141,12 +129,7 @@ export function PositionYieldsModal({
             </Box>
           </Stack>
 
-          <TabSwitch
-            actions={periodOptions}
-            selected={daysPeriod}
-            onChange={setDaysPeriod}
-            width="13.6rem"
-          />
+          <PeriodOptions onChange={setDaysPeriod} />
         </Stack>
 
         {currentTab === 0 && (

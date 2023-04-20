@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
 import APYChart from '../../Shared/Charts/APYChart';
+import PeriodOptions from '../../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
 import AnalyticsHeader from '../Analytics/AnalyticsHeader';
@@ -20,20 +21,13 @@ const chartTabs = [
   { value: ChartTab.DEPOSIT, label: 'Deposits' },
 ];
 
-const chartPeriods = [
-  { value: 1, label: '1D' },
-  { value: 7, label: '7D' },
-  { value: 30, label: '30D' },
-  { value: 365, label: '365D' },
-];
-
 function AnalyticsTab() {
   const { palette } = useTheme();
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
 
   const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
-  const [selectedPeriod, setSelectedPeriod] = useState(chartPeriods[0].value);
+  const [selectedPeriod, setSelectedPeriod] = useState(1);
 
   return (
     <>
@@ -46,12 +40,7 @@ function AnalyticsTab() {
           onChange={setSelectedTab}
           width="13.6rem"
         />
-        <TabSwitch
-          actions={chartPeriods}
-          selected={selectedPeriod}
-          onChange={setSelectedPeriod}
-          width="14rem"
-        />
+        <PeriodOptions onChange={setSelectedPeriod} />
       </Stack>
 
       <Typography
