@@ -20,6 +20,7 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
+import {LibBytes} from "../libraries/LibBytes.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
   /**
@@ -110,7 +111,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param originDomain the origin domain identifier according Connext nomenclature
    * @param callData the calldata that will get decoded and executed, see "Requirements"
    *
-   * @dev It does not perform authentification of the calling address. As a result of that,
+   * @dev It does not perform authentication of the calling address. As a result of that,
    * all txns go through Connext's fast path.
    * If `xBundle` fails internally, this contract will send the received funds to {ConnextHandler}.
    *
@@ -145,7 +146,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
       } else {
-        _tokensToCheck.push(Snapshot(asset, balance - amount));
+        _tempTokenToCheck = Snapshot(asset, balance - amount);
       }
 
       /**
@@ -173,7 +174,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       }
 
       // Ensure clear storage for token balance checks.
-      delete _tokensToCheck;
+      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -228,7 +229,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /// @inheritdoc BaseRouter
-  function _crossTransfer(bytes memory params) internal override {
+  function _crossTransfer(
+    bytes memory params,
+    address beneficiary
+  )
+    internal
+    override
+    returns (address)
+  {
     (
       uint256 destDomain,
       uint256 slippage,
@@ -238,7 +246,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
-    _checkBeneficiary(receiver);
+    address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, receiver, amount);
     _safeApprove(asset, address(connext), amount);
@@ -262,15 +270,27 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       ""
     );
     emit XCalled(transferId, msg.sender, receiver, destDomain, asset, amount, "");
+
+    return beneficiary_;
   }
 
   /// @inheritdoc BaseRouter
-  function _crossTransferWithCalldata(bytes memory params) internal override {
+  function _crossTransferWithCalldata(
+    bytes memory params,
+    address beneficiary
+  )
+    internal
+    override
+    returns (address)
+  {
     (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
       abi.decode(params, (uint256, uint256, address, uint256, bytes));
 
-    address beneficiary = _getBeneficiaryFromCalldata(callData);
-    _checkBeneficiary(beneficiary);
+    (Action[] memory actions, bytes[] memory args,) =
+      abi.decode(callData, (Action[], bytes[], uint256));
+
+    address intendedBeneficiary = _getBeneficiaryFromCalldata(actions, args);
+    address beneficiary_ = _checkBeneficiary(beneficiary, intendedBeneficiary);
 
     _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
     _safeApprove(asset, address(connext), amount);
@@ -296,43 +316,53 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
     );
+
+    return beneficiary_;
   }
 
   /**
    * @dev Returns who is the first receiver of value in `callData`
    * Requirements:
-   * - Must revert if "swap" is fist action
+   * - Must revert if "swap" is first action
    *
-   * @param callData encoded to execute in {BaseRouter-xBundle}
+   * @param actions to execute in {BaseRouter-xBundle}
+   * @param args to execute in {BaseRouter-xBundle}
    */
-  function _getBeneficiaryFromCalldata(bytes memory callData)
+
+  function _getBeneficiaryFromCalldata(
+    Action[] memory actions,
+    bytes[] memory args
+  )
     internal
-    pure
-    returns (address beneficiary)
+    view
+    returns (address beneficiary_)
   {
-    (Action[] memory actions, bytes[] memory args,) =
-      abi.decode(callData, (Action[], bytes[], uint256));
     if (actions[0] == Action.Deposit || actions[0] == Action.Payback) {
       // For Deposit or Payback.
       (,, address receiver,) = abi.decode(args[0], (IVault, uint256, address, address));
-      beneficiary = receiver;
+      beneficiary_ = receiver;
     } else if (actions[0] == Action.Withdraw || actions[0] == Action.Borrow) {
       // For Withdraw or Borrow
       (,,, address owner) = abi.decode(args[0], (IVault, uint256, address, address));
-      beneficiary = owner;
+      beneficiary_ = owner;
     } else if (actions[0] == Action.WithdrawETH) {
       // For WithdrawEth
       (, address receiver) = abi.decode(args[0], (uint256, address));
-      beneficiary = receiver;
+      beneficiary_ = receiver;
     } else if (actions[0] == Action.PermitBorrow || actions[0] == Action.PermitWithdraw) {
       (, address owner,,,,,,) = abi.decode(
         args[0], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
       );
-      beneficiary = owner;
+      beneficiary_ = owner;
     } else if (actions[0] == Action.Flashloan) {
       (,,,, bytes memory requestorCalldata) =
         abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-      beneficiary = _getBeneficiaryFromCalldata(requestorCalldata);
+
+      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
+        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
+      );
+
+      beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
       revert BaseRouter__bundleInternal_swapNotFirstAction();

@@ -53,7 +53,6 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     // new BorrowingVault with USDT
     debtAsset2 = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
     vm.label(debtAsset2, "USDT");
-    mockOracle.setUSDPriceOf(debtAsset2, 100000000);
 
     aaveV3 = new AaveV3Polygon();
     providers[0] = aaveV3;
@@ -61,11 +60,13 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     vault2 = new BorrowingVault(
       collateralAsset,
       debtAsset2,
-      address(mockOracle),
+      address(oracle),
       address(chief),
       "Fuji-V2 WETH-USDT Vault Shares",
       "fv2WETHUSDT",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
     vm.label(address(vault2), "Vault2");
   }

@@ -8,6 +8,7 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {AaveV3Goerli} from "../../../src/providers/goerli/AaveV3Goerli.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
+import {IVaultPermissions} from "../../../src/interfaces/IVaultPermissions.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {MockProviderV0} from "../../../src/mocks/MockProviderV0.sol";
@@ -20,6 +21,41 @@ import {BaseRouter} from "../../../src/abstracts/BaseRouter.sol";
 import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
+import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
+import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
+import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+
+contract MockTestFlasher is Routines, IFlasher {
+  using SafeERC20 for IERC20;
+  using Address for address;
+
+  bool public flashloanCalled = false;
+
+  function initiateFlashloan(
+    address asset,
+    uint256 amount,
+    address requestor,
+    bytes memory requestorCalldata
+  )
+    external
+  {
+    deal(asset, address(this), amount);
+    flashloanCalled = true;
+    SafeERC20.safeApprove(IERC20(asset), requestor, amount);
+    requestor.functionCall(requestorCalldata);
+  }
+
+  /// @inheritdoc IFlasher
+  function getFlashloanSourceAddr(address) external view override returns (address) {
+    return address(this);
+  }
+
+  /// @inheritdoc IFlasher
+  function computeFlashloanFee(address, uint256) external pure override returns (uint256 fee) {
+    fee = 0;
+  }
+}
 
 contract ConnextRouterForkingTest is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
@@ -408,5 +444,218 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     assertEq(vault.balanceOf(ALICE), amount);
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
+  }
+
+  function test_simpleFlashloan() public {
+    uint256 amount = 2 ether;
+    MockTestFlasher flasher = new MockTestFlasher();
+    deal(collateralAsset, ALICE, amount);
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
+    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+
+    IRouter.Action[] memory actions1 = new IRouter.Action[](1);
+    actions1[0] = IRouter.Action.Flashloan;
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    actions[0] = IRouter.Action.XTransferWithCall;
+
+    bytes[] memory args = new bytes[](1);
+
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    bytes[] memory destArgs = new bytes[](1);
+
+    destActions[0] = IRouter.Action.Deposit;
+    destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
+
+    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
+
+    bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
+
+    bytes[] memory args1 = new bytes[](1);
+    args1[0] =
+      abi.encode(address(flasher), collateralAsset, amount, address(connextRouter), requestorCall);
+
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
+
+    vm.expectEmit(false, false, false, false);
+    emit Dispatch("", 1, "", "");
+
+    connextRouter.xBundle(actions1, args1);
+    assertEq(flasher.flashloanCalled(), true);
+  }
+
+  function test_flashloanWithIncorrectActionAfter() public {
+    uint256 amount = 2 ether;
+    MockTestFlasher flasher = new MockTestFlasher();
+    deal(collateralAsset, ALICE, amount);
+
+    IRouter.Action[] memory actions1 = new IRouter.Action[](1);
+    actions1[0] = IRouter.Action.Flashloan;
+
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    actions[0] = IRouter.Action.Swap;
+
+    bytes[] memory args = new bytes[](1);
+
+    bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
+
+    bytes[] memory args1 = new bytes[](1);
+    args1[0] =
+      abi.encode(address(flasher), collateralAsset, amount, address(connextRouter), requestorCall);
+
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
+
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_swapNotFirstAction.selector);
+    connextRouter.xBundle(actions1, args1);
+  }
+
+  /*
+   * @notice Tests that a flashloan can be used to perform a flashclose
+   * @dev:
+   * - make a transfer with call to destChain - XTransferWithCall
+   * - call on destination chain is deposit and borrow, opening a simple position
+   * - use a flashloan to perform a flashclose in destChain 
+   */
+  function test_depositAndBorrowFlashClose() public {
+    // stack too deep to have these variables
+    // uint256 amount = 2 ether;
+    // uint256 borrowAmount = 100e8;
+    // uint256 slippageThreshold = 0;
+    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+    MockTestFlasher flasher = new MockTestFlasher();
+
+    deal(collateralAsset, ALICE, 2 ether);
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
+
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 2 ether);
+
+    //deposit and borrow in destination chain
+    IRouter.Action[] memory originActions1 = new IRouter.Action[](1);
+    bytes[] memory originArgs1 = new bytes[](1);
+    originActions1[0] = IRouter.Action.XTransferWithCall;
+
+    //deposit and borrow
+    IRouter.Action[] memory destChainDepositAndBorrowActions = new IRouter.Action[](2);
+    bytes[] memory destChainDepositAndBorrowArgs = new bytes[](2);
+
+    //deposit
+    destChainDepositAndBorrowActions[0] = IRouter.Action.Deposit;
+    destChainDepositAndBorrowArgs[0] =
+      abi.encode(address(vault), 1 ether, ALICE, address(connextRouter));
+
+    //borrow
+    destChainDepositAndBorrowActions[1] = IRouter.Action.Borrow;
+    destChainDepositAndBorrowArgs[1] =
+      abi.encode(address(vault), 100e6, ALICE, address(connextRouter));
+
+    bytes memory destChainDepositAndBorrowCallData =
+      abi.encode(destChainDepositAndBorrowActions, destChainDepositAndBorrowArgs, 0);
+
+    originArgs1[0] =
+      abi.encode(destDomain, 30, collateralAsset, 1 ether, destChainDepositAndBorrowCallData);
+
+    //assert dispatch
+    vm.expectEmit(false, false, false, false);
+    emit Dispatch("", 1, "", "");
+    connextRouter.xBundle(originActions1, originArgs1);
+
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), 1 ether);
+
+    //XTransferWithCall from origin chain
+    IRouter.Action[] memory originActions2 = new IRouter.Action[](1);
+    bytes[] memory originArgs2 = new bytes[](1);
+    originActions2[0] = IRouter.Action.XTransferWithCall;
+
+    //flashloan in optimism
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    bytes[] memory destArgs = new bytes[](1);
+    destActions[0] = IRouter.Action.Flashloan;
+
+    // Perform a flashclose
+    IRouter.Action[] memory destInnerActions = new IRouter.Action[](4);
+    bytes[] memory destInnerArgs = new bytes[](4);
+    destInnerActions[0] = IRouter.Action.Payback;
+    destInnerActions[1] = IRouter.Action.PermitWithdraw;
+    destInnerActions[2] = IRouter.Action.Withdraw;
+    destInnerActions[3] = IRouter.Action.XTransfer;
+    destInnerArgs[0] = abi.encode(address(vault), 100e6, ALICE, address(connextRouter));
+    destInnerArgs[2] = abi.encode(address(vault), 1 ether, ALICE, address(connextRouter));
+    destInnerArgs[3] = abi.encode(GOERLI_DOMAIN, 0, collateralAsset, 1 ether, ALICE, ALICE);
+
+    //flashloan parameters
+    bytes memory requestorCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, destInnerActions, destInnerArgs);
+    //optimism args for flashloan
+    destArgs[0] =
+      abi.encode(address(flasher), debtAsset, 100e6, address(connextRouter), requestorCalldata);
+    bytes memory destCallData = abi.encode(destActions, destArgs, 0);
+    originArgs2[0] = abi.encode(destDomain, 0, collateralAsset, 0, destCallData);
+
+    //assert dispatch
+    vm.expectEmit(false, false, false, false);
+    emit Dispatch("", 1, "", "");
+    connextRouter.xBundle(originActions2, originArgs2);
+  }
+
+  function test_flashCloseXTransferAttack() public {
+    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+
+    // Setup test such that the router has withdrawAllowance for some reason.
+    deal(collateralAsset, ALICE, 2 ether);
+    vm.startPrank(ALICE);
+    SafeERC20.safeApprove(IERC20(collateralAsset), address(vault), 2 ether);
+    vault.deposit(2 ether, ALICE);
+    IVaultPermissions(address(vault)).increaseWithdrawAllowance(
+      address(connextRouter), address(connextRouter), 2 ether
+    );
+    vm.stopPrank();
+
+    // attacker
+    address attacker = BOB;
+
+    //XTransferWithCall from origin chain
+    IRouter.Action[] memory originActions = new IRouter.Action[](2);
+    originActions[0] = IRouter.Action.Withdraw;
+    originActions[1] = IRouter.Action.XTransferWithCall;
+
+    bytes[] memory originArgs = new bytes[](2);
+    originArgs[0] = abi.encode(address(vault), 1 ether, address(connextRouter), ALICE);
+
+    // flashloan in optimism
+    IRouter.Action[] memory destActions = new IRouter.Action[](1);
+    destActions[0] = IRouter.Action.Flashloan;
+
+    bytes[] memory destArgs = new bytes[](1);
+
+    // Perform a flashclose
+    IRouter.Action[] memory destInnerActions = new IRouter.Action[](1);
+    bytes[] memory destInnerArgs = new bytes[](1);
+    destInnerActions[0] = IRouter.Action.Deposit;
+    destInnerArgs[0] = abi.encode(address(vault), 1 ether, attacker, address(connextRouter));
+
+    // Attacker creates dumb flashloan action at destination to attempt bypass checks
+    bytes memory attackCalldata =
+      abi.encodeWithSelector(IRouter.xBundle.selector, destInnerActions, destInnerArgs);
+    // Args for flashloan
+    address supposedDestinationFlasher = 0x000000000000000000000000000000000000001a;
+    destArgs[0] = abi.encode(
+      supposedDestinationFlasher, debtAsset, 1 wei, address(connextRouter), attackCalldata
+    );
+
+    bytes memory destCallData = abi.encode(destActions, destArgs, 0);
+
+    originArgs[1] = abi.encode(destDomain, 0, collateralAsset, 0, destCallData);
+
+    // Expect revert due to wrong beneficiary in cross transaction
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    connextRouter.xBundle(originActions, originArgs);
   }
 }

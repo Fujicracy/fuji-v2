@@ -22,15 +22,7 @@ contract HundredGnosisForkingTest is Routines, ForkingSetup {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = hundred;
 
-    deployVault(
-      registry[GNOSIS_DOMAIN].weth,
-      registry[GNOSIS_DOMAIN].dai,
-      796341757142697,
-      100000000,
-      "WETH",
-      "DAI",
-      providers
-    );
+    deployVault(registry[GNOSIS_DOMAIN].weth, registry[GNOSIS_DOMAIN].dai, "WETH", "DAI", providers);
   }
 
   function test_depositAndBorrow() public {

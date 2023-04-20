@@ -24,7 +24,6 @@ import {IERC20Metadata} from
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
-import {IFlasher} from "../../interfaces/IFlasher.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
@@ -59,6 +58,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
+  error BorrowingVault__beforeTokenTransfer_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
   error BorrowingVault__rebalance_invalidProvider();
@@ -92,7 +92,6 @@ contract BorrowingVault is BaseVault {
   uint256 public debtSharesSupply;
 
   mapping(address => uint256) internal _debtShares;
-  mapping(address => mapping(address => uint256)) private _borrowAllowances;
 
   IFujiOracle public oracle;
 
@@ -116,6 +115,8 @@ contract BorrowingVault is BaseVault {
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
    * @param providers_ array that will initialize this vault
+   * @param maxLtv_ initially set in vault
+   * @param liqRatio_ initially set in vault
    *
    * @dev Requirements:
    * - Must be initialized with a set of providers.
@@ -131,7 +132,9 @@ contract BorrowingVault is BaseVault {
     address chief_,
     string memory name_,
     string memory symbol_,
-    ILendingProvider[] memory providers_
+    ILendingProvider[] memory providers_,
+    uint256 maxLtv_,
+    uint256 liqRatio_
   )
     BaseVault(asset_, chief_, name_, symbol_)
   {
@@ -139,8 +142,13 @@ contract BorrowingVault is BaseVault {
     _debtDecimals = IERC20Metadata(debtAsset_).decimals();
 
     oracle = IFujiOracle(oracle_);
-    maxLtv = 75 * 1e16;
-    liqRatio = 80 * 1e16;
+
+    if (maxLtv_ == 0 || liqRatio_ == 0 || maxLtv_ < 1e16 || maxLtv_ >= 1e18 || liqRatio_ < maxLtv_)
+    {
+      revert BaseVault__setter_invalidInput();
+    }
+    maxLtv = maxLtv_;
+    liqRatio = liqRatio_;
 
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
@@ -151,6 +159,27 @@ contract BorrowingVault is BaseVault {
   /*///////////////////////////////
   /// Debt management overrides ///
   ///////////////////////////////*/
+
+  /**
+   * @dev Hook before all asset-share transfers.
+   * Requirements:
+   * - Must check `from` can move `amount` of shares.
+   *
+   * @param from address
+   * @param to address
+   * @param amount of shares
+   */
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
+    /**
+     * @dev Hook check activated only when called by OZ {ERC20-_transfer}
+     * User must not be able to transfer asset-shares locked as collateral
+     */
+    if (from != address(0) && to != address(0)) {
+      if (amount > maxRedeem(from)) {
+        revert BorrowingVault__beforeTokenTransfer_moreThanMax();
+      }
+    }
+  }
 
   /// @inheritdoc IVault
   function debtDecimals() public view override returns (uint8) {
@@ -641,12 +670,14 @@ contract BorrowingVault is BaseVault {
     // Compute `gainedShares` amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
-    gainedShares = convertToShares(Math.mulDiv(debt, liquidationFactor, discountedPrice));
+
+    uint256 gainedAssets = Math.mulDiv(debtToCover, 10 ** _asset.decimals(), discountedPrice);
+    gainedShares = convertToShares(gainedAssets);
 
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
     // Ensure liquidator receives no more shares than 'owner' owns.
-    uint256 existingShares = balanceOf(owner);
+    uint256 existingShares = maxRedeem(owner);
     if (gainedShares > existingShares) {
       gainedShares = existingShares;
     }
@@ -690,9 +721,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - Must be called from a timelock.
    * - Must be at least 1% (1e16).
+   * - Must be less than 100% (1e18)
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16) {
+    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18) {
       revert BaseVault__setter_invalidInput();
     }
     maxLtv = maxLtv_;
