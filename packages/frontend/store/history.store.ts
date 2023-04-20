@@ -343,6 +343,14 @@ export const useHistory = create<HistoryStore>()(
           if (!state) {
             return console.error('no state');
           }
+          // transactions used to be a hash array, now it's an object
+          const hasString = state.transactions.some(
+            (value) => typeof value === 'string'
+          );
+          if (hasString) {
+            state.transactions = [];
+            state.ongoingTransactions = [];
+          }
         };
       },
     }
