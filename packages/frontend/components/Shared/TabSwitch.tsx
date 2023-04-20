@@ -39,7 +39,7 @@ function TabSwitch({
     >
       {actions.map((p) => (
         <TabChip
-          key={`${p}`}
+          key={`${p.label}`}
           selected={selected === p.value}
           label={p.label}
           onClick={() => {

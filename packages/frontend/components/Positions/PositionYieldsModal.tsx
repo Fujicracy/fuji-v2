@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   Divider,
   Paper,
@@ -11,12 +10,13 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
+import TabSwitch from '../Shared/TabSwitch';
 import PositionYieldTable from './PositionYieldTable';
 
 type PositionYieldsModalProps = {
@@ -30,10 +30,10 @@ type PeriodOption = {
 };
 
 const periodOptions: PeriodOption[] = [
-  { label: '365D', value: 365 },
-  { label: '30D', value: 30 },
-  { label: '7D', value: 7 },
   { label: '1D', value: 1 },
+  { label: '7D', value: 7 },
+  { label: '30D', value: 30 },
+  { label: '365D', value: 365 },
 ];
 
 export function PositionYieldsModal({
@@ -47,7 +47,7 @@ export function PositionYieldsModal({
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
 
-  const [period, setPeriod] = useState<PeriodOption>(periodOptions[0]);
+  const [daysPeriod, setDaysPeriod] = useState<number>(periodOptions[0].value);
   const [currentTab, setCurrentTab] = useState(0);
   const [estEarnings, setEstEarnings] = useState(0);
 
@@ -141,34 +141,19 @@ export function PositionYieldsModal({
             </Box>
           </Stack>
 
-          <Stack alignItems="center" direction="row-reverse" gap={0.5}>
-            {periodOptions.map((option) => (
-              <Chip
-                key={option.value}
-                sx={{
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  color: `${
-                    option.value === period.value ? 'white' : palette.info.main
-                  }`,
-                  background: `${
-                    option.value === period.value
-                      ? palette.secondary.main
-                      : palette.secondary.dark
-                  }`,
-                }}
-                onClick={() => setPeriod(option)}
-                label={option.label}
-              />
-            ))}
-          </Stack>
+          <TabSwitch
+            actions={periodOptions}
+            selected={daysPeriod}
+            onChange={setDaysPeriod}
+            width="13.6rem"
+          />
         </Stack>
 
         {currentTab === 0 && (
           <Box sx={{ maxWidth: '46rem' }}>
             <PositionYieldTable
               loading={loading}
-              days={period.value}
+              days={daysPeriod}
               callback={(value) => setEstEarnings(value)}
             />
           </Box>

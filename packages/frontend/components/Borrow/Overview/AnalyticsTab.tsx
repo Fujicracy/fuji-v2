@@ -22,9 +22,9 @@ const chartTabs = [
 
 const chartPeriods = [
   { value: 1, label: '1D' },
-  { value: 7, label: '1W' },
-  { value: 30, label: '1M' },
-  { value: 365, label: '1Y' },
+  { value: 7, label: '7D' },
+  { value: 30, label: '30D' },
+  { value: 365, label: '365D' },
 ];
 
 function AnalyticsTab() {
