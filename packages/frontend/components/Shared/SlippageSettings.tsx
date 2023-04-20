@@ -106,6 +106,7 @@ function SlippageSettings() {
         variant="position"
         onClick={openMenu}
         sx={{
+          cursor: 'pointer',
           display: 'flex',
           p: '0.6rem',
           m: '0',
