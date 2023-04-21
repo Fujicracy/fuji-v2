@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { PATH } from '../../constants';
+import { showBorrow } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 
 function EmptyState({
@@ -51,7 +51,7 @@ function EmptyState({
           ),
           button: {
             label: 'Borrow',
-            action: () => router.push(PATH.BORROW),
+            action: () => showBorrow(router),
           },
         };
   }, [reason, login, router]);

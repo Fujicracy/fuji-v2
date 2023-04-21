@@ -28,8 +28,8 @@ export const handleCancelableMMActionError = (
     ? cancelledMessage
     : failureMessage ?? String(error);
   const link: NotificationLink | undefined = userCancelled
-    ? { url: SOCIAL_URL.DISCORD, type: 'discord' }
-    : undefined;
+    ? undefined
+    : { url: SOCIAL_URL.DISCORD, type: 'discord' };
   notify({
     type: 'error',
     message,
