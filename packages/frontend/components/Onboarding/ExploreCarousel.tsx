@@ -129,6 +129,7 @@ function ExploreCarousel({
           </Button>
 
           <Typography
+            data-cy={'skip-explore'}
             sx={{
               m: '1.25rem 0',
               textDecoration: 'underline',
