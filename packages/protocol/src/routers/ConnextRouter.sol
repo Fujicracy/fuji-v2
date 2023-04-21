@@ -243,8 +243,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address asset,
       uint256 amount,
       address receiver,
-      address sender
-    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
+      address sender,
+      address delegate
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address, address));
 
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
@@ -260,7 +261,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       asset,
       // _delegate: address that has rights to update the original slippage tolerance
       // by calling Connext's forceUpdateSlippage function
-      msg.sender,
+      delegate,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
