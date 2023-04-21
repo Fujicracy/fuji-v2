@@ -33,7 +33,11 @@ import {
   recommendedLTV,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
-import { formatValue, validAmount } from '../../../helpers/values';
+import {
+  formatValue,
+  toNotSoFixed,
+  validAmount,
+} from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
@@ -119,15 +123,12 @@ function TokenCard({
     onInputChange(value);
   };
 
-  const handleRecommended = () => {
-    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
-
+  const recommended = (): string => {
     if (
       (ltv > recommendedLTV(ltvMax) && !value) ||
       (!ltv && collateral.amount && !collateral.input)
     ) {
-      handleInput('0');
-      return;
+      return '0';
     }
 
     const collateralValue = isEditing
@@ -140,7 +141,13 @@ function TokenCard({
       (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
       (isEditing ? basePosition.position.debt.amount : 0);
 
-    handleInput(String(recommended));
+    return String(recommended);
+  };
+
+  const handleRecommended = () => {
+    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
+
+    handleInput(recommended());
   };
 
   const handleTokenChange = (token: Token) => {
@@ -244,7 +251,7 @@ function TokenCard({
         {showMax ? (
           <>
             <Typography variant="small" sx={{ width: '11rem' }}>
-              {usdValue}
+              ~{usdValue}
             </Typography>
             <div
               style={{
@@ -285,31 +292,10 @@ function TokenCard({
                 },
               }}
             >
-              {usdValue}
+              ~{usdValue}
             </Typography>
 
             <Stack direction="row">
-              <Typography
-                variant="smallDark"
-                color={
-                  !ltv
-                    ? ''
-                    : ltv > ltvMax
-                    ? palette.error.main
-                    : ltv > recommendedLTV(ltvMax)
-                    ? palette.warning.main
-                    : palette.success.main
-                }
-                mr=".5rem"
-                sx={{
-                  ['@media screen and (max-width: 370px)']: {
-                    fontSize: '0.7rem',
-                  },
-                }}
-              >
-                LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
-              </Typography>
-
               <Typography
                 variant="smallDark"
                 sx={{
@@ -328,7 +314,18 @@ function TokenCard({
                 }}
                 onClick={handleRecommended}
               >
-                ({recommendedLTV(ltvMax)}%)
+                <Typography
+                  variant="smallDark"
+                  color={palette.success.main}
+                  sx={{
+                    ['@media screen and (max-width: 370px)']: {
+                      fontSize: '0.7rem',
+                    },
+                    cursor: 'pointer',
+                  }}
+                >
+                  {toNotSoFixed(recommended())} {debt.token.symbol}
+                </Typography>
               </Typography>
             </Stack>
           </>
