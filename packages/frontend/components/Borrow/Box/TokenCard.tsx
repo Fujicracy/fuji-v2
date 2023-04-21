@@ -163,6 +163,10 @@ function TokenCard({
     }
   `;
 
+  const usdValue = isNaN(usdPrice * +value)
+    ? '$0'
+    : formatValue(usdPrice * +value, { style: 'currency' });
+
   return (
     <Card
       variant="outlined"
@@ -240,7 +244,7 @@ function TokenCard({
         {showMax ? (
           <>
             <Typography variant="small" sx={{ width: '11rem' }}>
-              {formatValue(usdPrice * +value, { style: 'currency' })}
+              {usdValue}
             </Typography>
             <div
               style={{
@@ -281,7 +285,7 @@ function TokenCard({
                 },
               }}
             >
-              {`$${formatValue(usdPrice * +value)}`}
+              {usdValue}
             </Typography>
 
             <Stack direction="row">
