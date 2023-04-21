@@ -155,7 +155,7 @@ export function ConfirmTransactionModal({
           <InfoRow
             title="Slippage"
             value={
-              <Typography variant="small">{`Est. ~${
+              <Typography variant="small">{`Est. ${
                 transactionMeta.estimateSlippage
               }% (max. ${slippage / 100}%)`}</Typography>
             }
