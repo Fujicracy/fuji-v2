@@ -14,6 +14,7 @@ import {
   ALCHEMY_WSS_URL,
   INFURA_RPC_URL,
   INFURA_WSS_URL,
+  POKT_RPC_URL,
 } from '../constants/rpcs';
 import { ChainId, ChainType, ConnextDomain } from '../enums';
 import { ChainConfig } from '../types/ChainConfig';
@@ -72,7 +73,10 @@ export class Chain {
    */
   setConnection(params: ChainConfig): Chain {
     if (!this.connection) {
-      const url: string = INFURA_RPC_URL[this.chainId](params.infuraId);
+      const url = params.poktId
+        ? POKT_RPC_URL[this.chainId](params.poktId)
+        : INFURA_RPC_URL[this.chainId](params.infuraId);
+
       const rpcProvider: StaticJsonRpcProvider = new StaticJsonRpcProvider(url);
 
       const multicallRpcProvider: IMulticallProvider =
