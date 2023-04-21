@@ -15,7 +15,12 @@ import {
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
-import { chainName, chains, hexToChainId } from '../../helpers/chains';
+import {
+  chainName,
+  chains,
+  hexToChainId,
+  isSupported,
+} from '../../helpers/chains';
 import { useAuth } from '../../store/auth.store';
 import { NetworkIcon } from './Icons';
 
@@ -29,7 +34,6 @@ function ChainSelect() {
   ]);
   const chainId = hexToChainId(hexChainId);
   const networkName = chainName(chainId);
-  const isSupported = chains.some((chain) => chain.chainId === chainId);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isOpen = Boolean(anchorEl);
@@ -45,7 +49,7 @@ function ChainSelect() {
 
   return (
     <>
-      {networkName && isSupported ? (
+      {networkName && isSupported(chainId) ? (
         <Chip
           label={
             <Stack direction="row" alignItems="center" spacing={1}>
