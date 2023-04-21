@@ -111,7 +111,7 @@ export function SafetyNoticeModal() {
             }
             control={
               <Checkbox
-                data-cy={'disclaimer-check-3'}
+                data-cy={`disclaimer-check-${agreements.length}`}
                 checked={hasAcceptedTerms}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
                   setHasAcceptedTerms(event.target.checked);
