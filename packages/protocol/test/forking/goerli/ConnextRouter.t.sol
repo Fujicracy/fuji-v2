@@ -411,7 +411,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     args[1] =
       abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
     args[2] = abi.encode(address(vault), borrowAmount, address(connextRouter), ALICE);
-    args[3] = abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter));
+    args[3] = abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
@@ -655,7 +655,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destInnerActions[3] = IRouter.Action.XTransfer;
     destInnerArgs[0] = abi.encode(address(vault), 100e6, ALICE, address(connextRouter));
     destInnerArgs[2] = abi.encode(address(vault), 1 ether, ALICE, address(connextRouter));
-    destInnerArgs[3] = abi.encode(GOERLI_DOMAIN, 0, collateralAsset, 1 ether, ALICE, ALICE);
+    destInnerArgs[3] = abi.encode(GOERLI_DOMAIN, 0, collateralAsset, 1 ether, ALICE, ALICE, ALICE);
 
     //flashloan parameters
     bytes memory requestorCalldata =
