@@ -32,8 +32,10 @@ Please note that testing is a WIP feature. We setup [synpress](https://github.co
 # in your .env
 
 SECRET_WORDS=<seed phrase, space separated>
-PRIVATE_KEY=<testing-wallet-key>
-NETWORK_NAME=polygon
+NETWORK_NAME=Gnosis
+RPC_URL=https://rpc.gnosischain.com/
+CHAIN_ID=100
+SYMBOL=xDAI
 ```
 
 ⚠️ RN it looks like there is a bug if you use "mainnet" as network name (changeMetamaskNetwork never ends or if you put it in .env setupMetamask never finish), so I suggest using `Polygon` or `Fantom` instead.

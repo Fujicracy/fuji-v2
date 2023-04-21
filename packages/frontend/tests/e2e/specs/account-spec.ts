@@ -19,17 +19,23 @@ describe('Account', () => {
       .should('exist')
       .and('contain.text', 'Connect wallet');
   });
-  it('should login to the right address', () => {
+  it('should login', () => {
     cy.get('[data-cy="header-login"]').click({ force: true });
-    cy.acceptMetamaskAccess()
-      .then((connected) => {
-        expect(connected).to.be.true;
-        return cy.getMetamaskWalletAddress();
-      })
-      .then((address) => {
-        expect(address).to.be.equal(
-          '0xedBf22d2c627318C57C542E35330955a3076C198' // Temp
-        );
-      });
+    cy.acceptMetamaskAccess().then((connected) => {
+      expect(connected).to.be.true;
+    });
+  });
+  it('should be connected to the right address', () => {
+    cy.getMetamaskWalletAddress().then((address) => {
+      expect(address).to.be.equal(
+        '0xedBf22d2c627318C57C542E35330955a3076C198' // Temp
+      );
+    });
+  });
+  it('should be connected to the right network', () => {
+    cy.getNetwork().then((network: any) => {
+      expect(network.networkName).to.be.equal('gnosis');
+      expect(network.networkId).to.be.equal(100);
+    });
   });
 });
