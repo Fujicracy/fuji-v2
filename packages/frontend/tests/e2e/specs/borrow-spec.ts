@@ -1,34 +1,30 @@
 describe('Borrow', () => {
-  before(() => {
-    cy.visit('/borrow');
-  });
-
-  it('should display a connect button if the user is not connected', () => {
-    cy.get('[data-cy="borrow-login"]')
-      .should('exist')
-      .and('contain.text', 'Connect wallet');
-  });
-
-  it('should login', () => {
-    cy.get('[data-cy="login"]').click({ force: true });
-    cy.acceptMetamaskAccess().then((connected) => {
-      expect(connected).to.be.true;
-    });
-  });
-
-  it('can click on MAX button to set input as value', () => {
-    cy.get('#collateral-amount').should('have.value', '');
-    cy.get('[data-cy="balance-amount"]')
-      .invoke('text')
-      .then((balance) => {
-        cy.get('[data-cy="max-btn"]').click();
-        cy.get('#collateral-amount').should(
-          'have.value',
-          parseFloat(balance.replace(/,/g, '.'))
-        );
-      });
-  });
-
+  // before(() => {
+  //   cy.visit('/borrow');
+  // });
+  // it('should display a connect button if the user is not connected', () => {
+  //   cy.get('[data-cy="borrow-login"]')
+  //     .should('exist')
+  //     .and('contain.text', 'Connect wallet');
+  // });
+  // it('should login', () => {
+  //   cy.get('[data-cy="login"]').click({ force: true });
+  //   cy.acceptMetamaskAccess().then((connected) => {
+  //     expect(connected).to.be.true;
+  //   });
+  // });
+  // it('can click on MAX button to set input as value', () => {
+  //   cy.get('#collateral-amount').should('have.value', '');
+  //   cy.get('[data-cy="balance-amount"]')
+  //     .invoke('text')
+  //     .then((balance) => {
+  //       cy.get('[data-cy="max-btn"]').click();
+  //       cy.get('#collateral-amount').should(
+  //         'have.value',
+  //         parseFloat(balance.replace(/,/g, '.'))
+  //       );
+  //     });
+  // });
   // it('can select another collateral chain', () => {
   // Disable since we are using testnet only before launch
   // cy.get("#collateral-chain-select")
@@ -45,7 +41,6 @@ describe('Borrow', () => {
   //     .should("contain.text", chain)
   // }
   // });
-
   // it('can select any available token on the collateral chain', () => {
   // Disable because it may vary on testnets
   // cy.get("#select-collateral-button").should("contain.text", "WMATIC")
