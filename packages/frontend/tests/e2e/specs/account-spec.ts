@@ -14,15 +14,22 @@ describe('Account', () => {
 
     cy.get('[data-cy=disclaimer-modal').should('not.exist');
   });
-  // it('should display a connect button if the user is not connected', () => {
-  //   cy.get('[data-cy="borrow-login"]')
-  //     .should('exist')
-  //     .and('contain.text', 'Connect wallet');
-  // });
-  // it('should login', () => {
-  //   cy.get('[data-cy="login"]').click({ force: true });
-  //   cy.acceptMetamaskAccess().then((connected) => {
-  //     expect(connected).to.be.true;
-  //   });
-  // });
+  it('should display a connect button if the user is not connected', () => {
+    cy.get('[data-cy="header-login"]')
+      .should('exist')
+      .and('contain.text', 'Connect wallet');
+  });
+  it('should login to the right address', () => {
+    cy.get('[data-cy="header-login"]').click({ force: true });
+    cy.acceptMetamaskAccess()
+      .then((connected) => {
+        expect(connected).to.be.true;
+        return cy.getMetamaskWalletAddress();
+      })
+      .then((address) => {
+        expect(address).to.be.equal(
+          '0xedBf22d2c627318C57C542E35330955a3076C198' // Temp
+        );
+      });
+  });
 });
