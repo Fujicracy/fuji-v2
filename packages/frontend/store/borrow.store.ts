@@ -27,6 +27,7 @@ import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_THRESHOLD,
   NOTIFICATION_MESSAGES,
+  TRANSACTION_META_DEBOUNCE_INTERVAL,
 } from '../constants';
 import {
   AllowanceStatus,
@@ -664,7 +665,7 @@ export const useBorrow = create<BorrowStore>()(
 
         updateTransactionMetaDebounced: debounce(
           () => get().updateTransactionMeta(),
-          500
+          TRANSACTION_META_DEBOUNCE_INTERVAL
         ),
 
         updateLtv() {
