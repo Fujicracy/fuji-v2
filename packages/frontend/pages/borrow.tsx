@@ -28,7 +28,7 @@ const BorrowPage: NextPage = () => {
       const chainId = hexToChainId(walletChain.id);
       if (!allowChainOverride || !chainId) return;
       changeCollateralChain(chainId, false);
-      changeDebtChain(chainId, false);
+      changeDebtChain(chainId, true);
     }
   }, [
     allowChainOverride,

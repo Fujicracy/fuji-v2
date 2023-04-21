@@ -7,11 +7,11 @@ import {
   DEFAULT_SLIPPAGE,
   FujiError,
   FujiErrorCode,
+  FujiResult,
   FujiResultError,
   FujiResultSuccess,
   LendingProviderDetails,
   RouterActionParams,
-  RoutingStepDetails,
   Sdk,
   Token,
 } from '@x-fuji/sdk';
@@ -37,7 +37,7 @@ import {
   Mode,
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
-import { testChains } from '../helpers/chains';
+import { isSupported, testChains } from '../helpers/chains';
 import { handleCancelableMMActionError } from '../helpers/errors';
 import {
   dismiss,
@@ -47,6 +47,7 @@ import {
   notify,
 } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
+import { TransactionMeta } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useHistory } from './history.store';
@@ -76,14 +77,7 @@ type BorrowState = {
 
   slippage: number;
 
-  transactionMeta: {
-    status: FetchStatus;
-    gasFees: number; // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
-    bridgeFee: number;
-    estimateTime: number;
-    estimateSlippage: number;
-    steps: RoutingStepDetails[];
-  };
+  transactionMeta: TransactionMeta;
   availableRoutes: RouteMeta[];
 
   needsSignature: boolean;
@@ -277,6 +271,8 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeAssetChain(type, chainId: ChainId, updateVault) {
+          if (!isSupported(chainId)) return;
+
           const tokens =
             type === 'debt'
               ? sdk.getDebtForChain(chainId)
@@ -417,6 +413,13 @@ export const useBorrow = create<BorrowStore>()(
             console.error(result.error.message);
             return;
           }
+          const currentToken =
+            type === 'debt' ? get().debt.token : get().collateral.token;
+          if (
+            token.address !== currentToken.address ||
+            token.chainId !== currentToken.chainId
+          )
+            return;
           const balances = result.data;
           get().changeBalances(type, balances);
         },
@@ -442,6 +445,10 @@ export const useBorrow = create<BorrowStore>()(
             console.error(result.error.message);
             return;
           }
+
+          const currentToken =
+            type === 'debt' ? get().debt.token : get().collateral.token;
+          if (token.address !== currentToken.address) return;
 
           let tokenValue = result.data;
           const isTestNet = testChains.some((c) => c.chainId === token.chainId);
@@ -482,6 +489,15 @@ export const useBorrow = create<BorrowStore>()(
           );
           try {
             const res = await sdk.getAllowanceFor(token, Address.from(address));
+
+            const currentToken =
+              type === 'debt' ? get().debt.token : get().collateral.token;
+            if (
+              token.address !== currentToken.address ||
+              token.chainId !== currentToken.chainId
+            )
+              return;
+
             const value = parseFloat(formatUnits(res, token.decimals));
             set(
               produce((s: BorrowState) => {
@@ -557,7 +573,14 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
 
-          const { activeVault, collateral, debt, mode, slippage } = get();
+          const {
+            activeVault,
+            availableVaults,
+            collateral,
+            debt,
+            mode,
+            slippage,
+          } = get();
           const collateralInput =
             collateral.input === '' ? '0' : collateral.input;
           const debtInput = debt.input === '' ? '0' : debt.input;
@@ -581,9 +604,8 @@ export const useBorrow = create<BorrowStore>()(
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
-              formType === 'create'
-                ? get().availableVaults
-                : [get().activeVault as BorrowingVault];
+              formType === 'create' ? availableVaults : [activeVault];
+
             const results = await Promise.all(
               vaults.map((v, i) => {
                 const recommended = i === 0;
@@ -603,17 +625,26 @@ export const useBorrow = create<BorrowStore>()(
             );
             const error = results.find((r): r is FujiResultError => !r.success);
             if (error) {
-              throw error.error;
+              console.error(error);
+              //throw error.error;
             }
+            // filter valid routes
             const availableRoutes: RouteMeta[] = (
-              results as FujiResultSuccess<RouteMeta>[]
+              results.filter(
+                (r): r is FujiResult<RouteMeta> => r.success
+              ) as FujiResultSuccess<RouteMeta>[]
             ).map((r) => r.data);
             const selectedRoute = availableRoutes.find(
               (r) => r.address === activeVault.address.value
             );
-            if (!selectedRoute || !selectedRoute.actions.length) {
+            // no route means that the active vault has changed before the async call completed
+            if (!selectedRoute && formType === 'create') {
+              get().updateVault();
+              return;
+            }
+            if (!selectedRoute?.actions.length) {
               throw new FujiError(
-                'No route found for active vault or route found with empty action array',
+                'Route found with empty action array',
                 FujiErrorCode.SDK
               );
             }
@@ -674,10 +705,10 @@ export const useBorrow = create<BorrowStore>()(
             );
           }
 
-          const liquidationTreshold = get().ltv.ltvThreshold;
+          const liquidationThreshold = get().ltv.ltvThreshold;
 
           const liquidationPrice =
-            debtValue / (collateralAmount * (liquidationTreshold / 100));
+            debtValue / (collateralAmount * (liquidationThreshold / 100));
           const liquidationDiff = Math.round(
             (1 - liquidationPrice / collateralPrice) * 100
           );
@@ -700,6 +731,10 @@ export const useBorrow = create<BorrowStore>()(
           const { deposit, borrow } = await vault.getBalances(
             Address.from(address)
           );
+
+          const currentVault = get().activeVault;
+          if (vault.address.value !== currentVault?.address.value) return;
+
           set(
             produce((s: BorrowState) => {
               const dec = s.collateral.token.decimals;

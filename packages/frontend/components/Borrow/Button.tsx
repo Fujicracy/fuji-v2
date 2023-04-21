@@ -14,6 +14,7 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { hexToChainId } from '../../helpers/chains';
+import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 
@@ -29,6 +30,7 @@ type BorrowButtonProps = {
   isSigning: boolean;
   isExecuting: boolean;
   availableVaultStatus: FetchStatus;
+  transactionMeta: TransactionMeta;
   mode: Mode;
   isEditing: boolean;
   actionType: ActionType;
@@ -53,6 +55,7 @@ function BorrowButton({
   isSigning,
   isExecuting,
   availableVaultStatus,
+  transactionMeta,
   mode,
   isEditing,
   actionType,
@@ -142,11 +145,6 @@ function BorrowButton({
   ) {
     return loadingButton(false, true);
   } else if (
-    collateral.chainId !== debt.chainId &&
-    debt.token.symbol === 'DAI'
-  ) {
-    return disabledButton('Cross-chain DAI not supported');
-  } else if (
     (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
     hexToChainId(walletChain?.id)
   ) {
@@ -155,7 +153,19 @@ function BorrowButton({
         actionType === ActionType.ADD ? collateral.chainId : debt.chainId
       );
     });
-  } else if (!isEditing && hasBalanceInVault) {
+  } else if (availableVaultStatus === 'error') {
+    return disabledButton('Error fetching on-chain data');
+  } else if (
+    collateral.chainId !== debt.chainId &&
+    debt.token.symbol === 'DAI'
+  ) {
+    return disabledButton('Cross-chain DAI not supported');
+  } else if (
+    !isEditing &&
+    hasBalanceInVault &&
+    availableVaultStatus === 'ready' &&
+    transactionMeta.status === 'ready'
+  ) {
     return regularButton('Manage position', () => {
       onRedirectClick(false);
     });
@@ -199,13 +209,6 @@ function BorrowButton({
     return regularButton('Approve', () => onApproveClick('collateral'));
   } else if (needsAllowance(mode, 'debt', debt, debtAmount)) {
     return regularButton('Approve', () => onApproveClick('debt'));
-  } else if (
-    isEditing &&
-    position.vault &&
-    mode === Mode.DEPOSIT_AND_BORROW &&
-    debt.chainId !== position.vault?.chainId
-  ) {
-    return disabledButton('wtf?');
   } else {
     return loadingButton(
       !(

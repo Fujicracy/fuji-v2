@@ -50,6 +50,10 @@ export function isChain(id: number): boolean {
   return ChainId[Number(id)] !== undefined;
 }
 
+export function isSupported(id: ChainId | undefined): boolean {
+  return chains.some((chain) => chain.chainId === id);
+}
+
 export function chainIdToHex(id: ChainId): string {
   return `0x${id.toString(16)}`;
 }
