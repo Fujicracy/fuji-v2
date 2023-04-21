@@ -37,7 +37,7 @@ import {
   Mode,
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
-import { isChain, testChains } from '../helpers/chains';
+import { isSupported, testChains } from '../helpers/chains';
 import { handleCancelableMMActionError } from '../helpers/errors';
 import {
   dismiss,
@@ -271,7 +271,7 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeAssetChain(type, chainId: ChainId, updateVault) {
-          if (!isChain(chainId)) return;
+          if (!isSupported(chainId)) return;
 
           const tokens =
             type === 'debt'
