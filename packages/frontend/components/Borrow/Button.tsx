@@ -78,10 +78,10 @@ function BorrowButton({
       : mode === Mode.DEPOSIT
       ? 'Deposit'
       : mode === Mode.PAYBACK_AND_WITHDRAW
-      ? 'Repay & Withdraw'
+      ? 'Payback & Withdraw'
       : mode === Mode.WITHDRAW
       ? 'Withdraw'
-      : 'Repay'
+      : 'Payback'
   }`;
 
   const loadingButtonTitle =
