@@ -8,7 +8,6 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Stack,
   SxProps,
   TextField,
   Theme,
@@ -287,15 +286,12 @@ function TokenCard({
               variant="small"
               sx={{
                 minWidth: '2.5rem',
-                ['@media screen and (max-width: 370px)']: {
-                  fontSize: '0.7rem',
-                },
               }}
             >
               ~{usdValue}
             </Typography>
 
-            <Stack direction="row">
+            {Number(recommended()) > 0 && (
               <Typography
                 variant="smallDark"
                 sx={{
@@ -304,9 +300,6 @@ function TokenCard({
                     content: '"Recommended: "',
                   },
                   ['@media screen and (max-width: 370px)']: {
-                    fontSize: '0.7rem',
-                  },
-                  ['@media screen and (max-width: 320px)']: {
                     '&::before': {
                       content: '"Rec. "',
                     },
@@ -318,16 +311,13 @@ function TokenCard({
                   variant="smallDark"
                   color={palette.success.main}
                   sx={{
-                    ['@media screen and (max-width: 370px)']: {
-                      fontSize: '0.7rem',
-                    },
                     cursor: 'pointer',
                   }}
                 >
                   {toNotSoFixed(recommended())} {debt.token.symbol}
                 </Typography>
               </Typography>
-            </Stack>
+            )}
           </>
         )}
       </div>
