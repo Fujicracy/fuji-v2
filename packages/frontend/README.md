@@ -31,6 +31,7 @@ Please note that testing is a WIP feature. We setup [synpress](https://github.co
 ```bash
 # in your .env
 
+SECRET_WORDS=<seed phrase, space separated>
 PRIVATE_KEY=<testing-wallet-key>
 NETWORK_NAME=polygon
 ```
