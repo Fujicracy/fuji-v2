@@ -25,6 +25,7 @@ import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+import {TransferInfo} from "../../../src/interfaces/connext/IConnext.sol";
 
 contract MockTestFlasher is Routines, IFlasher {
   using SafeERC20 for IERC20;
@@ -73,6 +74,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   ConnextRouter public connextRouter;
   ConnextHandler public connextHandler;
   uint32 domain;
+  IConnext public connext = IConnext(registry[GOERLI_DOMAIN].connext);
 
   function setUp() public {
     domain = GOERLI_DOMAIN;
@@ -411,7 +413,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     args[1] =
       abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
     args[2] = abi.encode(address(vault), borrowAmount, address(connextRouter), ALICE);
-    args[3] = abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
+    args[3] =
+      abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
@@ -725,4 +728,57 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
     connextRouter.xBundle(originActions, originArgs);
   }
+
+  function test_tryChangeXTransferSlippageWithoutPermission() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 100e6;
+    uint256 slippage = 0;
+    uint256 newSlippage = 3;
+    uint256 slippageThreshold = 5;
+
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE,
+      ALICE_PK,
+      amount,
+      borrowAmount,
+      address(connextRouter),
+      address(vault),
+      slippageThreshold
+    );
+
+    vm.expectEmit(true, true, true, false);
+    emit Deposit(address(connextRouter), ALICE, amount, amount);
+
+    vm.expectEmit(true, true, true, false);
+    emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    // including a 0.03% slippage (3 BPS)
+    uint256 slippageAmount = ((amount * 10000) / 10003);
+    deal(collateralAsset, address(connextRouter), slippageAmount);
+
+    vm.expectRevert();
+    //Try to change slippage without permission
+    vm.startPrank(BOB);
+    connext.forceUpdateSlippage(
+      TransferInfo({
+        originDomain: OPTIMISM_GOERLI_DOMAIN,
+        destinationDomain: GOERLI_DOMAIN,
+        canonicalDomain: GOERLI_DOMAIN,
+        to: address(connextRouter),
+        delegate: ALICE,
+        receiveLocal: false,
+        callData: "",
+        slippage: 0,
+        originSender: ALICE,
+        bridgedAmt: amount,
+        normalizedIn: amount,
+        nonce: 0,
+        canonicalId: ""
+      }),
+      newSlippage
+    );
+  }
+
 }
