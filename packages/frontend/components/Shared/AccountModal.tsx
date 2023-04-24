@@ -48,18 +48,23 @@ function AccountModal({
   closeAccountModal,
 }: AccountModalProps) {
   const { palette } = useTheme();
-  const [copied, setCopied] = useState(false);
-  const [copyAddressHovered, setCopyAddressHovered] = useState(false);
-  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
-  const logout = useAuth((state) => state.logout);
+
   const hexChainId = useAuth((state) => state.chain?.id);
   const walletName = useAuth((state) => state.walletName);
+  const logout = useAuth((state) => state.logout);
 
   const historyEntries = useHistory((state) =>
-    state.transactions.map((hash) => state.entries[hash]).slice(0, 10)
+    state.transactions
+      .map((tx) => state.entries[tx.hash])
+      .filter((e) => e.address === address)
+      .slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
   const clearAll = useHistory((state) => state.clearAll);
+
+  const [copied, setCopied] = useState(false);
+  const [copyAddressHovered, setCopyAddressHovered] = useState(false);
+  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
 
   const chainId = hexToChainId(hexChainId);
   const formattedAddress =
@@ -78,9 +83,12 @@ function AccountModal({
     closeAccountModal();
   };
 
+  const handleClear = () => {
+    clearAll(address);
+  };
+
   const onLogout = () => {
     logout();
-    clearAll();
   };
 
   return (
@@ -197,7 +205,7 @@ function AccountModal({
               historyEntries.filter(
                 (entry) => entry.status === HistoryEntryStatus.ONGOING
               ).length !== historyEntries.length && (
-                <Typography variant="xsmallLink" onClick={clearAll}>
+                <Typography variant="xsmallLink" onClick={handleClear}>
                   clear all
                 </Typography>
               )}

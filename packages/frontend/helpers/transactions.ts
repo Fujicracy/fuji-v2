@@ -4,10 +4,21 @@ import {
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
+  RoutingStepDetails,
 } from '@x-fuji/sdk';
 
 import { sdk } from '../services/sdk';
+import { FetchStatus } from '../store/borrow.store';
 import { HistoryEntry, HistoryEntryStatus } from './history';
+
+export type TransactionMeta = {
+  status: FetchStatus;
+  gasFees: number; // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
+  bridgeFee: number;
+  estimateTime: number;
+  estimateSlippage: number;
+  steps: RoutingStepDetails[];
+};
 
 export type TransactionStep = {
   label: string;
@@ -42,11 +53,8 @@ export const statusForStep = (
   if (step.chainId === entry.sourceChain.chainId) {
     return entry.sourceChain.status;
   }
-  if (
-    entry.destinationChain &&
-    step.chainId === entry.destinationChain.chainId
-  ) {
-    return entry.destinationChain.status;
+  if (entry.secondChain && step.chainId === entry.secondChain.chainId) {
+    return entry.secondChain.status;
   }
   return entry.status;
 };

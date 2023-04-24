@@ -1,8 +1,9 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { RoutingStep } from '@x-fuji/sdk';
 import Image from 'next/image';
+import React, { useMemo } from 'react';
 
 import {
   ActionType,
@@ -11,8 +12,9 @@ import {
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
 import { isCrossChainTransaction } from '../../helpers/routing';
+import { TransactionMeta } from '../../helpers/transactions';
 import { formatValue } from '../../helpers/values';
-import { FetchStatus } from '../../store/borrow.store';
+import { useBorrow } from '../../store/borrow.store';
 import AssetBox from './ConfirmationTransaction/AssetBox';
 import InfoRow from './ConfirmationTransaction/InfoRow';
 import RouteBox from './ConfirmationTransaction/RouteBox';
@@ -20,14 +22,7 @@ import WarningInfo from './WarningInfo';
 
 type ConfirmTransactionModalProps = {
   basePosition: BasePosition;
-  transactionMeta: {
-    status: FetchStatus;
-    gasFees: number;
-    bridgeFee: number;
-    estimateTime: number;
-    estimateSlippage: number;
-    steps: RoutingStepDetails[];
-  };
+  transactionMeta: TransactionMeta;
   open: boolean;
   isEditing: boolean;
   actionType: ActionType;
@@ -53,6 +48,7 @@ export function ConfirmTransactionModal({
   const { palette } = useTheme();
   const { steps } = transactionMeta;
   const { editedPosition, position } = basePosition;
+  const slippage = useBorrow((state) => state.slippage);
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
@@ -86,6 +82,10 @@ export function ConfirmTransactionModal({
   };
 
   const isCrossChain = isCrossChainTransaction(steps);
+  const isEstimatedSlippageBiggerThanSelected = useMemo(
+    () => transactionMeta.estimateSlippage > slippage / 100,
+    [transactionMeta.estimateSlippage, slippage]
+  );
 
   return (
     <Dialog
@@ -153,9 +153,11 @@ export function ConfirmTransactionModal({
 
         {isCrossChain && (
           <InfoRow
-            title="Est. slippage"
+            title="Slippage"
             value={
-              <Typography variant="small">{`~${transactionMeta.estimateSlippage} %`}</Typography>
+              <Typography variant="small">{`Est. ${
+                transactionMeta.estimateSlippage
+              }% (max. ${slippage / 100}%)`}</Typography>
             }
           />
         )}
@@ -266,6 +268,30 @@ export function ConfirmTransactionModal({
         {dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 && (
           <Box mt="1rem">
             <WarningInfo text="Warning: Your Loan-to-Value ratio is very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes." />
+          </Box>
+        )}
+
+        {isCrossChain && isEstimatedSlippageBiggerThanSelected && (
+          <Box mt="1rem">
+            <WarningInfo
+              text={
+                <>
+                  Expected slippage for this transaction might be higher than
+                  your slippage tolerance. This may lead to a longer waiting
+                  time for your transaction to be executed on the destination
+                  chain. Please, consider increasing your slippage tolerance
+                  from the{' '}
+                  <Image
+                    src={'/assets/images/shared/settings.svg'}
+                    alt="Settings Image"
+                    width={14}
+                    height={14}
+                    style={{ transform: 'translateY(20%)', margin: '0 0.1rem' }}
+                  />{' '}
+                  {'"Settings" menu.'}
+                </>
+              }
+            />
           </Box>
         )}
 

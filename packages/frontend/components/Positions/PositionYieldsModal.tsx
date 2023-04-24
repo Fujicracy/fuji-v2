@@ -12,6 +12,7 @@ import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
+import { showBorrow } from '../../helpers/navigation';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -146,7 +147,7 @@ export function PositionYieldsModal({
           variant="gradient"
           size="medium"
           fullWidth
-          onClick={() => router.push('/borrow')}
+          onClick={() => showBorrow(router)}
           data-cy="new-borrow-redirect"
           sx={{
             mt: '1.375rem',

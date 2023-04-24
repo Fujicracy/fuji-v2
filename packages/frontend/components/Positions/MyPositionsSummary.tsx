@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
-import { PATH } from '../../constants';
+import { showBorrow } from '../../helpers/navigation';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -106,7 +106,7 @@ function MyPositionsSummary() {
   const mappedActions: {
     [key: string]: () => void;
   } = {
-    ['Borrow']: () => router.push(PATH.BORROW),
+    ['Borrow']: () => showBorrow(router),
     ['Details']: () => setIsPositionsYieldsModalShown(true),
   };
 

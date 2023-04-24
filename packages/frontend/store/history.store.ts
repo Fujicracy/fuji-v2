@@ -12,6 +12,7 @@ import { chainName } from '../helpers/chains';
 import {
   HistoryEntry,
   HistoryEntryStatus,
+  HistoryTransaction,
   toHistoryRoutingStep,
   triggerUpdatesFromSteps,
   wait,
@@ -23,23 +24,33 @@ import {
 } from '../helpers/notifications';
 import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
+import { useAuth } from './auth.store';
 import { usePositions } from './positions.store';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
 type HistoryState = {
-  transactions: string[];
-  ongoingTransactions: string[];
+  transactions: HistoryTransaction[];
+  ongoingTransactions: HistoryTransaction[];
   entries: Record<string, HistoryEntry>;
 
-  currentTxHash?: string; // The tx hash displayed in modal
+  currentTxHash?: string | undefined; // The tx hash displayed in modal
+
+  watching: string[];
 };
 
 type HistoryActions = {
-  add: (hash: string, vaultAddr: string, steps: RoutingStepDetails[]) => void;
+  add: (
+    hash: string,
+    address: string,
+    vaultAddress: string,
+    steps: RoutingStepDetails[]
+  ) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
-  clearAll: () => void;
-  watch: (hash: string) => void;
+  clearAll: (address: string) => void;
+  watchAll: (address: string) => void;
+  watch: (transaction: HistoryTransaction) => void;
+  clearStore: () => void;
 
   openModal: (hash: string) => void;
   closeModal: () => void;
@@ -49,6 +60,7 @@ const initialState: HistoryState = {
   transactions: [],
   ongoingTransactions: [],
   entries: {},
+  watching: [],
 };
 
 export const useHistory = create<HistoryStore>()(
@@ -57,50 +69,69 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        async add(hash, vaultAddress, steps) {
+        async add(hash, address, vaultAddress, steps) {
           const srcChainId = steps[0].chainId;
-          const destChainId = steps[steps.length - 1].chainId;
-          const isCrossChain = srcChainId !== destChainId;
+          const secondChainId = steps[steps.length - 1].chainId;
+          const chainCount = srcChainId === secondChainId ? 1 : 2;
+          const isCrossChain = chainCount > 1;
+
           const sourceChain = {
             chainId: srcChainId,
             status: HistoryEntryStatus.ONGOING,
             hash,
           };
-          const destinationChain = isCrossChain
+          const secondChain = isCrossChain
             ? {
-                chainId: destChainId,
+                chainId: secondChainId,
                 status: HistoryEntryStatus.ONGOING,
               }
             : undefined;
 
-          const entry = {
+          const entry: HistoryEntry = {
             vaultAddress,
             hash,
+            address,
             sourceChain,
-            destinationChain,
-            isCrossChain,
+            secondChain,
+            chainCount,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
           };
+
+          const transaction = { hash, address };
 
           set(
             produce((s: HistoryState) => {
               s.currentTxHash = hash;
               s.entries[hash] = entry;
-              s.transactions = [hash, ...s.transactions];
-              s.ongoingTransactions = [hash, ...s.ongoingTransactions];
+              s.transactions = [transaction, ...s.transactions];
+              s.ongoingTransactions = [transaction, ...s.ongoingTransactions];
             })
           );
 
-          get().watch(hash);
+          get().watch(transaction);
         },
 
-        async watch(hash) {
+        watchAll(address) {
+          const ongoingTransactions = get().ongoingTransactions.filter(
+            (t) => t.address === address
+          );
+          for (const hash of ongoingTransactions) {
+            get().watch(hash);
+          }
+        },
+
+        async watch(transaction) {
+          const { hash } = transaction;
+
+          if (get().watching.includes(hash)) return;
+          set((state) => ({ watching: [...state.watching, hash] }));
+
           const entry = get().entries[hash];
 
           const remove = () => {
             const ongoingTransactions = get().ongoingTransactions.filter(
-              (h) => h !== hash
+              (h) => h.hash !== hash
             );
             set({ ongoingTransactions });
           };
@@ -111,12 +142,15 @@ export const useHistory = create<HistoryStore>()(
           }
 
           const finish = (success: boolean) => {
-            triggerUpdatesFromSteps(entry.steps);
+            const address = useAuth.getState().address;
+            if (address === entry.address) {
+              triggerUpdatesFromSteps(entry.steps);
+            }
 
-            const isDestination =
-              entry.isCrossChain &&
-              entry.destinationChain &&
-              entry.sourceChain.status === HistoryEntryStatus.SUCCESS;
+            const isFinal =
+              entry.chainCount > 1 &&
+              entry.secondChain &&
+              entry.secondChain.status === HistoryEntryStatus.SUCCESS;
 
             set(
               produce((s: HistoryState) => {
@@ -125,8 +159,8 @@ export const useHistory = create<HistoryStore>()(
                   ? HistoryEntryStatus.SUCCESS
                   : HistoryEntryStatus.FAILURE;
 
-                if (isDestination && entry.destinationChain) {
-                  entry.destinationChain.status = success
+                if (isFinal && entry.secondChain) {
+                  entry.secondChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
                 } else {
@@ -138,31 +172,33 @@ export const useHistory = create<HistoryStore>()(
             );
 
             const linkHash =
-              isDestination && entry.destinationChain
-                ? entry.destinationChain.hash
+              isFinal && entry.secondChain
+                ? entry.secondChain.hash
                 : entry.hash;
 
-            notify({
-              type: success ? 'success' : 'error',
-              message: success
-                ? NOTIFICATION_MESSAGES.TX_SUCCESS
-                : NOTIFICATION_MESSAGES.TX_FAILURE,
-              duration: success
-                ? NotificationDuration.LONG
-                : NotificationDuration.MEDIUM,
-              link: linkHash
-                ? getTransactionLink({
-                    hash: linkHash,
-                    chainId:
-                      isDestination && entry.destinationChain
-                        ? entry.destinationChain.chainId
-                        : entry.sourceChain.chainId,
-                  })
-                : undefined,
-            });
+            if (address === entry.address) {
+              notify({
+                type: success ? 'success' : 'error',
+                message: success
+                  ? NOTIFICATION_MESSAGES.TX_SUCCESS
+                  : NOTIFICATION_MESSAGES.TX_FAILURE,
+                duration: success
+                  ? NotificationDuration.LONG
+                  : NotificationDuration.MEDIUM,
+                link: linkHash
+                  ? getTransactionLink({
+                      hash: linkHash,
+                      chainId:
+                        isFinal && entry.secondChain
+                          ? entry.secondChain.chainId
+                          : entry.sourceChain.chainId,
+                    })
+                  : undefined,
+              });
 
-            if (success) {
-              usePositions.getState().fetchUserPositions();
+              if (success) {
+                usePositions.getState().fetchUserPositions();
+              }
             }
           };
 
@@ -179,16 +215,17 @@ export const useHistory = create<HistoryStore>()(
                 s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
               })
             );
-            if (!entry.isCrossChain && !entry.destinationChain) {
+            if (entry.chainCount === 1 && !entry.secondChain) {
               finish(true);
               return;
             }
-            if (!entry.sourceChain.shown) {
+            const address = useAuth.getState().address;
+            if (address === entry.address && !entry.sourceChain.shown) {
               notify({
                 type: 'success',
                 message: formatCrosschainNotificationMessage(
                   chainName(entry.sourceChain.chainId),
-                  chainName(entry.destinationChain?.chainId)
+                  chainName(entry.secondChain?.chainId)
                 ),
                 link: getTransactionLink({
                   hash: entry.hash,
@@ -228,18 +265,15 @@ export const useHistory = create<HistoryStore>()(
                       timestamp: Date.now(),
                     };
                   }
-                  if (!e.destinationChain) return;
-                  if (
-                    crosschainResult.data.destTxHash &&
-                    !e.destinationChain?.hash
-                  ) {
-                    e.destinationChain.hash = crosschainResult.data.destTxHash;
+                  if (!e.secondChain) return;
+                  if (crosschainResult.data.destTxHash && !e.secondChain.hash) {
+                    e.secondChain.hash = crosschainResult.data.destTxHash;
                   }
                   if (
                     crosschainResult.data.status === ConnextTxStatus.EXECUTED &&
-                    e.destinationChain.status !== HistoryEntryStatus.SUCCESS
+                    e.secondChain.status !== HistoryEntryStatus.SUCCESS
                   ) {
-                    e.destinationChain.status = HistoryEntryStatus.SUCCESS;
+                    e.secondChain.status = HistoryEntryStatus.SUCCESS;
                   }
                 })
               );
@@ -265,9 +299,29 @@ export const useHistory = create<HistoryStore>()(
           );
         },
 
-        clearAll() {
-          useHistory.persist.clearStorage();
-          set(initialState);
+        clearAll(address) {
+          const transactions = get().transactions.filter(
+            (t) => t.address !== address
+          );
+          const ongoingTransactions = get().transactions.filter(
+            (t) => t.address !== address
+          );
+          const entries: Record<string, HistoryEntry> = {};
+          for (const [key, entry] of Object.entries(get().entries)) {
+            if (entry.address !== address) {
+              entries[key] = entry;
+            }
+          }
+          set({ transactions, ongoingTransactions, entries });
+        },
+
+        clearStore() {
+          set({
+            transactions: [],
+            ongoingTransactions: [],
+            entries: {},
+            currentTxHash: undefined,
+          });
         },
 
         openModal(hash) {
@@ -283,8 +337,13 @@ export const useHistory = create<HistoryStore>()(
         name: 'xFuji/history',
       }
     ),
+
     {
       name: 'xFuji/history',
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['watching'].includes(key))
+        ),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
@@ -293,8 +352,12 @@ export const useHistory = create<HistoryStore>()(
           if (!state) {
             return console.error('no state');
           }
-          for (const hash of state.ongoingTransactions) {
-            state.watch(hash);
+          // transactions used to be a hash array, now it's an object
+          const hasString = state.transactions.some(
+            (value) => typeof value === 'string'
+          );
+          if (hasString) {
+            state.clearStore();
           }
         };
       },

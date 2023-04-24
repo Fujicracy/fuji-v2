@@ -8,8 +8,11 @@ function WarningInfo({ text }: { text: string | ReactNode }) {
 
   return (
     <Box
-      p={1}
-      sx={{ flex: 1, backgroundColor: alpha(palette.warning.main, 0.1) }}
+      sx={{
+        flex: 1,
+        p: '0.5rem 1rem',
+        backgroundColor: alpha(palette.warning.main, 0.1),
+      }}
       borderRadius={2}
     >
       <Stack flexDirection="row" alignItems="center" gap={1.5}>

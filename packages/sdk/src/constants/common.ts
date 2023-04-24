@@ -1,5 +1,5 @@
 // Default values
-export const DEFAULT_SLIPPAGE = 30;
+export const DEFAULT_SLIPPAGE = 50;
 
 // Urls
 export const URLS = {
