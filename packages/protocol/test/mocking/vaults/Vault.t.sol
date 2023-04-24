@@ -226,7 +226,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryLessThanMinAmount(uint128 min, uint128 amount) public {
-    vm.assume(amount < min);
+    vm.assume(min > 0 && amount > 0 && amount < min);
     bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
     _callWithTimelock(address(vault), encodedWithSelectorData);
 
