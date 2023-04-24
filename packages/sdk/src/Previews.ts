@@ -17,9 +17,16 @@ import {
   Token,
 } from './entities';
 import { Chain } from './entities/Chain';
-import { ChainId, RouterAction, RoutingStep } from './enums';
+import {
+  ChainId,
+  OperationType,
+  PreviewName,
+  RouterAction,
+  RoutingStep,
+} from './enums';
+import { getPreviewActions, getPreviewRoutingDetails } from './functions';
 import { Nxtp } from './Nxtp';
-import { FujiResult, FujiResultPromise } from './types';
+import { FujiResult, FujiResultPromise, PreviewParams } from './types';
 import { MetaRoutingResult } from './types/MetaRoutingResult';
 import { PreviewResult } from './types/PreviewResult';
 import {
@@ -35,6 +42,72 @@ import {
 import { RoutingStepDetails } from './types/RoutingStepDetails';
 
 export class Previews {
+  getOperationType(params: PreviewParams): OperationType {
+    const { name, vault, srcChainId } = params;
+    switch (name) {
+      case PreviewName.DEPOSIT || PreviewName.PAYBACK:
+        if (srcChainId === vault.chainId) {
+          return OperationType.ONE_CHAIN;
+        } else {
+          return OperationType.TWO_CHAIN_VAULT_ON_DEST;
+        }
+      case PreviewName.BORROW || PreviewName.WITHDRAW:
+        if (
+          srcChainId == vault.chainId &&
+          params.tokenOut.chainId === vault.chainId
+        ) {
+          return OperationType.ONE_CHAIN;
+        } else if (
+          srcChainId === vault.chainId &&
+          params.tokenOut.chainId !== vault.chainId
+        ) {
+          return OperationType.TWO_CHAIN_VAULT_ON_SRC;
+        } else if (
+          srcChainId !== vault.chainId &&
+          params.tokenOut.chainId === vault.chainId
+        ) {
+          return OperationType.TWO_CHAIN_VAULT_ON_DEST;
+        } else {
+          return OperationType.THREE_CHAIN;
+        }
+      case PreviewName.DEPOSIT_AND_BORROW || PreviewName.PAYBACK_AND_WITHDRAW:
+        const tokenOut = params.tokenOut;
+        if (srcChainId === tokenOut.chainId && srcChainId == vault.chainId) {
+          return OperationType.ONE_CHAIN;
+        } else if (
+          srcChainId !== tokenOut.chainId &&
+          srcChainId === vault.chainId
+        ) {
+          return OperationType.TWO_CHAIN_VAULT_ON_SRC;
+        } else if (
+          srcChainId !== tokenOut.chainId &&
+          tokenOut.chainId === vault.chainId
+        ) {
+          return OperationType.TWO_CHAIN_VAULT_ON_DEST;
+        } else {
+          return OperationType.THREE_CHAIN;
+        }
+      default:
+        return OperationType.ONE_CHAIN; // error ???
+    }
+  }
+
+  async get(params: PreviewParams): Promise<RouterActionParams[]> {
+    //const { srcChainId, tokenIn } = params;
+    //if (tokenIn && srcChainId !== tokenIn.chainId) {
+    //// error
+    //}
+    // if cross-chain, verify bridged assets are supported by Connext
+    const operation = this.getOperationType(params);
+    const result = getPreviewActions(operation, params);
+    if (result.success) {
+      return result.data;
+    }
+    const routingDetails = await getPreviewRoutingDetails(operation, params);
+    console.log(routingDetails);
+    return [];
+  }
+
   /********** Single Previews ***********/
 
   async deposit(
@@ -154,7 +227,35 @@ export class Previews {
       }
       actions = [xTransferResult.data];
     } else {
-      return new FujiResultError('3-chain transfers are not enabled yet!');
+      // start from chain A, borrow on chain B where's also the position and transfer to chain C
+      const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
+      const xTransferResultC = this._xTransfer(
+        tokenOut.chainId,
+        vault.debt,
+        amountOut,
+        account,
+        connextRouter,
+        _slippage
+      );
+      if (!xTransferResultC.success) {
+        return xTransferResultC;
+      }
+      const innerActions = [
+        this._permitBorrow(vault, amountOut, connextRouter, account, deadline),
+        this._borrow(vault, amountOut, connextRouter, connextRouter),
+        xTransferResultC.data,
+      ];
+      const xTransferResult = this._xTransferWithCall(
+        vault.chainId,
+        { address: Address.from(AddressZero) } as Token,
+        BigNumber.from(0),
+        0,
+        innerActions
+      );
+      if (!xTransferResult.success) {
+        return xTransferResult;
+      }
+      actions = [xTransferResult.data];
     }
 
     const result = await this.outflowRoutingDetails(

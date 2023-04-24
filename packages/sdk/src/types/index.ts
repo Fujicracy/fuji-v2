@@ -8,6 +8,7 @@ export * from './FujiResult';
 export * from './LendingProvider';
 export * from './MetaRoutingResult';
 export * from './NativeMap';
+export * from './PreviewParams';
 export * from './PreviewResult';
 export * from './RouterActionParams';
 export * from './RoutingStepDetails';

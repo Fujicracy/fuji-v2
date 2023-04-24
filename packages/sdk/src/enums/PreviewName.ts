@@ -1,0 +1,8 @@
+export enum PreviewName {
+  DEPOSIT,
+  BORROW,
+  PAYBACK,
+  WITHDRAW,
+  DEPOSIT_AND_BORROW,
+  PAYBACK_AND_WITHDRAW,
+}
