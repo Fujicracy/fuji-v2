@@ -124,11 +124,22 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOf(ALICE), amount);
   }
 
+  function test_mint(uint128 shares) public {
+    vm.assume(shares > vault.minAmount());
+    do_mint(shares, vault, ALICE);
+    assertEq(vault.balanceOf(ALICE), shares);
+  }
+
   function test_withdraw(uint96 amount) public {
     vm.assume(amount > vault.minAmount());
     do_deposit(amount, vault, ALICE);
-
     do_withdraw(amount, vault, ALICE);
+  }
+
+  function test_redeem(uint128 shares) public {
+    vm.assume(shares > vault.minAmount());
+    do_mint(shares, vault, ALICE);
+    do_redeem(shares, vault, ALICE);
   }
 
   function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
@@ -144,6 +155,23 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
+  function test_depositThenMintDebt(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+
+    assertEq(vault.totalDebt(), 0);
+
+    do_deposit(amount, vault, ALICE);
+    uint256 debtShares = vault.previewBorrow(borrowAmount);
+
+    do_mintDebt(debtShares, vault, ALICE);
+
+    assertEq(vault.totalDebt(), borrowAmount);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+  }
+
   function test_paybackAndWithdraw(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
     vm.assume(
@@ -152,14 +180,27 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    vm.startPrank(ALICE);
-    IERC20(debtAsset).approve(address(vault), borrowAmount);
-    assertEq(vault.totalDebt(), borrowAmount);
-    vault.payback(borrowAmount, ALICE);
-    assertEq(vault.totalDebt(), 0);
-    vault.withdraw(amount, ALICE, ALICE);
-    vm.stopPrank();
+    do_payback(borrowAmount, vault, ALICE);
+    do_withdraw(amount, vault, ALICE);
 
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertEq(vault.balanceOf(ALICE), 0);
+  }
+
+  function test_burnDebtThenWithdraw(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    uint256 debtShares = vault.balanceOfDebtShares(ALICE);
+
+    do_burnDebt(debtShares, vault, ALICE);
+    do_withdraw(amount, vault, ALICE);
+
+    assertEq(vault.balanceOfDebt(ALICE), 0);
     assertEq(vault.balanceOf(ALICE), 0);
   }
 
