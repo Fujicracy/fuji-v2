@@ -119,7 +119,7 @@ export function SafetyNoticeModal() {
                   setHasAcceptedTerms(event.target.checked);
                 }}
                 color="default"
-                sx={{ p: '0 0.5rem 0 0' }}
+                sx={{ p: '0', mr: '0.5rem' }}
               />
             }
             sx={{ alignItems: 'start', m: 0 }}
@@ -148,7 +148,7 @@ export function SafetyNoticeModal() {
                     onOtherAgreementChange(i, event.target.checked);
                   }}
                   color="default"
-                  sx={{ p: '0 0.5rem 0 0' }}
+                  sx={{ p: '0', mr: '0.5rem' }}
                 />
               }
               sx={{ alignItems: 'start', m: 0 }}
