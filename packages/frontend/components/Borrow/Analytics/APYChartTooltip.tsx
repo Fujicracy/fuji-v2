@@ -13,7 +13,6 @@ const APYChartTooltip = ({ point }: PointTooltipProps) => {
   return (
     <Box
       sx={{
-        zIndex: 9999,
         width: '16rem',
         background: palette.secondary.dark,
         p: '0.75rem 1rem',

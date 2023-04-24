@@ -126,6 +126,7 @@ function Container({ children, isMobile }: ContainerProps) {
           alignItems: 'center',
           p: '1.5rem 2rem',
           width: '100%',
+          overflow: 'visible',
         }}
       >
         <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
