@@ -213,7 +213,48 @@ interface IVault is IERC4626 {
    * - Must return 2 ** 256 - 1 if there is no limit on the maximum amount of assets that may be borrowed.
    * - Must not revert.
    */
-  function maxBorrow(address owner) external view returns (uint256);
+  function maxBorrow(address owner) external view returns (uint256 debt);
+
+  /**
+   * @notice Returns the maximum amount of debt that can be payback by the `borrower`. Based on
+   *  {IERC4626-maxWithdraw}.
+   *
+   * @param owner to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function maxPayback(address owner) external view returns (uint256 debt);
+
+  /**
+   * TODO
+   */
+  function maxMintDebt(address owner) external view returns (uint256 shares);
+
+  /**
+   * TODO
+   */
+  function maxBurnDebt(address owner) external view returns (uint256 shares);
+
+  /**
+   * TODO
+   */
+  function previewBorrow(uint256 debt) external view returns (uint256 shares);
+
+  /**
+   * TODO
+   */
+  function previewMintDebt(uint256 shares) external view returns (uint256 debt);
+
+  /**
+   * TODO
+   */
+  function previewPayback(uint256 debt) external view returns (uint256 shares);
+
+  /**
+   * TODO
+   */
+  function previewBurnDebt(uint256 shares) external view returns (uint256 debt);
 
   /**
    * @notice Perform a borrow action. Function inspired on {IERC4626-deposit}.
@@ -228,7 +269,18 @@ interface IVault is IERC4626 {
    * - Must revert if owner does not own sufficient collateral to back debt.
    * - Must revert if caller is not owner or permissioned operator to act on owner behalf.
    */
-  function borrow(uint256 debt, address receiver, address owner) external returns (uint256);
+  function borrow(uint256 debt, address receiver, address owner) external returns (uint256 shares);
+
+  /**
+   * TODO
+   */
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner
+  )
+    external
+    returns (uint256 debt);
 
   /**
    * @notice Burns `debtShares` to `receiver` by paying back loan with exact amount of underlying tokens.
@@ -240,7 +292,12 @@ interface IVault is IERC4626 {
    * Requirements:
    * - Must emit a Payback event.
    */
-  function payback(uint256 debt, address receiver) external returns (uint256);
+  function payback(uint256 debt, address receiver) external returns (uint256 shares);
+
+  /**
+   * TODO
+   */
+  function burnDebt(uint256 shares, address owner) external returns (uint256 debt);
 
   /*///////////////////
     General functions

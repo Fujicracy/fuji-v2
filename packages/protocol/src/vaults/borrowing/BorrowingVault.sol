@@ -65,7 +65,9 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__rebalance_invalidFlasher();
   error BorrowingVault__checkFee_excessFee();
   error BorrowingVault__borrow_slippageTooHigh();
+  error BorrowingVault__mintDebt_slippageTooHigh();
   error BorrowingVault__payback_slippageTooHigh();
+  error BorrowingVault__burnDebt_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
 
   /*///////////////////
@@ -206,17 +208,52 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Down);
+    return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
   /// @inheritdoc IVault
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
-    return _convertToDebt(shares, Math.Rounding.Down);
+    return _convertToDebt(shares, Math.Rounding.Up);
   }
 
   /// @inheritdoc IVault
   function maxBorrow(address borrower) public view override returns (uint256) {
     return _computeMaxBorrow(borrower);
+  }
+
+  /// TODO
+  function maxPayback(address borrower) public view override returns (uint256) {
+    return previewBurnDebt(maxBurnDebt(borrower));
+  }
+
+  /// TODO
+  function maxMintDebt(address borrower) public view override returns (uint256) {
+    return convertDebtToShares(maxBorrow(borrower));
+  }
+
+  /// TODO
+  function maxBurnDebt(address borrower) public view override returns (uint256) {
+    return _debtShares[borrower];
+  }
+
+  /// TODO
+  function previewBorrow(uint256 debt) public view override returns (uint256 shares) {
+    return _convertDebtToShares(debt, Math.Rounding.Up);
+  }
+
+  /// TODO
+  function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
+    return _convertDebtToShares(shares, Math.Rounding.Down);
+  }
+
+  /// TODO
+  function previewPayback(uint256 debt) public view override returns (uint256 shares) {
+    return _convertDebtToShares(debt, Math.Rounding.Down);
+  }
+
+  /// TODO
+  function previewBurnDebt(uint256 shares) public view override returns (uint256 debt) {
+    return _convertToDebt(shares, Math.Rounding.Up);
   }
 
   /**
@@ -248,23 +285,54 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
-    address caller = _msgSender();
+    address caller = msg.sender;
 
-    if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
-      revert BorrowingVault__borrow_invalidInput();
-    }
-    if (debt > maxBorrow(owner)) {
-      revert BorrowingVault__borrow_moreThanAllowed();
-    }
-
-    if (caller != owner) {
-      _spendBorrowAllowance(owner, caller, receiver, debt);
-    }
-
-    uint256 shares = convertDebtToShares(debt);
+    _borrowChecks(caller, receiver, owner, debt);
+    uint256 shares = previewBorrow(debt);
     _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `mintDebt()` inspired by EIP5143.
+   * TODO
+   */
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner,
+    uint256 minDebt
+  )
+    public
+    returns (uint256)
+  {
+    uint256 receivedDebt = mintDebt(shares, receiver, owner);
+    if (receivedDebt < minDebt) {
+      revert BorrowingVault__mintDebt_slippageTooHigh();
+    }
+    return receivedDebt;
+  }
+
+  /**
+   * TODO
+   */
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner
+  )
+    public
+    override
+    returns (uint256)
+  {
+    uint256 debt = previewMintDebt(shares);
+    address caller = msg.sender;
+
+    _borrowChecks(caller, receiver, owner, debt);
+    _borrow(caller, receiver, owner, debt, shares);
+
+    return debt;
   }
 
   /**
@@ -287,18 +355,36 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
-    if (debt == 0 || owner == address(0)) {
-      revert BorrowingVault__payback_invalidInput();
-    }
+    uint256 shares = previewPayback(debt);
 
-    if (debt > convertToDebt(_debtShares[owner])) {
-      revert BorrowingVault__payback_moreThanMax();
-    }
-
-    uint256 shares = convertDebtToShares(debt);
-    _payback(_msgSender(), owner, debt, shares);
+    _paybackChecks(owner, debt, shares);
+    _payback(msg.sender, owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `burnDebt()` inspired by EIP5143.
+   * TODO
+   */
+  function burnDebt(uint256 shares, address owner, uint256 maxAmount) public returns (uint256) {
+    uint256 maxPulledAmount = burnDebt(shares, owner);
+    if (maxPulledAmount > maxAmount) {
+      revert BorrowingVault__burnDebt_slippageTooHigh();
+    }
+    return maxPulledAmount;
+  }
+
+  /**
+   * TODO
+   */
+  function burnDebt(uint256 shares, address owner) public override returns (uint256) {
+    uint256 debt = previewBurnDebt(shares);
+
+    _paybackChecks(owner, debt, shares);
+    _payback(msg.sender, owner, debt, shares);
+
+    return debt;
   }
 
   /*///////////////////////
@@ -386,10 +472,11 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
+    uint256 assets = convertToAssets(balanceOf(owner));
 
     // Handle no debt case.
     if (debtShares == 0) {
-      freeAssets = convertToAssets(balanceOf(owner));
+      freeAssets = assets;
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
@@ -399,8 +486,6 @@ contract BorrowingVault is BaseVault {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei.
         lockedAssets = 1;
       }
-
-      uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
     }
@@ -481,6 +566,21 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
+   * TODO
+   */
+  function _borrowChecks(address caller, address receiver, address owner, uint256 debt) private {
+    if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
+      revert BorrowingVault__borrow_invalidInput();
+    }
+    if (debt > maxBorrow(owner)) {
+      revert BorrowingVault__borrow_moreThanAllowed();
+    }
+    if (caller != owner) {
+      _spendBorrowAllowance(owner, caller, receiver, debt);
+    }
+  }
+
+  /**
    * @dev Perform payback action at provider. Payback/burnDebtShares common workflow.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
@@ -500,14 +600,25 @@ contract BorrowingVault is BaseVault {
     internal
     whenNotPaused(VaultActions.Payback)
   {
-    address asset = debtAsset();
-    SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
+    SafeERC20.safeTransferFrom(IERC20(debtAsset()), caller, address(this), assets);
 
     _executeProviderAction(assets, "payback", activeProvider);
 
     _burnDebtShares(owner, shares);
 
     emit Payback(caller, owner, assets, shares);
+  }
+
+  /**
+   * TODO
+   */
+  function _paybackChecks(address owner, uint256 debt, uint256 shares) private view {
+    if (debt == 0 || shares == 0 || owner == address(0)) {
+      revert BorrowingVault__payback_invalidInput();
+    }
+    if (shares > _debtShares[owner]) {
+      revert BorrowingVault__payback_moreThanMax();
+    }
   }
 
   /**
@@ -622,7 +733,7 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__liquidate_invalidInput();
     }
 
-    address caller = _msgSender();
+    address caller = msg.sender;
 
     uint256 liquidationFactor = getLiquidationFactor(owner);
     if (liquidationFactor == 0) {
