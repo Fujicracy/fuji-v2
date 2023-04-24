@@ -83,6 +83,9 @@ export function SafetyNoticeModal() {
           maxWidth: '30rem',
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
+          '& .MuiCheckbox-root:hover': {
+            background: 'inherit',
+          },
         }}
       >
         <Typography variant="h5" color={palette.text.primary}>
