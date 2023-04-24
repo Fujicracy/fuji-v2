@@ -30,9 +30,8 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
       size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
-      disabled={status === 'success'}
     >
-      {status === 'success' ? <>Done sir ✅</> : `Add ${token.symbol}`}
+      {`Add ${token.symbol}`}
     </LoadingButton>
   );
 }
