@@ -59,7 +59,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   string public constant VERSION = string("0.0.1");
 
-  IERC20Metadata internal _asset;
+  IERC20Metadata internal immutable _asset;
 
   uint8 private immutable _decimals;
 
@@ -254,7 +254,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return depositCap > totalAssets() ? depositCap - totalAssets() : 0;
+    return depositCap - totalAssets();
   }
 
   /// @inheritdoc IERC4626

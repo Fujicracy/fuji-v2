@@ -86,7 +86,7 @@ contract BorrowingVault is BaseVault {
   /// @notice Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  IERC20Metadata internal _debtAsset;
+  IERC20Metadata internal immutable _debtAsset;
   uint8 internal immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
