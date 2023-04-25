@@ -42,70 +42,72 @@ import {
 import { RoutingStepDetails } from './types/RoutingStepDetails';
 
 export class Previews {
-  getOperationType(params: PreviewParams): OperationType {
+  getOperationType(params: PreviewParams): FujiResult<OperationType> {
     const { name, vault, srcChainId } = params;
-    switch (name) {
-      case PreviewName.DEPOSIT || PreviewName.PAYBACK:
-        if (srcChainId === vault.chainId) {
-          return OperationType.ONE_CHAIN;
-        } else {
-          return OperationType.TWO_CHAIN_VAULT_ON_DEST;
-        }
-      case PreviewName.BORROW || PreviewName.WITHDRAW:
-        if (
-          srcChainId == vault.chainId &&
-          params.tokenOut.chainId === vault.chainId
-        ) {
-          return OperationType.ONE_CHAIN;
-        } else if (
-          srcChainId === vault.chainId &&
-          params.tokenOut.chainId !== vault.chainId
-        ) {
-          return OperationType.TWO_CHAIN_VAULT_ON_SRC;
-        } else if (
-          srcChainId !== vault.chainId &&
-          params.tokenOut.chainId === vault.chainId
-        ) {
-          return OperationType.TWO_CHAIN_VAULT_ON_DEST;
-        } else {
-          return OperationType.THREE_CHAIN;
-        }
-      case PreviewName.DEPOSIT_AND_BORROW || PreviewName.PAYBACK_AND_WITHDRAW:
-        const tokenOut = params.tokenOut;
-        if (srcChainId === tokenOut.chainId && srcChainId == vault.chainId) {
-          return OperationType.ONE_CHAIN;
-        } else if (
-          srcChainId !== tokenOut.chainId &&
-          srcChainId === vault.chainId
-        ) {
-          return OperationType.TWO_CHAIN_VAULT_ON_SRC;
-        } else if (
-          srcChainId !== tokenOut.chainId &&
-          tokenOut.chainId === vault.chainId
-        ) {
-          return OperationType.TWO_CHAIN_VAULT_ON_DEST;
-        } else {
-          return OperationType.THREE_CHAIN;
-        }
-      default:
-        return OperationType.ONE_CHAIN; // error ???
+    if (name === PreviewName.DEPOSIT || name === PreviewName.PAYBACK) {
+      if (params.tokenIn.chainId !== srcChainId) {
+        return new FujiResultError('Unsupported DEPOSIT or PAYBACK operation!');
+      }
+      if (srcChainId === vault.chainId) {
+        return new FujiResultSuccess(OperationType.ONE_CHAIN);
+      } else {
+        return new FujiResultSuccess(OperationType.TWO_CHAIN_VAULT_ON_DEST);
+      }
+    } else if (name === PreviewName.BORROW || name === PreviewName.WITHDRAW) {
+      if (
+        srcChainId == vault.chainId &&
+        params.tokenOut.chainId === vault.chainId
+      ) {
+        return new FujiResultSuccess(OperationType.ONE_CHAIN);
+      } else if (
+        srcChainId === vault.chainId &&
+        params.tokenOut.chainId !== vault.chainId
+      ) {
+        return new FujiResultSuccess(OperationType.TWO_CHAIN_VAULT_ON_SRC);
+      } else if (
+        srcChainId !== vault.chainId &&
+        params.tokenOut.chainId === vault.chainId
+      ) {
+        return new FujiResultSuccess(OperationType.TWO_CHAIN_VAULT_ON_DEST);
+      } else {
+        return new FujiResultSuccess(OperationType.THREE_CHAIN);
+      }
+    } else {
+      //PreviewName.DEPOSIT_AND_BORROW || PreviewName.PAYBACK_AND_WITHDRAW:
+      const tokenOut = params.tokenOut;
+      if (srcChainId === tokenOut.chainId && srcChainId == vault.chainId) {
+        return new FujiResultSuccess(OperationType.ONE_CHAIN);
+      } else if (
+        srcChainId !== tokenOut.chainId &&
+        srcChainId === vault.chainId
+      ) {
+        return new FujiResultSuccess(OperationType.TWO_CHAIN_VAULT_ON_SRC);
+      } else if (
+        srcChainId !== tokenOut.chainId &&
+        tokenOut.chainId === vault.chainId
+      ) {
+        return new FujiResultSuccess(OperationType.TWO_CHAIN_VAULT_ON_DEST);
+      } else {
+        return new FujiResultSuccess(OperationType.THREE_CHAIN);
+      }
     }
   }
 
-  async get(params: PreviewParams): Promise<RouterActionParams[]> {
-    //const { srcChainId, tokenIn } = params;
-    //if (tokenIn && srcChainId !== tokenIn.chainId) {
-    //// error
-    //}
+  async get(params: PreviewParams): FujiResultPromise<PreviewResult> {
     // if cross-chain, verify bridged assets are supported by Connext
-    const operation = this.getOperationType(params);
-    const result = getPreviewActions(operation, params);
-    if (result.success) {
-      return result.data;
+    const opResult = this.getOperationType(params);
+    if (!opResult.success) return opResult;
+    const operation = opResult.data;
+
+    const actions = getPreviewActions(operation, params);
+    const result = await getPreviewRoutingDetails(operation, params);
+    if (!result.success) {
+      return result;
     }
-    const routingDetails = await getPreviewRoutingDetails(operation, params);
-    console.log(routingDetails);
-    return [];
+    return new FujiResultSuccess({
+      actions,
+      ...result.data,
+    });
   }
 
   /********** Single Previews ***********/

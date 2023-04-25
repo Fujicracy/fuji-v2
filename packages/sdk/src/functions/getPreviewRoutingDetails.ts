@@ -196,7 +196,24 @@ async function borrowOrWithdraw(
       _step(RoutingStep.END, vault.chainId, amountOut, tokenOut)
     );
   } else {
-    return new FujiResultError('3-chain transfers are not enabled yet!');
+    const result = await _callNxtp(
+      vault.chain,
+      tokenOut.chain,
+      vaultToken,
+      amountOut
+    );
+    if (!result.success) {
+      return result;
+    }
+    const r = result.data;
+    bridgeFee = r.bridgeFee;
+    estimateSlippage = r.estimateSlippage;
+    steps.push(
+      _step(RoutingStep.X_TRANSFER, srcChainId, amountOut),
+      _step(step, vault.chainId, amountOut, vaultToken, activeProvider),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut),
+      _step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
+    );
   }
 
   return new FujiResultSuccess({
@@ -294,10 +311,10 @@ async function depositAndBorrow(
       tokenIn,
       amountIn
     );
-    if (!result.success) {
-      return result;
-    }
+    if (!result.success) return result;
+
     const r = result.data;
+    bridgeFee = r.bridgeFee;
     estimateSlippage = r.estimateSlippage;
 
     steps.push(
@@ -319,7 +336,37 @@ async function depositAndBorrow(
       _step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
     );
   } else {
-    return new FujiResultError('3-chain transfers are not enabled yet!');
+    const [result1, result2] = await Promise.all([
+      _callNxtp(tokenIn.chain, vault.chain, tokenIn, amountIn),
+      _callNxtp(vault.chain, tokenOut.chain, vault.debt, amountOut),
+    ]);
+    if (!result1.success) return result1;
+    if (!result2.success) return result2;
+
+    const r1 = result1.data;
+    const r2 = result2.data;
+    estimateSlippage = r1.estimateSlippage.add(r2.estimateSlippage);
+    bridgeFee = r1.bridgeFee.add(r2.bridgeFee);
+
+    steps.push(
+      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, tokenIn),
+      _step(
+        RoutingStep.DEPOSIT,
+        vault.chainId,
+        r1.received,
+        vault.collateral,
+        activeProvider
+      ),
+      _step(
+        RoutingStep.BORROW,
+        vault.chainId,
+        amountOut,
+        vault.debt,
+        activeProvider
+      ),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, vault.debt),
+      _step(RoutingStep.END, tokenOut.chainId, r2.received, tokenOut)
+    );
   }
 
   return new FujiResultSuccess({
@@ -427,6 +474,7 @@ async function paybackAndWithdraw(
     }
     const r = result.data;
     estimateSlippage = r.estimateSlippage;
+    bridgeFee = r.bridgeFee;
 
     steps.push(
       _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -447,7 +495,42 @@ async function paybackAndWithdraw(
       _step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
     );
   } else {
-    return new FujiResultError('3-chain transfers are not enabled yet!');
+    const [result1, result2] = await Promise.all([
+      _callNxtp(tokenIn.chain, vault.chain, tokenIn, amountIn),
+      _callNxtp(vault.chain, tokenOut.chain, vault.collateral, amountOut),
+    ]);
+    if (!result1.success) return result1;
+    if (!result2.success) return result2;
+
+    const r1 = result1.data;
+    const r2 = result2.data;
+    estimateSlippage = r1.estimateSlippage.add(r2.estimateSlippage);
+    bridgeFee = r1.bridgeFee.add(r2.bridgeFee);
+
+    steps.push(
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+      _step(
+        RoutingStep.PAYBACK,
+        vault.chainId,
+        r1.received,
+        vault.debt,
+        activeProvider
+      ),
+      _step(
+        RoutingStep.WITHDRAW,
+        vault.chainId,
+        amountOut,
+        vault.collateral,
+        activeProvider
+      ),
+      _step(
+        RoutingStep.X_TRANSFER,
+        tokenOut.chainId,
+        amountOut,
+        vault.collateral
+      ),
+      _step(RoutingStep.END, tokenOut.chainId, r2.received, tokenOut)
+    );
   }
 
   return new FujiResultSuccess({

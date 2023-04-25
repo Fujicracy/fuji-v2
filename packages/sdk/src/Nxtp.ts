@@ -34,7 +34,7 @@ export class Nxtp {
     const { sdkBase, sdkPool, sdkUtils } = await create({
       network: chainType === ChainType.MAINNET ? 'mainnet' : 'testnet',
       chains,
-      logLevel: 'error',
+      logLevel: 'silent',
     });
     return {
       base: sdkBase,
