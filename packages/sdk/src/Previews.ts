@@ -94,7 +94,6 @@ export class Previews {
   }
 
   async get(params: PreviewParams): FujiResultPromise<PreviewResult> {
-    // if cross-chain, verify bridged assets are supported by Connext
     const opResult = this.getOperationType(params);
     if (!opResult.success) return opResult;
     const operation = opResult.data;

@@ -64,13 +64,26 @@ async function _callNxtp(
   try {
     const nxtp = await Nxtp.getOrCreate(token.chain.chainType);
 
-    const { amountReceived, originSlippage, destinationSlippage, routerFee } =
-      await nxtp.pool.calculateAmountReceived(
+    const [assets, routing] = await Promise.all([
+      nxtp.utils.getAssetsData(),
+      nxtp.pool.calculateAmountReceived(
         srcChain.getConnextDomain(),
         destChain.getConnextDomain(),
         token.address.value,
         amount
-      );
+      ),
+    ]);
+
+    const isSupported = assets.find(
+      (a: { adopted: string }) =>
+        a.adopted === token.address.value.toLowerCase()
+    );
+    if (!isSupported) {
+      return new FujiResultError('Asset is not supported by Connext!');
+    }
+
+    const { amountReceived, originSlippage, destinationSlippage, routerFee } =
+      routing;
 
     return new FujiResultSuccess({
       received: amountReceived as BigNumber,
