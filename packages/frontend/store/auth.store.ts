@@ -17,18 +17,22 @@ import { devtools } from 'zustand/middleware';
 import { fujiLogo } from '../constants';
 import { chainIdToHex, onboardChains } from '../helpers/chains';
 
-const qrcodeModalOptions = {
-  mobileLinks: ['rainbow', 'metamask', 'argent', 'trust', 'imtoken', 'pillar'],
-};
-
 const wcV1InitOptions: WalletConnectOptions = {
   version: 1,
-  qrcodeModalOptions,
+  qrcodeModalOptions: {
+    mobileLinks: [
+      'rainbow',
+      'metamask',
+      'argent',
+      'trust',
+      'imtoken',
+      'pillar',
+    ],
+  },
 };
 
 const wcV2InitOptions: WalletConnectOptions = {
   version: 2,
-  qrcodeModalOptions,
   projectId: `${process.env.WALLET_CONNECT_V2_KEY}`,
 };
 
