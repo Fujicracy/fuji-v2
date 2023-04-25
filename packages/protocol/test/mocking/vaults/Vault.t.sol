@@ -255,9 +255,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
     _callWithTimelock(address(vault), encodedWithSelectorData);
 
-    vm.prank(address(timelock));
-    vault.setDepositCap(maxCap);
-
     do_deposit(depositAlice, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
