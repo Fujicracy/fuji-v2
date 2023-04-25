@@ -6,7 +6,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 touch .env.local
 echo "NEXT_PUBLIC_INFURA_KEY=<your key>" >> .env.local
 echo "NEXT_PUBLIC_APP_ENV=development" >> .env.local
-echo "WALLET_CONNECT_V2_KEY=<your key>" >> .env.local
+echo "NEXT_PUBLIC_WALLET_CONNECT_V2_KEY=<your key>" >> .env.local
 ```
 
 First, run the development server:

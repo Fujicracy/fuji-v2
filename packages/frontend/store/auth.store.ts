@@ -33,7 +33,7 @@ const wcV1InitOptions: WalletConnectOptions = {
 
 const wcV2InitOptions: WalletConnectOptions = {
   version: 2,
-  projectId: `${process.env.WALLET_CONNECT_V2_KEY}`,
+  projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
 };
 
 const walletConnect = walletConnectModule(wcV2InitOptions || wcV1InitOptions);
