@@ -1,3 +1,5 @@
+import { hiddenAddress } from '../../../helpers/values';
+
 describe('Account', () => {
   before(() => {
     cy.visit('/');
@@ -30,12 +32,23 @@ describe('Account', () => {
       expect(address).to.be.equal(
         '0xedBf22d2c627318C57C542E35330955a3076C198' // Temp
       );
+      const formattedAddress = hiddenAddress(address);
+      cy.get('[data-cy="header-address"]').should(
+        'have.text',
+        formattedAddress
+      );
     });
   });
   it('should be connected to the right network', () => {
     cy.getNetwork().then((network: any) => {
       expect(network.networkName).to.be.equal('gnosis');
       expect(network.networkId).to.be.equal(100);
+
+      // TODO: Fix this, text is GnosisGnosis
+      // cy.get('[data-cy="header-network"]').should(
+      //   'have.text',
+      //   network.networkName
+      // );
     });
   });
 });

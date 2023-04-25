@@ -125,6 +125,7 @@ const ListItem = (props: ListItemProps) => {
       </ListItemIcon>
       {!onMobile && (
         <ListItemText
+          data-cy="header-network"
           sx={{
             '& .MuiTypography-root': {
               fontSize: '0.875rem',
