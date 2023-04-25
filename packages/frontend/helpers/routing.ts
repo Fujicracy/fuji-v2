@@ -4,6 +4,7 @@ import {
   FujiResult,
   FujiResultPromise,
   FujiResultSuccess,
+  PreviewName,
   PreviewResult,
   RouterActionParams,
   RoutingStep,
@@ -36,73 +37,91 @@ export const fetchRoutes = async (
   debtInput: string,
   address: string,
   recommended: boolean,
-  slippage?: number
+  slippage: number
 ): FujiResultPromise<RouteMeta> => {
   let result: FujiResult<PreviewResult>;
   switch (mode) {
     case Mode.DEPOSIT_AND_BORROW:
-      result = await sdk.previews.depositAndBorrow(
+      result = await sdk.previews.get({
+        name: PreviewName.DEPOSIT_AND_BORROW,
+        srcChainId: collateralToken.chainId,
         vault,
-        validBigNumberAmount(collateralInput, collateralToken.decimals),
-        validBigNumberAmount(debtInput, debtToken.decimals),
-        collateralToken,
-        debtToken,
-        Address.from(address),
-        undefined,
-        slippage
-      );
+        amountIn: validBigNumberAmount(
+          collateralInput,
+          collateralToken.decimals
+        ),
+        amountOut: validBigNumberAmount(debtInput, debtToken.decimals),
+        tokenIn: collateralToken,
+        tokenOut: debtToken,
+        account: Address.from(address),
+        slippage,
+      });
       break;
     case Mode.DEPOSIT:
-      result = await sdk.previews.deposit(
+      result = await sdk.previews.get({
+        name: PreviewName.DEPOSIT,
+        srcChainId: collateralToken.chainId,
         vault,
-        validBigNumberAmount(collateralInput, collateralToken.decimals),
-        collateralToken,
-        Address.from(address),
-        slippage
-      );
+        amountIn: validBigNumberAmount(
+          collateralInput,
+          collateralToken.decimals
+        ),
+        tokenIn: collateralToken,
+        account: Address.from(address),
+        slippage,
+      });
       break;
     case Mode.BORROW:
-      result = await sdk.previews.borrow(
+      result = await sdk.previews.get({
+        name: PreviewName.BORROW,
         vault,
-        collateralToken.chainId,
-        validBigNumberAmount(debtInput, debtToken.decimals),
-        debtToken,
-        Address.from(address),
-        undefined,
-        slippage
-      );
+        srcChainId: collateralToken.chainId,
+        amountOut: validBigNumberAmount(debtInput, debtToken.decimals),
+        tokenOut: debtToken,
+        account: Address.from(address),
+        slippage,
+      });
       break;
     case Mode.PAYBACK_AND_WITHDRAW:
-      result = await sdk.previews.paybackAndWithdraw(
+      result = await sdk.previews.get({
+        name: PreviewName.PAYBACK_AND_WITHDRAW,
         vault,
-        validBigNumberAmount(debtInput, debtToken.decimals),
-        validBigNumberAmount(collateralInput, collateralToken.decimals),
-        debtToken,
-        collateralToken,
-        Address.from(address),
-        undefined,
-        slippage
-      );
+        srcChainId: debtToken.chainId,
+        amountIn: validBigNumberAmount(debtInput, debtToken.decimals),
+        amountOut: validBigNumberAmount(
+          collateralInput,
+          collateralToken.decimals
+        ),
+        tokenIn: debtToken,
+        tokenOut: collateralToken,
+        account: Address.from(address),
+        slippage,
+      });
       break;
     case Mode.WITHDRAW:
-      result = await sdk.previews.withdraw(
+      result = await sdk.previews.get({
+        name: PreviewName.WITHDRAW,
         vault,
-        vault.collateral.chainId,
-        validBigNumberAmount(collateralInput, collateralToken.decimals),
-        collateralToken,
-        Address.from(address),
-        undefined,
-        slippage
-      );
+        srcChainId: vault.collateral.chainId,
+        amountOut: validBigNumberAmount(
+          collateralInput,
+          collateralToken.decimals
+        ),
+        tokenOut: collateralToken,
+        account: Address.from(address),
+        slippage,
+      });
       break;
     case Mode.PAYBACK:
-      result = await sdk.previews.payback(
+      result = await sdk.previews.get({
+        name: PreviewName.PAYBACK,
+        srcChainId: debtToken.chainId,
         vault,
-        validBigNumberAmount(debtInput, debtToken.decimals),
-        debtToken,
-        Address.from(address),
-        slippage
-      );
+        amountIn: validBigNumberAmount(debtInput, debtToken.decimals),
+        tokenIn: debtToken,
+        account: Address.from(address),
+        slippage,
+      });
       break;
   }
   if (!result.success) return result;
