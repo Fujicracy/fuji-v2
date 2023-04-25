@@ -262,6 +262,19 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.deposit(depositBob, BOB);
   }
 
+  function test_maxCapChecks() public {
+    uint256 maxCap = 100e18;
+    uint256 firstDeposit = 10e18;
+    uint256 secondDeposit = 89e18;
+
+    bytes memory encodedWithSelectorData =
+      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
+    _callWithTimelock(address(vault), encodedWithSelectorData);
+    
+    do_deposit(firstDeposit, vault, ALICE);
+    do_deposit(secondDeposit, vault, ALICE);
+  }
+
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
     vm.assume(
