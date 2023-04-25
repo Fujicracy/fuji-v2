@@ -11,36 +11,33 @@ export type BasePreviewParams = {
   vault: BorrowingVault;
   account: Address;
   srcChainId: ChainId;
+  slippage?: number;
 };
 
 export type DepositPreviewParams = BasePreviewParams & {
   name: PreviewName.DEPOSIT;
   amountIn: BigNumber;
   tokenIn: Token;
-  slippage: number;
 };
 
 export type BorrowPreviewParams = BasePreviewParams & {
   name: PreviewName.BORROW;
   amountOut: BigNumber;
   tokenOut: Token;
-  deadline: number;
-  slippage: number;
+  deadline?: number;
 };
 
 export type PaybackPreviewParams = BasePreviewParams & {
   name: PreviewName.PAYBACK;
   amountIn: BigNumber;
   tokenIn: Token;
-  slippage: number;
 };
 
 export type WithdrawPreviewParams = BasePreviewParams & {
   name: PreviewName.WITHDRAW;
   amountOut: BigNumber;
   tokenOut: Token;
-  deadline: number;
-  slippage: number;
+  deadline?: number;
 };
 
 export type DepositAndBorrowPreviewParams = BasePreviewParams & {
@@ -49,8 +46,7 @@ export type DepositAndBorrowPreviewParams = BasePreviewParams & {
   tokenIn: Token;
   amountOut: BigNumber;
   tokenOut: Token;
-  deadline: number;
-  slippage: number;
+  deadline?: number;
 };
 
 export type PaybackAndWithdrawPreviewParams = BasePreviewParams & {
@@ -59,8 +55,7 @@ export type PaybackAndWithdrawPreviewParams = BasePreviewParams & {
   tokenIn: Token;
   amountOut: BigNumber;
   tokenOut: Token;
-  deadline: number;
-  slippage: number;
+  deadline?: number;
 };
 
 export type PreviewParams =
