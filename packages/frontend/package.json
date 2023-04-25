@@ -15,7 +15,8 @@
     "test": "env-cmd synpress run",
     "test:watch": "env-cmd synpress open -cf synpress.json",
     "lint": "next lint",
-    "prettier": "prettier --config .prettierrc  ."
+    "prettier": "prettier --config .prettierrc  .",
+    "syn:run": "CYPRESS_REMOTE_DEBUGGING_PORT=9222 env-cmd -f ./tests/e2e/.env synpress run --browser chrome"
   },
   "dependencies": {
     "@emotion/react": "^11.10.0",
