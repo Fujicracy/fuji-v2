@@ -111,7 +111,11 @@ function AccountModal({
             <Typography variant="xsmall">
               Connected with {walletName}
             </Typography>
-            <Button variant="small" onClick={onLogout}>
+            <Button
+              data-cy="header-disconnect"
+              variant="small"
+              onClick={onLogout}
+            >
               Disconnect
             </Button>
           </Stack>

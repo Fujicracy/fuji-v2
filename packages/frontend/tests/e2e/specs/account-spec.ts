@@ -1,6 +1,7 @@
 import { hiddenAddress } from '../../../helpers/values';
 
 describe('Account', () => {
+  const accountAddress = '0xedBf22d2c627318C57C542E35330955a3076C198'; // Temp
   before(() => {
     cy.visit('/');
   });
@@ -29,9 +30,7 @@ describe('Account', () => {
   });
   it('should be connected to the right address', () => {
     cy.getMetamaskWalletAddress().then((address) => {
-      expect(address).to.be.equal(
-        '0xedBf22d2c627318C57C542E35330955a3076C198' // Temp
-      );
+      expect(address).to.be.equal(accountAddress);
       const formattedAddress = hiddenAddress(address);
       cy.get('[data-cy="header-address"]').should(
         'have.text',
@@ -50,5 +49,43 @@ describe('Account', () => {
       //   network.networkName
       // );
     });
+  });
+  it('should switch accounts', () => {
+    cy.createMetamaskAccount('account #2')
+      .then(() => {
+        return cy.switchMetamaskAccount(2);
+      })
+      .then(() => {
+        return cy.getMetamaskWalletAddress();
+      })
+      .then((address) => {
+        expect(address).to.not.be.equal(accountAddress);
+
+        const formattedAddress = hiddenAddress(address);
+        cy.get('[data-cy="header-address"]').should(
+          'not.have.text',
+          formattedAddress
+        );
+      });
+  });
+  it('should recognize an unsupported networks', () => {
+    cy.addMetamaskNetwork({
+      networkName: 'Ethereum Classic',
+      rpcUrl: 'https://www.ethercluster.com/etc',
+      chainId: '61',
+      symbol: 'ETC',
+      blockExplorer: 'https://etcblockexplorer.com/',
+      isTestnet: false,
+    }).then((networkAdded) => {
+      expect(networkAdded).to.be.true;
+      cy.get('[data-cy="header-unsupported-network"]').should('exist');
+    });
+  });
+  it('should disconnect', () => {
+    cy.get('[data-cy="header-address"]').click({ force: true });
+    cy.get('[data-cy="header-disconnect"]').click({ force: true });
+    cy.get('[data-cy="header-login"]')
+      .should('exist')
+      .and('contain.text', 'Connect wallet');
   });
 });

@@ -67,6 +67,7 @@ function ChainSelect() {
         />
       ) : (
         <Chip
+          data-cy="header-unsupported-network"
           label={
             <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
