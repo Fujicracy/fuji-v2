@@ -20,6 +20,7 @@ import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 contract YieldVault is BaseVault {
   /// @dev Custom Errors
@@ -189,9 +190,17 @@ contract YieldVault is BaseVault {
   }
 
   /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256) {
+  function _computeFreeAssets(
+    address owner,
+    uint256 totalAssets_
+  )
+    internal
+    view
+    override
+    returns (uint256)
+  {
     // There is no restriction on asset-share movements in a {YieldVault}.
-    return convertToAssets(balanceOf(owner));
+    return _convertToAssets(balanceOf(owner), totalAssets_, Math.Rounding.Down);
   }
 
   /*/////////////////

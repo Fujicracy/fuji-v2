@@ -244,17 +244,22 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function convertToShares(uint256 assets) public view virtual override returns (uint256 shares) {
-    return _convertToShares(assets, Math.Rounding.Down);
+    return _convertToShares(assets, totalAssets(), Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
   function convertToAssets(uint256 shares) public view virtual override returns (uint256 assets) {
-    return _convertToAssets(shares, Math.Rounding.Down);
+    return _convertToAssets(shares, totalAssets(), Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
-    return depositCap - totalAssets();
+    return _maxDeposit(address(0), totalAssets());
+  }
+
+  /// TODO
+  function _maxDeposit(address, uint256 totalAssets_) private view returns (uint256) {
+    return depositCap > totalAssets_ ? depositCap - totalAssets_ : 0;
   }
 
   /// @inheritdoc IERC4626
@@ -264,7 +269,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxWithdraw(address owner) public view override returns (uint256) {
-    return _computeFreeAssets(owner);
+    return _maxWithdraw(owner, totalAssets());
+  }
+
+  // TODO
+  function _maxWithdraw(address owner, uint256 totalAssets_) private view returns (uint256) {
+    return _computeFreeAssets(owner, totalAssets_);
   }
 
   /// @inheritdoc IERC4626
@@ -274,22 +284,22 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function previewDeposit(uint256 assets) public view virtual override returns (uint256) {
-    return _convertToShares(assets, Math.Rounding.Down);
+    return _convertToShares(assets, totalAssets(), Math.Rounding.Down);
   }
 
   /// @inheritdoc IERC4626
   function previewMint(uint256 shares) public view virtual override returns (uint256) {
-    return _convertToAssets(shares, Math.Rounding.Up);
+    return _convertToAssets(shares, totalAssets(), Math.Rounding.Up);
   }
 
   /// @inheritdoc IERC4626
   function previewWithdraw(uint256 assets) public view virtual override returns (uint256) {
-    return _convertToShares(assets, Math.Rounding.Up);
+    return _convertToShares(assets, totalAssets(), Math.Rounding.Up);
   }
 
   /// @inheritdoc IERC4626
   function previewRedeem(uint256 shares) public view virtual override returns (uint256) {
-    return _convertToAssets(shares, Math.Rounding.Down);
+    return _convertToAssets(shares, totalAssets(), Math.Rounding.Down);
   }
 
   /**
@@ -321,9 +331,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
-    uint256 shares = previewDeposit(assets);
+    uint256 latestTotalAssets = totalAssets();
+    // Gas saving to do `PreviewDeposit` withdout having to call again `totalAssets`.
+    uint256 shares = _convertToShares(assets, latestTotalAssets, Math.Rounding.Down);
 
-    _depositChecks(receiver, assets, shares);
+    _depositChecks(receiver, assets, shares, latestTotalAssets);
     _deposit(msg.sender, receiver, assets, shares);
 
     return shares;
@@ -358,9 +370,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
-    uint256 assets = previewMint(shares);
+    uint256 latestTotalAssets = totalAssets();
+    // Gas saving to do `PreviewMint` withdout having to call again `totalAssets`.
+    uint256 assets = _convertToAssets(shares, latestTotalAssets, Math.Rounding.Up);
 
-    _depositChecks(receiver, assets, shares);
+    _depositChecks(receiver, assets, shares, latestTotalAssets);
     _deposit(msg.sender, receiver, assets, shares);
 
     return assets;
@@ -406,9 +420,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256)
   {
     address caller = msg.sender;
-    uint256 shares = previewWithdraw(assets);
+    // Gas saving to do `PreviewWithdraw` withdout having to call again `totalAssets`.
+    uint256 totalAssets_ = totalAssets();
+    uint256 shares = _convertToShares(assets, totalAssets_, Math.Rounding.Up);
 
-    _withdrawChecks(caller, receiver, owner, assets, shares);
+    _withdrawChecks(caller, receiver, owner, assets, shares, totalAssets_);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return shares;
@@ -454,9 +470,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256)
   {
     address caller = msg.sender;
-    uint256 assets = previewRedeem(shares);
+    uint256 totalAssets_ = totalAssets();
+    uint256 assets = _convertToAssets(shares, totalAssets_, Math.Rounding.Down);
 
-    _withdrawChecks(caller, receiver, owner, assets, shares);
+    _withdrawChecks(caller, receiver, owner, assets, shares, totalAssets_);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return assets;
@@ -466,14 +483,16 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Conversion function from `assets` to shares equivalent with support for rounding direction.
    * Requirements:
    * - Must return zero if `assets` or `totalSupply()` == 0.
-   * - Must revert if `totalAssets()` is not > 0.
+   * - Must revert if `totalAssets` is not > 0.
    *   (Corresponds to a case where you divide by zero.)
    *
    * @param assets amount to convert to shares
+   * @param totalAssets_ read from totalAssets()
    * @param rounding direction of division remainder
    */
   function _convertToShares(
     uint256 assets,
+    uint256 totalAssets_,
     Math.Rounding rounding
   )
     internal
@@ -482,7 +501,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets(), rounding);
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets_, rounding);
   }
 
   /**
@@ -495,6 +514,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function _convertToAssets(
     uint256 shares,
+    uint256 totalAssets_,
     Math.Rounding rounding
   )
     internal
@@ -503,7 +523,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return (supply == 0) ? shares : shares.mulDiv(totalAssets(), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalAssets_, supply, rounding);
   }
 
   /**
@@ -534,7 +554,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// TODO
-  function _depositChecks(address receiver, uint256 assets, uint256 shares) private view {
+  function _depositChecks(
+    address receiver,
+    uint256 assets,
+    uint256 shares,
+    uint256 totalAssets_
+  )
+    private
+    view
+  {
     if (receiver == address(0) || assets == 0 || shares == 0) {
       revert BaseVault__deposit_invalidInput();
     }
@@ -542,9 +570,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
      * @dev Check that new deposit doesn't exceed the `depositCap` imposed
      * on this vault.
      * Computation uses shares because it's cheaper to get `totalSupply()`
-     * compared to `totalAssets()`.
+     * compared to `totalAssets`.
      */
-    if (shares + totalSupply() > maxMint(receiver)) {
+    if (assets > _maxDeposit(receiver, totalAssets_)) {
       revert BaseVault__deposit_moreThanMax();
     }
     if (assets < minAmount) {
@@ -589,14 +617,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address receiver,
     address owner,
     uint256 assets,
-    uint256 shares
+    uint256 shares,
+    uint256 totalAssets_
   )
     private
   {
     if (assets == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BaseVault__withdraw_invalidInput();
     }
-    if (assets > maxWithdraw(owner)) {
+    if (assets > _maxWithdraw(owner, totalAssets_)) {
       revert BaseVault__withdraw_moreThanMax();
     }
     if (caller != owner) {
@@ -783,8 +812,16 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - Must read price from {FujiOracle}.
    *
    * @param owner address to whom free assets is being checked
+   * @param totalAssets_ read from public totalAssets()
    */
-  function _computeFreeAssets(address owner) internal view virtual returns (uint256);
+  function _computeFreeAssets(
+    address owner,
+    uint256 totalAssets_
+  )
+    internal
+    view
+    virtual
+    returns (uint256);
 
   /*//////////////////////////
       Fuji Vault functions

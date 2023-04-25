@@ -208,17 +208,30 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Up);
+    return _convertDebtToShares(debt, totalDebt(), Math.Rounding.Up);
   }
 
   /// @inheritdoc IVault
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
-    return _convertToDebt(shares, Math.Rounding.Up);
+    return _convertToDebt(shares, totalDebt(), Math.Rounding.Up);
   }
 
   /// @inheritdoc IVault
   function maxBorrow(address borrower) public view override returns (uint256) {
-    return _computeMaxBorrow(borrower);
+    return _maxBorrow(borrower, totalAssets(), totalDebt());
+  }
+
+  // TODO
+  function _maxBorrow(
+    address borrower,
+    uint256 totalAssets_,
+    uint256 totalDebt_
+  )
+    private
+    view
+    returns (uint256)
+  {
+    return _computeMaxBorrow(borrower, totalAssets_, totalDebt_);
   }
 
   /// TODO
@@ -228,7 +241,10 @@ contract BorrowingVault is BaseVault {
 
   /// TODO
   function maxMintDebt(address borrower) public view override returns (uint256) {
-    return convertDebtToShares(maxBorrow(borrower));
+    uint256 totalDebt_ = totalDebt();
+    return _convertDebtToShares(
+      _computeMaxBorrow(borrower, totalAssets(), totalDebt_), totalDebt_, Math.Rounding.Up
+    );
   }
 
   /// TODO
@@ -238,22 +254,22 @@ contract BorrowingVault is BaseVault {
 
   /// TODO
   function previewBorrow(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Up);
+    return _convertDebtToShares(debt, totalDebt(), Math.Rounding.Up);
   }
 
   /// TODO
   function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
-    return _convertDebtToShares(shares, Math.Rounding.Down);
+    return _convertDebtToShares(shares, totalDebt(), Math.Rounding.Down);
   }
 
   /// TODO
   function previewPayback(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Down);
+    return _convertDebtToShares(debt, totalDebt(), Math.Rounding.Down);
   }
 
   /// TODO
   function previewBurnDebt(uint256 shares) public view override returns (uint256 debt) {
-    return _convertToDebt(shares, Math.Rounding.Up);
+    return _convertToDebt(shares, totalDebt(), Math.Rounding.Up);
   }
 
   /**
@@ -286,9 +302,9 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = msg.sender;
-
-    _borrowChecks(caller, receiver, owner, debt);
-    uint256 shares = previewBorrow(debt);
+    uint256 totalDebt_ = totalDebt();
+    _borrowChecks(caller, receiver, owner, debt, totalAssets(), totalDebt_);
+    uint256 shares = _convertDebtToShares(debt, totalDebt_, Math.Rounding.Up);
     _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
@@ -326,10 +342,11 @@ contract BorrowingVault is BaseVault {
     override
     returns (uint256)
   {
-    uint256 debt = previewMintDebt(shares);
+    uint256 totalDebt_ = totalDebt();
+    uint256 debt = _convertDebtToShares(shares, totalDebt_, Math.Rounding.Down);
     address caller = msg.sender;
 
-    _borrowChecks(caller, receiver, owner, debt);
+    _borrowChecks(caller, receiver, owner, debt, totalAssets(), totalDebt_);
     _borrow(caller, receiver, owner, debt, shares);
 
     return debt;
@@ -458,27 +475,42 @@ contract BorrowingVault is BaseVault {
    *
    * @param borrower to whom to check max borrow amount
    */
-  function _computeMaxBorrow(address borrower) internal view returns (uint256 max) {
+  function _computeMaxBorrow(
+    address borrower,
+    uint256 totalAssets_,
+    uint256 totalDebt_
+  )
+    internal
+    view
+    returns (uint256 max)
+  {
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
-    uint256 assetShares = balanceOf(borrower);
-    uint256 assets = convertToAssets(assetShares);
-    uint256 debtShares = _debtShares[borrower];
-    uint256 debt = convertToDebt(debtShares);
+
+    uint256 assets = _convertToAssets(balanceOf(borrower), totalAssets_, Math.Rounding.Down);
+    uint256 debt = _convertToDebt(_debtShares[borrower], totalDebt_, Math.Rounding.Up);
 
     uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (1e18 * 10 ** decimals()));
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
   /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
+  function _computeFreeAssets(
+    address owner,
+    uint256 totalAssets_
+  )
+    internal
+    view
+    override
+    returns (uint256 freeAssets)
+  {
     uint256 debtShares = _debtShares[owner];
-    uint256 assets = convertToAssets(balanceOf(owner));
+    uint256 assets = _convertToAssets(balanceOf(owner), totalAssets_, Math.Rounding.Down);
 
     // Handle no debt case.
     if (debtShares == 0) {
       freeAssets = assets;
     } else {
-      uint256 debt = convertToDebt(debtShares);
+      uint256 debt = _convertToDebt(debtShares, totalDebt(), Math.Rounding.Up);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
       uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtDecimals);
 
@@ -499,10 +531,12 @@ contract BorrowingVault is BaseVault {
    * - Must return `debt` if `debtSharesSupply` == 0.
    *
    * @param debt amount to convert to `debtShares`
+   * @param totalDebt_ read from totalDebt()
    * @param rounding direction of division remainder
    */
   function _convertDebtToShares(
     uint256 debt,
+    uint256 totalDebt_,
     Math.Rounding rounding
   )
     internal
@@ -510,7 +544,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt(), rounding);
+    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt_, rounding);
   }
 
   /**
@@ -519,10 +553,12 @@ contract BorrowingVault is BaseVault {
    * - Must return zero if `debtSharesSupply` == 0.
    *
    * @param shares amount to convert to `debt`
+   * @param totalDebt_ read from totalDebt()
    * @param rounding direction of division remainder
    */
   function _convertToDebt(
     uint256 shares,
+    uint256 totalDebt_,
     Math.Rounding rounding
   )
     internal
@@ -530,7 +566,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return (supply == 0) ? shares : shares.mulDiv(totalDebt(), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalDebt_, supply, rounding);
   }
 
   /**
@@ -568,11 +604,20 @@ contract BorrowingVault is BaseVault {
   /**
    * TODO
    */
-  function _borrowChecks(address caller, address receiver, address owner, uint256 debt) private {
+  function _borrowChecks(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 debt,
+    uint256 totalAssets_,
+    uint256 totalDebt_
+  )
+    private
+  {
     if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
       revert BorrowingVault__borrow_invalidInput();
     }
-    if (debt > maxBorrow(owner)) {
+    if (debt > _maxBorrow(owner, totalAssets_, totalDebt_)) {
       revert BorrowingVault__borrow_moreThanAllowed();
     }
     if (caller != owner) {
