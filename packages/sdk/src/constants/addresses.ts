@@ -132,7 +132,7 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
     '0xd33Dedc767AF90B163a98A08eB1B28C35902f734'
   ),
   [ChainId.OPTIMISM]: Address.from(
-    '0xEBdCb08bA47e6a4EC2590140011d8707D76962B8'
+    '0xcE9b49b0d4FE456aD6E4a1b7e4bBdD0699400Ef9'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.MATIC]: Address.from('0x2bF38f818CC5B6Ce9c13Fe8FE9653410db79fe63'),
