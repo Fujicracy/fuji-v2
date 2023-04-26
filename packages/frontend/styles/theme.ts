@@ -185,6 +185,7 @@ const theme = createTheme(colorTheme, {
     xsmall: {
       fontWeight: 400,
       fontSize: '0.75rem',
+      lineHeight: '150%',
       color: colorTheme.palette.text.primary,
     },
     xsmallDark: {

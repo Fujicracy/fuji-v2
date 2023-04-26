@@ -34,6 +34,7 @@ import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
+import BetaBanner from './BetaBanner';
 
 const Header = () => {
   const theme = useTheme();
@@ -327,6 +328,7 @@ const Header = () => {
           </Grid>
         </Toolbar>
       </Box>
+      <BetaBanner />
       {address && (
         <AccountModal
           isOpen={showAccountModal}
