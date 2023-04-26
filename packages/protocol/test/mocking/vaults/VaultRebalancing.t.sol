@@ -226,6 +226,44 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
+  function _utils_checkSameLtv(
+    BorrowingVault v,
+    uint256 rebalanceAssets,
+    uint256 rebalanceDebt
+  )
+    internal
+    view
+    returns (bool)
+  {
+    uint8 assetDecimals = 18;
+    uint8 debtDecimals = 18;
+
+    uint256 assetsBeforeRebalance = v.totalAssets();
+    uint256 debtBeforeRebalance = v.totalDebt();
+
+    if (assetsBeforeRebalance == rebalanceAssets && debtBeforeRebalance != rebalanceDebt) {
+      return false;
+    }
+    if (debtBeforeRebalance == rebalanceDebt && assetsBeforeRebalance != rebalanceAssets) {
+      return false;
+    }
+
+    uint256 price = oracle.getPriceOf(collateralAsset, debtAsset, debtDecimals);
+    uint256 ltvBeforeRebalance =
+      1e18 * debtBeforeRebalance * price / (assetsBeforeRebalance * 10 ** assetDecimals);
+
+    uint256 assetsAfterRebalance = (rebalanceAssets > assetsBeforeRebalance)
+      ? rebalanceAssets - assetsBeforeRebalance
+      : assetsBeforeRebalance - rebalanceAssets;
+    uint256 debtAfterRebalance = (rebalanceDebt > debtBeforeRebalance)
+      ? rebalanceDebt - debtBeforeRebalance
+      : debtBeforeRebalance - rebalanceDebt;
+    uint256 ltvAfterRebalance =
+      1e18 * debtAfterRebalance * price / (assetsAfterRebalance * 10 ** assetDecimals);
+
+    return ltvBeforeRebalance == ltvAfterRebalance;
+  }
+
   function test_assertSetUp() public {
     assertEq(
       mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 4 * DEPOSIT_AMOUNT
@@ -441,5 +479,65 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(0), true);
     _callWithTimelock(address(chief), executionCall);
+  }
+
+  function test_tryRebalanceAndBreakLtv() public {
+    uint8 assetDecimals = 18;
+    uint8 debtDecimals = 18;
+
+    //calc current ltv in vault
+    uint256 price = oracle.getPriceOf(collateralAsset, debtAsset, debtDecimals);
+    uint256 currentLtv =
+      1e18 * bvault.totalDebt() * price / (bvault.totalAssets() * 10 ** assetDecimals);
+
+    vm.startPrank(address(timelock));
+    bvault.setMaxLtv(currentLtv);
+    vm.stopPrank();
+
+    //rebalance in a way that breaks ltv
+    vm.expectRevert();
+    rebalancer.rebalanceVault(
+      bvault,
+      bvault.totalAssets() / 2,
+      bvault.totalDebt(),
+      mockProviderA,
+      mockProviderB,
+      flasher,
+      true
+    );
+  }
+
+  function test_rebalanceDoesntBreakLtv(uint256 rebalanceAssets, uint256 rebalanceDebt) public {
+    uint8 assetDecimals = 18;
+    uint8 debtDecimals = 18;
+
+    vm.assume(
+      rebalanceAssets < bvault.totalAssets() && rebalanceDebt < bvault.totalDebt()
+        && _utils_checkSameLtv(bvault, rebalanceAssets, rebalanceDebt)
+    );
+    //calc current ltv in vault
+    uint256 price = oracle.getPriceOf(collateralAsset, debtAsset, debtDecimals);
+    uint256 ltvBeforeRebalance =
+      1e18 * bvault.totalDebt() * price / (bvault.totalAssets() * 10 ** assetDecimals);
+
+    //rebalance
+    rebalancer.rebalanceVault(
+      bvault, rebalanceAssets, rebalanceDebt, mockProviderA, mockProviderB, flasher, true
+    );
+
+    //check ltv after rebalance
+    //providerA
+    uint256 assetsA = mockProviderA.getDepositBalance(address(bvault), bvault);
+    uint256 debtA = mockProviderA.getBorrowBalance(address(bvault), bvault);
+
+    //providerB
+    uint256 assetsB = mockProviderB.getDepositBalance(address(bvault), bvault);
+    uint256 debtB = mockProviderB.getBorrowBalance(address(bvault), bvault);
+
+    uint256 ltvAfterRebalance = 1e18 * debtA * price / (assetsA * 10 ** assetDecimals);
+    assertEq(ltvBeforeRebalance, ltvAfterRebalance);
+
+    ltvAfterRebalance = 1e18 * debtB * price / (assetsB * 10 ** assetDecimals);
+    assertEq(ltvBeforeRebalance, ltvAfterRebalance);
   }
 }
