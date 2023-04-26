@@ -255,14 +255,15 @@ const Header = () => {
                 <MenuItem
                   sx={{
                     lineHeight: '160%',
-                    fontSize: '1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
                     color: isPageActive(page.path.toLowerCase())
                       ? palette.text.primary
                       : palette.info.main,
                     background: isPageActive(page.path.toLowerCase())
                       ? alpha('#25262A', 0.7)
                       : 'transparent',
-                    p: '0.25rem 1rem',
+                    p: '0.375rem 1rem',
                     borderRadius: '10px',
                     '&:hover': {
                       color: palette.text.primary,
