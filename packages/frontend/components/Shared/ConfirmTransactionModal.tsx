@@ -60,7 +60,7 @@ export function ConfirmTransactionModal({
 
   const estCost =
     transactionMeta.status === 'ready'
-      ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
+      ? `~$${transactionMeta.bridgeFees[0].toFixed(2)} + gas`
       : 'n/a';
 
   const positionBorrowLimit = remainingBorrowLimit(

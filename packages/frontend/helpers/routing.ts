@@ -20,7 +20,7 @@ import { validBigNumberAmount } from './values';
 export type RouteMeta = {
   //gasFees: number
   estimateSlippage: number;
-  bridgeFee: number;
+  bridgeFees: number[];
   estimateTime: number;
   steps: RoutingStepDetails[];
   actions: RouterActionParams[];
@@ -127,17 +127,22 @@ export const fetchRoutes = async (
   if (!result.success) return result;
 
   const preview: PreviewResult = result.data;
-  const { bridgeFee, estimateSlippage, estimateTime, actions, steps } = preview;
+  const { bridgeFees, estimateSlippage, estimateTime, actions, steps } =
+    preview;
 
   const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER);
-  const _bridgeFee = bridgeStep
-    ? formatUnits(bridgeFee, bridgeStep.token?.decimals ?? 18)
-    : '0';
+  const _bridgeFees = [
+    Number(
+      bridgeStep
+        ? formatUnits(bridgeFees[0], bridgeStep.token?.decimals ?? 18)
+        : '0'
+    ),
+  ];
 
   return new FujiResultSuccess({
     address: vault.address.value,
     recommended,
-    bridgeFee: Number(_bridgeFee),
+    bridgeFees: _bridgeFees,
     // slippage is in basis points
     estimateSlippage: estimateSlippage.toNumber() / 100,
     estimateTime,

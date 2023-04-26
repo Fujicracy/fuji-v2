@@ -109,7 +109,7 @@ async function depositOrPayback(
   let estimateSlippage = BigNumber.from(0);
   // TODO: estimate time
   const estimateTime = 3 * 60;
-  const bridgeFee = BigNumber.from(0);
+  const bridgeFees = [BigNumber.from(0)];
 
   const vaultToken =
     step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt;
@@ -149,7 +149,7 @@ async function depositOrPayback(
     steps,
     estimateSlippage,
     estimateTime,
-    bridgeFee,
+    bridgeFees,
   });
 }
 
@@ -166,7 +166,7 @@ async function borrowOrWithdraw(
   let estimateSlippage = BigNumber.from(0);
   // TODO: estimate time
   const estimateTime = 3 * 60;
-  let bridgeFee = BigNumber.from(0);
+  let bridgeFees = [BigNumber.from(0)];
 
   const vaultToken =
     step === RoutingStep.BORROW ? vault.debt : vault.collateral;
@@ -191,7 +191,7 @@ async function borrowOrWithdraw(
       return result;
     }
     const r = result.data;
-    bridgeFee = r.bridgeFee;
+    bridgeFees = [r.bridgeFee];
     estimateSlippage = r.estimateSlippage;
     // Transfer will pass through the fast path
     // so we need to account for the router fee (0.05) + slippage
@@ -219,7 +219,7 @@ async function borrowOrWithdraw(
       return result;
     }
     const r = result.data;
-    bridgeFee = r.bridgeFee;
+    bridgeFees = [r.bridgeFee];
     estimateSlippage = r.estimateSlippage;
     steps.push(
       _step(RoutingStep.X_TRANSFER, srcChainId, amountOut),
@@ -233,7 +233,7 @@ async function borrowOrWithdraw(
     steps,
     estimateSlippage,
     estimateTime,
-    bridgeFee,
+    bridgeFees,
   });
 }
 
@@ -258,7 +258,7 @@ async function depositAndBorrow(
   // TODO: estimate time
   const estimateTime = 3 * 60;
   let estimateSlippage = BigNumber.from(0);
-  let bridgeFee = BigNumber.from(0);
+  let bridgeFees = [BigNumber.from(0)];
 
   const steps: RoutingStepDetails[] = [
     _step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
@@ -294,7 +294,7 @@ async function depositAndBorrow(
       return result;
     }
     const r = result.data;
-    bridgeFee = r.bridgeFee;
+    bridgeFees = [r.bridgeFee];
     estimateSlippage = r.estimateSlippage;
     // Transfer will pass through the fast path
     // so we need to account for the router fee (0.05) + slippage
@@ -327,7 +327,7 @@ async function depositAndBorrow(
     if (!result.success) return result;
 
     const r = result.data;
-    bridgeFee = r.bridgeFee;
+    bridgeFees = [r.bridgeFee];
     estimateSlippage = r.estimateSlippage;
 
     steps.push(
@@ -359,7 +359,7 @@ async function depositAndBorrow(
     const r1 = result1.data;
     const r2 = result2.data;
     estimateSlippage = r1.estimateSlippage.add(r2.estimateSlippage);
-    bridgeFee = r1.bridgeFee.add(r2.bridgeFee);
+    bridgeFees = [r1.bridgeFee.add(r2.bridgeFee)];
 
     steps.push(
       _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, tokenIn),
@@ -386,7 +386,7 @@ async function depositAndBorrow(
     steps,
     estimateSlippage,
     estimateTime,
-    bridgeFee,
+    bridgeFees,
   });
 }
 
@@ -411,7 +411,7 @@ async function paybackAndWithdraw(
   let estimateSlippage = BigNumber.from(0);
   // TODO: estimate time
   const estimateTime = 3 * 60;
-  let bridgeFee = BigNumber.from(0);
+  let bridgeFees = [BigNumber.from(0)];
 
   const steps: RoutingStepDetails[] = [
     _step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
@@ -447,7 +447,7 @@ async function paybackAndWithdraw(
       return result;
     }
     const r = result.data;
-    bridgeFee = r.bridgeFee;
+    bridgeFees = [r.bridgeFee];
     estimateSlippage = r.estimateSlippage;
     // Transfer will pass through the fast path
     // so we need to account for the router fee (0.05) + slippage
@@ -487,7 +487,7 @@ async function paybackAndWithdraw(
     }
     const r = result.data;
     estimateSlippage = r.estimateSlippage;
-    bridgeFee = r.bridgeFee;
+    bridgeFees = [r.bridgeFee];
 
     steps.push(
       _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -518,7 +518,7 @@ async function paybackAndWithdraw(
     const r1 = result1.data;
     const r2 = result2.data;
     estimateSlippage = r1.estimateSlippage.add(r2.estimateSlippage);
-    bridgeFee = r1.bridgeFee.add(r2.bridgeFee);
+    bridgeFees = [r1.bridgeFee.add(r2.bridgeFee)];
 
     steps.push(
       _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -550,7 +550,7 @@ async function paybackAndWithdraw(
     steps,
     estimateSlippage,
     estimateTime,
-    bridgeFee,
+    bridgeFees,
   });
 }
 

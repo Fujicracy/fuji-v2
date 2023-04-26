@@ -14,7 +14,7 @@ import { HistoryEntry, HistoryEntryStatus } from './history';
 export type TransactionMeta = {
   status: FetchStatus;
   gasFees: number; // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
-  bridgeFee: number;
+  bridgeFees: number[];
   estimateTime: number;
   estimateSlippage: number;
   steps: RoutingStepDetails[];

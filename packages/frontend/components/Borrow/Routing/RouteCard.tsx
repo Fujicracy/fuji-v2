@@ -149,7 +149,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
                     />
                   }
                   variant="routing"
-                  label={`Bridge Fee ~$${route.bridgeFee.toFixed(2)}`}
+                  label={`Bridge Fee ~$${route.bridgeFees[0].toFixed(2)}`}
                 />
               </Tooltip>
             </>
