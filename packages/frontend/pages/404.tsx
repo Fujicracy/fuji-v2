@@ -38,8 +38,8 @@ const NotFoundPage = () => {
 
       <Container
         sx={{
-          pl: { xs: '0.25rem', sm: '1rem' },
-          pr: { xs: '0.25rem', sm: '1rem' },
+          pl: '1rem',
+          pr: '1rem',
           minHeight: '75vh',
           display: 'flex',
           alignItems: 'center',
@@ -60,6 +60,7 @@ const NotFoundPage = () => {
             fontSize="1rem"
             mt="1rem"
             mb={0}
+            textAlign="center"
             gutterBottom
           >
             {"The page you are looking for doesn't exist or has been moved."}
