@@ -152,9 +152,19 @@ contract BorrowingVault is BaseVault {
 
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
+
+    _initializeVaultShares();
   }
 
   receive() external payable {}
+
+  /// @inheritdoc BaseVault
+  function _initializeVaultShares() internal override {
+    // Create synthetic asset shares for this vault.
+    _mint(address(this), 10 ** (decimals()));
+    // Create synthetic debt shares for this vault.
+    _mintDebtShares(address(this), 10 ** (_debtDecimals));
+  }
 
   /*///////////////////////////////
   /// Debt management overrides ///
@@ -373,7 +383,6 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
-
     _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
@@ -544,7 +553,9 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt_, rounding);
+    return (debt == 0 || supply == 0)
+      ? debt
+      : debt.mulDiv(supply, totalDebt_ + 10 ** (_debtDecimals), rounding);
   }
 
   /**
@@ -566,7 +577,8 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return (supply == 0) ? shares : shares.mulDiv(totalDebt_, supply, rounding);
+    return
+      (supply == 0) ? shares : shares.mulDiv(totalDebt_ + 10 ** (_debtDecimals), supply, rounding);
   }
 
   /**

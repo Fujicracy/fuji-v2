@@ -101,6 +101,13 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     minAmount = 1e6;
   }
 
+  /**
+   * @dev Implement at children contract and add at the end of constructor.
+   * Requirements:
+   * - Should create shares to avoid inflation attack.
+   */
+  function _initializeVaultShares() internal virtual;
+
   /*////////////////////////////////////////////////////
       Asset management: allowance {IERC20} overrides 
       Overrides to handle as `withdrawAllowance`
@@ -501,7 +508,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets_, rounding);
+    return (assets == 0 || supply == 0)
+      ? assets
+      : assets.mulDiv(supply, totalAssets_ + 10 ** (decimals()), rounding);
   }
 
   /**
@@ -523,7 +532,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return (supply == 0) ? shares : shares.mulDiv(totalAssets_, supply, rounding);
+    return
+      (supply == 0) ? shares : shares.mulDiv(totalAssets_ + 10 ** (decimals()), supply, rounding);
   }
 
   /**
