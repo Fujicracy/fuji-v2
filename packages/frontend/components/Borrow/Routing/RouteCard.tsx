@@ -104,7 +104,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   }
 
   function slippageTextTooltip() {
-    if (!bridgeStep) return '';
+    if (!bridgeStep || !route.estimateSlippage) return '';
     const bridgeIndex = steps.indexOf(bridgeStep);
     const step =
       bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1];
@@ -131,7 +131,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     return (
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
-          {bridgeStep && !isMock && (
+          {bridgeStep && route.bridgeFees && !isMock && (
             <>
               <Chip
                 variant="routing"

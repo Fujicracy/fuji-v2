@@ -59,7 +59,7 @@ export function ConfirmTransactionModal({
   };
 
   const estCost =
-    transactionMeta.status === 'ready'
+    transactionMeta.status === 'ready' && transactionMeta.bridgeFees
       ? `~$${transactionMeta.bridgeFees[0].toFixed(2)} + gas`
       : 'n/a';
 
@@ -83,7 +83,9 @@ export function ConfirmTransactionModal({
 
   const isCrossChain = isCrossChainTransaction(steps);
   const isEstimatedSlippageBiggerThanSelected = useMemo(
-    () => transactionMeta.estimateSlippage > slippage / 100,
+    () =>
+      transactionMeta.estimateSlippage &&
+      transactionMeta.estimateSlippage > slippage / 100,
     [transactionMeta.estimateSlippage, slippage]
   );
 

@@ -37,7 +37,7 @@ function Fees() {
         <Typography variant="small" display="block">
           Estimated Cost
         </Typography>
-        {transactionMeta.status === 'ready' && (
+        {transactionMeta.status === 'ready' && transactionMeta.bridgeFees && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
               {`~$${transactionMeta.bridgeFees[0].toFixed(2)} + gas`}
@@ -59,7 +59,7 @@ function Fees() {
       </Stack>
 
       <Collapse in={show} sx={{ width: '100%' }}>
-        {crossChainTx && (
+        {crossChainTx && transactionMeta.bridgeFees && (
           <Fee
             label="Bridge fee"
             value={`~$${toNotSoFixed(transactionMeta.bridgeFees[0])}`}

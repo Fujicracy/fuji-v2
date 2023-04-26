@@ -4,7 +4,7 @@ import { RoutingStepDetails } from './RoutingStepDetails';
 
 export type MetaRoutingResult = {
   steps: RoutingStepDetails[];
-  bridgeFees: BigNumber[];
-  estimateSlippage: BigNumber;
+  bridgeFees: BigNumber[] | undefined;
+  estimateSlippage: BigNumber | undefined;
   estimateTime: number;
 };

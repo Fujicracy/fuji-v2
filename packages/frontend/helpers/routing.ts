@@ -19,13 +19,13 @@ import { validBigNumberAmount } from './values';
 
 export type RouteMeta = {
   //gasFees: number
-  estimateSlippage: number;
-  bridgeFees: number[];
-  estimateTime: number;
-  steps: RoutingStepDetails[];
-  actions: RouterActionParams[];
   address: string;
   recommended: boolean;
+  steps: RoutingStepDetails[];
+  actions: RouterActionParams[];
+  estimateTime: number;
+  estimateSlippage: number | undefined;
+  bridgeFees: number[] | undefined;
 };
 
 export const fetchRoutes = async (
@@ -131,7 +131,7 @@ export const fetchRoutes = async (
     preview;
 
   const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER);
-  const _bridgeFees = [
+  const _bridgeFees = bridgeFees && [
     Number(
       bridgeStep
         ? formatUnits(bridgeFees[0], bridgeStep.token?.decimals ?? 18)
@@ -144,7 +144,7 @@ export const fetchRoutes = async (
     recommended,
     bridgeFees: _bridgeFees,
     // slippage is in basis points
-    estimateSlippage: estimateSlippage.toNumber() / 100,
+    estimateSlippage: estimateSlippage && estimateSlippage.toNumber() / 100,
     estimateTime,
     actions,
     steps,

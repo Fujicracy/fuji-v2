@@ -25,6 +25,19 @@ import {
 } from '../types/PreviewParams';
 import { RoutingStepDetails } from '../types/RoutingStepDetails';
 
+function _defaultArguments(): {
+  estimateTime: number;
+  estimateSlippage: BigNumber | undefined;
+  bridgeFees: BigNumber[] | undefined;
+} {
+  // TODO: estimate time
+  return {
+    estimateTime: 3 * 60,
+    estimateSlippage: undefined,
+    bridgeFees: undefined,
+  };
+}
+
 function _step(
   step: RoutingStep,
   chainId: ChainId,
@@ -106,10 +119,8 @@ async function depositOrPayback(
 
   const activeProvider = vault.activeProvider;
 
-  let estimateSlippage = BigNumber.from(0);
-  // TODO: estimate time
-  const estimateTime = 3 * 60;
-  const bridgeFees = [BigNumber.from(0)];
+  const { estimateTime, bridgeFees, ...rest } = _defaultArguments();
+  let { estimateSlippage } = rest;
 
   const vaultToken =
     step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt;
@@ -137,6 +148,7 @@ async function depositOrPayback(
     }
     const r = result.data;
     estimateSlippage = r.estimateSlippage;
+    // TODO: bridgeFees
 
     steps.push(
       _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
@@ -163,10 +175,8 @@ async function borrowOrWithdraw(
 
   const activeProvider = vault.activeProvider;
 
-  let estimateSlippage = BigNumber.from(0);
-  // TODO: estimate time
-  const estimateTime = 3 * 60;
-  let bridgeFees = [BigNumber.from(0)];
+  const { estimateTime, ...rest } = _defaultArguments();
+  let { estimateSlippage, bridgeFees } = rest;
 
   const vaultToken =
     step === RoutingStep.BORROW ? vault.debt : vault.collateral;
@@ -255,10 +265,8 @@ async function depositAndBorrow(
 
   const activeProvider = vault.activeProvider;
 
-  // TODO: estimate time
-  const estimateTime = 3 * 60;
-  let estimateSlippage = BigNumber.from(0);
-  let bridgeFees = [BigNumber.from(0)];
+  const { estimateTime, ...rest } = _defaultArguments();
+  let { estimateSlippage, bridgeFees } = rest;
 
   const steps: RoutingStepDetails[] = [
     _step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
@@ -408,10 +416,8 @@ async function paybackAndWithdraw(
 
   const activeProvider = vault.activeProvider;
 
-  let estimateSlippage = BigNumber.from(0);
-  // TODO: estimate time
-  const estimateTime = 3 * 60;
-  let bridgeFees = [BigNumber.from(0)];
+  const { estimateTime, ...rest } = _defaultArguments();
+  let { estimateSlippage, bridgeFees } = rest;
 
   const steps: RoutingStepDetails[] = [
     _step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
