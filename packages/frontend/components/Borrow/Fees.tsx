@@ -37,10 +37,13 @@ function Fees() {
         <Typography variant="small" display="block">
           Estimated Cost
         </Typography>
-        {transactionMeta.status === 'ready' && transactionMeta.bridgeFees && (
+        {transactionMeta.status === 'ready' && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
-              {`~$${transactionMeta.bridgeFees[0].toFixed(2)} + gas`}
+              {`~$${(transactionMeta.bridgeFees
+                ? transactionMeta.bridgeFees[0]
+                : 0
+              ).toFixed(2)} + gas`}
             </Typography>
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
