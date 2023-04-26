@@ -21,9 +21,10 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { BannerConfig, BANNERS } from '../../../constants/banners';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { useAuth } from '../../../store/auth.store';
@@ -34,11 +35,15 @@ import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
-import BetaBanner from './BetaBanner';
+import Banner from './Banner';
 
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
+  const [banners, setBanners] = useState<BannerConfig[]>([]);
+
+  const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
+  const dismissBanner = useAuth((state) => state.dismissBanner);
 
   const { address, ens, status, balance, login } = useAuth(
     (state) => ({
@@ -54,6 +59,14 @@ const Header = () => {
   const { palette } = theme;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentPage = router.asPath;
+
+  useEffect(() => {
+    const filteredBanners = BANNERS.filter((banner) =>
+      getBannerVisibility(banner.key)
+    );
+
+    setBanners(filteredBanners);
+  }, [getBannerVisibility]);
 
   const isPageActive = useCallback(
     (path: string) => {
@@ -328,7 +341,9 @@ const Header = () => {
           </Grid>
         </Toolbar>
       </Box>
-      <BetaBanner />
+      {banners.map((banner) => (
+        <Banner banner={banner} key={banner.key} onDismiss={dismissBanner} />
+      ))}
       {address && (
         <AccountModal
           isOpen={showAccountModal}

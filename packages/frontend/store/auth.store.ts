@@ -88,6 +88,8 @@ type Action = {
   logout: () => void;
   acceptTermsOfUse: () => void;
   getOnboardStatus: () => OnboardStatus;
+  dismissBanner: (key: string) => void;
+  getBannerVisibility: (key: string) => boolean;
   setExploreInfoSkipped: (value: boolean) => void;
   changeChain: (chainId: ChainId) => void;
 };
@@ -174,6 +176,15 @@ export const useAuth = create<AuthStore>()(
 
         const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
         localStorage.setItem('termsAccepted', json);
+      },
+
+      dismissBanner: (key: string): void => {
+        localStorage.setItem(`${key}BannerDismissed`, 'true');
+      },
+
+      getBannerVisibility: (key: string): boolean => {
+        const statusJson = localStorage.getItem(`${key}BannerDismissed`);
+        return !statusJson || statusJson !== 'true';
       },
 
       changeChain: async (chainId) => {
