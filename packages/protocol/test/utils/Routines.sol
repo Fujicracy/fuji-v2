@@ -20,6 +20,9 @@ contract Routines is Test {
   }
 
   function do_deposit(uint256 amount, IVault v, address from) internal {
+    uint256 mintedShares = v.balanceOf(from);
+    uint256 assetBalanceBefore = v.convertToAssets(mintedShares);
+
     address asset = v.asset();
     deal(asset, from, amount);
 
@@ -31,10 +34,10 @@ contract Routines is Test {
     vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
 
-    uint256 mintedShares = v.balanceOf(from);
+    mintedShares = v.balanceOf(from);
     uint256 assetBalance = v.convertToAssets(mintedShares);
 
-    assertApproxEqAbs(assetBalance, amount, amount / 1000);
+    assertApproxEqAbs(assetBalance - assetBalanceBefore, amount, amount / 1000);
 
     vm.warp(block.timestamp - 13 seconds);
     vm.roll(block.number - 1);
@@ -51,10 +54,12 @@ contract Routines is Test {
   }
 
   function do_borrow(uint256 amount, IVault v, address from) internal {
+    uint256 prevDebt = IERC20(v.debtAsset()).balanceOf(from);
+
     vm.prank(from);
     v.borrow(amount, from, from);
 
-    assertEq(IERC20(v.debtAsset()).balanceOf(from), amount);
+    assertEq(IERC20(v.debtAsset()).balanceOf(from) - prevDebt, amount);
   }
 
   function do_payback(uint256 amount, IVault v, address from) internal {

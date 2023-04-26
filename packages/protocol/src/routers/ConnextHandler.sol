@@ -50,6 +50,9 @@ contract ConnextHandler {
   /// @dev Custom errors
   error ConnextHandler__callerNotConnextRouter();
 
+  bytes32 private constant ZERO_BYTES32 =
+    0x0000000000000000000000000000000000000000000000000000000000000000;
+
   ConnextRouter public immutable connextRouter;
 
   /// @dev Maps a failed transferId -> calldata
@@ -87,6 +90,20 @@ contract ConnextHandler {
   }
 
   /**
+   * @notice Returns the true if the failed transaction is already recorded.
+   *
+   * @param transferId the unique identifier of the cross-chain txn
+   */
+  function isTransferIdRecorded(bytes32 transferId) public view returns (bool) {
+    FailedTxn memory ftxn = _failedTxns[transferId];
+    if (ftxn.transferId != ZERO_BYTES32 && ftxn.originDomain != 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * @notice Records a failed {ConnextRouter-xReceive} call.
    *
    * @param transferId the unique identifier of the cross-chain txn
@@ -114,8 +131,10 @@ contract ConnextHandler {
     external
     onlyConnextRouter
   {
-    _failedTxns[transferId] =
-      FailedTxn(transferId, amount, asset, originSender, originDomain, actions, args);
+    if (!isTransferIdRecorded(transferId)) {
+      _failedTxns[transferId] =
+        FailedTxn(transferId, amount, asset, originSender, originDomain, actions, args);
+    }
   }
 
   /**
