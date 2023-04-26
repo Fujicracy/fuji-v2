@@ -49,6 +49,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__mint_slippageTooHigh();
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
+  error BaseVault__burn_cannotBurn();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -221,6 +222,17 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function _spendAllowance(address owner, address receiver, uint256 shares) internal override {
     _spendWithdrawAllowance(owner, receiver, receiver, convertToAssets(shares));
+  }
+
+  /**
+   * @dev Extended to avoid burning of address(this) shares created in
+   * `_initializeVaultShares`. See OZ implementation: {ERC20-_burn}.
+   */
+  function __burn(address account, uint256 amount) internal virtual {
+    if (account == address(this)) {
+      revert BaseVault__burn_cannotBurn();
+    }
+    _burn(account, amount);
   }
 
   /*//////////////////////////////////////////
@@ -612,7 +624,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     internal
     whenNotPaused(VaultActions.Withdraw)
   {
-    _burn(owner, shares);
+    __burn(owner, shares);
     _executeProviderAction(assets, "withdraw", activeProvider);
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 

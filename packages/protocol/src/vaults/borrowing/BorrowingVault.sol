@@ -69,6 +69,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__payback_slippageTooHigh();
   error BorrowingVault__burnDebt_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
+  error BorrowingVault__burnDebtShares_cannotBurn();
 
   /*///////////////////
    Liquidation controls
@@ -697,6 +698,9 @@ contract BorrowingVault is BaseVault {
    */
   function _burnDebtShares(address owner, uint256 amount) internal {
     uint256 balance = _debtShares[owner];
+    if (owner == address(this)) {
+      revert BorrowingVault__burnDebtShares_cannotBurn();
+    }
     if (balance < amount) {
       revert BorrowingVault__burnDebtShares_amountExceedsBalance();
     }
