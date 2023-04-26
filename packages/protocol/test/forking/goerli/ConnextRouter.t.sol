@@ -472,6 +472,73 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(vault.balanceOfDebt(ALICE), borrowAmount);
   }
 
+  function test_overridingFailedTransferInHandler() public {
+    bytes32 transferId_ = 0x000000000000000000000000000000000000000000000000000000000000000a;
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+    // Eg. 0.05% slippage threshold will be 5.
+    uint256 slippageThreshold = 0;
+
+    // This calldata has to fail and funds handled accordingly by the router.
+    bytes memory failingCallData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+    );
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      transferId_,
+      amount,
+      vault.asset(),
+      address(connextRouter),
+      OPTIMISM_GOERLI_DOMAIN,
+      failingCallData
+    );
+    vm.stopPrank();
+
+    // Assert handler has recorded failed transfer
+    ConnextHandler.FailedTxn memory ftxn = connextHandler.getFailedTransaction(transferId_);
+    assertEq(ftxn.transferId, transferId_);
+    assertEq(ftxn.asset, collateralAsset);
+    assertEq(ftxn.amount, amount);
+
+    // Create different calldata
+    uint256 newAmount = 1.5 ether;
+    bytes memory newfailingCallData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, newAmount, borrowAmount, address(0), address(vault), slippageThreshold
+    );
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), newAmount);
+
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive(
+      transferId_,
+      newAmount,
+      vault.asset(),
+      address(connextRouter),
+      OPTIMISM_GOERLI_DOMAIN,
+      newfailingCallData
+    );
+    vm.stopPrank();
+
+    // Assert handler has not modified the recorded failed transfer
+    ConnextHandler.FailedTxn memory newftxn = connextHandler.getFailedTransaction(transferId_);
+    assertEq(newftxn.transferId, transferId_);
+    assertEq(newftxn.asset, collateralAsset);
+    assertEq(newftxn.amount, amount);
+  }
+
   function test_simpleFlashloan() public {
     // Setup flasher accordingly
     MockTestFlasher flasher = new MockTestFlasher();

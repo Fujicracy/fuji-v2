@@ -67,6 +67,8 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_slippageTooHigh();
   error BorrowingVault__payback_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
+  error BorrowingVault__correctDebt_noNeedForCorrection();
+  error BorrowingVault__withdraw_debtNeedsCorrection();
 
   /*///////////////////
    Liquidation controls
@@ -299,6 +301,37 @@ contract BorrowingVault is BaseVault {
     _payback(_msgSender(), owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @dev Checks if vault debt has been paid off externally and pauses the vault if so.
+   * Will call withdraw if normal conditions are met.
+   *
+   * @param caller or {msg.sender}
+   * @param receiver to whom `assets` amount will be transferred to
+   * @param owner to whom `shares` will be burned
+   * @param assets amount transferred during this withraw
+   * @param shares amount burned to `owner` during this withdraw
+   */
+  function _withdraw(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 assets,
+    uint256 shares
+  )
+    internal
+    override
+    whenNotPaused(VaultActions.Withdraw)
+  {
+    uint256 totalDebt_ = totalDebt();
+    uint256 supply = debtSharesSupply;
+
+    if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
+      _pause(VaultActions.Withdraw);
+      revert BorrowingVault__withdraw_debtNeedsCorrection();
+    }
+    super._withdraw(caller, receiver, owner, assets, shares);
   }
 
   /*///////////////////////
@@ -738,5 +771,25 @@ contract BorrowingVault is BaseVault {
     _providers = providers;
 
     emit ProvidersChanged(providers);
+  }
+
+  /**
+   * @notice In case someone repays this vault's debt directly to the lending provider,
+   * a borrow is done with the amount that was repaid so no issues regarding
+   * the relationship between debt and debt shares occurs.
+   *
+   * @param  treasury address to receive the borrowed amount
+   */
+  function correctDebt(address treasury) external onlyTimelock {
+    uint256 vaultDebt = totalDebt();
+    uint256 vaultDebtShares = debtSharesSupply;
+
+    // Check if there is need for correction.
+    if (vaultDebt >= vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
+      revert BorrowingVault__correctDebt_noNeedForCorrection();
+    }
+
+    _executeProviderAction(vaultDebtShares, "borrow", activeProvider);
+    SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, vaultDebtShares);
   }
 }
