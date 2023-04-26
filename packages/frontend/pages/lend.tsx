@@ -12,7 +12,7 @@ import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
 import Lending from '../components/Shared/Lending';
 
-const MarketsPage: NextPage = () => {
+const LendingPage: NextPage = () => {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
@@ -52,4 +52,4 @@ const MarketsPage: NextPage = () => {
   );
 };
 
-export default MarketsPage;
+export default LendingPage;
