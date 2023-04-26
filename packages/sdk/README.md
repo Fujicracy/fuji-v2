@@ -70,7 +70,7 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
     // vaults are sorted, starting by this with the lowest borrow rate
     // or if token1 and token2 are on the same chain, the first vault will
     // be on that chain
-    
+
     const vault = vaults[0];
   }
 ```
@@ -92,7 +92,7 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   if (balanacesResult.success) {
     ...
     const { deposit, borrow } = balanacesResult.data;
-    
+
     // if they are not 0, they have to be used in the health ratio and liquidation price math,
     // together with the amouts that the user has input
   }
@@ -156,7 +156,7 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
   const txRequest = result.data;
   const tx = await signer.sendTransaction(txRequest);
   const receipt = await tx.wait();
-  
+
   if (isCrossChain) {
     // poll every N seconds the following method to get the destination transaction hash
     const result = await sdk.getConnextTxDetails(srcChainId, receipt.transactionHash);
