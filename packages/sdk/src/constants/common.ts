@@ -1,5 +1,6 @@
 // Default values
 export const DEFAULT_SLIPPAGE = 50;
+export const TOKEN_CACHE_TIMEOUT = 1000 * 60 * 2; // 2 minutes
 
 // Urls
 export const URLS = {

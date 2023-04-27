@@ -5,6 +5,7 @@ import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
+import { TOKEN_CACHE_TIMEOUT } from '../constants';
 import { FUJI_ORACLE_ADDRESS, WNATIVE_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
 import { ChainId } from '../enums';
@@ -76,6 +77,16 @@ export abstract class AbstractCurrency {
   multicallRpcProvider?: IMulticallProvider;
 
   /**
+   * Timestamp when the last price was updated
+   */
+  cacheTimestamp?: number;
+
+  /**
+   * Last price in USD
+   */
+  lastPriceUSD?: number;
+
+  /**
    * Constructs an instance of the base class `BaseCurrency`.
    * @param address - the address of the currency
    * @param chainId - the chain ID on which this currency resides
@@ -135,9 +146,17 @@ export abstract class AbstractCurrency {
   /**
    * Fetch currency price in USD.
    */
-  async getPriceUSD(): FujiResultPromise<number> {
+  async getPriceUSD(latest = false): FujiResultPromise<number> {
     if (!this.rpcProvider) {
       return new FujiResultError('Connection not set!');
+    }
+    if (
+      !latest &&
+      this.lastPriceUSD &&
+      this.cacheTimestamp &&
+      Date.now() - this.cacheTimestamp < TOKEN_CACHE_TIMEOUT
+    ) {
+      return new FujiResultSuccess(this.lastPriceUSD);
     }
     const addr = this.isNative ? WNATIVE_ADDRESS[this.chainId] : this.address;
 
@@ -150,6 +169,9 @@ export abstract class AbstractCurrency {
         .then((price) =>
           parseFloat(formatUnits(price.toString(), this.decimals))
         );
+
+      this.cacheTimestamp = Date.now();
+      this.lastPriceUSD = result;
       return new FujiResultSuccess(result);
     } catch (error) {
       return new FujiResultError('Error getting token USD price');
