@@ -23,8 +23,10 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   /// @dev Custom errors
   error RebalancerManager__rebalanceVault_notValidExecutor();
   error RebalancerManager__rebalanceVault_notValidFlasher();
+  error RebalancerManager__rebalanceVault_invalidAmount();
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
+  error RebalancerManager__checkLtvChange_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
   error RebalancerManager__getFlashloan_notEmptyEntryPoint();
   error RebalancerManager__completeRebalance_invalidEntryPoint();
@@ -54,6 +56,11 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     if (!allowedExecutor[msg.sender]) {
       revert RebalancerManager__rebalanceVault_notValidExecutor();
     }
+
+    if (assets == 0) {
+      revert RebalancerManager__rebalanceVault_invalidAmount();
+    }
+
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
@@ -63,6 +70,7 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       if (!chief.allowedFlasher(address(flasher))) {
         revert RebalancerManager__rebalanceVault_notValidFlasher();
       }
+      _checkLtvChange(vault, assets, debt);
       _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
     }
 
@@ -106,6 +114,22 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     uint256 debtAtProvider = from.getBorrowBalance(address(vault), vault);
     if (amount > debtAtProvider) {
       revert RebalancerManager__checkDebtAmount_invalidAmount();
+    }
+  }
+
+  /**
+   * @dev Checks if the rebalance operation will break the current LTV
+   *
+   * @param vault address
+   * @param assets amount to rebalance
+   * @param debt amount to rebalance
+   */
+  function _checkLtvChange(IVault vault, uint256 assets, uint256 debt) internal view {
+    if ((assets == 0 && debt != 0) || (assets != 0 && debt == 0)) {
+      revert RebalancerManager__checkLtvChange_invalidAmount();
+    }
+    if ((vault.totalDebt() / vault.totalAssets()) != (debt / assets)) {
+      revert RebalancerManager__checkLtvChange_invalidAmount();
     }
   }
 
