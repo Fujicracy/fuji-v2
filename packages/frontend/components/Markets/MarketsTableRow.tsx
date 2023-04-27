@@ -262,11 +262,11 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
                 : palette.secondary.dark,
             }}
           >
-            {row.children?.map((collaspsedRow, i) => (
+            {row.children?.map((collapsedRow, i) => (
               <Table key={i} sx={{ borderCollapse: 'initial' }}>
                 <TableBody>
                   <MarketsTableRow
-                    row={collaspsedRow}
+                    row={collapsedRow}
                     onClick={onClick}
                     isBest={i === 0}
                   />
