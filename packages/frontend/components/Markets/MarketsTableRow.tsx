@@ -114,7 +114,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell width="200px">
           {loaderOrError(row.chain.status)}
-          {row.chain.status === Status.Ready && (
+          {row.chain.status === Status.Ready && !expandRow && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
@@ -136,7 +136,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           sx={{ color: palette.warning.main }}
         >
           {loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === Status.Ready && (
+          {row.borrowApr.status === Status.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.borrowAprReward?.value > 0 && (
                 <Tooltip
@@ -162,7 +162,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           sx={{ color: palette.success.main }}
         >
           {loaderOrError(row.depositApr.status)}
-          {row.depositApr.status === Status.Ready && (
+          {row.depositApr.status === Status.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.depositAprReward?.value > 0 && (
                 <Tooltip
@@ -184,7 +184,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
           {loaderOrError(row.integratedProtocols.status)}
-          {row.integratedProtocols.status === Status.Ready && (
+          {row.integratedProtocols.status === Status.Ready && !expandRow && (
             <Stack
               direction="row"
               justifyContent="right"
@@ -224,15 +224,18 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          <Chip
-            variant={row.safetyRating.value === 'A+' ? 'success' : 'warning'}
-            label={row.safetyRating.value}
-            sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
-          />
+          {!expandRow && (
+            <Chip
+              variant={row.safetyRating.value === 'A+' ? 'success' : 'warning'}
+              label={row.safetyRating.value}
+              sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+            />
+          )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          {loaderOrError(row.liquidity.status)}
+          {!expandRow && loaderOrError(row.liquidity.status)}
           {row.liquidity.status === Status.Ready &&
+            !expandRow &&
             formatValue(row.liquidity.value, {
               maximumSignificantDigits: 3,
               notation: 'compact',
