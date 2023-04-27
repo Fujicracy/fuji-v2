@@ -65,6 +65,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__checkVaultInput_notActiveVault();
   error BaseRouter__bundleInternal_notAllowedSwapper();
   error BaseRouter__bundleInternal_notAllowedFlasher();
+  error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
@@ -234,7 +235,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         }
 
         // Scoped code in new private function to avoid "Stack too deep"
-        address owner_ = _handlePermitAction(args[i], actionArgsHash, 1);
+        address owner_ = _handlePermitAction(action, args[i], actionArgsHash);
         beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.PermitBorrow) {
         // PERMIT BORROW
@@ -243,7 +244,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         }
 
         // Scoped code in new private function to avoid "Stack too deep"
-        address owner_ = _handlePermitAction(args[i], actionArgsHash, 2);
+        address owner_ = _handlePermitAction(action, args[i], actionArgsHash);
         beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
@@ -313,14 +314,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @dev Handles both permit actions logic flow.
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    *
+   * @param action either IRouter.Action.PermitWithdraw (6), or IRouter.Action.PermitBorrow (7)
    * @param arg of the ongoing action
    * @param actionArgsHash_ created previously withing `_bundleInternal()` to be used in permit check
-   * @param permit internal control number, either 1 for permitWithdraw, or 2 for permitBorrow
    */
   function _handlePermitAction(
+    IRouter.Action action,
     bytes memory arg,
-    bytes32 actionArgsHash_,
-    uint256 permit
+    bytes32 actionArgsHash_
   )
     private
     returns (address)
@@ -343,7 +344,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
     _checkVaultInput(address(loaded.vault));
 
-    if (permit == 1) {
+    if (action == IRouter.Action.PermitWithdraw) {
       loaded.vault.permitWithdraw(
         loaded.owner,
         loaded.receiver,
@@ -354,7 +355,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         loaded.r,
         loaded.s
       );
-    } else if (permit == 2) {
+    } else if (action == IRouter.Action.PermitBorrow) {
       loaded.vault.permitBorrow(
         loaded.owner,
         loaded.receiver,
@@ -365,6 +366,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         loaded.r,
         loaded.s
       );
+    } else {
+      revert BaseRouter__handlePermit_notPermitAction();
     }
 
     return loaded.owner;
