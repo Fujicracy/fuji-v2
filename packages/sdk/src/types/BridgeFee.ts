@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers';
 import { Token } from '../entities';
 
 export type BridgeFee = {
-  amount: number;
+  amount: BigNumber;
   token: Token;
-  priceUSD: BigNumber;
+  priceUSD: number;
 };
