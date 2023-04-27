@@ -188,7 +188,7 @@ const initialState: BorrowState = {
 
   transactionMeta: {
     status: 'initial',
-    bridgeFees: [0],
+    bridgeFees: undefined,
     gasFees: 0,
     estimateTime: 0,
     estimateSlippage: 0,

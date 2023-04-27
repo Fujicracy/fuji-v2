@@ -8,6 +8,7 @@ import { formatUnits } from 'ethers/lib/utils';
 
 import { chainName } from '../../../helpers/chains';
 import { RouteMeta } from '../../../helpers/routing';
+import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
 import {
   NetworkIcon,
@@ -149,7 +150,9 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
                     />
                   }
                   variant="routing"
-                  label={`Bridge Fee ~$${route.bridgeFees[0].toFixed(2)}`}
+                  label={`Bridge Fee ~$${stringifiedBridgeFeeSum(
+                    route.bridgeFees
+                  )}`}
                 />
               </Tooltip>
             </>

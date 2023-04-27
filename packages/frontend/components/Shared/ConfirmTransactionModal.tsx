@@ -12,7 +12,10 @@ import {
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
 import { isCrossChainTransaction } from '../../helpers/routing';
-import { TransactionMeta } from '../../helpers/transactions';
+import {
+  stringifiedBridgeFeeSum,
+  TransactionMeta,
+} from '../../helpers/transactions';
 import { formatValue } from '../../helpers/values';
 import { useBorrow } from '../../store/borrow.store';
 import AssetBox from './ConfirmationTransaction/AssetBox';
@@ -60,7 +63,7 @@ export function ConfirmTransactionModal({
 
   const estCost =
     transactionMeta.status === 'ready' && transactionMeta.bridgeFees
-      ? `~$${transactionMeta.bridgeFees[0].toFixed(2)} + gas`
+      ? `~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`
       : 'n/a';
 
   const positionBorrowLimit = remainingBorrowLimit(

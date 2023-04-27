@@ -9,6 +9,10 @@ import {
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
+import {
+  bridgeFeeSum,
+  stringifiedBridgeFeeSum,
+} from '../../helpers/transactions';
 import { toNotSoFixed } from '../../helpers/values';
 import { useBorrow } from '../../store/borrow.store';
 
@@ -40,10 +44,7 @@ function Fees() {
         {transactionMeta.status === 'ready' && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
-              {`~$${(transactionMeta.bridgeFees
-                ? transactionMeta.bridgeFees[0]
-                : 0
-              ).toFixed(2)} + gas`}
+              {`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`}
             </Typography>
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
@@ -65,7 +66,9 @@ function Fees() {
         {crossChainTx && transactionMeta.bridgeFees && (
           <Fee
             label="Bridge fee"
-            value={`~$${toNotSoFixed(transactionMeta.bridgeFees[0])}`}
+            value={`~$${toNotSoFixed(
+              bridgeFeeSum(transactionMeta.bridgeFees)
+            )}`}
           />
         )}
         <Fee

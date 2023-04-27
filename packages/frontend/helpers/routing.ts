@@ -1,6 +1,7 @@
 import {
   Address,
   BorrowingVault,
+  BridgeFee as FujiBridgeFee,
   FujiResult,
   FujiResultPromise,
   FujiResultSuccess,
@@ -17,6 +18,9 @@ import { sdk } from '../services/sdk';
 import { Mode } from './assets';
 import { validBigNumberAmount } from './values';
 
+export type BridgeFee = Omit<FujiBridgeFee, 'amount'> & {
+  amount: number;
+};
 export type RouteMeta = {
   //gasFees: number
   address: string;
@@ -25,7 +29,7 @@ export type RouteMeta = {
   actions: RouterActionParams[];
   estimateTime: number;
   estimateSlippage: number | undefined;
-  bridgeFees: number[] | undefined;
+  bridgeFees: BridgeFee[] | undefined;
 };
 
 export const fetchRoutes = async (
@@ -130,19 +134,15 @@ export const fetchRoutes = async (
   const { bridgeFees, estimateSlippage, estimateTime, actions, steps } =
     preview;
 
-  const bridgeStep = steps.find((s) => s.step === RoutingStep.X_TRANSFER);
-  const _bridgeFees = bridgeFees && [
-    Number(
-      bridgeStep
-        ? formatUnits(bridgeFees[0], bridgeStep.token?.decimals ?? 18)
-        : '0'
-    ),
-  ];
+  const _bridgeFees = bridgeFees?.map((fee) => ({
+    ...fee,
+    amount: Number(formatUnits(fee.amount, fee.token.decimals)),
+  }));
 
   return new FujiResultSuccess({
     address: vault.address.value,
-    recommended,
     bridgeFees: _bridgeFees,
+    recommended,
     // slippage is in basis points
     estimateSlippage: estimateSlippage && estimateSlippage.toNumber() / 100,
     estimateTime,
