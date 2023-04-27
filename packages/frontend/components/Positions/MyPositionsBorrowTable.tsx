@@ -81,7 +81,13 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
           {rows.map((row, i) => (
             <TableRow
               key={i}
-              sx={{ cursor: 'pointer', height: '4.3rem' }}
+              sx={{
+                cursor: 'pointer',
+                height: '4.3rem',
+                '&:hover': {
+                  '& .MuiTableCell-root': { background: '#34363E' },
+                },
+              }}
               onClick={() => handleClick(row)}
             >
               <TableCell>
