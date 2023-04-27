@@ -9,7 +9,7 @@ import walletConnectModule, {
 } from '@web3-onboard/walletconnect';
 import xdefiWalletModule from '@web3-onboard/xdefi';
 
-import { FUJI_INFO } from '../constants';
+import { FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
 
 const wcV1InitOptions: WalletConnectOptions = {
@@ -54,7 +54,7 @@ export const web3onboard = init({
   ],
   appMetadata: {
     name: FUJI_INFO.NAME,
-    icon: FUJI_INFO.LOGO_SVG, // svg string icon
+    icon: fujiLogo, // svg string icon
     description: FUJI_INFO.DESCRIPTION,
     recommendedInjectedWallets: [
       { name: 'MetaMask', url: 'https://metamask.io' },
