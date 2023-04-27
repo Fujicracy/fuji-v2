@@ -1,12 +1,15 @@
 import coinbaseModule from '@web3-onboard/coinbase';
 import injectedModule from '@web3-onboard/injected-wallets';
 import ledgerModule from '@web3-onboard/ledger';
+import mewWallet from '@web3-onboard/mew-wallet';
 import { init } from '@web3-onboard/react';
+import trezorModule from '@web3-onboard/trezor';
 import walletConnectModule, {
   WalletConnectOptions,
 } from '@web3-onboard/walletconnect';
+import xdefiWalletModule from '@web3-onboard/xdefi';
 
-import { fujiLogo } from '../constants';
+import { FUJI_INFO } from '../constants';
 import { onboardChains } from './chains';
 
 const wcV1InitOptions: WalletConnectOptions = {
@@ -31,14 +34,28 @@ const wcV1InitOptions: WalletConnectOptions = {
 const walletConnect = walletConnectModule(wcV1InitOptions);
 const coinbase = coinbaseModule();
 const ledger = ledgerModule();
+const mewWalletModule = mewWallet();
+const trezor = trezorModule({
+  email: FUJI_INFO.SUPPORT_EMAIL,
+  appUrl: FUJI_INFO.APP_URL,
+});
+const xdefiWallet = xdefiWalletModule();
 
 export const web3onboard = init({
   chains: onboardChains,
-  wallets: [injectedModule(), coinbase, ledger, walletConnect],
+  wallets: [
+    injectedModule(),
+    coinbase,
+    ledger,
+    mewWalletModule,
+    trezor,
+    walletConnect,
+    xdefiWallet,
+  ],
   appMetadata: {
-    name: 'Fuji V2 Himalaya',
-    icon: fujiLogo, // svg string icon
-    description: 'Deposit, borrow and repay from any chain',
+    name: FUJI_INFO.NAME,
+    icon: FUJI_INFO.LOGO_SVG, // svg string icon
+    description: FUJI_INFO.DESCRIPTION,
     recommendedInjectedWallets: [
       { name: 'MetaMask', url: 'https://metamask.io' },
     ],
