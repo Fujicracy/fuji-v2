@@ -326,51 +326,51 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     private
     returns (address)
   {
-    PermitArgs memory loaded;
+    PermitArgs memory permitArgs;
     {
       (
-        loaded.vault,
-        loaded.owner,
-        loaded.receiver,
-        loaded.amount,
-        loaded.deadline,
-        loaded.v,
-        loaded.r,
-        loaded.s
+        permitArgs.vault,
+        permitArgs.owner,
+        permitArgs.receiver,
+        permitArgs.amount,
+        permitArgs.deadline,
+        permitArgs.v,
+        permitArgs.r,
+        permitArgs.s
       ) = abi.decode(
         arg, (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
       );
     }
 
-    _checkVaultInput(address(loaded.vault));
+    _checkVaultInput(address(permitArgs.vault));
 
     if (action == IRouter.Action.PermitWithdraw) {
-      loaded.vault.permitWithdraw(
-        loaded.owner,
-        loaded.receiver,
-        loaded.amount,
-        loaded.deadline,
+      permitArgs.vault.permitWithdraw(
+        permitArgs.owner,
+        permitArgs.receiver,
+        permitArgs.amount,
+        permitArgs.deadline,
         actionArgsHash_,
-        loaded.v,
-        loaded.r,
-        loaded.s
+        permitArgs.v,
+        permitArgs.r,
+        permitArgs.s
       );
     } else if (action == IRouter.Action.PermitBorrow) {
-      loaded.vault.permitBorrow(
-        loaded.owner,
-        loaded.receiver,
-        loaded.amount,
-        loaded.deadline,
+      permitArgs.vault.permitBorrow(
+        permitArgs.owner,
+        permitArgs.receiver,
+        permitArgs.amount,
+        permitArgs.deadline,
         actionArgsHash_,
-        loaded.v,
-        loaded.r,
-        loaded.s
+        permitArgs.v,
+        permitArgs.r,
+        permitArgs.s
       );
     } else {
       revert BaseRouter__handlePermit_notPermitAction();
     }
 
-    return loaded.owner;
+    return permitArgs.owner;
   }
 
   /**
