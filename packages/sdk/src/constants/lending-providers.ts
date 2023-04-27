@@ -42,6 +42,14 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    '0x8755bE098D54Cd16687B7c0D39791Cd899E4dD8c': {
+      name: 'Radiant',
+      llamaKey: 'radiant',
+    },
+    '0x12e5BD64CC72C5B2643c3D2C8A88dD05c361e513': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
   },
   [ChainId.OPTIMISM]: {
     '0xB5BeccF2734c97221379a6C08B718D82023b1498': {
