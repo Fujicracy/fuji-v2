@@ -9,21 +9,21 @@ import {
   useTheme,
 } from '@mui/material';
 import Head from 'next/head';
+import Image from 'next/image';
 import React from 'react';
 
 import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
-import NotFoundIcon from '../components/Shared/Icons/NotFoundIcon';
 
-const NotFoundPage = () => {
+const SomethingWentWrongPage = () => {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   return (
     <>
       <Head>
-        <title>404 - Fuji V2 Himalaya</title>
-        <meta name="description" content="Page not found" />
+        <title>Something went wrong - Fuji V2 Himalaya</title>
+        <meta name="description" content="Something went wrong" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -46,9 +46,14 @@ const NotFoundPage = () => {
         }}
       >
         <Stack width="100%" alignItems="center" mt="-20%">
-          <NotFoundIcon />
+          <Image
+            src="/assets/images/errors/somethingWentWrong.svg"
+            height={80}
+            width={95}
+            alt="Something went wrong image"
+          />
           <Typography variant="h4" mt="2.5rem" mb={0} gutterBottom>
-            Page not found
+            Oops! Something went wrong
           </Typography>
           <Typography
             variant="smallDark"
@@ -58,7 +63,9 @@ const NotFoundPage = () => {
             textAlign="center"
             gutterBottom
           >
-            {"The page you are looking for doesn't exist or has been moved."}
+            {
+              'We encountered an error while trying to connect with our server. Please try again later.'
+            }
           </Typography>
           <Link href="/" mt="1.5rem" variant="inherit">
             <Button variant="secondary" size="medium" sx={{ height: '3rem' }}>
@@ -73,4 +80,4 @@ const NotFoundPage = () => {
   );
 };
 
-export default NotFoundPage;
+export default SomethingWentWrongPage;
