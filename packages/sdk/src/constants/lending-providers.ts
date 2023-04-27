@@ -25,6 +25,14 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    '0xd3346737E370119961C444c0C1b10d7C3fcDf36C': {
+      name: '0VIX',
+      llamaKey: '0vix',
+    },
+    '0x2beeCC93A095208375b89547EFd4b3dCa826a927': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
   },
   [ChainId.MATIC_MUMBAI]: {
     '0xC69176FADFeF7A1570540a99Faf827b3138659D1': {

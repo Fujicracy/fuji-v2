@@ -12,6 +12,8 @@ import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../src/providers/polygon/AaveV2Polygon.sol";
+import {DForcePolygon} from "../src/providers/polygon/DForcePolygon.sol";
+import {OvixPolygon} from "../src/providers/polygon/OvixPolygon.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -27,8 +29,10 @@ contract DeployPolygon is ScriptPlus {
   FujiOracle oracle;
   ConnextRouter connextRouter;
 
-  AaveV3Polygon aaveV3Polygon;
-  AaveV2Polygon aaveV2Polygon;
+  AaveV3Polygon aaveV3;
+  AaveV2Polygon aaveV2;
+  DForcePolygon dforce;
+  OvixPolygon ovix;
 
   IConnext connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
   IWETH9 WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
@@ -46,13 +50,7 @@ contract DeployPolygon is ScriptPlus {
 
     vm.startBroadcast(deployer);
 
-    aaveV3Polygon = AaveV3Polygon(getAddress("AaveV3Polygon"));
-    /*aaveV3Polygon = new AaveV3Polygon();*/
-    /*saveAddress("AaveV3Polygon", address(aaveV3Polygon));*/
-
-    aaveV2Polygon = AaveV2Polygon(getAddress("AaveV2Polygon"));
-    /*aaveV2Polygon = new AaveV2Polygon();*/
-    /*saveAddress("AaveV2Polygon", address(aaveV2Polygon));*/
+    _handleLendingProviders();
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -104,6 +102,12 @@ contract DeployPolygon is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
+    _setVaultNewProviders("BorrowingVault-WETHUSDC");
+
+    vm.stopBroadcast();
+  }
+
+  function _setRouters() internal {
     /*address arbitrumRouter = getAddressAt("ConnextRouter", "arbitrum");*/
     /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
     /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
@@ -132,14 +136,30 @@ contract DeployPolygon is ScriptPlus {
     /*address(connextRouter),*/
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)*/
     /*);*/
+  }
 
-    vm.stopBroadcast();
+  function _handleLendingProviders() internal {
+    aaveV3 = AaveV3Polygon(getAddress("AaveV3Polygon"));
+    /*aaveV3 = new AaveV3Polygon();*/
+    /*saveAddress("AaveV3Polygon", address(aaveV3));*/
+
+    aaveV2 = AaveV2Polygon(getAddress("AaveV2Polygon"));
+    /*aaveV2 = new AaveV2Polygon();*/
+    /*saveAddress("AaveV2Polygon", address(aaveV2));*/
+
+    ovix = OvixPolygon(getAddress("OvixPolygon"));
+    /*ovix = new OvixPolygon();*/
+    /*saveAddress("OvixPolygon", address(ovix));*/
+
+    dforce = DForcePolygon(getAddress("DForcePolygon"));
+    /*dforce = new DForcePolygon();*/
+    /*saveAddress("DForcePolygon", address(dforce));*/
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
     ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = aaveV2Polygon;
-    providers[1] = aaveV3Polygon;
+    providers[0] = aaveV2;
+    providers[1] = aaveV3;
     address vault = chief.deployVault(
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 90
     );
@@ -154,6 +174,19 @@ contract DeployPolygon is ScriptPlus {
     _executeWithTimelock(
       address(oracle), abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed)
     );
+  }
+
+  function _setVaultNewProviders(string memory vaultName) internal {
+    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
+
+    ILendingProvider[] memory providers = new ILendingProvider[](4);
+    providers[0] = aaveV3;
+    providers[1] = aaveV2;
+    providers[2] = dforce;
+    providers[3] = ovix;
+    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    /*_scheduleWithTimelock(address(vault), callData);*/
+    _executeWithTimelock(address(vault), callData);
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {
