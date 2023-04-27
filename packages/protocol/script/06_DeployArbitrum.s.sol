@@ -95,6 +95,9 @@ contract DeployArbitrum is ScriptPlus {
     /*_deployVault(address(WETH), address(DAI), "BorrowingVault-WETHDAI");*/
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
+
+    _setVaultNewProviders("BorrowingVault-WETHUSDC");
+
     vm.stopBroadcast();
   }
 
@@ -112,7 +115,7 @@ contract DeployArbitrum is ScriptPlus {
     /*saveAddress("DForceArbitrum", address(dforce));*/
   }
 
-  function handleRouters() internal {
+  function _setRouters() internal {
     /*address polygonRouter = getAddressAt("ConnextRouter", "polygon");*/
     /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
     /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
@@ -150,6 +153,18 @@ contract DeployArbitrum is ScriptPlus {
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
     );
     saveAddress(name, vault);
+  }
+
+  function _setVaultNewProviders(string memory vaultName) internal {
+    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
+
+    ILendingProvider[] memory providers = new ILendingProvider[](3);
+    providers[0] = aaveV3;
+    providers[1] = radiant;
+    providers[2] = dforce;
+    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    /*_scheduleWithTimelock(address(vault), callData);*/
+    _executeWithTimelock(address(vault), callData);
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {
