@@ -57,7 +57,11 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
     <>
       <TableRow
         onClick={() => onClick(row.entity)}
-        sx={{ height: '3.438rem', cursor: 'pointer' }}
+        sx={{
+          height: '3.438rem',
+          cursor: 'pointer',
+          '&:hover': { '& .MuiTableCell-root': { background: '#34363E' } },
+        }}
       >
         <SizableTableCell
           width="160px"
