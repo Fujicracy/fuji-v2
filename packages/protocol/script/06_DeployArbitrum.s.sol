@@ -45,7 +45,7 @@ contract DeployArbitrum is ScriptPlus {
   function run() public {
     vm.startBroadcast();
 
-    handleLendingProviders();
+    _handleLendingProviders();
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -96,12 +96,12 @@ contract DeployArbitrum is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
-    _setVaultNewProviders("BorrowingVault-WETHUSDC");
+    /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
 
     vm.stopBroadcast();
   }
 
-  function handleLendingProviders() internal {
+  function _handleLendingProviders() internal {
     aaveV3 = AaveV3Arbitrum(getAddress("AaveV3Arbitrum"));
     /*aaveV3 = new AaveV3Arbitrum();*/
     /*saveAddress("AaveV3Arbitrum", address(aaveV3));*/
@@ -163,8 +163,8 @@ contract DeployArbitrum is ScriptPlus {
     providers[1] = radiant;
     providers[2] = dforce;
     bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    /*_scheduleWithTimelock(address(vault), callData);*/
-    _executeWithTimelock(address(vault), callData);
+    _scheduleWithTimelock(address(vault), callData);
+    /*_executeWithTimelock(address(vault), callData);*/
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

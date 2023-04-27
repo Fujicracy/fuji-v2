@@ -56,6 +56,14 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    '0x77F535F7B2785FE0fD310dD97d30C5A4E020019A': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
+    '0xd3346737E370119961C444c0C1b10d7C3fcDf36C': {
+      name: 'WePiggy',
+      llamaKey: 'abcd',
+    },
   },
   [ChainId.OPTIMISM_GOERLI]: {
     '0xb08b4fc6b8b6cacd69d21f1c94d07fcd4753b5f1': {
