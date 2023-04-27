@@ -123,9 +123,10 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
               />
               <Stack direction="row" alignItems="center" flexWrap="nowrap">
                 <NetworkIcon network={row.chain.value} width={24} height={24} />
-                <Typography ml="0.5rem" variant="small">
+                <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
+                {/*<BestLabel />*/}
               </Stack>
             </Stack>
           )}

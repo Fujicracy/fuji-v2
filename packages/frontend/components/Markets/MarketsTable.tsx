@@ -119,7 +119,7 @@ function MarketsTable() {
               Collateral
             </SizableTableCell>
             <SizableTableCell width="200px" align="left" sx={{ pl: '48px' }}>
-              Chain with the best rate
+              Network
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
               <Stack
