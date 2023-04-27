@@ -1,7 +1,6 @@
 import {
   Button,
   Container,
-  Divider,
   Link,
   Stack,
   Typography,
@@ -29,20 +28,14 @@ const SomethingWentWrongPage = () => {
 
       <Header />
 
-      <Divider
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          mb: '1rem',
-        }}
-      />
-
       <Container
         sx={{
           pl: '1rem',
           pr: '1rem',
-          minHeight: '75vh',
+          minHeight: '90vh',
           display: 'flex',
           alignItems: 'center',
+          background: 'black',
         }}
       >
         <Stack width="100%" alignItems="center" mt="-20%">
@@ -52,7 +45,13 @@ const SomethingWentWrongPage = () => {
             width={95}
             alt="Something went wrong image"
           />
-          <Typography variant="h4" mt="2.5rem" mb={0} gutterBottom>
+          <Typography
+            variant="h4"
+            mt="2.5rem"
+            textAlign="center"
+            mb={0}
+            gutterBottom
+          >
             Oops! Something went wrong
           </Typography>
           <Typography
