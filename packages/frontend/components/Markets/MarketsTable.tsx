@@ -187,7 +187,12 @@ function MarketsTable() {
         </TableHead>
         <TableBody>
           {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} onClick={handleClick} />
+            <MarketsTableRow
+              key={i}
+              row={row}
+              onClick={handleClick}
+              isBest={i === 0}
+            />
           ))}
         </TableBody>
       </Table>

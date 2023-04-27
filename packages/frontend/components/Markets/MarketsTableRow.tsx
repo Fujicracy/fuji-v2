@@ -27,13 +27,15 @@ import {
   TokenIcon,
 } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
+import BestLabel from './BestLabel';
 
 type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
+  isBest: boolean;
 };
 
-function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
+function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(false);
 
@@ -126,7 +128,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {/*<BestLabel />*/}
+                {(isBest || !row.isChild) && <BestLabel />}
               </Stack>
             </Stack>
           )}
@@ -252,7 +254,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         >
           <Collapse
             in={expandRow}
-            timeout="auto"
+            timeout={{ enter: 500, exit: 200 }}
             unmountOnExit
             sx={{
               background: row.isChild
@@ -263,7 +265,11 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
             {row.children?.map((collaspsedRow, i) => (
               <Table key={i} sx={{ borderCollapse: 'initial' }}>
                 <TableBody>
-                  <MarketsTableRow row={collaspsedRow} onClick={onClick} />
+                  <MarketsTableRow
+                    row={collaspsedRow}
+                    onClick={onClick}
+                    isBest={i === 0}
+                  />
                 </TableBody>
               </Table>
             ))}
