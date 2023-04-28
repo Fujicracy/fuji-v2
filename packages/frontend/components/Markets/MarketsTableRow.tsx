@@ -261,7 +261,10 @@ function MarketsTableRow({
             unmountOnExit
           >
             {row.children?.map((collapsedRow, i) => (
-              <Table key={i} sx={{ borderCollapse: 'initial' }}>
+              <Table
+                key={`${i + collapsedRow.chain.value}`}
+                sx={{ borderCollapse: 'initial' }}
+              >
                 <TableBody>
                   <MarketsTableRow
                     row={collapsedRow}
