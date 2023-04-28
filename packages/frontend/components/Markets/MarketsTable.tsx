@@ -191,6 +191,7 @@ function MarketsTable() {
               key={i}
               row={row}
               onClick={handleClick}
+              openedByDefault={i === 0}
               isBest={i === 0}
             />
           ))}

@@ -33,11 +33,17 @@ type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
   isBest: boolean;
+  openedByDefault?: boolean;
 };
 
-function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
+function MarketsTableRow({
+  row,
+  onClick,
+  isBest,
+  openedByDefault = false,
+}: MarketsTableRowProps) {
   const { palette } = useTheme();
-  const [expandRow, setExpandRow] = useState(false);
+  const [expandRow, setExpandRow] = useState(openedByDefault);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
