@@ -1,4 +1,4 @@
-import { Box, TableCell, Typography, useTheme } from '@mui/material';
+import { Stack, TableCell, Typography, useTheme } from '@mui/material';
 
 import { liquidationColor } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
@@ -21,32 +21,26 @@ function LiquidationBox({
       return <span>No debt</span>;
     } else {
       return (
-        <span>
-          <Typography
-            variant="small"
-            color={liquidationColor(ltv, recommendedLtv, palette)}
-          >
-            ~{percentPriceDiff}%{' '}
-          </Typography>
-          <Typography variant="small" color={palette.info.main}>
-            below
-          </Typography>
-        </span>
+        <Typography
+          variant="xsmall"
+          color={liquidationColor(ltv, recommendedLtv, palette)}
+        >
+          (~{percentPriceDiff}%{' below)'}
+        </Typography>
       );
     }
   };
   return (
-    <TableCell align="right">
-      <Box pt={1} pb={1}>
+    <TableCell>
+      <Stack direction="row" justifyContent="right" alignItems="center" gap={1}>
         <Typography variant="small">
           {formatValue(liquidationPrice, {
             style: 'currency',
             minimumFractionDigits: 0,
           })}
         </Typography>
-        <br />
         {displayPercent()}
-      </Box>
+      </Stack>
     </TableCell>
   );
 }
