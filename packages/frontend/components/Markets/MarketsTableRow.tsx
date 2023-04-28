@@ -19,6 +19,7 @@ import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
+import { ratingToNote } from '../../helpers/ratings';
 import { formatValue } from '../../helpers/values';
 import {
   DropletIcon,
@@ -220,11 +221,14 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          <Chip
-            variant={row.safetyRating.value === 'A+' ? 'success' : 'warning'}
-            label={row.safetyRating.value}
-            sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
-          />
+          {loaderOrError(row.safetyRating.status)}
+          {row.safetyRating.status === Status.Ready && (
+            <Chip
+              variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
+              label={ratingToNote(row.safetyRating?.value)}
+              sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+            />
+          )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           {loaderOrError(row.liquidity.status)}

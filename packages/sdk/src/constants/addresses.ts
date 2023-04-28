@@ -126,6 +126,26 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.GNOSIS]: Address.from('0x314Cfa1BA6E88B2B2118eD0bECD30D040dA232bf'),
 };
 
+export const CHIEF_ADDRESS: AddressMap = {
+  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(
+    '0x88ed3B8D03e5a70Bf23286872b24cFFd76e91922'
+  ),
+  [ChainId.OPTIMISM]: Address.from(
+    '0x314Cfa1BA6E88B2B2118eD0bECD30D040dA232bf'
+  ),
+  [ChainId.FANTOM]: Address.from(AddressZero),
+  [ChainId.MATIC]: Address.from('0xB5BeccF2734c97221379a6C08B718D82023b1498'),
+  [ChainId.GOERLI]: Address.from('0x5C18e88352dF0305236a4471030A5aFfB11d9592'),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(
+    '0xbdB78Cf6f7c3E7345f06e7e076CDEB5e964eFD21'
+  ),
+  [ChainId.MATIC_MUMBAI]: Address.from(
+    '0xE652f6e7b27EB4E19Fa9cAe4315cff36868B319F'
+  ),
+  [ChainId.GNOSIS]: Address.from('0x62a790A77df54Cc75C899a3b27D118958c279A37'),
+};
+
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(
