@@ -105,10 +105,10 @@ const setResults = (
   });
   return new FujiResultSuccess({
     vault: v,
-    depositBalance: detailsBatch[5] as BigNumber,
-    borrowBalance: detailsBatch[6] as BigNumber,
-    collateralPriceUSD: detailsBatch[7] as BigNumber,
-    debtPriceUSD: detailsBatch[8] as BigNumber,
+    depositBalance: detailsBatch[6] as BigNumber,
+    borrowBalance: detailsBatch[7] as BigNumber,
+    collateralPriceUSD: detailsBatch[8] as BigNumber,
+    debtPriceUSD: detailsBatch[9] as BigNumber,
     allProviders: providers,
     activeProvider: providers[apIndex],
   });
