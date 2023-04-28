@@ -27,7 +27,7 @@ function Title({ providers, vault }: TitleProps) {
             </Typography>
             <VaultsMenu
               providers={providers}
-              safetyRating={vault?.safetyRating}
+              safetyRating={Number(vault?.safetyRating?.toString())}
             />
           </Stack>
         )}

@@ -221,11 +221,14 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          <Chip
-            variant={row.safetyRating > 75 ? 'success' : 'warning'}
-            label={ratingToNote(row.safetyRating)}
-            sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
-          />
+          {loaderOrError(row.safetyRating.status)}
+          {row.safetyRating.status === Status.Ready && (
+            <Chip
+              variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
+              label={ratingToNote(row.safetyRating?.value)}
+              sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+            />
+          )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           {loaderOrError(row.liquidity.status)}

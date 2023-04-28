@@ -13,7 +13,10 @@ export type MarketRow = {
 
   collateral: string;
   debt: string;
-  safetyRating: number;
+  safetyRating: {
+    status: Status;
+    value: number;
+  };
 
   chain: {
     status: Status;
@@ -63,7 +66,10 @@ export type MarketRow = {
 const defaultRow: MarketRow = {
   collateral: '',
   debt: '',
-  safetyRating: 100,
+  safetyRating: {
+    status: Status.Loading,
+    value: 0,
+  },
   chain: {
     status: Status.Loading,
     value: '',
@@ -109,7 +115,6 @@ export const setBase = (v: BorrowingVault): MarketRow => ({
   entity: v,
   collateral: v.collateral.symbol,
   debt: v.debt.symbol,
-  safetyRating: v.safetyRating ? Number(v.safetyRating.toString()) : 0,
 });
 
 // set apr and aprBase as being equal
@@ -124,6 +129,10 @@ export const setFinancials = (
     // chain is always available
     status: Status.Ready,
     value: chainName((r.entity as BorrowingVault).chainId),
+  },
+  safetyRating: {
+    status,
+    value: Number((r.entity as BorrowingVault).safetyRating?.toString()) ?? 0,
   },
   depositApr: {
     status,
