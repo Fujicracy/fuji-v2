@@ -67,6 +67,13 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
         sx={{
           height: '3.438rem',
           cursor: 'pointer',
+          '& .MuiTableCell-root': {
+            background: row.isGrandChild
+              ? palette.secondary.main
+              : row.isChild
+              ? palette.secondary.dark
+              : palette.secondary.contrastText,
+          },
           '&:hover': { '& .MuiTableCell-root': { background: '#34363E' } },
         }}
       >
@@ -76,20 +83,10 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
             position: 'sticky',
             left: 0,
             zIndex: 5,
-            background: row.isChild
-              ? row.isGrandChild
-                ? palette.secondary.light
-                : palette.secondary.dark
-              : palette.secondary.contrastText,
           }}
         >
           {row.debt && isHighLevelRow && (
-            <Stack
-              direction="row"
-              gap={0.5}
-              alignItems="center"
-              sx={{ opacity: row.isChild ? 0 : 1 }}
-            >
+            <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
                 isVisible={Boolean(row.children && row.children.length > 0)}
@@ -106,12 +103,7 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell width="120px">
           {row.collateral && isHighLevelRow && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              flexWrap="nowrap"
-              sx={{ opacity: row.isChild ? 0 : 1 }}
-            >
+            <Stack direction="row" alignItems="center" flexWrap="nowrap">
               <TokenIcon token={row.collateral} height={32} width={32} />
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}
@@ -261,11 +253,6 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
             in={expandRow}
             timeout={{ enter: 500, exit: 200 }}
             unmountOnExit
-            sx={{
-              background: row.isChild
-                ? palette.secondary.light
-                : palette.secondary.dark,
-            }}
           >
             {row.children?.map((collapsedRow, i) => (
               <Table key={i} sx={{ borderCollapse: 'initial' }}>
