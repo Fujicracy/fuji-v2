@@ -5,15 +5,12 @@ import {
   CircularProgress,
   Collapse,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
-import {
-  bridgeFeeSum,
-  stringifiedBridgeFeeSum,
-} from '../../helpers/transactions';
-import { toNotSoFixed } from '../../helpers/values';
+import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
 import { useBorrow } from '../../store/borrow.store';
 
 function Fees() {
@@ -29,6 +26,20 @@ function Fees() {
     if (transactionMeta.status === 'ready') {
       setShowTransactionDetails(!showTransactionDetails);
     }
+  };
+
+  const bridgeTooltip = () => {
+    if (
+      !transactionMeta.bridgeFees ||
+      transactionMeta.bridgeFees.length === 0 ||
+      transactionMeta.bridgeFees[0].amount === 0
+    )
+      return undefined;
+    let outputString = '';
+    for (const fee of transactionMeta.bridgeFees) {
+      outputString += `${fee.amount.toString()} ${fee.token.symbol}\n`;
+    }
+    return outputString;
   };
 
   return (
@@ -66,9 +77,8 @@ function Fees() {
         {crossChainTx && transactionMeta.bridgeFees && (
           <Fee
             label="Bridge fee"
-            value={`~$${toNotSoFixed(
-              bridgeFeeSum(transactionMeta.bridgeFees)
-            )}`}
+            value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
+            tooltip={bridgeTooltip()}
           />
         )}
         <Fee
@@ -91,11 +101,22 @@ export default Fees;
 type FeeProps = {
   label: string;
   value: string | ReactNode;
+  tooltip?: string;
 };
 
-const Fee = ({ label, value }: FeeProps) => (
-  <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
-    <Typography variant="small">{label}</Typography>
-    <Typography variant="small">{value}</Typography>
-  </Stack>
-);
+const Fee = ({ label, value, tooltip }: FeeProps) => {
+  const valueComponent = <Typography variant="small">{value}</Typography>;
+
+  return (
+    <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
+      <Typography variant="small">{label}</Typography>
+      {tooltip ? (
+        <Tooltip title={tooltip} placement="top">
+          {valueComponent}
+        </Tooltip>
+      ) : (
+        valueComponent
+      )}
+    </Stack>
+  );
+};

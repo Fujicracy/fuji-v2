@@ -66,9 +66,9 @@ export const toNotSoFixed = (
   v: number | string | undefined,
   stopAtFirstNonZero = false
 ): string => {
-  if (!v) return '0.0';
+  if (!v) return '0.00';
   const value: number = typeof v === 'number' ? v : parseFloat(v);
-  if (isNaN(value)) return '0.0';
+  if (isNaN(value)) return '0.00';
 
   const stringValue = value.toString();
   const decimalIndex = stringValue.indexOf('.');
@@ -93,7 +93,9 @@ export const toNotSoFixed = (
     }
   }
 
-  return value.toFixed(digitsAfterDecimal).replace(/\.?0+$/, '');
+  return value
+    .toFixed(digitsAfterDecimal < 2 ? 2 : digitsAfterDecimal)
+    .replace(/\.?0+$/, '');
 };
 
 export const camelize = (str: string) => {

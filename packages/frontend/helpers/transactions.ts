@@ -61,7 +61,7 @@ export const statusForStep = (
   return entry.status;
 };
 
-export const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
+const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
   return bridgeFees.reduce((sum, fee) => {
     const cost = fee.amount * fee.priceUSD;
     return sum + cost;
