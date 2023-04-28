@@ -22,7 +22,7 @@
       42161: ARBITRUM_ALCHEMY_ID,
       80001: POLYGON_MUMBAI_ALCHEMY_ID,
     },
-    // `poktId` is optional, but if provided, it will take precendence over Infura
+    // `poktId` is optional, but if provided, it will take precedence over Infura
     poktId: POKT_ID
   });
 ```
