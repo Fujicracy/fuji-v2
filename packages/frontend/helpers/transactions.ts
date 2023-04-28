@@ -11,6 +11,7 @@ import { sdk } from '../services/sdk';
 import { FetchStatus } from '../store/borrow.store';
 import { HistoryEntry, HistoryEntryStatus } from './history';
 import { BridgeFee } from './routing';
+import { toNotSoFixed } from './values';
 
 export type TransactionMeta = {
   status: FetchStatus;
@@ -71,5 +72,5 @@ export const stringifiedBridgeFeeSum = (bridgeFees?: BridgeFee[]): string => {
   if (!bridgeFees) {
     return Number(0).toFixed(2);
   }
-  return bridgeFeeSum(bridgeFees).toFixed(2);
+  return toNotSoFixed(bridgeFeeSum(bridgeFees), true);
 };
