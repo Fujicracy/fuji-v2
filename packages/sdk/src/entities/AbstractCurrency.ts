@@ -5,9 +5,9 @@ import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
-import { TOKEN_CACHE_TIMEOUT } from '../constants';
 import { FUJI_ORACLE_ADDRESS, WNATIVE_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
+import { TOKEN_CACHE_TIMEOUT } from '../constants/common';
 import { ChainId } from '../enums';
 import {
   ChainConfig,
