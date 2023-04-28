@@ -7,7 +7,7 @@ import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
 function BestLabel() {
   const { palette } = useTheme();
   return (
-    <TooltipWrapper title="Lowest fees for Borrowing" placement="top">
+    <TooltipWrapper title="Lowest borrow APR" placement="top">
       <Stack
         direction="row"
         alignItems="center"
