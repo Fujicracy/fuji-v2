@@ -1,6 +1,7 @@
 export const CONNEXT_WARNING_DURATION = 1000 * 60 * 10; // 10 minutes
 
 export const BALANCE_POLLING_INTERVAL = 15000;
+export const TX_WATCHING_POLLING_INTERVAL = 3000;
 
 export enum PATH {
   MARKETS = '/',

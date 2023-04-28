@@ -35,6 +35,8 @@ export type HistoryEntryChain = {
 export type HistoryEntryConnext = {
   transferId: string;
   timestamp: number;
+  secondTransferId?: string;
+  secondTimestamp?: number;
 };
 
 export type HistoryEntry = {
@@ -114,6 +116,28 @@ export const triggerUpdatesFromSteps = (steps: HistoryRoutingStep[]) => {
     useBorrow.getState().updateAllowance('debt');
   }
   updateNativeBalance();
+};
+
+export const chainCompleted = (chain: HistoryEntryChain) => {
+  return (
+    chain.status === HistoryEntryStatus.SUCCESS ||
+    chain.status === HistoryEntryStatus.FAILURE
+  );
+};
+
+// TODO: test this
+export const stepForFinishing = (entry: HistoryEntry) => {
+  if (entry.chainCount === 2 && entry.secondChain) {
+    return chainCompleted(entry.secondChain)
+      ? 2
+      : chainCompleted(entry.sourceChain)
+      ? 1
+      : 0;
+  } else if (entry.chainCount === 1) {
+    return chainCompleted(entry.sourceChain) ? 1 : 0;
+  } else {
+    return 0;
+  }
 };
 
 // Convenience function to wait for a certain amount of time when polling a cross-chain transaction
