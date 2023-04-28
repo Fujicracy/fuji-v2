@@ -26,6 +26,7 @@ import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import { NetworkIcon, TokenIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
 
@@ -178,7 +179,17 @@ function MyPositionsBorrowTableHeader() {
         <TableCell>Collateral Amount</TableCell>
         <TableCell align="center">Borrow APR</TableCell>
         <TableCell align="center">Oracle price</TableCell>
-        <TableCell align="right">Liquidation price</TableCell>
+        <TableCell align="right">
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            <InfoTooltip
+              title={
+                'When the price of the provided collateral drops below the indicated liquidation price, your position is going to be liquidated.'
+              }
+              isLeft
+            />
+            Liquidation price
+          </Stack>
+        </TableCell>
       </TableRow>
     </TableHead>
   );
