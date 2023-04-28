@@ -4,49 +4,16 @@ import {
   ConnectedChain,
   WalletState,
 } from '@web3-onboard/core/dist/types';
-import injectedModule from '@web3-onboard/injected-wallets';
-import { init } from '@web3-onboard/react';
-import walletConnectModule from '@web3-onboard/walletconnect';
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
 import { create, StoreApi } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { fujiLogo } from '../constants';
-import { chainIdToHex, onboardChains } from '../helpers/chains';
+import { web3onboard } from '../helpers/auth';
+import { chainIdToHex } from '../helpers/chains';
 
-const walletConnect = walletConnectModule({
-  // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
-  qrcodeModalOptions: {
-    mobileLinks: [
-      'rainbow',
-      'metamask',
-      'argent',
-      'trust',
-      'imtoken',
-      'pillar',
-    ],
-  },
-});
+export const onboard = web3onboard;
 
-export const onboard = init({
-  chains: onboardChains,
-  wallets: [injectedModule(), walletConnect],
-  appMetadata: {
-    name: 'Fuji V2 Himalaya',
-    icon: fujiLogo, // svg string icon
-    description: 'Deposit, borrow and repay from any chain',
-    recommendedInjectedWallets: [
-      { name: 'MetaMask', url: 'https://metamask.io' },
-      { name: 'Coinbase', url: 'https://wallet.coinbase.com/' },
-    ],
-  },
-  accountCenter: {
-    desktop: { enabled: false },
-    mobile: { enabled: false },
-  },
-  theme: 'dark',
-});
 type OnboardStatus = {
   hasAcceptedTerms: boolean;
   date?: Date | string;
