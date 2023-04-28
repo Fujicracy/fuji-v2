@@ -55,6 +55,11 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
       <></>
     );
 
+  const isHighLevelRow = !row.isChild && !row.isGrandChild;
+  const shouldNetworkColumnBeShown =
+    row.chain.status === Status.Ready &&
+    (!isHighLevelRow || (isHighLevelRow && !expandRow));
+
   return (
     <>
       <TableRow
@@ -78,7 +83,7 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
               : palette.secondary.contrastText,
           }}
         >
-          {row.debt && (
+          {row.debt && isHighLevelRow && (
             <Stack
               direction="row"
               gap={0.5}
@@ -100,7 +105,7 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell width="120px">
-          {row.collateral && (
+          {row.collateral && isHighLevelRow && (
             <Stack
               direction="row"
               alignItems="center"
@@ -116,7 +121,7 @@ function MarketsTableRow({ row, onClick, isBest }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell width="200px">
           {loaderOrError(row.chain.status)}
-          {row.chain.status === Status.Ready && !expandRow && (
+          {shouldNetworkColumnBeShown && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
