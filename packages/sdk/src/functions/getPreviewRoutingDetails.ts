@@ -296,7 +296,7 @@ async function depositAndBorrow(
       return result;
     }
     const r = result.data;
-    const updatedArguments = await updateXChainArguments(tokenIn, r);
+    const updatedArguments = await updateXChainArguments(vault.debt, r);
     estimateSlippage = updatedArguments.estimateSlippage;
     bridgeFees = updatedArguments.bridgeFees;
 
@@ -331,7 +331,7 @@ async function depositAndBorrow(
     if (!result.success) return result;
 
     const r = result.data;
-    const updatedArguments = await updateXChainArguments(tokenOut, r);
+    const updatedArguments = await updateXChainArguments(tokenIn, r);
     estimateSlippage = updatedArguments.estimateSlippage;
     bridgeFees = updatedArguments.bridgeFees;
 
@@ -366,7 +366,7 @@ async function depositAndBorrow(
     const updatedArguments = await updateXChainArguments(
       tokenIn,
       r1,
-      tokenOut,
+      vault.debt,
       r2
     );
     estimateSlippage = updatedArguments.estimateSlippage;
@@ -456,7 +456,7 @@ async function paybackAndWithdraw(
       return result;
     }
     const r = result.data;
-    const updatedArguments = await updateXChainArguments(tokenIn, r);
+    const updatedArguments = await updateXChainArguments(vault.collateral, r);
     estimateSlippage = updatedArguments.estimateSlippage;
     bridgeFees = updatedArguments.bridgeFees;
 
@@ -497,7 +497,7 @@ async function paybackAndWithdraw(
       return result;
     }
     const r = result.data;
-    const updatedArguments = await updateXChainArguments(tokenOut, r);
+    const updatedArguments = await updateXChainArguments(tokenIn, r);
     estimateSlippage = updatedArguments.estimateSlippage;
     bridgeFees = updatedArguments.bridgeFees;
 
@@ -532,7 +532,7 @@ async function paybackAndWithdraw(
     const updatedArguments = await updateXChainArguments(
       tokenIn,
       r1,
-      tokenOut,
+      vault.collateral,
       r2
     );
     estimateSlippage = updatedArguments.estimateSlippage;
