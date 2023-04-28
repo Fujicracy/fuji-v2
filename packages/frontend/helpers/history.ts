@@ -46,6 +46,7 @@ export type HistoryEntry = {
   vaultAddress?: string;
   sourceChain: HistoryEntryChain;
   secondChain?: HistoryEntryChain | undefined;
+  thirdChain?: HistoryEntryChain | undefined;
   chainCount: number;
 };
 

@@ -1,4 +1,4 @@
-import { ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
+import { ConnextTxStatus, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -70,9 +70,14 @@ export const useHistory = create<HistoryStore>()(
         ...initialState,
 
         async add(hash, address, vaultAddress, steps) {
+          const bridgeSteps = steps.filter(
+            (s) => s.step === RoutingStep.X_TRANSFER
+          );
+          const chainCount = bridgeSteps.length + 1;
+
           const srcChainId = steps[0].chainId;
-          const secondChainId = steps[steps.length - 1].chainId;
-          const chainCount = srcChainId === secondChainId ? 1 : 2;
+          const secondChainId = bridgeSteps[0].chainId; // TODO: temp
+          const thirdChainId = bridgeSteps.length > 1 && bridgeSteps[1].chainId; // TODO: temp
           const isCrossChain = chainCount > 1;
 
           const sourceChain = {
@@ -86,6 +91,12 @@ export const useHistory = create<HistoryStore>()(
                 status: HistoryEntryStatus.ONGOING,
               }
             : undefined;
+          const thirdChain = thirdChainId
+            ? {
+                chainId: thirdChainId,
+                status: HistoryEntryStatus.ONGOING,
+              }
+            : undefined;
 
           const entry: HistoryEntry = {
             vaultAddress,
@@ -93,6 +104,7 @@ export const useHistory = create<HistoryStore>()(
             address,
             sourceChain,
             secondChain,
+            thirdChain,
             chainCount,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
