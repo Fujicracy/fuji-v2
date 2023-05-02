@@ -315,7 +315,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
-      );
+    );
 
     return beneficiary_;
   }

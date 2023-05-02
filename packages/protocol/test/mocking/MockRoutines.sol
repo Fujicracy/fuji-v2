@@ -20,6 +20,11 @@ contract MockRoutines is Test {
     do_borrow(borrowAmount, v, from);
   }
 
+  function do_mintAndMintDebt(uint256 shares, uint256 debtShares, IVault v, address from) internal {
+    do_mint(shares, v, from);
+    do_mintDebt(debtShares, v, from);
+  }
+
   function do_deposit(uint256 amount, IVault v, address from) internal {
     address asset = v.asset();
     dealMockERC20(asset, from, amount);
@@ -41,35 +46,121 @@ contract MockRoutines is Test {
     vm.roll(block.number - 1);
   }
 
+  function do_mint(uint256 shares, IVault v, address from) internal {
+    address asset = v.asset();
+    uint256 assets = v.previewMint(shares);
+
+    dealMockERC20(asset, from, assets);
+
+    vm.startPrank(from);
+    SafeERC20.safeApprove(IERC20(asset), address(v), assets);
+    uint256 pulledAssets = v.mint(shares, from);
+    vm.stopPrank();
+
+    uint256 mintedShares = v.balanceOf(from);
+
+    assertEq(shares, mintedShares);
+    assertEq(pulledAssets, assets);
+  }
+
   function do_withdraw(uint256 amount, IVault v, address from) internal {
     IERC20 asset_ = IERC20(v.asset());
-    uint256 prevBalance = asset_.balanceOf(from);
+    uint256 prevBal = asset_.balanceOf(from);
     vm.prank(from);
     v.withdraw(amount, from, from);
 
-    uint256 newBalance = prevBalance + amount;
-    assertEq(asset_.balanceOf(from), newBalance);
+    uint256 newBal = prevBal + amount;
+    assertEq(asset_.balanceOf(from), newBal);
+  }
+
+  function do_redeem(uint256 shares, IVault v, address from) internal {
+    IERC20 asset_ = IERC20(v.asset());
+    uint256 prevBal = asset_.balanceOf(from);
+    uint256 prevShares = v.balanceOf(from);
+
+    uint256 assets = v.previewRedeem(shares);
+    vm.prank(from);
+    v.redeem(shares, from, from);
+
+    uint256 newBal = prevBal + assets;
+    uint256 newShares = prevShares - shares;
+
+    assertEq(asset_.balanceOf(from), newBal);
+    assertEq(v.balanceOf(from), newShares);
   }
 
   function do_borrow(uint256 amount, IVault v, address from) internal {
+    IERC20 debtAsset_ = IERC20(v.debtAsset());
+    uint256 prevBal = debtAsset_.balanceOf(from);
+
     vm.prank(from);
     v.borrow(amount, from, from);
 
-    assertEq(IERC20(v.debtAsset()).balanceOf(from), amount);
+    uint256 newBal = prevBal + amount;
+
+    assertEq(debtAsset_.balanceOf(from), newBal);
+  }
+
+  function do_mintDebt(uint256 shares, IVault v, address from) internal {
+    uint256 expectDebt = v.previewMintDebt(shares);
+
+    IERC20 debtAsset_ = IERC20(v.debtAsset());
+    uint256 prevBal = debtAsset_.balanceOf(from);
+
+    vm.prank(from);
+    v.mintDebt(shares, from, from);
+
+    uint256 newBal = prevBal + expectDebt;
+
+    assertEq(debtAsset_.balanceOf(from), newBal);
+    assertEq(v.balanceOfDebtShares(from), shares);
   }
 
   function do_payback(uint256 amount, IVault v, address from) internal {
-    uint256 prevDebt = v.balanceOfDebt(from);
-    address asset = v.debtAsset();
-    dealMockERC20(asset, from, prevDebt); // ensure user has accrued interest to payback.
+    IERC20 debtAsset_ = IERC20(v.debtAsset());
+    uint256 bal = debtAsset_.balanceOf(from);
+
+    // Ensure user has additional debt asset to payback accrued interest (+10%).
+    dealMockERC20(address(debtAsset_), from, (bal * 110 / 100));
+    uint256 prevBal = debtAsset_.balanceOf(from);
+    uint256 prevDebtBal = v.balanceOfDebt(from);
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(IERC20(v.debtAsset()), address(v), amount);
+    SafeERC20.safeApprove(debtAsset_, address(v), amount);
     v.payback(amount, from);
     vm.stopPrank();
 
-    uint256 debtDiff = prevDebt - amount;
-    assertEq(v.balanceOfDebt(from), debtDiff);
+    uint256 newBal = prevBal - amount;
+    uint256 newDebtBal = prevDebtBal - amount;
+
+    assertEq(debtAsset_.balanceOf(from), newBal);
+    assertEq(v.balanceOfDebt(from), newDebtBal);
+  }
+
+  function do_burnDebt(uint256 shares, IVault v, address from) internal {
+    IERC20 debtAsset_ = IERC20(v.debtAsset());
+    uint256 bal = debtAsset_.balanceOf(from);
+    uint256 prevShares = v.balanceOfDebtShares(from);
+
+    uint256 amountToPayback = v.previewBurnDebt(shares);
+
+    uint256 prevBal = debtAsset_.balanceOf(from);
+    if (amountToPayback > bal) {
+      // Ensure user has enough debt asset to payback accrued interest.
+      dealMockERC20(address(debtAsset_), from, (amountToPayback - bal));
+      prevBal = debtAsset_.balanceOf(from);
+    }
+
+    vm.startPrank(from);
+    SafeERC20.safeApprove(debtAsset_, address(v), amountToPayback);
+    v.burnDebt(shares, from);
+    vm.stopPrank();
+
+    uint256 newBal = prevBal - amountToPayback;
+    uint256 newShareBal = prevShares - shares;
+
+    assertEq(debtAsset_.balanceOf(from), newBal);
+    assertEq(v.balanceOfDebtShares(from), newShareBal);
   }
 
   function dealMockERC20(address mockerc20, address to, uint256 amount) internal {
