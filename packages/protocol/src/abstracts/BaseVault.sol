@@ -533,7 +533,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     emit Deposit(caller, receiver, assets, shares);
   }
 
-  /// TODO
+  /**
+   * @dev Runs common checks for all "deposit" or "mint" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param receiver of the deposit
+   * @param assets being deposited
+   * @param shares being minted for `receiver`
+   */
   function _depositChecks(address receiver, uint256 assets, uint256 shares) private view {
     if (receiver == address(0) || assets == 0 || shares == 0) {
       revert BaseVault__deposit_invalidInput();
@@ -582,7 +590,15 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * TODO
+   * @dev Runs common checks for all "withdraw" or "redeem" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param caller in msg.sender context
+   * @param receiver of the withdrawn assets
+   * @param owner of the withdrawn assets
+   * @param assets being withdrawn
+   * @param shares being burned for `owner`
    */
   function _withdrawChecks(
     address caller,
@@ -668,7 +684,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     virtual
     returns (uint256 shares);
 
-  /// TODO
+  /// @inheritdoc IVault
   function mintDebt(
     uint256 shares,
     address receiver,
@@ -681,7 +697,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @inheritdoc IVault
   function payback(uint256 debt, address owner) public virtual returns (uint256 shares);
 
-  /// TODO
+  /// @inheritdoc IVault
   function burnDebt(uint256 shares, address owner) public virtual returns (uint256 debt);
 
   /**
