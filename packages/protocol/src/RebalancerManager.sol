@@ -17,7 +17,8 @@ import {ILendingProvider} from "./interfaces/ILendingProvider.sol";
 import {SystemAccessControl} from "./access/SystemAccessControl.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   using SafeERC20 for IERC20;
@@ -138,29 +139,29 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     internal
     view
   {
-    //TODO optimize this function
     {
-    // revert RebalancerManager__checkLtvChange_invalidAmount();
-    BorrowingVault bvault = BorrowingVault(payable(address(vault)));
-    uint256 maxLtv = bvault.maxLtv();
-    uint8 assetDecimals = IERC20Metadata(vault.asset()).decimals();
-    uint8 debtDecimals = IERC20Metadata(vault.debtAsset()).decimals();
+      // revert RebalancerManager__checkLtvChange_invalidAmount();
+      BorrowingVault bvault = BorrowingVault(payable(address(vault)));
+      uint256 maxLtv = bvault.maxLtv();
+      uint8 assetDecimals = IERC20Metadata(bvault.asset()).decimals();
+      uint8 debtDecimals = IERC20Metadata(bvault.debtAsset()).decimals();
 
-    //calculate ltv after rebalance at from
-    uint256 assetsFrom = from.getDepositBalance(address(bvault), bvault) - assets;
-    uint256 debtFrom = from.getBorrowBalance(address(bvault), bvault) - debt;
+      //calculate ltv after rebalance at from
+      uint256 assetsFrom = from.getDepositBalance(address(bvault), bvault) - assets;
+      uint256 debtFrom = from.getBorrowBalance(address(bvault), bvault) - debt;
 
-    //calculate ltv after rebalance at to
-    uint256 assetsTo = to.getDepositBalance(address(bvault), bvault) + assets;
-    uint256 debtTo = to.getBorrowBalance(address(bvault), bvault) + debt;
-    
-    uint256 price = bvault.oracle().getPriceOf(bvault.debtAsset(), bvault.asset(), debtDecimals);
-    uint256 maxBorrowFrom = (assetsFrom * maxLtv * price) / (1e18 * 10 ** assetDecimals);
-    uint256 maxBorrowTo = (assetsTo * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+      //calculate ltv after rebalance at to
+      uint256 assetsTo = to.getDepositBalance(address(bvault), bvault) + assets;
+      uint256 debtTo = to.getBorrowBalance(address(bvault), bvault) + debt;
 
-    if (debtFrom > maxBorrowFrom || debtTo > maxBorrowTo) {
-      revert RebalancerManager__checkLtvChange_invalidAmount();
-    }}
+      uint256 price = bvault.oracle().getPriceOf(bvault.debtAsset(), bvault.asset(), debtDecimals);
+      uint256 maxBorrowFrom = (assetsFrom * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+      uint256 maxBorrowTo = (assetsTo * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+
+      if (debtFrom > maxBorrowFrom || debtTo > maxBorrowTo) {
+        revert RebalancerManager__checkLtvChange_invalidAmount();
+      }
+    }
   }
 
   /**
