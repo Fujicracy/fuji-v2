@@ -221,37 +221,37 @@ contract BorrowingVault is BaseVault {
     return _computeMaxBorrow(borrower);
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function maxPayback(address borrower) public view override returns (uint256) {
     return previewBurnDebt(maxBurnDebt(borrower));
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function maxMintDebt(address borrower) public view override returns (uint256) {
     return convertDebtToShares(maxBorrow(borrower));
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function maxBurnDebt(address borrower) public view override returns (uint256) {
     return _debtShares[borrower];
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function previewBorrow(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertDebtToShares(shares, Math.Rounding.Down);
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function previewPayback(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
-  /// TODO
+  /// @inheritdoc IVault
   function previewBurnDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Up);
   }
@@ -296,7 +296,14 @@ contract BorrowingVault is BaseVault {
 
   /**
    * @notice Slippage protected `mintDebt()` inspired by EIP5143.
-   * TODO
+   *
+   * @param shares of debt to mint
+   * @param receiver address to whom borrowed amount will be transferred
+   * @param owner address who will incur the debt
+   * @param minDebt amount that must be sent to receiver in this call
+   *
+   * @dev Requirements:
+   * - Must transfer at least `minDebt` when calling `mintDebt()`.
    */
   function mintDebt(
     uint256 shares,
@@ -314,9 +321,7 @@ contract BorrowingVault is BaseVault {
     return receivedDebt;
   }
 
-  /**
-   * TODO
-   */
+  /// @inheritdoc BaseVault
   function mintDebt(
     uint256 shares,
     address receiver,
@@ -365,7 +370,13 @@ contract BorrowingVault is BaseVault {
 
   /**
    * @notice Slippage protected `burnDebt()` inspired by EIP5143.
-   * TODO
+   *
+   * @param shares of debt to payback
+   * @param owner address whose debt will be reduced
+   * @param maxAmount of debt asset that must be pulled from caller to payback in this call
+   *
+   * @dev Requirements:
+   * - Must pull a maximum of `maxAmount` debt asset when calling `maxAmount()`.
    */
   function burnDebt(uint256 shares, address owner, uint256 maxAmount) public returns (uint256) {
     uint256 maxPulledAmount = burnDebt(shares, owner);
@@ -375,9 +386,7 @@ contract BorrowingVault is BaseVault {
     return maxPulledAmount;
   }
 
-  /**
-   * TODO
-   */
+  /// @inheritdoc BaseVault
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
@@ -566,7 +575,14 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
-   * TODO
+   * @dev Runs common checks for all "borrow" or "mintDebt" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param caller msg.sender in this context
+   * @param receiver of the borrow amount
+   * @param owner of the debt accountability
+   * @param debt or borrowed amount of debt asset
    */
   function _borrowChecks(address caller, address receiver, address owner, uint256 debt) private {
     if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
@@ -610,7 +626,13 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
-   * TODO
+   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param owner of the debt accountability
+   * @param debt or borrowed amount of debt asset
+   * @param shares of debt being burned
    */
   function _paybackChecks(address owner, uint256 debt, uint256 shares) private view {
     if (debt == 0 || shares == 0 || owner == address(0)) {
