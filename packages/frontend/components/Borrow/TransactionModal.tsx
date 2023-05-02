@@ -21,12 +21,12 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { chainName } from '../../helpers/chains';
-import { transactionUrl } from '../../helpers/chains';
+import { chainName, transactionUrl } from '../../helpers/chains';
 import {
   HistoryEntry,
   HistoryEntryStatus,
@@ -46,9 +46,14 @@ import WarningInfo from '../Shared/WarningInfo';
 type TransactionModalProps = {
   entry: HistoryEntry;
   currentPage: string;
+  isHistoricalTransaction?: boolean;
 };
 
-function TransactionModal({ entry, currentPage }: TransactionModalProps) {
+function TransactionModal({
+  entry,
+  currentPage,
+  isHistoricalTransaction = false,
+}: TransactionModalProps) {
   const theme = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -57,7 +62,22 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
 
   const closeModal = useHistory((state) => state.closeModal);
 
-  const [isDetailsShown, setIsDetailsShown] = useState(false);
+  const [isDetailsShown, setIsDetailsShown] = useState(isHistoricalTransaction);
+  const [gif, setGif] = useState('');
+
+  useEffect(() => {
+    if (isHistoricalTransaction) return;
+    // TODO: add failure gif
+    if (entry.status === HistoryEntryStatus.SUCCESS) {
+      setGif('/assets/images/transactions/END.gif');
+      return;
+    }
+
+    setGif('/assets/images/transactions/START.gif');
+    setTimeout(() => {
+      setGif('/assets/images/transactions/RIDE.gif');
+    }, 4000);
+  }, [entry.status, isHistoricalTransaction]);
 
   if (!entry) return <></>;
 
@@ -188,6 +208,9 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
             Transaction Status
           </Typography>
         </Box>
+        {!isHistoricalTransaction && gif && (
+          <Image src={gif} alt="loading animation" width={432} height={243} />
+        )}
         <DialogContent
           sx={{
             p: '0.75rem 1rem',

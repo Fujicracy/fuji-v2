@@ -79,7 +79,7 @@ function AccountModal({
   };
 
   const handleEntryClick = (entry: HistoryEntry) => {
-    openModal(entry.hash);
+    openModal(entry.hash, true);
     closeAccountModal();
   };
 

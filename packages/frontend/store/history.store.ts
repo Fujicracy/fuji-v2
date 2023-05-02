@@ -35,6 +35,7 @@ type HistoryState = {
   entries: Record<string, HistoryEntry>;
 
   currentTxHash?: string | undefined; // The tx hash displayed in modal
+  isHistoricalTransaction?: boolean;
 
   watching: string[];
 };
@@ -52,7 +53,7 @@ type HistoryActions = {
   watch: (transaction: HistoryTransaction) => void;
   clearStore: () => void;
 
-  openModal: (hash: string) => void;
+  openModal: (hash: string, isHistorical?: boolean) => void;
   closeModal: () => void;
 };
 
@@ -61,6 +62,7 @@ const initialState: HistoryState = {
   ongoingTransactions: [],
   entries: {},
   watching: [],
+  isHistoricalTransaction: false,
 };
 
 export const useHistory = create<HistoryStore>()(
@@ -324,12 +326,12 @@ export const useHistory = create<HistoryStore>()(
           });
         },
 
-        openModal(hash) {
-          set({ currentTxHash: hash });
+        openModal(hash, isHistorical = false) {
+          set({ currentTxHash: hash, isHistoricalTransaction: isHistorical });
         },
 
         closeModal() {
-          set({ currentTxHash: '' });
+          set({ currentTxHash: '', isHistoricalTransaction: false });
         },
       }),
       {
