@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { SerializableToken } from '../../helpers/history';
 import { addTokenToMetamask } from '../../helpers/metamask';
+import { notify } from '../../helpers/notifications';
 
 type ButtonAddTokenProps = {
   token: SerializableToken;
@@ -17,6 +18,10 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
     try {
       await addTokenToMetamask(token);
       setStatus('success');
+      notify({
+        type: 'success',
+        message: `${token.symbol} added`,
+      });
     } catch (e) {
       // user probably rejected
       setStatus('error');
@@ -30,9 +35,8 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
       size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
-      disabled={status === 'success'}
     >
-      {status === 'success' ? <>Done sir ✅</> : `Add ${token.symbol}`}
+      {`Add ${token.symbol}`}
     </LoadingButton>
   );
 }

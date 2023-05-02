@@ -13,6 +13,10 @@ export type MarketRow = {
 
   collateral: string;
   debt: string;
+  safetyRating: {
+    status: Status;
+    value: number;
+  };
 
   chain: {
     status: Status;
@@ -49,10 +53,6 @@ export type MarketRow = {
     status: Status;
     value: string[];
   };
-  safetyRating: {
-    status: Status;
-    value: string;
-  };
   liquidity: {
     status: Status;
     value: number;
@@ -66,6 +66,10 @@ export type MarketRow = {
 const defaultRow: MarketRow = {
   collateral: '',
   debt: '',
+  safetyRating: {
+    status: Status.Loading,
+    value: 0,
+  },
   chain: {
     status: Status.Loading,
     value: '',
@@ -98,10 +102,6 @@ const defaultRow: MarketRow = {
     status: Status.Loading,
     value: [],
   },
-  safetyRating: {
-    status: Status.Loading,
-    value: '',
-  },
   liquidity: {
     status: Status.Loading,
     value: 0,
@@ -129,6 +129,10 @@ export const setFinancials = (
   f?: VaultWithFinancials
 ): MarketRow => ({
   ...r,
+  safetyRating: {
+    status,
+    value: Number((r.entity as BorrowingVault).safetyRating?.toString()) ?? 0,
+  },
   depositApr: {
     status,
     value: f?.activeProvider.depositAprBase ?? 0,
@@ -148,10 +152,6 @@ export const setFinancials = (
   integratedProtocols: {
     status,
     value: f?.allProviders.map((p) => p.name) ?? [],
-  },
-  safetyRating: {
-    status,
-    value: 'A+', // TODO
   },
 });
 
