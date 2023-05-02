@@ -38,11 +38,11 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
 
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline,bytes32 actionArgsHash)"
   );
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private constant PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline,bytes32 actionArgsHash)"
   );
 
   /// @dev Reserve a slot as recommended in OZ {draft-ERC20Permit}.
@@ -185,6 +185,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     address receiver,
     uint256 amount,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s
@@ -194,18 +195,27 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   {
     _checkDeadline(deadline);
     address operator = msg.sender;
-    bytes32 structHash = keccak256(
-      abi.encode(
-        PERMIT_WITHDRAW_TYPEHASH,
-        block.chainid,
-        owner,
-        operator,
-        receiver,
-        amount,
-        _useNonce(owner),
-        deadline
-      )
-    );
+    bytes32 structHash;
+    // Scoped code to avoid "Stack too deep"
+    {
+      bytes memory data;
+      uint256 currentNonce = _useNonce(owner);
+      {
+        data = abi.encode(
+          PERMIT_WITHDRAW_TYPEHASH,
+          block.chainid,
+          owner,
+          operator,
+          receiver,
+          amount,
+          currentNonce,
+          deadline,
+          actionArgsHash
+        );
+      }
+      structHash = keccak256(data);
+    }
+
     _checkSigner(structHash, owner, v, r, s);
 
     _setWithdrawAllowance(owner, operator, receiver, amount);
@@ -217,6 +227,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     address receiver,
     uint256 amount,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s
@@ -227,18 +238,27 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   {
     _checkDeadline(deadline);
     address operator = msg.sender;
-    bytes32 structHash = keccak256(
-      abi.encode(
-        PERMIT_BORROW_TYPEHASH,
-        block.chainid,
-        owner,
-        operator,
-        receiver,
-        amount,
-        _useNonce(owner),
-        deadline
-      )
-    );
+    bytes32 structHash;
+    // Scoped code to avoid "Stack too deep"
+    {
+      bytes memory data;
+      uint256 currentNonce = _useNonce(owner);
+      {
+        data = abi.encode(
+          PERMIT_BORROW_TYPEHASH,
+          block.chainid,
+          owner,
+          operator,
+          receiver,
+          amount,
+          currentNonce,
+          deadline,
+          actionArgsHash
+        );
+      }
+      structHash = keccak256(data);
+    }
+
     _checkSigner(structHash, owner, v, r, s);
 
     _setBorrowAllowance(owner, operator, receiver, amount);

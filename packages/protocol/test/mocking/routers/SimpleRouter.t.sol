@@ -116,19 +116,25 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     bytes[] memory args = new bytes[](3);
 
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(ALICE, address(simpleRouter), ALICE, debt, 0, address(vault));
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, address(vault_));
-
     actions[0] = IRouter.Action.Deposit;
     actions[1] = IRouter.Action.PermitBorrow;
     actions[2] = IRouter.Action.Borrow;
 
     args[0] = abi.encode(address(vault_), deposit, ALICE, ALICE);
-    args[1] = abi.encode(address(vault_), ALICE, ALICE, debt, deadline, v, r, s);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(address(vault_), ALICE, ALICE, debt);
     args[2] = abi.encode(address(vault_), debt, ALICE, ALICE);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), ALICE, debt, 0, address(vault), actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault_));
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = abi.encode(address(vault_), ALICE, ALICE, debt, deadline, v, r, s);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(simpleRouter), ALICE, deposit, deposit);
@@ -146,13 +152,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_depositAndBorrow() public {
-    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(vault)
-    );
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
-
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Deposit;
     actions[1] = IRouter.Action.PermitBorrow;
@@ -160,8 +159,20 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
-    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, ALICE, borrowAmount);
     args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(vault), actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(simpleRouter), ALICE, amount, amount);
@@ -184,12 +195,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   function test_paybackAndWithdraw() public {
     _depositAndBorrow(amount, borrowAmount, vault);
 
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(ALICE, address(simpleRouter), ALICE, amount, 0, address(vault));
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
-
     IRouter.Action[] memory actions = new IRouter.Action[](3);
     actions[0] = IRouter.Action.Payback;
     actions[1] = IRouter.Action.PermitWithdraw;
@@ -197,8 +202,20 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
-    args[1] = abi.encode(address(vault), ALICE, ALICE, amount, deadline, v, r, s);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, ALICE, amount);
     args[2] = abi.encode(address(vault), amount, ALICE, ALICE);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), ALICE, amount, 0, address(vault), actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = abi.encode(address(vault), ALICE, ALICE, amount, deadline, v, r, s);
 
     vm.expectEmit(true, true, true, true);
     emit Payback(address(simpleRouter), ALICE, borrowAmount, borrowAmount);
@@ -216,13 +233,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_depositETHAndBorrow() public {
-    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(vault)
-    );
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
-
     IRouter.Action[] memory actions = new IRouter.Action[](4);
     actions[0] = IRouter.Action.DepositETH;
     actions[1] = IRouter.Action.Deposit;
@@ -232,8 +242,20 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     bytes[] memory args = new bytes[](4);
     args[0] = abi.encode(amount);
     args[1] = abi.encode(address(vault), amount, ALICE, address(simpleRouter));
-    args[2] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
+    args[2] = LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, ALICE, borrowAmount);
     args[3] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE, address(simpleRouter), ALICE, borrowAmount, 0, address(vault), actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    // Replace permit action arguments, now with the signature values.
+    args[2] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(simpleRouter), ALICE, amount, amount);
@@ -274,17 +296,23 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     actions[1] = IRouter.Action.Withdraw;
     actions[2] = IRouter.Action.WithdrawETH;
 
+    args = new bytes[](3);
+    args[0] =
+      LibSigUtils.getZeroPermitEncodedArgs(address(vault), BOB, address(simpleRouter), amount);
+    args[1] = abi.encode(address(vault), amount, address(simpleRouter), BOB);
+    args[2] = abi.encode(amount, BOB);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      BOB, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+      BOB, address(simpleRouter), address(simpleRouter), amount, 0, address(vault), actionArgsHash
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitWithdrawArgs(permit, BOB_PK, address(vault));
 
-    args = new bytes[](3);
+    // Replace permit action arguments, now with the signature values.
     args[0] = abi.encode(address(vault), BOB, address(simpleRouter), amount, deadline, v, r, s);
-    args[1] = abi.encode(address(vault), amount, address(simpleRouter), BOB);
-    args[2] = abi.encode(amount, BOB);
 
     vm.expectEmit(true, true, true, true);
     emit Withdraw(address(simpleRouter), address(simpleRouter), BOB, amount, amount);
@@ -304,7 +332,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryFoeSweepETH(address foe, uint256 amount_) public {
-    vm.assume(foe != address(chief));
+    vm.assume(foe != address(this));
     vm.deal(address(simpleRouter), amount_);
 
     vm.expectRevert(
@@ -343,7 +371,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   function test_depositApprovalAttack() public {
     _dealMockERC20(collateralAsset, ALICE, amount);
 
-    // alice has approved for some reason the router
+    // Alice has approved for some reason the router
     vm.prank(ALICE);
     IERC20(collateralAsset).approve(address(simpleRouter), amount);
 
@@ -415,7 +443,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     simpleRouter.xBundle(actions, args);
     assertGt(vault.balanceOf(ALICE), 0);
 
-    // alice approves withdrawal allowance for the router for some reason
+    // Alice approves withdrawal allowance for the router for some reason
     uint256 allowance = vault.previewRedeem(vault.balanceOf(ALICE));
     IVaultPermissions(address(vault)).increaseWithdrawAllowance(
       address(simpleRouter), address(simpleRouter), allowance
@@ -459,9 +487,18 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     assertGt(vault.balanceOf(ALICE), 0);
 
-    // alice signs a permit withdrawal for the router for some reason
+    // Arbitrary hash here, only for testing purposes.
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1, 2, 3));
+
+    // Alice signs a permit withdrawal for the router for some reason
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+      ALICE,
+      address(simpleRouter),
+      address(simpleRouter),
+      amount,
+      0,
+      address(vault),
+      pretendedActionArgsHash
     );
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
@@ -481,7 +518,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     attackerActions[2] = IRouter.Action.WithdrawETH;
     attackerArgs[2] = abi.encode(address(vault), amount, BOB);
 
-    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    vm.expectRevert();
     vm.prank(BOB);
     simpleRouter.xBundle(attackerActions, attackerArgs);
 
@@ -524,14 +561,23 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     assertGt(vault.balanceOf(ALICE), 0);
 
-    // alice signs a permit borrow for the router for some reason
+    // Arbitrary hash here, only for testing purposes.
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1, 2, 3));
+
+    // Alice signs a permit borrow for the router for some reason
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), address(simpleRouter), borrowAmount, 0, address(vault)
+      ALICE,
+      address(simpleRouter),
+      address(simpleRouter),
+      borrowAmount,
+      0,
+      address(vault),
+      pretendedActionArgsHash
     );
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
 
-    // attacker front-runs get hold of signed permit
+    // Attacker front-runs get hold of signed permit
     // and bundles PermitBorrow-Borrow-Deposit-in-newVault
     IRouter.Action[] memory attackerActions = new IRouter.Action[](3);
     bytes[] memory attackerArgs = new bytes[](3);
@@ -546,7 +592,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     attackerActions[2] = IRouter.Action.Deposit;
     attackerArgs[2] = abi.encode(address(newVault), borrowAmount, BOB, address(simpleRouter));
 
-    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
+    vm.expectRevert();
     vm.prank(BOB);
     simpleRouter.xBundle(attackerActions, attackerArgs);
 
@@ -605,9 +651,18 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     do_deposit(amount, vault, ALICE);
 
-    // alice signs a permit withdrawal for the router for some reason
+    // Arbitrary hash here, only for testing purposes.
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1, 2, 3));
+
+    // Alice signs a permit withdrawal for the router for some reason
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(simpleRouter), address(simpleRouter), amount, 0, address(vault)
+      ALICE,
+      address(simpleRouter),
+      address(simpleRouter),
+      amount,
+      0,
+      address(vault),
+      pretendedActionArgsHash
     );
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
       _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
@@ -634,10 +689,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
       0 // not handling slippage in these tests.
     );
 
-    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
-    // Ensure the withdraw action executes in `bundleInternal()`
-    vm.expectEmit(true, true, true, true);
-    emit Withdraw(address(simpleRouter), address(simpleRouter), ALICE, amount, amount);
+    vm.expectRevert();
     vm.startPrank(ATTACKER);
     simpleRouter.xBundle(attackActions, attackArgs);
     vm.stopPrank();

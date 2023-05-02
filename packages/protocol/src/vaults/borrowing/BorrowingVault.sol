@@ -387,6 +387,7 @@ contract BorrowingVault is BaseVault {
     address receiver,
     uint256 value,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s
@@ -394,7 +395,7 @@ contract BorrowingVault is BaseVault {
     public
     override
   {
-    VaultPermissions.permitBorrow(owner, receiver, value, deadline, v, r, s);
+    VaultPermissions.permitBorrow(owner, receiver, value, deadline, actionArgsHash, v, r, s);
   }
 
   /**
