@@ -1,27 +1,16 @@
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import {
-  Box,
-  Fade,
-  Grid,
-  MenuItem,
-  Select,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Fade, Grid, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 
-import { AssetType, Mode } from '../../../helpers/assets';
+import { AssetType } from '../../../helpers/assets';
 import { chains } from '../../../helpers/chains';
 import { NetworkIcon } from '../../Shared/Icons';
-import TooltipWrapper from '../../Shared/Tooltips/TooltipWrapper';
 
 type ChainSelectProps = {
   label: string;
   type: AssetType;
   value: ChainId;
-  showTooltip: boolean;
   disabled: boolean;
-  mode: Mode;
   onChange: (chainId: ChainId) => void;
 };
 const ChainSelect = ({
@@ -29,8 +18,6 @@ const ChainSelect = ({
   label,
   type,
   disabled,
-  showTooltip,
-  mode,
   onChange,
 }: ChainSelectProps) => {
   const labelId = `${type}-label`;
@@ -40,42 +27,13 @@ const ChainSelect = ({
       <Typography id={labelId} variant="smallDark">
         {label}
       </Typography>
-      {showTooltip ? (
-        <TooltipWrapper
-          placement="top"
-          title={
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                width: '15rem',
-              }}
-            >
-              <Typography variant="small">{`${
-                mode === Mode.BORROW || mode === Mode.DEPOSIT_AND_BORROW
-                  ? 'Borrowing from'
-                  : 'Paying back'
-              } an existing position from another chain will be enabled soon`}</Typography>
-            </Box>
-          }
-        >
-          <ChainSelectContent
-            type={type}
-            value={value}
-            disabled={disabled}
-            labelId={labelId}
-            onChange={onChange}
-          />
-        </TooltipWrapper>
-      ) : (
-        <ChainSelectContent
-          type={type}
-          value={value}
-          disabled={disabled}
-          labelId={labelId}
-          onChange={onChange}
-        />
-      )}
+      <ChainSelectContent
+        type={type}
+        value={value}
+        disabled={disabled}
+        labelId={labelId}
+        onChange={onChange}
+      />
     </Stack>
   );
 };

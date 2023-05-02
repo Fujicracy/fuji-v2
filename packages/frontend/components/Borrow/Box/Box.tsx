@@ -68,7 +68,6 @@ function BorrowBox({
       }
     >
       <ChainSelect
-        mode={mode}
         label={
           type === 'collateral'
             ? actionType === ActionType.ADD
@@ -80,8 +79,7 @@ function BorrowBox({
         }
         type={type}
         value={chainId}
-        disabled={(isEditing && type === 'debt') || isExecuting}
-        showTooltip={isEditing && type === 'debt'}
+        disabled={isExecuting}
         onChange={(chainId) =>
           type === 'collateral'
             ? changeCollateralChain(chainId, !isEditing)
