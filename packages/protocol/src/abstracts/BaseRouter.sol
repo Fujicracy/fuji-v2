@@ -430,13 +430,17 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         i == 0 && beforeSlipped != 0
           && (actions[i] == IRouter.Action.Deposit || actions[i] == IRouter.Action.Payback)
       ) {
-        // if `beforeSlipped` == 0 means there was no slippage in an attempted cross-chain tx
-        // or tx is single chain.
+        /**
+         * @dev Replace slippage values in the first ( i==0 ) "value" transfer
+         * action in the destination chain (deposit or to payback).
+         * If `beforeSlipped` == 0, it means there was no slippage in the attempted cross-chain tx
+         * or the tx is single chain; thereore, not requiring any replacement.
+         * Then, if beforeSlipped != 0 and beforeSlipped != slippedAmount, function should replace
+         * to obtain the "original" intended transfer value signed in `actionArgsHash`.
+         */
         (IVault vault, uint256 slippedAmount, address receiver, address sender) =
           abi.decode(modArgs[i], (IVault, uint256, address, address));
         if (beforeSlipped != slippedAmount) {
-          // For Deposit, and Payback actions if beforeSlipped != slippedAmount replace
-          // to obtain "original" intended transfer value signed in `actionArgsHash`.
           modArgs[i] = abi.encode(vault, beforeSlipped, receiver, sender);
         }
       }
