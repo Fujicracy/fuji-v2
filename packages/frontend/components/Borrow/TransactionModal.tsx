@@ -23,23 +23,17 @@ import StepConnector, {
 } from '@mui/material/StepConnector';
 import { styled, useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { chainName } from '../../helpers/chains';
-import { transactionUrl } from '../../helpers/chains';
 import {
   connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
-  validSteps,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
-import { statusForStep, TransactionStep } from '../../helpers/transactions';
-import { camelize } from '../../helpers/values';
+import { statusForStep, transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
@@ -59,8 +53,6 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
 
   const closeModal = useHistory((state) => state.closeModal);
 
-  const [activeStep] = useState(2);
-
   if (!entry) return <></>;
 
   const action =
@@ -68,70 +60,7 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
     entry.steps.find((s) => s.step === RoutingStep.WITHDRAW);
 
   const connextScanLinks = connextLinksForEntry(entry);
-
-  const validatedSteps = validSteps(entry.steps);
-
-  const steps = validatedSteps.map((s, i): TransactionStep => {
-    const { step, chainId, token } = s;
-
-    const realChainId =
-      s.step === RoutingStep.X_TRANSFER && i === 0 && s.token
-        ? s.token.chainId
-        : chainId;
-
-    const chain = chainName(realChainId);
-    const amount = token && formatUnits(s.amount ?? 0, token.decimals);
-
-    const txHash =
-      realChainId === entry.sourceChain.chainId
-        ? entry.hash
-        : entry.secondChain?.hash;
-
-    const link = txHash && transactionUrl(realChainId, txHash);
-
-    const style = {
-      background: theme.palette.secondary.light,
-      mr: '0.5rem',
-      p: '0.5rem 0.5rem 0.3rem 0.5rem',
-      borderRadius: '100%',
-      zIndex: 1,
-    };
-
-    const action = step.toString();
-    const preposition =
-      step === RoutingStep.DEPOSIT
-        ? 'on'
-        : [
-            RoutingStep.X_TRANSFER,
-            RoutingStep.BORROW,
-            RoutingStep.PAYBACK,
-          ].includes(step)
-        ? 'to'
-        : 'from';
-
-    const name = s.lendingProvider?.name;
-
-    const label = camelize(
-      `${action} ${amount} ${token?.symbol} ${name ? preposition : ''} ${
-        name ?? ''
-      }`
-    );
-
-    const description = `${chain} Network`;
-
-    return {
-      label,
-      txHash,
-      link,
-      description,
-      chainId: realChainId,
-      icon: () => (
-        <Box sx={style}>
-          <NetworkIcon network={chain} height={32} width={32} />
-        </Box>
-      ),
-    };
-  });
+  const steps = transactionSteps(entry);
 
   const onClick = async () => {
     // If the user is editing a position, we just need to close the modal
@@ -184,16 +113,30 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
           </Typography>
         </Box>
         <DialogContent sx={{ p: 0, overflowX: 'hidden' }}>
-          <Stepper
-            activeStep={activeStep}
-            orientation="vertical"
-            connector={<CustomConnector />}
-          >
+          <Stepper orientation="vertical" connector={<CustomConnector />}>
             {steps?.map((step) => {
               const status = statusForStep(step, entry);
               return (
                 <Step key={step.label}>
-                  <StepLabel StepIconComponent={step.icon}>
+                  <StepLabel
+                    icon={
+                      <Box
+                        sx={{
+                          background: theme.palette.secondary.light,
+                          mr: '0.5rem',
+                          p: '0.5rem 0.5rem 0.3rem 0.5rem',
+                          borderRadius: '100%',
+                          zIndex: 1,
+                        }}
+                      >
+                        <NetworkIcon
+                          network={step.chain}
+                          height={32}
+                          width={32}
+                        />
+                      </Box>
+                    }
+                  >
                     <Stack
                       direction="row"
                       alignItems="center"

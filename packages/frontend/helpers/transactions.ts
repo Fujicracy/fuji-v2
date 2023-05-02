@@ -4,14 +4,17 @@ import {
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
+  RoutingStep,
   RoutingStepDetails,
 } from '@x-fuji/sdk';
+import { formatUnits } from 'ethers/lib/utils';
 
 import { sdk } from '../services/sdk';
 import { FetchStatus } from '../store/borrow.store';
-import { HistoryEntry, HistoryEntryStatus } from './history';
+import { chainName, transactionUrl } from './chains';
+import { HistoryEntry, HistoryEntryStatus, validSteps } from './history';
 import { BridgeFee } from './routing';
-import { toNotSoFixed } from './values';
+import { camelize, toNotSoFixed } from './values';
 
 export type TransactionMeta = {
   status: FetchStatus;
@@ -26,9 +29,9 @@ export type TransactionStep = {
   label: string;
   description: string;
   chainId: number;
+  chain: string;
   txHash?: string;
   link?: string;
-  icon: () => JSX.Element;
 };
 
 export const watchTransaction = async (
@@ -46,6 +49,59 @@ export const watchTransaction = async (
   } catch (error) {
     return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN);
   }
+};
+
+export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
+  const source = validSteps(entry.steps);
+  return source.map((s, i): TransactionStep => {
+    const { step, chainId, token } = s;
+
+    const realChainId =
+      s.step === RoutingStep.X_TRANSFER && i === 0 && s.token
+        ? s.token.chainId
+        : chainId;
+
+    const chain = chainName(realChainId);
+    const amount = token && formatUnits(s.amount ?? 0, token.decimals);
+
+    const txHash =
+      realChainId === entry.sourceChain.chainId
+        ? entry.hash
+        : entry.secondChain?.hash;
+
+    const link = txHash && transactionUrl(realChainId, txHash);
+
+    const action = step.toString();
+    const preposition =
+      step === RoutingStep.DEPOSIT
+        ? 'on'
+        : [
+            RoutingStep.X_TRANSFER,
+            RoutingStep.BORROW,
+            RoutingStep.PAYBACK,
+          ].includes(step)
+        ? 'to'
+        : 'from';
+
+    const name = s.lendingProvider?.name;
+
+    const label = camelize(
+      `${action} ${amount} ${token?.symbol} ${name ? preposition : ''} ${
+        name ?? ''
+      }`
+    );
+
+    const description = `${chain} Network`;
+
+    return {
+      label,
+      txHash,
+      link,
+      description,
+      chain,
+      chainId: realChainId,
+    };
+  });
 };
 
 export const statusForStep = (
