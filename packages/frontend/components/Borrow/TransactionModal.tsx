@@ -213,6 +213,7 @@ function TransactionModal({
         )}
         <DialogContent
           sx={{
+            mt: gif ? '1.5rem' : '0',
             p: '0.75rem 1rem',
             overflowX: 'hidden',
             backgroundColor: theme.palette.secondary.dark,
