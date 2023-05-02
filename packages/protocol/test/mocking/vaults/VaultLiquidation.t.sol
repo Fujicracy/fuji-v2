@@ -74,14 +74,6 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     return (price - ((borrowAmount * 1e36) / (deposit * DEFAULT_LIQ_RATIO)));
   }
 
-  function _utils_checkMaxLTV(uint256 amount, uint256 borrowAmount) internal view returns (bool) {
-    uint256 maxLtv = 75 * 1e16;
-
-    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
-    return borrowAmount < maxBorrow;
-  }
-
   function test_liquidateMax(uint256 borrowAmount) public {
     uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 minAmount = (vault.minAmount() * currentPrice) / 1e18;

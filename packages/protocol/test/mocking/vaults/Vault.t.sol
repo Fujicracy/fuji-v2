@@ -30,14 +30,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     );
   }
 
-  function _utils_checkMaxLTV(uint96 amount, uint96 borrowAmount) internal view returns (bool) {
-    uint256 maxLtv = DEFAULT_MAX_LTV;
-
-    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
-    return borrowAmount < maxBorrow;
-  }
-
   function _utils_getHealthFactor(
     uint96 amount,
     uint96 borrowAmount
