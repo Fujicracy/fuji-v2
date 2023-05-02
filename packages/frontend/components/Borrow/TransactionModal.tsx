@@ -31,6 +31,7 @@ import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
 import { chainName } from '../../helpers/chains';
 import { transactionUrl } from '../../helpers/chains';
 import {
+  connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
   validSteps,
@@ -66,9 +67,7 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
     entry.steps.find((s) => s.step === RoutingStep.BORROW) ||
     entry.steps.find((s) => s.step === RoutingStep.WITHDRAW);
 
-  const connextScanLink = entry.connext
-    ? `https://amarok.connextscan.io/tx/${entry.connext.transferId}`
-    : undefined;
+  const connextScanLinks = connextLinksForEntry(entry);
 
   const validatedSteps = validSteps(entry.steps);
 
@@ -275,17 +274,19 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
               )}
           </>
         )}
-        {connextScanLink && (
-          <Stack sx={{ mt: '1rem' }} spacing={1}>
-            <Link href={connextScanLink} target="_blank" variant="inherit">
+        {connextScanLinks?.map((link, index) => (
+          <Stack key={link} sx={{ mt: '1rem' }} spacing={1}>
+            <Link href={link} target="_blank" variant="inherit">
               <Button size="medium" fullWidth variant="secondary">
-                View transaction on ConnextScan
+                {`View ${
+                  index === 0 ? 'first ' : index === 1 ? 'second ' : ''
+                }transaction on ConnextScan`}
               </Button>
             </Link>
           </Stack>
-        )}
+        ))}
         {entry.status === HistoryEntryStatus.SUCCESS && (
-          <Stack sx={{ mt: connextScanLink ? '0.5rem' : '1rem' }} spacing={1}>
+          <Stack sx={{ mt: '1rem' }} spacing={1}>
             <Button
               fullWidth
               variant="gradient"

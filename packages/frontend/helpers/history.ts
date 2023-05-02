@@ -140,6 +140,18 @@ export const stepForFinishing = (entry: HistoryEntry) => {
   }
 };
 
+const connextLinkify = (id: string) => `https://amarok.connextscan.io/tx/${id}`;
+
+export const connextLinksForEntry = (entry: HistoryEntry) => {
+  const links: string[] | undefined = entry.connext && [
+    connextLinkify(entry.connext.transferId),
+  ];
+  if (links && entry.connext?.secondTransferId) {
+    links.push(connextLinkify(entry.connext.secondTransferId));
+  }
+  return links;
+};
+
 // Convenience function to wait for a certain amount of time when polling a cross-chain transaction
 export const wait = (ms: number) => {
   return new Promise((resolve) => {
