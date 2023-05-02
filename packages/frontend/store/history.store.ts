@@ -82,9 +82,17 @@ export const useHistory = create<HistoryStore>()(
           );
           const chainCount = bridgeSteps.length + 1;
 
+          const bridge1 = bridgeSteps[0];
+          steps.indexOf(bridge1);
+
           const srcChainId = steps[0].chainId;
-          const secondChainId = bridgeSteps[0].chainId; // TODO: temp
-          const thirdChainId = bridgeSteps.length > 1 && bridgeSteps[1].chainId; // TODO: temp
+          const secondChainId =
+            bridgeSteps.length > 0
+              ? steps.indexOf(bridge1) === 1 && bridge1.token
+                ? bridge1.token.chainId
+                : bridge1.chainId
+              : undefined;
+          const thirdChainId = bridgeSteps.length > 1 && bridgeSteps[1].chainId;
           const isCrossChain = chainCount > 1;
 
           const sourceChain = {
@@ -92,12 +100,13 @@ export const useHistory = create<HistoryStore>()(
             status: HistoryEntryStatus.ONGOING,
             hash,
           };
-          const secondChain = isCrossChain
-            ? {
-                chainId: secondChainId,
-                status: HistoryEntryStatus.ONGOING,
-              }
-            : undefined;
+          const secondChain =
+            isCrossChain && secondChainId
+              ? {
+                  chainId: secondChainId,
+                  status: HistoryEntryStatus.ONGOING,
+                }
+              : undefined;
           const thirdChain = thirdChainId
             ? {
                 chainId: thirdChainId,
