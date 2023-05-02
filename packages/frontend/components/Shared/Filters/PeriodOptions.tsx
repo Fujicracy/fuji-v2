@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import TabSwitch from '../TabSwitch';
 
@@ -16,10 +16,15 @@ const periodOptions: PeriodOption[] = [
 
 export function PeriodOptions({
   onChange,
+  isDayExcluded = false,
 }: {
   onChange: (value: number) => void;
+  isDayExcluded?: boolean;
 }) {
   const [daysPeriod, setDaysPeriod] = useState<number>(periodOptions[0].value);
+  const options = useMemo(() => {
+    return isDayExcluded ? periodOptions.slice(1) : periodOptions;
+  }, [isDayExcluded]);
 
   const onPeriodChange = (value: number) => {
     setDaysPeriod(value);
@@ -28,7 +33,7 @@ export function PeriodOptions({
 
   return (
     <TabSwitch
-      actions={periodOptions}
+      actions={options}
       selected={daysPeriod}
       onChange={onPeriodChange}
       width="13.6rem"

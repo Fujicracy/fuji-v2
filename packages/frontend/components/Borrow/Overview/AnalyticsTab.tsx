@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
 import APYChart from '../../Shared/Charts/APYChart';
+import EmptyChartState from '../../Shared/Charts/EmptyState';
 import PeriodOptions from '../../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
@@ -40,22 +41,32 @@ function AnalyticsTab() {
           onChange={setSelectedTab}
           width="13.6rem"
         />
-        <PeriodOptions onChange={setSelectedPeriod} />
+        <PeriodOptions onChange={setSelectedPeriod} isDayExcluded={true} />
       </Stack>
 
-      <Typography
-        variant="body2"
-        fontSize="1.125rem"
-        fontWeight={700}
-        lineHeight="1.8rem"
-      >
-        {'2.07%'}
-      </Typography>
-      <Typography variant="smallDark" fontSize="0.875rem" lineHeight="1.4rem">
-        {'Mar 15, 2023'}
-      </Typography>
+      {false ? (
+        <>
+          <Typography
+            variant="body2"
+            fontSize="1.125rem"
+            fontWeight={700}
+            lineHeight="1.8rem"
+          >
+            {'2.07%'}
+          </Typography>
+          <Typography
+            variant="smallDark"
+            fontSize="0.875rem"
+            lineHeight="1.4rem"
+          >
+            {'Mar 15, 2023'}
+          </Typography>
 
-      <APYChart />
+          <APYChart />
+        </>
+      ) : (
+        <EmptyChartState />
+      )}
 
       <Grid container spacing={2} mt="2rem">
         <Grid item xs={12} sm={6} lg={3}>
