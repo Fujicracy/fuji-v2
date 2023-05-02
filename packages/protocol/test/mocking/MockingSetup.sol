@@ -35,9 +35,13 @@ contract MockingSetup is CoreRoles, Test {
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
 
-  // CHainlink type prices in 8 decimals.
+  // Chainlink type prices in 8 decimals.
   uint256 public constant USD_PER_ETH_PRICE = 2000e8;
   uint256 public constant USD_PER_DAI_PRICE = 1e8;
+
+  // Decimals for the assets
+  uint8 public assetDecimals = 18;
+  uint8 public debtDecimals = 18;
 
   constructor() {
     vm.label(ALICE, "alice");
@@ -141,5 +145,13 @@ contract MockingSetup is CoreRoles, Test {
     );
     (v, r, s) = vm.sign(ownerPrivateKey, digest);
     deadline = permit.deadline;
+  }
+
+  function _utils_checkMaxLTV(uint256 amount, uint256 borrowAmount) internal view returns (bool) {
+    uint256 maxLtv = DEFAULT_MAX_LTV;
+
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, debtDecimals);
+    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+    return borrowAmount < maxBorrow;
   }
 }

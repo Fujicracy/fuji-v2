@@ -226,8 +226,10 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
-  function _utils_checkSameLtv(
+  function _utils_checkRebalanceLtv(
     BorrowingVault v,
+    ILendingProvider from,
+    ILendingProvider to,
     uint256 rebalanceAssets,
     uint256 rebalanceDebt
   )
@@ -235,16 +237,17 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     view
     returns (bool)
   {
-    if (
-      rebalanceAssets == 0 || rebalanceDebt == 0 || rebalanceAssets > v.totalAssets()
-        || rebalanceDebt > v.totalDebt()
-    ) {
+    if (rebalanceAssets > v.totalAssets() || rebalanceDebt > v.totalDebt()) {
       return false;
     }
-    uint256 currentRatio = v.totalDebt() / v.totalAssets();
-    uint256 rebalanceRatio = rebalanceDebt / rebalanceAssets;
+    uint256 assetsAfterRebalanceA = from.getDepositBalance(address(v), v) - rebalanceAssets;
+    uint256 debtAfterRebalanceA = from.getBorrowBalance(address(v), v) - rebalanceDebt;
 
-    return currentRatio == rebalanceRatio;
+    uint256 assetsAfterRebalanceB = to.getDepositBalance(address(v), v) + rebalanceAssets;
+    uint256 debtAfterRebalanceB = to.getBorrowBalance(address(v), v) + rebalanceDebt;
+
+    return _utils_checkMaxLTV(assetsAfterRebalanceA, debtAfterRebalanceA)
+      && _utils_checkMaxLTV(assetsAfterRebalanceB, debtAfterRebalanceB);
   }
 
   function test_assertSetUp() public {
@@ -464,75 +467,26 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     _callWithTimelock(address(chief), executionCall);
   }
 
-  function test_tryRebalanceAndBreakLtv() public {
-    uint8 assetDecimals = 18;
-    uint8 debtDecimals = 18;
-
-    //calc current ltv in vault
-    uint256 price = oracle.getPriceOf(collateralAsset, debtAsset, debtDecimals);
-    uint256 currentLtv =
-      1e18 * bvault.totalDebt() * price / (bvault.totalAssets() * 10 ** assetDecimals);
-
-    vm.startPrank(address(timelock));
-    bvault.setMaxLtv(currentLtv);
-    vm.stopPrank();
-
-    //rebalance in a way that breaks ltv
-    try rebalancer.rebalanceVault(
-      bvault,
-      bvault.totalAssets() / 2,
-      bvault.totalDebt(),
-      mockProviderA,
-      mockProviderB,
-      flasher,
-      true
-    ) {
-      console.log("Rebalance succeded even though it shouldnt have");
-      assert(false);
-    } catch {
-      console.log("Rebalance reverted as expected");
-      assert(true);
-    }
-  }
-
-  function test_rebalanceDoesntBreakLtv(uint128 rebalanceAssets, uint128 rebalanceDebt) public {
-    uint8 assetDecimals = 18;
-    uint8 debtDecimals = 18;
-
+  function test_rebalanceAndKeepMaxLtv(uint128 rebalanceAssets, uint128 rebalanceDebt) public {
     vm.assume(
       rebalanceAssets > 0 && rebalanceAssets < bvault.totalAssets() && rebalanceDebt > 0
         && rebalanceDebt < bvault.totalDebt()
     );
 
-    //calc current ltv in vault
-    uint256 price = oracle.getPriceOf(collateralAsset, debtAsset, debtDecimals);
-    uint256 ltvBeforeRebalance =
-      1e18 * bvault.totalDebt() * price / (bvault.totalAssets() * 10 ** assetDecimals);
+    bool rebalanceLtv =
+      _utils_checkRebalanceLtv(bvault, mockProviderA, mockProviderB, rebalanceAssets, rebalanceDebt);
 
     //rebalance
     try rebalancer.rebalanceVault(
       bvault, rebalanceAssets, rebalanceDebt, mockProviderA, mockProviderB, flasher, true
     ) {
-      if (_utils_checkSameLtv(bvault, rebalanceAssets, rebalanceDebt)) {
-        //providerA
-        //check ltv after rebalance
-        uint256 assetsA = mockProviderA.getDepositBalance(address(bvault), bvault);
-        uint256 debtA = mockProviderA.getBorrowBalance(address(bvault), bvault);
-
-        //providerB
-        uint256 assetsB = mockProviderB.getDepositBalance(address(bvault), bvault);
-        uint256 debtB = mockProviderB.getBorrowBalance(address(bvault), bvault);
-
-        uint256 ltvAfterRebalance = 1e18 * debtA * price / (assetsA * 10 ** assetDecimals);
-        assertApproxEqAbs(ltvBeforeRebalance, ltvAfterRebalance, 1e16);
-
-        ltvAfterRebalance = 1e18 * debtB * price / (assetsB * 10 ** assetDecimals);
-        assertApproxEqAbs(ltvBeforeRebalance, ltvAfterRebalance, 1e16);
+      if (rebalanceLtv) {
+        assert(true);
       } else {
         assert(false);
       }
     } catch {
-      assert(!_utils_checkSameLtv(bvault, rebalanceAssets, rebalanceDebt));
+      assert(!rebalanceLtv);
     }
   }
 }
