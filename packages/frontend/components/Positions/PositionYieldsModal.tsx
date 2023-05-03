@@ -89,7 +89,7 @@ export function PositionYieldsModal({
 
         <Divider sx={{ m: '1.375rem 0' }} />
 
-        <Grid container mt="2.5rem" mb="1rem">
+        <Grid container mb="1rem">
           <BorrowLendingTabNavigation
             onChange={(tab) => setCurrentTab(tab)}
             isLendingDisabled
