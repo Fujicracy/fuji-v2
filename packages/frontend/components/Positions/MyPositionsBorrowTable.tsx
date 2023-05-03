@@ -110,7 +110,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                     (
                     {formatValue(row.debt.usdValue, {
                       style: 'currency',
-                      minimumFractionDigits: 0,
+                      minimumFractionDigits: 2,
                     })}
                     )
                   </Typography>
