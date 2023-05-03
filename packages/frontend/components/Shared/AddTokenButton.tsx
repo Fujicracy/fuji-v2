@@ -36,7 +36,7 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
       onClick={handleClick}
       loading={status === 'loading'}
     >
-      {`Add ${token.symbol}`}
+      {`Add ${token.symbol} to Wallet`}
     </LoadingButton>
   );
 }
