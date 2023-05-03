@@ -1,12 +1,14 @@
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
+  alpha,
   Card,
   CircularProgress,
   Collapse,
   Stack,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
@@ -81,6 +83,9 @@ function Fees() {
             tooltip={bridgeTooltip()}
           />
         )}
+        {crossChainTx && (
+          <Fee label="Relayer Fee" value={'Sponsored by Fuji'} sponsored />
+        )}
         <Fee
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
@@ -101,11 +106,34 @@ export default Fees;
 type FeeProps = {
   label: string;
   value: string | ReactNode;
+  sponsored: boolean;
   tooltip?: string;
 };
 
-const Fee = ({ label, value, tooltip }: FeeProps) => {
-  const valueComponent = <Typography variant="small">{value}</Typography>;
+const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
+  const { palette } = useTheme();
+  const valueComponent = sponsored ? (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap="0.25rem"
+      sx={{
+        backgroundColor: alpha(palette.success.main, 0.2),
+        p: '0.2rem 0.6rem 0.2rem 0.5rem',
+        borderRadius: '100px',
+      }}
+    >
+      <Typography
+        variant="xsmall"
+        color={palette.success.main}
+        fontWeight={500}
+      >
+        {value}
+      </Typography>
+    </Stack>
+  ) : (
+    <Typography variant="small">{value}</Typography>
+  );
 
   return (
     <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
@@ -119,4 +147,8 @@ const Fee = ({ label, value, tooltip }: FeeProps) => {
       )}
     </Stack>
   );
+};
+
+Fee.defaultProps = {
+  sponsored: false,
 };
