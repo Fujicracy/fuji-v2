@@ -38,14 +38,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @dev Custom Errors
   error BaseVault__constructor_invalidInput();
+  error BaseVault__deposit_invalidInput();
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
-  error BaseVault__mint_moreThanMax();
-  error BaseVault__mint_lessThanMin();
   error BaseVault__withdraw_invalidInput();
   error BaseVault__withdraw_moreThanMax();
-  error BaseVault__redeem_moreThanMax();
-  error BaseVault__redeem_invalidInput();
   error BaseVault__setter_invalidInput();
   error BaseVault__checkRebalanceFee_excessFee();
   error BaseVault__deposit_slippageTooHigh();
@@ -62,7 +59,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   string public constant VERSION = string("0.0.1");
 
-  IERC20Metadata internal _asset;
+  IERC20Metadata internal immutable _asset;
 
   uint8 private immutable _decimals;
 
@@ -144,7 +141,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - Must convert `shares` into `assets` amount before calling internal functions.
    */
   function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
-    address owner = _msgSender();
+    address owner = msg.sender;
     address operator = receiver;
     _setWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
     return true;
@@ -262,7 +259,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxMint(address) public view virtual override returns (uint256) {
-    return _convertToShares(maxDeposit(address(0)), Math.Rounding.Down);
+    return convertToShares(maxDeposit(address(0)));
   }
 
   /// @inheritdoc IERC4626
@@ -272,7 +269,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxRedeem(address owner) public view override returns (uint256) {
-    return _convertToShares(_computeFreeAssets(owner), Math.Rounding.Down);
+    return convertToShares(maxWithdraw(owner));
   }
 
   /// @inheritdoc IERC4626
@@ -282,12 +279,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function previewMint(uint256 shares) public view virtual override returns (uint256) {
-    return _convertToAssets(shares, Math.Rounding.Down);
+    return _convertToAssets(shares, Math.Rounding.Up);
   }
 
   /// @inheritdoc IERC4626
   function previewWithdraw(uint256 assets) public view virtual override returns (uint256) {
-    return _convertToShares(assets, Math.Rounding.Down);
+    return _convertToShares(assets, Math.Rounding.Up);
   }
 
   /// @inheritdoc IERC4626
@@ -325,16 +322,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     uint256 shares = previewDeposit(assets);
-
-    // Use shares because it's cheaper to get `totalSupply()` compared to `totalAssets()`.
-    if (shares > maxMint(receiver)) {
-      revert BaseVault__deposit_moreThanMax();
-    }
-    if (assets < minAmount) {
-      revert BaseVault__deposit_lessThanMin();
-    }
-
-    _deposit(_msgSender(), receiver, assets, shares);
+    
+    _depositChecks(receiver, assets, shares);
+    _deposit(msg.sender, receiver, assets, shares);
 
     return shares;
   }
@@ -344,7 +334,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    *
    * @param shares amount to mint
    * @param receiver to whom `shares` amount will be credited
-   * @param maxAssets amount that Must be credited when calling mint
+   * @param maxAssets amount that must be credited when calling mint
    *
    * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
    * Requirements:
@@ -370,14 +360,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
     uint256 assets = previewMint(shares);
 
-    if (shares + totalSupply() > maxMint(receiver)) {
-      revert BaseVault__mint_moreThanMax();
-    }
-    if (assets < minAmount) {
-      revert BaseVault__mint_lessThanMin();
-    }
-
-    _deposit(_msgSender(), receiver, assets, shares);
+    _depositChecks(receiver, assets, shares);
+    _deposit(msg.sender, receiver, assets, shares);
 
     return assets;
   }
@@ -421,20 +405,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override
     returns (uint256)
   {
-    if (assets == 0 || receiver == address(0) || owner == address(0)) {
-      revert BaseVault__withdraw_invalidInput();
-    }
-
-    if (assets > maxWithdraw(owner)) {
-      revert BaseVault__withdraw_moreThanMax();
-    }
-
-    address caller = _msgSender();
-    if (caller != owner) {
-      _spendAllowance(owner, caller, receiver, convertToShares(assets));
-    }
-
+    address caller = msg.sender;
     uint256 shares = previewWithdraw(assets);
+
+    _withdrawChecks(caller, receiver, owner, assets, shares);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return shares;
@@ -479,20 +453,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override
     returns (uint256)
   {
-    if (shares == 0 || receiver == address(0) || owner == address(0)) {
-      revert BaseVault__redeem_invalidInput();
-    }
-
-    if (shares > maxRedeem(owner)) {
-      revert BaseVault__redeem_moreThanMax();
-    }
-
-    address caller = _msgSender();
-    if (caller != owner) {
-      _spendAllowance(owner, caller, receiver, shares);
-    }
-
+    address caller = msg.sender;
     uint256 assets = previewRedeem(shares);
+
+    _withdrawChecks(caller, receiver, owner, assets, shares);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return assets;
@@ -570,6 +534,33 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
+   * @dev Runs common checks for all "deposit" or "mint" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param receiver of the deposit
+   * @param assets being deposited
+   * @param shares being minted for `receiver`
+   */
+  function _depositChecks(address receiver, uint256 assets, uint256 shares) private view {
+    if (receiver == address(0) || assets == 0 || shares == 0) {
+      revert BaseVault__deposit_invalidInput();
+    }
+    /**
+     * @dev Check that new deposit doesn't exceed the `depositCap` imposed
+     * on this vault.
+     * Computation uses shares because it's cheaper to get `totalSupply()`
+     * compared to `totalAssets()`.
+     */
+    if (shares > maxMint(receiver)) {
+      revert BaseVault__deposit_moreThanMax();
+    }
+    if (assets < minAmount) {
+      revert BaseVault__deposit_lessThanMin();
+    }
+  }
+
+  /**
    * @dev Perform `_withdraw()` at provider {IERC4626-withdraw}.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
@@ -596,6 +587,37 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
+  }
+
+  /**
+   * @dev Runs common checks for all "withdraw" or "redeem" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param caller in msg.sender context
+   * @param receiver of the withdrawn assets
+   * @param owner of the withdrawn assets
+   * @param assets being withdrawn
+   * @param shares being burned for `owner`
+   */
+  function _withdrawChecks(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 assets,
+    uint256 shares
+  )
+    private
+  {
+    if (assets == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
+      revert BaseVault__withdraw_invalidInput();
+    }
+    if (assets > maxWithdraw(owner)) {
+      revert BaseVault__withdraw_moreThanMax();
+    }
+    if (caller != owner) {
+      _spendAllowance(owner, caller, receiver, shares);
+    }
   }
 
   /*//////////////////////////////////////////////////
@@ -632,10 +654,51 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   function maxBorrow(address borrower) public view virtual returns (uint256);
 
   /// @inheritdoc IVault
-  function borrow(uint256 debt, address receiver, address owner) public virtual returns (uint256);
+  function maxPayback(address borrower) public view virtual returns (uint256);
 
   /// @inheritdoc IVault
-  function payback(uint256 debt, address owner) public virtual returns (uint256);
+  function maxMintDebt(address borrower) public view virtual returns (uint256);
+
+  /// @inheritdoc IVault
+  function maxBurnDebt(address borrower) public view virtual returns (uint256);
+
+  /// @inheritdoc IVault
+  function previewBorrow(uint256 debt) public view virtual returns (uint256 shares);
+
+  /// @inheritdoc IVault
+  function previewMintDebt(uint256 shares) public view virtual returns (uint256 debt);
+
+  /// @inheritdoc IVault
+  function previewPayback(uint256 debt) public view virtual returns (uint256 shares);
+
+  /// @inheritdoc IVault
+  function previewBurnDebt(uint256 shares) public view virtual returns (uint256 debt);
+
+  /// @inheritdoc IVault
+  function borrow(
+    uint256 debt,
+    address receiver,
+    address owner
+  )
+    public
+    virtual
+    returns (uint256 shares);
+
+  /// @inheritdoc IVault
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner
+  )
+    public
+    virtual
+    returns (uint256 debt);
+
+  /// @inheritdoc IVault
+  function payback(uint256 debt, address owner) public virtual returns (uint256 shares);
+
+  /// @inheritdoc IVault
+  function burnDebt(uint256 shares, address owner) public virtual returns (uint256 debt);
 
   /**
    * @notice Returns borrow allowance. See {IVaultPermissions-borrowAllowance}.
