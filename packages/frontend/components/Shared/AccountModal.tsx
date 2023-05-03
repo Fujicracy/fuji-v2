@@ -101,7 +101,7 @@ function AccountModal({
       PaperProps={{ sx: { background: 'transparent', padding: 0 } }}
     >
       <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
-        <CardContent sx={{ width: '340px', p: 0, pb: '0 !important' }}>
+        <CardContent sx={{ width: '360px', p: 0, pb: '0 !important' }}>
           <Stack
             direction="row"
             justifyContent="space-between"

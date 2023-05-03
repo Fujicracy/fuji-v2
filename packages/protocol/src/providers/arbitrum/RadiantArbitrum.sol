@@ -19,12 +19,12 @@ contract RadiantArbitrum is ILendingProvider {
    * @dev Returns the {IV2Pool} pool to interact with Radiant.
    */
   function _getPool() internal pure returns (IV2Pool) {
-    return IV2Pool(0x2032b9A8e9F7e76768CA9271003d3e43E1616B1F);
+    return IV2Pool(0xF4B1486DD74D07706052A33d31d7c0AAFD0659E1);
   }
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "Radiant_Arbitrum";
+    return "Radiant_V2_Arbitrum";
   }
 
   /// @inheritdoc ILendingProvider

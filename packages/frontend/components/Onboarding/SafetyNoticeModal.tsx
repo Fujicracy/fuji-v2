@@ -83,6 +83,9 @@ export function SafetyNoticeModal() {
           maxWidth: '30rem',
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
+          '& .MuiCheckbox-root:hover': {
+            background: 'inherit',
+          },
         }}
       >
         <Typography variant="h5" color={palette.text.primary}>
@@ -117,7 +120,7 @@ export function SafetyNoticeModal() {
                   setHasAcceptedTerms(event.target.checked);
                 }}
                 color="default"
-                sx={{ p: '0 0.5rem 0 0' }}
+                sx={{ p: '0', mr: '0.5rem' }}
               />
             }
             sx={{ alignItems: 'start', m: 0 }}
@@ -147,7 +150,7 @@ export function SafetyNoticeModal() {
                     onOtherAgreementChange(i, event.target.checked);
                   }}
                   color="default"
-                  sx={{ p: '0 0.5rem 0 0' }}
+                  sx={{ p: '0', mr: '0.5rem' }}
                 />
               }
               sx={{ alignItems: 'start', m: 0 }}
