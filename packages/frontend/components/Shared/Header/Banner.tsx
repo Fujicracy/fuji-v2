@@ -3,7 +3,11 @@ import { Collapse, Link, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useState } from 'react';
 
-import { BannerConfig } from '../../../constants/banners';
+export type BannerConfig = {
+  key: string;
+  message: string;
+  link?: { label: string; url: string };
+};
 
 function Banner({
   banner,

@@ -24,7 +24,6 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { BannerConfig, BANNERS } from '../../../constants';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { useAuth } from '../../../store/auth.store';
@@ -35,7 +34,15 @@ import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
-import Banner from './Banner';
+import Banner, { BannerConfig } from './Banner';
+
+export const BANNERS: BannerConfig[] = [
+  {
+    key: 'betaTest',
+    message:
+      'We are in beta, some bugs may arise. We appreciate your feedback as we work diligently to improve the dApp user experience.',
+  },
+];
 
 const Header = () => {
   const theme = useTheme();
