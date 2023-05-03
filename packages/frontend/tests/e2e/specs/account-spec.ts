@@ -43,11 +43,13 @@ describe('Account', () => {
       expect(network.networkName).to.be.equal('gnosis');
       expect(network.networkId).to.be.equal(100);
 
-      // TODO: Fix this, text is GnosisGnosis
-      // cy.get('[data-cy="header-network"]').should(
-      //   'have.text',
-      //   network.networkName
-      // );
+      cy.get('[data-cy="header-network"]')
+        .first()
+        .should(
+          'have.text',
+          network.networkName.charAt(0).toUpperCase() +
+            network.networkName.slice(1)
+        );
     });
   });
   it('should switch accounts', () => {
