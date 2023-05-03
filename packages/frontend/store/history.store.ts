@@ -152,7 +152,8 @@ export const useHistory = create<HistoryStore>()(
             const isFinal =
               entry.chainCount > 1 &&
               entry.secondChain &&
-              entry.secondChain.status === HistoryEntryStatus.SUCCESS;
+              (entry.sourceChain.status === HistoryEntryStatus.SUCCESS ||
+                entry.sourceChain.status === HistoryEntryStatus.FAILURE);
 
             set(
               produce((s: HistoryState) => {
@@ -161,11 +162,17 @@ export const useHistory = create<HistoryStore>()(
                   ? HistoryEntryStatus.SUCCESS
                   : HistoryEntryStatus.FAILURE;
 
-                if (isFinal && entry.secondChain) {
+                if (
+                  isFinal &&
+                  entry.secondChain &&
+                  entry.secondChain.status !== HistoryEntryStatus.SUCCESS
+                ) {
                   entry.secondChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
-                } else {
+                } else if (
+                  entry.sourceChain.status !== HistoryEntryStatus.SUCCESS
+                ) {
                   entry.sourceChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
