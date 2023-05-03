@@ -266,13 +266,13 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     uint256 minAmount = vault.minAmount();
     vm.assume(
       maxCap > minAmount && firstDeposit > minAmount && secondDeposit > minAmount
-        && _utils_add(firstDeposit , secondDeposit) < maxCap
+        && _utils_add(firstDeposit, secondDeposit) < maxCap
     );
 
     bytes memory encodedWithSelectorData =
       abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
     _callWithTimelock(address(vault), encodedWithSelectorData);
-    
+
     do_deposit(firstDeposit, vault, ALICE);
     do_deposit(secondDeposit, vault, ALICE);
   }
