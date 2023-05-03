@@ -130,7 +130,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                     (
                     {formatValue(row.collateral.usdValue, {
                       style: 'currency',
-                      maximumFractionDigits: 0,
+                      maximumFractionDigits: 2,
                     })}
                     )
                   </Typography>
