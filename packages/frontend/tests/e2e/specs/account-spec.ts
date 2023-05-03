@@ -70,6 +70,25 @@ describe('Account', () => {
         );
       });
   });
+  it('should change network to Optimism', () => {
+    cy.get('[data-cy="network-button"]')
+      .first()
+      .click({ force: true })
+      .then(() => {
+        cy.get('[data-cy="network-menu-item"]')
+          .first()
+          .click({ force: true })
+          .then(() => {
+            cy.allowMetamaskToAddAndSwitchNetwork().then((connected) => {
+              expect(connected).to.be.true;
+              // Could be a little flaky since we test real value and cy.getNetwork still Gnosis
+              cy.get('[data-cy="header-network"]')
+                .first()
+                .should('have.text', 'Optimism');
+            });
+          });
+      });
+  });
   it('should recognize an unsupported networks', () => {
     cy.addMetamaskNetwork({
       networkName: 'Ethereum Classic',

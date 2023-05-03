@@ -51,6 +51,7 @@ function ChainSelect() {
     <>
       {networkName && isSupported(chainId) ? (
         <Chip
+          data-cy="network-button"
           label={
             <Stack direction="row" alignItems="center" spacing={1}>
               <ListItem
@@ -94,6 +95,7 @@ function ChainSelect() {
       >
         {chains.map((chain) => (
           <MenuItem
+            data-cy="network-menu-item"
             key={chain.chainId}
             onClick={() => selectChain(chain.chainId)}
           >
