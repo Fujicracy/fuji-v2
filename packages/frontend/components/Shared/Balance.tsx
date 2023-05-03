@@ -14,7 +14,7 @@ type Props = {
 };
 
 function Balance({ balance, symbol, dataCy }: Props) {
-  const formattedBalance = toNotSoFixed(balance); //formatBalance(balance)
+  const formattedBalance = toNotSoFixed(balance, true); //formatBalance(balance)
   return (
     <span id="balance-amount" data-cy={dataCy}>
       {formattedBalance} {symbol}
