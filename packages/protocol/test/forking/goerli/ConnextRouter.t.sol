@@ -14,7 +14,7 @@ import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {MockProviderV0} from "../../../src/mocks/MockProviderV0.sol";
 import {MockERC20} from "../../../src/mocks/MockERC20.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
-import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
+import {IConnext, TransferInfo, ExecuteArgs} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
 import {BaseRouter} from "../../../src/abstracts/BaseRouter.sol";
@@ -800,7 +800,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     );
 
     //TODO check this
-    IConnext.TransferInfo transferInfo = IConnext.TransferInfo({
+    TransferInfo memory transferInfo = TransferInfo({
       originDomain: OPTIMISM_GOERLI_DOMAIN,
       destinationDomain: GOERLI_DOMAIN,
       canonicalDomain: GOERLI_DOMAIN,
@@ -816,18 +816,21 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       canonicalId: ""
     });
 
-    //TODO check this
-    IConnext.ExecuteArgs executeArgs = IConnext.ExecuteArgs({
+    address[] memory routers = new address[](1);
+    bytes[] memory routerSignatures = new bytes[](1);
+
+    //TODO check
+    ExecuteArgs memory executeArgs = ExecuteArgs({
       params: transferInfo,
-      routers: address[],//The routers who you are sending the funds on behalf of.
-      routerSignatures: bytes[],// Signatures belonging to the routers indicating permission to use funds for the signed transfer ID.
-      sequencer: address,// The sequencer who assigned the router path to this transfer.
-      sequencerSignature: bytes//Signature produced by the sequencer for path assignment accountability for the path that was signed.
+      routers: routers, //The routers who you are sending the funds on behalf of.
+      routerSignatures: routerSignatures, // Signatures belonging to the routers indicating permission to use funds for the signed transfer ID.
+      sequencer: address(0), // The sequencer who assigned the router path to this transfer.
+      sequencerSignature: bytes("") //Signature produced by the sequencer for path assignment accountability for the path that was signed.
     });
 
     //TODO check which address to prank
     //its going to be connext address that calls this function on destination chain
-    vm.startPrank();
+    vm.startPrank(address(0));
     connext.execute(executeArgs);
 
     // send directly the bridged funds to our router
