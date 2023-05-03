@@ -71,6 +71,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__fallback_notAllowed();
   error BaseRouter__allowCaller_zeroAddress();
   error BaseRouter__allowCaller_noAllowChange();
+  error BaseRouter__bundleInternal_insufficientFlashloanBalance();
 
   IWETH9 public immutable WETH9;
 
@@ -494,9 +495,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     tokensToCheck_ = _addTokenToList(assetOut, tokensToCheck_);
     _safeApprove(assetIn, address(swapper), amountIn);
 
-    if (receiver != address(this)) {
+    if (receiver != address(this) && !chief.allowedFlasher(receiver)) {
       beneficiary_ = _checkBeneficiary(beneficiary_, receiver);
     }
+
     if (sweeper != address(this)) {
       beneficiary_ = _checkBeneficiary(beneficiary_, sweeper);
     }
