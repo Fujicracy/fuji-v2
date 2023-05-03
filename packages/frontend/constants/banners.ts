@@ -1,6 +1,7 @@
 export type BannerConfig = {
   key: string;
   message: string;
+  link?: { label: string; url: string };
 };
 
 export const BANNERS: BannerConfig[] = [

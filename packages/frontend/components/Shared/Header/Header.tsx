@@ -24,7 +24,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { BannerConfig, BANNERS } from '../../../constants/banners';
+import { BannerConfig, BANNERS } from '../../../constants';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { useAuth } from '../../../store/auth.store';

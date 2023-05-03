@@ -1,5 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
-import { Collapse, Stack, Typography } from '@mui/material';
+import { Collapse, Link, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import React, { useState } from 'react';
 
@@ -27,7 +27,19 @@ function Banner({
         position="relative"
         sx={{ backgroundColor: alpha('#FFFFFF', 0.1) }}
       >
-        <Typography variant="xsmall">{banner.message}</Typography>
+        <Typography variant="xsmall">
+          {banner.message}
+          {banner.link && (
+            <Link
+              href={banner.link?.url}
+              target="_blank"
+              rel="noreferrer"
+              sx={{ ml: '0.4rem', textDecoration: 'underline' }}
+            >
+              {banner.link?.label}
+            </Link>
+          )}
+        </Typography>
         <CloseIcon
           sx={{
             cursor: 'pointer',
