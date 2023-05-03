@@ -322,7 +322,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @inheritdoc IERC4626
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     uint256 shares = previewDeposit(assets);
-    
+
     _depositChecks(receiver, assets, shares);
     _deposit(msg.sender, receiver, assets, shares);
 
