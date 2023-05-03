@@ -22,7 +22,6 @@ function InfoTooltip({
           fontSize: '1rem',
           color: isDark ? palette.info.dark : palette.info.main,
           display: { xs: 'none', sm: 'inline' },
-          cursor: 'pointer',
         }}
       />
     </Tooltip>
