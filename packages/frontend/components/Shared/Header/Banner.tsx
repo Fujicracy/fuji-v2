@@ -1,5 +1,7 @@
+import CloseIcon from '@mui/icons-material/Close';
 import { Stack, Typography } from '@mui/material';
-import { useState } from 'react';
+import { alpha } from '@mui/material/styles';
+import React, { useState } from 'react';
 
 import { BannerConfig } from '../../../constants/banners';
 
@@ -26,21 +28,20 @@ function Banner({
       p="0.475rem 4.5rem 0.475rem 1rem"
       alignItems="center"
       position="relative"
+      sx={{ backgroundColor: alpha('#FFFFFF', 0.1) }}
     >
       <Typography variant="xsmall">{banner.message}</Typography>
-      <Typography
-        variant="xsmall"
+      <CloseIcon
         sx={{
-          position: 'absolute',
-          top: '0.475rem',
-          right: '1rem',
-          textDecoration: 'underline',
           cursor: 'pointer',
+          position: 'absolute',
+          top: '50%',
+          right: '1rem',
+          fontSize: '1.2rem',
+          transform: 'translateY(-50%)',
         }}
         onClick={onDismissClick}
-      >
-        Dismiss
-      </Typography>
+      />
     </Stack>
   );
 }
