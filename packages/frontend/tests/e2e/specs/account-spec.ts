@@ -89,19 +89,14 @@ describe('Account', () => {
           });
       });
   });
-  it('should recognize an unsupported networks', () => {
-    cy.addMetamaskNetwork({
-      networkName: 'Ethereum Classic',
-      rpcUrl: 'https://www.ethercluster.com/etc',
-      chainId: '61',
-      symbol: 'ETC',
-      blockExplorer: 'https://etcblockexplorer.com/',
-      isTestnet: false,
-    }).then((networkAdded) => {
-      expect(networkAdded).to.be.true;
-      cy.get('[data-cy="header-unsupported-network"]').should('exist');
-    });
-  });
+
+  /*
+    it('should recognize an unsupported network, () => ...
+    Idea was to add and connect to an unsupported network and check how we handle it,
+    but no matter what we send as params to the `addMetamaskNetwork` function,
+    it always sets the initial values passed in the .env file or the before hook
+  */
+
   it('should disconnect', () => {
     cy.get('[data-cy="header-address"]').click({ force: true });
     cy.get('[data-cy="header-disconnect"]').click({ force: true });
