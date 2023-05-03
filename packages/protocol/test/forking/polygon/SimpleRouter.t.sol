@@ -99,13 +99,13 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
 
     uint256 fee = flasher.computeFlashloanFee(debtAsset, flashAmount);
     innerArgs[3] = abi.encode(
-      address(swapper),
+      swapper,
       collateralAsset,
       debtAsset,
       withdrawAmount,
       flashAmount + fee,
-      address(router),
-      address(router),
+      address(flasher), //receiver
+      ALICE, //sweeper
       0
     );
 
