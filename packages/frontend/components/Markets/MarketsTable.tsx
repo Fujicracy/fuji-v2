@@ -158,7 +158,7 @@ function MarketsTable() {
               <Stack
                 direction="row"
                 alignItems="center"
-                spacing="0.25rem"
+                spacing="0.0rem"
                 justifyContent="right"
               >
                 <InfoTooltip
