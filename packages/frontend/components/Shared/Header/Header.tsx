@@ -107,7 +107,16 @@ const Header = () => {
   };
 
   return (
-    <AppBar position="relative">
+    <AppBar position="static">
+      <Stack
+        sx={{
+          width: '100%',
+        }}
+      >
+        {banners.map((banner) => (
+          <Banner banner={banner} key={banner.key} onDismiss={dismissBanner} />
+        ))}
+      </Stack>
       <Box
         p="0 1.25rem"
         sx={{
@@ -341,18 +350,6 @@ const Header = () => {
           </Grid>
         </Toolbar>
       </Box>
-      <Stack
-        sx={{
-          position: 'absolute',
-          top: '100%',
-          width: '100%',
-          backgroundColor: 'unset',
-        }}
-      >
-        {banners.map((banner) => (
-          <Banner banner={banner} key={banner.key} onDismiss={dismissBanner} />
-        ))}
-      </Stack>
       {address && (
         <AccountModal
           isOpen={showAccountModal}
