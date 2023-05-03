@@ -14,7 +14,7 @@ function BestLabel() {
         gap="0.25rem"
         sx={{
           backgroundColor: alpha(palette.success.main, 0.2),
-          p: '0.2rem 0.5rem',
+          p: '0.2rem 0.6rem 0.2rem 0.5rem',
           borderRadius: '100px',
         }}
       >
