@@ -1,8 +1,10 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
+  Skeleton,
   Stack,
   Table,
   TableBody,
+  TableCell,
   TableContainer,
   TableHead,
   TableRow,
@@ -36,6 +38,7 @@ function MarketsTable() {
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
   const walletChain = useAuth((state) => state.chain);
@@ -86,7 +89,9 @@ function MarketsTable() {
         setLlamas(rowsFin[i], Status.Ready, llama)
       );
       setRows(groupByPair(rowsLlama));
-    })();
+    })().finally(() => {
+      setIsLoading(false);
+    });
   }, [address]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
@@ -186,15 +191,26 @@ function MarketsTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, i) => (
-            <MarketsTableRow
-              key={i}
-              row={row}
-              onClick={handleClick}
-              openedByDefault={i === 0}
-              isBest={i === 0}
-            />
-          ))}
+          {isLoading
+            ? new Array(8).fill('').map((_, index) => (
+                <TableCell
+                  key={`loading${index}`}
+                  sx={{
+                    height: '3.438rem',
+                  }}
+                >
+                  <Skeleton />
+                </TableCell>
+              ))
+            : rows.map((row, i) => (
+                <MarketsTableRow
+                  key={i}
+                  row={row}
+                  onClick={handleClick}
+                  openedByDefault={i === 0}
+                  isBest={i === 0}
+                />
+              ))}
         </TableBody>
       </Table>
     </TableContainer>
