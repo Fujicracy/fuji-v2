@@ -50,6 +50,12 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     flasher = new FlasherAaveV3(aaveV3Pool);
     swapper = new UniswapV2Swapper(IWETH9(collateralAsset), IUniswapV2Router01(quickSwap));
 
+    bytes memory data = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), data);
+
+    data = abi.encodeWithSelector(chief.allowSwapper.selector, address(swapper), true);
+    _callWithTimelock(address(chief), data);
+
     // new BorrowingVault with USDT
     debtAsset2 = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
     vm.label(debtAsset2, "USDT");
@@ -98,10 +104,9 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       debtAsset,
       withdrawAmount,
       flashAmount + fee,
-      address(flasher),
-      ALICE,
-      0,
-      address(router)
+      address(router),
+      address(router),
+      0
     );
 
     bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(innerActions, innerArgs);
