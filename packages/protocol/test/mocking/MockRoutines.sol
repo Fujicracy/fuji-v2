@@ -27,6 +27,8 @@ contract MockRoutines is Test {
 
   function do_deposit(uint256 amount, IVault v, address from) internal {
     address asset = v.asset();
+    uint256 previousBalance = v.balanceOf(from);
+
     dealMockERC20(asset, from, amount);
 
     vm.startPrank(from);
@@ -37,7 +39,7 @@ contract MockRoutines is Test {
     vm.warp(block.timestamp + 13 seconds);
     vm.roll(block.number + 1);
 
-    uint256 mintedShares = v.balanceOf(from);
+    uint256 mintedShares = v.balanceOf(from) - previousBalance;
     uint256 assetBalance = v.convertToAssets(mintedShares);
 
     assertApproxEqAbs(assetBalance, amount, amount / 1000);

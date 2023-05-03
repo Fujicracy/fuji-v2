@@ -552,7 +552,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
      * Computation uses shares because it's cheaper to get `totalSupply()`
      * compared to `totalAssets()`.
      */
-    if (shares + totalSupply() > maxMint(receiver)) {
+    if (shares > maxMint(receiver)) {
       revert BaseVault__deposit_moreThanMax();
     }
     if (assets < minAmount) {
