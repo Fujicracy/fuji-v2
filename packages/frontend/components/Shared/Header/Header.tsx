@@ -247,9 +247,8 @@ const Header = () => {
                     {address && <Divider />}
                     {address && (
                       <MenuItem
-                        onClick={(e) => {
+                        onClick={() => {
                           handleCloseNavMenu();
-
                           setAccountModalEl(
                             anchorElNav ? anchorElNav : undefined
                           );
