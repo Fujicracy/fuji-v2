@@ -99,7 +99,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -304,7 +304,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     args[1] =
       abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
     args[2] = abi.encode(address(vault), borrowAmount, address(connextRouter), ALICE);
-    args[3] = abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter));
+    args[3] =
+      abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
