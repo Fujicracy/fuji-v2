@@ -1,8 +1,10 @@
 import LoadingButton from '@mui/lab/LoadingButton';
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { SerializableToken } from '../../helpers/history';
 import { addTokenToMetamask } from '../../helpers/metamask';
+import { notify } from '../../helpers/notifications';
 
 type ButtonAddTokenProps = {
   token: SerializableToken;
@@ -17,6 +19,10 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
     try {
       await addTokenToMetamask(token);
       setStatus('success');
+      notify({
+        type: 'success',
+        message: `${token.symbol} added`,
+      });
     } catch (e) {
       // user probably rejected
       setStatus('error');
@@ -25,14 +31,22 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   return (
     <LoadingButton
-      variant="ghost"
+      variant="secondary"
       fullWidth
       size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
-      disabled={status === 'success'}
     >
-      {status === 'success' ? <>Done sir ✅</> : `Add ${token.symbol}`}
+      {status !== 'loading' && (
+        <Image
+          src={'/assets/images/shared/wallet.svg'}
+          alt={'Wallet Icon'}
+          height={16}
+          width={16}
+          style={{ marginRight: '0.5rem' }}
+        />
+      )}
+      {`Add ${token.symbol} to Wallet`}
     </LoadingButton>
   );
 }

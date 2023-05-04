@@ -1,12 +1,12 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
+  Skeleton,
   Stack,
   Table,
   TableBody,
+  TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   useTheme,
 } from '@mui/material';
 import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
@@ -29,6 +29,7 @@ import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import MarketsTableRow from './MarketsTableRow';
 
 function MarketsTable() {
@@ -36,6 +37,7 @@ function MarketsTable() {
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
   const walletChain = useAuth((state) => state.chain);
@@ -86,7 +88,9 @@ function MarketsTable() {
         setLlamas(rowsFin[i], Status.Ready, llama)
       );
       setRows(groupByPair(rowsLlama));
-    })();
+    })().finally(() => {
+      setIsLoading(false);
+    });
   }, [address]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
@@ -119,7 +123,7 @@ function MarketsTable() {
               Collateral
             </SizableTableCell>
             <SizableTableCell width="200px" align="left" sx={{ pl: '48px' }}>
-              Chain with the best rate
+              Network
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
               <Stack
@@ -154,18 +158,15 @@ function MarketsTable() {
               <Stack
                 direction="row"
                 alignItems="center"
-                spacing="0.25rem"
+                spacing="0.0rem"
                 justifyContent="right"
               >
-                <Tooltip
-                  arrow
-                  title="In the background, Fuji rebalances between these protocols to provide the best terms."
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: '0.875rem', color: palette.info.main }}
-                  />
-                </Tooltip>
+                <InfoTooltip
+                  title={
+                    'In the background, Fuji rebalances between these protocols to provide the best terms.'
+                  }
+                  isLeft
+                />
                 <span>Protocols</span>
               </Stack>
             </SizableTableCell>
@@ -186,9 +187,30 @@ function MarketsTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} onClick={handleClick} />
-          ))}
+          {isLoading ? (
+            <TableRow>
+              {new Array(8).fill('').map((_, index) => (
+                <TableCell
+                  key={`loading${index}`}
+                  sx={{
+                    height: '3.438rem',
+                  }}
+                >
+                  <Skeleton />
+                </TableCell>
+              ))}
+            </TableRow>
+          ) : (
+            rows.map((row, i) => (
+              <MarketsTableRow
+                key={i}
+                row={row}
+                onClick={handleClick}
+                openedByDefault={i === 0}
+                isBest={i === 0}
+              />
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>

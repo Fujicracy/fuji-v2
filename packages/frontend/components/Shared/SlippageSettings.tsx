@@ -110,7 +110,7 @@ function SlippageSettings() {
           display: 'flex',
           p: '0.6rem',
           m: '0',
-          maxWidth: '2.45rem',
+          maxWidth: '2.6rem',
           border: `1.23px solid ${
             anchorEl ? colorTheme.palette.text.primary : 'transparent'
           }`,
@@ -197,8 +197,8 @@ function SlippageSettings() {
               variant="outlined"
               inputRef={handleRef}
               sx={{
-                minWidth: '6.2rem',
-                width: '6.2rem',
+                minWidth: '6.45rem',
+                width: '6.45rem',
                 background: 'transparent',
                 '& .MuiInputBase-input': {
                   p: '0.6rem 1rem',

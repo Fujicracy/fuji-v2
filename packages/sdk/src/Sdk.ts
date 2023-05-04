@@ -245,8 +245,7 @@ export class Sdk {
     const vaults = VAULT_LIST[chainId].map((v) =>
       v.setConnection(this._configParams)
     );
-    const data = await batchLoad(vaults, account, chain);
-    return data;
+    return await batchLoad(vaults, account, chain);
   }
 
   /**

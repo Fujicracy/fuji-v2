@@ -1,7 +1,14 @@
 export const CONNEXT_WARNING_DURATION = 1000 * 60 * 10; // 10 minutes
-
 export const BALANCE_POLLING_INTERVAL = 15000;
 export const TX_WATCHING_POLLING_INTERVAL = 3000;
+export const TRANSACTION_META_DEBOUNCE_INTERVAL = 750;
+
+export enum FUJI_INFO {
+  NAME = 'Fuji V2 Himalaya',
+  SUPPORT_EMAIL = 'support@fuji.finance',
+  APP_URL = 'https://app.fuji.finance',
+  DESCRIPTION = 'Deposit, borrow and repay from any chain',
+}
 
 export enum PATH {
   MARKETS = '/',
