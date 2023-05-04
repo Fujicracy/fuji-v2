@@ -28,15 +28,23 @@ import {
   TokenIcon,
 } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
+import BestLabel from './BestLabel';
 
 type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
+  isBest: boolean;
+  openedByDefault?: boolean;
 };
 
-function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
+function MarketsTableRow({
+  row,
+  onClick,
+  isBest,
+  openedByDefault = false,
+}: MarketsTableRowProps) {
   const { palette } = useTheme();
-  const [expandRow, setExpandRow] = useState(false);
+  const [expandRow, setExpandRow] = useState(openedByDefault);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -54,11 +62,27 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
       <></>
     );
 
+  const isHighLevelRow = !row.isChild && !row.isGrandChild;
+  const shouldNetworkColumnBeShown =
+    row.chain.status === Status.Ready &&
+    (!isHighLevelRow || (isHighLevelRow && !expandRow));
+
   return (
     <>
       <TableRow
         onClick={() => onClick(row.entity)}
-        sx={{ height: '3.438rem', cursor: 'pointer' }}
+        sx={{
+          height: '3.438rem',
+          cursor: 'pointer',
+          '& .MuiTableCell-root': {
+            background: row.isGrandChild
+              ? palette.secondary.main
+              : row.isChild
+              ? palette.secondary.dark
+              : palette.secondary.contrastText,
+          },
+          '&:hover': { '& .MuiTableCell-root': { background: '#34363E' } },
+        }}
       >
         <SizableTableCell
           width="160px"
@@ -66,20 +90,10 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
             position: 'sticky',
             left: 0,
             zIndex: 5,
-            background: row.isChild
-              ? row.isGrandChild
-                ? palette.secondary.light
-                : palette.secondary.dark
-              : palette.secondary.contrastText,
           }}
         >
-          {row.debt && (
-            <Stack
-              direction="row"
-              gap={0.5}
-              alignItems="center"
-              sx={{ opacity: row.isChild ? 0 : 1 }}
-            >
+          {row.debt && isHighLevelRow && (
+            <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
                 isVisible={Boolean(row.children && row.children.length > 0)}
@@ -95,13 +109,8 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell width="120px">
-          {row.collateral && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              flexWrap="nowrap"
-              sx={{ opacity: row.isChild ? 0 : 1 }}
-            >
+          {row.collateral && isHighLevelRow && (
+            <Stack direction="row" alignItems="center" flexWrap="nowrap">
               <TokenIcon token={row.collateral} height={32} width={32} />
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}
@@ -111,7 +120,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell width="200px">
           {loaderOrError(row.chain.status)}
-          {row.chain.status === Status.Ready && (
+          {shouldNetworkColumnBeShown && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
@@ -120,9 +129,10 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
               />
               <Stack direction="row" alignItems="center" flexWrap="nowrap">
                 <NetworkIcon network={row.chain.value} width={24} height={24} />
-                <Typography ml="0.5rem" variant="small">
+                <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
+                {(isBest || !row.isChild) && <BestLabel />}
               </Stack>
             </Stack>
           )}
@@ -133,7 +143,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           sx={{ color: palette.warning.main }}
         >
           {loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === Status.Ready && (
+          {row.borrowApr.status === Status.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.borrowAprReward?.value > 0 && (
                 <Tooltip
@@ -159,7 +169,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           sx={{ color: palette.success.main }}
         >
           {loaderOrError(row.depositApr.status)}
-          {row.depositApr.status === Status.Ready && (
+          {row.depositApr.status === Status.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.depositAprReward?.value > 0 && (
                 <Tooltip
@@ -181,7 +191,7 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
           {loaderOrError(row.integratedProtocols.status)}
-          {row.integratedProtocols.status === Status.Ready && (
+          {row.integratedProtocols.status === Status.Ready && !expandRow && (
             <Stack
               direction="row"
               justifyContent="right"
@@ -221,18 +231,23 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          {loaderOrError(row.safetyRating.status)}
-          {row.safetyRating.status === Status.Ready && (
-            <Chip
-              variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
-              label={ratingToNote(row.safetyRating?.value)}
-              sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
-            />
+          {!expandRow && (
+            <>
+              {loaderOrError(row.safetyRating.status)}
+              {row.safetyRating.status === Status.Ready && (
+                <Chip
+                  variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
+                  label={ratingToNote(row.safetyRating?.value)}
+                  sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+                />
+              )}
+            </>
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          {loaderOrError(row.liquidity.status)}
+          {!expandRow && loaderOrError(row.liquidity.status)}
           {row.liquidity.status === Status.Ready &&
+            !expandRow &&
             formatValue(row.liquidity.value, {
               maximumSignificantDigits: 3,
               notation: 'compact',
@@ -248,18 +263,20 @@ function MarketsTableRow({ row, onClick }: MarketsTableRowProps) {
         >
           <Collapse
             in={expandRow}
-            timeout="auto"
+            timeout={{ enter: 500, exit: 200 }}
             unmountOnExit
-            sx={{
-              background: row.isChild
-                ? palette.secondary.light
-                : palette.secondary.dark,
-            }}
           >
-            {row.children?.map((collaspsedRow, i) => (
-              <Table key={i} sx={{ borderCollapse: 'initial' }}>
+            {row.children?.map((collapsedRow, i) => (
+              <Table
+                key={`${i + collapsedRow.chain.value}`}
+                sx={{ borderCollapse: 'initial' }}
+              >
                 <TableBody>
-                  <MarketsTableRow row={collaspsedRow} onClick={onClick} />
+                  <MarketsTableRow
+                    row={collapsedRow}
+                    onClick={onClick}
+                    isBest={i === 0}
+                  />
                 </TableBody>
               </Table>
             ))}

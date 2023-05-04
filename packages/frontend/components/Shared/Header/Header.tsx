@@ -21,7 +21,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
 import { topLevelPages } from '../../../helpers/navigation';
@@ -34,10 +34,23 @@ import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
+import Banner, { BannerConfig } from './Banner';
+
+export const BANNERS: BannerConfig[] = [
+  {
+    key: 'betaTest',
+    message:
+      'We are in beta, some bugs may arise. We appreciate your feedback as we work diligently to improve the dApp user experience.',
+  },
+];
 
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
+  const [banners, setBanners] = useState<BannerConfig[]>([]);
+
+  const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
+  const dismissBanner = useAuth((state) => state.dismissBanner);
 
   const { address, ens, status, balance, login } = useAuth(
     (state) => ({
@@ -53,6 +66,14 @@ const Header = () => {
   const { palette } = theme;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentPage = router.asPath;
+
+  useEffect(() => {
+    const filteredBanners = BANNERS.filter((banner) =>
+      getBannerVisibility(banner.key)
+    );
+
+    setBanners(filteredBanners);
+  }, [getBannerVisibility]);
 
   const isPageActive = useCallback(
     (path: string) => {
@@ -94,6 +115,15 @@ const Header = () => {
 
   return (
     <AppBar position="static">
+      <Stack
+        sx={{
+          width: '100%',
+        }}
+      >
+        {banners.map((banner) => (
+          <Banner banner={banner} key={banner.key} onDismiss={dismissBanner} />
+        ))}
+      </Stack>
       <Box
         p="0 1.25rem"
         sx={{
@@ -255,14 +285,15 @@ const Header = () => {
                 <MenuItem
                   sx={{
                     lineHeight: '160%',
-                    fontSize: '1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
                     color: isPageActive(page.path.toLowerCase())
                       ? palette.text.primary
                       : palette.info.main,
                     background: isPageActive(page.path.toLowerCase())
                       ? alpha('#25262A', 0.7)
                       : 'transparent',
-                    p: '0.25rem 1rem',
+                    p: '0.375rem 1rem',
                     borderRadius: '10px',
                     '&:hover': {
                       color: palette.text.primary,
