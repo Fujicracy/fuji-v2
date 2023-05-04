@@ -188,7 +188,7 @@ const initialState: BorrowState = {
 
   transactionMeta: {
     status: 'initial',
-    bridgeFee: 0,
+    bridgeFees: undefined,
     gasFees: 0,
     estimateTime: 0,
     estimateSlippage: 0,
@@ -388,7 +388,7 @@ export const useBorrow = create<BorrowStore>()(
             produce((state: BorrowState) => {
               state.transactionMeta.status = 'ready';
               state.needsSignature = Sdk.needSignature(route.actions);
-              state.transactionMeta.bridgeFee = route.bridgeFee;
+              state.transactionMeta.bridgeFees = route.bridgeFees;
               state.transactionMeta.estimateTime = route.estimateTime;
               state.transactionMeta.steps = route.steps;
               state.actions = route.actions;
