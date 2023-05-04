@@ -1,24 +1,22 @@
-import React from "react"
+import TwitterIcon from '@mui/icons-material/Twitter';
 import {
   Link,
   ListItemText,
   MenuItem,
   Typography,
   useTheme,
-} from "@mui/material"
-import TwitterIcon from "@mui/icons-material/Twitter"
-import { DiscordIcon } from "./Icons"
+} from '@mui/material';
+import React from 'react';
 
-export default function ParameterLinks() {
-  const { palette } = useTheme()
+import { SOCIAL_URL } from '../../constants';
+import { DiscordIcon } from './Icons';
+
+function ParameterLinks() {
+  const { palette } = useTheme();
 
   return (
     <>
-      <Link
-        href="https://discord.com/invite/dnvJeEMeDJ"
-        target="_blank"
-        rel="noreferrer"
-      >
+      <Link href={SOCIAL_URL.DISCORD} target="_blank" rel="noreferrer">
         <MenuItem>
           <ListItemText>
             <Typography color={palette.info.main} variant="small">
@@ -28,11 +26,7 @@ export default function ParameterLinks() {
           <DiscordIcon size={14} color={palette.info.main} />
         </MenuItem>
       </Link>
-      <Link
-        href="https://discord.com/invite/dnvJeEMeDJ"
-        target="_blank"
-        rel="noreferrer"
-      >
+      <Link href={SOCIAL_URL.DISCORD} target="_blank" rel="noreferrer">
         <MenuItem>
           <ListItemText>
             <Typography color={palette.info.main} variant="small">
@@ -42,11 +36,7 @@ export default function ParameterLinks() {
           <DiscordIcon size={14} color={palette.info.main} />
         </MenuItem>
       </Link>
-      <Link
-        href="https://twitter.com/FujiFinance"
-        target="_blank"
-        rel="noreferrer"
-      >
+      <Link href={SOCIAL_URL.TWITTER} target="_blank" rel="noreferrer">
         <MenuItem>
           <ListItemText>
             <Typography color={palette.info.main} variant="small">
@@ -57,5 +47,7 @@ export default function ParameterLinks() {
         </MenuItem>
       </Link>
     </>
-  )
+  );
 }
+
+export default ParameterLinks;

@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react"
-
-import { AuthStatus, useAuth } from "../../store/auth.store"
+import { Check, Close, LogoutOutlined } from '@mui/icons-material';
+import LoadingButton from '@mui/lab/LoadingButton';
 import {
   Box,
   Button,
@@ -12,85 +11,86 @@ import {
   Tooltip,
   Typography,
   useMediaQuery,
-} from "@mui/material"
-import { useTheme } from "@mui/material/styles"
-import LoadingButton from "@mui/lab/LoadingButton"
-import Image from "next/image"
-import { AccessStatus, useAccess } from "../../store/access.store"
-import { Close, Check, LogoutOutlined } from "@mui/icons-material"
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+
+import { AccessStatus, useAccess } from '../../store/access.store';
+import { AuthStatus, useAuth } from '../../store/auth.store';
 
 export function GuildAccess() {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(true);
 
-  const address = useAuth((state) => state.address)
-  const authStatus = useAuth((state) => state.status)
-  const login = useAuth((state) => state.login)
-  const logout = useAuth((state) => state.logout)
+  const address = useAuth((state) => state.address);
+  const authStatus = useAuth((state) => state.status);
+  const login = useAuth((state) => state.login);
+  const logout = useAuth((state) => state.logout);
 
-  const accessStatus = useAccess((state) => state.status)
-  const retriesCount = useAccess((state) => state.retriesCount)
-  const errorsCount = useAccess((state) => state.errorsCount)
-  const verify = useAccess((state) => state.verify)
-  const reset = useAccess((state) => state.reset)
-
-  useEffect(() => {
-    if (address) verify()
-  }, [address, verify])
+  const accessStatus = useAccess((state) => state.status);
+  const retriesCount = useAccess((state) => state.retriesCount);
+  const errorsCount = useAccess((state) => state.errorsCount);
+  const verify = useAccess((state) => state.verify);
+  const reset = useAccess((state) => state.reset);
 
   useEffect(() => {
-    if (accessStatus === AccessStatus.Verifying) return
+    if (address) verify();
+  }, [address, verify]);
+
+  useEffect(() => {
+    if (accessStatus === AccessStatus.Verifying) return;
 
     if (accessStatus === AccessStatus.Verified) {
       // close this modal 3 secs after the verification succeeded
       setTimeout(() => {
-        setIsOpen(false)
-      }, 3000)
+        setIsOpen(false);
+      }, 3000);
     } else {
-      setIsOpen(true)
+      setIsOpen(true);
     }
-  }, [accessStatus])
+  }, [accessStatus]);
 
   const statusParagraph = () => {
-    if (authStatus !== AuthStatus.Connected) return <></>
+    if (authStatus !== AuthStatus.Connected) return <></>;
 
     if (accessStatus === AccessStatus.Verifying) {
-      return "Verifying your eligibility ..."
+      return 'Verifying your eligibility ...';
     } else if (accessStatus === AccessStatus.NoAccess) {
-      return "You have not joined our guild yet or you do not meet the eligibility criteria!"
+      return 'You have not joined our guild yet or you do not meet the eligibility criteria!';
     } else if (accessStatus === AccessStatus.Verified) {
-      return "Awesome Climber, you are eligibile!"
+      return 'Awesome Climber, you are eligibile!';
     } else if (accessStatus === AccessStatus.Error) {
       return `Something went wrong and we cannot verify your eligibility!
-          Trying again ... ${errorsCount}/5`
+          Trying again ... ${errorsCount}/5`;
     } else if (accessStatus === AccessStatus.FatalError) {
-      return "Something went wrong and we cannot verify your eligibility! Sorry, try again later..."
+      return 'Something went wrong and we cannot verify your eligibility! Sorry, try again later...';
     }
-  }
+  };
 
   return (
     <Dialog
       open={isOpen}
       /* BackdropProps={{ style: { backgroundColor: "" } }} */
       sx={{
-        ".MuiPaper-root": {
-          width: isMobile ? "100%" : "auto",
+        '.MuiPaper-root': {
+          width: isMobile ? '100%' : 'auto',
         },
-        "&": {
+        '&': {
           // in order for onboard modal to display above this dialog
           zIndex: 9,
         },
-        margin: isMobile ? 1 : "auto",
-        backdropFilter: "blur(0.313rem)",
+        margin: isMobile ? 1 : 'auto',
+        backdropFilter: 'blur(0.313rem)',
       }}
     >
       <Paper
         variant="outlined"
         sx={{
-          p: { xs: "1rem", sm: "1.5rem", md: "2rem" },
-          textAlign: "center",
+          p: { xs: '1rem', sm: '1.5rem', md: '2rem' },
+          textAlign: 'center',
         }}
       >
         <Box mt={2}>
@@ -147,8 +147,8 @@ export function GuildAccess() {
                 <IconButton
                   size="large"
                   onClick={() => {
-                    logout()
-                    reset()
+                    logout();
+                    reset();
                   }}
                 >
                   <LogoutOutlined />
@@ -184,5 +184,5 @@ export function GuildAccess() {
         )}
       </Paper>
     </Dialog>
-  )
+  );
 }

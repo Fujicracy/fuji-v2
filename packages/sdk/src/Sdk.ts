@@ -3,27 +3,36 @@ import { Signature } from '@ethersproject/bytes';
 import { TransactionRequest } from '@ethersproject/providers';
 import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
-import invariant from 'tiny-invariant';
 
 import {
   CHAIN,
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
+  CONNEXT_URL,
   DEBT_LIST,
+  FujiErrorCode,
+  URLS,
   VAULT_LIST,
 } from './constants';
 import { Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
-import { ChainId, ChainType, RouterAction } from './enums';
+import {
+  FujiError,
+  FujiResultError,
+  FujiResultSuccess,
+} from './entities/FujiError';
+import { ChainId, ChainType, ConnextTxStatus, RouterAction } from './enums';
 import { batchLoad, encodeActionArgs } from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
   ChainConfig,
   ChainConnectionDetails,
+  ConnextTxDetails,
+  FujiResult,
+  FujiResultPromise,
   PermitParams,
   RouterActionParams,
-  RoutingStepDetails,
   VaultWithFinancials,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
@@ -94,7 +103,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns tokens that can be used as collateral on a specific chain.
+   * Returns tokens that can be used as collateral on a specific chain.
    * Sets the connection of each token instance so that they are ready
    * to be used.
    *
@@ -107,7 +116,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns rpc providers as connection details.
+   * Returns rpc providers as connection details.
    *
    * @param chainId - ID of the chain
    */
@@ -117,7 +126,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns tokens that can be borrowed on a specific chain.
+   * Returns tokens that can be borrowed on a specific chain.
    * Sets the connection of each token instance so that they are ready
    * to be used.
    *
@@ -130,7 +139,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns the balance of account for a given currency,
+   * Returns the balance of account for a given currency,
    * both for native and token.
    *
    * @param currency - instance of {@link Currency}
@@ -141,7 +150,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns the allowance that an account has given to a router
+   * Returns the allowance that an account has given to a router
    * for a given currency. If currency is native, it returns MaxUint256.
    *
    * @param currency - instance of {@link Currency}
@@ -155,31 +164,42 @@ export class Sdk {
   }
 
   /**
-   * Retruns the token balances of an address in a batch.
+   * Returns the token balances of an address in a batch.
    * Throws an error if `chainId` is different from each `token.chainId`.
    *
    * @param tokens - array of {@link Token} from the same chain
    * @param account - user address, wrapped in {@link Address}
    * @param chainId - ID of the chain
    */
-  getTokenBalancesFor(
+  async getTokenBalancesFor(
     tokens: Token[],
     account: Address,
     chainId: ChainId
-  ): Promise<BigNumber[]> {
-    invariant(
-      !tokens.find((t) => t.chainId !== chainId),
-      'Token from a different chain!'
-    );
-    const { multicallRpcProvider } = this.getConnectionFor(chainId);
-    const balances = tokens
-      .map((token) => token.setConnection(this._configParams))
-      .map(
-        (token) =>
-          token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+  ): FujiResultPromise<BigNumber[]> {
+    if (tokens.find((t) => t.chainId !== chainId)) {
+      return new FujiResultError(
+        'Token from a different chain!',
+        FujiErrorCode.SDK,
+        {
+          chainId,
+        }
       );
+    }
+    try {
+      const { multicallRpcProvider } = this.getConnectionFor(chainId);
+      const balances = tokens
+        .map((token) => token.setConnection(this._configParams))
+        .map(
+          (token) =>
+            token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+        );
 
-    return multicallRpcProvider.all(balances);
+      const result = await multicallRpcProvider.all(balances);
+      return new FujiResultSuccess(result);
+    } catch (e) {
+      const message = FujiError.messageFromUnknownError(e);
+      return new FujiResultError(message, FujiErrorCode.MULTICALL, { chainId });
+    }
   }
 
   /**
@@ -211,28 +231,21 @@ export class Sdk {
    * This methods serves to pre-fetch and loads only partially the financials.
    * It's recommended to call afterwards "getLlamaFinancials()".
    *
+   * @param chainId - ID of the chain
    * @param account - {@link Address} for the user
-   * @param chainType - for type of chains: mainnet or testnet
    */
   async getBorrowingVaultsFinancials(
-    account?: Address,
-    chainType: ChainType = ChainType.MAINNET
-  ): Promise<VaultWithFinancials[]> {
-    const res: VaultWithFinancials[] = [];
-    const chains = Object.values(CHAIN)
-      .filter((c) => c.chainType === chainType && c.isDeployed)
-      .map((c) => c.setConnection(this._configParams));
-
-    for (const chain of chains) {
-      const chainId = chain.chainId;
-      const vaults = VAULT_LIST[chainId].map((v) =>
-        v.setConnection(this._configParams)
-      );
-      const v = await batchLoad(vaults, account, chain);
-      res.push(...v);
+    chainId: ChainId,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    const chain = CHAIN[chainId];
+    if (!chain.isDeployed) {
+      return new FujiResultError(`${chain.name} not deployed`);
     }
-
-    return res;
+    const vaults = VAULT_LIST[chainId].map((v) =>
+      v.setConnection(this._configParams)
+    );
+    return await batchLoad(vaults, account, chain);
   }
 
   /**
@@ -248,16 +261,14 @@ export class Sdk {
    */
   async getLlamaFinancials(
     vaults: VaultWithFinancials[]
-  ): Promise<VaultWithFinancials[]> {
+  ): FujiResultPromise<VaultWithFinancials[]> {
     // fetch from DefiLlama
     const { defillamaproxy } = this._configParams;
     const uri = {
       lendBorrow: defillamaproxy
         ? defillamaproxy + 'lendBorrow'
-        : 'https://yields.llama.fi/lendBorrow',
-      pools: defillamaproxy
-        ? defillamaproxy + 'pools'
-        : 'https://yields.llama.fi/pools',
+        : URLS.DEFILLAMA_LEND_BORROW,
+      pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
     };
     try {
       const [borrows, pools] = await Promise.all([
@@ -269,18 +280,17 @@ export class Sdk {
           .then(({ data }) => data.data),
       ]);
 
-      return vaults.map((vault) =>
+      const data = vaults.map((vault) =>
         this._getFinancialsFor(vault, pools, borrows)
       );
+      return new FujiResultSuccess(data);
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        console.error(`DefiLlama API call failed with a message: ${e.message}`);
-      } else {
-        console.error('DefiLlama API call failed with an unexpected error!');
-      }
+      const message = axios.isAxiosError(e)
+        ? `DefiLlama API call failed with a message: ${e.message}`
+        : 'DefiLlama API call failed with an unexpected error!';
+      console.error(message);
+      return new FujiResultError(message, FujiErrorCode.LLAMA);
     }
-
-    return vaults;
   }
 
   /**
@@ -288,7 +298,7 @@ export class Sdk {
    *
    * @remarks
    * The vaults are sorted after checks of the lowest borrow rate for the debt token.
-   * If collateral and debt tokens are on the same chain, we privilage the vault
+   * If collateral and debt tokens are on the same chain, we privilege the vault
    * on the same chain even though it has a lowest borrow rate.
    *
    * @param collateral - collateral instance of {@link Token}
@@ -297,29 +307,33 @@ export class Sdk {
   async getBorrowingVaultsFor(
     collateral: Token,
     debt: Token
-  ): Promise<BorrowingVault[]> {
+  ): FujiResultPromise<BorrowingVault[]> {
     // TODO: sort by safety rating too
     // find all vaults with this pair
-    const vaults = this._findVaultsByTokens(collateral, debt).map(
-      (v: BorrowingVault) => v.setConnection(this._configParams)
-    );
-
-    const rates = await Promise.all(vaults.map((v) => v.getBorrowRate()));
-
-    // and sort them by borrow rate
-    const sorted = vaults
-      .map((vault, i) => ({ vault, rate: rates[i] }))
-      .sort((a, b) => (a.rate.lte(b.rate) ? -1 : 0))
-      .map(({ vault }) => vault);
-
-    if (collateral.chainId === debt.chainId) {
-      // sort again to privilege vaults on the same chain
-      sorted.sort((a) =>
-        a.collateral.chainId === collateral.chainId ? -1 : 0
+    try {
+      const vaults = this._findVaultsByTokens(collateral, debt).map(
+        (v: BorrowingVault) => v.setConnection(this._configParams)
       );
-    }
 
-    return sorted;
+      const rates = await Promise.all(vaults.map((v) => v.getBorrowRate()));
+
+      // and sort them by borrow rate
+      const sorted = vaults
+        .map((vault, i) => ({ vault, rate: rates[i] }))
+        .sort((a, b) => (a.rate.lte(b.rate) ? -1 : 0))
+        .map(({ vault }) => vault);
+
+      if (collateral.chainId === debt.chainId) {
+        // sort again to privilege vaults on the same chain
+        sorted.sort((a) =>
+          a.collateral.chainId === collateral.chainId ? -1 : 0
+        );
+      }
+
+      return new FujiResultSuccess(sorted);
+    } catch (error) {
+      return new FujiResultError('Error getting vaults', FujiErrorCode.SDK);
+    }
   }
 
   /**
@@ -332,15 +346,15 @@ export class Sdk {
    * @param actionParams - vault instance on which we want to open a position
    * @param srcChainId - ID of the chain from which the tx gets init
    * @param account - user address, wrapped in {@link Address}
-   * @param signature - a signiture for the permit action (optional)
+   * @param signature - a signature for the permit action (optional)
    */
   getTxDetails(
     actionParams: RouterActionParams[],
     srcChainId: ChainId,
     account: Address,
     signature?: Signature
-  ): TransactionRequest {
-    // dummy copy actionParams because of the immutabiltiy of Immer
+  ): FujiResult<TransactionRequest> {
+    // dummy copy actionParams because of the immutability of Immer
     const _actionParams = actionParams.map((a) => ({ ...a }));
     const permitAction = Sdk.findPermitAction(_actionParams);
 
@@ -349,48 +363,36 @@ export class Sdk {
       permitAction.r = signature.r;
       permitAction.s = signature.s;
     } else if (permitAction && !signature) {
-      invariant(true, 'You need to sign the permit action first!');
+      return new FujiResultError('You need to sign the permit action first!');
     } else if (!permitAction && signature) {
-      invariant(true, 'No permit action although there is a signature!');
+      return new FujiResultError(
+        'No permit action although there is a signature!'
+      );
     }
 
     const actions = _actionParams.map(({ action }) => BigNumber.from(action));
-    const args = _actionParams.map(encodeActionArgs);
+    const result = _actionParams.map(encodeActionArgs);
+
+    const error = result.find((r): r is FujiResultError => !r.success);
+    if (error)
+      return new FujiResultError(error.error.message, error.error.code);
+
+    const args: string[] = (result as FujiResultSuccess<string>[]).map(
+      (r) => r.data
+    );
+
     const callData =
       ConnextRouter__factory.createInterface().encodeFunctionData('xBundle', [
         actions,
         args,
       ]);
 
-    return {
+    return new FujiResultSuccess({
       from: account.value,
       to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
       data: callData,
       chainId: srcChainId,
-    };
-  }
-
-  /**
-   * Based on the `steps` tracks the tx status and resolves with txHash.
-   *
-   * @param transactionHash - hash of the tx on the source chain.
-   * @param steps - array of the steps obtained from `sdk.previews.METHOD`.
-   */
-  async watchTxStatus(
-    transactionHash: string,
-    steps: RoutingStepDetails[]
-  ): Promise<RoutingStepDetails[]> {
-    const srcChainId = steps[0].chainId;
-    const chainType = CHAIN[srcChainId].chainType;
-    const transferId = await this.getTransferId(srcChainId, transactionHash);
-
-    const srcTxHash = Promise.resolve(transactionHash);
-    const destTxHash = this.getDestTxHash(transferId ?? '', chainType);
-
-    return steps.map((step) => ({
-      ...step,
-      txHash: step.chainId === srcChainId ? srcTxHash : destTxHash,
-    }));
+    });
   }
 
   /**
@@ -402,13 +404,14 @@ export class Sdk {
   async getTransferId(
     chainId: ChainId,
     transactionHash: string
-  ): Promise<string | undefined> {
+  ): FujiResultPromise<string | undefined> {
     const { rpcProvider } = this.getConnectionFor(chainId);
-    const receipt = await rpcProvider.getTransactionReceipt(transactionHash);
-    invariant(
-      !!receipt,
-      `Receipt not valid from tx with hash ${transactionHash}`
-    );
+    const receipt = await rpcProvider.waitForTransaction(transactionHash);
+    if (!receipt) {
+      return new FujiResultError(
+        `Receipt not valid from tx with hash ${transactionHash}`
+      );
+    }
     const blockHash = receipt.blockHash;
     const srcContract = ConnextRouter__factory.connect(
       CONNEXT_ROUTER_ADDRESS[chainId].value,
@@ -424,7 +427,7 @@ export class Sdk {
     )) {
       transferId = event.args[0];
     }
-    return transferId;
+    return new FujiResultSuccess(transferId);
   }
 
   /**
@@ -432,7 +435,7 @@ export class Sdk {
    * once the destination tx gets executed.
    * `transferId` can be obtained from `sdk.getTransferId`.
    *
-   * @param transferId - transfer ID according to Connext numenclature.
+   * @param transferId - transfer ID according to Connext nomenclature.
    * @param chainType - type of the chain: testnet or mainnet.
    */
   getDestTxHash(
@@ -441,16 +444,12 @@ export class Sdk {
   ): Promise<string> {
     const chainStr = chainType === ChainType.MAINNET ? 'mainnet' : 'testnet';
     return new Promise((resolve) => {
-      const apiCall = () =>
-        axios.get(
-          `https://postgrest.${chainStr}.connext.ninja/transfers?transfer_id=eq.${transferId}&select=status,xcall_transaction_hash`
-        );
-
+      const apiCall = () => axios.get(CONNEXT_URL(chainStr, transferId));
       const interval = () => {
         apiCall()
           .then(({ data }) => {
-            if (data.length > 0 && data[0].xcall_transaction_hash)
-              resolve(data[0].xcall_transaction_hash);
+            if (data.length > 0 && data[0].execute_transaction_hash)
+              resolve(data[0].execute_transaction_hash);
             else setTimeout(interval, 2000);
           })
           .catch((err) => console.error(err));
@@ -458,6 +457,129 @@ export class Sdk {
 
       interval();
     });
+  }
+
+  /**
+   * Gets details for a cross-chain operation with Connext.
+   *
+   * @remarks
+   * The cross-chain operation is pending in the following cases and
+   * this method should be called again in a couple of seconds when
+   * returned status is `UNKNOWN` or `PENDING`.
+   *
+   * @param srcChainId - ID of the chain where the tx gets initiated.
+   * @param srcTxHash - hash of the tx on the source chain.
+   */
+  async getConnextTxDetails(
+    srcChainId: ChainId,
+    srcTxHash: string
+  ): FujiResultPromise<ConnextTxDetails> {
+    const nxtp = await Nxtp.getOrCreate();
+    const [connextTx] = await nxtp.utils
+      .getTransfers({ transactionHash: srcTxHash })
+      .catch((_) => []);
+
+    if (!connextTx) {
+      const transferId = await this.getTransferId(srcChainId, srcTxHash);
+      if (!transferId.success || transferId.data === undefined)
+        return new FujiResultError(
+          'Not cross-chain transaction',
+          FujiErrorCode.TX,
+          {
+            srcTxHash,
+          }
+        );
+      else
+        return new FujiResultSuccess({
+          status: ConnextTxStatus.UNKNOWN,
+          connextTransferId: transferId.data,
+        });
+    }
+
+    if (Number(connextTx.origin_chain) !== srcChainId) {
+      return new FujiResultError('Source chain mismatch', FujiErrorCode.SDK, {
+        paramSrcChainId: srcChainId,
+        connextSrcChainId: Number(connextTx.origin_chain),
+      });
+    }
+
+    const connextTransferId: string = connextTx.transfer_id;
+
+    if (connextTx.status === 'Reconciled' && connextTx.error_status) {
+      return new FujiResultError(
+        connextTx.error_status,
+        FujiErrorCode.CONNEXT,
+        { srcTxHash, connextTransferId }
+      );
+    }
+
+    const destTxHash: string | null = connextTx.execute_transaction_hash;
+    if (!destTxHash) {
+      return new FujiResultSuccess({
+        status: ConnextTxStatus.PENDING,
+        connextTransferId,
+      });
+    }
+
+    // check if XReceived was successful
+    const destChainId: ChainId = Number(connextTx.destination_chain);
+    const { rpcProvider } = this.getConnectionFor(destChainId);
+    const receipt = await rpcProvider.waitForTransaction(destTxHash);
+    if (!receipt)
+      return new FujiResultError('Receipt not valid', FujiErrorCode.TX, {
+        destTxHash,
+        connextTransferId,
+      });
+
+    // do operations (deposit, borrow, etc) on src chain and only transfer to dest chain
+    // in which case there's no calldata
+    if (connextTx.call_data === '0x') {
+      if (receipt.status === 1)
+        return new FujiResultSuccess({
+          status: ConnextTxStatus.EXECUTED,
+          connextTransferId,
+          destTxHash,
+        });
+      else
+        return new FujiResultError(
+          'Transaction reverted on destination chain',
+          FujiErrorCode.TX,
+          { destTxHash, connextTransferId }
+        );
+    }
+
+    // do operations on dest chain
+    const srcContract = ConnextRouter__factory.connect(
+      CONNEXT_ROUTER_ADDRESS[destChainId].value,
+      rpcProvider
+    );
+    const events = await srcContract.queryFilter(
+      srcContract.filters.XReceived(),
+      receipt.blockHash
+    );
+    const e = events.find((e) => e.transactionHash == destTxHash);
+
+    if (!e)
+      return new FujiResultError(
+        'Cannot find XReceived event',
+        FujiErrorCode.TX,
+        { destTxHash, connextTransferId }
+      );
+
+    // check if XReceived was successful
+    if (e?.args.success) {
+      return new FujiResultSuccess({
+        status: ConnextTxStatus.EXECUTED,
+        connextTransferId,
+        destTxHash,
+      });
+    } else {
+      return new FujiResultError(
+        'Transaction execution on destination chain failed',
+        FujiErrorCode.TX,
+        { destTxHash, connextTransferId }
+      );
+    }
   }
 
   /**
@@ -470,20 +592,27 @@ export class Sdk {
   async estimateRelayerFee(
     srcChainId: ChainId,
     destChainId: ChainId
-  ): Promise<BigNumber> {
+  ): FujiResultPromise<BigNumber> {
     const nxtp = await Nxtp.getOrCreate();
 
     const srcDomain = CHAIN[srcChainId].connextDomain;
     const destDomain = CHAIN[destChainId].connextDomain;
-    invariant(
-      srcDomain && destDomain,
-      'Estimaing fee for an unsupported by Connext chain!'
-    );
+    if (!srcDomain || !destDomain) {
+      return new FujiResultError(
+        'Estimating fee for an unsupported by Connext chain!'
+      );
+    }
 
-    return nxtp.base.estimateRelayerFee({
-      originDomain: String(srcDomain),
-      destinationDomain: String(destDomain),
-    });
+    try {
+      const result = await nxtp.base.estimateRelayerFee({
+        originDomain: String(srcDomain),
+        destinationDomain: String(destDomain),
+      });
+      return new FujiResultSuccess(result);
+    } catch (e) {
+      const message = FujiError.messageFromUnknownError(e);
+      return new FujiResultError(message, FujiErrorCode.CONNEXT);
+    }
   }
 
   private _findVaultsByTokens(

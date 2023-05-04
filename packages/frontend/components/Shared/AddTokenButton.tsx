@@ -1,66 +1,44 @@
-import LoadingButton from "@mui/lab/LoadingButton"
-import { useState } from "react"
-import { SerializableToken } from "../../store/history.store"
-import { getTokenImage } from "../../helpers/paths"
+import LoadingButton from '@mui/lab/LoadingButton';
+import { useState } from 'react';
 
-declare const ethereum: any // eslint-disable-line
+import { SerializableToken } from '../../helpers/history';
+import { addTokenToMetamask } from '../../helpers/metamask';
+import { notify } from '../../helpers/notifications';
 
 type ButtonAddTokenProps = {
-  token: SerializableToken
-}
+  token: SerializableToken;
+};
 
-export function AddTokenButton({ token }: ButtonAddTokenProps) {
-  type Status = "initial" | "loading" | "success" | "error"
-  const [status, setStatus] = useState<Status>("initial")
+function AddTokenButton({ token }: ButtonAddTokenProps) {
+  type Status = 'initial' | 'loading' | 'success' | 'error';
+  const [status, setStatus] = useState<Status>('initial');
 
   const handleClick = async () => {
-    setStatus("loading")
-    // TODO: what if asset chain is !== current chain ??
+    setStatus('loading');
     try {
-      await addTokenToMetamask(token)
-      setStatus("success")
+      await addTokenToMetamask(token);
+      setStatus('success');
+      notify({
+        type: 'success',
+        message: `${token.symbol} added`,
+      });
     } catch (e) {
       // user probably rejected
-      console.error(">>>", e)
-      setStatus("error")
+      setStatus('error');
     }
-  }
+  };
 
   return (
     <LoadingButton
-      variant="rounded"
+      variant="ghost"
+      fullWidth
+      size="medium"
       onClick={handleClick}
-      loading={status === "loading"}
-      disabled={status === "success"}
+      loading={status === 'loading'}
     >
-      {status === "success" ? <>Done sir ✅</> : `Add ${token.symbol}`}
+      {`Add ${token.symbol}`}
     </LoadingButton>
-  )
+  );
 }
 
-async function addTokenToMetamask(token: SerializableToken) {
-  if (!ethereum) {
-    console.error("var ethereum is undefined, user may not have mmask")
-    return
-  }
-  const { symbol, decimals, address } = token
-  const { protocol, host } = window.location
-  const image = `${protocol}${host}${getTokenImage(token.symbol)}`
-
-  const success = await ethereum.request({
-    method: "wallet_watchAsset",
-    params: {
-      type: "ERC20", // Initially only supports ERC20, but eventually more!
-      options: {
-        address: address,
-        symbol,
-        decimals,
-        image,
-      },
-    },
-  })
-
-  if (!success) {
-    throw "await ethereum.request is false or undefined"
-  }
-}
+export default AddTokenButton;

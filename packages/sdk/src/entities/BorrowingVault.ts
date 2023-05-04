@@ -4,10 +4,9 @@ import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
-import { Observable } from 'rxjs';
 import invariant from 'tiny-invariant';
 
-import { CHAIN, CONNEXT_ROUTER_ADDRESS } from '../constants';
+import { CHAIN, CHIEF_ADDRESS, CONNEXT_ROUTER_ADDRESS } from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
 import {
@@ -19,12 +18,12 @@ import {
 import {
   BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
+  Chief__factory,
   ILendingProvider__factory,
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
 import { Address } from './Address';
 import { Chain } from './Chain';
-import { StreamManager } from './StreamManager';
 import { Token } from './Token';
 
 type AccountBalances = {
@@ -41,7 +40,7 @@ type AccountBalances = {
  * path of interacting with a BorrowingVault contract.
  */
 
-export class BorrowingVault extends StreamManager {
+export class BorrowingVault {
   /**
    * The chain ID on which this vault resides
    */
@@ -109,6 +108,14 @@ export class BorrowingVault extends StreamManager {
   liqRatio?: BigNumber;
 
   /**
+   * Value that reflects the safety score according to a risk framework.
+   *
+   * @remarks
+   * Can be between 0 and 100.
+   */
+  safetyRating?: BigNumber;
+
+  /**
    * Instance of ethers Contract class, already initialized with
    * address and rpc provider. It can be used to directly call the
    * methods available on the smart contract.
@@ -146,8 +153,6 @@ export class BorrowingVault extends StreamManager {
 
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
-
-    super();
 
     this.name = '';
     this.address = address;
@@ -200,33 +205,46 @@ export class BorrowingVault extends StreamManager {
     if (
       this.maxLtv &&
       this.liqRatio &&
+      this.safetyRating &&
       this.name !== '' &&
       this.activeProvider &&
       this.allProviders
     )
       return;
 
-    const [maxLtv, liqRatio, name, activeProvider, allProviders] =
+    const chief = Chief__factory.multicall(CHIEF_ADDRESS[this.chainId].value);
+
+    const [maxLtv, liqRatio, safetyRating, name, activeProvider, allProviders] =
       await this.multicallRpcProvider.all([
         this.multicallContract.maxLtv(),
         this.multicallContract.liqRatio(),
+        chief.vaultSafetyRating(this.address.value),
         this.multicallContract.name(),
         this.multicallContract.activeProvider(),
         this.multicallContract.getProviders(),
       ]);
 
-    this.setPreLoads(maxLtv, liqRatio, name, activeProvider, allProviders);
+    this.setPreLoads(
+      maxLtv,
+      liqRatio,
+      safetyRating,
+      name,
+      activeProvider,
+      allProviders
+    );
   }
 
   setPreLoads(
     maxLtv: BigNumber,
     liqRatio: BigNumber,
+    safetyRating: BigNumber,
     name: string,
     activeProvider: string,
     allProviders: string[]
   ) {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
+    this.safetyRating = safetyRating;
     this.name = name;
     this.activeProvider = activeProvider;
     this.allProviders = allProviders;
@@ -285,12 +303,18 @@ export class BorrowingVault extends StreamManager {
     ]);
 
     const splitIndex = rates.length / 2;
-    return this.allProviders.map((addr: string, i: number) => ({
-      name: LENDING_PROVIDERS[this.chainId][addr].name,
-      depositRate: rates[i],
-      borrowRate: rates[i + splitIndex],
-      active: addr === this.activeProvider,
-    }));
+    return this.allProviders
+      .filter((address) =>
+        Boolean(LENDING_PROVIDERS[this.chainId][address]?.name)
+      )
+      .map((addr: string, i: number) => {
+        return {
+          name: LENDING_PROVIDERS[this.chainId][addr]?.name,
+          depositRate: rates[i],
+          borrowRate: rates[i + splitIndex],
+          active: addr === this.activeProvider,
+        };
+      });
   }
 
   /**
@@ -310,30 +334,6 @@ export class BorrowingVault extends StreamManager {
     ]);
 
     return { deposit, borrow };
-  }
-
-  /**
-   * Returns a stream of deposit and borrow balances for an account.
-   *
-   * @param account - user address, wrapped in {@link Address}
-   * @throws if {@link setConnection} was not called beforehand
-   */
-  getBalancesStream(account: Address): Observable<AccountBalances> {
-    invariant(this.contract && this.wssProvider, 'Connection not set!');
-    const filters = [
-      this.contract.filters.Deposit(null, account.value),
-      this.contract.filters.Payback(null, account.value),
-      this.contract.filters.Borrow(null, null, account.value),
-      this.contract.filters.Withdraw(null, null, account.value),
-    ];
-
-    return this.streamFrom<Address, AccountBalances>(
-      this.wssProvider,
-      this.getBalances,
-      [account],
-      account,
-      filters
-    );
   }
 
   /**

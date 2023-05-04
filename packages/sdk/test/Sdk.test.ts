@@ -56,31 +56,34 @@ describe('Sdk', () => {
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
         ChainId.ETHEREUM
       );
-      bals.forEach((bal) => {
+      expect(bals.success).toBeTruthy();
+      if (!bals.success) return;
+
+      bals.data.forEach((bal) => {
         expect(parseFloat(formatUnits(bal))).toBeGreaterThan(0);
       });
     });
 
     it('fails with tokens from different chains', async () => {
-      await expect(
-        async () =>
-          await sdk.getTokenBalancesFor(
-            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.MATIC]],
-            Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
-            ChainId.ETHEREUM
-          )
-      ).rejects.toThrowError('Token from a different chain!');
+      const result = await sdk.getTokenBalancesFor(
+        [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.MATIC]],
+        Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+        ChainId.ETHEREUM
+      );
+      expect(result.success).toBeFalsy();
+      if (result.success) return;
+      expect(result.error.message).toEqual('Token from a different chain!');
     });
 
     it('fails when tokens and chain differ', async () => {
-      await expect(
-        async () =>
-          await sdk.getTokenBalancesFor(
-            [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
-            Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
-            ChainId.MATIC
-          )
-      ).rejects.toThrowError('Token from a different chain!');
+      const result = await sdk.getTokenBalancesFor(
+        [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
+        Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
+        ChainId.MATIC
+      );
+      expect(result.success).toBeFalsy();
+      if (result.success) return;
+      expect(result.error.message).toEqual('Token from a different chain!');
     });
   });
 
@@ -116,7 +119,11 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.MATIC);
     });
 
@@ -150,7 +157,11 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
@@ -184,7 +195,10 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.OPTIMISM];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
@@ -195,7 +209,10 @@ describe('Sdk', () => {
         .mockImplementation(() => []);
       const collateral = WNATIVE[ChainId.MATIC];
       const debt = new Token(ChainId.MATIC, ADDRESS_BOB, 6, 'Bob');
-      const vaults = await sdk.getBorrowingVaultsFor(collateral, debt);
+      const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults.length).toEqual(0);
     });
   });
@@ -358,7 +375,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1'),
         parseUnits('1', 6),
@@ -368,6 +385,9 @@ describe('Sdk', () => {
         123456789
       );
 
+      expect(preview.success).toBeTruthy();
+      if (!preview.success) return;
+      const { actions } = preview.data;
       const permitBorrow = actions.find(
         (a) => a.action === RouterAction.PERMIT_BORROW
       ) as PermitParams;
@@ -375,12 +395,15 @@ describe('Sdk', () => {
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
-      const { data } = sdk.getTxDetails(
+      const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+      const { data } = result.data;
       expect(data).toBeTruthy();
     });
 
@@ -393,7 +416,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1', 6),
         parseUnits('1'),
@@ -402,18 +425,24 @@ describe('Sdk', () => {
         Address.from(owner.address),
         123456789
       );
+      expect(preview.success).toBeTruthy();
+      if (!preview.success) return;
+      const { actions } = preview.data;
 
       const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
-      const { data } = sdk.getTxDetails(
+      const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+      const { data } = result.data;
       expect(data).toBeTruthy();
     });
 
@@ -422,7 +451,7 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const { actions } = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.depositAndBorrow(
         vault,
         parseUnits('1', 6),
         parseUnits('1'),
@@ -431,18 +460,24 @@ describe('Sdk', () => {
         Address.from(owner.address),
         123456789
       );
+      expect(preview.success).toBeTruthy();
+      if (!preview.success) return;
+      const { actions } = preview.data;
 
       const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
       const { digest } = await vault.signPermitFor(permitBorrow);
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
       const signature = skey.signDigest(digest);
-      const { data } = sdk.getTxDetails(
+      const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
         Address.from(owner.address),
         signature
       );
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+      const { data } = result.data;
       expect(data).toBeTruthy();
     });
   });

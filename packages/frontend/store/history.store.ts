@@ -1,109 +1,67 @@
-import {
-  Address,
-  ChainId,
-  RoutingStep,
-  RoutingStepDetails,
-  Token,
-} from "@x-fuji/sdk"
-import produce from "immer"
-import { create } from "zustand"
-import { devtools, persist } from "zustand/middleware"
-import { sdk } from "../services/sdk"
-import ethers from "ethers"
-import { useSnack } from "./snackbar.store"
-import { formatUnits } from "ethers/lib/utils"
-import { useBorrow } from "./borrow.store"
+import { ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
+import produce from 'immer';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
 
-export type HistoryStore = HistoryState & HistoryActions
+import {
+  formatCrosschainNotificationMessage,
+  NOTIFICATION_MESSAGES,
+} from '../constants';
+import { chainName } from '../helpers/chains';
+import {
+  HistoryEntry,
+  HistoryEntryStatus,
+  HistoryTransaction,
+  toHistoryRoutingStep,
+  triggerUpdatesFromSteps,
+  wait,
+} from '../helpers/history';
+import {
+  getTransactionLink,
+  NotificationDuration,
+  notify,
+} from '../helpers/notifications';
+import { watchTransaction } from '../helpers/transactions';
+import { sdk } from '../services/sdk';
+import { useAuth } from './auth.store';
+import { usePositions } from './positions.store';
+
+export type HistoryStore = HistoryState & HistoryActions;
 
 type HistoryState = {
-  allHash: string[]
-  activeHash: string[] // ongoing tx
-  byHash: Record<string, HistoryEntry>
+  transactions: HistoryTransaction[];
+  ongoingTransactions: HistoryTransaction[];
+  entries: Record<string, HistoryEntry>;
 
-  inModal?: string // The tx hash displayed in modal
-}
+  currentTxHash?: string | undefined; // The tx hash displayed in modal
 
-/**
- * ⚠️ DO NOT STORE CLASSE INSTANCE because they are persisted in localstorage
- * and all methods will be lost. Also POO can be heavy to stringify because
- * of inheriting other classes
- */
-export type HistoryEntry = {
-  hash: string
-  type: "borrow" // || withdraw || flashclose...
-  steps: HistoryRoutingStep[]
-  status: "ongoing" | "error" | "done"
-}
-
-export type HistoryRoutingStep = Omit<
-  RoutingStepDetails,
-  "txHash" | "token"
-> & {
-  txHash?: string
-  token: SerializableToken
-}
-
-export function toRoutingStepDetails(
-  s: HistoryRoutingStep[]
-): RoutingStepDetails[] {
-  return s.map((s) => ({
-    ...s,
-    txHash: undefined,
-    token: new Token(
-      s.token.chainId,
-      Address.from(s.token.address),
-      s.token.decimals,
-      s.token.symbol,
-      s.token.name
-    ),
-  }))
-}
-
-export function toHistoryRoutingStep(
-  s: RoutingStepDetails[]
-): HistoryRoutingStep[] {
-  return s.map((s: RoutingStepDetails) => {
-    return {
-      ...s,
-      txHash: undefined,
-      token: {
-        chainId: s.token?.chainId as ChainId,
-        address: s.token?.address.value as string,
-        decimals: s.token?.decimals as number,
-        symbol: s.token?.symbol as string,
-        name: s.token?.name as string,
-      },
-    }
-  })
-}
-
-/**
- * Contains all we need to instanciate a token with new Token()
- */
-export type SerializableToken = {
-  chainId: ChainId
-  address: string
-  decimals: number
-  symbol: string
-  name?: string
-}
+  watching: string[];
+};
 
 type HistoryActions = {
-  add: (e: HistoryEntry) => void
-  update: (hash: string, patch: Partial<HistoryEntry>) => void
-  clearAll: () => void
-  watch: (hash: string) => void
+  add: (
+    hash: string,
+    address: string,
+    vaultAddress: string,
+    steps: RoutingStepDetails[]
+  ) => void;
+  update: (hash: string, patch: Partial<HistoryEntry>) => void;
+  clearAll: (address: string) => void;
+  watchAll: (address: string) => void;
+  watch: (transaction: HistoryTransaction) => void;
+  clearStore: () => void;
 
-  openModal: (hash: string) => void
-  closeModal: () => void
-}
+  openModal: (hash: string) => void;
+  closeModal: () => void;
+};
 
 const initialState: HistoryState = {
-  allHash: [],
-  activeHash: [],
-  byHash: {},
-}
+  transactions: [],
+  ongoingTransactions: [],
+  entries: {},
+  watching: [],
+};
 
 export const useHistory = create<HistoryStore>()(
   persist(
@@ -111,150 +69,298 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        // Add active transaction
-        async add(e) {
+        async add(hash, address, vaultAddress, steps) {
+          const srcChainId = steps[0].chainId;
+          const secondChainId = steps[steps.length - 1].chainId;
+          const chainCount = srcChainId === secondChainId ? 1 : 2;
+          const isCrossChain = chainCount > 1;
+
+          const sourceChain = {
+            chainId: srcChainId,
+            status: HistoryEntryStatus.ONGOING,
+            hash,
+          };
+          const secondChain = isCrossChain
+            ? {
+                chainId: secondChainId,
+                status: HistoryEntryStatus.ONGOING,
+              }
+            : undefined;
+
+          const entry: HistoryEntry = {
+            vaultAddress,
+            hash,
+            address,
+            sourceChain,
+            secondChain,
+            chainCount,
+            steps: toHistoryRoutingStep(steps),
+            status: HistoryEntryStatus.ONGOING,
+          };
+
+          const transaction = { hash, address };
+
           set(
             produce((s: HistoryState) => {
-              s.inModal = e.hash
-              s.byHash[e.hash] = e
-              s.allHash = [e.hash, ...s.allHash]
-              s.activeHash = [e.hash, ...s.activeHash]
+              s.currentTxHash = hash;
+              s.entries[hash] = entry;
+              s.transactions = [transaction, ...s.transactions];
+              s.ongoingTransactions = [transaction, ...s.ongoingTransactions];
             })
-          )
+          );
 
-          get().watch(e.hash)
+          get().watch(transaction);
         },
 
-        async watch(hash) {
-          const entry = get().byHash[hash]
+        watchAll(address) {
+          const ongoingTransactions = get().ongoingTransactions.filter(
+            (t) => t.address === address
+          );
+          for (const hash of ongoingTransactions) {
+            get().watch(hash);
+          }
+        },
+
+        async watch(transaction) {
+          const { hash } = transaction;
+
+          if (get().watching.includes(hash)) return;
+          set((state) => ({ watching: [...state.watching, hash] }));
+
+          const entry = get().entries[hash];
+
+          const remove = () => {
+            const ongoingTransactions = get().ongoingTransactions.filter(
+              (h) => h.hash !== hash
+            );
+            set({ ongoingTransactions });
+          };
+
           if (!entry) {
-            throw `No entry in history for hash ${hash}`
+            remove();
+            return;
           }
 
-          let receipt: ethers.providers.TransactionReceipt
-          // TODO: refacto: as long as we cannot store class methods in storage we should not use it (i.e vault.provider.getSmth)
-          const { rpcProvider } = sdk.getConnectionFor(entry.steps[0].chainId)
-          if (rpcProvider) {
-            console.debug("waitForTransaction", hash)
-            receipt = await rpcProvider.waitForTransaction(hash)
-          } else {
-            return console.error("No provider found in position.vault")
-          }
+          const finish = (success: boolean) => {
+            const address = useAuth.getState().address;
+            if (address === entry.address) {
+              triggerUpdatesFromSteps(entry.steps);
+            }
 
-          const startChainId = entry.steps.find(
-            (s) => s.step === RoutingStep.START
-          )?.chainId
-          const endChainId = entry.steps.find(
-            (s) => s.step === RoutingStep.END
-          )?.chainId
-          console.debug({ startChainId, endChainId })
-          if (startChainId === endChainId) {
+            const isFinal =
+              entry.chainCount > 1 &&
+              entry.secondChain &&
+              entry.secondChain.status === HistoryEntryStatus.SUCCESS;
+
             set(
               produce((s: HistoryState) => {
-                const steps = s.byHash[hash].steps
-                const b = steps.find((s) => s.step === RoutingStep.BORROW)
-                const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-                if (b) b.txHash = receipt.transactionHash
-                if (d) d.txHash = receipt.transactionHash
-              })
-            )
-          } else {
-            const stepsWithHash = await sdk.watchTxStatus(
-              hash,
-              toRoutingStepDetails(entry.steps)
-            )
+                const entry = s.entries[hash];
+                entry.status = success
+                  ? HistoryEntryStatus.SUCCESS
+                  : HistoryEntryStatus.FAILURE;
 
-            for (let i = 0; i < stepsWithHash.length; i++) {
-              const step = stepsWithHash[i]
-              console.debug("waiting", step.step, "...")
-              // TODO: can txHash fail ?
-              const txHash = await step.txHash
-              console.debug("success", step.step, txHash)
+                if (isFinal && entry.secondChain) {
+                  entry.secondChain.status = success
+                    ? HistoryEntryStatus.SUCCESS
+                    : HistoryEntryStatus.FAILURE;
+                } else {
+                  entry.sourceChain.status = success
+                    ? HistoryEntryStatus.SUCCESS
+                    : HistoryEntryStatus.FAILURE;
+                }
+              })
+            );
+
+            const linkHash =
+              isFinal && entry.secondChain
+                ? entry.secondChain.hash
+                : entry.hash;
+
+            if (address === entry.address) {
+              notify({
+                type: success ? 'success' : 'error',
+                message: success
+                  ? NOTIFICATION_MESSAGES.TX_SUCCESS
+                  : NOTIFICATION_MESSAGES.TX_FAILURE,
+                duration: success
+                  ? NotificationDuration.LONG
+                  : NotificationDuration.MEDIUM,
+                link: linkHash
+                  ? getTransactionLink({
+                      hash: linkHash,
+                      chainId:
+                        isFinal && entry.secondChain
+                          ? entry.secondChain.chainId
+                          : entry.sourceChain.chainId,
+                    })
+                  : undefined,
+              });
+
+              if (success) {
+                usePositions.getState().fetchUserPositions();
+              }
+            }
+          };
+
+          try {
+            const result = await watchTransaction(
+              entry.sourceChain.chainId,
+              hash
+            );
+            if (!result.success) {
+              throw result.error;
+            }
+            set(
+              produce((s: HistoryState) => {
+                s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
+              })
+            );
+            if (entry.chainCount === 1 && !entry.secondChain) {
+              finish(true);
+              return;
+            }
+            const address = useAuth.getState().address;
+            if (address === entry.address && !entry.sourceChain.shown) {
+              notify({
+                type: 'success',
+                message: formatCrosschainNotificationMessage(
+                  chainName(entry.sourceChain.chainId),
+                  chainName(entry.secondChain?.chainId)
+                ),
+                link: getTransactionLink({
+                  hash: entry.hash,
+                  chainId: entry.sourceChain.chainId,
+                }),
+              });
               set(
                 produce((s: HistoryState) => {
-                  s.byHash[hash].steps[i].txHash = txHash
+                  s.entries[hash].sourceChain.shown = true;
                 })
-              )
-              console.debug(step.step, txHash)
-              if (step.step === RoutingStep.DEPOSIT) {
-                useBorrow.getState().updateBalances("collateral")
-                useBorrow.getState().updateAllowance()
-              }
-              if (step.step === RoutingStep.BORROW) {
-                useBorrow.getState().updateBalances("collateral")
-              }
-              // TODO: can we have error ? if yes mark the tx as failed. Design ? Retry ?
+              );
             }
+
+            let crosschainCallFinished = false;
+            while (!crosschainCallFinished) {
+              await wait(3000); // Wait for three seconds between each call
+              const crosschainResult = await sdk.getConnextTxDetails(
+                entry.sourceChain.chainId,
+                entry.hash
+              );
+              if (!crosschainResult.success) {
+                throw crosschainResult.error;
+              }
+              if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
+                crosschainCallFinished = true;
+              }
+              set(
+                produce((s: HistoryState) => {
+                  const e = s.entries[hash];
+                  if (
+                    crosschainResult.data.connextTransferId &&
+                    crosschainResult.data.status !== ConnextTxStatus.UNKNOWN &&
+                    !e.connext
+                  ) {
+                    e.connext = {
+                      transferId: crosschainResult.data.connextTransferId,
+                      timestamp: Date.now(),
+                    };
+                  }
+                  if (!e.secondChain) return;
+                  if (crosschainResult.data.destTxHash && !e.secondChain.hash) {
+                    e.secondChain.hash = crosschainResult.data.destTxHash;
+                  }
+                  if (
+                    crosschainResult.data.status === ConnextTxStatus.EXECUTED &&
+                    e.secondChain.status !== HistoryEntryStatus.SUCCESS
+                  ) {
+                    e.secondChain.status = HistoryEntryStatus.SUCCESS;
+                  }
+                })
+              );
+            }
+            finish(true);
+          } catch (e) {
+            finish(false);
+          } finally {
+            remove();
           }
-
-          const { steps } = get().byHash[hash]
-          const d = steps.find((s) => s.step === RoutingStep.DEPOSIT)
-          const dAmount = d?.amount && formatUnits(d.amount, d.token.decimals)
-          const b = steps.find((s) => s.step === RoutingStep.BORROW)
-          const bAmount = b?.amount && formatUnits(b.amount, b.token.decimals)
-          useSnack.getState().display({
-            icon: "success",
-            title: `Deposit ${dAmount} ${d?.token.symbol} and borrow ${bAmount} ${b?.token.symbol}`,
-            transactionLink: {
-              hash: b?.txHash,
-              chainId: b?.chainId,
-            },
-          })
-
-          get().update(hash, { status: "done" })
-          const activeHash = get().activeHash.filter((h) => h !== hash)
-          set({ activeHash })
         },
 
         update(hash, patch) {
-          const entry = get().byHash[hash]
+          const entry = get().entries[hash];
           if (!entry) {
-            throw `No entry in history for hash ${hash}`
+            throw `No entry in history for hash ${hash}`;
           }
+
           set(
             produce((s: HistoryState) => {
-              s.byHash[hash] = { ...s.byHash[hash], ...patch }
+              s.entries[hash] = { ...s.entries[hash], ...patch };
             })
-          )
+          );
         },
 
-        clearAll() {
-          useHistory.persist.clearStorage()
-          set({ allHash: [...get().activeHash] })
+        clearAll(address) {
+          const transactions = get().transactions.filter(
+            (t) => t.address !== address
+          );
+          const ongoingTransactions = get().transactions.filter(
+            (t) => t.address !== address
+          );
+          const entries: Record<string, HistoryEntry> = {};
+          for (const [key, entry] of Object.entries(get().entries)) {
+            if (entry.address !== address) {
+              entries[key] = entry;
+            }
+          }
+          set({ transactions, ongoingTransactions, entries });
+        },
+
+        clearStore() {
+          set({
+            transactions: [],
+            ongoingTransactions: [],
+            entries: {},
+            currentTxHash: undefined,
+          });
         },
 
         openModal(hash) {
-          const entry = get().byHash[hash]
-          if (!entry) {
-            console.error("No entry in history for hash", hash)
-          }
-          set({ inModal: hash })
+          set({ currentTxHash: hash });
         },
 
         closeModal() {
-          set({ inModal: "" })
+          set({ currentTxHash: '' });
         },
       }),
       {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
-        name: "xFuji/history",
+        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
+        name: 'xFuji/history',
       }
     ),
+
     {
-      name: "xFuji/history",
+      name: 'xFuji/history',
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['watching'].includes(key))
+        ),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
-            return console.error("an error happened during hydration", error)
+            return console.error('an error happened during hydration', error);
           }
           if (!state) {
-            return console.error("no state")
+            return console.error('no state');
           }
-          for (const hash of state.activeHash) {
-            state.watch(hash)
+          // transactions used to be a hash array, now it's an object
+          const hasString = state.transactions.some(
+            (value) => typeof value === 'string'
+          );
+          if (hasString) {
+            state.clearStore();
           }
-        }
+        };
       },
     }
   )
-)
+);

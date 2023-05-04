@@ -1,163 +1,101 @@
-import { sdk } from "../services/sdk"
-import { create } from "zustand"
-import { Position } from "./models/Position"
-import { useAuth } from "./auth.store"
-import { Address } from "@x-fuji/sdk"
-import { BigNumberish, BigNumber } from "ethers"
-import { formatUnits, parseUnits } from "ethers/lib/utils"
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+import { DUST_AMOUNT, NOTIFICATION_MESSAGES } from '../constants';
+import { notify } from '../helpers/notifications';
+import {
+  getAccrual,
+  getCurrentAvailableBorrowingPower,
+  getPositionsWithBalance,
+  getTotalSum,
+} from '../helpers/positions';
+import { useAuth } from './auth.store';
+import { Position } from './models/Position';
 
 type PositionsState = {
-  positions: Position[]
-  totalDepositsUSD?: number
-  totalDebtUSD?: number
-  totalAPY?: number
-  availableBorrowPowerUSD?: number
-  // positionsAtRisk?: Position[]
-}
+  positions: Position[];
+  totalDepositsUSD?: number;
+  totalDebtUSD?: number;
+  totalAPY?: number;
+  availableBorrowPowerUSD?: number;
+  loading: boolean;
+};
 
 type PositionsActions = {
-  fetchUserPositions: () => void
-  // getPositionsAtRisk: () => void
-}
+  fetchUserPositions: () => void;
+};
 
 const initialState: PositionsState = {
   positions: [],
-  // positionsAtRisk: [],
-}
+  loading: false,
+};
 
-export type PositionsStore = PositionsState & PositionsActions
+export type PositionsStore = PositionsState & PositionsActions;
 
 export const usePositions = create<PositionsStore>()(
-  // devtools(
-  (set) => ({
-    ...initialState,
+  devtools(
+    (set) => ({
+      ...initialState,
 
-    fetchUserPositions: async () => {
-      const addr = useAuth.getState().address
-      const positions = await getPositionsWithBalance(addr)
+      fetchUserPositions: async () => {
+        set({ loading: true });
+        const addr = useAuth.getState().address;
+        const result = addr
+          ? await getPositionsWithBalance(addr)
+          : { success: true, error: undefined, data: [] };
 
-      const totalDepositsUSD = getTotalSum(positions, "collateral")
-      const totalDebtUSD = getTotalSum(positions, "debt")
+        if (!result.success) {
+          console.error(result.error?.message);
+          notify({
+            type: 'error',
+            message: NOTIFICATION_MESSAGES.POSITIONS_FAILURE,
+          });
+        }
+        const positions = result.success
+          ? (result.data as Position[]).filter(
+              (p) => p.collateral.amount > DUST_AMOUNT
+            )
+          : [];
 
-      const totalAccrued = positions.reduce((acc, p) => {
-        const accrueCollateral = getAccrual(
-          p.collateral.usdValue,
-          p.collateral.baseAPR,
-          "collateral"
-        )
-        const accrueDebt = getAccrual(p.debt.usdValue, p.debt.baseAPR, "debt")
-        return accrueCollateral + accrueDebt + acc
-      }, 0)
-      // `totalAPY` is scaled up by 100 to express in percentage %.
-      const totalAPY = totalDepositsUSD
-        ? (totalAccrued * 100) / totalDepositsUSD
-        : 0
+        const totalDepositsUSD = getTotalSum(positions, 'collateral');
+        const totalDebtUSD = getTotalSum(positions, 'debt');
 
-      const availableBorrowPowerUSD =
-        getCurrentAvailableBorrowingPower(positions)
+        const totalAccrued = positions.reduce((acc, p) => {
+          const accrueCollateral = getAccrual(
+            p.collateral.amount * p.collateral.usdPrice,
+            p.collateral.baseAPR,
+            'collateral'
+          );
+          const accrueDebt = getAccrual(
+            p.debt.amount * p.debt.usdPrice,
+            p.debt.baseAPR,
+            'debt'
+          );
+          return accrueCollateral + accrueDebt + acc;
+        }, 0);
+        // `totalAPY` is scaled up by 100 to express in percentage %.
+        const totalAPY = totalDepositsUSD
+          ? (totalAccrued * 100) / totalDepositsUSD
+          : 0;
 
-      set({
-        positions,
-        totalDepositsUSD,
-        totalDebtUSD,
-        totalAPY: parseFloat(totalAPY.toFixed(2)),
-        availableBorrowPowerUSD,
-      })
-    },
+        const availableBorrowPowerUSD =
+          getCurrentAvailableBorrowingPower(positions);
 
-    // getPositionsAtRisk: async () => {
-    //   set({ positionsAtRisk: /*fetchAndComputeTotalAPY()*/ [] })
-    // },
-  })
-  // {
-  //   enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
-  //   name: "fuji-v2/positions",
-  // }
-  // )
-)
-
-function bigToFloat(
-  big: BigNumberish | undefined,
-  decimals: number | BigNumberish
-): number {
-  const value = big ?? parseUnits("0", 18)
-  return parseFloat(formatUnits(value, decimals))
-}
-
-function getTotalSum(
-  positions: Position[],
-  param: "collateral" | "debt"
-): number {
-  return positions.reduce((s, p) => p[param].usdValue + s, 0)
-}
-
-async function getPositionsWithBalance(addr?: string): Promise<Position[]> {
-  if (!addr) return []
-
-  const account = Address.from(addr)
-  const allVaults = await sdk.getBorrowingVaultsFinancials(account)
-  const vaultsWithBalance = allVaults.filter((v) =>
-    v.depositBalance.gt(BigNumber.from("0"))
+        set(() => {
+          return {
+            positions,
+            totalDepositsUSD,
+            totalDebtUSD,
+            totalAPY: parseFloat(totalAPY.toFixed(2)),
+            availableBorrowPowerUSD,
+            loading: false,
+          };
+        });
+      },
+    }),
+    {
+      enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
+      name: 'fuji-v2/positions',
+    }
   )
-
-  const vaults = vaultsWithBalance.map((v) => {
-    const p = {} as Position
-    p.vault = v.vault
-    p.collateral = {
-      amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
-      token: v.vault.collateral,
-      get usdValue() {
-        return (
-          this.amount *
-          bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals)
-        )
-      },
-      get baseAPR() {
-        return v.activeProvider.depositAprBase
-      },
-    }
-    p.debt = {
-      amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
-      token: v.vault.debt,
-      get usdValue() {
-        return this.amount * bigToFloat(v.debtPriceUSD, v.vault.debt.decimals)
-      },
-      get baseAPR() {
-        return v.activeProvider.borrowAprBase
-      },
-    }
-    p.ltv = p.debt.usdValue / p.collateral.usdValue
-    p.ltvMax = bigToFloat(v.vault.maxLtv, 18)
-    p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18)
-    p.liquidationPrice =
-      p.debt.usdValue === 0
-        ? 0
-        : p.debt.usdValue / (p.ltvThreshold * p.collateral.amount)
-    p.liquidationDiff =
-      p.liquidationPrice === 0
-        ? 0
-        : bigToFloat(v.debtPriceUSD, v.vault.debt.decimals) - p.liquidationPrice
-    return p
-  })
-
-  return vaults
-}
-
-export function getAccrual(
-  balance: number,
-  baseAPR: number | undefined,
-  param: "collateral" | "debt"
-): number {
-  const factor = param === "debt" ? -1 : 1
-  // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
-  const aprDecimal = baseAPR ? baseAPR / 100 : 0
-  // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
-  const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1
-  return factor * balance * apyDecimal
-}
-
-function getCurrentAvailableBorrowingPower(positions: Position[]): number {
-  return positions.reduce((b, pos) => {
-    return pos.collateral.usdValue * pos.ltvMax - pos.debt.usdValue + b
-  }, 0)
-}
+);

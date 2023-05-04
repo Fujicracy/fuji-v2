@@ -22,6 +22,8 @@
       42161: ARBITRUM_ALCHEMY_ID,
       80001: POLYGON_MUMBAI_ALCHEMY_ID,
     },
+    // `poktId` is optional, but if provided, it will take precendence over Infura
+    poktId: POKT_ID
   });
 ```
 
@@ -50,7 +52,7 @@
   const debts = sdk.getDebtForChain(chainId);
 
   // get balances of the user for each of the token
-  const balancesDebt = await sdk.getBatchTokenBalances(debts, account, chainId);
+  const balancesDebt = await sdk.getTokenBalancesFor(debts, account, chainId);
 
   // user selects a "token2" as debt
 ```
@@ -62,12 +64,15 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 1. Get all "Vault" for a given combo of tokens
 
 ```
-  const vaults = await sdk.getBorrowingVaultsFor(token1, token2);
-
-  // vaults are sorted, starting by this with the lowest borrow rate
-  // or if token1 and token2 are on the same chain, the first vault will
-  // be on that chain
-  const vault = vaults[0];
+  const vaultsResult = await sdk.getBorrowingVaultsFor(token1, token2);
+  if (vaultsResult.success) {
+    const vaults = vaultsResult.data;
+    // vaults are sorted, starting by this with the lowest borrow rate
+    // or if token1 and token2 are on the same chain, the first vault will
+    // be on that chain
+    
+    const vault = vaults[0];
+  }
 ```
 
 2. Pre-load some data for the vault so that it's available for a later use
@@ -83,17 +88,23 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
 3. Get user deposit and borrow balances for this Vault
 
 ```
-  const { deposit, borrow } = await vault.getBalances(user);
-
-  // if they are not 0, they have to be used in the health ratio and liquidation price math,
-  // together with the amouts that the user has input
+  const balanacesResult = await vault.getBalances(user);
+  if (balanacesResult.success) {
+    ...
+    const { deposit, borrow } = balanacesResult.data;
+    
+    // if they are not 0, they have to be used in the health ratio and liquidation price math,
+    // together with the amouts that the user has input
+  }
 ```
 
 4. Get prices of collateral and debt token in $
 
 ```
-  const collateralPrice = await token1.getPriceUSD();
-  const debtPrice = await token2.getPriceUSD();
+  const [collateralResult, debtResult] = Promise.all([token1.getPriceUSD(), token2.getPriceUSD()]);
+  if (collateralResult.success) {
+    ...
+  }
 ```
 
 5. fetch providers for this vault and their rates
@@ -138,12 +149,23 @@ _Vault is an instance on a single chain, i.e. its collateral and debt token are 
     const signature = await signer.signMessage(domain, types, value)
   }
 
-  const txRequest = await vault.getTxDetails(actions, srcChainId, user, signature?)
+  const result = await sdk.getTxDetails(actions, srcChainId, user, signature?);
+  if (!result.success) {
+    // display error
+  }
+  const txRequest = result.data;
   const tx = await signer.sendTransaction(txRequest);
   const receipt = await tx.wait();
-  const stepsWithStatus = await sdk.watchTxStatus(receipt.transactionHash, steps);
-
-  // 'step.txHash' is a Promise returning the transactionHash when the tx gets validated
-  // use step.chainId and step.txHash to construct the etherscan links
-  stepsWithStatus.forEach((step) => step.txHash.then(console.log));
+  
+  if (isCrossChain) {
+    // poll every N seconds the following method to get the destination transaction hash
+    const result = await sdk.getConnextTxDetails(srcChainId, receipt.transactionHash);
+    if (!result.success) {
+      // display error
+      return;
+    }
+    if (result.data.status === PENDING || result.data.status === UNKNOWN) {
+      // poll again
+    }
+  }
 ```

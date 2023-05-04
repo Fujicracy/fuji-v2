@@ -1,5 +1,6 @@
-import { BorrowingVault, VaultWithFinancials } from "@x-fuji/sdk"
-import { chainName } from "../services/chains"
+import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+
+import { chainName } from './chains';
 
 export enum Status {
   Ready,
@@ -8,66 +9,70 @@ export enum Status {
 }
 
 export type MarketRow = {
-  entity?: BorrowingVault | VaultWithFinancials
+  entity?: BorrowingVault | VaultWithFinancials;
 
-  borrow: string
-  collateral: string
+  collateral: string;
+  debt: string;
+  safetyRating: {
+    status: Status;
+    value: number;
+  };
 
   chain: {
-    status: Status
-    value: string
-  }
+    status: Status;
+    value: string;
+  };
 
   depositApr: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
   depositAprBase: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
   depositAprReward: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
 
   borrowApr: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
   borrowAprBase: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
   borrowAprReward: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
 
   integratedProtocols: {
-    status: Status
-    value: string[]
-  }
-  safetyRating: {
-    status: Status
-    value: string
-  }
+    status: Status;
+    value: string[];
+  };
   liquidity: {
-    status: Status
-    value: number
-  }
+    status: Status;
+    value: number;
+  };
 
-  children?: MarketRow[]
-  isChild: boolean
-  isGrandChild: boolean // TODO: Not handled
-}
+  children?: MarketRow[];
+  isChild: boolean;
+  isGrandChild: boolean; // TODO: Not handled
+};
 
 const defaultRow: MarketRow = {
-  borrow: "",
-  collateral: "",
+  collateral: '',
+  debt: '',
+  safetyRating: {
+    status: Status.Loading,
+    value: 0,
+  },
   chain: {
     status: Status.Loading,
-    value: "",
+    value: '',
   },
   depositApr: {
     status: Status.Loading,
@@ -97,24 +102,20 @@ const defaultRow: MarketRow = {
     status: Status.Loading,
     value: [],
   },
-  safetyRating: {
-    status: Status.Loading,
-    value: "",
-  },
   liquidity: {
     status: Status.Loading,
     value: 0,
   },
   isChild: false,
   isGrandChild: false,
-}
+};
 
 export const setBase = (v: BorrowingVault): MarketRow => ({
   ...defaultRow,
   entity: v,
   collateral: v.collateral.symbol,
-  borrow: v.debt.symbol,
-})
+  debt: v.debt.symbol,
+});
 
 // set apr and aprBase as being equal
 // and re-set later when data gets fetched from the Llama API
@@ -128,6 +129,10 @@ export const setFinancials = (
     // chain is always available
     status: Status.Ready,
     value: chainName((r.entity as BorrowingVault).chainId),
+  },
+  safetyRating: {
+    status,
+    value: Number((r.entity as BorrowingVault).safetyRating?.toString()) ?? 0,
   },
   depositApr: {
     status,
@@ -149,11 +154,7 @@ export const setFinancials = (
     status,
     value: f?.allProviders.map((p) => p.name) ?? [],
   },
-  safetyRating: {
-    status,
-    value: "A+", // TODO
-  },
-})
+});
 
 export const setLlamas = (
   r: MarketRow,
@@ -196,7 +197,7 @@ export const setLlamas = (
             : status,
         value: f?.activeProvider.availableToBorrowUSD ?? 0,
       },
-    }
+    };
   } else {
     return {
       ...r,
@@ -212,64 +213,64 @@ export const setLlamas = (
         status,
         value: 0,
       },
-    }
+    };
   }
-}
+};
 
 export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
-  const done = new Set<string>() // Pair is symbol/symbol i.e WETH/USDC
-  const grouped: MarketRow[] = []
+  const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
+  const grouped: MarketRow[] = [];
 
   for (const row of rows) {
-    const key = `${row.borrow}/${row.collateral}`
-    if (done.has(key)) continue
-    done.add(key)
+    const key = `${row.debt}/${row.collateral}`;
+    if (done.has(key)) continue;
+    done.add(key);
 
     const entries = rows.filter(
-      (r) => r.borrow === row.borrow && r.collateral === row.collateral
-    )
+      (r) => r.debt === row.debt && r.collateral === row.collateral
+    );
     if (entries.length > 1) {
       // TODO: array should be sorted before being grouped
-      const sorted = entries.sort(sortBy.descending)
+      const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
         sorted.map((r) => ({ ...r, isChild: true }))
-      )
-      grouped.push({ ...sorted[0], children })
+      );
+      grouped.push({ ...sorted[0], children });
     } else {
-      grouped.push(entries[0])
+      grouped.push(entries[0]);
     }
   }
 
-  return grouped
-}
+  return grouped;
+};
 
 const groupByChain = (rows: MarketRow[]): MarketRow[] => {
-  const done = new Set<string>()
-  const grouped: MarketRow[] = []
+  const done = new Set<string>();
+  const grouped: MarketRow[] = [];
 
   for (const row of rows) {
-    const key = row.chain.value
-    if (done.has(key)) continue
-    done.add(key)
+    const key = row.chain.value;
+    if (done.has(key)) continue;
+    done.add(key);
 
-    const entries = rows.filter((r) => r.chain === row.chain)
+    const entries = rows.filter((r) => r.chain === row.chain);
     if (entries.length > 1) {
       // TODO: array should be sorted before being grouped
-      const sorted = entries.sort(sortBy.descending)
-      const children = sorted.map((r) => ({ ...r, isChild: true }))
-      grouped.push({ ...sorted[0], children })
+      const sorted = entries.sort(sortBy.descending);
+      const children = sorted.map((r) => ({ ...r, isChild: true }));
+      grouped.push({ ...sorted[0], children });
     } else {
-      grouped.push(entries[0])
+      grouped.push(entries[0]);
     }
   }
 
-  return grouped
-}
+  return grouped;
+};
 
-type SortBy = "descending" | "ascending"
-type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1
+type SortBy = 'descending' | 'ascending';
+type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
 
 const sortBy: Record<SortBy, CompareFn> = {
   ascending: (a, b) => (a.borrowApr.value < b.borrowApr.value ? 1 : -1),
   descending: (a, b) => (a.borrowApr.value > b.borrowApr.value ? 1 : -1),
-}
+};

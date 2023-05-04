@@ -38,15 +38,7 @@ contract FlasherBalancerGnosisForkingTest is Routines, ForkingSetup, IFlashLoanR
     providers[0] = agave;
     providers[1] = hundred;
 
-    deployVault(
-      registry[GNOSIS_DOMAIN].weth,
-      registry[GNOSIS_DOMAIN].dai,
-      796341757142697,
-      100000000,
-      "WETH",
-      "DAI",
-      providers
-    );
+    deployVault(registry[GNOSIS_DOMAIN].weth, registry[GNOSIS_DOMAIN].dai, "WETH", "DAI", providers);
 
     rebalancer = new RebalancerManager(address(chief));
     _grantRoleChief(REBALANCER_ROLE, address(rebalancer));

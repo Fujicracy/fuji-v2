@@ -1,55 +1,24 @@
-import { create, StoreApi } from "zustand"
-import { init } from "@web3-onboard/react"
-import { ConnectOptions } from "@web3-onboard/core"
-
-import injectedModule from "@web3-onboard/injected-wallets"
-import walletConnectModule from "@web3-onboard/walletconnect"
+import { ConnectOptions } from '@web3-onboard/core';
 import {
   Balances,
   ConnectedChain,
   WalletState,
-} from "@web3-onboard/core/dist/types"
-import { ethers, utils } from "ethers"
-import { devtools } from "zustand/middleware"
-import { chains } from "../services/chains"
-import { fujiLogo } from "../constants/ui"
+} from '@web3-onboard/core/dist/types';
+import { ChainId } from '@x-fuji/sdk';
+import { ethers, utils } from 'ethers';
+import { create, StoreApi } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
-const walletConnect = walletConnectModule({
-  // bridge: "YOUR_CUSTOM_BRIDGE_SERVER",
-  qrcodeModalOptions: {
-    mobileLinks: [
-      "rainbow",
-      "metamask",
-      "argent",
-      "trust",
-      "imtoken",
-      "pillar",
-    ],
-  },
-})
+import { web3onboard } from '../helpers/auth';
+import { chainIdToHex } from '../helpers/chains';
 
-export const onboard = init({
-  chains,
-  wallets: [injectedModule(), walletConnect],
-  appMetadata: {
-    name: "Fuji II - Himalaya",
-    icon: fujiLogo, // svg string icon
-    description: "Borrow in any chain, and always have the best rate",
-    recommendedInjectedWallets: [
-      { name: "MetaMask", url: "https://metamask.io" },
-      { name: "Coinbase", url: "https://wallet.coinbase.com/" },
-    ],
-  },
-  accountCenter: {
-    desktop: { enabled: false },
-    mobile: { enabled: false },
-  },
-})
+export const onboard = web3onboard;
+
 type OnboardStatus = {
-  hasAcceptedTerms: boolean
-  date?: Date | string
-  isExploreInfoSkipped?: boolean
-}
+  hasAcceptedTerms: boolean;
+  date?: Date | string;
+  isExploreInfoSkipped?: boolean;
+};
 
 export enum AuthStatus {
   Disconnected,
@@ -58,45 +27,45 @@ export enum AuthStatus {
 }
 
 type ConnectingState = {
-  status: AuthStatus.Connecting
-  address: undefined
-  ens: undefined
-  balance: undefined
-  chain: undefined
-  provider: undefined
-  walletName: undefined
-}
+  status: AuthStatus.Connecting;
+  address: undefined;
+  ens: undefined;
+  balance: undefined;
+  chain: undefined;
+  provider: undefined;
+  walletName: undefined;
+};
 type ConnectedState = {
-  status: AuthStatus.Connected
-  address: string
-  ens: string | undefined
-  balance: Balances
-  chain: ConnectedChain
-  provider: ethers.providers.Web3Provider
-  walletName: string
-}
+  status: AuthStatus.Connected;
+  address: string;
+  ens: string | undefined;
+  balance: Balances;
+  chain: ConnectedChain;
+  provider: ethers.providers.Web3Provider;
+  walletName: string;
+};
 type DisconnectedState = {
-  status: AuthStatus.Disconnected
-  address: undefined
-  ens: undefined
-  balance: undefined
-  chain: undefined
-  provider: undefined
-  walletName: undefined
-}
-type State = ConnectingState | ConnectedState | DisconnectedState
+  status: AuthStatus.Disconnected;
+  address: undefined;
+  ens: undefined;
+  balance: undefined;
+  chain: undefined;
+  provider: undefined;
+  walletName: undefined;
+};
+type State = ConnectingState | ConnectedState | DisconnectedState;
 
 type Action = {
-  login: (options?: ConnectOptions) => void
-  init: () => void
-  logout: () => void
-  acceptTermsOfUse: () => void
-  getOnboardStatus: () => OnboardStatus
-  setExploreInfoSkipped: (value: boolean) => void
-  changeChain: (chainId: string | number) => void
-}
+  login: (options?: ConnectOptions) => void;
+  init: () => void;
+  logout: () => void;
+  acceptTermsOfUse: () => void;
+  getOnboardStatus: () => OnboardStatus;
+  setExploreInfoSkipped: (value: boolean) => void;
+  changeChain: (chainId: ChainId) => void;
+};
 
-type AuthStore = State & Action
+type AuthStore = State & Action;
 
 const initialState: DisconnectedState = {
   status: AuthStatus.Disconnected,
@@ -106,7 +75,7 @@ const initialState: DisconnectedState = {
   chain: undefined,
   provider: undefined,
   walletName: undefined,
-}
+};
 
 export const useAuth = create<AuthStore>()(
   devtools(
@@ -114,149 +83,154 @@ export const useAuth = create<AuthStore>()(
       ...initialState,
 
       init: async () => {
-        reconnect(set, get)
-        onOnboardChange(set, get)
+        reconnect(set, get);
+        onOnboardChange(set, get);
       },
 
-      login: async (options?) => {
-        set({ status: AuthStatus.Connecting })
+      login: async (options) => {
+        set({ status: AuthStatus.Connecting });
+        const wallets = await onboard.connectWallet(options);
 
-        const wallets = await onboard.connectWallet(options)
-
-        if (!wallets[0]) {
-          set({ status: AuthStatus.Disconnected })
-          throw "Cannot login"
+        if (!wallets[0] || !wallets[0].accounts[0]) {
+          set({ status: AuthStatus.Disconnected });
+          return;
         }
 
-        const json = JSON.stringify(wallets.map(({ label }) => label))
-        localStorage.setItem("connectedWallets", json)
+        const json = JSON.stringify(wallets.map(({ label }) => label));
+        localStorage.setItem('connectedWallets', json);
 
-        const balance = wallets[0].accounts[0].balance
-        const address = utils.getAddress(wallets[0].accounts[0].address)
-        const chain = wallets[0].chains[0]
-        const provider = new ethers.providers.Web3Provider(wallets[0].provider)
+        const balance = wallets[0].accounts[0].balance;
+        const address = utils.getAddress(wallets[0].accounts[0].address);
+        const chain = wallets[0].chains[0];
+        const provider = new ethers.providers.Web3Provider(wallets[0].provider);
 
-        set({ status: AuthStatus.Connected, address, balance, chain, provider })
+        set({
+          status: AuthStatus.Connected,
+          address,
+          balance,
+          chain,
+          provider,
+        });
       },
 
       logout: async () => {
-        const wallets = onboard.state.get().wallets
+        const wallets = onboard.state.get().wallets;
         for (const { label } of wallets) {
-          await onboard.disconnectWallet({ label })
+          await onboard.disconnectWallet({ label });
         }
 
-        localStorage.removeItem("connectedWallets")
+        localStorage.removeItem('connectedWallets');
 
-        set({ ...initialState, status: AuthStatus.Disconnected })
+        set({ ...initialState, status: AuthStatus.Disconnected });
       },
 
       acceptTermsOfUse: () => {
         const onboardStatus: OnboardStatus = {
           hasAcceptedTerms: true,
           date: new Date().toJSON(),
-        }
-        const json = JSON.stringify(onboardStatus)
-        console.log(json)
-        localStorage.setItem("termsAccepted", json)
+        };
+        const json = JSON.stringify(onboardStatus);
+        localStorage.setItem('termsAccepted', json);
       },
 
       getOnboardStatus: (): OnboardStatus => {
-        const onboardStatusJson = localStorage.getItem("termsAccepted")
-        if (!onboardStatusJson) return { hasAcceptedTerms: false }
+        const onboardStatusJson = localStorage.getItem('termsAccepted');
+        if (!onboardStatusJson) return { hasAcceptedTerms: false };
 
-        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson)
+        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
 
         return {
           hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
           date: onboardStatus.date && new Date(onboardStatus.date),
           isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
-        }
+        };
       },
 
       setExploreInfoSkipped: (isExploreInfoSkipped: boolean) => {
-        const onboardStatusJson = localStorage.getItem("termsAccepted")
-        if (!onboardStatusJson) return
+        const onboardStatusJson = localStorage.getItem('termsAccepted');
+        if (!onboardStatusJson) return;
 
-        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson)
+        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
 
-        const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped })
-        localStorage.setItem("termsAccepted", json)
+        const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
+        localStorage.setItem('termsAccepted', json);
       },
 
       changeChain: async (chainId) => {
-        await onboard.setChain({ chainId })
+        const hexChainId = chainIdToHex(chainId);
+        await onboard.setChain({ chainId: hexChainId });
       },
     }),
     {
-      enabled: process.env.NEXT_PUBLIC_APP_ENV !== "production",
-      name: "xFuji/auth",
+      enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
+      name: 'xFuji/auth',
     }
   )
-)
+);
 
 async function reconnect(
-  set: StoreApi<State & Action>["setState"],
-  get: StoreApi<State & Action>["getState"]
+  set: StoreApi<State & Action>['setState'],
+  get: StoreApi<State & Action>['getState']
 ) {
-  const previouslyConnectedWallets = localStorage.getItem("connectedWallets")
+  const previouslyConnectedWallets = localStorage.getItem('connectedWallets');
 
   if (!previouslyConnectedWallets) {
-    return set({ status: AuthStatus.Disconnected })
+    return set({ status: AuthStatus.Disconnected });
   }
-  const wallets = JSON.parse(previouslyConnectedWallets)
+  const wallets = JSON.parse(previouslyConnectedWallets);
   await get().login({
     autoSelect: { label: wallets[0], disableModals: true },
-  })
+  });
 }
 
 function onOnboardChange(
-  set: StoreApi<State & Action>["setState"],
-  get: StoreApi<State & Action>["getState"]
+  set: StoreApi<State & Action>['setState'],
+  get: StoreApi<State & Action>['getState']
 ) {
-  onboard.state.select("wallets").subscribe((w: WalletState[]) => {
-    const updates: Partial<ConnectedState> = {}
+  onboard.state.select('wallets').subscribe((w: WalletState[]) => {
+    const updates: Partial<ConnectedState> = {};
 
     if (!w[0] && get().status === AuthStatus.Disconnected) {
-      return
+      return;
     } else if (!w[0]) {
       // Triggered when user disconnect from its wallet
-      return get().logout()
+      return get().logout();
     }
 
-    const chain = w[0].chains[0]
+    const chain = w[0].chains[0];
     if (chain.id !== get().chain?.id) {
-      updates.chain = chain
+      updates.chain = chain;
     }
 
-    const balance = w[0].accounts[0].balance
+    const balance = w[0].accounts[0].balance;
     if (balance && balance !== get().balance) {
-      updates.balance = balance
+      updates.balance = balance;
     }
 
-    const address = w[0].accounts[0].address
+    const address = w[0].accounts[0].address;
     if (address && address !== get().address) {
-      updates.address = utils.getAddress(address)
+      updates.address = utils.getAddress(address);
     }
 
     // TODO: how to !== new provider from old ?
-    const provider = new ethers.providers.Web3Provider(w[0].provider)
+    const provider = new ethers.providers.Web3Provider(w[0].provider);
     if (provider) {
-      updates.provider = provider
+      updates.provider = provider;
     }
 
-    const ens = w[0].accounts[0].ens?.name
+    const ens = w[0].accounts[0].ens?.name;
     if (ens !== get().ens) {
-      updates.ens = ens
+      updates.ens = ens;
     }
 
-    const walletName = w[0].label
+    const walletName = w[0].label;
 
     if (walletName) {
-      updates.walletName = walletName
+      updates.walletName = walletName;
     }
 
     if (Object.entries(updates).length > 0) {
-      set(updates)
+      set(updates);
     }
-  })
+  });
 }
