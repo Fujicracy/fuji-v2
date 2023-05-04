@@ -247,14 +247,19 @@ const Header = () => {
                     {address && <Divider />}
                     {address && (
                       <MenuItem
-                        onClick={() => {
+                        onClick={(e) => {
                           handleCloseNavMenu();
+
                           setAccountModalEl(
                             anchorElNav ? anchorElNav : undefined
                           );
                         }}
                       >
-                        <ListItemText>
+                        <ListItemText
+                          onClick={(e) => {
+                            handleOpenAccountModal(true, e.currentTarget);
+                          }}
+                        >
                           <Stack direction="row" justifyContent="space-between">
                             <Typography variant="small">
                               {formattedAddress}

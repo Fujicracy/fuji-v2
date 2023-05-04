@@ -89,6 +89,7 @@ function AccountModal({
 
   const onLogout = () => {
     logout();
+    closeAccountModal();
   };
 
   return (
