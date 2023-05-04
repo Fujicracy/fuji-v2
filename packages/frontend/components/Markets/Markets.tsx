@@ -23,7 +23,7 @@ function Markets() {
       <Grid
         container
         mt="2.5rem"
-        mb="1.563rem"
+        mb="1rem"
         justifyContent="space-between"
         alignItems="center"
         wrap="wrap"

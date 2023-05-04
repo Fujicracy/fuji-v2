@@ -31,6 +31,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const initAuth = useAuth((state) => state.init);
 
   const currentTxHash = useHistory((state) => state.currentTxHash);
+  const isHistoricalTransaction = useHistory(
+    (state) => state.isHistoricalTransaction
+  );
   const ongoingTransactions = useHistory((state) => state.ongoingTransactions);
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
@@ -107,7 +110,11 @@ function MyApp({ Component, pageProps }: AppProps) {
           <div className="backdrop"></div>
           <Component {...pageProps} />
           {entry && entry.address === address && (
-            <TransactionModal entry={entry} currentPage={router.pathname} />
+            <TransactionModal
+              entry={entry}
+              currentPage={router.pathname}
+              isHistoricalTransaction={isHistoricalTransaction}
+            />
           )}
           <SafetyNoticeModal />
           <GuildAccess />

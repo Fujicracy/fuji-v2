@@ -79,7 +79,7 @@ function AccountModal({
   };
 
   const handleEntryClick = (entry: HistoryEntry) => {
-    openModal(entry.hash);
+    openModal(entry.hash, true);
     closeAccountModal();
   };
 
@@ -254,7 +254,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
-      <CircularProgress size={16} sx={{ mr: '-1rem' }} />
+      <CircularProgress size={16} />
     ) : entry.status === HistoryEntryStatus.FAILURE ? (
       <ErrorOutlineIcon />
     ) : (
