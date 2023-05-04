@@ -67,7 +67,12 @@ function TransactionModal({
 
   useEffect(() => {
     if (isHistoricalTransaction) return;
-    // TODO: add failure gif
+
+    if (entry.status === HistoryEntryStatus.FAILURE) {
+      setGif('/assets/images/transactions/ERROR.gif');
+      return;
+    }
+
     if (entry.status === HistoryEntryStatus.SUCCESS) {
       setGif('/assets/images/transactions/END.gif');
       return;
