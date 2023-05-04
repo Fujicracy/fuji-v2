@@ -231,6 +231,7 @@ export const useHistory = create<HistoryStore>()(
             const address = useAuth.getState().address;
             if (address === entry.address) {
               triggerUpdatesFromSteps(entry.steps);
+              usePositions.getState().fetchUserPositions();
               if (!entry.sourceChain.shown) {
                 notify({
                   type: 'success',
