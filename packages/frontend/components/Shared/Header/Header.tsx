@@ -28,7 +28,7 @@ import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
-import AccountModal from '../AccountModal';
+import AccountModal from '../AccountModal/AccountModal';
 import ChainSelect from '../ChainSelect';
 import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
