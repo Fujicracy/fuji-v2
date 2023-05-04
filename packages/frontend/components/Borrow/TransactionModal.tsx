@@ -21,7 +21,6 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { MouseEvent, useEffect, useState } from 'react';
 
@@ -214,7 +213,11 @@ function TransactionModal({
           </Typography>
         </Box>
         {!isHistoricalTransaction && gif && (
-          <Image src={gif} alt="loading animation" width={432} height={243} />
+          <img
+            src={gif}
+            alt="Loading Image"
+            style={{ width: '100%', height: 'auto' }}
+          />
         )}
         <DialogContent
           sx={{
