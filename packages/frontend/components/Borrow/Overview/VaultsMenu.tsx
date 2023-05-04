@@ -40,6 +40,7 @@ function VaultsMenu({ providers, safetyRating }: VaultsMenuProps) {
       <Chip
         variant={safetyRating > 75 ? 'success' : 'warning'}
         label={ratingToNote(safetyRating)}
+        sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
       />
       <Box display="flex" alignItems="center">
         {providers &&
