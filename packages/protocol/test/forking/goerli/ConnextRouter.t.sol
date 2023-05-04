@@ -729,140 +729,151 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     connextRouter.xBundle(originActions, originArgs);
   }
 
-  function test_tryChangeXTransferSlippageWithoutPermission() public {
-    uint256 amount = 1 ether;
-    uint256 borrowAmount = 100e6;
-    uint256 slippage = 0;
-    uint256 newSlippage = 3;
-    uint256 slippageThreshold = 5;
+  //***************************************************************************/
+  /**
+   * Note Implementing testing of the `delegate` change requires execution of
+   * Connext function that is becoming over-complicated.
+   * For sake of time it was decided 5-4-2023 to test this in our closed
+   * production testing environment.
+   * This applies to commented tests:
+   * - test_tryChangeXTransferSlippageWithoutPermission
+   * - test_changeXTransferSlippage
+   */
 
-    bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE,
-      ALICE_PK,
-      amount,
-      borrowAmount,
-      address(connextRouter),
-      address(vault),
-      slippageThreshold
-    );
+  // function test_tryChangeXTransferSlippageWithoutPermission() public {
+  //   uint256 amount = 1 ether;
+  //   uint256 borrowAmount = 100e6;
+  //   uint256 slippage = 0;
+  //   uint256 newSlippage = 3;
+  //   uint256 slippageThreshold = 5;
 
-    vm.expectEmit(true, true, true, false);
-    emit Deposit(address(connextRouter), ALICE, amount, amount);
+  //   bytes memory callData = _getDepositAndBorrowCallData(
+  //     ALICE,
+  //     ALICE_PK,
+  //     amount,
+  //     borrowAmount,
+  //     address(connextRouter),
+  //     address(vault),
+  //     slippageThreshold
+  //   );
 
-    vm.expectEmit(true, true, true, false);
-    emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
+  //   vm.expectEmit(true, true, true, false);
+  //   emit Deposit(address(connextRouter), ALICE, amount, amount);
 
-    // send directly the bridged funds to our router
-    // thus mocking Connext behavior
-    // including a 0.03% slippage (3 BPS)
-    uint256 slippageAmount = ((amount * 10000) / 10003);
-    deal(collateralAsset, address(connextRouter), slippageAmount);
+  //   vm.expectEmit(true, true, true, false);
+  //   emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
 
-    vm.expectRevert();
-    //Try to change slippage without permission
-    vm.startPrank(BOB);
-    connext.forceUpdateSlippage(
-      TransferInfo({
-        originDomain: OPTIMISM_GOERLI_DOMAIN,
-        destinationDomain: GOERLI_DOMAIN,
-        canonicalDomain: GOERLI_DOMAIN,
-        to: address(connextRouter),
-        delegate: ALICE,
-        receiveLocal: false,
-        callData: "",
-        slippage: 0,
-        originSender: ALICE,
-        bridgedAmt: amount,
-        normalizedIn: amount,
-        nonce: 0,
-        canonicalId: ""
-      }),
-      newSlippage
-    );
-  }
+  //   // send directly the bridged funds to our router
+  //   // thus mocking Connext behavior
+  //   // including a 0.03% slippage (3 BPS)
+  //   uint256 slippageAmount = ((amount * 10000) / 10003);
+  //   deal(collateralAsset, address(connextRouter), slippageAmount);
 
-  function test_changeXTransferSlippage() public {
-    uint256 amount = 1 ether;
-    uint256 borrowAmount = 100e6;
-    uint256 slippage = 0;
-    uint256 newSlippage = 3;
-    uint256 slippageThreshold = 5;
+  //   vm.expectRevert();
+  //   //Try to change slippage without permission
+  //   vm.startPrank(BOB);
+  //   connext.forceUpdateSlippage(
+  //     TransferInfo({
+  //       originDomain: OPTIMISM_GOERLI_DOMAIN,
+  //       destinationDomain: GOERLI_DOMAIN,
+  //       canonicalDomain: GOERLI_DOMAIN,
+  //       to: address(connextRouter),
+  //       delegate: ALICE,
+  //       receiveLocal: false,
+  //       callData: "",
+  //       slippage: 0,
+  //       originSender: ALICE,
+  //       bridgedAmt: amount,
+  //       normalizedIn: amount,
+  //       nonce: 0,
+  //       canonicalId: ""
+  //     }),
+  //     newSlippage
+  //   );
+  // }
 
-    //Fake inbound xTransfer
-    bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE,
-      ALICE_PK,
-      amount,
-      borrowAmount,
-      address(connextRouter),
-      address(vault),
-      slippageThreshold
-    );
+  // function test_changeXTransferSlippage() public {
+  //   uint256 amount = 1 ether;
+  //   uint256 borrowAmount = 100e6;
+  //   uint256 slippage = 0;
+  //   uint256 newSlippage = 3;
+  //   uint256 slippageThreshold = 5;
 
-    //TODO check this
-    TransferInfo memory transferInfo = TransferInfo({
-      originDomain: OPTIMISM_GOERLI_DOMAIN,
-      destinationDomain: GOERLI_DOMAIN,
-      canonicalDomain: GOERLI_DOMAIN,
-      to: address(connextRouter),
-      delegate: ALICE,
-      receiveLocal: false,
-      callData: callData,
-      slippage: slippage,
-      originSender: ALICE,
-      bridgedAmt: amount,
-      normalizedIn: amount,
-      nonce: 0,
-      canonicalId: ""
-    });
+  //   //Fake inbound xTransfer
+  //   bytes memory callData = _getDepositAndBorrowCallData(
+  //     ALICE,
+  //     ALICE_PK,
+  //     amount,
+  //     borrowAmount,
+  //     address(connextRouter),
+  //     address(vault),
+  //     slippageThreshold
+  //   );
 
-    address[] memory routers = new address[](1);
-    bytes[] memory routerSignatures = new bytes[](1);
+  //   //TODO check this
+  //   TransferInfo memory transferInfo = TransferInfo({
+  //     originDomain: OPTIMISM_GOERLI_DOMAIN,
+  //     destinationDomain: GOERLI_DOMAIN,
+  //     canonicalDomain: GOERLI_DOMAIN,
+  //     to: address(connextRouter),
+  //     delegate: ALICE,
+  //     receiveLocal: false,
+  //     callData: callData,
+  //     slippage: slippage,
+  //     originSender: ALICE,
+  //     bridgedAmt: amount,
+  //     normalizedIn: amount,
+  //     nonce: 0,
+  //     canonicalId: ""
+  //   });
 
-    //TODO check
-    ExecuteArgs memory executeArgs = ExecuteArgs({
-      params: transferInfo,
-      routers: routers, //The routers who you are sending the funds on behalf of.
-      routerSignatures: routerSignatures, // Signatures belonging to the routers indicating permission to use funds for the signed transfer ID.
-      sequencer: address(0), // The sequencer who assigned the router path to this transfer.
-      sequencerSignature: bytes("") //Signature produced by the sequencer for path assignment accountability for the path that was signed.
-    });
+  //   address[] memory routers = new address[](1);
+  //   bytes[] memory routerSignatures = new bytes[](1);
 
-    //TODO check which address to prank
-    //its going to be connext address that calls this function on destination chain
-    vm.startPrank(address(0));
-    connext.execute(executeArgs);
+  //   //TODO check
+  //   ExecuteArgs memory executeArgs = ExecuteArgs({
+  //     params: transferInfo,
+  //     routers: routers, //The routers who you are sending the funds on behalf of.
+  //     routerSignatures: routerSignatures, // Signatures belonging to the routers indicating permission to use funds for the signed transfer ID.
+  //     sequencer: address(0), // The sequencer who assigned the router path to this transfer.
+  //     sequencerSignature: bytes("") //Signature produced by the sequencer for path assignment accountability for the path that was signed.
+  //   });
 
-    // send directly the bridged funds to our router
-    // thus mocking Connext behavior
-    // including a 0.03% slippage (3 BPS)
-    //TODO slippageAmount should fail transaction so that it is necessary we update the slippage
-    uint256 slippageAmount = ((amount * 10000) / 10003);
-    deal(collateralAsset, address(connextRouter), slippageAmount);
+  //   //TODO check which address to prank
+  //   //its going to be connext address that calls this function on destination chain
+  //   vm.startPrank(address(0));
+  //   connext.execute(executeArgs);
 
-    //Change slippage
-    // vm.startPrank(ALICE);
-    vm.startPrank(address(connext));
-    connext.forceUpdateSlippage(
-      TransferInfo({
-        originDomain: OPTIMISM_GOERLI_DOMAIN,
-        destinationDomain: GOERLI_DOMAIN,
-        canonicalDomain: GOERLI_DOMAIN,
-        to: address(connextRouter),
-        delegate: ALICE,
-        receiveLocal: false,
-        callData: "",
-        slippage: 0, //original slippage is 0
-        originSender: ALICE,
-        bridgedAmt: amount,
-        normalizedIn: amount,
-        nonce: 0,
-        // canonicalId: 0x7af963cF6D228E564e2A0aA0DdBF06210B38615D //address of goerli native token
-        canonicalId: ""
-      }),
-      newSlippage
-    );
+  //   // send directly the bridged funds to our router
+  //   // thus mocking Connext behavior
+  //   // including a 0.03% slippage (3 BPS)
+  //   //TODO slippageAmount should fail transaction so that it is necessary we update the slippage
+  //   uint256 slippageAmount = ((amount * 10000) / 10003);
+  //   deal(collateralAsset, address(connextRouter), slippageAmount);
 
-    //TODO check transaction executed
-  }
+  //   //Change slippage
+  //   // vm.startPrank(ALICE);
+  //   vm.startPrank(address(connext));
+  //   connext.forceUpdateSlippage(
+  //     TransferInfo({
+  //       originDomain: OPTIMISM_GOERLI_DOMAIN,
+  //       destinationDomain: GOERLI_DOMAIN,
+  //       canonicalDomain: GOERLI_DOMAIN,
+  //       to: address(connextRouter),
+  //       delegate: ALICE,
+  //       receiveLocal: false,
+  //       callData: "",
+  //       slippage: 0, //original slippage is 0
+  //       originSender: ALICE,
+  //       bridgedAmt: amount,
+  //       normalizedIn: amount,
+  //       nonce: 0,
+  //       // canonicalId: 0x7af963cF6D228E564e2A0aA0DdBF06210B38615D //address of goerli native token
+  //       canonicalId: ""
+  //     }),
+  //     newSlippage
+  //   );
+  // }
+
+  //***************************************************************************/
 }
