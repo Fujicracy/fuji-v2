@@ -11,6 +11,8 @@ import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AaveV3Arbitrum} from "../src/providers/arbitrum/AaveV3Arbitrum.sol";
+import {RadiantArbitrum} from "../src/providers/arbitrum/RadiantArbitrum.sol";
+import {DForceArbitrum} from "../src/providers/arbitrum/DForceArbitrum.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -26,7 +28,9 @@ contract DeployArbitrum is ScriptPlus {
   FujiOracle oracle;
   ConnextRouter connextRouter;
 
-  AaveV3Arbitrum aaveV3Arbitrum;
+  AaveV3Arbitrum aaveV3;
+  RadiantArbitrum radiant;
+  DForceArbitrum dforce;
 
   IConnext connextHandler = IConnext(0xEE9deC2712cCE65174B561151701Bf54b99C24C8);
   IWETH9 WETH = IWETH9(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
@@ -41,9 +45,7 @@ contract DeployArbitrum is ScriptPlus {
   function run() public {
     vm.startBroadcast();
 
-    aaveV3Arbitrum = AaveV3Arbitrum(getAddress("AaveV3Arbitrum"));
-    /*aaveV3Arbitrum = new AaveV3Arbitrum();*/
-    /*saveAddress("AaveV3Arbitrum", address(aaveV3Arbitrum));*/
+    _handleLendingProviders();
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -94,6 +96,26 @@ contract DeployArbitrum is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
+    /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
+
+    vm.stopBroadcast();
+  }
+
+  function _handleLendingProviders() internal {
+    aaveV3 = AaveV3Arbitrum(getAddress("AaveV3Arbitrum"));
+    /*aaveV3 = new AaveV3Arbitrum();*/
+    /*saveAddress("AaveV3Arbitrum", address(aaveV3));*/
+
+    radiant = RadiantArbitrum(getAddress("RadiantArbitrum"));
+    /*radiant = new RadiantArbitrum();*/
+    /*saveAddress("RadiantArbitrum", address(radiant));*/
+
+    dforce = DForceArbitrum(getAddress("DForceArbitrum"));
+    /*dforce = new DForceArbitrum();*/
+    /*saveAddress("DForceArbitrum", address(dforce));*/
+  }
+
+  function _setRouters() internal {
     /*address polygonRouter = getAddressAt("ConnextRouter", "polygon");*/
     /*address optimismRouter = getAddressAt("ConnextRouter", "optimism");*/
     /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
@@ -122,17 +144,27 @@ contract DeployArbitrum is ScriptPlus {
     /*address(connextRouter),*/
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)*/
     /*);*/
-
-    vm.stopBroadcast();
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = aaveV3Arbitrum;
+    providers[0] = aaveV3;
     address vault = chief.deployVault(
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
     );
     saveAddress(name, vault);
+  }
+
+  function _setVaultNewProviders(string memory vaultName) internal {
+    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
+
+    ILendingProvider[] memory providers = new ILendingProvider[](3);
+    providers[0] = aaveV3;
+    providers[1] = radiant;
+    providers[2] = dforce;
+    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    _scheduleWithTimelock(address(vault), callData);
+    /*_executeWithTimelock(address(vault), callData);*/
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

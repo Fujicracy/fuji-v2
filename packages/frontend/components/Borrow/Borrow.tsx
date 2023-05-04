@@ -217,7 +217,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent sx={{ width: '100%', p: '1.5rem 2rem' }}>
           <BorrowHeader
-            chainName={chainName(debt.chainId)}
+            chainName={chainName(vault?.chainId)}
             isEditing={isEditing}
             actionType={actionType}
             onActionTypeChange={(type) => setActionType(type)}

@@ -1,5 +1,4 @@
 import {
-  Box,
   Skeleton,
   Stack,
   Table,
@@ -25,8 +24,9 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
+import { NetworkIcon, TokenIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
 
@@ -81,63 +81,67 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
           {rows.map((row, i) => (
             <TableRow
               key={i}
-              sx={{ cursor: 'pointer', height: '4.3rem' }}
+              sx={{
+                cursor: 'pointer',
+                height: '3.375rem',
+                '&:hover': {
+                  '& .MuiTableCell-root': { background: '#34363E' },
+                },
+              }}
               onClick={() => handleClick(row)}
             >
               <TableCell>
-                <Stack direction="row" alignItems="center">
-                  <TokenWithNetworkIcon
-                    token={row.debt.symbol}
+                <Stack direction="row" alignItems="center" gap="0.5rem">
+                  <NetworkIcon
                     network={chainName(row.chainId)}
-                    innertTop="1.1rem"
+                    width={24}
+                    height={24}
                   />
-                  {row.debt.symbol}
+                  {chainName(row.chainId)}
                 </Stack>
               </TableCell>
               <TableCell>
-                <Stack direction="row" alignItems="center" gap={1}>
-                  <TokenIcon
-                    token={row.collateral.symbol}
-                    width={32}
-                    height={32}
-                  />
-                  {row.collateral.symbol}
+                <Stack direction="row" alignItems="center">
+                  <TokenIcon token={row.debt.symbol} width={24} height={24} />
+                  <Typography variant="small" fontWeight={500} ml="0.5rem">
+                    {formatValue(row.debt.amount)} {row.debt.symbol}
+                  </Typography>
+                  <Typography variant="xsmall" ml="0.25rem">
+                    (
+                    {formatValue(row.debt.usdValue, {
+                      style: 'currency',
+                      minimumFractionDigits: 2,
+                    })}
+                    )
+                  </Typography>
                 </Stack>
               </TableCell>
-              <TableCell align="right">
+              <TableCell>
+                <Stack direction="row" alignItems="center">
+                  <TokenIcon
+                    token={row.collateral.symbol}
+                    width={24}
+                    height={24}
+                  />
+                  <Typography variant="small" fontWeight={500} ml="0.5rem">
+                    {formatValue(row.collateral.amount)} {row.collateral.symbol}
+                  </Typography>
+                  <Typography variant="xsmall" ml="0.25rem">
+                    (
+                    {formatValue(row.collateral.usdValue, {
+                      style: 'currency',
+                      maximumFractionDigits: 2,
+                    })}
+                    )
+                  </Typography>
+                </Stack>
+              </TableCell>
+              <TableCell align="center">
                 <Typography variant="small" color={palette.warning.main}>
                   {row.apr}%
                 </Typography>
               </TableCell>
-              <TableCell align="right">
-                <Box pt={1} pb={1}>
-                  <Typography variant="small">
-                    {formatValue(row.debt.usdValue, {
-                      style: 'currency',
-                      minimumFractionDigits: 0,
-                    })}
-                  </Typography>
-                  <br />
-                  <Typography variant="small" color={palette.info.main}>
-                    {formatValue(row.debt.amount)} {row.debt.symbol}
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell align="right">
-                <Box pt={1} pb={1}>
-                  <Typography variant="small">
-                    {formatValue(row.collateral.usdValue, {
-                      style: 'currency',
-                      maximumFractionDigits: 0,
-                    })}
-                  </Typography>
-                  <br />
-                  <Typography variant="small" color={palette.info.main}>
-                    {formatValue(row.collateral.amount)} {row.collateral.symbol}
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 {formatValue(row.oraclePrice, {
                   style: 'currency',
                   minimumFractionDigits: 0,
@@ -170,13 +174,22 @@ function MyPositionsBorrowTableHeader() {
   return (
     <TableHead>
       <TableRow sx={{ height: '2.625rem' }}>
-        <TableCell>Borrowed asset</TableCell>
-        <TableCell>Collateral asset</TableCell>
-        <TableCell align="right">Borrow APR</TableCell>
-        <TableCell align="right">Borrowed amount</TableCell>
-        <TableCell align="right">Collateral provided</TableCell>
-        <TableCell align="right">Oracle price</TableCell>
-        <TableCell align="right">Liquidation price</TableCell>
+        <TableCell>Network</TableCell>
+        <TableCell>Borrow Amount</TableCell>
+        <TableCell>Collateral Amount</TableCell>
+        <TableCell align="center">Borrow APR</TableCell>
+        <TableCell align="center">Oracle price</TableCell>
+        <TableCell align="right">
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            <InfoTooltip
+              title={
+                'When the price of the provided collateral drops below the indicated liquidation price, your position is going to be liquidated.'
+              }
+              isLeft
+            />
+            Liquidation price
+          </Stack>
+        </TableCell>
       </TableRow>
     </TableHead>
   );
