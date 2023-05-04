@@ -125,6 +125,10 @@ function TransactionModal({
     },
   ];
 
+  const commonStatusStyle = {
+    marginTop: '0.2rem',
+  };
+
   return (
     <Dialog
       open={true}
@@ -256,6 +260,7 @@ function TransactionModal({
                     {status === HistoryEntryStatus.SUCCESS ? (
                       <CheckIcon
                         sx={{
+                          ...commonStatusStyle,
                           width: '1.125rem',
                           height: '1.125rem',
                           backgroundColor: theme.palette.success.dark,
@@ -265,10 +270,14 @@ function TransactionModal({
                         fontSize="large"
                       />
                     ) : entry.status === HistoryEntryStatus.ONGOING ? (
-                      <CircularProgress size={18} />
+                      <CircularProgress size={18} sx={commonStatusStyle} />
                     ) : (
                       <ErrorOutlineIcon
-                        sx={{ width: '18px', height: '18px' }}
+                        sx={{
+                          ...commonStatusStyle,
+                          width: '20px',
+                          height: '20px',
+                        }}
                       />
                     )}
                   </Box>
