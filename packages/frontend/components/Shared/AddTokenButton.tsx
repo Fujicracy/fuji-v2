@@ -1,4 +1,5 @@
 import LoadingButton from '@mui/lab/LoadingButton';
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { SerializableToken } from '../../helpers/history';
@@ -30,12 +31,21 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   return (
     <LoadingButton
-      variant="ghost"
+      variant="secondary"
       fullWidth
       size="medium"
       onClick={handleClick}
       loading={status === 'loading'}
     >
+      {status !== 'loading' && (
+        <Image
+          src={'/assets/images/shared/wallet.svg'}
+          alt={'Wallet Icon'}
+          height={16}
+          width={16}
+          style={{ marginRight: '0.5rem' }}
+        />
+      )}
       {`Add ${token.symbol} to Wallet`}
     </LoadingButton>
   );
