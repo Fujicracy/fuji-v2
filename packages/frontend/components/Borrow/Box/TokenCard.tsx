@@ -190,6 +190,7 @@ function TokenCard({
         <TextField
           id="collateral-amount"
           type="number"
+          inputProps={{ step: '0.1', lang: 'en-US' }}
           placeholder="0"
           inputRef={handleRef}
           value={value}

@@ -79,7 +79,8 @@ function RouteBox({
       case RoutingStep.WITHDRAW:
         return camelize(
           `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
+            formatUnits(amount ?? 0, token?.decimals || 18),
+            true
           )} ${token?.symbol}`
         );
       case RoutingStep.X_TRANSFER:

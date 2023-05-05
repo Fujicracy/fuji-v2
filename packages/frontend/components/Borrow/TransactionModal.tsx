@@ -302,7 +302,11 @@ function TransactionModal({
             <Link href={link} target="_blank" variant="inherit">
               <Button size="medium" fullWidth variant="secondary">
                 {`View ${
-                  index === 0 ? 'first ' : index === 1 ? 'second ' : ''
+                  index === 0 && entry.chainCount > 2
+                    ? 'first '
+                    : index === 1
+                    ? 'second '
+                    : ''
                 }transaction on ConnextScan`}
               </Button>
             </Link>
