@@ -1,7 +1,7 @@
 import { hiddenAddress } from '../../../helpers/values';
 
 describe('Account', () => {
-  const accountAddress = '0xedBf22d2c627318C57C542E35330955a3076C198'; // Temp
+  const accountAddress = Cypress.env('user_address');
   before(() => {
     cy.visit('/');
   });
