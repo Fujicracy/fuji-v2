@@ -14,6 +14,7 @@ import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../src/providers/polygon/AaveV2Polygon.sol";
 import {DForcePolygon} from "../src/providers/polygon/DForcePolygon.sol";
 import {OvixPolygon} from "../src/providers/polygon/OvixPolygon.sol";
+import {CompoundV3Polygon} from "../src/providers/polygon/CompoundV3Polygon.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -33,6 +34,7 @@ contract DeployPolygon is ScriptPlus {
   AaveV2Polygon aaveV2;
   DForcePolygon dforce;
   OvixPolygon ovix;
+  CompoundV3Polygon compound;
 
   IConnext connextHandler = IConnext(0x11984dc4465481512eb5b777E44061C158CF2259);
   IWETH9 WETH = IWETH9(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
@@ -102,7 +104,8 @@ contract DeployPolygon is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
-    _setVaultNewProviders("BorrowingVault-WETHUSDC");
+    _setVaultNewProviders("BorrowingVault-WETHUSDC-2");
+    /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
 
     vm.stopBroadcast();
   }
@@ -154,6 +157,10 @@ contract DeployPolygon is ScriptPlus {
     dforce = DForcePolygon(getAddress("DForcePolygon"));
     /*dforce = new DForcePolygon();*/
     /*saveAddress("DForcePolygon", address(dforce));*/
+
+    compound = CompoundV3Polygon(getAddress("CompoundV3Polygon"));
+    /*compound = new CompoundV3Polygon();*/
+    /*saveAddress("CompoundV3Polygon", address(compound));*/
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
@@ -180,13 +187,19 @@ contract DeployPolygon is ScriptPlus {
     BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
 
     ILendingProvider[] memory providers = new ILendingProvider[](4);
-    providers[0] = aaveV3;
-    providers[1] = aaveV2;
-    providers[2] = dforce;
-    providers[3] = ovix;
+    providers[0] = aaveV2;
+    providers[1] = aaveV3;
+    providers[2] = compound;
     bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
     /*_scheduleWithTimelock(address(vault), callData);*/
     _executeWithTimelock(address(vault), callData);
+  }
+
+  function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
+    bytes memory callData =
+      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
+    _scheduleWithTimelock(address(chief), callData);
+    /*_executeWithTimelock(address(chief), callData);*/
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

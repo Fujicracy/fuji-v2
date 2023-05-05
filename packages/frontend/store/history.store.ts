@@ -35,6 +35,7 @@ type HistoryState = {
   entries: Record<string, HistoryEntry>;
 
   currentTxHash?: string | undefined; // The tx hash displayed in modal
+  isHistoricalTransaction?: boolean;
 
   watching: string[];
 };
@@ -52,7 +53,7 @@ type HistoryActions = {
   watch: (transaction: HistoryTransaction) => void;
   clearStore: () => void;
 
-  openModal: (hash: string) => void;
+  openModal: (hash: string, isHistorical?: boolean) => void;
   closeModal: () => void;
 };
 
@@ -61,6 +62,7 @@ const initialState: HistoryState = {
   ongoingTransactions: [],
   entries: {},
   watching: [],
+  isHistoricalTransaction: false,
 };
 
 export const useHistory = create<HistoryStore>()(
@@ -150,7 +152,8 @@ export const useHistory = create<HistoryStore>()(
             const isFinal =
               entry.chainCount > 1 &&
               entry.secondChain &&
-              entry.secondChain.status === HistoryEntryStatus.SUCCESS;
+              (entry.sourceChain.status === HistoryEntryStatus.SUCCESS ||
+                entry.sourceChain.status === HistoryEntryStatus.FAILURE);
 
             set(
               produce((s: HistoryState) => {
@@ -159,11 +162,17 @@ export const useHistory = create<HistoryStore>()(
                   ? HistoryEntryStatus.SUCCESS
                   : HistoryEntryStatus.FAILURE;
 
-                if (isFinal && entry.secondChain) {
+                if (
+                  isFinal &&
+                  entry.secondChain &&
+                  entry.secondChain.status !== HistoryEntryStatus.SUCCESS
+                ) {
                   entry.secondChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
-                } else {
+                } else if (
+                  entry.sourceChain.status !== HistoryEntryStatus.SUCCESS
+                ) {
                   entry.sourceChain.status = success
                     ? HistoryEntryStatus.SUCCESS
                     : HistoryEntryStatus.FAILURE;
@@ -220,23 +229,27 @@ export const useHistory = create<HistoryStore>()(
               return;
             }
             const address = useAuth.getState().address;
-            if (address === entry.address && !entry.sourceChain.shown) {
-              notify({
-                type: 'success',
-                message: formatCrosschainNotificationMessage(
-                  chainName(entry.sourceChain.chainId),
-                  chainName(entry.secondChain?.chainId)
-                ),
-                link: getTransactionLink({
-                  hash: entry.hash,
-                  chainId: entry.sourceChain.chainId,
-                }),
-              });
-              set(
-                produce((s: HistoryState) => {
-                  s.entries[hash].sourceChain.shown = true;
-                })
-              );
+            if (address === entry.address) {
+              triggerUpdatesFromSteps(entry.steps);
+              usePositions.getState().fetchUserPositions();
+              if (!entry.sourceChain.shown) {
+                notify({
+                  type: 'success',
+                  message: formatCrosschainNotificationMessage(
+                    chainName(entry.sourceChain.chainId),
+                    chainName(entry.secondChain?.chainId)
+                  ),
+                  link: getTransactionLink({
+                    hash: entry.hash,
+                    chainId: entry.sourceChain.chainId,
+                  }),
+                });
+                set(
+                  produce((s: HistoryState) => {
+                    s.entries[hash].sourceChain.shown = true;
+                  })
+                );
+              }
             }
 
             let crosschainCallFinished = false;
@@ -324,12 +337,12 @@ export const useHistory = create<HistoryStore>()(
           });
         },
 
-        openModal(hash) {
-          set({ currentTxHash: hash });
+        openModal(hash, isHistorical = false) {
+          set({ currentTxHash: hash, isHistoricalTransaction: isHistorical });
         },
 
         closeModal() {
-          set({ currentTxHash: '' });
+          set({ currentTxHash: '', isHistoricalTransaction: false });
         },
       }),
       {

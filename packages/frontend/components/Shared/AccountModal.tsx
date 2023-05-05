@@ -73,13 +73,14 @@ function AccountModal({
   const copy = () => {
     navigator.clipboard.writeText(address);
     setCopied(true);
+
     setTimeout(() => {
       setCopied(false);
     }, 5000);
   };
 
   const handleEntryClick = (entry: HistoryEntry) => {
-    openModal(entry.hash);
+    openModal(entry.hash, true);
     closeAccountModal();
   };
 
@@ -89,6 +90,7 @@ function AccountModal({
 
   const onLogout = () => {
     logout();
+    closeAccountModal();
   };
 
   return (
@@ -258,7 +260,7 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
-      <CircularProgress size={16} sx={{ mr: '-1rem' }} />
+      <CircularProgress size={16} />
     ) : entry.status === HistoryEntryStatus.FAILURE ? (
       <ErrorOutlineIcon />
     ) : (

@@ -1,35 +1,31 @@
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import LaunchIcon from '@mui/icons-material/Launch';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
   Box,
   Button,
   Card,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogContent,
+  Divider,
   Link,
   Paper,
   Stack,
-  Step,
-  StepLabel,
-  Stepper,
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import StepConnector, {
-  stepConnectorClasses,
-} from '@mui/material/StepConnector';
-import { styled, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { chainName } from '../../helpers/chains';
-import { transactionUrl } from '../../helpers/chains';
+import { chainName, transactionUrl } from '../../helpers/chains';
 import {
   HistoryEntry,
   HistoryEntryStatus,
@@ -43,13 +39,20 @@ import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import { NetworkIcon } from '../Shared/Icons';
+import LinkIcon from '../Shared/Icons/LinkIcon';
 import WarningInfo from '../Shared/WarningInfo';
 
 type TransactionModalProps = {
   entry: HistoryEntry;
   currentPage: string;
+  isHistoricalTransaction?: boolean;
 };
-function TransactionModal({ entry, currentPage }: TransactionModalProps) {
+
+function TransactionModal({
+  entry,
+  currentPage,
+  isHistoricalTransaction = false,
+}: TransactionModalProps) {
   const theme = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -58,7 +61,27 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
 
   const closeModal = useHistory((state) => state.closeModal);
 
-  const [activeStep] = useState(2);
+  const [isDetailsShown, setIsDetailsShown] = useState(isHistoricalTransaction);
+  const [gif, setGif] = useState('');
+
+  useEffect(() => {
+    if (isHistoricalTransaction) return;
+
+    if (entry.status === HistoryEntryStatus.FAILURE) {
+      setGif('/assets/images/transactions/ERROR.gif');
+      return;
+    }
+
+    if (entry.status === HistoryEntryStatus.SUCCESS) {
+      setGif('/assets/images/transactions/END.gif');
+      return;
+    }
+
+    setGif('/assets/images/transactions/START.gif');
+    setTimeout(() => {
+      setGif('/assets/images/transactions/RIDE.gif');
+    }, 4000);
+  }, [entry.status, isHistoricalTransaction]);
 
   if (!entry) return <></>;
 
@@ -90,14 +113,6 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
 
     const link = txHash && transactionUrl(realChainId, txHash);
 
-    const style = {
-      background: theme.palette.secondary.light,
-      mr: '0.5rem',
-      p: '0.5rem 0.5rem 0.3rem 0.5rem',
-      borderRadius: '100%',
-      zIndex: 1,
-    };
-
     const action = step.toString();
     const preposition =
       step === RoutingStep.DEPOSIT
@@ -126,11 +141,7 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
       link,
       description,
       chainId: realChainId,
-      icon: () => (
-        <Box sx={style}>
-          <NetworkIcon network={chain} height={32} width={32} />
-        </Box>
-      ),
+      icon: () => <NetworkIcon network={chain} height={18} width={18} />,
     };
   });
 
@@ -149,6 +160,26 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
     }
     showPosition(router, undefined, vault);
   };
+
+  const handleChange = (evt: MouseEvent) => {
+    evt.preventDefault();
+    setIsDetailsShown((prev) => !prev);
+  };
+
+  const transactionStatusMap: { label: string; color: string }[] = [
+    {
+      label: 'Pending',
+      color: theme.palette.warning.main,
+    },
+    {
+      label: 'Success',
+      color: theme.palette.success.main,
+    },
+    {
+      label: 'Error',
+      color: theme.palette.error.main,
+    },
+  ];
 
   return (
     <Dialog
@@ -178,77 +209,115 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
         </Box>
         <Box textAlign={isMobile ? 'left' : 'center'} mb="2rem">
           <Typography variant="h6" fontWeight={500}>
-            Transaction{' '}
-            {entry.status === HistoryEntryStatus.ONGOING && 'processing...'}
-            {entry.status === HistoryEntryStatus.SUCCESS && 'Success!'}
-            {entry.status === HistoryEntryStatus.FAILURE && 'Error'}
+            Transaction Status
           </Typography>
         </Box>
-        <DialogContent sx={{ p: 0, overflowX: 'hidden' }}>
-          <Stepper
-            activeStep={activeStep}
-            orientation="vertical"
-            connector={<CustomConnector />}
+        {!isHistoricalTransaction && gif && (
+          <img
+            src={gif}
+            alt="Loading Image"
+            style={{ width: '100%', height: 'auto' }}
+          />
+        )}
+        <DialogContent
+          sx={{
+            mt: gif ? '1.5rem' : '0',
+            p: '0.75rem 1rem',
+            overflowX: 'hidden',
+            backgroundColor: theme.palette.secondary.dark,
+            borderRadius: '0.5rem',
+          }}
+        >
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ cursor: 'pointer' }}
+            onClick={handleChange}
           >
+            <Stack direction="column">
+              <Typography variant="small" fontWeight={500}>
+                Transaction Details
+              </Typography>
+              <Typography variant="xsmall" color={theme.palette.info.main}>
+                Status:{'  '}
+                <Typography
+                  variant="xsmall"
+                  color={transactionStatusMap[entry.status].color}
+                >
+                  {transactionStatusMap[entry.status].label}
+                </Typography>
+              </Typography>
+            </Stack>
+            {!isDetailsShown ? (
+              <KeyboardArrowDownIcon />
+            ) : (
+              <KeyboardArrowUpIcon />
+            )}
+          </Stack>
+          <Collapse in={isDetailsShown}>
+            <Divider sx={{ mt: '0.75rem', mb: '0.75rem' }} />
+
             {steps?.map((step) => {
               const status = statusForStep(step, entry);
               return (
-                <Step key={step.label}>
-                  <StepLabel StepIconComponent={step.icon}>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      gap={2}
+                <Stack
+                  key={step.label}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  gap={2}
+                  mt={1}
+                >
+                  <Stack direction="row" alignItems="center">
+                    {step.icon()}
+                    <Typography
+                      variant="small"
+                      sx={{
+                        ml: '0.5rem',
+                      }}
                     >
-                      <Box>
-                        <Typography variant="body" fontSize="0.875rem">
-                          {step.label}
-                        </Typography>
-                        <br />
-                        {step.txHash && step.link && (
-                          <Link
-                            href={step.link}
-                            target="_blank"
-                            variant="smallDark"
-                            fontSize="0.75rem"
-                            color={theme.palette.info.dark}
-                          >
-                            {step.description}
-                            <LaunchIcon
-                              sx={{
-                                ml: '0.3rem',
-                                fontSize: '0.6rem',
-                                color: theme.palette.info.dark,
-                              }}
-                            />
-                          </Link>
-                        )}
-                      </Box>
-                      <Box>
-                        {status === HistoryEntryStatus.SUCCESS ? (
-                          <CheckIcon
-                            sx={{
-                              width: '2rem',
-                              height: '2rem',
-                              backgroundColor: theme.palette.success.dark,
-                              borderRadius: '100%',
-                              padding: '0.4rem',
-                            }}
-                            fontSize="large"
-                          />
-                        ) : entry.status === HistoryEntryStatus.ONGOING ? (
-                          <CircularProgress size={32} />
-                        ) : (
-                          <ErrorOutlineIcon viewBox="0 0 32 32" />
-                        )}
-                      </Box>
-                    </Stack>
-                  </StepLabel>
-                </Step>
+                      {step.label}
+                      {step.txHash && step.link && (
+                        <Link
+                          href={step.link}
+                          target="_blank"
+                          variant="smallDark"
+                          fontSize="0.75rem"
+                          color={theme.palette.info.dark}
+                          sx={{
+                            ml: '0.25rem',
+                          }}
+                        >
+                          <LinkIcon />
+                        </Link>
+                      )}
+                    </Typography>
+                  </Stack>
+                  <Box>
+                    {status === HistoryEntryStatus.SUCCESS ? (
+                      <CheckIcon
+                        sx={{
+                          width: '1.125rem',
+                          height: '1.125rem',
+                          backgroundColor: theme.palette.success.dark,
+                          borderRadius: '100%',
+                          padding: '0.2rem',
+                        }}
+                        fontSize="large"
+                      />
+                    ) : entry.status === HistoryEntryStatus.ONGOING ? (
+                      <CircularProgress size={18} />
+                    ) : (
+                      <ErrorOutlineIcon
+                        sx={{ width: '18px', height: '18px' }}
+                      />
+                    )}
+                  </Box>
+                </Stack>
               );
             })}
-          </Stepper>
+          </Collapse>
         </DialogContent>
         {entry.status === HistoryEntryStatus.ONGOING && (
           <>
@@ -307,16 +376,3 @@ function TransactionModal({ entry, currentPage }: TransactionModalProps) {
 }
 
 export default TransactionModal;
-
-const CustomConnector = styled(StepConnector)(({ theme }) => ({
-  [`& .${stepConnectorClasses.line}`]: {
-    borderColor: theme.palette.secondary.light,
-    borderLeft: `0.125rem solid ${theme.palette.secondary.light}`,
-    left: '12px',
-    position: 'relative',
-    marginTop: '-2.5rem',
-    height: '6rem',
-    marginBottom: '-2.5rem',
-    width: 'fit-content',
-  },
-}));
