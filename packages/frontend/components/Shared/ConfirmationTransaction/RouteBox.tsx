@@ -70,6 +70,7 @@ function RouteBox({
     return <></>;
   }
 
+  // TODO: formatting here since it brakes markup
   function textForStep({ step, amount, token }: RoutingStepDetails) {
     switch (step) {
       case RoutingStep.DEPOSIT:
@@ -173,7 +174,7 @@ function RouteBox({
                 />
               </Box>
             ) : (
-              <Box sx={{ width: '1.5rem' }}></Box>
+              <Box sx={{ width: { xs: '1.5rem', sm: '0' } }} />
             )}
           </Stack>
         ))}
