@@ -162,10 +162,8 @@ export const useHistory = create<HistoryStore>()(
             const ongoingTransactions = get().ongoingTransactions.filter(
               (h) => h.hash !== hash
             );
-            set({ ongoingTransactions });
-
             const filtered = get().watching.filter((h) => h !== hash);
-            set({ watching: filtered });
+            set({ ongoingTransactions, watching: filtered });
           };
 
           if (!entry) {

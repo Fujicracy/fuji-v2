@@ -243,7 +243,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 key={type}
                 index={index}
                 type={type}
-                mode={mode}
                 showMax={!showLtv}
                 maxAmount={maxAmount}
                 assetChange={assetChange}

@@ -6,7 +6,6 @@ import {
   AssetChange,
   AssetType,
   LtvMeta,
-  Mode,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
@@ -24,7 +23,6 @@ type BorrowBoxProps = {
   showMax: boolean;
   maxAmount: number;
   ltvMeta: LtvMeta;
-  mode: Mode;
   basePosition: BasePosition;
   index: number;
 };
@@ -41,7 +39,6 @@ function BorrowBox({
   maxAmount,
   ltvMeta,
   basePosition,
-  mode,
   index,
 }: BorrowBoxProps) {
   const changeCollateralChain = useBorrow(
