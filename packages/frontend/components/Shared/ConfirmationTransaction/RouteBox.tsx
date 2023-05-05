@@ -29,41 +29,55 @@ function RouteBox({
         ? 'to'
         : 'from';
       return (
-        <Typography
-          align="center"
-          variant="xsmall"
-          fontSize="0.75rem"
-          sx={{ display: 'flex', gap: '0.25rem' }}
+        <span
+          style={{
+            display: 'inline',
+            gap: '0.25rem',
+            marginLeft: '0.25rem',
+            alignItems: 'center',
+          }}
         >
           {`${preposition} ${step.lendingProvider.name} on `}
           <NetworkIcon
             network={chainName(step.chainId)}
             height={14}
             width={14}
+            style={{ margin: '0 0.25rem -0.15rem 0', alignSelf: 'center' }}
           />
-        </Typography>
+        </span>
       );
     }
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <Stack flexDirection="row" alignItems="center" gap="0.25rem">
-          <Typography align="center" variant="xsmall" fontSize="0.75rem">
-            from
-          </Typography>
+        <span
+          style={{
+            display: 'inline',
+            gap: '0.25rem',
+            marginLeft: '0.25rem',
+            textAlign: 'center',
+          }}
+        >
+          from
           <NetworkIcon
             network={chainName(step.token?.chainId)}
             height={14}
             width={14}
+            style={{
+              margin: '0 0.25rem -0.15rem 0.25rem',
+              alignSelf: 'center',
+            }}
           />
-          <Typography align="center" variant="xsmall" fontSize="0.75rem">
-            to
-          </Typography>
+          to
           <NetworkIcon
             network={chainName(step.chainId)}
             height={14}
             width={14}
+            style={{
+              margin: '0 0.25rem -0.15rem 0.25rem',
+              alignSelf: 'center',
+            }}
           />
-        </Stack>
+        </span>
       );
     }
 
@@ -141,7 +155,7 @@ function RouteBox({
             <Stack
               direction="column"
               sx={{
-                p: '0.375rem 0.45rem',
+                p: '0.375rem 0.7rem',
                 backgroundColor: '#35353B',
                 borderRadius: '6px',
                 minWidth: {
@@ -151,10 +165,8 @@ function RouteBox({
                 flex: 1,
               }}
             >
-              <Typography align="left" variant="xsmall">
+              <Typography align="left" variant="xsmall" fontSize="0.75rem">
                 {textForStep(step)}
-              </Typography>
-              <Typography align="left" variant="xsmall" mt={0.5}>
                 {description(step)}
               </Typography>
             </Stack>
