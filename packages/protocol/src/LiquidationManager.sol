@@ -203,7 +203,6 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     }
 
     uint256 withdrawable = vault.convertToAssets(gainedShares);
-    uint256 maxWithdrawAmount = vault.maxWithdraw(address(this));
 
     // Withdraw the "withdrawable" shares in exchange for collateralAsset
     vault.withdraw(withdrawable, address(this), address(this));
