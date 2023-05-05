@@ -124,16 +124,42 @@ function RouteBox({
           maxWidth: '38rem',
           flexWrap: 'wrap',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: 'center',
-          justifyContent: { xs: 'center', sm: 'space-between' },
+          alignItems: 'start',
+          justifyContent: 'start',
           gap: '0.5rem',
         }}
       >
         {stepsToShow.map((step, i) => (
-          <React.Fragment key={i}>
-            {i !== 0 && (
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{ flex: 1, width: { xs: '100%', sm: 'unset' } }}
+            key={i}
+          >
+            <Stack
+              direction="column"
+              sx={{
+                p: '0.375rem 0.45rem',
+                backgroundColor: '#35353B',
+                borderRadius: '6px',
+                minWidth: {
+                  xs: '95%',
+                  sm: stepsToShow.length > 3 ? '13rem' : '8rem',
+                },
+                flex: 1,
+              }}
+            >
+              <Typography align="left" variant="xsmall">
+                {textForStep(step)}
+              </Typography>
+              <Typography align="left" variant="xsmall" mt={0.5}>
+                {description(step)}
+              </Typography>
+            </Stack>
+            {i !== stepsToShow.length - 1 ? (
               <Box
                 sx={{
+                  m: '0 0.5rem',
                   ['@media screen and (max-width: 600px)']: {
                     transform: 'rotate(90deg)',
                   },
@@ -146,26 +172,10 @@ function RouteBox({
                   width={9}
                 />
               </Box>
+            ) : (
+              <Box sx={{ width: '1.5rem' }}></Box>
             )}
-            <Stack
-              direction="column"
-              sx={{
-                p: '0.375rem 0.45rem',
-                backgroundColor: '#35353B',
-                borderRadius: '6px',
-                minWidth: '8rem',
-                flex: 1,
-                width: { xs: '100%', sm: 'unset' },
-              }}
-            >
-              <Typography align="left" variant="xsmall">
-                {textForStep(step)}
-              </Typography>
-              <Typography align="left" variant="xsmall" mt={0.5}>
-                {description(step)}
-              </Typography>
-            </Stack>
-          </React.Fragment>
+          </Stack>
         ))}
       </Stack>
     </Card>

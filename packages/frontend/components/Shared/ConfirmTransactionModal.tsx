@@ -106,14 +106,14 @@ export function ConfirmTransactionModal({
         },
         '& .MuiDialog-paper': {
           maxWidth: '40rem',
-          width: { xs: '80%', sm: '40rem' },
+          width: { xs: '80%', sm: '35rem', md: '40rem' },
         },
       }}
     >
       <Paper
         variant="outlined"
         sx={{
-          width: { xs: 'auto', sm: '40rem' },
+          width: { xs: 'auto', sm: '35rem', md: '40rem' },
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
