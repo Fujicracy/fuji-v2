@@ -244,7 +244,7 @@ export const useHistory = create<HistoryStore>()(
               triggerUpdatesFromSteps(entry.steps);
               usePositions.getState().fetchUserPositions();
 
-              if (!shown) return;
+              if (shown) return;
 
               notify({
                 type: 'success',
