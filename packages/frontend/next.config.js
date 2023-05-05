@@ -29,6 +29,10 @@ const nextConfig = {
 
     return config;
   },
+  // this enables running "yarn build && yarn next export" when deploying in prod
+  images: {
+    unoptimized: true,
+  }
 };
 
 module.exports = nextConfig;
