@@ -314,7 +314,7 @@ function TokenCard({
                     cursor: 'pointer',
                   }}
                 >
-                  {toNotSoFixed(recommended())} {debt.token.symbol}
+                  {toNotSoFixed(recommended(), true)} {debt.token.symbol}
                 </Typography>
               </Typography>
             )}
