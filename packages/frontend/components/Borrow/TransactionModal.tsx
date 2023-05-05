@@ -218,21 +218,7 @@ function TransactionModal({
                   mt={1}
                 >
                   <Stack direction="row" alignItems="center">
-                    <Box
-                      sx={{
-                        background: theme.palette.secondary.light,
-                        mr: '0.5rem',
-                        p: '0.5rem 0.5rem 0.3rem 0.5rem',
-                        borderRadius: '100%',
-                        zIndex: 1,
-                      }}
-                    >
-                      <NetworkIcon
-                        network={step.chain}
-                        height={32}
-                        width={32}
-                      />
-                    </Box>
+                    <NetworkIcon network={step.chain} height={18} width={18} />
                     <Typography
                       variant="small"
                       sx={{
