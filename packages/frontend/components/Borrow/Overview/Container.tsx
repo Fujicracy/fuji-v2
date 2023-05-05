@@ -39,7 +39,7 @@ function Container({ children, isMobile }: ContainerProps) {
           pb: 0,
         }}
       >
-        <CardContent sx={{ p: 0, width: '100%' }}>
+        <CardContent sx={{ p: 0, width: '100%', mb: '0.8rem' }}>
           <CardActionArea onClick={openPreviewTransaction}>
             <Grid container justifyContent="space-between">
               <Typography onClick={openPreviewTransaction} variant="body2">
@@ -111,7 +111,7 @@ function Container({ children, isMobile }: ContainerProps) {
                   )}
                 </Grid>
               </CardActionArea>
-              <Divider sx={{ mt: '1.375rem', mb: '1rem' }} />
+              <Divider sx={{ mt: '0.575rem', mb: '1rem' }} />
               {children}
             </CardContent>
           </Card>

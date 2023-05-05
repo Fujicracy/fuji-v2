@@ -124,9 +124,11 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       updateBalances('debt');
       updateAllowance('collateral');
       updateAllowance('debt');
-      updateVault();
+      if (!vault) {
+        updateVault();
+      }
     }
-  }, [address, updateBalances, updateAllowance, updateVault]);
+  }, [address, vault, updateBalances, updateAllowance, updateVault]);
 
   useEffect(() => {
     updateTokenPrice('collateral');

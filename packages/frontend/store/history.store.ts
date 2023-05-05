@@ -229,23 +229,27 @@ export const useHistory = create<HistoryStore>()(
               return;
             }
             const address = useAuth.getState().address;
-            if (address === entry.address && !entry.sourceChain.shown) {
-              notify({
-                type: 'success',
-                message: formatCrosschainNotificationMessage(
-                  chainName(entry.sourceChain.chainId),
-                  chainName(entry.secondChain?.chainId)
-                ),
-                link: getTransactionLink({
-                  hash: entry.hash,
-                  chainId: entry.sourceChain.chainId,
-                }),
-              });
-              set(
-                produce((s: HistoryState) => {
-                  s.entries[hash].sourceChain.shown = true;
-                })
-              );
+            if (address === entry.address) {
+              triggerUpdatesFromSteps(entry.steps);
+              usePositions.getState().fetchUserPositions();
+              if (!entry.sourceChain.shown) {
+                notify({
+                  type: 'success',
+                  message: formatCrosschainNotificationMessage(
+                    chainName(entry.sourceChain.chainId),
+                    chainName(entry.secondChain?.chainId)
+                  ),
+                  link: getTransactionLink({
+                    hash: entry.hash,
+                    chainId: entry.sourceChain.chainId,
+                  }),
+                });
+                set(
+                  produce((s: HistoryState) => {
+                    s.entries[hash].sourceChain.shown = true;
+                  })
+                );
+              }
             }
 
             let crosschainCallFinished = false;

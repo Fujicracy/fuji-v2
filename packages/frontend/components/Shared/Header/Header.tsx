@@ -254,7 +254,11 @@ const Header = () => {
                           );
                         }}
                       >
-                        <ListItemText>
+                        <ListItemText
+                          onClick={(e) => {
+                            handleOpenAccountModal(true, e.currentTarget);
+                          }}
+                        >
                           <Stack direction="row" justifyContent="space-between">
                             <Typography variant="small">
                               {formattedAddress}
