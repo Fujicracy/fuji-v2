@@ -142,7 +142,6 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     view
   {
     {
-      // revert RebalancerManager__checkLtvChange_invalidAmount();
       BorrowingVault bvault = BorrowingVault(payable(address(vault)));
       uint256 maxLtv = bvault.maxLtv();
       uint8 assetDecimals = IERC20Metadata(bvault.asset()).decimals();
