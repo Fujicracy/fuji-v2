@@ -97,6 +97,7 @@ contract DeployArbitrum is ScriptPlus {
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
+    /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
 
     vm.stopBroadcast();
   }
@@ -165,6 +166,13 @@ contract DeployArbitrum is ScriptPlus {
     bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
     _scheduleWithTimelock(address(vault), callData);
     /*_executeWithTimelock(address(vault), callData);*/
+  }
+
+  function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
+    bytes memory callData =
+      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
+    /*_scheduleWithTimelock(address(chief), callData);*/
+    _executeWithTimelock(address(chief), callData);
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

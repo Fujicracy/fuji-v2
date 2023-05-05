@@ -13,7 +13,7 @@ import {
   Mode,
   needsAllowance,
 } from '../../helpers/assets';
-import { hexToChainId } from '../../helpers/chains';
+import { chainName, hexToChainId } from '../../helpers/chains';
 import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
@@ -148,11 +148,14 @@ function BorrowButton({
     (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
     hexToChainId(walletChain?.id)
   ) {
-    return regularButton('Switch network', () => {
-      onChainChangeClick(
-        actionType === ActionType.ADD ? collateral.chainId : debt.chainId
-      );
-    });
+    return regularButton(
+      `Switch to ${chainName(collateral.chainId)} Network`,
+      () => {
+        onChainChangeClick(
+          actionType === ActionType.ADD ? collateral.chainId : debt.chainId
+        );
+      }
+    );
   } else if (availableVaultStatus === 'error') {
     return disabledButton('Error fetching on-chain data');
   } else if (

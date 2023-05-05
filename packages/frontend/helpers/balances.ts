@@ -89,7 +89,7 @@ const checkBalance = async (
     current.token.chainId === asset.token.chainId &&
     balancesDiffer(current.balances, balances)
   ) {
-    useBorrow.getState().changeBalances(type, current.balances);
+    useBorrow.getState().changeBalances(type, balances);
   }
 };
 

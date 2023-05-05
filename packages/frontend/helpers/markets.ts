@@ -115,6 +115,10 @@ export const setBase = (v: BorrowingVault): MarketRow => ({
   entity: v,
   collateral: v.collateral.symbol,
   debt: v.debt.symbol,
+  chain: {
+    status: Status.Ready,
+    value: chainName(v.chainId),
+  },
 });
 
 // set apr and aprBase as being equal
@@ -125,11 +129,6 @@ export const setFinancials = (
   f?: VaultWithFinancials
 ): MarketRow => ({
   ...r,
-  chain: {
-    // chain is always available
-    status: Status.Ready,
-    value: chainName((r.entity as BorrowingVault).chainId),
-  },
   safetyRating: {
     status,
     value: Number((r.entity as BorrowingVault).safetyRating?.toString()) ?? 0,
@@ -230,7 +229,6 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
       (r) => r.debt === row.debt && r.collateral === row.collateral
     );
     if (entries.length > 1) {
-      // TODO: array should be sorted before being grouped
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
         sorted.map((r) => ({ ...r, isChild: true }))
@@ -253,9 +251,8 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
     if (done.has(key)) continue;
     done.add(key);
 
-    const entries = rows.filter((r) => r.chain === row.chain);
+    const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
-      // TODO: array should be sorted before being grouped
       const sorted = entries.sort(sortBy.descending);
       const children = sorted.map((r) => ({ ...r, isChild: true }));
       grouped.push({ ...sorted[0], children });

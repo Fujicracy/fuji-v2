@@ -33,6 +33,10 @@ export const LENDING_PROVIDERS: Record<
       name: 'dForce',
       llamaKey: 'dforce',
     },
+    '0x79D4155045a3CE87051B84E12E398Ad4383F034f': {
+      name: 'Compound V3',
+      llamaKey: 'compound-v3',
+    },
   },
   [ChainId.MATIC_MUMBAI]: {
     '0xC69176FADFeF7A1570540a99Faf827b3138659D1': {
