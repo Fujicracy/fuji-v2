@@ -61,6 +61,7 @@ function AccountModal({
   const copy = () => {
     navigator.clipboard.writeText(address);
     setCopied(true);
+
     setTimeout(() => {
       setCopied(false);
     }, 5000);
@@ -77,6 +78,7 @@ function AccountModal({
 
   const onLogout = () => {
     logout();
+    closeAccountModal();
   };
 
   return (

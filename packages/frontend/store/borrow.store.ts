@@ -605,7 +605,9 @@ export const useBorrow = create<BorrowStore>()(
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
-              formType === 'create' ? availableVaults : [activeVault];
+              formType === 'create' && availableVaults.length > 0
+                ? availableVaults
+                : [activeVault];
 
             const results = await Promise.all(
               vaults.map((v, i) => {
