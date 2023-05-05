@@ -85,7 +85,6 @@ export const useHistory = create<HistoryStore>()(
           const chainCount = bridgeSteps.length + 1;
 
           const bridge1 = bridgeSteps[0];
-          steps.indexOf(bridge1);
 
           const srcChainId = steps[0].chainId;
           const secondChainId =
@@ -164,6 +163,9 @@ export const useHistory = create<HistoryStore>()(
               (h) => h.hash !== hash
             );
             set({ ongoingTransactions });
+
+            const filtered = get().watching.filter((h) => h !== hash);
+            set({ watching: filtered });
           };
 
           if (!entry) {
