@@ -275,8 +275,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address asset,
       uint256 amount,
       address receiver,
-      address sender
-    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
+      address sender,
+      address delegate
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address, address));
 
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
@@ -292,7 +293,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       asset,
       // _delegate: address that has rights to update the original slippage tolerance
       // by calling Connext's forceUpdateSlippage function
-      msg.sender,
+      delegate,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
@@ -313,16 +314,21 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   )
     internal
     override
-    returns (address)
+    returns (address beneficiary_)
   {
-    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
-      abi.decode(params, (uint256, uint256, address, uint256, bytes));
+    (
+      uint256 destDomain,
+      uint256 slippage,
+      address asset,
+      uint256 amount,
+      address delegate,
+      bytes memory callData
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, bytes));
 
     (Action[] memory actions, bytes[] memory args,) =
       abi.decode(callData, (Action[], bytes[], uint256));
 
-    address intendedBeneficiary = _getBeneficiaryFromCalldata(actions, args);
-    address beneficiary_ = _checkBeneficiary(beneficiary, intendedBeneficiary);
+    beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
     _safePullTokenFrom(asset, msg.sender, amount);
     _safeApprove(asset, address(connext), amount);
@@ -335,7 +341,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _asset: address of the token contract
       asset,
       // _delegate: address that can revert or forceLocal on destination
-      msg.sender,
+      delegate,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
@@ -348,8 +354,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
     );
-
-    return beneficiary_;
   }
 
   /**
