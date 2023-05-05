@@ -480,11 +480,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     try rebalancer.rebalanceVault(
       bvault, rebalanceAssets, rebalanceDebt, mockProviderA, mockProviderB, flasher, true
     ) {
-      if (rebalanceLtv) {
-        assert(true);
-      } else {
-        assert(false);
-      }
+      assert(rebalanceLtv);
     } catch {
       assert(!rebalanceLtv);
     }
