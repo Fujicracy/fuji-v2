@@ -152,7 +152,7 @@ function MarketsTable() {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Collateral APR
+              Collateral APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
               <Stack
