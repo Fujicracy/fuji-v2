@@ -218,6 +218,9 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc IVault
   function maxBorrow(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Borrow)) {
+      return 0;
+    }
     return _computeMaxBorrow(borrower);
   }
 
