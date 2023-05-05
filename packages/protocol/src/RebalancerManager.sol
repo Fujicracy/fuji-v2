@@ -60,15 +60,17 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       revert RebalancerManager__rebalanceVault_notValidExecutor();
     }
 
-    if (assets == 0) {
-      revert RebalancerManager__rebalanceVault_invalidAmount();
-    }
-
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
+      if (assets == 0) {
+        revert RebalancerManager__rebalanceVault_invalidAmount();
+      }
       vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
+      if (assets == 0 && debt == 0) {
+        revert RebalancerManager__rebalanceVault_invalidAmount();
+      }
       _checkDebtAmount(vault, debt, from);
       if (!chief.allowedFlasher(address(flasher))) {
         revert RebalancerManager__rebalanceVault_notValidFlasher();
