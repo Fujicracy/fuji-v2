@@ -23,134 +23,144 @@ contract PrintGoerliBorrows is ScriptPlus {
     vm.createSelectFork("goerli");
   }
 
-  // function run() public {
-  //   address weth = getAddress("WETH");
-  //   /*address dai = getAddress("MockDAI");*/
-  //   /*address vault = getAddress("BorrowingVault-TESTDAI");*/
+  function run() public {
+    address weth = getAddress("WETH");
+    /*address dai = getAddress("MockDAI");*/
+    /*address vault = getAddress("BorrowingVault-TESTDAI");*/
 
-  //   /*address connextRouter = getAddress("ConnextRouter");*/
+    /*address connextRouter = getAddress("ConnextRouter");*/
 
-  //   uint256 optGoerliDomain = 1735356532;
+    uint256 optGoerliDomain = 1735356532;
 
-  //   /*sameChain(vault, connextRouter);*/
-  //   /*xTransfer(optGoerliDomain, vault, connextRouter, dai);*/
-  //   xTransferWithCall(optGoerliDomain, weth);
-  // }
+    /*sameChain(vault, connextRouter);*/
+    /*xTransfer(optGoerliDomain, vault, connextRouter, dai);*/
+    xTransferWithCall(optGoerliDomain, weth);
+  }
 
-  // function sameChain(address vault, address router) public {
-  //   (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner);
-  //   (IRouter.Action[] memory actions, bytes[] memory args) =
-  //     depositAndBorrow(vault, owner, owner, v, r, s);
+  function sameChain(address vault, address router) public {
+    (IRouter.Action[] memory actions, bytes[] memory args) =
+      depositAndBorrow(vault, router, owner, owner);
 
-  //   bytes memory callData = abi.encodeWithSelector(selector, actions, args);
-  //   console.logBytes(callData);
-  // }
+    bytes memory callData = abi.encodeWithSelector(selector, actions, args);
+    console.logBytes(callData);
+  }
 
-  // function xTransfer(uint256 destDomain, address vault, address router, address debtAsset) public {
-  //   IRouter.Action[] memory actions = new IRouter.Action[](4);
-  //   bytes[] memory args = new bytes[](4);
+  function xTransfer(uint256 destDomain, address vault, address router, address debtAsset) public {
+    IRouter.Action[] memory actions = new IRouter.Action[](4);
+    bytes[] memory args = new bytes[](4);
 
-  //   (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner);
+    actions[0] = IRouter.Action.Deposit;
+    /*(IVault vault, uint256 amount, address receiver, address sender)*/
+    args[0] = abi.encode(vault, amount, owner, owner);
 
-  //   actions[0] = IRouter.Action.Deposit;
-  //   /*(IVault vault, uint256 amount, address receiver, address sender)*/
-  //   args[0] = abi.encode(vault, amount, owner, owner);
+    actions[1] = IRouter.Action.PermitBorrow;
+    /*(IVaultPermissions vault, address owner, address spender, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)*/
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault, owner, owner, borrowAmount);
 
-  //   actions[1] = IRouter.Action.PermitBorrow;
-  //   /*(IVaultPermissions vault, address owner, address spender, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)*/
-  //   args[1] = abi.encode(vault, owner, owner, borrowAmount, deadline, v, r, s);
+    actions[2] = IRouter.Action.Borrow;
+    /*(IVault vault, uint256 amount, address receiver, address owner)*/
+    args[2] = abi.encode(vault, borrowAmount, owner, owner);
 
-  //   actions[2] = IRouter.Action.Borrow;
-  //   /*(IVault vault, uint256 amount, address receiver, address owner)*/
-  //   args[2] = abi.encode(vault, borrowAmount, owner, owner);
+    actions[3] = IRouter.Action.XTransfer;
+    /*(uint256 destDomain, address asset, uint256 amount, address receiver)*/
+    args[3] = abi.encode(destDomain, slippage, debtAsset, borrowAmount, owner);
 
-  //   actions[3] = IRouter.Action.XTransfer;
-  //   /*(uint256 destDomain, address asset, uint256 amount, address receiver)*/
-  //   args[3] = abi.encode(destDomain, slippage, debtAsset, borrowAmount, owner);
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
-  //   bytes memory callData = abi.encodeWithSelector(selector, actions, args);
-  //   console.logBytes(callData);
-  // }
+    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner, actionArgsHash);
 
-  // function xTransferWithCall(uint256 destDomain, address asset) public {
-  //   chainName = "optimism-goerli";
-  //   vm.createSelectFork("optimism_goerli");
+    // Replace permit action arguments, now with the signature values.
+    args[1] = abi.encode(vault, owner, owner, borrowAmount, deadline, v, r, s);
 
-  //   address vault = getAddress("BorrowingVault-TESTDAI");
-  //   address router = getAddress("ConnextRouter");
+    bytes memory callData = abi.encodeWithSelector(selector, actions, args);
+    console.logBytes(callData);
+  }
 
-  //   (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, router, owner);
-  //   (IRouter.Action[] memory innerActions, bytes[] memory innerArgs) =
-  //     depositAndBorrow(vault, router, owner, v, r, s);
+  function xTransferWithCall(uint256 destDomain, address asset) public {
+    chainName = "optimism-goerli";
+    vm.createSelectFork("optimism_goerli");
 
-  //   bytes memory callData = abi.encode(innerActions, innerArgs);
+    address vault = getAddress("BorrowingVault-TESTDAI");
+    address router = getAddress("ConnextRouter");
 
-  //   IRouter.Action[] memory actions = new IRouter.Action[](1);
-  //   bytes[] memory args = new bytes[](1);
+    (IRouter.Action[] memory innerActions, bytes[] memory innerArgs) =
+      depositAndBorrow(vault, router, owner, owner);
 
-  //   actions[0] = IRouter.Action.XTransferWithCall;
-  //   args[0] = abi.encode(destDomain, slippage, asset, amount, callData);
+    bytes memory callData = abi.encode(innerActions, innerArgs);
 
-  //   bytes memory callDataFinal = abi.encodeWithSelector(selector, actions, args);
-  //   console.logBytes(callDataFinal);
-  // }
+    IRouter.Action[] memory actions = new IRouter.Action[](1);
+    bytes[] memory args = new bytes[](1);
 
-  // function depositAndBorrow(
-  //   address vault,
-  //   address sender,
-  //   address operator,
-  //   uint8 v,
-  //   bytes32 r,
-  //   bytes32 s
-  // )
-  //   public
-  //   view
-  //   returns (IRouter.Action[] memory, bytes[] memory)
-  // {
-  //   IRouter.Action[] memory actions = new IRouter.Action[](3);
-  //   bytes[] memory args = new bytes[](3);
+    actions[0] = IRouter.Action.XTransferWithCall;
+    args[0] = abi.encode(destDomain, slippage, asset, amount, callData);
 
-  //   actions[0] = IRouter.Action.Deposit;
-  //   /*(IVault vault, uint256 amount, address receiver, address sender)*/
-  //   args[0] = abi.encode(vault, amount, owner, sender);
+    bytes memory callDataFinal = abi.encodeWithSelector(selector, actions, args);
+    console.logBytes(callDataFinal);
+  }
 
-  //   actions[1] = IRouter.Action.PermitBorrow;
-  //   /*(IVaultPermissions vault, address owner, address spender, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)*/
-  //   args[1] = abi.encode(vault, owner, operator, borrowAmount, deadline, v, r, s);
+  function depositAndBorrow(
+    address vault,
+    address operator,
+    address receiver,
+    address sender
+  )
+    public
+    returns (IRouter.Action[] memory, bytes[] memory)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    bytes[] memory args = new bytes[](3);
 
-  //   actions[2] = IRouter.Action.Borrow;
-  //   /*(IVault vault, uint256 amount, address receiver, address owner)*/
-  //   args[2] = abi.encode(vault, borrowAmount, owner, owner);
+    actions[0] = IRouter.Action.Deposit;
+    /*(IVault vault, uint256 amount, address receiver, address sender)*/
+    args[0] = abi.encode(vault, amount, receiver, sender);
 
-  //   return (actions, args);
-  // }
+    actions[1] = IRouter.Action.PermitBorrow;
+    /*(IVaultPermissions vault, address owner, address spender, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)*/
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault, sender, receiver, borrowAmount);
 
-  // function signMsg(
-  //   address vault,
-  //   address operator,
-  //   address receiver
-  // )
-  //   public
-  //   returns (uint8 v, bytes32 r, bytes32 s)
-  // {
-  //   LibSigUtils.Permit memory permit = LibSigUtils.Permit({
-  //     chainid: block.chainid,
-  //     owner: owner,
-  //     operator: operator,
-  //     receiver: receiver,
-  //     amount: borrowAmount,
-  //     nonce: IVaultPermissions(vault).nonces(owner),
-  //     deadline: deadline
-  //   });
-  //   bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
-  //     IVaultPermissions(vault).DOMAIN_SEPARATOR(), LibSigUtils.getStructHashBorrow(permit)
-  //   );
+    actions[2] = IRouter.Action.Borrow;
+    /*(IVault vault, uint256 amount, address receiver, address owner)*/
+    args[2] = abi.encode(vault, borrowAmount, sender, sender);
 
-  //   (v, r, s) = vm.sign(junkPrivateKey, digest);
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
-  //   console.log("Signature (v, r, s):");
-  //   console.log(v);
-  //   console.logBytes32(r);
-  //   console.logBytes32(s);
-  // }
+    (uint8 v, bytes32 r, bytes32 s) = signMsg(vault, operator, receiver, actionArgsHash);
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = abi.encode(vault, sender, receiver, borrowAmount, deadline, v, r, s);
+
+    return (actions, args);
+  }
+
+  function signMsg(
+    address vault,
+    address operator,
+    address receiver,
+    bytes32 actionArgsHash_
+  )
+    public
+    returns (uint8 v, bytes32 r, bytes32 s)
+  {
+    LibSigUtils.Permit memory permit = LibSigUtils.Permit({
+      chainid: block.chainid,
+      owner: owner,
+      operator: operator,
+      receiver: receiver,
+      amount: borrowAmount,
+      nonce: IVaultPermissions(vault).nonces(owner),
+      deadline: deadline,
+      actionArgsHash: actionArgsHash_
+    });
+
+    bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
+      IVaultPermissions(vault).DOMAIN_SEPARATOR(), LibSigUtils.getStructHashBorrow(permit)
+    );
+
+    (v, r, s) = vm.sign(junkPrivateKey, digest);
+
+    console.log("Signature (v, r, s):");
+    console.log(v);
+    console.logBytes32(r);
+    console.logBytes32(s);
+  }
 }
