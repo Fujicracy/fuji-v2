@@ -75,6 +75,10 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
       DEFAULT_LIQ_RATIO
     );
     vm.label(address(vault2), "Vault2");
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault2), true);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function test_closePositionWithFlashloan() public {
@@ -140,9 +144,9 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
   }
 
   function test_debtSwap() public {
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e6;
-    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+    // uint256 amount = 2 ether;
+    // uint256 borrowAmount = 1000e6;
+    do_depositAndBorrow(2 ether, 1000e6, vault, ALICE);
 
     // construct inner actions
     IRouter.Action[] memory innerActions = new IRouter.Action[](7);
@@ -156,73 +160,91 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     innerActions[5] = IRouter.Action.Borrow; // at vault2
     innerActions[6] = IRouter.Action.Swap;
 
-    // At initial vault
-    innerArgs[0] = abi.encode(address(vault), borrowAmount, ALICE, address(router));
-    innerArgs[1] =
-      LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, address(router), amount);
-    innerArgs[2] = abi.encode(address(vault), amount, address(router), ALICE);
-
-    // At vault2
-    uint256 fee = flasher.computeFlashloanFee(debtAsset, borrowAmount);
-    // borrow more to account for swap fees
-    innerArgs[3] = abi.encode(address(vault2), amount, ALICE, address(router));
-    innerArgs[4] = LibSigUtils.getZeroPermitEncodedArgs(
-      address(vault2), ALICE, address(router), borrowAmount + fee * 30
-    );
-    innerArgs[5] = abi.encode(address(vault2), borrowAmount + fee * 30, address(router), ALICE);
-
-    // swap to repay flashloan
-    innerArgs[6] = abi.encode(
-      address(swapper),
-      debtAsset2,
-      debtAsset,
-      borrowAmount + fee * 30,
-      borrowAmount + fee,
-      address(flasher),
-      ALICE,
-      0,
-      address(router)
-    );
-
-    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(innerActions, innerArgs);
-
-    LibSigUtils.Permit memory permitW;
-    {
-      permitW = LibSigUtils.buildPermitStruct(
-        ALICE, address(router), address(router), amount, 0, address(vault), actionArgsHash
-      );
-    }
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
-
-    // Replace innerArgs[1], now with the signature values.
-    innerArgs[1] = abi.encode(address(vault), ALICE, address(router), amount, deadline, v, r, s);
-
-    LibSigUtils.Permit memory permitB;
-    {
-      uint256 borrowSum = borrowAmount + fee * 30;
-      permitB = LibSigUtils.buildPermitStruct(
-        ALICE, address(router), address(router), borrowSum, 0, address(vault2), actionArgsHash
-      );
-    }
-
-    (deadline, v, r, s) = _getPermitBorrowArgs(permitB, ALICE_PK, address(vault2));
-
-    // Replace innerArgs[4], now with the signature values.
-    innerArgs[4] = abi.encode(
-      address(vault2), ALICE, address(router), borrowAmount + fee * 30, deadline, v, r, s
-    );
-
-    bytes memory requestorCalldata =
-      abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
-
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
 
-    actions[0] = IRouter.Action.Flashloan;
-    args[0] =
-      abi.encode(address(flasher), debtAsset, borrowAmount, address(router), requestorCalldata);
+    {
+      // At initial vault
+      innerArgs[0] = abi.encode(address(vault), 1000e6, ALICE, address(router));
+      innerArgs[1] =
+        LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, address(router), 2 ether);
+      innerArgs[2] = abi.encode(address(vault), 2 ether, address(router), ALICE);
+
+      // At vault2
+      uint256 borrowToPayback = swapper.getAmountIn(
+        debtAsset2, debtAsset, 1000e6 + flasher.computeFlashloanFee(debtAsset, 1000e6)
+      );
+
+      innerArgs[3] = abi.encode(address(vault2), 2 ether, ALICE, address(router));
+      innerArgs[4] = LibSigUtils.getZeroPermitEncodedArgs(
+        address(vault2), ALICE, address(router), borrowToPayback
+      );
+      // Borrow as much needed to account for swap fees
+      innerArgs[5] = abi.encode(address(vault2), borrowToPayback, address(router), ALICE);
+
+      // swap to repay flashloan
+      innerArgs[6] = abi.encode(
+        address(swapper),
+        debtAsset2,
+        debtAsset,
+        borrowToPayback,
+        1000e6 + flasher.computeFlashloanFee(debtAsset, 1000e6),
+        address(flasher),
+        ALICE,
+        0,
+        address(router)
+      );
+
+      LibSigUtils.Permit memory permitW;
+      LibSigUtils.Permit memory permitB;
+      {
+        {
+          // Define permits in this scope
+
+          // Get the actionArgsHash
+          bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(innerActions, innerArgs);
+
+          permitW = LibSigUtils.buildPermitStruct(
+            ALICE, address(router), address(router), 2 ether, 0, address(vault), actionArgsHash
+          );
+          permitB = LibSigUtils.buildPermitStruct(
+            ALICE,
+            address(router),
+            address(router),
+            borrowToPayback,
+            0,
+            address(vault2),
+            actionArgsHash
+          );
+        }
+
+        {
+          // Obtain the sig values for permmitWithdraw and replace innerArgs[1] in this scope
+
+          (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+            _getPermitWithdrawArgs(permitW, ALICE_PK, address(vault));
+          // Replace innerArgs[1], now with the signature values.
+          innerArgs[1] =
+            abi.encode(address(vault), ALICE, address(router), 2 ether, deadline, v, r, s);
+        }
+
+        {
+          // Obtain the sig values for permitBorrow and replace innerArgs[4] in this scope
+
+          (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+            _getPermitBorrowArgs(permitB, ALICE_PK, address(vault2));
+          // Replace innerArgs[4], now with the signature values.
+          innerArgs[4] =
+            abi.encode(address(vault2), ALICE, address(router), borrowToPayback, deadline, v, r, s);
+        }
+      }
+
+      bytes memory requestorCalldata =
+        abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
+
+      actions[0] = IRouter.Action.Flashloan;
+      args[0] = abi.encode(address(flasher), debtAsset, 1000e6, address(router), requestorCalldata);
+    }
 
     vm.prank(ALICE);
     router.xBundle(actions, args);
@@ -230,6 +252,6 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     assertEq(vault.balanceOf(ALICE), 0);
     assertEq(vault.balanceOfDebt(ALICE), 0);
     assertGt(vault2.balanceOf(ALICE), 0);
-    assertGe(vault2.balanceOfDebt(ALICE), borrowAmount);
+    assertGe(vault2.balanceOfDebt(ALICE), 1000e6);
   }
 }
