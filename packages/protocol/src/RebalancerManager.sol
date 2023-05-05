@@ -144,8 +144,8 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     {
       BorrowingVault bvault = BorrowingVault(payable(address(vault)));
       uint256 maxLtv = bvault.maxLtv();
-      uint8 assetDecimals = IERC20Metadata(bvault.asset()).decimals();
-      uint8 debtDecimals = IERC20Metadata(bvault.debtAsset()).decimals();
+      uint8 assetDecimals = vault.decimals();
+      uint8 debtDecimals = bvault.debtDecimals();
 
       //calculate ltv after rebalance at from
       uint256 assetsFrom = from.getDepositBalance(address(bvault), bvault) - assets;
