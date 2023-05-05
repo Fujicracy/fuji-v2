@@ -231,7 +231,7 @@ export const useHistory = create<HistoryStore>()(
           };
 
           try {
-            const notifyIfNeeded = (
+            const updateIfNeeded = (
               address: string | undefined,
               shown: boolean | undefined,
               firstChainId: ChainId,
@@ -239,29 +239,34 @@ export const useHistory = create<HistoryStore>()(
               hash: string,
               first: boolean
             ) => {
-              if (address === entry.address && !shown) {
-                notify({
-                  type: 'success',
-                  message: formatCrosschainNotificationMessage(
-                    chainName(firstChainId),
-                    chainName(secondChainId)
-                  ),
-                  link: getTransactionLink({
-                    hash: hash,
-                    chainId: firstChainId,
-                  }),
-                });
-                set(
-                  produce((s: HistoryState) => {
-                    const e = s.entries[hash];
-                    if (first) {
-                      e.sourceChain.shown = true;
-                    } else if (e.secondChain) {
-                      e.secondChain.shown = true;
-                    }
-                  })
-                );
-              }
+              if (address !== entry.address) return;
+
+              triggerUpdatesFromSteps(entry.steps);
+              usePositions.getState().fetchUserPositions();
+
+              if (!shown) return;
+
+              notify({
+                type: 'success',
+                message: formatCrosschainNotificationMessage(
+                  chainName(firstChainId),
+                  chainName(secondChainId)
+                ),
+                link: getTransactionLink({
+                  hash: hash,
+                  chainId: firstChainId,
+                }),
+              });
+              set(
+                produce((s: HistoryState) => {
+                  const e = s.entries[hash];
+                  if (first) {
+                    e.sourceChain.shown = true;
+                  } else if (e.secondChain) {
+                    e.secondChain.shown = true;
+                  }
+                })
+              );
             };
 
             const crossChainWatch = async (
@@ -351,11 +356,8 @@ export const useHistory = create<HistoryStore>()(
               finish(true);
               return;
             }
-            if (useAuth.getState().address === entry.address) {
-              triggerUpdatesFromSteps(entry.steps);
-              usePositions.getState().fetchUserPositions();
-            }
-            notifyIfNeeded(
+
+            updateIfNeeded(
               useAuth.getState().address,
               entry.sourceChain.shown,
               entry.sourceChain.chainId,
@@ -371,7 +373,7 @@ export const useHistory = create<HistoryStore>()(
             }
             if (!entry.secondChain || !entry.secondChain.hash) return;
 
-            notifyIfNeeded(
+            updateIfNeeded(
               useAuth.getState().address,
               entry.secondChain.shown,
               entry.secondChain.chainId,
