@@ -365,8 +365,13 @@ export const useHistory = create<HistoryStore>()(
               entry.hash,
               true
             );
-
-            await crossChainWatch(entry.sourceChain.chainId, entry.hash, true);
+            if (entry.secondChain.status !== HistoryEntryStatus.SUCCESS) {
+              await crossChainWatch(
+                entry.sourceChain.chainId,
+                entry.hash,
+                true
+              );
+            }
             if (!entry.thirdChain) {
               finish(true);
               return;
