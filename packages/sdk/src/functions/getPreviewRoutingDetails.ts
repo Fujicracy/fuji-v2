@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 
+import { BN_ZERO } from '../constants';
 import { CHAIN } from '../constants/chains';
 import { FujiErrorCode } from '../constants/errors';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
@@ -141,7 +142,7 @@ async function depositOrPayback(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, vaultToken),
       _step(step, vault.chainId, r.received, vaultToken, activeProvider),
       _step(RoutingStep.END, vault.chainId, r.received, vaultToken)
     );
@@ -199,14 +200,14 @@ async function borrowOrWithdraw(
     // so we need to account for the router fee (0.05) + slippage
     steps.push(
       _step(step, srcChainId, amountOut, vaultToken, activeProvider),
-      _step(RoutingStep.X_TRANSFER, tokenOut.chainId, amountOut, vaultToken),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
     );
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_DEST) {
     // start from chain A and borrow/withdraw on chain B where's also the position
     // => no transfer of funds
     steps.push(
-      _step(RoutingStep.X_TRANSFER, srcChainId, amountOut),
+      _step(RoutingStep.X_TRANSFER, srcChainId, BN_ZERO, vaultToken),
       _step(step, vault.chainId, amountOut, vaultToken, activeProvider),
       _step(RoutingStep.END, vault.chainId, amountOut, tokenOut)
     );
@@ -226,9 +227,9 @@ async function borrowOrWithdraw(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, srcChainId, amountOut),
+      _step(RoutingStep.X_TRANSFER, srcChainId, BN_ZERO, vaultToken),
       _step(step, vault.chainId, amountOut, vaultToken, activeProvider),
-      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
     );
   }
@@ -317,7 +318,7 @@ async function depositAndBorrow(
         vault.debt,
         activeProvider
       ),
-      _step(RoutingStep.X_TRANSFER, tokenOut.chainId, amountOut, vault.debt),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
     );
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_DEST) {
@@ -336,7 +337,12 @@ async function depositAndBorrow(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+      _step(
+        RoutingStep.X_TRANSFER,
+        tokenIn.chainId,
+        amountIn,
+        vault.collateral
+      ),
       _step(
         RoutingStep.DEPOSIT,
         vault.chainId,
@@ -373,7 +379,12 @@ async function depositAndBorrow(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, tokenIn),
+      _step(
+        RoutingStep.X_TRANSFER,
+        tokenIn.chainId,
+        amountIn,
+        vault.collateral
+      ),
       _step(
         RoutingStep.DEPOSIT,
         vault.chainId,
@@ -388,7 +399,7 @@ async function depositAndBorrow(
         vault.debt,
         activeProvider
       ),
-      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, vault.debt),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r2.received, tokenOut)
     );
   }
@@ -477,12 +488,7 @@ async function paybackAndWithdraw(
         vault.collateral,
         activeProvider
       ),
-      _step(
-        RoutingStep.X_TRANSFER,
-        tokenOut.chainId,
-        amountOut,
-        vault.collateral
-      ),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
     );
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_DEST) {
@@ -502,7 +508,7 @@ async function paybackAndWithdraw(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, vault.debt),
       _step(
         RoutingStep.PAYBACK,
         vault.chainId,
@@ -539,7 +545,7 @@ async function paybackAndWithdraw(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, vault.chainId, amountIn, tokenIn),
+      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, vault.debt),
       _step(
         RoutingStep.PAYBACK,
         vault.chainId,
@@ -554,12 +560,7 @@ async function paybackAndWithdraw(
         vault.collateral,
         activeProvider
       ),
-      _step(
-        RoutingStep.X_TRANSFER,
-        tokenOut.chainId,
-        amountOut,
-        vault.collateral
-      ),
+      _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r2.received, tokenOut)
     );
   }

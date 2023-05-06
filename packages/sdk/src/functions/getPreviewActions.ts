@@ -3,7 +3,7 @@ import { AddressZero } from '@ethersproject/constants';
 
 import { CONNEXT_ROUTER_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
-import { DEFAULT_SLIPPAGE } from '../constants/common';
+import { BN_ZERO, DEFAULT_SLIPPAGE } from '../constants/common';
 import { Address } from '../entities/Address';
 import { BorrowingVault } from '../entities/BorrowingVault';
 import { Token } from '../entities/Token';
@@ -191,7 +191,7 @@ function borrowOrWithdraw(
       _xTransferWithCall(
         vault.chainId,
         { address: Address.from(AddressZero) } as Token,
-        BigNumber.from(0),
+        BN_ZERO,
         innerActions,
         0
       ),
@@ -215,7 +215,7 @@ function borrowOrWithdraw(
       _xTransferWithCall(
         vault.chainId,
         { address: Address.from(AddressZero) } as Token,
-        BigNumber.from(0),
+        BN_ZERO,
         innerActions,
         0
       ),

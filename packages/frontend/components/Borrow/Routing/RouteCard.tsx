@@ -41,7 +41,11 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   function iconForStep(step: RoutingStepDetails) {
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <NetworkIcon network={chainName(step.chainId)} height={18} width={18} />
+        <NetworkIcon
+          network={chainName(step.token?.chainId)}
+          height={18}
+          width={18}
+        />
       );
     } else if (step.token) {
       return <TokenIcon token={step.token} height={18} width={18} />;
@@ -53,7 +57,6 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     step,
     amount,
     token,
-    chainId,
     lendingProvider,
   }: RoutingStepDetails) {
     switch (step) {
@@ -88,7 +91,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
         );
       case RoutingStep.X_TRANSFER:
         return camelize(
-          `${step.toString()} to ${chainName(chainId)} via Connext`
+          `${step.toString()} to ${chainName(token?.chainId)} via Connext`
         );
       default:
         return camelize(step);

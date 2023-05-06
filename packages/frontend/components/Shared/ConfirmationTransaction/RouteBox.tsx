@@ -59,7 +59,7 @@ function RouteBox({
         >
           from
           <NetworkIcon
-            network={chainName(step.token?.chainId)}
+            network={chainName(step.chainId)}
             height={14}
             width={14}
             style={{
@@ -69,7 +69,7 @@ function RouteBox({
           />
           to
           <NetworkIcon
-            network={chainName(step.chainId)}
+            network={chainName(step.token?.chainId)}
             height={14}
             width={14}
             style={{

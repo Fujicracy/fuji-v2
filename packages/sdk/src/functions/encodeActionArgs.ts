@@ -1,4 +1,5 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
+import { AddressZero } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
 
 import { FujiResultError, FujiResultSuccess } from '../entities';
@@ -98,7 +99,7 @@ export function encodeActionArgs(
       [
         params.destDomain,
         params.slippage,
-        params.asset.value,
+        params.asset.isZero ? AddressZero : params.asset.value,
         params.amount.toString(),
         callData,
       ]

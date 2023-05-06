@@ -27,6 +27,10 @@ export class Address {
     return this._address === other.value;
   }
 
+  get isZero(): boolean {
+    return this._address === AddressZero;
+  }
+
   get value(): string {
     if (this._address === AddressZero) invariant(false, 'Missing address!');
     return this._address;
