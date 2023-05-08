@@ -38,4 +38,25 @@ describe('Markets', () => {
       .find('[data-cy="best-label"]')
       .should('exist');
   });
+  it('should toggle last high-level row', () => {
+    cy.get('[data-cy="market-row"]')
+      .last()
+      .as('lastRow', { type: 'static' })
+      .find('[data-cy="market-row-network"]')
+      .should('exist');
+    cy.get('[data-cy="market-toggle"]')
+      .last()
+      .as('lastToggle', { type: 'query' });
+
+    cy.get('@lastToggle').click({ force: true });
+    cy.get('@lastRow')
+      .find('[data-cy="market-row-network"]')
+      .should('not.exist');
+    cy.get('[data-cy="market-row"]')
+      .last()
+      .find('[data-cy="market-row-network"]')
+      .should('exist');
+    cy.get('@lastRow').find('[data-cy="market-toggle"]').first().click();
+    cy.get('@lastRow').find('[data-cy="market-row-network"]').should('exist');
+  });
 });

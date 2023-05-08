@@ -312,7 +312,12 @@ function Toggle(props: ToggleProps) {
   const visibility = isVisible ? 'visible' : 'hidden';
 
   return (
-    <IconButton onClick={onClick} size="small" sx={{ visibility }}>
+    <IconButton
+      onClick={onClick}
+      size="small"
+      sx={{ visibility }}
+      data-cy="market-toggle"
+    >
       {expandRow ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
     </IconButton>
   );
