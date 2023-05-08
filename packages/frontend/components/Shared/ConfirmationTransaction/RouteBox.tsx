@@ -126,7 +126,15 @@ function RouteBox({
         <Typography variant="small">Route</Typography>
 
         {isCrossChain && (
-          <Typography variant="small">via Connext Network</Typography>
+          <Stack direction="row" alignItems="center">
+            <Typography variant="small">via</Typography>
+            <Image
+              src="/assets/images/logo/connext-title.svg"
+              height={16}
+              width={95}
+              alt="Connext logo"
+            />
+          </Stack>
         )}
       </Stack>
 
