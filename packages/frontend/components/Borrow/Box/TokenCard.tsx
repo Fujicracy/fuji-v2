@@ -336,6 +336,7 @@ const TokenItem = (props: TokenItem) => {
   const { token, balance, prepend, sx, onClick } = props;
   return (
     <MenuItem
+      data-cy="token-select"
       key={token.name}
       value={token.symbol}
       onClick={() => onClick && onClick(token)}

@@ -94,18 +94,18 @@ function MarketsTableRow({
           }}
         >
           {row.debt && isHighLevelRow && (
-            <Stack
-              direction="row"
-              gap={0.5}
-              alignItems="center"
-              data-cy="market-row-debt"
-            >
+            <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
                 isVisible={Boolean(row.children && row.children.length > 0)}
                 onClick={handleExpand}
               />
-              <Stack direction="row" alignItems="center" flexWrap="nowrap">
+              <Stack
+                direction="row"
+                alignItems="center"
+                flexWrap="nowrap"
+                data-cy="market-row-debt"
+              >
                 <TokenIcon token={row.debt} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
                   {row.debt}
@@ -116,7 +116,12 @@ function MarketsTableRow({
         </SizableTableCell>
         <SizableTableCell width="120px">
           {row.collateral && isHighLevelRow && (
-            <Stack direction="row" alignItems="center" flexWrap="nowrap">
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="nowrap"
+              data-cy="market-row-collateral"
+            >
               <TokenIcon token={row.collateral} height={32} width={32} />
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}

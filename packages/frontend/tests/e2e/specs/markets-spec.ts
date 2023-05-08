@@ -1,3 +1,5 @@
+import * as Cypress from 'cypress';
+
 describe('Markets', () => {
   before(() => {
     cy.visit('/');
@@ -58,5 +60,33 @@ describe('Markets', () => {
       .should('exist');
     cy.get('@lastRow').find('[data-cy="market-toggle"]').first().click();
     cy.get('@lastRow').find('[data-cy="market-row-network"]').should('exist');
+  });
+  it('should redirect after click with correct token prefill', () => {
+    let collateralToken, debtToken;
+    cy.get('[data-cy="market-row"]').first().as('firstRow', { type: 'static' });
+    cy.get('@firstRow')
+      .find('[data-cy="market-row-debt"]')
+      .invoke('text')
+      .then((debt) => {
+        debtToken = debt;
+      })
+      .then(() => {
+        cy.get('@firstRow')
+          .find('[data-cy="market-row-collateral"]')
+          .invoke('text')
+          .then((collateral) => {
+            collateralToken = collateral;
+          })
+          .then(() => {
+            cy.get('@firstRow').first().click();
+            cy.location('pathname').should('eq', '/borrow');
+            cy.get('[data-cy="token-select"]')
+              .first()
+              .should('have.text', collateralToken);
+            cy.get('[data-cy="token-select"]')
+              .last()
+              .should('have.text', debtToken);
+          });
+      });
   });
 });
