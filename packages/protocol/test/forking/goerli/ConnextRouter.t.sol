@@ -379,10 +379,23 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     // Fix the args that failed.
     transfer.args[0] = abi.encode(address(vault), amount, ALICE, address(connextHandler));
-    transfer.args[1] = _buildPermitAsBytes(
-      ALICE, ALICE_PK, address(connextRouter), ALICE, borrowAmount, 0, address(vault)
-    );
+    transfer.args[1] =
+      LibSigUtils.getZeroPermitEncodedArgs(address(vault), ALICE, ALICE, borrowAmount);
     transfer.args[2] = abi.encode(address(vault), borrowAmount, ALICE, ALICE);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(transfer.actions, transfer.args);
+
+    // It is assumed that Alice gets involved to sign again the correct data.
+    transfer.args[1] = _buildPermitAsBytes(
+      ALICE,
+      ALICE_PK,
+      address(connextRouter),
+      ALICE,
+      borrowAmount,
+      0,
+      address(vault),
+      actionArgsHash
+    );
 
     connextHandler.executeFailedWithUpdatedArgs(transferId, transfer.actions, transfer.args);
     // Assert Alice has funds deposited in the vault
@@ -395,13 +408,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      ALICE, address(connextRouter), address(connextRouter), borrowAmount, 0, address(vault)
-    );
-
-    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
-
     IRouter.Action[] memory actions = new IRouter.Action[](4);
     actions[0] = IRouter.Action.Deposit;
     actions[1] = IRouter.Action.PermitBorrow;
@@ -410,11 +416,31 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     bytes[] memory args = new bytes[](4);
     args[0] = abi.encode(address(vault), amount, ALICE, ALICE);
-    args[1] =
-      abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(
+      address(vault), ALICE, address(connextRouter), borrowAmount
+    );
     args[2] = abi.encode(address(vault), borrowAmount, address(connextRouter), ALICE);
     args[3] =
       abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      ALICE,
+      address(connextRouter),
+      address(connextRouter),
+      borrowAmount,
+      0,
+      address(vault),
+      actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ALICE_PK, address(vault));
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] =
+      abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
 
     vm.expectEmit(true, true, true, true);
     emit Deposit(address(connextRouter), ALICE, amount, amount);
@@ -517,8 +543,12 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   }
 
   function test_simpleFlashloan() public {
-    uint256 amount = 2 ether;
+    // Setup flasher accordingly
     MockTestFlasher flasher = new MockTestFlasher();
+    bytes memory data = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), data);
+
+    uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
 
     // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
@@ -561,8 +591,12 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   }
 
   function test_flashloanWithIncorrectActionAfter() public {
-    uint256 amount = 2 ether;
+    // Setup flasher accordingly
     MockTestFlasher flasher = new MockTestFlasher();
+    bytes memory data = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
+    _callWithTimelock(address(chief), data);
+
+    uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
 
     IRouter.Action[] memory actions1 = new IRouter.Action[](1);

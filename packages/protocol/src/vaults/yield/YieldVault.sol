@@ -146,6 +146,7 @@ contract YieldVault is BaseVault {
     address,
     uint256,
     uint256,
+    bytes32,
     uint8,
     bytes32,
     bytes32

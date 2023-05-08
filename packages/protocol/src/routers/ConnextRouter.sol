@@ -77,6 +77,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__xReceive_notAllowedCaller();
   error ConnextRouter__xReceiver_noValueTransferUseXbundle();
   error ConnnextRouter__checkSlippage_outOfBounds();
+  error ConnnextRouter__xBundleConnext_notSelfCalled();
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -90,6 +91,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * plz check: https://docs.connext.network/resources/deployments
    */
   mapping(uint256 => address) public routerByDomain;
+
+  modifier onlySelf() {
+    if (msg.sender != address(this)) {
+      revert ConnnextRouter__xBundleConnext_notSelfCalled();
+    }
+    _;
+  }
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
@@ -139,10 +147,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       abi.decode(callData, (Action[], bytes[], uint256));
 
     uint256 balance;
-    IERC20 asset_ = IERC20(asset);
+    uint256 beforeSlipped;
     if (amount > 0) {
       // Ensure that at this entry point expected `asset` `amount` is received.
-      balance = asset_.balanceOf(address(this));
+      balance = IERC20(asset).balanceOf(address(this));
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
       } else {
@@ -157,19 +165,19 @@ contract ConnextRouter is BaseRouter, IXReceiver {
        * replace `amount` in the encoded args for the first action if
        * the action is Deposit, or Payback.
        */
-      args[0] = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
+      (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
     }
 
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
-     * Therefore we try/catch instead of directly calling _bundleInternal(actions, args).
+     * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundle(actions, args) {
+    try this.xBundleConnext(actions, args, beforeSlipped) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        asset_.transfer(address(handler), balance);
+        IERC20(asset).transfer(address(handler), balance);
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
@@ -179,6 +187,29 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     }
 
     return "";
+  }
+
+  /**
+   * @notice Function selector created to allow try-catch procedure in Connext message data
+   * passing.Including argument for `beforeSlipepd` not available in {BaseRouter-xBundle}.
+   *
+   * @param actions an array of actions that will be executed in a row
+   * @param args an array of encoded inputs needed to execute each action
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
+   *
+   * @dev Requirements:
+   * - Must only be called within the context of this same contract.
+   */
+  function xBundleConnext(
+    Action[] calldata actions,
+    bytes[] calldata args,
+    uint256 beforeSlipped
+  )
+    external
+    payable
+    onlySelf
+  {
+    _bundleInternal(actions, args, beforeSlipped);
   }
 
   /**
@@ -196,7 +227,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   )
     internal
     pure
-    returns (bytes memory newArgs)
+    returns (bytes memory newArgs, uint256 beforeSlipped)
   {
     newArgs = args;
 
@@ -207,6 +238,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         abi.decode(args, (IVault, uint256, address, address));
 
       if (amount != receivedAmount) {
+        beforeSlipped = amount;
         newArgs = abi.encode(vault, receivedAmount, receiver, sender);
         _checkSlippage(amount, receivedAmount, slippageThreshold);
       }
@@ -249,7 +281,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
-    _safePullTokenFrom(asset, sender, receiver, amount);
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
@@ -298,7 +330,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
-    _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
+    _safePullTokenFrom(asset, msg.sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
