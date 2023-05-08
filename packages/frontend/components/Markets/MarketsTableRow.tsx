@@ -70,6 +70,7 @@ function MarketsTableRow({
   return (
     <>
       <TableRow
+        data-cy="market-row"
         onClick={() => onClick(row.entity)}
         sx={{
           height: '3.438rem',
@@ -93,7 +94,12 @@ function MarketsTableRow({
           }}
         >
           {row.debt && isHighLevelRow && (
-            <Stack direction="row" gap={0.5} alignItems="center">
+            <Stack
+              direction="row"
+              gap={0.5}
+              alignItems="center"
+              data-cy="market-row-debt"
+            >
               <Toggle
                 expandRow={expandRow}
                 isVisible={Boolean(row.children && row.children.length > 0)}
@@ -121,7 +127,12 @@ function MarketsTableRow({
         <SizableTableCell width="200px">
           {loaderOrError(row.chain.status)}
           {shouldNetworkColumnBeShown && (
-            <Stack direction="row" gap={0.5} alignItems="center">
+            <Stack
+              direction="row"
+              gap={0.5}
+              alignItems="center"
+              data-cy="market-row-network"
+            >
               <Toggle
                 expandRow={expandRow}
                 isVisible={Boolean(row.isChild && row.children)}
