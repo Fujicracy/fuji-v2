@@ -24,4 +24,18 @@ describe('Markets', () => {
       .find('[data-cy="market-row-debt"]')
       .should('not.exist');
   });
+  it('should best label to be on right rows', () => {
+    cy.get('[data-cy="market-row"]')
+      .first()
+      .find('[data-cy="best-label"]')
+      .should('not.exist');
+    cy.get('[data-cy="market-row"]')
+      .next()
+      .find('[data-cy="best-label"]')
+      .should('exist');
+    cy.get('[data-cy="market-row"]')
+      .last()
+      .find('[data-cy="best-label"]')
+      .should('exist');
+  });
 });
