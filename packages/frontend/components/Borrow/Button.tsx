@@ -6,7 +6,6 @@ import React from 'react';
 
 import { MINIMUM_DEBT_AMOUNT } from '../../constants';
 import {
-  ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
@@ -33,7 +32,6 @@ type BorrowButtonProps = {
   transactionMeta: TransactionMeta;
   mode: Mode;
   isEditing: boolean;
-  actionType: ActionType;
   hasBalanceInVault: boolean;
   onLoginClick: () => void;
   onChainChangeClick: (chainId: ChainId) => void;
@@ -58,7 +56,6 @@ function BorrowButton({
   transactionMeta,
   mode,
   isEditing,
-  actionType,
   hasBalanceInVault,
   onLoginClick,
   onChainChangeClick,
@@ -137,6 +134,7 @@ function BorrowButton({
     </LoadingButton>
   );
 
+  const firstStep = transactionMeta.steps[0];
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
   } else if (
@@ -144,17 +142,10 @@ function BorrowButton({
     debt.allowance.status === 'allowing'
   ) {
     return loadingButton(false, true);
-  } else if (
-    (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
-    hexToChainId(walletChain?.id)
-  ) {
+  } else if (firstStep?.chainId !== hexToChainId(walletChain?.id)) {
     return regularButton(
-      `Switch to ${chainName(collateral.chainId)} Network`,
-      () => {
-        onChainChangeClick(
-          actionType === ActionType.ADD ? collateral.chainId : debt.chainId
-        );
-      }
+      `Switch to ${chainName(firstStep?.chainId)} Network`,
+      () => onChainChangeClick(firstStep?.chainId)
     );
   } else if (availableVaultStatus === 'error') {
     return disabledButton('Error fetching on-chain data');
