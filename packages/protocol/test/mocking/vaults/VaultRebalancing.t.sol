@@ -226,6 +226,30 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
+  function _utils_checkRebalanceLtv(
+    BorrowingVault v,
+    ILendingProvider from,
+    ILendingProvider to,
+    uint256 rebalanceAssets,
+    uint256 rebalanceDebt
+  )
+    internal
+    view
+    returns (bool)
+  {
+    if (rebalanceAssets > v.totalAssets() || rebalanceDebt > v.totalDebt()) {
+      return false;
+    }
+    uint256 assetsAfterRebalanceA = from.getDepositBalance(address(v), v) - rebalanceAssets;
+    uint256 debtAfterRebalanceA = from.getBorrowBalance(address(v), v) - rebalanceDebt;
+
+    uint256 assetsAfterRebalanceB = to.getDepositBalance(address(v), v) + rebalanceAssets;
+    uint256 debtAfterRebalanceB = to.getBorrowBalance(address(v), v) + rebalanceDebt;
+
+    return _utils_checkMaxLTV(assetsAfterRebalanceA, debtAfterRebalanceA)
+      && _utils_checkMaxLTV(assetsAfterRebalanceB, debtAfterRebalanceB);
+  }
+
   function test_assertSetUp() public {
     assertEq(
       mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 4 * DEPOSIT_AMOUNT
@@ -441,5 +465,24 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(0), true);
     _callWithTimelock(address(chief), executionCall);
+  }
+
+  function test_rebalanceAndKeepMaxLtv(uint128 rebalanceAssets, uint128 rebalanceDebt) public {
+    vm.assume(
+      rebalanceAssets > 0 && rebalanceAssets < bvault.totalAssets() && rebalanceDebt > 0
+        && rebalanceDebt < bvault.totalDebt()
+    );
+
+    bool rebalanceLtv =
+      _utils_checkRebalanceLtv(bvault, mockProviderA, mockProviderB, rebalanceAssets, rebalanceDebt);
+
+    //rebalance
+    try rebalancer.rebalanceVault(
+      bvault, rebalanceAssets, rebalanceDebt, mockProviderA, mockProviderB, flasher, true
+    ) {
+      assert(rebalanceLtv);
+    } catch {
+      assert(!rebalanceLtv);
+    }
   }
 }

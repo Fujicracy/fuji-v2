@@ -11,11 +11,14 @@ pragma solidity 0.8.15;
 
 import {IRebalancerManager} from "./interfaces/IRebalancerManager.sol";
 import {IVault} from "./interfaces/IVault.sol";
+import {BorrowingVault} from "./vaults/borrowing/BorrowingVault.sol";
 import {IFlasher} from "./interfaces/IFlasher.sol";
 import {ILendingProvider} from "./interfaces/ILendingProvider.sol";
 import {SystemAccessControl} from "./access/SystemAccessControl.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   using SafeERC20 for IERC20;
@@ -23,8 +26,10 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   /// @dev Custom errors
   error RebalancerManager__rebalanceVault_notValidExecutor();
   error RebalancerManager__rebalanceVault_notValidFlasher();
+  error RebalancerManager__rebalanceVault_invalidAmount();
   error RebalancerManager__checkAssetsAmount_invalidAmount();
   error RebalancerManager__checkDebtAmount_invalidAmount();
+  error RebalancerManager__checkLtvChange_invalidAmount();
   error RebalancerManager__getFlashloan_flashloanFailed();
   error RebalancerManager__getFlashloan_notEmptyEntryPoint();
   error RebalancerManager__completeRebalance_invalidEntryPoint();
@@ -54,15 +59,27 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     if (!allowedExecutor[msg.sender]) {
       revert RebalancerManager__rebalanceVault_notValidExecutor();
     }
+
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
+      // YieldVault
+      if (assets == 0) {
+        // Should at least move some assets across providers.
+        revert RebalancerManager__rebalanceVault_invalidAmount();
+      }
       vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
+      // BorrowingVault
+      if (assets == 0 && debt == 0) {
+        // Should at least move some assets or debt across providers.
+        revert RebalancerManager__rebalanceVault_invalidAmount();
+      }
       _checkDebtAmount(vault, debt, from);
       if (!chief.allowedFlasher(address(flasher))) {
         revert RebalancerManager__rebalanceVault_notValidFlasher();
       }
+      _checkLtvChange(vault, from, to, assets, debt);
       _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
     }
 
@@ -106,6 +123,49 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     uint256 debtAtProvider = from.getBorrowBalance(address(vault), vault);
     if (amount > debtAtProvider) {
       revert RebalancerManager__checkDebtAmount_invalidAmount();
+    }
+  }
+
+  /**
+   * @dev Checks if the rebalance operation will break the current LTV
+   *
+   * @param vault address
+   * @param assets amount to rebalance
+   * @param debt amount to rebalance
+   * @param from provider where `assets` and `debt` are
+   * @param to provider where `assets` and `debt` will be
+   */
+  function _checkLtvChange(
+    IVault vault,
+    ILendingProvider from,
+    ILendingProvider to,
+    uint256 assets,
+    uint256 debt
+  )
+    internal
+    view
+  {
+    {
+      BorrowingVault bvault = BorrowingVault(payable(address(vault)));
+      uint256 maxLtv = bvault.maxLtv();
+      uint8 assetDecimals = vault.decimals();
+      uint8 debtDecimals = bvault.debtDecimals();
+
+      // Calculate ltv after rebalance at `from`.
+      uint256 assetsFrom = from.getDepositBalance(address(bvault), bvault) - assets;
+      uint256 debtFrom = from.getBorrowBalance(address(bvault), bvault) - debt;
+
+      // Calculate ltv after rebalance at `to`.
+      uint256 assetsTo = to.getDepositBalance(address(bvault), bvault) + assets;
+      uint256 debtTo = to.getBorrowBalance(address(bvault), bvault) + debt;
+
+      uint256 price = bvault.oracle().getPriceOf(bvault.debtAsset(), bvault.asset(), debtDecimals);
+      uint256 maxBorrowFrom = (assetsFrom * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+      uint256 maxBorrowTo = (assetsTo * maxLtv * price) / (1e18 * 10 ** assetDecimals);
+
+      if (debtFrom > maxBorrowFrom || debtTo > maxBorrowTo) {
+        revert RebalancerManager__checkLtvChange_invalidAmount();
+      }
     }
   }
 
