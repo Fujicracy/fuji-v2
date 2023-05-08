@@ -379,7 +379,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   function _deployTimelockController() internal {
     address[] memory admins = new address[](1);
     admins[0] = msg.sender;
-    timelock = address(new TimelockController{salt: "0x00"}(1 days, admins, admins));
+    timelock = address(new TimelockController{salt: "0x00"}(1 days, admins, admins, admins[0]));
     _grantRole(DEFAULT_ADMIN_ROLE, timelock);
   }
 
