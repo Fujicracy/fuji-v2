@@ -857,11 +857,15 @@ contract BorrowingVault is BaseVault {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
-      IERC20(asset()).approve(
-        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
+      SafeERC20.forceApprove(
+        IERC20(asset()),
+        providers[i].approvedOperator(asset(), asset(), debtAsset()),
+        type(uint256).max
       );
-      IERC20(debtAsset()).approve(
-        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()), type(uint256).max
+      SafeERC20.forceApprove(
+        IERC20(debtAsset()),
+        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()),
+        type(uint256).max
       );
       unchecked {
         ++i;
