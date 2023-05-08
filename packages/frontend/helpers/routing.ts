@@ -79,7 +79,7 @@ export const fetchRoutes = async (
       result = await sdk.previews.get({
         name: PreviewName.BORROW,
         vault,
-        srcChainId: collateralToken.chainId,
+        srcChainId: vault.debt.chainId,
         amountOut: validBigNumberAmount(debtInput, debtToken.decimals),
         tokenOut: debtToken,
         account: Address.from(address),
