@@ -63,12 +63,16 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
+      // YieldVault
       if (assets == 0) {
+        // Should at least move some assets across providers.
         revert RebalancerManager__rebalanceVault_invalidAmount();
       }
       vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
+      // BorrowingVault
       if (assets == 0 && debt == 0) {
+        // Should at least move some assets or debt across providers.
         revert RebalancerManager__rebalanceVault_invalidAmount();
       }
       _checkDebtAmount(vault, debt, from);
@@ -147,11 +151,11 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       uint8 assetDecimals = vault.decimals();
       uint8 debtDecimals = bvault.debtDecimals();
 
-      //calculate ltv after rebalance at from
+      // Calculate ltv after rebalance at `from`.
       uint256 assetsFrom = from.getDepositBalance(address(bvault), bvault) - assets;
       uint256 debtFrom = from.getBorrowBalance(address(bvault), bvault) - debt;
 
-      //calculate ltv after rebalance at to
+      // Calculate ltv after rebalance at `to`.
       uint256 assetsTo = to.getDepositBalance(address(bvault), bvault) + assets;
       uint256 debtTo = to.getBorrowBalance(address(bvault), bvault) + debt;
 
