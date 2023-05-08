@@ -69,7 +69,7 @@ contract YieldVault is BaseVault {
   function balanceOfDebt(address) public pure override returns (uint256) {}
 
   /// @inheritdoc BaseVault
-  function balanceOfDebtShares(address owner) external view override returns (uint256 debtShares) {}
+  function balanceOfDebtShares(address owner) public pure override returns (uint256 debtShares) {}
 
   /// @inheritdoc BaseVault
   function totalDebt() public pure override returns (uint256) {}
@@ -84,12 +84,43 @@ contract YieldVault is BaseVault {
   function maxBorrow(address) public pure override returns (uint256) {}
 
   /// @inheritdoc BaseVault
+  function maxPayback(address) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function maxMintDebt(address) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function maxBurnDebt(address) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewBorrow(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewMintDebt(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewPayback(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewBurnDebt(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
   function borrow(uint256, address, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
   /// @inheritdoc BaseVault
+  function mintDebt(uint256, address, address) public pure override returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
+
+  /// @inheritdoc BaseVault
   function payback(uint256, address) public pure override returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
+
+  /// @inheritdoc BaseVault
+  function burnDebt(uint256, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 

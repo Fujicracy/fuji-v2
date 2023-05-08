@@ -48,7 +48,6 @@ contract AccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     fujiOracle.setPriceFeed(address(asset), address(maliciousPriceFeed));
-    vm.stopPrank();
   }
 
   /// AddrMapper access control tests
@@ -69,13 +68,11 @@ contract AccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     addrMapper.setMapping("MockProvider_V1", keyAddr1, returnedAddr);
-    vm.stopPrank();
 
     vm.expectRevert(
       SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
     );
     vm.prank(foe);
     addrMapper.setNestedMapping("MockProvider_V2", keyAddr1, keyAddr2, returnedAddr);
-    vm.stopPrank();
   }
 }
