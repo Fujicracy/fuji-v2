@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import million from 'million/compiler';
+
 const nextConfig = {
   productionBrowserSourceMaps: true,
   // TODO: remove when ready for prod
@@ -35,4 +37,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default million.next(nextConfig);
