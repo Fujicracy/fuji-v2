@@ -1,18 +1,19 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
+  Skeleton,
   Stack,
   Table,
   TableBody,
+  TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   useTheme,
 } from '@mui/material';
 import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { NOTIFICATION_MESSAGES } from '../../constants';
 import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import {
   groupByPair,
@@ -23,10 +24,12 @@ import {
   Status,
 } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
+import { notify } from '../../helpers/notifications';
 import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import MarketsTableRow from './MarketsTableRow';
 
 function MarketsTable() {
@@ -34,6 +37,7 @@ function MarketsTable() {
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
   const walletChain = useAuth((state) => state.chain);
@@ -48,9 +52,12 @@ function MarketsTable() {
     (async () => {
       const result = await getAllBorrowingVaultFinancials(addr);
 
-      result.errors.forEach((error) => {
-        console.error(error.message); // TODO: Show error message for each?
-      });
+      if (result.errors.length > 0) {
+        notify({
+          type: 'error',
+          message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
+        });
+      }
 
       if (result.data.length === 0) {
         const rows = rowsBase
@@ -68,6 +75,10 @@ function MarketsTable() {
 
       const llamaResult = await sdk.getLlamaFinancials(financials);
       if (!llamaResult.success) {
+        notify({
+          type: 'error',
+          message: llamaResult.error.message,
+        });
         const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
         setRows(groupByPair(rows));
         return;
@@ -77,7 +88,9 @@ function MarketsTable() {
         setLlamas(rowsFin[i], Status.Ready, llama)
       );
       setRows(groupByPair(rowsLlama));
-    })();
+    })().finally(() => {
+      setIsLoading(false);
+    });
   }, [address]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
@@ -110,7 +123,7 @@ function MarketsTable() {
               Collateral
             </SizableTableCell>
             <SizableTableCell width="200px" align="left" sx={{ pl: '48px' }}>
-              Chain with the best rate
+              Network
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
               <Stack
@@ -139,24 +152,21 @@ function MarketsTable() {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Collateral APR
+              Collateral APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
               <Stack
                 direction="row"
                 alignItems="center"
-                spacing="0.25rem"
+                spacing="0.0rem"
                 justifyContent="right"
               >
-                <Tooltip
-                  arrow
-                  title="Fuji refinances between these protocols to find the best yield"
-                  placement="top"
-                >
-                  <InfoOutlinedIcon
-                    sx={{ fontSize: '0.875rem', color: palette.info.main }}
-                  />
-                </Tooltip>
+                <InfoTooltip
+                  title={
+                    'In the background, Fuji rebalances between these protocols to provide the best terms.'
+                  }
+                  isLeft
+                />
                 <span>Protocols</span>
               </Stack>
             </SizableTableCell>
@@ -177,9 +187,30 @@ function MarketsTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, i) => (
-            <MarketsTableRow key={i} row={row} onClick={handleClick} />
-          ))}
+          {isLoading ? (
+            <TableRow>
+              {new Array(8).fill('').map((_, index) => (
+                <TableCell
+                  key={`loading${index}`}
+                  sx={{
+                    height: '3.438rem',
+                  }}
+                >
+                  <Skeleton />
+                </TableCell>
+              ))}
+            </TableRow>
+          ) : (
+            rows.map((row, i) => (
+              <MarketsTableRow
+                key={i}
+                row={row}
+                onClick={handleClick}
+                openedByDefault={i === 0}
+                isBest={i === 0}
+              />
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>

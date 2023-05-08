@@ -6,7 +6,7 @@ import { IMulticallProvider } from '@hovoh/ethcall';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import invariant from 'tiny-invariant';
 
-import { CHAIN, CONNEXT_ROUTER_ADDRESS } from '../constants';
+import { CHAIN, CHIEF_ADDRESS, CONNEXT_ROUTER_ADDRESS } from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
 import {
@@ -18,6 +18,7 @@ import {
 import {
   BorrowingVault as BorrowingVaultContract,
   BorrowingVault__factory,
+  Chief__factory,
   ILendingProvider__factory,
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
@@ -105,6 +106,14 @@ export class BorrowingVault {
    * represented as 5*1e17.
    */
   liqRatio?: BigNumber;
+
+  /**
+   * Value that reflects the safety score according to a risk framework.
+   *
+   * @remarks
+   * Can be between 0 and 100.
+   */
+  safetyRating?: BigNumber;
 
   /**
    * Instance of ethers Contract class, already initialized with
@@ -196,33 +205,46 @@ export class BorrowingVault {
     if (
       this.maxLtv &&
       this.liqRatio &&
+      this.safetyRating &&
       this.name !== '' &&
       this.activeProvider &&
       this.allProviders
     )
       return;
 
-    const [maxLtv, liqRatio, name, activeProvider, allProviders] =
+    const chief = Chief__factory.multicall(CHIEF_ADDRESS[this.chainId].value);
+
+    const [maxLtv, liqRatio, safetyRating, name, activeProvider, allProviders] =
       await this.multicallRpcProvider.all([
         this.multicallContract.maxLtv(),
         this.multicallContract.liqRatio(),
+        chief.vaultSafetyRating(this.address.value),
         this.multicallContract.name(),
         this.multicallContract.activeProvider(),
         this.multicallContract.getProviders(),
       ]);
 
-    this.setPreLoads(maxLtv, liqRatio, name, activeProvider, allProviders);
+    this.setPreLoads(
+      maxLtv,
+      liqRatio,
+      safetyRating,
+      name,
+      activeProvider,
+      allProviders
+    );
   }
 
   setPreLoads(
     maxLtv: BigNumber,
     liqRatio: BigNumber,
+    safetyRating: BigNumber,
     name: string,
     activeProvider: string,
     allProviders: string[]
   ) {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
+    this.safetyRating = safetyRating;
     this.name = name;
     this.activeProvider = activeProvider;
     this.allProviders = allProviders;

@@ -2,12 +2,10 @@ import '../styles/globals.css';
 
 import { ThemeProvider } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
-import mixpanel from 'mixpanel-browser';
 import { AppProps } from 'next/app';
-import { Inter } from 'next/font/google';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
@@ -21,29 +19,30 @@ import {
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
-import { useBorrow } from '../store/borrow.store';
 import { useHistory } from '../store/history.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
 
-const inter = Inter({ subsets: ['latin'] });
-
 function MyApp({ Component, pageProps }: AppProps) {
-  const initAuth = useAuth((state) => state.init);
-  const address = useAuth((state) => state.address);
   const router = useRouter();
 
-  const currentTxHash = useHistory((state) => state.inModal);
-  const fetchPositions = usePositions((state) => state.fetchUserPositions);
-  const updateVault = useBorrow((state) => state.updateVault);
-  const updateAvailableRoutes = useBorrow(
-    (state) => state.updateAvailableRoutes
+  const address = useAuth((state) => state.address);
+  const initAuth = useAuth((state) => state.init);
+
+  const currentTxHash = useHistory((state) => state.currentTxHash);
+  const isHistoricalTransaction = useHistory(
+    (state) => state.isHistoricalTransaction
   );
+  const ongoingTransactions = useHistory((state) => state.ongoingTransactions);
+  const entries = useHistory((state) => state.entries);
+  const watchAll = useHistory((state) => state.watchAll);
+
+  const fetchPositions = usePositions((state) => state.fetchUserPositions);
+
+  const entry = address && currentTxHash && entries[currentTxHash];
+  const prevAddressRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    mixpanel.init('030ddddf19623797be516b634956d108', {
-      debug: process.env.NEXT_PUBLIC_APP_ENV === 'development',
-    });
     initErrorReporting();
     initAuth();
   }, [initAuth]);
@@ -51,12 +50,19 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     if (address) {
       fetchPositions();
-      updateVault();
     }
-  }, [address, fetchPositions, updateVault]);
+  }, [address, fetchPositions]);
+
+  useEffect(() => {
+    if (address && prevAddressRef.current !== address) {
+      watchAll(address);
+    }
+    prevAddressRef.current = address;
+  }, [address, ongoingTransactions, watchAll]);
 
   useEffect(() => {
     if (address) {
+      updatePollingPolicy(router.asPath);
       pollBalances();
     } else {
       stopPolling();
@@ -64,25 +70,27 @@ function MyApp({ Component, pageProps }: AppProps) {
     return () => {
       stopPolling();
     };
-  }, [address]);
+  }, [address, router]);
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       const isTop = isTopLevelUrl(url);
       if (isTop && address) {
-        updateAvailableRoutes([]);
         fetchPositions();
-        updateVault();
       }
-      const should =
-        url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
-      changeERC20PollingPolicy(should);
+      updatePollingPolicy(url);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {
       router.events.off('routeChangeStart', handleRouteChange);
     };
   });
+
+  function updatePollingPolicy(url: string) {
+    const should =
+      url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
+    changeERC20PollingPolicy(should);
+  }
 
   return (
     <>
@@ -95,20 +103,18 @@ function MyApp({ Component, pageProps }: AppProps) {
         })(window,document,'script','dataLayer','GTM-NSCGPLH');
       `}
       </Script>
-      <style jsx global>{`
-        html {
-          font-family: ${inter.style.fontFamily};
-        }
-      `}</style>
 
       <Web3OnboardProvider web3Onboard={onboard}>
         <ThemeProvider theme={theme}>
           <div className="backdrop"></div>
           <Component {...pageProps} />
-          <TransactionModal
-            hash={currentTxHash}
-            currentPage={router.pathname}
-          />
+          {entry && entry.address === address && (
+            <TransactionModal
+              entry={entry}
+              currentPage={router.pathname}
+              isHistoricalTransaction={isHistoricalTransaction}
+            />
+          )}
           <SafetyNoticeModal />
           <Notification />
         </ThemeProvider>

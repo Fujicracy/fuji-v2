@@ -10,19 +10,20 @@ import {
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { PATH } from '../../constants';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
-import { ActionType } from '../../helpers/assets';
+import { ActionType, needsAllowance } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
-import { showPosition } from '../../helpers/navigation';
+import { showBorrow, showPosition } from '../../helpers/navigation';
+import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
-import LTVWarningModal from '../Shared/LTVWarningModal';
+import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
 import SignTooltip from '../Shared/Tooltips/SignTooltip';
+import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
@@ -49,6 +50,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const needsSignature = useBorrow((state) => state.needsSignature);
   const isSigning = useBorrow((state) => state.isSigning);
   const isExecuting = useBorrow((state) => state.isExecuting);
+  const transactionMeta = useBorrow((state) => state.transactionMeta);
   const metaStatus = useBorrow((state) => state.transactionMeta.status);
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
@@ -69,7 +71,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: editedPosition ? editedPosition.ltvMax * 100 : position.ltvMax, // TODO: Shouldn't have to do this
+    ltvMax: position.ltvMax,
     ltvThreshold: editedPosition
       ? editedPosition.ltvThreshold
       : position.ltvThreshold,
@@ -78,18 +80,43 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false);
-  const [isLTVModalShown, setIsLTVModalShown] = useState(false);
-  const [ltvModalAction, setLTVModalAction] = useState(() => () => {
-    console.error('Invalid function called');
-  });
+  const [isConfirmationModalShown, setIsConfirmationModalShown] =
+    useState(false);
+  const [confirmationModalAction, setConfirmationModalAction] = useState(
+    () => () => {
+      notify({ message: 'Invalid function called', type: 'error' });
+    }
+  );
+
+  const prevActionType = useRef<ActionType>(ActionType.ADD);
 
   const shouldSignTooltipBeShown = useMemo(() => {
+    const collateralAmount = parseFloat(collateral.input);
+    const debtAmount = parseFloat(debt.input);
+    const collateralAllowance = needsAllowance(
+      mode,
+      'collateral',
+      collateral,
+      collateralAmount
+    );
+    const debtNeedsAllowance = needsAllowance(mode, 'debt', debt, debtAmount);
+
     return (
+      (collateralAmount || debtAmount) &&
+      !(collateralAllowance || debtNeedsAllowance) &&
       availableVaultStatus === 'ready' &&
       !(!isEditing && hasBalanceInVault) &&
       needsSignature
     );
-  }, [availableVaultStatus, needsSignature, hasBalanceInVault, isEditing]);
+  }, [
+    availableVaultStatus,
+    needsSignature,
+    hasBalanceInVault,
+    isEditing,
+    collateral,
+    debt,
+    mode,
+  ]);
 
   useEffect(() => {
     if (address) {
@@ -97,9 +124,11 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       updateBalances('debt');
       updateAllowance('collateral');
       updateAllowance('debt');
-      updateVault();
+      if (!vault) {
+        updateVault();
+      }
     }
-  }, [address, updateBalances, updateAllowance, updateVault]);
+  }, [address, vault, updateBalances, updateAllowance, updateVault]);
 
   useEffect(() => {
     updateTokenPrice('collateral');
@@ -107,17 +136,24 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [updateTokenPrice]);
 
   useEffect(() => {
-    changeInputValues('', '');
+    if (prevActionType.current !== actionType) {
+      changeInputValues('', '');
+      prevActionType.current = actionType;
+    }
   }, [actionType, changeInputValues]);
 
   useEffect(() => {
     (async () => {
       if (address && vault) {
-        // Should probably pair/replace this with the position object?
         const balance = await vault.getBalances(Address.from(address));
-
-        const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
-        setHasBalanceInVault(hasBalance);
+        const currentActiveVault = useBorrow.getState().activeVault;
+        if (
+          currentActiveVault &&
+          currentActiveVault.address.value === vault.address.value
+        ) {
+          const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
+          setHasBalanceInVault(hasBalance);
+        }
       }
     })();
   }, [address, vault]);
@@ -132,13 +168,51 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     changeMode(mode);
   }, [changeMode, isEditing, collateral.input, debt.input, actionType]);
 
-  const proceedWithLTVCheck = (action: () => void) => {
-    setLTVModalAction(() => action);
-    // Checks if ltv close to max ltv
-    dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5
-      ? setIsLTVModalShown(true)
-      : action();
+  const proceedWithConfirmation = (action?: () => void) => {
+    setConfirmationModalAction(() => action);
+    setIsConfirmationModalShown(true);
   };
+
+  const warningContent = useMemo(() => {
+    return (
+      <>
+        {`Based on your selection, we\'ve noticed that you have an open ${
+          vault?.collateral?.symbol
+        }/${vault?.debt?.symbol}
+        position on ${chainName(
+          vault?.chainId
+        )}. You may proceed to manage it. `}
+        {availableRoutes.length > 1 && (
+          <>
+            {
+              "If you're trying to open a similar position on another chain, please "
+            }
+            <Typography
+              variant="xsmall"
+              lineHeight="160%"
+              textAlign="left"
+              onClick={() => {
+                !onMobile && address && setShowRoutingModal(true);
+              }}
+              style={
+                !onMobile
+                  ? { textDecoration: 'underline', cursor: 'pointer' }
+                  : {}
+              }
+            >
+              select a different route.
+            </Typography>
+          </>
+        )}
+      </>
+    );
+  }, [availableRoutes, onMobile, address, vault]);
+
+  const shouldWarningBeDisplayed =
+    !isEditing &&
+    availableVaultStatus === 'ready' &&
+    transactionMeta.status === 'ready' &&
+    hasBalanceInVault;
 
   return (
     <>
@@ -218,6 +292,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
+          {shouldWarningBeDisplayed && (
+            <Box mb={2}>
+              <WarningInfo text={warningContent} />
+            </Box>
+          )}
+
           <BorrowButton
             address={address}
             collateral={collateral}
@@ -230,6 +310,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             isSigning={isSigning}
             isExecuting={isExecuting}
             availableVaultStatus={availableVaultStatus}
+            transactionMeta={transactionMeta}
             mode={mode}
             isEditing={isEditing}
             actionType={actionType}
@@ -239,29 +320,33 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {
               if (borrow) {
-                router.push(PATH.BORROW);
+                showBorrow(router);
               } else {
                 showPosition(router, walletChain?.id, vault, false);
               }
             }}
             onClick={signAndExecute}
-            ltvCheck={proceedWithLTVCheck}
+            withConfirmation={proceedWithConfirmation}
           />
 
           <ConnextFooter />
         </CardContent>
       </Card>
       <RoutingModal
+        isEditing={isEditing}
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
       />
-      <LTVWarningModal
-        open={isLTVModalShown}
-        ltv={dynamicLtvMeta.ltv}
-        onClose={() => setIsLTVModalShown(false)}
+      <ConfirmTransactionModal
+        open={isConfirmationModalShown}
+        onClose={() => setIsConfirmationModalShown(false)}
+        basePosition={basePosition}
+        transactionMeta={transactionMeta}
+        isEditing={isEditing}
+        actionType={actionType}
         action={() => {
-          setIsLTVModalShown(false);
-          ltvModalAction();
+          setIsConfirmationModalShown(false);
+          confirmationModalAction && confirmationModalAction();
         }}
       />
     </>

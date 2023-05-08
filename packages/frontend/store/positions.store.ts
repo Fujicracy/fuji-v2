@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { DUST_AMOUNT } from '../constants';
+import { DUST_AMOUNT, NOTIFICATION_MESSAGES } from '../constants';
+import { notify } from '../helpers/notifications';
 import {
   getAccrual,
   getCurrentAvailableBorrowingPower,
@@ -44,7 +45,11 @@ export const usePositions = create<PositionsStore>()(
           : { success: true, error: undefined, data: [] };
 
         if (!result.success) {
-          console.error(result.error?.message); // TODO: Show error message?
+          console.error(result.error?.message);
+          notify({
+            type: 'error',
+            message: NOTIFICATION_MESSAGES.POSITIONS_FAILURE,
+          });
         }
         const positions = result.success
           ? (result.data as Position[]).filter(

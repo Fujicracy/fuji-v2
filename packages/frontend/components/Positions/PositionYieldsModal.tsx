@@ -5,6 +5,7 @@ import {
   Chip,
   Dialog,
   Divider,
+  Grid,
   Paper,
   Stack,
   Typography,
@@ -13,6 +14,7 @@ import { useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+import { showBorrow } from '../../helpers/navigation';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -88,10 +90,12 @@ export function PositionYieldsModal({
 
         <Divider sx={{ m: '1.375rem 0' }} />
 
-        <BorrowLendingTabNavigation
-          onChange={(tab) => setCurrentTab(tab)}
-          isLendingDisabled
-        />
+        <Grid container mb="1rem">
+          <BorrowLendingTabNavigation
+            onChange={(tab) => setCurrentTab(tab)}
+            isLendingDisabled
+          />
+        </Grid>
 
         <Stack
           alignItems="end"
@@ -178,7 +182,7 @@ export function PositionYieldsModal({
           variant="gradient"
           size="medium"
           fullWidth
-          onClick={() => router.push('/borrow')}
+          onClick={() => showBorrow(router)}
           data-cy="new-borrow-redirect"
           sx={{
             mt: '1.375rem',

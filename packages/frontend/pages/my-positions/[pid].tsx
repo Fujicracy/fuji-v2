@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 import BorrowWrapper from '../../components/Borrow/Wrapper';
-import { PATH } from '../../constants';
 import { isChain } from '../../helpers/chains';
+import { showBorrow } from '../../helpers/navigation';
 import { useBorrow } from '../../store/borrow.store';
 
 const PositionPage: NextPage = () => {
@@ -30,7 +30,7 @@ const PositionPage: NextPage = () => {
     (address && !ethers.utils.isAddress(address)) ||
     (chain && !isChain(Number(chain)))
   ) {
-    router.push(PATH.BORROW);
+    showBorrow(router);
   }
   return (
     <BorrowWrapper

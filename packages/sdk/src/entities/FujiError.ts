@@ -1,4 +1,4 @@
-import { FujiErrorCode } from '../constants';
+import { FujiErrorCode } from '../constants/errors';
 
 type ErrorInfo = Record<string, string | number | undefined>;
 

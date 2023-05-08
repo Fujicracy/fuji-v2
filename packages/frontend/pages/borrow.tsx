@@ -13,6 +13,8 @@ const BorrowPage: NextPage = () => {
   );
   const changeDebtChain = useBorrow((state) => state.changeDebtChain);
 
+  const allowChainOverride = useBorrow((state) => state.allowChainOverride);
+
   const walletChain = useAuth((state) => state.chain);
   const [hasChain, setHasChain] = useState(false);
 
@@ -24,11 +26,17 @@ const BorrowPage: NextPage = () => {
     if (walletChain && !hasChain) {
       setHasChain(true);
       const chainId = hexToChainId(walletChain.id);
-      if (!chainId) return;
+      if (!allowChainOverride || !chainId) return;
       changeCollateralChain(chainId, false);
-      changeDebtChain(chainId, false);
+      changeDebtChain(chainId, true);
     }
-  }, [hasChain, walletChain, changeCollateralChain, changeDebtChain]);
+  }, [
+    allowChainOverride,
+    hasChain,
+    walletChain,
+    changeCollateralChain,
+    changeDebtChain,
+  ]);
 
   return <BorrowWrapper />;
 };

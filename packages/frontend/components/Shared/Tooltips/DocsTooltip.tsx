@@ -1,5 +1,5 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { Link, Tooltip, useTheme } from '@mui/material';
+import { Tooltip, useTheme } from '@mui/material';
 import React from 'react';
 
 type DocsTooltipProps = {
@@ -14,7 +14,10 @@ function DocsTooltip({ fontSize }: DocsTooltipProps) {
       arrow
       title={
         <span>
-          Our risk framework considers various factors including liquidity,
+          We are in the process of developing a general risk framework that will
+          consider various factors in the different money markets and will
+          provide a comprehensive safety score for each Fuji vault.
+          {/* Our risk framework considers various factors including liquidity,
           audits, and the team profile of each protocol.{' '}
           <Link
             href="https://docs.fujidao.org/"
@@ -22,7 +25,7 @@ function DocsTooltip({ fontSize }: DocsTooltipProps) {
             rel="noreferrer"
           >
             <u> Learn more</u>
-          </Link>
+          </Linka > */}
         </span>
       }
       placement="top"

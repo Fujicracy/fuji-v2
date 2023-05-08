@@ -11,19 +11,20 @@ import { RouteMeta } from '../../../helpers/routing';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
 import {
   NetworkIcon,
+  ProviderIcon,
   TokenIcon,
   TokenWithNetworkIcon,
 } from '../../Shared/Icons';
 
 type RouteCardProps = {
   route: RouteMeta;
+  isEditing: boolean;
   selected: boolean;
   onChange: () => void;
 };
 
-function RouteCard({ route, selected, onChange }: RouteCardProps) {
+function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   const { palette } = useTheme();
-  console.log(route.steps);
   const bridgeStep = route.steps.find((s) => s.step === RoutingStep.X_TRANSFER);
   const startStep = route.steps.find((s) => s.step === RoutingStep.START);
   const endStep = route.steps.find((s) => s.step === RoutingStep.END);
@@ -31,6 +32,10 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
   const steps = route.steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   );
+
+  const isMock =
+    steps.filter((s) => s.amount && s.amount.gt(0) && s.step !== 'bridge')
+      .length < (isEditing ? 1 : 2);
 
   function iconForStep(step: RoutingStepDetails) {
     if (step.step === RoutingStep.X_TRANSFER) {
@@ -43,16 +48,42 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
     return <></>;
   }
 
-  function textForStep({ step, amount, token, chainId }: RoutingStepDetails) {
+  function textForStep({
+    step,
+    amount,
+    token,
+    chainId,
+    lendingProvider,
+  }: RoutingStepDetails) {
     switch (step) {
       case RoutingStep.DEPOSIT:
       case RoutingStep.BORROW:
       case RoutingStep.PAYBACK:
       case RoutingStep.WITHDRAW:
-        return camelize(
-          `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
-          )} ${token?.symbol}`
+        return (
+          <>
+            {camelize(
+              `${step.toString()} ${
+                isMock
+                  ? ''
+                  : toNotSoFixed(
+                      formatUnits(amount ?? 0, token?.decimals || 18)
+                    )
+              } ${token?.symbol}`
+            )}
+            {lendingProvider && (
+              <>
+                {' to '}
+                <ProviderIcon
+                  style={{ verticalAlign: 'middle' }}
+                  provider={lendingProvider.name}
+                  height={14}
+                  width={14}
+                />
+                {` ${lendingProvider?.name}`}
+              </>
+            )}
+          </>
         );
       case RoutingStep.X_TRANSFER:
         return camelize(
@@ -93,27 +124,14 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
       step.amount ?? BigNumber.from('0'),
       step.token?.decimals ?? 18
     );
-    return Number(formatted).toFixed(3);
+    return toNotSoFixed(formatted);
   }
 
-  return (
-    <Paper
-      sx={{
-        border: `2px solid ${
-          selected ? palette.primary.main : palette.secondary.light
-        }`,
-        p: `${route.recommended ? '0' : '1.5rem'} 1.5rem 0 1.5rem`,
-        marginTop: '1rem',
-        cursor: 'pointer',
-        background: palette.secondary.dark,
-      }}
-      onClick={onChange}
-    >
-      {route.recommended && <Chip variant="recommended" label="Recommended" />}
-
+  function renderHeader() {
+    return (
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
-          {bridgeStep && (
+          {bridgeStep && !isMock && (
             <>
               <Chip
                 variant="routing"
@@ -136,7 +154,7 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
               </Tooltip>
             </>
           )}
-          {bridgeStep && route.estimateSlippage !== undefined && (
+          {bridgeStep && !isMock && route.estimateSlippage !== undefined && (
             <>
               <Tooltip
                 arrow
@@ -176,7 +194,44 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
           label={selected ? 'Selected' : 'Click To Select'}
         />
       </Stack>
+    );
+  }
 
+  function renderStep(
+    step: RoutingStepDetails,
+    index: number,
+    maxWidth: string
+  ) {
+    return (
+      <Stack key={index} direction="column" alignItems="center">
+        {iconForStep(step)}
+        <Typography
+          m="0.375rem"
+          align="center"
+          variant="xsmall"
+          sx={{ maxWidth }}
+        >
+          {textForStep(step)}
+        </Typography>
+      </Stack>
+    );
+  }
+
+  return (
+    <Paper
+      sx={{
+        border: `2px solid ${
+          selected ? palette.primary.main : palette.secondary.light
+        }`,
+        p: `${route.recommended ? '0' : '1.5rem'} 1.5rem 0 1.5rem`,
+        marginTop: '1rem',
+        cursor: 'pointer',
+        background: palette.secondary.dark,
+      }}
+      onClick={onChange}
+    >
+      {route.recommended && <Chip variant="recommended" label="Recommended" />}
+      {renderHeader()}
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
           <TokenWithNetworkIcon
@@ -185,11 +240,13 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
           />
           <Box>
             <Typography variant="body">
-              {roundStepAmount(startStep)} {startStep?.token?.symbol}
+              {`${isMock ? '' : roundStepAmount(startStep)} ${
+                startStep?.token?.symbol
+              }`}
             </Typography>
             <br />
             <Typography variant="xsmall">
-              on {chainName(startStep?.chainId)}
+              from {chainName(startStep?.chainId)}
             </Typography>
           </Box>
         </Stack>
@@ -197,7 +254,9 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
         <Stack direction="row">
           <Box textAlign="right" mr="0.75rem">
             <Typography variant="body">
-              {roundStepAmount(endStep)} {endStep?.token?.symbol}
+              {`Get ${isMock ? '' : roundStepAmount(endStep)} ${
+                endStep?.token?.symbol
+              }`}
             </Typography>
             <br />
             <Typography variant="xsmall">
@@ -233,33 +292,11 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
             >
               {bridgeStep ? (
                 <Stack direction="column" alignItems="center">
-                  <>
-                    {iconForStep(bridgeStep)}
-                    <Typography
-                      m="0.375rem"
-                      variant="xsmall"
-                      align="center"
-                      sx={{ maxWidth: '9rem' }}
-                    >
-                      {textForStep(bridgeStep)}
-                    </Typography>
-                  </>
+                  {renderStep(bridgeStep, 0, '9rem')}
                 </Stack>
               ) : (
                 <Stack direction="row" justifyContent="space-around">
-                  {steps.map((step, i) => (
-                    <Stack key={i} direction="column">
-                      {iconForStep(step)}
-                      <Typography
-                        m="0.375rem"
-                        align="center"
-                        variant="xsmall"
-                        sx={{ maxWidth: '6.5rem' }}
-                      >
-                        {textForStep(step)}
-                      </Typography>
-                    </Stack>
-                  ))}
+                  {steps.map((step, i) => renderStep(step, i, '6.5rem'))}
                 </Stack>
               )}
             </Box>
@@ -283,19 +320,7 @@ function RouteCard({ route, selected, onChange }: RouteCardProps) {
             }}
           >
             <Stack direction="row" justifyContent="space-around">
-              {steps.map((step, i) => (
-                <Stack key={i} direction="column">
-                  {iconForStep(step)}
-                  <Typography
-                    m="0.375rem"
-                    align="center"
-                    variant="xsmall"
-                    sx={{ maxWidth: '6.5rem' }}
-                  >
-                    {textForStep(step)}
-                  </Typography>
-                </Stack>
-              ))}
+              {steps.map((step, i) => renderStep(step, i, '6.5rem'))}
             </Stack>
           </Box>
         </Box>

@@ -8,7 +8,6 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Stack,
   SxProps,
   TextField,
   Theme,
@@ -24,6 +23,7 @@ import React, {
   useState,
 } from 'react';
 
+import { DUST_AMOUNT } from '../../../constants';
 import {
   ActionType,
   AssetChange,
@@ -32,7 +32,11 @@ import {
   recommendedLTV,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
-import { formatValue, validAmount } from '../../../helpers/values';
+import {
+  formatValue,
+  toNotSoFixed,
+  validAmount,
+} from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
@@ -98,9 +102,15 @@ function TokenCard({
   }, []);
 
   const handleMax = () => {
+    // when we do max withdrawal, we have to deduct a small amount,
+    // otherwise the tx can fail due to some unaccounted dust lefovers
+    const deductedCollateral = Math.max(
+      0,
+      basePosition.position.collateral.amount - DUST_AMOUNT / 100
+    );
     const amount =
       actionType === ActionType.REMOVE && type === 'collateral'
-        ? basePosition.position.collateral.amount -
+        ? deductedCollateral -
           (basePosition.position.debt.amount - Number(debt.input)) /
             ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
         : maxAmount;
@@ -112,15 +122,12 @@ function TokenCard({
     onInputChange(value);
   };
 
-  const handleRecommended = () => {
-    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
-
+  const recommended = (): string => {
     if (
       (ltv > recommendedLTV(ltvMax) && !value) ||
       (!ltv && collateral.amount && !collateral.input)
     ) {
-      handleInput('0');
-      return;
+      return '0';
     }
 
     const collateralValue = isEditing
@@ -133,8 +140,13 @@ function TokenCard({
       (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
       (isEditing ? basePosition.position.debt.amount : 0);
 
-    const finalValue = recommended > maxAmount ? maxAmount : recommended;
-    handleInput(String(finalValue));
+    return String(recommended);
+  };
+
+  const handleRecommended = () => {
+    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
+
+    handleInput(recommended());
   };
 
   const handleTokenChange = (token: Token) => {
@@ -156,6 +168,10 @@ function TokenCard({
       visibility: hidden;
     }
   `;
+
+  const usdValue = isNaN(usdPrice * +value)
+    ? '$0'
+    : formatValue(usdPrice * +value, { style: 'currency' });
 
   return (
     <Card
@@ -234,7 +250,7 @@ function TokenCard({
         {showMax ? (
           <>
             <Typography variant="small" sx={{ width: '11rem' }}>
-              {formatValue(usdPrice * +value, { style: 'currency' })}
+              ~{usdValue}
             </Typography>
             <div
               style={{
@@ -270,36 +286,12 @@ function TokenCard({
               variant="small"
               sx={{
                 minWidth: '2.5rem',
-                ['@media screen and (max-width: 370px)']: {
-                  fontSize: '0.7rem',
-                },
               }}
             >
-              {`$${formatValue(usdPrice * +value)}`}
+              ~{usdValue}
             </Typography>
 
-            <Stack direction="row">
-              <Typography
-                variant="smallDark"
-                color={
-                  !ltv
-                    ? ''
-                    : ltv > ltvMax
-                    ? palette.error.main
-                    : ltv > recommendedLTV(ltvMax)
-                    ? palette.warning.main
-                    : palette.success.main
-                }
-                mr=".5rem"
-                sx={{
-                  ['@media screen and (max-width: 370px)']: {
-                    fontSize: '0.7rem',
-                  },
-                }}
-              >
-                LTV {ltv <= 100 && ltv >= 0 ? `${ltv.toFixed(0)}%` : 'n/a'}
-              </Typography>
-
+            {Number(recommended()) > 0 && (
               <Typography
                 variant="smallDark"
                 sx={{
@@ -308,9 +300,6 @@ function TokenCard({
                     content: '"Recommended: "',
                   },
                   ['@media screen and (max-width: 370px)']: {
-                    fontSize: '0.7rem',
-                  },
-                  ['@media screen and (max-width: 320px)']: {
                     '&::before': {
                       content: '"Rec. "',
                     },
@@ -318,9 +307,17 @@ function TokenCard({
                 }}
                 onClick={handleRecommended}
               >
-                ({recommendedLTV(ltvMax)}%)
+                <Typography
+                  variant="smallDark"
+                  color={palette.success.main}
+                  sx={{
+                    cursor: 'pointer',
+                  }}
+                >
+                  {toNotSoFixed(recommended())} {debt.token.symbol}
+                </Typography>
               </Typography>
-            </Stack>
+            )}
           </>
         )}
       </div>

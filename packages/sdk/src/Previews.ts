@@ -1144,6 +1144,14 @@ export class Previews {
     estimateSlippage: BigNumber;
     bridgeFee: BigNumber;
   }> {
+    if (amount.eq(0)) {
+      const zero = BigNumber.from(0);
+      return new FujiResultSuccess({
+        received: zero,
+        estimateSlippage: zero,
+        bridgeFee: zero,
+      });
+    }
     try {
       const nxtp = await Nxtp.getOrCreate(token.chain.chainType);
 

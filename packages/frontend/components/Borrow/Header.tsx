@@ -47,7 +47,6 @@ function BorrowHeader({
                 width={16}
                 sx={{
                   position: 'absolute',
-                  botton: 0,
                   right: 0,
                   transform: 'translateY(-100%)',
                 }}
@@ -131,7 +130,9 @@ function BorrowHeader({
               key={`${p}`}
               selected={actionType === p}
               label={
-                p === ActionType.ADD ? 'Deposit / Borrow' : 'Withdraw / Payback'
+                p === ActionType.ADD
+                  ? 'Deposit / Borrow'
+                  : 'Payback / Withdraw '
               }
               onClick={() => {
                 onActionTypeChange(p);

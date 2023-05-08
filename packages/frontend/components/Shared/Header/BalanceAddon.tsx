@@ -2,24 +2,24 @@ import { Box, Chip, CircularProgress, Grid, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Balances } from '@web3-onboard/core/dist/types';
 
+import { hiddenAddress } from '../../../helpers/values';
 import { useHistory } from '../../../store/history.store';
 import Balance from '../Balance';
 
 type BalanceAddonProps = {
-  formattedAddress: string;
+  address: string;
   balance?: Balances;
   ens?: string;
   onClick: (element: EventTarget & HTMLSpanElement) => void;
 };
-function BalanceAddon({
-  formattedAddress,
-  balance,
-  ens,
-  onClick,
-}: BalanceAddonProps) {
+function BalanceAddon({ address, balance, ens, onClick }: BalanceAddonProps) {
   const { palette } = useTheme();
-  const active = useHistory((state) => state.ongoingTxns.length);
+  const active = useHistory(
+    (state) =>
+      state.ongoingTransactions.filter((o) => o.address === address).length
+  );
 
+  const formattedAddress = hiddenAddress(address);
   const [bal] = balance ? Object.values<string>(balance) : [''];
   const [token] = balance ? Object.keys(balance) : [''];
 

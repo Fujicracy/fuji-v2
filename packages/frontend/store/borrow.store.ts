@@ -7,11 +7,11 @@ import {
   DEFAULT_SLIPPAGE,
   FujiError,
   FujiErrorCode,
+  FujiResult,
   FujiResultError,
   FujiResultSuccess,
   LendingProviderDetails,
   RouterActionParams,
-  RoutingStepDetails,
   Sdk,
   Token,
 } from '@x-fuji/sdk';
@@ -23,7 +23,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
 
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_THRESHOLD } from '../constants';
+import {
+  DEFAULT_LTV_MAX,
+  DEFAULT_LTV_THRESHOLD,
+  NOTIFICATION_MESSAGES,
+  TRANSACTION_META_DEBOUNCE_INTERVAL,
+} from '../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -33,10 +38,17 @@ import {
   Mode,
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
-import { failureForMode } from '../helpers/borrow';
-import { testChains } from '../helpers/chains';
-import { getTransactionUrl, notify } from '../helpers/notifications';
+import { isSupported, testChains } from '../helpers/chains';
+import { handleCancelableMMActionError } from '../helpers/errors';
+import {
+  dismiss,
+  getTransactionLink,
+  NotificationDuration,
+  NotificationId,
+  notify,
+} from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
+import { TransactionMeta } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { useHistory } from './history.store';
@@ -66,14 +78,7 @@ type BorrowState = {
 
   slippage: number;
 
-  transactionMeta: {
-    status: FetchStatus;
-    gasFees: number; // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
-    bridgeFee: number;
-    estimateTime: number;
-    estimateSlippage: number;
-    steps: RoutingStepDetails[];
-  };
+  transactionMeta: TransactionMeta;
   availableRoutes: RouteMeta[];
 
   needsSignature: boolean;
@@ -82,6 +87,8 @@ type BorrowState = {
   actions?: RouterActionParams[];
 
   isExecuting: boolean;
+
+  allowChainOverride: boolean;
 };
 export type FetchStatus = 'initial' | 'fetching' | 'ready' | 'error';
 
@@ -120,9 +127,11 @@ type BorrowActions = {
   updateVaultBalance: () => void;
   allow: (type: AssetType) => void;
   updateAvailableRoutes: (routes: RouteMeta[]) => void;
-  signPermit: () => void;
+  sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
+
+  changeChainOverride: (allow: boolean) => void;
 };
 
 const initialChainId = ChainId.MATIC;
@@ -191,6 +200,8 @@ const initialState: BorrowState = {
   needsSignature: true,
   isSigning: false,
   isExecuting: false,
+
+  allowChainOverride: true,
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -236,10 +247,14 @@ export const useBorrow = create<BorrowStore>()(
 
           await get().changeActiveVault(vault);
 
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          );
+          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+
+          if (!result.success) {
+            console.error(result.error.message);
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+          const availableVaults = result.data;
           set({ availableVaults });
 
           await Promise.all([
@@ -257,6 +272,8 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeAssetChain(type, chainId: ChainId, updateVault) {
+          if (!isSupported(chainId)) return;
+
           const tokens =
             type === 'debt'
               ? sdk.getDebtForChain(chainId)
@@ -397,6 +414,13 @@ export const useBorrow = create<BorrowStore>()(
             console.error(result.error.message);
             return;
           }
+          const currentToken =
+            type === 'debt' ? get().debt.token : get().collateral.token;
+          if (
+            token.address !== currentToken.address ||
+            token.chainId !== currentToken.chainId
+          )
+            return;
           const balances = result.data;
           get().changeBalances(type, balances);
         },
@@ -417,7 +441,17 @@ export const useBorrow = create<BorrowStore>()(
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
 
-          let tokenValue = await token.getPriceUSD();
+          const result = await token.getPriceUSD();
+          if (!result.success) {
+            console.error(result.error.message);
+            return;
+          }
+
+          const currentToken =
+            type === 'debt' ? get().debt.token : get().collateral.token;
+          if (token.address !== currentToken.address) return;
+
+          let tokenValue = result.data;
           const isTestNet = testChains.some((c) => c.chainId === token.chainId);
           if (token.symbol === 'WETH' && isTestNet) {
             tokenValue = 1242.42; // fix bc weth has no value on testnet
@@ -456,6 +490,15 @@ export const useBorrow = create<BorrowStore>()(
           );
           try {
             const res = await sdk.getAllowanceFor(token, Address.from(address));
+
+            const currentToken =
+              type === 'debt' ? get().debt.token : get().collateral.token;
+            if (
+              token.address !== currentToken.address ||
+              token.chainId !== currentToken.chainId
+            )
+              return;
+
             const value = parseFloat(formatUnits(res, token.decimals));
             set(
               produce((s: BorrowState) => {
@@ -488,13 +531,17 @@ export const useBorrow = create<BorrowStore>()(
 
           const collateral = get().collateral.token;
           const debt = get().debt.token;
-          const availableVaults = await sdk.getBorrowingVaultsFor(
-            collateral,
-            debt
-          );
+          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+
+          if (!result.success) {
+            console.error(result.error.message);
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+
+          const availableVaults = result.data;
           const [vault] = availableVaults;
           if (!vault) {
-            // TODO: No vault = error, how to handle that in fe. Waiting for more informations from boyan
             console.error('No available vault');
             set({ availableVaultsStatus: 'error' });
             return;
@@ -518,7 +565,6 @@ export const useBorrow = create<BorrowStore>()(
             allProviders[v.address.value] = providers;
           }
 
-          // TODO: status fetching ?
           set({ allProviders });
         },
 
@@ -528,11 +574,18 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
 
-          const { activeVault, collateral, debt, mode, slippage } = get();
-          if (
-            !activeVault ||
-            failureForMode(mode, collateral.input, debt.input)
-          ) {
+          const {
+            activeVault,
+            availableVaults,
+            collateral,
+            debt,
+            mode,
+            slippage,
+          } = get();
+          const collateralInput =
+            collateral.input === '' ? '0' : collateral.input;
+          const debtInput = debt.input === '' ? '0' : debt.input;
+          if (!activeVault) {
             return set(
               produce((state: BorrowState) => {
                 state.transactionMeta.status = 'error';
@@ -548,22 +601,14 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
 
-          const setError = (e: FujiError) => {
-            set(
-              produce((state: BorrowState) => {
-                state.transactionMeta.status = 'error';
-              })
-            );
-            console.error('Sdk error while attempting to set meta:', e.message);
-          };
-
           try {
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
-              formType === 'create'
-                ? get().availableVaults
-                : [get().activeVault as BorrowingVault];
+              formType === 'create' && availableVaults.length > 0
+                ? availableVaults
+                : [activeVault];
+
             const results = await Promise.all(
               vaults.map((v, i) => {
                 const recommended = i === 0;
@@ -573,8 +618,8 @@ export const useBorrow = create<BorrowStore>()(
                   v,
                   collateral.token,
                   debt.token,
-                  collateral.input,
-                  debt.input,
+                  collateralInput,
+                  debtInput,
                   address,
                   recommended,
                   slippage
@@ -583,23 +628,28 @@ export const useBorrow = create<BorrowStore>()(
             );
             const error = results.find((r): r is FujiResultError => !r.success);
             if (error) {
-              setError(error.error);
-              return;
+              console.error(error);
+              //throw error.error;
             }
+            // filter valid routes
             const availableRoutes: RouteMeta[] = (
-              results as FujiResultSuccess<RouteMeta>[]
+              results.filter(
+                (r): r is FujiResult<RouteMeta> => r.success
+              ) as FujiResultSuccess<RouteMeta>[]
             ).map((r) => r.data);
             const selectedRoute = availableRoutes.find(
               (r) => r.address === activeVault.address.value
             );
-            if (!selectedRoute || !selectedRoute.actions.length) {
-              setError(
-                new FujiError(
-                  'No route found for active vault or route found with empty action array',
-                  FujiErrorCode.SDK
-                )
-              );
+            // no route means that the active vault has changed before the async call completed
+            if (!selectedRoute && formType === 'create') {
+              get().updateVault();
               return;
+            }
+            if (!selectedRoute?.actions.length) {
+              throw new FujiError(
+                'Route found with empty action array',
+                FujiErrorCode.SDK
+              );
             }
 
             set({ availableRoutes });
@@ -610,13 +660,14 @@ export const useBorrow = create<BorrowStore>()(
                 state.transactionMeta.status = 'error';
               })
             );
-            console.error('Sdk error while attempting to set meta:', e);
+            const message = e instanceof FujiError ? e.message : String(e);
+            console.error(message);
           }
         },
 
         updateTransactionMetaDebounced: debounce(
           () => get().updateTransactionMeta(),
-          500
+          TRANSACTION_META_DEBOUNCE_INTERVAL
         ),
 
         updateLtv() {
@@ -657,10 +708,10 @@ export const useBorrow = create<BorrowStore>()(
             );
           }
 
-          const liquidationTreshold = get().ltv.ltvThreshold;
+          const liquidationThreshold = get().ltv.ltvThreshold;
 
           const liquidationPrice =
-            debtValue / (collateralAmount * (liquidationTreshold / 100));
+            debtValue / (collateralAmount * (liquidationThreshold / 100));
           const liquidationDiff = Math.round(
             (1 - liquidationPrice / collateralPrice) * 100
           );
@@ -683,6 +734,10 @@ export const useBorrow = create<BorrowStore>()(
           const { deposit, borrow } = await vault.getBalances(
             Address.from(address)
           );
+
+          const currentVault = get().activeVault;
+          if (vault.address.value !== currentVault?.address.value) return;
+
           set(
             produce((s: BorrowState) => {
               const dec = s.collateral.token.decimals;
@@ -708,7 +763,7 @@ export const useBorrow = create<BorrowStore>()(
           const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value;
 
           if (!provider || !userAddress) {
-            throw 'Missing provider (check auth slice) or missing user address';
+            return;
           }
 
           const changeAllowance = (
@@ -738,38 +793,44 @@ export const useBorrow = create<BorrowStore>()(
 
             changeAllowance('ready', amount);
             notify({
-              message: 'Allowance is successful',
+              message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
-              isTransaction: true,
-              link:
-                getTransactionUrl({
-                  hash: approval.hash,
-                  chainId: token.chainId,
-                }) || '',
+              link: getTransactionLink({
+                hash: approval.hash,
+                chainId: token.chainId,
+              }),
             });
           } catch (e) {
             changeAllowance('error');
-            notify({ message: 'Allowance was not successful', type: 'error' });
+            notify({
+              message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
+              type: 'error',
+            });
           }
         },
 
-        async signPermit() {
+        async sign() {
           const actions = get().actions;
           const vault = get().activeVault;
           const provider = useAuth.getState().provider;
-          if (!actions || !vault || !provider) {
-            throw 'Unexpected undefined value';
-          }
-
-          const permitAction = Sdk.findPermitAction(actions);
-          if (!permitAction) {
-            console.error('No permit action found');
-            return set({ isSigning: false });
-          }
-
-          set({ isSigning: true });
-
+          let notificationId: NotificationId | undefined;
           try {
+            if (!actions || !vault || !provider) {
+              throw 'Unexpected undefined value';
+            }
+
+            const permitAction = Sdk.findPermitAction(actions);
+            if (!permitAction) {
+              throw 'No permit action found';
+            }
+
+            set({ isSigning: true });
+
+            notificationId = notify({
+              type: 'info',
+              message: NOTIFICATION_MESSAGES.SIGNATURE_PENDING,
+              sticky: true,
+            });
             const { domain, types, value } = await vault.signPermitFor(
               permitAction
             );
@@ -778,14 +839,15 @@ export const useBorrow = create<BorrowStore>()(
             const signature = ethers.utils.splitSignature(s);
 
             set({ signature });
-          } catch (e: any) {
-            if (e.code === 'ACTION_REJECTED') {
-              notify({
-                type: 'error',
-                message: 'Signature was canceled by the user.',
-              });
-            }
+          } catch (e) {
+            handleCancelableMMActionError(
+              e,
+              NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
+            );
           } finally {
+            if (notificationId) {
+              dismiss(notificationId);
+            }
             set({ isSigning: false });
           }
         },
@@ -799,8 +861,13 @@ export const useBorrow = create<BorrowStore>()(
             !provider ||
             (needsSignature && !signature)
           ) {
-            throw 'Unexpected undefined param';
+            return;
           }
+          const notificationId = notify({
+            type: 'info',
+            message: NOTIFICATION_MESSAGES.TX_PENDING,
+            sticky: true,
+          });
 
           const srcChainId = transactionMeta.steps[0].chainId;
 
@@ -813,7 +880,8 @@ export const useBorrow = create<BorrowStore>()(
             signature
           );
           if (!result.success) {
-            console.error(result.error.message); // TODO: display error
+            dismiss(notificationId);
+            notify({ type: 'error', message: result.error.message });
             return;
           }
           const txRequest = result.data;
@@ -829,24 +897,30 @@ export const useBorrow = create<BorrowStore>()(
             if (tx) {
               notify({
                 type: 'success',
-                message: 'The transaction was submitted successfully.',
+                message: NOTIFICATION_MESSAGES.TX_SENT,
+                duration: NotificationDuration.LONG,
+                link: getTransactionLink({
+                  hash: tx.hash,
+                  chainId: srcChainId,
+                }),
               });
             }
             return tx;
           } catch (e) {
-            notify({
-              type: 'warning',
-              message:
-                'The transaction was canceled by the user or cannot be submitted.',
-            });
+            handleCancelableMMActionError(
+              e,
+              NOTIFICATION_MESSAGES.TX_CANCELLED,
+              NOTIFICATION_MESSAGES.TX_NOT_SENT
+            );
           } finally {
+            dismiss(notificationId);
             set({ isExecuting: false });
           }
         },
 
         async signAndExecute() {
           if (get().needsSignature) {
-            await get().signPermit();
+            await get().sign();
           }
 
           const tx = await get().execute();
@@ -856,10 +930,14 @@ export const useBorrow = create<BorrowStore>()(
             const vaultAddr = get().activeVault?.address.value as string;
             useHistory
               .getState()
-              .add(tx.hash, vaultAddr, get().transactionMeta.steps);
+              .add(tx.hash, tx.from, vaultAddr, get().transactionMeta.steps);
 
             get().changeInputValues('', '');
           }
+        },
+
+        changeChainOverride(allowChainOverride) {
+          set({ allowChainOverride });
         },
       }),
       {

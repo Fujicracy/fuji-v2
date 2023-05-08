@@ -14,6 +14,23 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { useAuth } from '../../store/auth.store';
 import ExploreCarousel from './ExploreCarousel';
 
+type AgreementBox = { checked: boolean; text: string };
+
+const agreements: AgreementBox[] = [
+  {
+    checked: false,
+    text: 'I am a person of legal age and not in the Prohibited Person and/or Prohibited Establishment list nor acting on behalf such a Prohibited Person or Establishment.',
+  },
+  {
+    checked: false,
+    text: 'I understand borrowing money is not free. My collateral can be liquidated to cover my liabilities. I understand lending out money brings risk.',
+  },
+  {
+    checked: false,
+    text: 'I understand Fuji Finance is at an early stage of development and may come with additional risks. I have done my own research and I am aware of the risks involved.',
+  },
+];
+
 export function SafetyNoticeModal() {
   const { palette } = useTheme();
 
@@ -23,6 +40,8 @@ export function SafetyNoticeModal() {
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true);
   const [hasPreviouslyAcceptedTerms, setHasPreviouslyAcceptedTerms] =
     useState<boolean>(true);
+  const [agreementsBoxes, setAgreementsBoxes] =
+    useState<AgreementBox[]>(agreements);
   const [isExploreModalShown, setIsExploreModalShown] =
     useState<boolean>(false);
 
@@ -44,6 +63,18 @@ export function SafetyNoticeModal() {
     setIsExploreModalShown(false);
   };
 
+  const onOtherAgreementChange = (index: number, value: boolean) => {
+    setAgreementsBoxes(
+      agreementsBoxes.map((item: AgreementBox, i: number) =>
+        i === index ? { ...item, checked: value } : item
+      )
+    );
+  };
+
+  const areAllAccepted =
+    hasAcceptedTerms &&
+    agreementsBoxes.every((item: AgreementBox) => item.checked);
+
   return !isExploreModalShown ? (
     <Dialog open={!hasPreviouslyAcceptedTerms}>
       <Paper
@@ -52,16 +83,13 @@ export function SafetyNoticeModal() {
           maxWidth: '30rem',
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
+          '& .MuiCheckbox-root:hover': {
+            background: 'inherit',
+          },
         }}
       >
         <Typography variant="h5" color={palette.text.primary}>
-          Safety Notice
-        </Typography>
-
-        <Typography mt="1rem" textAlign="start" sx={{ fontSize: '0.875rem' }}>
-          Please be advised that the current version of the contracts is
-          partially audited by Trail of Bits and Securing. Do your own research
-          and use at your own risk!
+          Disclaimer
         </Typography>
 
         <Box mt="1.5rem" sx={{ display: 'flex', flexDirection: 'row' }}>
@@ -71,8 +99,7 @@ export function SafetyNoticeModal() {
                 variant="small"
                 sx={{ textAlign: 'start', fontSize: '0.875rem' }}
               >
-                By checking this box and moving forward, you irrevocably accept
-                our{' '}
+                I have read, irrevocably accept the{' '}
                 <Link
                   href="https://docs.fujidao.org/legals/terms-of-use"
                   target="blank"
@@ -82,7 +109,7 @@ export function SafetyNoticeModal() {
                 >
                   Terms of use
                 </Link>{' '}
-                and confirm that you understand the risks described within.
+                and confirm that I understand the risks described within.
               </Typography>
             }
             control={
@@ -92,23 +119,53 @@ export function SafetyNoticeModal() {
                   setHasAcceptedTerms(event.target.checked);
                 }}
                 color="default"
-                sx={{ p: '0 0.5rem 0 0' }}
+                sx={{ p: '0', mr: '0.5rem' }}
               />
             }
             sx={{ alignItems: 'start', m: 0 }}
           />
         </Box>
 
+        {agreementsBoxes.map((item: AgreementBox, i: number) => (
+          <Box
+            key={i}
+            mt="1.5rem"
+            sx={{ display: 'flex', flexDirection: 'row' }}
+          >
+            <FormControlLabel
+              label={
+                <Typography
+                  variant="small"
+                  sx={{ textAlign: 'start', fontSize: '0.875rem' }}
+                >
+                  {item.text}
+                </Typography>
+              }
+              control={
+                <Checkbox
+                  checked={agreementsBoxes[i].checked}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                    onOtherAgreementChange(i, event.target.checked);
+                  }}
+                  color="default"
+                  sx={{ p: '0', mr: '0.5rem' }}
+                />
+              }
+              sx={{ alignItems: 'start', m: 0 }}
+            />
+          </Box>
+        ))}
+
         <Button
           variant="gradient"
           size="large"
           onClick={onAcceptClick}
-          disabled={!hasAcceptedTerms}
+          disabled={!areAllAccepted}
           fullWidth
           data-cy="safety-notice-accept"
           sx={{ mt: '1.5rem' }}
         >
-          Accept
+          Agree
         </Button>
       </Paper>
     </Dialog>

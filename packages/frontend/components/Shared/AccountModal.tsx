@@ -25,13 +25,14 @@ import { formatUnits } from 'ethers/lib/utils';
 import { useState } from 'react';
 
 import { addressUrl, hexToChainId } from '../../helpers/chains';
-import { stepFromEntry } from '../../helpers/history';
-import { useAuth } from '../../store/auth.store';
 import {
   HistoryEntry,
   HistoryEntryStatus,
-  useHistory,
-} from '../../store/history.store';
+  stepFromEntry,
+} from '../../helpers/history';
+import { toNotSoFixed } from '../../helpers/values';
+import { useAuth } from '../../store/auth.store';
+import { useHistory } from '../../store/history.store';
 
 type AccountModalProps = {
   isOpen: boolean;
@@ -47,18 +48,23 @@ function AccountModal({
   closeAccountModal,
 }: AccountModalProps) {
   const { palette } = useTheme();
-  const [copied, setCopied] = useState(false);
-  const [copyAddressHovered, setCopyAddressHovered] = useState(false);
-  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
-  const logout = useAuth((state) => state.logout);
+
   const hexChainId = useAuth((state) => state.chain?.id);
   const walletName = useAuth((state) => state.walletName);
+  const logout = useAuth((state) => state.logout);
 
   const historyEntries = useHistory((state) =>
-    state.allTxns.map((hash) => state.byHash[hash]).slice(0, 10)
+    state.transactions
+      .map((tx) => state.entries[tx.hash])
+      .filter((e) => e.address === address)
+      .slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
   const clearAll = useHistory((state) => state.clearAll);
+
+  const [copied, setCopied] = useState(false);
+  const [copyAddressHovered, setCopyAddressHovered] = useState(false);
+  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
 
   const chainId = hexToChainId(hexChainId);
   const formattedAddress =
@@ -67,19 +73,24 @@ function AccountModal({
   const copy = () => {
     navigator.clipboard.writeText(address);
     setCopied(true);
+
     setTimeout(() => {
       setCopied(false);
     }, 5000);
   };
 
   const handleEntryClick = (entry: HistoryEntry) => {
-    openModal(entry.hash);
+    openModal(entry.hash, true);
     closeAccountModal();
+  };
+
+  const handleClear = () => {
+    clearAll(address);
   };
 
   const onLogout = () => {
     logout();
-    clearAll();
+    closeAccountModal();
   };
 
   return (
@@ -92,7 +103,7 @@ function AccountModal({
       PaperProps={{ sx: { background: 'transparent', padding: 0 } }}
     >
       <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
-        <CardContent sx={{ width: '340px', p: 0, pb: '0 !important' }}>
+        <CardContent sx={{ width: '360px', p: 0, pb: '0 !important' }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -150,7 +161,7 @@ function AccountModal({
             <Box>
               <a
                 href={addressUrl(chainId, address)}
-                target="_blank" // TODO: target='_blank' doesn't work with NextJS "<Link>"...
+                target="_blank"
                 rel="noreferrer"
               >
                 <Stack
@@ -196,7 +207,7 @@ function AccountModal({
               historyEntries.filter(
                 (entry) => entry.status === HistoryEntryStatus.ONGOING
               ).length !== historyEntries.length && (
-                <Typography variant="xsmallLink" onClick={clearAll}>
+                <Typography variant="xsmallLink" onClick={handleClear}>
                   clear all
                 </Typography>
               )}
@@ -245,8 +256,8 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const listAction =
     entry.status === HistoryEntryStatus.ONGOING ? (
-      <CircularProgress size={16} sx={{ mr: '-1rem' }} />
-    ) : entry.status === HistoryEntryStatus.ERROR ? (
+      <CircularProgress size={16} />
+    ) : entry.status === HistoryEntryStatus.FAILURE ? (
       <ErrorOutlineIcon />
     ) : (
       <CheckIcon
@@ -261,17 +272,15 @@ function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
 
   const firstTitle =
     firstStep && firstStep.token
-      ? `${firstStep.step.toString()} ${formatUnits(
-          firstStep.amount ?? 0,
-          firstStep.token.decimals
+      ? `${firstStep.step.toString()} ${toNotSoFixed(
+          formatUnits(firstStep.amount ?? 0, firstStep.token.decimals)
         )} ${firstStep.token.symbol}`
       : '';
 
   const secondTitle =
     secondStep && secondStep.token
-      ? `${secondStep.step.toString()} ${formatUnits(
-          secondStep.amount ?? 0,
-          secondStep.token.decimals
+      ? `${secondStep.step.toString()} ${toNotSoFixed(
+          formatUnits(secondStep.amount ?? 0, secondStep.token.decimals)
         )} ${secondStep.token.symbol}`
       : '';
 
