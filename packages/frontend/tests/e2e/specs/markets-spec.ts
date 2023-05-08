@@ -1,13 +1,7 @@
-import * as Cypress from 'cypress';
-
 describe('Markets', () => {
   before(() => {
     cy.visit('/');
-    [0, 1, 2, 3].forEach((i) =>
-      cy.get(`[data-cy="disclaimer-check-${i}"]`).click({ force: true })
-    );
-    cy.get(`[data-cy="disclaimer-button"]`).click({ force: true });
-    cy.get(`[data-cy="skip-explore"]`).click({ force: true });
+    cy.dismissDisclaimer();
   });
   it('should load table data', () => {
     cy.get('[data-cy="market-row"]').should('exist');
@@ -26,7 +20,7 @@ describe('Markets', () => {
       .find('[data-cy="market-row-debt"]')
       .should('not.exist');
   });
-  it('should best label to be on right rows', () => {
+  it('should best label be on the right rows', () => {
     cy.get('[data-cy="market-row"]')
       .first()
       .find('[data-cy="best-label"]')
