@@ -31,7 +31,7 @@ import {
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
-import { statusForStep, transactionSteps } from '../../helpers/transactions';
+import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
@@ -207,7 +207,6 @@ function TransactionModal({
             <Divider sx={{ mt: '0.75rem', mb: '0.75rem' }} />
 
             {steps?.map((step) => {
-              const status = statusForStep(step, entry);
               return (
                 <Stack
                   key={step.label}
@@ -243,7 +242,7 @@ function TransactionModal({
                     </Typography>
                   </Stack>
                   <Box>
-                    {status === HistoryEntryStatus.SUCCESS ? (
+                    {step.status === HistoryEntryStatus.SUCCESS ? (
                       <CheckIcon
                         sx={{
                           ...commonStatusStyle,

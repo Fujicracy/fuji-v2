@@ -198,7 +198,7 @@ function BorrowButton({
   ) {
     return disabledButton('Payback more than amount due');
   } else if (
-    mode === Mode.DEPOSIT_AND_BORROW &&
+    (mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW) &&
     debtAmount !== 0 &&
     debtAmount <= MINIMUM_DEBT_AMOUNT
   ) {

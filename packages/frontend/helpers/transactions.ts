@@ -35,6 +35,7 @@ export type TransactionStep = {
   description: string;
   chainId: number;
   chain: string;
+  status: HistoryEntryStatus;
   txHash?: string;
   link?: string;
 };
@@ -57,6 +58,7 @@ export const watchTransaction = async (
 };
 
 export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
+  // group steps by chain flow: [[X_TRANSFER], [DEPOSIT, BORROW], [X_TRANSFER]]
   const source = validSteps(entry.steps).reduce(
     (acc: Array<Array<HistoryRoutingStep>>, currentValue) => {
       if (currentValue.step !== RoutingStep.X_TRANSFER) {
@@ -77,23 +79,24 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
     },
     []
   );
+  // we can be certain thanks to the reduce above that
+  // there's 1-to-1 mapping between indexes and sourceChain/secondChain/thirdChain
   return source.map((array, i): TransactionStep => {
     const s = array[0];
-    const { chainId } = s;
 
-    const realChainId =
-      s.step === RoutingStep.X_TRANSFER && i === 0 && s.token
-        ? s.token.chainId
-        : chainId;
+    const e =
+      i === 0
+        ? entry.sourceChain
+        : i === 1
+        ? entry.secondChain
+        : entry.thirdChain;
+    const chainId = e?.chainId as ChainId;
+    const status = e?.status as HistoryEntryStatus;
+    const txHash = e?.hash;
 
-    const chain = chainName(realChainId);
+    const chain = chainName(chainId);
 
-    const txHash =
-      realChainId === entry.sourceChain.chainId
-        ? entry.hash
-        : entry.secondChain?.hash;
-
-    const link = txHash && transactionUrl(realChainId, txHash);
+    const link = txHash && transactionUrl(chainId, txHash);
 
     const labelify = (step: HistoryRoutingStep): string => {
       const amount =
@@ -132,26 +135,14 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
 
     return {
       label,
+      status,
       txHash,
       link,
       description,
       chain,
-      chainId: realChainId,
+      chainId,
     };
   });
-};
-
-export const statusForStep = (
-  step: TransactionStep,
-  entry: HistoryEntry
-): HistoryEntryStatus => {
-  if (step.chainId === entry.sourceChain.chainId) {
-    return entry.sourceChain.status;
-  }
-  if (entry.secondChain && step.chainId === entry.secondChain.chainId) {
-    return entry.secondChain.status;
-  }
-  return entry.status;
 };
 
 const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {

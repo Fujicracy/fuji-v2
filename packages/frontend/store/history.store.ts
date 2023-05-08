@@ -1,9 +1,4 @@
-import {
-  ChainId,
-  ConnextTxStatus,
-  RoutingStep,
-  RoutingStepDetails,
-} from '@x-fuji/sdk';
+import { ChainId, ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -79,35 +74,31 @@ export const useHistory = create<HistoryStore>()(
         ...initialState,
 
         async add(hash, address, vaultAddress, steps) {
-          const bridgeSteps = steps.filter(
-            (s) => s.step === RoutingStep.X_TRANSFER
-          );
-          const chainCount = bridgeSteps.length + 1;
-
-          const bridge1 = bridgeSteps[0];
-
-          const srcChainId = steps[0].chainId;
-          const secondChainId =
-            bridgeSteps.length > 0
-              ? steps.indexOf(bridge1) === 1 && bridge1.token
-                ? bridge1.token.chainId
-                : bridge1.chainId
-              : undefined;
-          const thirdChainId = bridgeSteps.length > 1 && bridgeSteps[1].chainId;
-          const isCrossChain = chainCount > 1;
+          const distinctChains = steps
+            .map((s) => s.chainId)
+            .reduce((acc: ChainId[], current: ChainId, i: number) => {
+              if (i === 0) {
+                acc.push(current);
+              } else {
+                const last = acc.length - 1;
+                if (acc[last] !== current) acc.push(current);
+              }
+              return acc;
+            }, []);
+          const [srcChainId, secondChainId, thirdChainId] = distinctChains;
+          const chainCount = distinctChains.length;
 
           const sourceChain = {
             chainId: srcChainId,
             status: HistoryEntryStatus.ONGOING,
             hash,
           };
-          const secondChain =
-            isCrossChain && secondChainId
-              ? {
-                  chainId: secondChainId,
-                  status: HistoryEntryStatus.ONGOING,
-                }
-              : undefined;
+          const secondChain = secondChainId
+            ? {
+                chainId: secondChainId,
+                status: HistoryEntryStatus.ONGOING,
+              }
+            : undefined;
           const thirdChain = thirdChainId
             ? {
                 chainId: thirdChainId,
@@ -236,7 +227,7 @@ export const useHistory = create<HistoryStore>()(
               shown: boolean | undefined,
               firstChainId: ChainId,
               secondChainId: ChainId,
-              hash: string,
+              txHash: string,
               first: boolean
             ) => {
               if (address !== entry.address) return;
@@ -253,7 +244,7 @@ export const useHistory = create<HistoryStore>()(
                   chainName(secondChainId)
                 ),
                 link: getTransactionLink({
-                  hash: hash,
+                  hash: txHash,
                   chainId: firstChainId,
                 }),
               });
@@ -271,7 +262,7 @@ export const useHistory = create<HistoryStore>()(
 
             const crossChainWatch = async (
               chainId: ChainId,
-              hash: string,
+              txHash: string,
               first: boolean
             ) => {
               let crosschainCallFinished = false;
@@ -279,7 +270,7 @@ export const useHistory = create<HistoryStore>()(
                 await wait(TX_WATCHING_POLLING_INTERVAL);
                 const crosschainResult = await sdk.getConnextTxDetails(
                   chainId,
-                  hash
+                  txHash
                 );
                 if (!crosschainResult.success) {
                   throw crosschainResult.error;
@@ -376,24 +367,23 @@ export const useHistory = create<HistoryStore>()(
               finish(true);
               return;
             }
-            if (!entry.secondChain || !entry.secondChain.hash) return;
+
+            const secondChain = get().entries[hash].secondChain;
+            if (!secondChain || !secondChain.hash) return;
 
             updateIfNeeded(
               useAuth.getState().address,
-              entry.secondChain.shown,
-              entry.secondChain.chainId,
+              secondChain.shown,
+              secondChain.chainId,
               entry.thirdChain.chainId,
-              entry.secondChain.hash,
+              secondChain.hash,
               false
             );
 
-            await crossChainWatch(
-              entry.secondChain.chainId,
-              entry.secondChain.hash, // TODO: is this the one we want?
-              false
-            );
+            await crossChainWatch(secondChain.chainId, secondChain.hash, false);
             finish(true);
           } catch (e) {
+            console.error(e);
             finish(false);
           } finally {
             remove();
