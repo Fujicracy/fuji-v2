@@ -43,6 +43,7 @@ function BalanceAddon({ address, balance, ens, onClick }: BalanceAddonProps) {
       )}
 
       <Chip
+        data-cy="header-address"
         onClick={(e) => onClick(e.currentTarget)}
         label={pending || ens || formattedAddress}
         sx={{

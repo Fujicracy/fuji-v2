@@ -10,53 +10,53 @@ describe('Metamask', () => {
     //     expect(setupFinished).to.be.true
     //   })
     // })
-    it(`disconnectMetamaskWalletFromDapp shouldn't fail if there are no dapps connected`, () => {
-      cy.disconnectMetamaskWalletFromDapp().then((disconnected) => {
-        expect(disconnected).to.be.true;
-      });
-    });
-    it(`disconnectMetamaskWalletFromAllDapps shouldn't fail if there are no dapps connected`, () => {
-      cy.disconnectMetamaskWalletFromAllDapps().then((disconnected) => {
-        expect(disconnected).to.be.true;
-      });
-    });
-    it(`acceptMetamaskAccess should accept connection request to metamask`, () => {
-      cy.visit('/');
-      // Note: web3 onboard is in a shadow root so we cannot use cy.get to click on buttons...
-      localStorage.setItem('connectedWallets', '["MetaMask"]'); // Workaround to autoconnect web3 onboard
-      cy.get('[data-cy="login"]').click({ force: true });
-      cy.acceptMetamaskAccess().then((connected) => {
-        expect(connected).to.be.true;
-      });
-    });
-    it(`getNetwork should return network by default`, () => {
-      cy.getNetwork().then((network: any) => {
-        expect(network.networkName).to.be.equal('goerli');
-        expect(network.networkId).to.be.equal(5);
-        expect(network.isTestnet).to.be.true;
-      });
-    });
-    it(`addMetamaskNetwork should add custom networks`, () => {
-      cy.addMetamaskNetwork({
-        networkName: 'Polygon',
-        rpcUrl: 'https://polygon-rpc.com',
-        chainId: '137',
-        symbol: 'MATIC',
-        blockExplorer: 'https://polygonscan.com',
-        isTestnet: false,
-      }).then((networkAdded) => {
-        expect(networkAdded).to.be.true;
-      });
-      // cy.get('[data-cy="chain"]').contains("Polygon")
-    });
-    it(`getNetwork should return valid network after adding a new network`, () => {
-      cy.getNetwork().then((network: any) => {
-        expect(network.networkName).to.be.equal('polygon');
-        expect(network.networkId).to.be.equal(137);
-        expect(network.isTestnet).to.be.false;
-      });
-      // cy.get('[data-cy="chain"]').contains("Polygon")
-    });
+    // it(`disconnectMetamaskWalletFromDapp shouldn't fail if there are no dapps connected`, () => {
+    //   cy.disconnectMetamaskWalletFromDapp().then((disconnected) => {
+    //     expect(disconnected).to.be.true;
+    //   });
+    // });
+    // it(`disconnectMetamaskWalletFromAllDapps shouldn't fail if there are no dapps connected`, () => {
+    //   cy.disconnectMetamaskWalletFromAllDapps().then((disconnected) => {
+    //     expect(disconnected).to.be.true;
+    //   });
+    // });
+    // it(`acceptMetamaskAccess should accept connection request to metamask`, () => {
+    //   cy.visit('/');
+    //   // Note: web3 onboard is in a shadow root so we cannot use cy.get to click on buttons...
+    //   localStorage.setItem('connectedWallets', '["MetaMask"]'); // Workaround to autoconnect web3 onboard
+    //   cy.get('[data-cy="login"]').click({ force: true });
+    //   cy.acceptMetamaskAccess().then((connected) => {
+    //     expect(connected).to.be.true;
+    //   });
+    // });
+    // it(`getNetwork should return network by default`, () => {
+    //   cy.getNetwork().then((network: any) => {
+    //     expect(network.networkName).to.be.equal('goerli');
+    //     expect(network.networkId).to.be.equal(5);
+    //     expect(network.isTestnet).to.be.true;
+    //   });
+    // });
+    // it(`addMetamaskNetwork should add custom networks`, () => {
+    //   cy.addMetamaskNetwork({
+    //     networkName: 'Polygon',
+    //     rpcUrl: 'https://polygon-rpc.com',
+    //     chainId: '137',
+    //     symbol: 'MATIC',
+    //     blockExplorer: 'https://polygonscan.com',
+    //     isTestnet: false,
+    //   }).then((networkAdded) => {
+    //     expect(networkAdded).to.be.true;
+    //   });
+    //   // cy.get('[data-cy="chain"]').contains("Polygon")
+    // });
+    // it(`getNetwork should return valid network after adding a new network`, () => {
+    //   cy.getNetwork().then((network: any) => {
+    //     expect(network.networkName).to.be.equal('polygon');
+    //     expect(network.networkId).to.be.equal(137);
+    //     expect(network.isTestnet).to.be.false;
+    //   });
+    //   // cy.get('[data-cy="chain"]').contains("Polygon")
+    // });
     //
     // I let the other test below as reference, we may need to reactivate them or simply
     // use them as examples
