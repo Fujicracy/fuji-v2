@@ -1,4 +1,4 @@
-import { BorrowingVault, Token, VaultWithFinancials } from '@x-fuji/sdk';
+import { BorrowingVault, Currency, VaultWithFinancials } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
 
 import { PATH } from '../constants';
@@ -40,10 +40,10 @@ export const showPosition = async (
     walletChainId && chainName(hexToChainId(walletChainId)) !== '';
   if (isSupported) {
     const collaterals = sdk.getCollateralForChain(Number(walletChainId));
-    const collateralToken = collaterals.find(
-      (t: Token) => t.symbol === vault.collateral.symbol
+    const collateralCurrency = collaterals.find(
+      (t: Currency) => t.symbol === vault.collateral.symbol
     );
-    changeAll(collateralToken ?? vault.collateral, vault.debt, vault);
+    changeAll(collateralCurrency ?? vault.collateral, vault.debt, vault);
   } else {
     changeAll(vault.collateral, vault.debt, vault);
   }
