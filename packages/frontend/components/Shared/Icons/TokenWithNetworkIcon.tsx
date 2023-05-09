@@ -1,19 +1,19 @@
 import { Stack } from '@mui/material';
-import { AbstractCurrency } from '@x-fuji/sdk';
+import { Currency } from '@x-fuji/sdk';
 
 import NetworkIcon from './NetworkIcon';
 import TokenIcon from './TokenIcon';
 
 type TokenWithNetworkIconProps = {
-  token: string | AbstractCurrency;
+  token: Currency | string;
   network: string;
-  innertTop: string;
+  innerTop: string;
 };
 
 function TokenWithNetworkIcon({
   token,
   network,
-  innertTop,
+  innerTop,
 }: TokenWithNetworkIconProps) {
   return (
     <Stack direction="row">
@@ -29,7 +29,7 @@ function TokenWithNetworkIcon({
           borderRadius: '100%',
           height: '17px',
           width: '17px',
-          top: innertTop,
+          top: innerTop,
         }}
       />
     </Stack>
@@ -39,5 +39,5 @@ function TokenWithNetworkIcon({
 export default TokenWithNetworkIcon;
 
 TokenWithNetworkIcon.defaultProps = {
-  innertTop: '1.5rem',
+  innerTop: '1.5rem',
 };

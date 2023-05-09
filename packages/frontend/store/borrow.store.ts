@@ -1,10 +1,10 @@
 import {
-  AbstractCurrency,
   Address,
   BorrowingVault,
   ChainId,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  Currency,
   DEFAULT_SLIPPAGE,
   FujiError,
   FujiErrorCode,
@@ -97,8 +97,8 @@ type BorrowActions = {
   changeFormType: (type: FormType) => void;
   changeMode: (mode: Mode) => void;
   changeAll: (
-    collateral: AbstractCurrency,
-    debt: AbstractCurrency,
+    collateral: Currency,
+    debt: Currency,
     vault: BorrowingVault
   ) => void;
   changeInputValues: (collateral: string, debt: string) => void;
@@ -107,13 +107,13 @@ type BorrowActions = {
     chainId: ChainId,
     updateVault: boolean
   ) => void;
-  changeAssetToken: (type: AssetType, token: AbstractCurrency) => void;
+  changeAssetToken: (type: AssetType, token: Currency) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
   changeDebtChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
-  changeDebtToken: (token: AbstractCurrency) => void; // Convenience
+  changeDebtToken: (token: Currency) => void; // Convenience
   changeDebtValue: (val: string) => void; // Convenience
   changeCollateralChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
-  changeCollateralToken: (token: AbstractCurrency) => void; // Convenience
+  changeCollateralToken: (token: Currency) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
   changeActiveVault: (v: BorrowingVault) => void;
   changeTransactionMeta: (route: RouteMeta) => void;

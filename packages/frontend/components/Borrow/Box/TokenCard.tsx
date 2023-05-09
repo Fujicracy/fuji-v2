@@ -14,7 +14,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { AbstractCurrency } from '@x-fuji/sdk';
+import { Currency } from '@x-fuji/sdk';
 import React, {
   MouseEvent,
   ReactElement,
@@ -51,7 +51,7 @@ type SelectTokenCardProps = {
   value: string;
   showMax: boolean;
   maxAmount: number;
-  onTokenChange: (token: AbstractCurrency) => void;
+  onTokenChange: (token: Currency) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
@@ -149,7 +149,7 @@ function TokenCard({
     handleInput(recommended());
   };
 
-  const handleTokenChange = (token: AbstractCurrency) => {
+  const handleTokenChange = (token: Currency) => {
     onTokenChange(token);
     close();
   };
@@ -327,11 +327,11 @@ function TokenCard({
 }
 
 type TokenItem = {
-  token: AbstractCurrency;
+  token: Currency;
   balance?: number;
   prepend?: ReactElement;
   sx?: SxProps<Theme>;
-  onClick?: (token: AbstractCurrency) => void;
+  onClick?: (token: Currency) => void;
 };
 const TokenItem = (props: TokenItem) => {
   const { token, balance, prepend, sx, onClick } = props;

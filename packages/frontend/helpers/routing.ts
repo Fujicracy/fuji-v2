@@ -1,8 +1,8 @@
 import {
-  AbstractCurrency,
   Address,
   BorrowingVault,
   BridgeFee as FujiBridgeFee,
+  Currency,
   FujiResult,
   FujiResultError,
   FujiResultPromise,
@@ -37,8 +37,8 @@ export type RouteMeta = {
 export const fetchRoutes = async (
   mode: Mode,
   vault: BorrowingVault,
-  collateralToken: AbstractCurrency,
-  debtToken: AbstractCurrency,
+  collateralToken: Currency,
+  debtToken: Currency,
   collateralInput: string,
   debtInput: string,
   address: string,

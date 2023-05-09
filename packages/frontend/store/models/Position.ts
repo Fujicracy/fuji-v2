@@ -1,15 +1,11 @@
-import {
-  AbstractCurrency,
-  BorrowingVault,
-  LendingProviderDetails,
-} from '@x-fuji/sdk';
+import { BorrowingVault, Currency, LendingProviderDetails } from '@x-fuji/sdk';
 
 /**
  * @remarks
  * Type that represents detail data about an asset (collateral or debt) within a `Position` type.
  */
 export type AssetMeta = {
-  token: AbstractCurrency;
+  token: Currency;
   amount: number;
   usdPrice: number;
   baseAPR?: number;

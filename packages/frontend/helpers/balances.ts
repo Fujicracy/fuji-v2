@@ -1,7 +1,7 @@
 import {
-  AbstractCurrency,
   Address,
   ChainId,
+  Currency,
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
@@ -16,7 +16,7 @@ import { useBorrow } from '../store/borrow.store';
 import { AssetChange, AssetType } from './assets';
 
 export const fetchBalances = async (
-  tokens: AbstractCurrency[],
+  tokens: Currency[],
   address: string,
   chainId: ChainId
 ): FujiResultPromise<Record<string, number>> => {

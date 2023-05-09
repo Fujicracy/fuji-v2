@@ -1,4 +1,4 @@
-import { AbstractCurrency, ChainId } from '@x-fuji/sdk';
+import { ChainId, Currency } from '@x-fuji/sdk';
 
 import { LTV_RECOMMENDED_DECREASE } from '../constants';
 import { AssetMeta } from '../store/models/Position';
@@ -28,12 +28,12 @@ export type Allowance = {
 };
 
 export type AssetChange = {
-  selectableTokens: AbstractCurrency[];
+  selectableTokens: Currency[];
   balances: Record<string, number>;
   allowance: Allowance;
   input: string;
   chainId: ChainId;
-  token: AbstractCurrency;
+  token: Currency;
   amount: number;
   usdPrice: number;
 };
