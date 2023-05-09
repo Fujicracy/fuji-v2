@@ -11,6 +11,7 @@ import {
   CONNEXT_URL,
   DEBT_LIST,
   FujiErrorCode,
+  NATIVE,
   URLS,
   VAULT_LIST,
 } from './constants';
@@ -109,10 +110,31 @@ export class Sdk {
    *
    * @param chainId - ID of the chain
    */
-  getCollateralForChain(chainId: ChainId): Token[] {
-    return COLLATERAL_LIST[chainId].map((token: Token) =>
+  getCollateralForChain(chainId: ChainId): Currency[] {
+    let list: Currency[] = COLLATERAL_LIST[chainId].map((token: Token) =>
       token.setConnection(this._configParams)
     );
+    if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
+      list = [NATIVE[chainId].setConnection(this._configParams), ...list];
+    }
+    return list;
+  }
+
+  /**
+   * Returns tokens that can be borrowed on a specific chain.
+   * Sets the connection of each token instance so that they are ready
+   * to be used.
+   *
+   * @param chainId - ID of the chain
+   */
+  getDebtForChain(chainId: ChainId): Currency[] {
+    let list: Currency[] = DEBT_LIST[chainId].map((token: Token) =>
+      token.setConnection(this._configParams)
+    );
+    if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
+      list = [NATIVE[chainId].setConnection(this._configParams), ...list];
+    }
+    return list;
   }
 
   /**
@@ -123,19 +145,6 @@ export class Sdk {
   getConnectionFor(chainId: ChainId): ChainConnectionDetails {
     return CHAIN[chainId].setConnection(this._configParams)
       .connection as ChainConnectionDetails;
-  }
-
-  /**
-   * Returns tokens that can be borrowed on a specific chain.
-   * Sets the connection of each token instance so that they are ready
-   * to be used.
-   *
-   * @param chainId - ID of the chain
-   */
-  getDebtForChain(chainId: ChainId): Token[] {
-    return DEBT_LIST[chainId].map((token: Token) =>
-      token.setConnection(this._configParams)
-    );
   }
 
   /**
@@ -167,18 +176,18 @@ export class Sdk {
    * Returns the token balances of an address in a batch.
    * Throws an error if `chainId` is different from each `token.chainId`.
    *
-   * @param tokens - array of {@link Token} from the same chain
+   * @param currencies - array of {@link Currency} from the same chain
    * @param account - user address, wrapped in {@link Address}
    * @param chainId - ID of the chain
    */
-  async getTokenBalancesFor(
-    tokens: Token[],
+  async getBalancesFor(
+    currencies: Currency[],
     account: Address,
     chainId: ChainId
   ): FujiResultPromise<BigNumber[]> {
-    if (tokens.find((t) => t.chainId !== chainId)) {
+    if (currencies.find((t) => t.chainId !== chainId)) {
       return new FujiResultError(
-        'Token from a different chain!',
+        'Currency from a different chain!',
         FujiErrorCode.SDK,
         {
           chainId,
@@ -186,7 +195,9 @@ export class Sdk {
       );
     }
     try {
-      const { multicallRpcProvider } = this.getConnectionFor(chainId);
+      const { multicallRpcProvider, rpcProvider } =
+        this.getConnectionFor(chainId);
+      const tokens = currencies.filter((c) => c.isToken) as Token[];
       const balances = tokens
         .map((token) => token.setConnection(this._configParams))
         .map(
@@ -194,8 +205,14 @@ export class Sdk {
             token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
         );
 
-      const result = await multicallRpcProvider.all(balances);
-      return new FujiResultSuccess(result);
+      const [bals, nativeBal] = await Promise.all([
+        multicallRpcProvider.all(balances),
+        rpcProvider.getBalance(account.value),
+      ]);
+      // insert the native balance back at the position it was requested
+      const nativeIndex = currencies.findIndex((c) => c.isNative);
+      if (nativeIndex !== -1) bals.splice(nativeIndex, 0, nativeBal);
+      return new FujiResultSuccess(bals);
     } catch (e) {
       const message = FujiError.messageFromUnknownError(e);
       return new FujiResultError(message, FujiErrorCode.MULTICALL, { chainId });
@@ -301,17 +318,20 @@ export class Sdk {
    * If collateral and debt tokens are on the same chain, we privilege the vault
    * on the same chain even though it has a lowest borrow rate.
    *
-   * @param collateral - collateral instance of {@link Token}
-   * @param debt - debt instance of {@link Token}
+   * @param collateral - collateral instance of {@link Currency}
+   * @param debt - debt instance of {@link Currency}
    */
   async getBorrowingVaultsFor(
-    collateral: Token,
-    debt: Token
+    collateral: Currency,
+    debt: Currency
   ): FujiResultPromise<BorrowingVault[]> {
+    const _collateral = collateral.isToken ? collateral : collateral.wrapped;
+    const _debt = debt.isToken ? debt : debt.wrapped;
+
     // TODO: sort by safety rating too
     // find all vaults with this pair
     try {
-      const vaults = this._findVaultsByTokens(collateral, debt).map(
+      const vaults = this._findVaultsByTokens(_collateral, _debt).map(
         (v: BorrowingVault) => v.setConnection(this._configParams)
       );
 

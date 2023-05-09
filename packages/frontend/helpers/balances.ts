@@ -2,10 +2,8 @@ import {
   Address,
   ChainId,
   Currency,
-  FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
-  Token,
 } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
@@ -20,11 +18,8 @@ export const fetchBalances = async (
   address: string,
   chainId: ChainId
 ): FujiResultPromise<Record<string, number>> => {
-  if (currencies.some((t) => !(t instanceof Token))) {
-    return new FujiResultError('We do not support native tokens yet');
-  }
-  const result = await sdk.getTokenBalancesFor(
-    currencies as Token[],
+  const result = await sdk.getBalancesFor(
+    currencies,
     Address.from(address),
     chainId
   );
