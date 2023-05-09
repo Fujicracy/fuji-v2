@@ -1,12 +1,12 @@
 import { useTheme } from '@mui/material';
-import { Token } from '@x-fuji/sdk';
+import { AbstractCurrency } from '@x-fuji/sdk';
 import { SyntheticEvent, useState } from 'react';
 
 import { getTokenImage } from '../../../helpers/paths';
 import { Icon, renderIcon, renderIconError } from './Base/Icon';
 
 interface Props extends Icon {
-  token: Token | string;
+  token: AbstractCurrency | string;
 }
 
 function TokenIcon(props: Props) {

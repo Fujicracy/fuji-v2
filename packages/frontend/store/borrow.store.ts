@@ -1,4 +1,5 @@
 import {
+  AbstractCurrency,
   Address,
   BorrowingVault,
   ChainId,
@@ -95,20 +96,24 @@ export type FetchStatus = 'initial' | 'fetching' | 'ready' | 'error';
 type BorrowActions = {
   changeFormType: (type: FormType) => void;
   changeMode: (mode: Mode) => void;
-  changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void;
+  changeAll: (
+    collateral: AbstractCurrency,
+    debt: AbstractCurrency,
+    vault: BorrowingVault
+  ) => void;
   changeInputValues: (collateral: string, debt: string) => void;
   changeAssetChain: (
     type: AssetType,
     chainId: ChainId,
     updateVault: boolean
   ) => void;
-  changeAssetToken: (type: AssetType, token: Token) => void;
+  changeAssetToken: (type: AssetType, token: AbstractCurrency) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
   changeDebtChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
-  changeDebtToken: (token: Token) => void; // Convenience
+  changeDebtToken: (token: AbstractCurrency) => void; // Convenience
   changeDebtValue: (val: string) => void; // Convenience
   changeCollateralChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
-  changeCollateralToken: (token: Token) => void; // Convenience
+  changeCollateralToken: (token: AbstractCurrency) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
   changeActiveVault: (v: BorrowingVault) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
@@ -223,6 +228,8 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeAll(collateral, debt, vault) {
+          if (!(collateral instanceof Token) || !(debt instanceof Token))
+            return;
           const collaterals = sdk.getCollateralForChain(collateral.chainId);
           const debts = sdk.getDebtForChain(debt.chainId);
           set(
@@ -489,6 +496,9 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
           try {
+            if (!(token instanceof Token)) {
+              return;
+            }
             const res = await sdk.getAllowanceFor(token, Address.from(address));
 
             const currentToken =
@@ -531,6 +541,10 @@ export const useBorrow = create<BorrowStore>()(
 
           const collateral = get().collateral.token;
           const debt = get().debt.token;
+          if (!(collateral instanceof Token) || !(debt instanceof Token)) {
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
           const result = await sdk.getBorrowingVaultsFor(collateral, debt);
 
           if (!result.success) {
@@ -585,6 +599,13 @@ export const useBorrow = create<BorrowStore>()(
           const collateralInput =
             collateral.input === '' ? '0' : collateral.input;
           const debtInput = debt.input === '' ? '0' : debt.input;
+          if (!(collateral instanceof Token) || !(debt instanceof Token)) {
+            return set(
+              produce((state: BorrowState) => {
+                state.transactionMeta.status = 'error';
+              })
+            );
+          }
           if (!activeVault) {
             return set(
               produce((state: BorrowState) => {

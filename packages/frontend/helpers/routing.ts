@@ -1,8 +1,10 @@
 import {
+  AbstractCurrency,
   Address,
   BorrowingVault,
   BridgeFee as FujiBridgeFee,
   FujiResult,
+  FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
   PreviewName,
@@ -35,14 +37,17 @@ export type RouteMeta = {
 export const fetchRoutes = async (
   mode: Mode,
   vault: BorrowingVault,
-  collateralToken: Token,
-  debtToken: Token,
+  collateralToken: AbstractCurrency,
+  debtToken: AbstractCurrency,
   collateralInput: string,
   debtInput: string,
   address: string,
   recommended: boolean,
   slippage: number
 ): FujiResultPromise<RouteMeta> => {
+  if (!(collateralToken instanceof Token) || !(debtToken instanceof Token)) {
+    return new FujiResultError('We do not support native tokens yet');
+  }
   let result: FujiResult<PreviewResult>;
   switch (mode) {
     case Mode.DEPOSIT_AND_BORROW:

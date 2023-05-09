@@ -1,6 +1,8 @@
 import {
+  AbstractCurrency,
   Address,
   ChainId,
+  FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
   Token,
@@ -14,12 +16,15 @@ import { useBorrow } from '../store/borrow.store';
 import { AssetChange, AssetType } from './assets';
 
 export const fetchBalances = async (
-  tokens: Token[],
+  tokens: AbstractCurrency[],
   address: string,
   chainId: ChainId
 ): FujiResultPromise<Record<string, number>> => {
+  if (tokens.some((t) => !(t instanceof Token))) {
+    return new FujiResultError('We do not support native tokens yet');
+  }
   const result = await sdk.getTokenBalancesFor(
-    tokens,
+    tokens as Token[],
     Address.from(address),
     chainId
   );

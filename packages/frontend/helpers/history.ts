@@ -23,6 +23,7 @@ export type SerializableToken = {
   decimals: number;
   symbol: string;
   name?: string;
+  isNative: boolean;
 };
 
 export type HistoryEntryChain = {
@@ -81,6 +82,7 @@ export const toHistoryRoutingStep = (
             decimals: s.token.decimals,
             symbol: s.token.symbol,
             name: s.token.name,
+            isNative: false,
           }
         : undefined,
     };

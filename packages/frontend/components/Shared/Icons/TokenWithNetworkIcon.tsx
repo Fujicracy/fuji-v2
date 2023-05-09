@@ -1,11 +1,11 @@
 import { Stack } from '@mui/material';
-import { Token } from '@x-fuji/sdk';
+import { AbstractCurrency } from '@x-fuji/sdk';
 
 import NetworkIcon from './NetworkIcon';
 import TokenIcon from './TokenIcon';
 
 type TokenWithNetworkIconProps = {
-  token: string | Token;
+  token: string | AbstractCurrency;
   network: string;
   innertTop: string;
 };

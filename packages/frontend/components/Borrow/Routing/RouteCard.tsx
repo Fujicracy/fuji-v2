@@ -2,7 +2,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Box, Chip, Collapse, Paper, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Stack } from '@mui/system';
-import { RoutingStep, RoutingStepDetails, Token } from '@x-fuji/sdk';
+import { AbstractCurrency, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 
@@ -241,7 +241,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
           <TokenWithNetworkIcon
-            token={startStep?.token as Token}
+            token={startStep?.token as AbstractCurrency}
             network={chainName(startStep?.chainId)}
           />
           <Box>
@@ -271,7 +271,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
           </Box>
 
           <TokenWithNetworkIcon
-            token={endStep?.token as Token}
+            token={endStep?.token as AbstractCurrency}
             network={chainName(endStep?.chainId)}
           />
         </Stack>
