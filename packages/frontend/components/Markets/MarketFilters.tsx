@@ -2,7 +2,7 @@ import { Box, Stack, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Chain } from '@x-fuji/sdk';
 import Image from 'next/image';
-import React from 'react';
+import React, { ReactNode, useMemo } from 'react';
 
 import { chains } from '../../helpers/chains';
 import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
@@ -28,7 +28,6 @@ function MarketFiltersHeader({
   };
 
   const handleChainChange = (chainName: string) => {
-    console.log('handleChainChange', chainName, filters.chains);
     if (!chainName) {
       if (filters.chains.length === chains.length) {
         return;
@@ -56,16 +55,12 @@ function MarketFiltersHeader({
   const ChainButton = ({
     children,
     chainName,
+    isSelected,
   }: {
     children: React.ReactNode;
     chainName: string;
+    isSelected: boolean;
   }) => {
-    const isSelected =
-      (chainName &&
-        filters.chains.includes(chainName) &&
-        filters.chains.length !== chains.length) ||
-      (!chainName && filters.chains.length === chains.length);
-
     return (
       <Stack
         alignItems="center"
@@ -86,6 +81,23 @@ function MarketFiltersHeader({
       </Stack>
     );
   };
+
+  const images = useMemo(() => {
+    const result: { [key: string]: ReactNode } = {};
+    chains.forEach((chain) => {
+      result[chain.name] = (
+        <Image
+          src={`/assets/images/protocol-icons/networks/${chain.name}.svg`}
+          height={18}
+          width={18}
+          objectFit="cover"
+          alt={chain.name}
+        />
+      );
+    });
+
+    return result;
+  }, []);
 
   return (
     <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -146,7 +158,10 @@ function MarketFiltersHeader({
         <Typography variant="smallDark" color={palette.info.main} mr="0.75rem">
           Filter Chains:
         </Typography>
-        <ChainButton chainName={''}>
+        <ChainButton
+          chainName={''}
+          isSelected={filters.chains.length === chains.length}
+        >
           <Typography variant="small">All</Typography>
         </ChainButton>
         {chains.map((chain: Chain) => (
@@ -155,14 +170,14 @@ function MarketFiltersHeader({
             placement="top"
             key={chain.chainId}
           >
-            <ChainButton chainName={chain.name}>
-              <Image
-                src={`/assets/images/protocol-icons/networks/${chain.name}.svg`}
-                height={18}
-                width={18}
-                objectFit="cover"
-                alt={chain.name}
-              />
+            <ChainButton
+              chainName={chain.name}
+              isSelected={
+                filters.chains.includes(chain.name) &&
+                filters.chains.length !== chains.length
+              }
+            >
+              {images[chain.name]}
             </ChainButton>
           </TooltipWrapper>
         ))}
