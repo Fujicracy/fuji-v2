@@ -39,6 +39,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @dev Custom Errors
   error BaseVault__constructor_invalidInput();
   error BaseVault__initializeVaultShares_alreadyInitialized();
+  error BaseVault__initializeVaultShares_lessThanMin();
   error BaseVault__deposit_invalidInput();
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
@@ -106,17 +107,21 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Implement at children contract.
+   * @notice Implement at children contract.
+   *
+   * @param assets amount to initialize asset shares
+   * @param debt amount to initialize debt shares
+   *
    * Requirements:
    * - Must create shares and balance to avoid inflation attack.
-   * - Must use `minAmount` for deposit-assets and borrow-debt.
+   * - Must have `assets` and `debt` be > `minAmount`.
    * - Must account any created shares to the {Chief.timelock()}.
    * - Must pull assets from msg.sender
    * - Must send debt if applicable to the {Chief.timelock()}.
    * - Must unpause all actions at the end.
    * - Must emit a VaultInitialized event.
    */
-  function initializeVaultShares() public virtual;
+  function initializeVaultShares(uint256 assets, uint256 debt) public virtual;
 
   /*////////////////////////////////////////////////////
       Asset management: allowance {IERC20} overrides 

@@ -160,15 +160,17 @@ contract BorrowingVault is BaseVault {
   receive() external payable {}
 
   /// @inheritdoc BaseVault
-  function initializeVaultShares() public override {
+  function initializeVaultShares(uint256 assets, uint256 debt) public override {
     if (initialized) {
       revert BaseVault__initializeVaultShares_alreadyInitialized();
+    } else if (assets <= minAmount || debt <= minAmount) {
+      revert BaseVault__initializeVaultShares_lessThanMin();
     }
     _unpauseForceAllActions();
 
     address timelock = chief.timelock();
-    _deposit(msg.sender, timelock, minAmount, minAmount);
-    _borrow(msg.sender, timelock, timelock, minAmount, minAmount);
+    _deposit(msg.sender, timelock, assets, assets);
+    _borrow(msg.sender, timelock, timelock, debt, debt);
 
     initialized = true;
     emit VaultInitialized(msg.sender);

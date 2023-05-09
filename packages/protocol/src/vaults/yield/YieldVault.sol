@@ -59,9 +59,11 @@ contract YieldVault is BaseVault {
   receive() external payable {}
 
   /// @inheritdoc BaseVault
-  function initializeVaultShares() public override {
+  function initializeVaultShares(uint256 assets, uint256) public override {
     if (initialized) {
       revert BaseVault__initializeVaultShares_alreadyInitialized();
+    } else if (assets <= minAmount) {
+      revert BaseVault__initializeVaultShares_lessThanMin();
     }
     _unpauseForceAllActions();
     _deposit(msg.sender, chief.timelock(), minAmount, minAmount);
