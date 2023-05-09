@@ -209,14 +209,16 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
               ))}
             </TableRow>
           ) : (
-            filteredRows.map((row, i) => (
-              <MarketsTableRow
-                key={i}
-                row={row}
-                onClick={handleClick}
-                openedByDefault={i === 0}
-              />
-            ))
+            filteredRows.map((row, i) => {
+              return (
+                <MarketsTableRow
+                  key={i}
+                  row={row}
+                  onClick={handleClick}
+                  openedByDefault={Boolean(i === 0 && row.children)}
+                />
+              );
+            })
           )}
         </TableBody>
       </Table>

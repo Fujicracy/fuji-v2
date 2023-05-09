@@ -1,6 +1,6 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
-import { chainName } from './chains';
+import { chainName, chains } from './chains';
 import { MarketFilters } from '../components/Markets/MarketFilters';
 
 export enum Status {
@@ -282,14 +282,17 @@ export function filterMarketRows(
   rows: MarketRow[],
   filters: MarketFilters
 ): MarketRow[] {
-  if (!filters.searchQuery) return groupByPair(rows);
+  if (!filters.searchQuery && filters.chains.length === chains.length)
+    return groupByPair(rows);
   const filteredRows: MarketRow[] = [];
 
   function filterRows(rows: MarketRow[], filters: MarketFilters) {
     rows.forEach((row) => {
-      // const chainMatch = filters.chains
-      //   ? filters.chains.includes(row.chain.value)
-      //   : false;
+      const chainMatch =
+        filters.chains && filters.chains.length > 0
+          ? filters.chains.includes(row.chain.value)
+          : false;
+
       const searchQueryMatch =
         filters.searchQuery &&
         (row.collateral
@@ -300,7 +303,7 @@ export function filterMarketRows(
             protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
           ));
 
-      if (searchQueryMatch) {
+      if (chainMatch && (!filters.searchQuery || searchQueryMatch)) {
         filteredRows.push(row);
       }
     });

@@ -29,27 +29,16 @@ function MarketFiltersHeader({
 
   const handleChainChange = (chainName: string) => {
     if (!chainName) {
-      if (filters.chains.length === chains.length) {
-        return;
-      }
-
       setFilters({ ...filters, chains: chains.map((c) => c.name) });
-      return;
-    }
-
-    if (filters.chains.length === chains.length) {
+    } else if (filters.chains.length === chains.length) {
       setFilters({ ...filters, chains: [chainName] });
-      return;
+    } else if (filters.chains.includes(chainName)) {
+      const filtered = filters.chains.filter((c) => c !== chainName);
+      const result = filtered.length > 0 ? filtered : chains.map((c) => c.name);
+      setFilters({ ...filters, chains: result });
+    } else {
+      setFilters({ ...filters, chains: [...filters.chains, chainName] });
     }
-
-    if (filters.chains.includes(chainName)) {
-      setFilters({
-        ...filters,
-        chains: filters.chains.filter((c) => c !== chainName),
-      });
-      return;
-    }
-    setFilters({ ...filters, chains: [...filters.chains, chainName] });
   };
 
   const ChainButton = ({

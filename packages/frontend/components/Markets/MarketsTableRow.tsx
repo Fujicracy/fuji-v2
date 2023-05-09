@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Box } from '@mui/system';
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
@@ -48,6 +48,10 @@ function MarketsTableRow({
     evt.stopPropagation();
     setExpandRow(!expandRow);
   };
+
+  useEffect(() => {
+    setExpandRow(openedByDefault);
+  }, [openedByDefault]);
 
   const loaderOrError = (status: Status) =>
     status === Status.Loading ? (
