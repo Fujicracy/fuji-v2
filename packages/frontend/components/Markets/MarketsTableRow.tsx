@@ -22,10 +22,10 @@ import { MarketRow, Status } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
 import { formatValue } from '../../helpers/values';
 import {
+  CurrencyIcon,
   DropletIcon,
   NetworkIcon,
   ProviderIcon,
-  TokenIcon,
 } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import BestLabel from './BestLabel';
@@ -100,7 +100,7 @@ function MarketsTableRow({
                 onClick={handleExpand}
               />
               <Stack direction="row" alignItems="center" flexWrap="nowrap">
-                <TokenIcon token={row.debt} height={32} width={32} />
+                <CurrencyIcon currency={row.debt} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
                   {row.debt}
                 </Typography>
@@ -111,7 +111,7 @@ function MarketsTableRow({
         <SizableTableCell width="120px">
           {row.collateral && isHighLevelRow && (
             <Stack direction="row" alignItems="center" flexWrap="nowrap">
-              <TokenIcon token={row.collateral} height={32} width={32} />
+              <CurrencyIcon currency={row.collateral} height={32} width={32} />
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}
               </Typography>

@@ -16,15 +16,16 @@ import { useBorrow } from '../store/borrow.store';
 import { AssetChange, AssetType } from './assets';
 
 export const fetchBalances = async (
-  tokens: Currency[],
+  currencies: Currency[],
   address: string,
   chainId: ChainId
 ): FujiResultPromise<Record<string, number>> => {
-  if (tokens.some((t) => !(t instanceof Token))) {
+  // TODO: grab balance from onboard
+  if (currencies.some((t) => !(t instanceof Token))) {
     return new FujiResultError('We do not support native tokens yet');
   }
   const result = await sdk.getTokenBalancesFor(
-    tokens as Token[],
+    currencies as Token[],
     Address.from(address),
     chainId
   );
@@ -36,8 +37,8 @@ export const fetchBalances = async (
 
   const balances: Record<string, number> = {};
   rawBalances.forEach((b, i) => {
-    const value = parseFloat(formatUnits(b, tokens[i].decimals));
-    balances[tokens[i].symbol] = value;
+    const value = parseFloat(formatUnits(b, currencies[i].decimals));
+    balances[currencies[i].symbol] = value;
   });
   return new FujiResultSuccess(balances);
 };
@@ -71,9 +72,9 @@ const checkBalance = async (
   asset: AssetChange
 ) => {
   const result = await fetchBalances(
-    asset.selectableTokens,
+    asset.selectableCurrencies,
     address,
-    asset.token.chainId
+    asset.currency.chainId
   );
 
   // Check if the call was successful and if we're now executing a tx
@@ -91,7 +92,7 @@ const checkBalance = async (
 
   // Check if balances changed but don't even get there if chain changed
   if (
-    current.token.chainId === asset.token.chainId &&
+    current.currency.chainId === asset.currency.chainId &&
     balancesDiffer(current.balances, balances)
   ) {
     useBorrow.getState().changeBalances(type, balances);

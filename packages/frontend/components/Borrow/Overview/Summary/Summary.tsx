@@ -33,7 +33,7 @@ function Summary({
       title: 'Collateral Provided',
       amount: `${formatValue(collateral.amount, {
         maximumFractionDigits: 3,
-      })} ${collateral.token.symbol}`,
+      })} ${collateral.currency.symbol}`,
       footer: formatValue(collateral.amount * collateral.usdPrice, {
         style: 'currency',
       }),
@@ -53,7 +53,7 @@ function Summary({
       }),
       footer: `${formatValue(debt.amount, {
         maximumFractionDigits: 2,
-      })} ${debt.token.symbol}`,
+      })} ${debt.currency.symbol}`,
       extra:
         editedPosition && debtInput && parseFloat(debtInput) !== 0
           ? formatValue(editedPosition.debt.amount * debt.usdPrice, {
@@ -86,7 +86,7 @@ function Summary({
     {
       title: 'Current Price',
       amount: formatValue(collateral.usdPrice, { style: 'currency' }),
-      footer: collateral.token.symbol,
+      footer: collateral.currency.symbol,
     },
   ];
 

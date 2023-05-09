@@ -24,7 +24,7 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { NetworkIcon, TokenIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import EmptyState from './EmptyState';
@@ -102,7 +102,11 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <TokenIcon token={row.debt.symbol} width={24} height={24} />
+                  <CurrencyIcon
+                    currency={row.debt.symbol}
+                    width={24}
+                    height={24}
+                  />
                   <Typography variant="small" fontWeight={500} ml="0.5rem">
                     {formatValue(row.debt.amount)} {row.debt.symbol}
                   </Typography>
@@ -118,8 +122,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <TokenIcon
-                    token={row.collateral.symbol}
+                  <CurrencyIcon
+                    currency={row.collateral.symbol}
                     width={24}
                     height={24}
                   />

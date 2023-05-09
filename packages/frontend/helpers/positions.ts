@@ -29,7 +29,7 @@ export const getPositionsWithBalance = async (
   const result = await getAllBorrowingVaultFinancials(account);
 
   if (result.errors.length > 0) {
-    // Should we keep going with the returnd vaults? Don't think so
+    // Should we keep going with the returned vaults? Don't think so
     const firstError = result.errors[0];
     return new FujiResultError(
       firstError.message,
@@ -48,7 +48,7 @@ export const getPositionsWithBalance = async (
     p.vault = v.vault;
     p.collateral = {
       amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
-      token: v.vault.collateral,
+      currency: v.vault.collateral,
       usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
       get baseAPR() {
         return v.activeProvider.depositAprBase;
@@ -56,7 +56,7 @@ export const getPositionsWithBalance = async (
     };
     p.debt = {
       amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
-      token: v.vault.debt,
+      currency: v.vault.debt,
       usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
       get baseAPR() {
         return v.activeProvider.borrowAprBase;
@@ -273,7 +273,7 @@ export function dynamicPositionMeta(
   return {
     amount: dynamic ? Number(source.input) : source.amount,
     usdPrice: source.usdPrice,
-    token: source.token,
+    currency: source.currency,
   };
 }
 

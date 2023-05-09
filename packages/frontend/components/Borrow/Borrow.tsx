@@ -64,7 +64,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const updateVault = useBorrow((state) => state.updateVault);
   const allow = useBorrow((state) => state.allow);
   const updateAllowance = useBorrow((state) => state.updateAllowance);
-  const updateTokenPrice = useBorrow((state) => state.updateTokenPrice);
+  const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
   const { position, editedPosition } = basePosition;
@@ -135,9 +135,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [address, vault, updateBalances, updateAllowance, updateVault]);
 
   useEffect(() => {
-    updateTokenPrice('collateral');
-    updateTokenPrice('debt');
-  }, [updateTokenPrice]);
+    updateCurrencyPrice('collateral');
+    updateCurrencyPrice('debt');
+  }, [updateCurrencyPrice]);
 
   useEffect(() => {
     if (prevActionType.current !== actionType) {
@@ -235,7 +235,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           ).map((assetChange, index) => {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1;
             const type = index === collateralIndex ? 'collateral' : 'debt';
-            const balance = assetChange.balances[assetChange.token.symbol];
+            const balance = assetChange.balances[assetChange.currency.symbol];
             const debtAmount = position.debt.amount;
             const maxAmount =
               type === 'debt' && debtAmount && debtAmount < balance

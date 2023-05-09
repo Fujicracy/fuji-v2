@@ -21,7 +21,7 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
+import { CurrencyIcon, CurrencyWithNetworkIcon } from '../Shared/Icons';
 
 type PositionYieldTableProps = {
   loading: boolean;
@@ -83,8 +83,8 @@ function PositionYieldTable({
         <TableRow key={i}>
           <TableCell>
             <Stack direction="row" alignItems="center" pt={1} pb={1}>
-              <TokenWithNetworkIcon
-                token={row.debt.symbol}
+              <CurrencyWithNetworkIcon
+                currency={row.debt.symbol}
                 network={chainName(row.chainId)}
                 innerTop="1.1rem"
               />
@@ -93,7 +93,11 @@ function PositionYieldTable({
           </TableCell>
           <TableCell>
             <Stack direction="row" alignItems="center" pt={1} pb={1} gap={1}>
-              <TokenIcon token={row.collateral.symbol} width={32} height={32} />
+              <CurrencyIcon
+                currency={row.collateral.symbol}
+                width={32}
+                height={32}
+              />
               {row.collateral.symbol}
             </Stack>
           </TableCell>

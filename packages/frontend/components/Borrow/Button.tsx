@@ -66,8 +66,8 @@ function BorrowButton({
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input);
   const debtAmount = parseFloat(debt.input);
-  const collateralBalance = collateral.balances[collateral.token.symbol];
-  const debtBalance = debt.balances[debt.token.symbol];
+  const collateralBalance = collateral.balances[collateral.currency.symbol];
+  const debtBalance = debt.balances[debt.currency.symbol];
 
   const executionStep = needsSignature ? 2 : 1;
   const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
@@ -151,7 +151,7 @@ function BorrowButton({
     return disabledButton('Error fetching on-chain data');
   } else if (
     collateral.chainId !== debt.chainId &&
-    debt.token.symbol === 'DAI'
+    debt.currency.symbol === 'DAI'
   ) {
     return disabledButton('Cross-chain DAI not supported');
   } else if (
@@ -174,13 +174,13 @@ function BorrowButton({
     collateralAmount > 0 &&
     collateralAmount > collateralBalance
   ) {
-    return disabledButton(`Insufficient ${collateral.token.symbol} balance`);
+    return disabledButton(`Insufficient ${collateral.currency.symbol} balance`);
   } else if (
     (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     debtAmount > 0 &&
     debtAmount > debtBalance
   ) {
-    return disabledButton(`Insufficient ${debt.token.symbol} balance`);
+    return disabledButton(`Insufficient ${debt.currency.symbol} balance`);
   } else if (ltvMeta.ltv > ltvMeta.ltvMax) {
     return disabledButton('Not enough collateral');
   } else if (

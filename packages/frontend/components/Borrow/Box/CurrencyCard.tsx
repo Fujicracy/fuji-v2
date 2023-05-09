@@ -40,7 +40,7 @@ import {
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
-import { TokenIcon } from '../../Shared/Icons';
+import { CurrencyIcon } from '../../Shared/Icons';
 
 type SelectTokenCardProps = {
   type: AssetType;
@@ -51,7 +51,7 @@ type SelectTokenCardProps = {
   value: string;
   showMax: boolean;
   maxAmount: number;
-  onTokenChange: (token: Currency) => void;
+  onCurrencyChange: (currency: Currency) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
@@ -59,7 +59,7 @@ type SelectTokenCardProps = {
   isFocusedByDefault: boolean;
 };
 
-function TokenCard({
+function CurrencyCard({
   type,
   showMax,
   assetChange,
@@ -68,7 +68,7 @@ function TokenCard({
   disabled,
   value,
   maxAmount,
-  onTokenChange,
+  onCurrencyChange,
   onInputChange,
   ltvMeta,
   basePosition,
@@ -77,11 +77,11 @@ function TokenCard({
 }: SelectTokenCardProps) {
   const { palette } = useTheme();
 
-  const { token, usdPrice, balances, selectableTokens } = assetChange;
+  const { currency, usdPrice, balances, selectableCurrencies } = assetChange;
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
 
-  const balance = balances[token.symbol];
+  const balance = balances[currency.symbol];
 
   const { ltv, ltvMax } = ltvMeta;
 
@@ -118,7 +118,7 @@ function TokenCard({
   };
 
   const handleInput = (val: string) => {
-    const value = validAmount(val, token.decimals);
+    const value = validAmount(val, currency.decimals);
     onInputChange(value);
   };
 
@@ -149,8 +149,8 @@ function TokenCard({
     handleInput(recommended());
   };
 
-  const handleTokenChange = (token: Currency) => {
-    onTokenChange(token);
+  const handleCurrencyChange = (currency: Currency) => {
+    onCurrencyChange(currency);
     close();
   };
 
@@ -214,34 +214,34 @@ function TokenCard({
           disabled={isExecuting || disabled}
           onClick={open}
         >
-          {token && disabled ? (
+          {currency && disabled ? (
             <>
-              <TokenIcon token={token} height={24} width={24} />
+              <CurrencyIcon currency={currency} height={24} width={24} />
               <Typography ml={1} variant="h6">
-                {token.symbol}
+                {currency.symbol}
               </Typography>
             </>
           ) : (
-            <TokenItem
-              token={token}
+            <CurrencyItem
+              currency={currency}
               prepend={<KeyboardArrowDownIcon />}
               sx={{ borderRadius: '2rem' }}
             />
           )}
         </ButtonBase>
         <Menu
-          id={`${type}-token`}
+          id={`${type}-currency`}
           anchorEl={anchorEl}
           open={isOpen}
           onClose={close}
           TransitionComponent={Fade}
         >
-          {selectableTokens.map((token) => (
-            <TokenItem
-              key={token.name}
-              token={token}
-              balance={balances[token.symbol]}
-              onClick={() => handleTokenChange(token)}
+          {selectableCurrencies.map((currency) => (
+            <CurrencyItem
+              key={currency.name}
+              currency={currency}
+              balance={balances[currency.symbol]}
+              onClick={() => handleCurrencyChange(currency)}
             />
           ))}
         </Menu>
@@ -315,7 +315,7 @@ function TokenCard({
                     cursor: 'pointer',
                   }}
                 >
-                  {toNotSoFixed(recommended(), true)} {debt.token.symbol}
+                  {toNotSoFixed(recommended(), true)} {debt.currency.symbol}
                 </Typography>
               </Typography>
             )}
@@ -326,27 +326,32 @@ function TokenCard({
   );
 }
 
-type TokenItem = {
-  token: Currency;
+type CurrencyItem = {
+  currency: Currency;
   balance?: number;
   prepend?: ReactElement;
   sx?: SxProps<Theme>;
-  onClick?: (token: Currency) => void;
+  onClick?: (currency: Currency) => void;
 };
-const TokenItem = (props: TokenItem) => {
-  const { token, balance, prepend, sx, onClick } = props;
+const CurrencyItem = ({
+  currency,
+  balance,
+  prepend,
+  sx,
+  onClick,
+}: CurrencyItem) => {
   return (
     <MenuItem
-      key={token.name}
-      value={token.symbol}
-      onClick={() => onClick && onClick(token)}
+      key={currency.name}
+      value={currency.symbol}
+      onClick={() => onClick && onClick(currency)}
       sx={sx}
     >
       <ListItemIcon>
-        <TokenIcon token={token} height={24} width={24} />
+        <CurrencyIcon currency={currency} height={24} width={24} />
       </ListItemIcon>
       <ListItemText>
-        <Typography variant="h6">{token.symbol}</Typography>
+        <Typography variant="h6">{currency.symbol}</Typography>
       </ListItemText>
       {typeof balance === 'number' && (
         <Typography variant="smallDark" ml="3rem">
@@ -358,8 +363,8 @@ const TokenItem = (props: TokenItem) => {
   );
 };
 
-export default TokenCard;
+export default CurrencyCard;
 
-TokenCard.defaultProps = {
+CurrencyCard.defaultProps = {
   disabled: false,
 };

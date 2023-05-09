@@ -7,7 +7,7 @@ import { formatUnits } from 'ethers/lib/utils';
 
 import { chainName } from '../../../helpers/chains';
 import { toNotSoFixed } from '../../../helpers/values';
-import { NetworkIcon, TokenIcon } from '../Icons';
+import { CurrencyIcon, NetworkIcon } from '../Icons';
 
 function AssetBox({
   isEditing,
@@ -60,7 +60,7 @@ function AssetBox({
         </Typography>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
-          <TokenIcon token={step.token || ''} height={16} width={16} />
+          <CurrencyIcon currency={step.token || ''} height={16} width={16} />
           <Typography variant="small">
             {`${toNotSoFixed(
               formatUnits(

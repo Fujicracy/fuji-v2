@@ -10,7 +10,7 @@ import {
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
-import TokenCard from './TokenCard';
+import TokenCard from './CurrencyCard';
 
 type BorrowBoxProps = {
   isEditing: boolean;
@@ -44,14 +44,14 @@ function BorrowBox({
   const changeCollateralChain = useBorrow(
     (state) => state.changeCollateralChain
   );
-  const changeCollateralToken = useBorrow(
-    (state) => state.changeCollateralToken
+  const changeCollateralCurrency = useBorrow(
+    (state) => state.changeCollateralCurrency
   );
   const changeCollateralValue = useBorrow(
     (state) => state.changeCollateralValue
   );
   const changeDebtChain = useBorrow((state) => state.changeDebtChain);
-  const changeDebtToken = useBorrow((state) => state.changeDebtToken);
+  const changeDebtCurrency = useBorrow((state) => state.changeDebtCurrency);
   const changeDebtValue = useBorrow((state) => state.changeDebtValue);
 
   return (
@@ -96,10 +96,10 @@ function BorrowBox({
         ltvMeta={ltvMeta}
         basePosition={basePosition}
         isFocusedByDefault={index === 0}
-        onTokenChange={(token) =>
+        onCurrencyChange={(currency) =>
           type === 'collateral'
-            ? changeCollateralToken(token)
-            : changeDebtToken(token)
+            ? changeCollateralCurrency(currency)
+            : changeDebtCurrency(currency)
         }
         onInputChange={(value) =>
           type === 'collateral'

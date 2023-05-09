@@ -28,12 +28,12 @@ export type Allowance = {
 };
 
 export type AssetChange = {
-  selectableTokens: Currency[];
+  selectableCurrencies: Currency[];
   balances: Record<string, number>;
   allowance: Allowance;
   input: string;
   chainId: ChainId;
-  token: Currency;
+  currency: Currency;
   amount: number;
   usdPrice: number;
 };
