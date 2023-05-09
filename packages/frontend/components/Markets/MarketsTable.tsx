@@ -7,6 +7,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
   useTheme,
 } from '@mui/material';
 import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
@@ -15,6 +16,7 @@ import { useEffect, useState } from 'react';
 
 import { NOTIFICATION_MESSAGES } from '../../constants';
 import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
+import { chains } from '../../helpers/chains';
 import {
   filterMarketRows,
   groupByPair,
@@ -208,7 +210,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
                 </TableCell>
               ))}
             </TableRow>
-          ) : (
+          ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (
                 <MarketsTableRow
@@ -219,10 +221,48 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
                 />
               );
             })
+          ) : (
+            <EmptyRowsState
+              withFilters={Boolean(
+                filters.searchQuery || filters.chains.length !== chains.length
+              )}
+            />
           )}
         </TableBody>
       </Table>
     </TableContainer>
+  );
+}
+
+function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
+  const message = withFilters
+    ? 'No results found'
+    : 'No data available at the moment';
+
+  return (
+    <TableRow>
+      <TableCell
+        sx={{
+          height: '10rem',
+        }}
+        colSpan={8}
+      >
+        <Stack
+          alignItems="center"
+          justifyContent="center"
+          sx={{
+            width: '100%',
+          }}
+        >
+          <Typography variant="body" fontWeight={500}>
+            No data
+          </Typography>
+          <Typography mt="0.25rem" variant="smallDark">
+            {message}
+          </Typography>
+        </Stack>
+      </TableCell>
+    </TableRow>
   );
 }
 
