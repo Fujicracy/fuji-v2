@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { NOTIFICATION_MESSAGES } from '../../constants';
 import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import {
+  filterMarketRows,
   groupByPair,
   MarketRow,
   setBase,
@@ -38,6 +39,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([]);
+  const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
@@ -93,6 +95,11 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
       setIsLoading(false);
     });
   }, [address]);
+
+  // Filters original rows depends on search or chain
+  useEffect(() => {
+    setFilteredRows(filterMarketRows(rows.slice(), filters));
+  }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
     showPosition(router, walletChain?.id as string, entity);
@@ -202,7 +209,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
               ))}
             </TableRow>
           ) : (
-            rows.map((row, i) => (
+            filteredRows.map((row, i) => (
               <MarketsTableRow
                 key={i}
                 row={row}

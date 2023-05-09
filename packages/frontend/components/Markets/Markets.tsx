@@ -13,7 +13,7 @@ function Markets() {
   const [currentTab, setCurrentTab] = useState(0);
   const [filters, setFilters] = useState<MarketFilters>({
     searchQuery: '',
-    chain: 'all',
+    chain: '',
   });
   /* const [filterValue, setFilterValue] = useState("") */
   /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */

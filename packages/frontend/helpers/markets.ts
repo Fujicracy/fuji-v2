@@ -1,6 +1,7 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
 import { chainName } from './chains';
+import { MarketFilters } from '../components/Markets/MarketFilters';
 
 export enum Status {
   Ready,
@@ -269,6 +270,48 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
 
   return grouped;
 };
+
+export function filterMarketRows(
+  rows: MarketRow[],
+  filters: MarketFilters,
+  parent?: MarketRow
+): MarketRow[] {
+  if (!filters.chain && !filters.searchQuery) return rows;
+  const filteredRows: MarketRow[] = [];
+
+  rows.forEach((row) => {
+    const chainMatch = filters.chain
+      ? row.chain.value === filters.chain
+      : false;
+    const searchQueryMatch =
+      filters.searchQuery &&
+      (row.collateral
+        .toLowerCase()
+        .includes(filters.searchQuery.toLowerCase()) ||
+        row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        row.integratedProtocols.value.some((protocol) =>
+          protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
+        ));
+
+    if (row.children) {
+      // Filter the child rows recursively
+      const filteredChildren = filterMarketRows(row.children || [], filters);
+
+      // If any child rows match, keep the parent row and add the filtered child rows
+      if (filteredChildren.length > 0) {
+        filteredRows.push({ ...row, children: filteredChildren });
+      }
+
+      return;
+    }
+
+    if (chainMatch || searchQueryMatch) {
+      filteredRows.push(row);
+    }
+  });
+
+  return filteredRows;
+}
 
 type SortBy = 'descending' | 'ascending';
 type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
