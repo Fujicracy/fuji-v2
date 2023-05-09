@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending';
-import MarketFilters from './MarketFilters';
+import { MarketFilters } from './MarketFilters';
 import MarketFiltersHeader from './MarketFilters';
 import MarketsTable from './MarketsTable';
 
@@ -101,7 +101,7 @@ function Markets() {
         )} */}
       </Grid>
 
-      <MarketFiltersHeader filters={filters} />
+      <MarketFiltersHeader filters={filters} setFilters={setFilters} />
 
       {currentTab === 0 ? (
         <MarketsTable filters={filters} />

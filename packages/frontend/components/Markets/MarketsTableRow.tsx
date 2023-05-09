@@ -286,11 +286,7 @@ function MarketsTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsTableRow
-                    row={collapsedRow}
-                    onClick={onClick}
-                    isBest={i === 0}
-                  />
+                  <MarketsTableRow row={collapsedRow} onClick={onClick} />
                 </TableBody>
               </Table>
             ))}
