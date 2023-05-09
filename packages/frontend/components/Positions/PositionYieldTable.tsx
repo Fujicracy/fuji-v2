@@ -86,7 +86,7 @@ function PositionYieldTable({
               <TokenWithNetworkIcon
                 token={row.debt.symbol}
                 network={chainName(row.chainId)}
-                innertTop="1.1rem"
+                innerTop="1.1rem"
               />
               {row.debt.symbol}
             </Stack>
