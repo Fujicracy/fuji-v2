@@ -599,7 +599,10 @@ export const useBorrow = create<BorrowStore>()(
           const collateralInput =
             collateral.input === '' ? '0' : collateral.input;
           const debtInput = debt.input === '' ? '0' : debt.input;
-          if (!(collateral instanceof Token) || !(debt instanceof Token)) {
+          if (
+            !(collateral.token instanceof Token) ||
+            !(debt.token instanceof Token)
+          ) {
             return set(
               produce((state: BorrowState) => {
                 state.transactionMeta.status = 'error';
