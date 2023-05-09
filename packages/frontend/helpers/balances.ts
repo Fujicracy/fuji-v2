@@ -20,7 +20,6 @@ export const fetchBalances = async (
   address: string,
   chainId: ChainId
 ): FujiResultPromise<Record<string, number>> => {
-  // TODO: grab balance from onboard
   if (currencies.some((t) => !(t instanceof Token))) {
     return new FujiResultError('We do not support native tokens yet');
   }

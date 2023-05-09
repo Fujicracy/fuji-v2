@@ -82,7 +82,7 @@ export const toHistoryRoutingStep = (
             decimals: s.token.decimals,
             symbol: s.token.symbol,
             name: s.token.name,
-            isNative: false,
+            isNative: s.token.isNative,
           }
         : undefined,
     };
@@ -127,7 +127,6 @@ export const chainCompleted = (chain: HistoryEntryChain) => {
   );
 };
 
-// TODO: test this
 export const stepForFinishing = (entry: HistoryEntry) => {
   if (entry.chainCount === 2 && entry.secondChain) {
     return chainCompleted(entry.secondChain)
