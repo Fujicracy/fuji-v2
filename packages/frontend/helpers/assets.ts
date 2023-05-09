@@ -19,6 +19,7 @@ export type AllowanceStatus =
   | 'fetching'
   | 'allowing'
   | 'ready'
+  | 'unneeded'
   | 'error';
 
 export type Allowance = {
@@ -63,12 +64,15 @@ export const needsAllowance = (
   asset: AssetChange,
   amount: number
 ): boolean => {
+  if (asset.allowance.status === 'unneeded') {
+    return false;
+  }
   return (
     (type === 'debt'
       ? mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW
       : mode === Mode.DEPOSIT || mode === Mode.DEPOSIT_AND_BORROW) &&
-    asset.allowance?.value !== undefined &&
-    asset.allowance?.value < amount
+    asset.allowance.value !== undefined &&
+    asset.allowance.value < amount
   );
 };
 

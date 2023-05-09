@@ -119,6 +119,11 @@ type BorrowActions = {
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
   changeBalances: (type: AssetType, balances: Record<string, number>) => void;
+  changeAllowance: (
+    type: AssetType,
+    status: AllowanceStatus,
+    amount?: number
+  ) => void;
 
   updateAllProviders: () => void;
   updateTokenPrice: (type: AssetType) => void;
@@ -444,6 +449,20 @@ export const useBorrow = create<BorrowStore>()(
           );
         },
 
+        async changeAllowance(type, status, amount) {
+          set(
+            produce((s: BorrowState) => {
+              if (type === 'debt') {
+                s.debt.allowance.status = status;
+                if (amount) s.debt.allowance.value = amount;
+              } else {
+                s.collateral.allowance.status = status;
+                if (amount) s.collateral.allowance.value = amount;
+              }
+            })
+          );
+        },
+
         async updateTokenPrice(type) {
           const token =
             type === 'debt' ? get().debt.token : get().collateral.token;
@@ -485,16 +504,11 @@ export const useBorrow = create<BorrowStore>()(
           if (!address) {
             return;
           }
-
-          set(
-            produce((s: BorrowState) => {
-              if (type === 'debt') {
-                s.debt.allowance.status = 'fetching';
-              } else {
-                s.collateral.allowance.status = 'fetching';
-              }
-            })
-          );
+          if (token.isNative) {
+            get().changeAllowance(type, 'unneeded');
+            return;
+          }
+          get().changeAllowance(type, 'fetching');
           try {
             if (!(token instanceof Token)) {
               return;
@@ -510,29 +524,11 @@ export const useBorrow = create<BorrowStore>()(
               return;
 
             const value = parseFloat(formatUnits(res, token.decimals));
-            set(
-              produce((s: BorrowState) => {
-                if (type === 'debt') {
-                  s.debt.allowance.status = 'ready';
-                  s.debt.allowance.value = value;
-                } else {
-                  s.collateral.allowance.status = 'ready';
-                  s.collateral.allowance.value = value;
-                }
-              })
-            );
+            get().changeAllowance(type, 'ready', value);
           } catch (e) {
             // TODO: how to handle the case where we can't fetch allowance ?
             console.error(e);
-            set(
-              produce((s: BorrowState) => {
-                if (type === 'debt') {
-                  s.debt.allowance.status = 'error';
-                } else {
-                  s.collateral.allowance.status = 'error';
-                }
-              })
-            );
+            get().changeAllowance(type, 'error');
           }
         },
 
@@ -789,24 +785,7 @@ export const useBorrow = create<BorrowStore>()(
           if (!provider || !userAddress) {
             return;
           }
-
-          const changeAllowance = (
-            status: AllowanceStatus,
-            amount?: number
-          ) => {
-            set(
-              produce((s: BorrowState) => {
-                if (type === 'debt') {
-                  s.debt.allowance.status = status;
-                  if (amount) s.debt.allowance.value = amount;
-                } else {
-                  s.collateral.allowance.status = status;
-                  if (amount) s.collateral.allowance.value = amount;
-                }
-              })
-            );
-          };
-          changeAllowance('allowing');
+          get().changeAllowance(type, 'allowing');
           const owner = provider.getSigner();
           try {
             const approval = await contracts.ERC20__factory.connect(
@@ -815,7 +794,7 @@ export const useBorrow = create<BorrowStore>()(
             ).approve(spender, parseUnits(amount.toString(), token.decimals));
             await approval.wait();
 
-            changeAllowance('ready', amount);
+            get().changeAllowance(type, 'ready', amount);
             notify({
               message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
@@ -825,7 +804,7 @@ export const useBorrow = create<BorrowStore>()(
               }),
             });
           } catch (e) {
-            changeAllowance('error');
+            get().changeAllowance(type, 'error');
             notify({
               message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
               type: 'error',
