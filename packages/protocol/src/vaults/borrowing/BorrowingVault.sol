@@ -154,17 +154,24 @@ contract BorrowingVault is BaseVault {
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
 
-    _initializeVaultShares();
+    _pauseForceAllActions();
   }
 
   receive() external payable {}
 
   /// @inheritdoc BaseVault
-  function _initializeVaultShares() internal override {
-    // Create synthetic asset shares for this vault.
-    _mint(address(this), 10 ** (decimals()));
-    // Create synthetic debt shares for this vault.
-    _mintDebtShares(address(this), 10 ** (_debtDecimals));
+  function initializeVaultShares() public override {
+    if (initialized) {
+      revert BaseVault__initializeVaultShares_alreadyInitialized();
+    }
+    _unpauseForceAllActions();
+
+    address timelock = chief.timelock();
+    _deposit(msg.sender, timelock, minAmount, minAmount);
+    _borrow(msg.sender, timelock, timelock, minAmount, minAmount);
+
+    initialized = true;
+    emit VaultInitialized(msg.sender);
   }
 
   /*///////////////////////////////

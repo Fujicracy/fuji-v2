@@ -53,15 +53,21 @@ contract YieldVault is BaseVault {
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
 
-    _initializeVaultShares();
+    _pauseForceAllActions();
   }
 
   receive() external payable {}
 
   /// @inheritdoc BaseVault
-  function _initializeVaultShares() internal override {
-    // Create synthetic asset shares for this vault.
-    _mint(address(this), 10 ** (decimals()));
+  function initializeVaultShares() public override {
+    if (initialized) {
+      revert BaseVault__initializeVaultShares_alreadyInitialized();
+    }
+    _unpauseForceAllActions();
+    _deposit(msg.sender, chief.timelock(), minAmount, minAmount);
+
+    initialized = true;
+    emit VaultInitialized(msg.sender);
   }
 
   /*///////////////////////////////
