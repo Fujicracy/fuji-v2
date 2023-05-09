@@ -54,6 +54,11 @@ export enum ActionType {
   REMOVE = 1,
 }
 
+// Idea is to rename to initialCurrencyForType and having different initial currencies for debt and collateral
+export const initialCurrency = (currencies: Currency[]): Currency => {
+  return currencies[0];
+};
+
 export const recommendedLTV = (ltvMax: number): number => {
   return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0;
 };

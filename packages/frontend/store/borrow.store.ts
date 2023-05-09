@@ -34,6 +34,7 @@ import {
   AllowanceStatus,
   AssetChange,
   AssetType,
+  initialCurrency,
   LiquidationMeta,
   LtvMeta,
   Mode,
@@ -169,7 +170,7 @@ const initialState: BorrowState = {
       status: 'initial',
       value: undefined,
     },
-    currency: initialCollateralCurrencies[0],
+    currency: initialCurrency(initialCollateralCurrencies),
     amount: 0,
     usdPrice: 0,
   },
@@ -180,7 +181,7 @@ const initialState: BorrowState = {
     allowance: { status: 'initial', value: undefined },
     input: '',
     chainId: initialChainId,
-    currency: initialDebtCurrencies[0],
+    currency: initialCurrency(initialDebtCurrencies),
     amount: 0,
     usdPrice: 0,
   },
@@ -301,7 +302,7 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = currencies[0];
+              t.currency = initialCurrency(currencies);
             })
           );
           get().updateCurrencyPrice(type);
