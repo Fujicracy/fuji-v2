@@ -1,6 +1,7 @@
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
 import { useState } from 'react';
 
+import { chains } from '../../helpers/chains';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending';
@@ -13,10 +14,8 @@ function Markets() {
   const [currentTab, setCurrentTab] = useState(0);
   const [filters, setFilters] = useState<MarketFilters>({
     searchQuery: '',
-    chain: '',
+    chains: chains.map((c) => c.name),
   });
-  /* const [filterValue, setFilterValue] = useState("") */
-  /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */
 
   return (
     <Box>
@@ -35,70 +34,6 @@ function Markets() {
         wrap="wrap"
       >
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
-
-        {/* {currentTab === 0 && (
-          <Stack
-            direction="row"
-            gap="0.5rem"
-            alignItems="center"
-            flexWrap="wrap"
-            mt="0.75rem"
-          >
-            <Typography
-              variant="smallDark"
-              color={palette.info.main}
-              mr="0.25rem"
-            >
-              Filter Chains:
-            </Typography>
-            {chains.map((chain: Chain) => (
-              <Tooltip arrow title={chain.label} placement="top" key={chain.id}>
-                <Box
-                  sx={{
-                    borderRadius: "100%",
-                    width: "1.125rem",
-                    height: "1.125rem",
-                    cursor: "pointer",
-                    border: chainFilters.includes(chain)
-                      ? `1px solid white`
-                      : "",
-                  }}
-                >
-                  <Image
-                    src={`/assets/images/protocol-icons/networks/${chain.label}.svg`}
-                    height={18}
-                    width={18}
-                    objectFit="cover"
-                    alt={chain.label}
-                    onClick={() => {
-                      chainFilters.includes(chain)
-                        ? setChainFilters(
-                            chainFilters.filter((c) => c !== chain)
-                          )
-                        : setChainFilters([...chainFilters, chain])
-                    }}
-                  />
-                </Box>
-              </Tooltip>
-            ))}
-            <TextField
-              id="filter"
-              type="text"
-              placeholder="Filter by token, protocol"
-              value={filterValue}
-              onChange={(e) => setFilterValue(e.target.value)}
-              variant="outlined"
-              sx={{ ".MuiInputBase-input": { minWidth: "170px" } }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: palette.info.dark }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Stack>
-        )} */}
       </Grid>
 
       {currentTab === 0 ? (

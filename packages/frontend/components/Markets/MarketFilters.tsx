@@ -1,13 +1,15 @@
-import { Box, Stack, TextField } from '@mui/material';
+import { Box, Stack, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { Chain } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React from 'react';
 
-import { colorTheme } from '../../styles/theme';
+import { chains } from '../../helpers/chains';
+import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
 
 export type MarketFilters = {
   searchQuery: string;
-  chain: string;
+  chains: string[];
 };
 
 function MarketFiltersHeader({
@@ -25,8 +27,68 @@ function MarketFiltersHeader({
     setFilters({ ...filters, searchQuery: enteredValue });
   };
 
+  const handleChainChange = (chainName: string) => {
+    console.log('handleChainChange', chainName, filters.chains);
+    if (!chainName) {
+      if (filters.chains.length === chains.length) {
+        return;
+      }
+
+      setFilters({ ...filters, chains: chains.map((c) => c.name) });
+      return;
+    }
+
+    if (filters.chains.length === chains.length) {
+      setFilters({ ...filters, chains: [chainName] });
+      return;
+    }
+
+    if (filters.chains.includes(chainName)) {
+      setFilters({
+        ...filters,
+        chains: filters.chains.filter((c) => c !== chainName),
+      });
+      return;
+    }
+    setFilters({ ...filters, chains: [...filters.chains, chainName] });
+  };
+
+  const ChainButton = ({
+    children,
+    chainName,
+  }: {
+    children: React.ReactNode;
+    chainName: string;
+  }) => {
+    const isSelected =
+      (chainName &&
+        filters.chains.includes(chainName) &&
+        filters.chains.length !== chains.length) ||
+      (!chainName && filters.chains.length === chains.length);
+
+    return (
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={{
+          backgroundColor: palette.secondary.contrastText,
+          borderRadius: '0.5rem',
+          width: '2.75rem',
+          height: '2.75rem',
+          cursor: 'pointer',
+          border: `1px solid ${
+            isSelected ? palette.text.primary : 'transparent'
+          }`,
+        }}
+        onClick={() => handleChainChange(chainName)}
+      >
+        {children}
+      </Stack>
+    );
+  };
+
   return (
-    <Stack>
+    <Stack direction="row" alignItems="center" justifyContent="space-between">
       <Box
         sx={{
           position: 'relative',
@@ -55,7 +117,7 @@ function MarketFiltersHeader({
             },
             '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderWidth: '1px !important',
-              borderColor: `${colorTheme.palette.text.primary} !important`,
+              borderColor: `${palette.text.primary} !important`,
             },
           }}
           onChange={handleSearchChange}
@@ -74,6 +136,37 @@ function MarketFiltersHeader({
           }}
         />
       </Box>
+      <Stack
+        direction="row"
+        gap="0.5rem"
+        alignItems="center"
+        flexWrap="wrap"
+        mt="0.75rem"
+      >
+        <Typography variant="smallDark" color={palette.info.main} mr="0.75rem">
+          Filter Chains:
+        </Typography>
+        <ChainButton chainName={''}>
+          <Typography variant="small">All</Typography>
+        </ChainButton>
+        {chains.map((chain: Chain) => (
+          <TooltipWrapper
+            title={chain.name}
+            placement="top"
+            key={chain.chainId}
+          >
+            <ChainButton chainName={chain.name}>
+              <Image
+                src={`/assets/images/protocol-icons/networks/${chain.name}.svg`}
+                height={18}
+                width={18}
+                objectFit="cover"
+                alt={chain.name}
+              />
+            </ChainButton>
+          </TooltipWrapper>
+        ))}
+      </Stack>
     </Stack>
   );
 }

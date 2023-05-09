@@ -219,7 +219,10 @@ export const setLlamas = (
   }
 };
 
-export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
+export const groupByPair = (
+  rows: MarketRow[],
+  initial?: boolean
+): MarketRow[] => {
   const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
   const grouped: MarketRow[] = [];
 
@@ -234,7 +237,11 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
-        sorted.map((r, i) => ({ ...r, isChild: true, isBest: i === 0 }))
+        sorted.map((r, i) => ({
+          ...r,
+          isChild: true,
+          isBest: initial ? i === 0 : r.isBest,
+        }))
       );
       grouped.push({ ...sorted[0], children });
     } else {
@@ -273,44 +280,35 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
 
 export function filterMarketRows(
   rows: MarketRow[],
-  filters: MarketFilters,
-  parent?: MarketRow
+  filters: MarketFilters
 ): MarketRow[] {
-  if (!filters.chain && !filters.searchQuery) return rows;
+  if (!filters.searchQuery) return groupByPair(rows);
   const filteredRows: MarketRow[] = [];
 
-  rows.forEach((row) => {
-    const chainMatch = filters.chain
-      ? row.chain.value === filters.chain
-      : false;
-    const searchQueryMatch =
-      filters.searchQuery &&
-      (row.collateral
-        .toLowerCase()
-        .includes(filters.searchQuery.toLowerCase()) ||
-        row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        row.integratedProtocols.value.some((protocol) =>
-          protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
-        ));
+  function filterRows(rows: MarketRow[], filters: MarketFilters) {
+    rows.forEach((row) => {
+      // const chainMatch = filters.chains
+      //   ? filters.chains.includes(row.chain.value)
+      //   : false;
+      const searchQueryMatch =
+        filters.searchQuery &&
+        (row.collateral
+          .toLowerCase()
+          .includes(filters.searchQuery.toLowerCase()) ||
+          row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+          row.integratedProtocols.value.some((protocol) =>
+            protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
+          ));
 
-    if (row.children) {
-      // Filter the child rows recursively
-      const filteredChildren = filterMarketRows(row.children || [], filters);
-
-      // If any child rows match, keep the parent row and add the filtered child rows
-      if (filteredChildren.length > 0) {
-        filteredRows.push({ ...row, children: filteredChildren });
+      if (searchQueryMatch) {
+        filteredRows.push(row);
       }
+    });
+  }
 
-      return;
-    }
+  filterRows(rows, filters);
 
-    if (chainMatch || searchQueryMatch) {
-      filteredRows.push(row);
-    }
-  });
-
-  return filteredRows;
+  return groupByPair(filteredRows);
 }
 
 type SortBy = 'descending' | 'ascending';

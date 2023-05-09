@@ -66,7 +66,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
         const rows = rowsBase
           .map((r) => setFinancials(r, Status.Error))
           .map((r) => setLlamas(r, Status.Error));
-        setRows(groupByPair(rows));
+        setRows(rows);
         return;
       }
 
@@ -74,7 +74,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
       const rowsFin = financials.map((fin, i) =>
         setFinancials(rowsBase[i], Status.Ready, fin)
       );
-      setRows(groupByPair(rowsFin));
+      setRows(rowsFin);
 
       const llamaResult = await sdk.getLlamaFinancials(financials);
       if (!llamaResult.success) {
@@ -83,14 +83,14 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
           message: llamaResult.error.message,
         });
         const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
-        setRows(groupByPair(rows));
+        setRows(rows);
         return;
       }
 
       const rowsLlama = llamaResult.data.map((llama, i) =>
         setLlamas(rowsFin[i], Status.Ready, llama)
       );
-      setRows(groupByPair(rowsLlama));
+      setRows(rowsLlama);
     })().finally(() => {
       setIsLoading(false);
     });
