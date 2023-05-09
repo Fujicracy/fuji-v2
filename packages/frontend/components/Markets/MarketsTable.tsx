@@ -30,9 +30,10 @@ import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import { MarketFilters } from './MarketFilters';
 import MarketsTableRow from './MarketsTableRow';
 
-function MarketsTable() {
+function MarketsTable({ filters }: { filters: MarketFilters }) {
   const { palette } = useTheme();
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")

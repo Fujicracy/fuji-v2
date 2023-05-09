@@ -4,11 +4,17 @@ import { useState } from 'react';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending';
+import MarketFilters from './MarketFilters';
+import MarketFiltersHeader from './MarketFilters';
 import MarketsTable from './MarketsTable';
 
 function Markets() {
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [currentTab, setCurrentTab] = useState(0);
+  const [filters, setFilters] = useState<MarketFilters>({
+    searchQuery: '',
+    chain: 'all',
+  });
   /* const [filterValue, setFilterValue] = useState("") */
   /* const [chainFilters, setChainFilters] = useState<Chain[]>([]) */
 
@@ -94,6 +100,8 @@ function Markets() {
           </Stack>
         )} */}
       </Grid>
+
+      <MarketFiltersHeader filters={filters} />
 
       {currentTab === 0 ? (
         <MarketsTable />
