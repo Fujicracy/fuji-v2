@@ -33,14 +33,12 @@ import BestLabel from './BestLabel';
 type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
-  isBest: boolean;
   openedByDefault?: boolean;
 };
 
 function MarketsTableRow({
   row,
   onClick,
-  isBest,
   openedByDefault = false,
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
@@ -148,7 +146,7 @@ function MarketsTableRow({
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {(isBest || !row.isChild) && <BestLabel />}
+                {(row.isBest || !row.isChild) && <BestLabel />}
               </Stack>
             </Stack>
           )}

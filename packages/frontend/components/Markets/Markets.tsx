@@ -104,7 +104,7 @@ function Markets() {
       <MarketFiltersHeader filters={filters} />
 
       {currentTab === 0 ? (
-        <MarketsTable />
+        <MarketsTable filters={filters} />
       ) : (
         <Box sx={{ height: '33rem', width: '100%' }}>
           <Lending />

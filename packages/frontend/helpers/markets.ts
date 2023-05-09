@@ -61,6 +61,7 @@ export type MarketRow = {
   children?: MarketRow[];
   isChild: boolean;
   isGrandChild: boolean; // TODO: Not handled
+  isBest: boolean;
 };
 
 const defaultRow: MarketRow = {
@@ -108,6 +109,7 @@ const defaultRow: MarketRow = {
   },
   isChild: false,
   isGrandChild: false,
+  isBest: false,
 };
 
 export const setBase = (v: BorrowingVault): MarketRow => ({
@@ -231,7 +233,7 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
-        sorted.map((r) => ({ ...r, isChild: true }))
+        sorted.map((r, i) => ({ ...r, isChild: true, isBest: i === 0 }))
       );
       grouped.push({ ...sorted[0], children });
     } else {
@@ -254,7 +256,11 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
     const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
-      const children = sorted.map((r) => ({ ...r, isChild: true }));
+      const children = sorted.map((r, i) => ({
+        ...r,
+        isChild: true,
+        isBest: i === 0,
+      }));
       grouped.push({ ...sorted[0], children });
     } else {
       grouped.push(entries[0]);
