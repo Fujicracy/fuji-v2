@@ -1,7 +1,11 @@
 import { ChainId, Currency } from '@x-fuji/sdk';
 
-import { LTV_RECOMMENDED_DECREASE } from '../constants';
+import { DEFAULT_CHAIN_ID, LTV_RECOMMENDED_DECREASE } from '../constants';
+import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
+
+const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
+const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -54,9 +58,27 @@ export enum ActionType {
   REMOVE = 1,
 }
 
-// Idea is to rename to initialCurrencyForType and having different initial currencies for debt and collateral
-export const initialCurrency = (currencies: Currency[]): Currency => {
+// Idea is to rename to defaultCurrencyForType and having different currencies for debt and collateral
+export const defaultCurrency = (currencies: Currency[]): Currency => {
   return currencies[0];
+};
+
+export const defaultAssetForType = (type: AssetType): AssetChange => {
+  const defaultCurrencies =
+    type === 'debt' ? defaultDebtCurrencies : defaultCollateralCurrencies;
+  return {
+    selectableCurrencies: defaultCurrencies,
+    balances: {},
+    input: '',
+    chainId: DEFAULT_CHAIN_ID,
+    allowance: {
+      status: 'initial',
+      value: undefined,
+    },
+    currency: defaultCurrency(defaultCurrencies),
+    amount: 0,
+    usdPrice: 0,
+  };
 };
 
 export const recommendedLTV = (ltvMax: number): number => {

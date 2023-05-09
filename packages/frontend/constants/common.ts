@@ -1,3 +1,7 @@
+import { ChainId } from '@x-fuji/sdk';
+
+export const DEFAULT_CHAIN_ID = ChainId.MATIC;
+
 export const CONNEXT_WARNING_DURATION = 1000 * 60 * 10; // 10 minutes
 export const BALANCE_POLLING_INTERVAL = 15000;
 export const TX_WATCHING_POLLING_INTERVAL = 3000;

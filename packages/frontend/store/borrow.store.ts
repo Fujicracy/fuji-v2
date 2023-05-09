@@ -34,7 +34,8 @@ import {
   AllowanceStatus,
   AssetChange,
   AssetType,
-  initialCurrency,
+  defaultAssetForType,
+  defaultCurrency,
   LiquidationMeta,
   LtvMeta,
   Mode,
@@ -146,10 +147,6 @@ type BorrowActions = {
   changeChainOverride: (allow: boolean) => void;
 };
 
-const initialChainId = ChainId.MATIC;
-const initialDebtCurrencies = sdk.getDebtForChain(initialChainId);
-const initialCollateralCurrencies = sdk.getCollateralForChain(initialChainId);
-
 const initialState: BorrowState = {
   formType: 'create',
   mode: Mode.DEPOSIT_AND_BORROW,
@@ -161,30 +158,8 @@ const initialState: BorrowState = {
   activeVault: undefined,
   activeProvider: undefined,
 
-  collateral: {
-    selectableCurrencies: initialCollateralCurrencies,
-    balances: {},
-    input: '',
-    chainId: initialChainId,
-    allowance: {
-      status: 'initial',
-      value: undefined,
-    },
-    currency: initialCurrency(initialCollateralCurrencies),
-    amount: 0,
-    usdPrice: 0,
-  },
-
-  debt: {
-    selectableCurrencies: initialDebtCurrencies,
-    balances: {},
-    allowance: { status: 'initial', value: undefined },
-    input: '',
-    chainId: initialChainId,
-    currency: initialCurrency(initialDebtCurrencies),
-    amount: 0,
-    usdPrice: 0,
-  },
+  collateral: defaultAssetForType('collateral'),
+  debt: defaultAssetForType('debt'),
 
   ltv: {
     ltv: 0,
@@ -302,7 +277,7 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = initialCurrency(currencies);
+              t.currency = defaultCurrency(currencies);
             })
           );
           get().updateCurrencyPrice(type);
