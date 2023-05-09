@@ -57,8 +57,8 @@ function MarketFiltersHeader({
         sx={{
           backgroundColor: palette.secondary.contrastText,
           borderRadius: '0.5rem',
-          width: '2.75rem',
-          height: '2.75rem',
+          width: { xs: '2rem', sm: '2.75rem' },
+          height: { xs: '2rem', sm: '2.75rem' },
           cursor: 'pointer',
           border: `1px solid ${
             isSelected ? palette.text.primary : 'transparent'
@@ -89,10 +89,49 @@ function MarketFiltersHeader({
   }, []);
 
   return (
-    <Stack direction="row" alignItems="center" justifyContent="space-between">
+    <Stack
+      sx={{
+        mt: '0.75rem',
+        flexDirection: { xs: 'column', md: 'row' },
+        justifyContent: { xs: 'start', md: 'end' },
+        alignItems: { xs: 'start', md: 'center' },
+      }}
+    >
+      <Stack direction="row" gap="0.5rem" alignItems="center" flexWrap="wrap">
+        <Typography variant="smallDark" color={palette.info.main} mr="0.75rem">
+          Filter Chains:
+        </Typography>
+        <ChainButton
+          chainName={''}
+          isSelected={filters.chains.length === chains.length}
+        >
+          <Typography variant="small">All</Typography>
+        </ChainButton>
+        {chains.map((chain: Chain) => (
+          <TooltipWrapper
+            title={chain.name}
+            placement="top"
+            key={chain.chainId}
+          >
+            <ChainButton
+              chainName={chain.name}
+              isSelected={
+                filters.chains.includes(chain.name) &&
+                filters.chains.length !== chains.length
+              }
+            >
+              {images[chain.name]}
+            </ChainButton>
+          </TooltipWrapper>
+        ))}
+      </Stack>
       <Box
         sx={{
           position: 'relative',
+          mt: { xs: '0.5rem', md: 0 },
+          ml: { xs: 0, md: '1rem' },
+          minWidth: { xs: '100%', md: '17.5rem' },
+          width: { xs: '100%', md: '17.5rem' },
         }}
       >
         <TextField
@@ -100,8 +139,7 @@ function MarketFiltersHeader({
           type="text"
           variant="outlined"
           sx={{
-            minWidth: '17.5rem',
-            width: '17.5rem',
+            width: '100%',
             '& .MuiInputBase-input': {
               p: '0.6rem 1rem 0.6rem 2.5rem',
               fontSize: '0.875rem',
@@ -137,40 +175,6 @@ function MarketFiltersHeader({
           }}
         />
       </Box>
-      <Stack
-        direction="row"
-        gap="0.5rem"
-        alignItems="center"
-        flexWrap="wrap"
-        mt="0.75rem"
-      >
-        <Typography variant="smallDark" color={palette.info.main} mr="0.75rem">
-          Filter Chains:
-        </Typography>
-        <ChainButton
-          chainName={''}
-          isSelected={filters.chains.length === chains.length}
-        >
-          <Typography variant="small">All</Typography>
-        </ChainButton>
-        {chains.map((chain: Chain) => (
-          <TooltipWrapper
-            title={chain.name}
-            placement="top"
-            key={chain.chainId}
-          >
-            <ChainButton
-              chainName={chain.name}
-              isSelected={
-                filters.chains.includes(chain.name) &&
-                filters.chains.length !== chains.length
-              }
-            >
-              {images[chain.name]}
-            </ChainButton>
-          </TooltipWrapper>
-        ))}
-      </Stack>
     </Stack>
   );
 }
