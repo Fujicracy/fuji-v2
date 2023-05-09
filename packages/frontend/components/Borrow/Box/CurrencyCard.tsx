@@ -103,7 +103,7 @@ function CurrencyCard({
 
   const handleMax = () => {
     // when we do max withdrawal, we have to deduct a small amount,
-    // otherwise the tx can fail due to some unaccounted dust lefovers
+    // otherwise the tx can fail due to some unaccounted dust leftovers
     const deductedCollateral = Math.max(
       0,
       basePosition.position.collateral.amount - DUST_AMOUNT / 100
