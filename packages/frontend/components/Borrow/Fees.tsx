@@ -39,7 +39,9 @@ function Fees() {
       return undefined;
     let outputString = '';
     for (const fee of transactionMeta.bridgeFees) {
-      outputString += `${fee.amount.toString()} ${fee.token.symbol}\n`;
+      const amount =
+        fee.amount < 0.000001 ? '< 0.000001' : fee.amount.toString();
+      outputString += `${amount} ${fee.token.symbol}\n`;
     }
     return outputString;
   };
