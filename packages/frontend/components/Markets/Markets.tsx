@@ -101,10 +101,11 @@ function Markets() {
         )} */}
       </Grid>
 
-      <MarketFiltersHeader filters={filters} setFilters={setFilters} />
-
       {currentTab === 0 ? (
-        <MarketsTable filters={filters} />
+        <Box>
+          <MarketFiltersHeader filters={filters} setFilters={setFilters} />
+          <MarketsTable filters={filters} />
+        </Box>
       ) : (
         <Box sx={{ height: '33rem', width: '100%' }}>
           <Lending />

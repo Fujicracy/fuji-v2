@@ -99,7 +99,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   };
 
   return (
-    <TableContainer>
+    <TableContainer sx={{ mt: '0.75rem' }}>
       <Table
         aria-label="Markets table"
         // border-collapse fix bug on borders on firefox with sticky column
