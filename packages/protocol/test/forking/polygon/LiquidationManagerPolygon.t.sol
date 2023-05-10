@@ -19,6 +19,8 @@ import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
   using Math for uint256;
@@ -46,7 +48,6 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
   uint8 public constant DEBT_DECIMALS = 18;
   uint8 public constant ASSET_DECIMALS = 18;
-  uint256 public constant LIQUIDATION_RATIO = 80 * 1e16;
 
   function setUp() public {
     setUpFork(POLYGON_DOMAIN);
@@ -79,33 +80,87 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     _callWithTimelock(address(chief), executionCall);
   }
 
-  function mock_getPriceOf(address asset1, address asset2, uint256 price) internal {
+  function mock_getPriceOf(address currency, address commodity, uint256 priceIn18Decimals) internal {
     vm.mockCall(
       address(oracle),
-      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, asset1, asset2, 18),
-      abi.encode(price)
+      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, currency, commodity, 18),
+      abi.encode(priceIn18Decimals)
+    );
+  }
+
+  function mock_getPriceOfWithDecimals(
+    address currency,
+    address commodity,
+    uint256 priceIn18Decimals,
+    uint256 currencyDecimals,
+    uint256 commodityDecimals
+  )
+    internal
+  {
+    // require(
+    //   price / 1e18 > 0,
+    //   "For this to work, price has to be 1e18. Make sure asset1 is worth more than asset2"
+    // );
+
+    uint256 currencyPerCommodity = priceIn18Decimals;
+    uint256 commodityPerCurrency = 1e36 / priceIn18Decimals; //this is in 18 decimals
+
+    //price is in 1e18 -> make price in requested decimals by dividing by 10^(18-decimals)
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(IFujiOracle.getPriceOf.selector, currency, commodity, currencyDecimals),
+      abi.encode(currencyPerCommodity / (10 ** (18 - currencyDecimals)))
+    );
+
+    //price is in 1e18 -> make price in requested decimals by dividing by 10^(18-decimals)
+    vm.mockCall(
+      address(oracle),
+      abi.encodeWithSelector(
+        IFujiOracle.getPriceOf.selector, commodity, currency, commodityDecimals
+      ),
+      abi.encode(commodityPerCurrency / (10 ** (18 - commodityDecimals)))
     );
   }
 
   /**
    * @param vault_ in where owner is being liquidated
    * @param owner that is being liquidated
-   * @param price of liquidation in 1e18 decimals.
    */
   function estimate_gainedShares(
     BorrowingVault vault_,
-    address owner,
-    uint256 price
+    address owner
   )
     internal
     view
     returns (uint256 gainedShares)
   {
-    // Compute `gainedShares` amount that the liquidator will receive.
-    uint256 discountedPrice = price.mulDiv(vault_.LIQUIDATION_PENALTY(), 1e18);
-    uint256 debt = vault_.balanceOfDebt(owner);
-    uint256 assets = debt.mulDiv(vault_.getLiquidationFactor(owner), discountedPrice);
-    gainedShares = vault_.convertToShares(assets);
+    uint256 debtRemaining;
+    uint8 debtDecimals;
+    uint8 assetDecimals;
+    {
+      // Compute `gainedShares` amount that the liquidator will receive.
+      debtDecimals = vault_.debtDecimals();
+      assetDecimals = IERC20Metadata(vault_.asset()).decimals();
+
+      uint256 price = oracle.getPriceOf(vault_.debtAsset(), vault_.asset(), debtDecimals);
+      uint256 discountedPrice = price.mulDiv(vault_.LIQUIDATION_PENALTY(), 1e18);
+      uint256 debt = vault_.balanceOfDebt(owner);
+      uint256 debtToCover = Math.mulDiv(debt, vault_.getLiquidationFactor(owner), 1e18);
+      debtRemaining = vault_.balanceOfDebt(owner) - debtToCover;
+      uint256 gainedAssets = Math.mulDiv(debtToCover, 10 ** assetDecimals, discountedPrice);
+      gainedShares = vault_.convertToShares(gainedAssets);
+    }
+    uint256 redeemableShares;
+    {
+      uint256 invPrice = oracle.getPriceOf(vault_.asset(), vault_.debtAsset(), assetDecimals);
+      uint256 lockedAssets =
+        (debtRemaining * 1e18 * invPrice) / (vault_.maxLtv() * 10 ** debtDecimals);
+      uint256 lockedShares = vault_.convertToShares(lockedAssets);
+      redeemableShares = vault_.balanceOf(owner) - lockedShares;
+    }
+    if (gainedShares > redeemableShares) {
+      gainedShares = redeemableShares;
+    }
   }
 
   function estimate_liqManagerFlashloanPayback(
@@ -134,7 +189,46 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       price / 1e18 > 0 && deposit / 1e18 > 0 && borrowAmount / 1e18 > 0,
       "Price, deposit, and borrowAmount should be 1e18"
     );
-    return (price - ((borrowAmount * 1e36) / (deposit * LIQUIDATION_RATIO)));
+    return (price - ((borrowAmount * 1e36) / (deposit * DEFAULT_LIQ_RATIO)));
+  }
+
+  function _utils_getLiquidationThresholdValue(
+    uint256 price,
+    uint256 deposit,
+    uint256 borrowAmount,
+    uint256 depositDecimals,
+    uint256 borrowDecimals
+  )
+    internal
+    pure
+    returns (uint256 threshold)
+  {
+    require(
+      /*price / 1e18 > 0 && */
+      deposit / 10 ** depositDecimals > 0 && borrowAmount / 10 ** borrowDecimals > 0,
+      "Price, deposit, and borrowAmount should be according to decimals"
+    );
+
+    uint256 borrowDiff = 18 - borrowDecimals;
+    uint256 depositDiff = 18 - depositDecimals;
+
+    if (depositDecimals >= borrowDecimals) {
+      if (price < borrowAmount * 10 ** borrowDiff) {
+        threshold = (borrowAmount * 10 ** borrowDiff - price) * 1e36
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
+      } else {
+        threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
+      }
+    } else {
+      if (price < borrowAmount * 10 ** borrowDiff) {
+        threshold = (borrowAmount * 10 ** borrowDiff - price) * 1e36
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
+      } else {
+        threshold = (price - borrowAmount * 10 ** borrowDiff) * 1e36
+          / (deposit * 10 ** depositDiff * DEFAULT_LIQ_RATIO);
+      }
+    }
   }
 
   function _utils_checkMaxLTV(uint256 amount, uint256 borrowAmount) internal view returns (bool) {
@@ -155,6 +249,39 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     returns (uint256 amountIn)
   {
     amountIn = swapper.getAmountIn(assetIn, assetOut, amountOut);
+  }
+
+  function _utils_getAmountGivenToLiquidator(
+    uint256 collateralAmount,
+    uint256 borrowAmount,
+    address collateralAsset,
+    address debtAsset,
+    uint256 price,
+    uint256 discountedPrice
+  )
+    internal
+    view
+    returns (uint256 amount)
+  {
+    price =
+      oracle.getPriceOf(collateralAsset, debtAsset, IERC20Metadata(collateralAsset).decimals());
+
+    //amount of collateral given to liquidator
+    //price is in 1e18 -> cancels 0.5e18
+    //borrowAmount is in debt decimals -> cancelled by 10 ** debt decimals
+    //we want amountGivenToLiquidator to be in collateral decimals so we multiply by collateral decimals
+    amount = (borrowAmount * 0.5e18) * 10 ** IERC20Metadata(collateralAsset).decimals()
+      / (discountedPrice * 10 ** IERC20Metadata(debtAsset).decimals());
+
+    uint256 lockedAssets =
+      (borrowAmount * 0.5e18 * price) / (0.75e18 * 10 ** IERC20Metadata(debtAsset).decimals());
+
+    uint256 assets = collateralAmount;
+    uint256 freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
+
+    if (amount >= freeAssets) {
+      amount = freeAssets;
+    }
   }
 
   function test_liquidateMax(uint256 borrowAmount) public {
@@ -224,9 +351,9 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
 
     uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, 18);
     uint256 priceDropThresholdToMaxLiq =
-      price - ((95e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((95e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
     uint256 priceDropThresholdToDiscountLiq =
-      price - ((100e16 * borrowAmount * 1e18) / (amount * LIQUIDATION_RATIO));
+      price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
     priceDrop =
@@ -253,8 +380,7 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
     assertEq(vault.balanceOfDebt(TREASURY), 0);
 
     // liquidate ALICE
-    uint256 gainedShares =
-      estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE, newPrice);
+    uint256 gainedShares = estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE);
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
@@ -534,5 +660,74 @@ contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
       IERC20(collateralAsset).balanceOf(TREASURY), collectedAmount, numberOfUsers * 2
     );
     assertEq(IERC20(debtAsset).balanceOf(TREASURY), 0);
+  }
+
+  function test_partialLiquidationLess18Decimals() public {
+    //
+    /**
+     * @dev Deploy new vault with asset having less than 18 decimals
+     * NOTE:
+     * Need to use AaveV2 in this test because Foundry cannot persist
+     * storage in AaveV3 due to complex delegate calls in within.
+     * Give it a try.
+     */
+    ILendingProvider aave = new AaveV2Polygon();
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = aave;
+
+    address collateralUSDC = registry[POLYGON_DOMAIN].usdc;
+    address debtWETH = registry[POLYGON_DOMAIN].weth;
+
+    deployVault(collateralUSDC, debtWETH, "USDC", "WETH", providers);
+
+    // Test requires re-assigning role for some reason, DO NOT REMOVE.
+    _grantRoleChief(LIQUIDATOR_ROLE, address(liquidationManager));
+
+    uint256 currentPrice =
+      oracle.getPriceOf(collateralUSDC, debtWETH, IERC20Metadata(collateralUSDC).decimals());
+
+    uint256 borrowAmount = 1 * 10 ** IERC20Metadata(debtWETH).decimals(); // 1 WETH
+    uint256 amount =
+      (borrowAmount * currentPrice * 135) / (100 * 10 ** IERC20Metadata(debtWETH).decimals());
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    // Modify price, putting ALICE HF < 100, but above 95, so that the liquidation factor is 50%
+    // 12.5% increase in WETH price will put in range.
+    uint256 newPrice = (oracle.getPriceOf(collateralUSDC, debtWETH, 18) * 1125) / 1000;
+
+    mock_getPriceOfWithDecimals(
+      collateralUSDC,
+      debtWETH,
+      newPrice,
+      IERC20Metadata(collateralUSDC).decimals(),
+      IERC20Metadata(debtWETH).decimals()
+    );
+
+    //  Ensure HF is between 95 and 100
+    assertApproxEqAbs(vault.getHealthFactor(ALICE), 975e15, 2.5e16);
+
+    uint256 amountToRepayFlashloan = (borrowAmount * 0.5e18) / 1e18
+      + flasher.computeFlashloanFee(debtWETH, borrowAmount * 0.5e18 / 1e18);
+    //amount of collateral to swap to repay flashloan
+    uint256 amountInTotal = _utils_getAmountInSwap(collateralUSDC, debtWETH, amountToRepayFlashloan);
+
+    uint256 gainedShares = estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE);
+
+    // Liquidate ALICE
+    address[] memory users = new address[](1);
+    users[0] = ALICE;
+
+    vm.startPrank(KEEPER);
+    liquidationManager.liquidate(users, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper);
+    vm.stopPrank();
+
+    // check balance of user
+    assertEq(vault.balanceOf(ALICE), amount - gainedShares);
+    assertApproxEqAbs(vault.balanceOfDebt(ALICE), (borrowAmount * 0.5e18) / 1e18, 1);
+
+    // //check balance of treasury
+    assertEq(IERC20(collateralUSDC).balanceOf(TREASURY), gainedShares - amountInTotal);
+    assertEq(IERC20(debtWETH).balanceOf(TREASURY), 0);
   }
 }
