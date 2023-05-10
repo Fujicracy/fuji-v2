@@ -115,6 +115,7 @@ export class Sdk {
     let list: Currency[] = COLLATERAL_LIST[chainId].map((token: Token) =>
       token.setConnection(this._configParams)
     );
+    // we don't support yet WMATIC and WXDAI as collateral
     if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
       list = [NATIVE[chainId].setConnection(this._configParams), ...list];
     }
@@ -129,12 +130,12 @@ export class Sdk {
    * @param chainId - ID of the chain
    */
   getDebtForChain(chainId: ChainId): Currency[] {
-    let list: Currency[] = DEBT_LIST[chainId].map((token: Token) =>
+    const list: Currency[] = DEBT_LIST[chainId].map((token: Token) =>
       token.setConnection(this._configParams)
     );
-    if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
-      list = [NATIVE[chainId].setConnection(this._configParams), ...list];
-    }
+    //if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
+    //list = [NATIVE[chainId].setConnection(this._configParams), ...list];
+    //}
     return list;
   }
 
