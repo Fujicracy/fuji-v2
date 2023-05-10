@@ -20,21 +20,18 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
 import { useRouter } from 'next/router';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { chainName, transactionUrl } from '../../helpers/chains';
 import {
+  connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
-  validSteps,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
-import { statusForStep, TransactionStep } from '../../helpers/transactions';
-import { camelize } from '../../helpers/values';
+import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
@@ -89,61 +86,8 @@ function TransactionModal({
     entry.steps.find((s) => s.step === RoutingStep.BORROW) ||
     entry.steps.find((s) => s.step === RoutingStep.WITHDRAW);
 
-  const connextScanLink = entry.connext
-    ? `https://amarok.connextscan.io/tx/${entry.connext.transferId}`
-    : undefined;
-
-  const validatedSteps = validSteps(entry.steps);
-
-  const steps = validatedSteps.map((s, i): TransactionStep => {
-    const { step, chainId, token } = s;
-
-    const realChainId =
-      s.step === RoutingStep.X_TRANSFER && i === 0 && s.token
-        ? s.token.chainId
-        : chainId;
-
-    const chain = chainName(realChainId);
-    const amount = token && formatUnits(s.amount ?? 0, token.decimals);
-
-    const txHash =
-      realChainId === entry.sourceChain.chainId
-        ? entry.hash
-        : entry.secondChain?.hash;
-
-    const link = txHash && transactionUrl(realChainId, txHash);
-
-    const action = step.toString();
-    const preposition =
-      step === RoutingStep.DEPOSIT
-        ? 'on'
-        : [
-            RoutingStep.X_TRANSFER,
-            RoutingStep.BORROW,
-            RoutingStep.PAYBACK,
-          ].includes(step)
-        ? 'to'
-        : 'from';
-
-    const name = s.lendingProvider?.name;
-
-    const label = camelize(
-      `${action} ${amount} ${token?.symbol} ${name ? preposition : ''} ${
-        name ?? ''
-      }`
-    );
-
-    const description = `${chain} Network`;
-
-    return {
-      label,
-      txHash,
-      link,
-      description,
-      chainId: realChainId,
-      icon: () => <NetworkIcon network={chain} height={18} width={18} />,
-    };
-  });
+  const connextScanLinks = connextLinksForEntry(entry);
+  const steps = transactionSteps(entry);
 
   const onClick = async () => {
     // If the user is editing a position, we just need to close the modal
@@ -180,6 +124,10 @@ function TransactionModal({
       color: theme.palette.error.main,
     },
   ];
+
+  const commonStatusStyle = {
+    marginTop: '0.2rem',
+  };
 
   return (
     <Dialog
@@ -259,7 +207,6 @@ function TransactionModal({
             <Divider sx={{ mt: '0.75rem', mb: '0.75rem' }} />
 
             {steps?.map((step) => {
-              const status = statusForStep(step, entry);
               return (
                 <Stack
                   key={step.label}
@@ -270,7 +217,7 @@ function TransactionModal({
                   mt={1}
                 >
                   <Stack direction="row" alignItems="center">
-                    {step.icon()}
+                    <NetworkIcon network={step.chain} height={18} width={18} />
                     <Typography
                       variant="small"
                       sx={{
@@ -295,9 +242,10 @@ function TransactionModal({
                     </Typography>
                   </Stack>
                   <Box>
-                    {status === HistoryEntryStatus.SUCCESS ? (
+                    {step.status === HistoryEntryStatus.SUCCESS ? (
                       <CheckIcon
                         sx={{
+                          ...commonStatusStyle,
                           width: '1.125rem',
                           height: '1.125rem',
                           backgroundColor: theme.palette.success.dark,
@@ -307,10 +255,14 @@ function TransactionModal({
                         fontSize="large"
                       />
                     ) : entry.status === HistoryEntryStatus.ONGOING ? (
-                      <CircularProgress size={18} />
+                      <CircularProgress size={18} sx={commonStatusStyle} />
                     ) : (
                       <ErrorOutlineIcon
-                        sx={{ width: '18px', height: '18px' }}
+                        sx={{
+                          ...commonStatusStyle,
+                          width: '20px',
+                          height: '20px',
+                        }}
                       />
                     )}
                   </Box>
@@ -344,17 +296,23 @@ function TransactionModal({
               )}
           </>
         )}
-        {connextScanLink && (
-          <Stack sx={{ mt: '1rem' }} spacing={1}>
-            <Link href={connextScanLink} target="_blank" variant="inherit">
+        {connextScanLinks?.map((link, index) => (
+          <Stack key={link} sx={{ mt: '1rem' }} spacing={1}>
+            <Link href={link} target="_blank" variant="inherit">
               <Button size="medium" fullWidth variant="secondary">
-                View transaction on ConnextScan
+                {`View ${
+                  index === 0 && entry.chainCount > 2
+                    ? 'first '
+                    : index === 1
+                    ? 'second '
+                    : ''
+                }transaction on ConnextScan`}
               </Button>
             </Link>
           </Stack>
-        )}
+        ))}
         {entry.status === HistoryEntryStatus.SUCCESS && (
-          <Stack sx={{ mt: connextScanLink ? '0.5rem' : '1rem' }} spacing={1}>
+          <Stack sx={{ mt: '1rem' }} spacing={1}>
             <Button
               fullWidth
               variant="gradient"

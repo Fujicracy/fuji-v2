@@ -127,7 +127,7 @@ stores
 ├── auth
 ├── borrow
 ├── history
-└── snackbar
+└── positions
 ```
 
 ## File organization
@@ -165,5 +165,3 @@ There are 4 different pages:
 - my-positions/  lists all of the user open positions
   - my-positions/{chainId}-{vaultAddr}  manage an open position
 ```
-
-![schema](./drawio.svg)

@@ -18,7 +18,7 @@ type OverviewProps = {
 
 function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const isMobile = useMediaQuery(breakpoints.down('md'));
 
   const { position, editedPosition } = basePosition;
   const {

@@ -1,4 +1,4 @@
-import { ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
+import { ChainId, ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -7,12 +7,14 @@ import { devtools } from 'zustand/middleware';
 import {
   formatCrosschainNotificationMessage,
   NOTIFICATION_MESSAGES,
+  TX_WATCHING_POLLING_INTERVAL,
 } from '../constants';
 import { chainName } from '../helpers/chains';
 import {
   HistoryEntry,
   HistoryEntryStatus,
   HistoryTransaction,
+  stepForFinishing,
   toHistoryRoutingStep,
   triggerUpdatesFromSteps,
   wait,
@@ -72,19 +74,34 @@ export const useHistory = create<HistoryStore>()(
         ...initialState,
 
         async add(hash, address, vaultAddress, steps) {
-          const srcChainId = steps[0].chainId;
-          const secondChainId = steps[steps.length - 1].chainId;
-          const chainCount = srcChainId === secondChainId ? 1 : 2;
-          const isCrossChain = chainCount > 1;
+          const distinctChains = steps
+            .map((s) => s.chainId)
+            .reduce((acc: ChainId[], current: ChainId, i: number) => {
+              if (i === 0) {
+                acc.push(current);
+              } else {
+                const last = acc.length - 1;
+                if (acc[last] !== current) acc.push(current);
+              }
+              return acc;
+            }, []);
+          const [srcChainId, secondChainId, thirdChainId] = distinctChains;
+          const chainCount = distinctChains.length;
 
           const sourceChain = {
             chainId: srcChainId,
             status: HistoryEntryStatus.ONGOING,
             hash,
           };
-          const secondChain = isCrossChain
+          const secondChain = secondChainId
             ? {
                 chainId: secondChainId,
+                status: HistoryEntryStatus.ONGOING,
+              }
+            : undefined;
+          const thirdChain = thirdChainId
+            ? {
+                chainId: thirdChainId,
                 status: HistoryEntryStatus.ONGOING,
               }
             : undefined;
@@ -95,6 +112,7 @@ export const useHistory = create<HistoryStore>()(
             address,
             sourceChain,
             secondChain,
+            thirdChain,
             chainCount,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
@@ -135,7 +153,8 @@ export const useHistory = create<HistoryStore>()(
             const ongoingTransactions = get().ongoingTransactions.filter(
               (h) => h.hash !== hash
             );
-            set({ ongoingTransactions });
+            const filtered = get().watching.filter((h) => h !== hash);
+            set({ ongoingTransactions, watching: filtered });
           };
 
           if (!entry) {
@@ -148,42 +167,36 @@ export const useHistory = create<HistoryStore>()(
             if (address === entry.address) {
               triggerUpdatesFromSteps(entry.steps);
             }
+            const status = success
+              ? HistoryEntryStatus.SUCCESS
+              : HistoryEntryStatus.FAILURE;
 
-            const isFinal =
-              entry.chainCount > 1 &&
-              entry.secondChain &&
-              (entry.sourceChain.status === HistoryEntryStatus.SUCCESS ||
-                entry.sourceChain.status === HistoryEntryStatus.FAILURE);
+            const currentStep = stepForFinishing(entry);
 
             set(
               produce((s: HistoryState) => {
                 const entry = s.entries[hash];
-                entry.status = success
-                  ? HistoryEntryStatus.SUCCESS
-                  : HistoryEntryStatus.FAILURE;
-
-                if (
-                  isFinal &&
-                  entry.secondChain &&
-                  entry.secondChain.status !== HistoryEntryStatus.SUCCESS
-                ) {
-                  entry.secondChain.status = success
-                    ? HistoryEntryStatus.SUCCESS
-                    : HistoryEntryStatus.FAILURE;
-                } else if (
-                  entry.sourceChain.status !== HistoryEntryStatus.SUCCESS
-                ) {
-                  entry.sourceChain.status = success
-                    ? HistoryEntryStatus.SUCCESS
-                    : HistoryEntryStatus.FAILURE;
+                entry.status = status;
+                if (!success) {
+                  if (currentStep === 0) {
+                    entry.sourceChain.status = HistoryEntryStatus.FAILURE;
+                  } else if (entry.secondChain && currentStep === 1) {
+                    entry.secondChain.status = HistoryEntryStatus.FAILURE;
+                  } else if (entry.thirdChain && currentStep === 2) {
+                    entry.thirdChain.status = HistoryEntryStatus.FAILURE;
+                  }
                 }
               })
             );
 
-            const linkHash =
-              isFinal && entry.secondChain
-                ? entry.secondChain.hash
-                : entry.hash;
+            const chain =
+              currentStep === 2
+                ? entry.thirdChain
+                : currentStep === 1
+                ? entry.secondChain
+                : entry.sourceChain;
+
+            const linkHash = chain?.hash;
 
             if (address === entry.address) {
               notify({
@@ -197,10 +210,7 @@ export const useHistory = create<HistoryStore>()(
                 link: linkHash
                   ? getTransactionLink({
                       hash: linkHash,
-                      chainId:
-                        isFinal && entry.secondChain
-                          ? entry.secondChain.chainId
-                          : entry.sourceChain.chainId,
+                      chainId: chain?.chainId || entry.sourceChain.chainId,
                     })
                   : undefined,
               });
@@ -212,6 +222,115 @@ export const useHistory = create<HistoryStore>()(
           };
 
           try {
+            const updateIfNeeded = (
+              address: string | undefined,
+              shown: boolean | undefined,
+              firstChainId: ChainId,
+              secondChainId: ChainId,
+              txHash: string,
+              first: boolean
+            ) => {
+              if (address !== entry.address) return;
+
+              triggerUpdatesFromSteps(entry.steps);
+              usePositions.getState().fetchUserPositions();
+
+              if (shown) return;
+
+              notify({
+                type: 'success',
+                message: formatCrosschainNotificationMessage(
+                  chainName(firstChainId),
+                  chainName(secondChainId)
+                ),
+                link: getTransactionLink({
+                  hash: txHash,
+                  chainId: firstChainId,
+                }),
+              });
+              set(
+                produce((s: HistoryState) => {
+                  const e = s.entries[hash];
+                  if (first) {
+                    e.sourceChain.shown = true;
+                  } else if (e.secondChain) {
+                    e.secondChain.shown = true;
+                  }
+                })
+              );
+            };
+
+            const crossChainWatch = async (
+              chainId: ChainId,
+              txHash: string,
+              first: boolean
+            ) => {
+              let crosschainCallFinished = false;
+              while (!crosschainCallFinished) {
+                await wait(TX_WATCHING_POLLING_INTERVAL);
+                const crosschainResult = await sdk.getConnextTxDetails(
+                  chainId,
+                  txHash
+                );
+                if (!crosschainResult.success) {
+                  throw crosschainResult.error;
+                }
+                if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
+                  crosschainCallFinished = true;
+                }
+                set(
+                  produce((s: HistoryState) => {
+                    const e = s.entries[hash];
+                    if (
+                      crosschainResult.data.connextTransferId &&
+                      crosschainResult.data.status !== ConnextTxStatus.UNKNOWN
+                    ) {
+                      if (!e.connext && first) {
+                        e.connext = {
+                          transferId: crosschainResult.data.connextTransferId,
+                          timestamp: Date.now(),
+                        };
+                      }
+                      if (!first && e.connext) {
+                        e.connext.secondTransferId =
+                          crosschainResult.data.connextTransferId;
+                        e.connext.timestamp = Date.now();
+                      }
+                    }
+                    if (!e.secondChain) return;
+                    if (!first && !e.thirdChain) return;
+                    if (crosschainResult.data.destTxHash) {
+                      if (first && !e.secondChain.hash) {
+                        e.secondChain.hash = crosschainResult.data.destTxHash;
+                      } else if (
+                        !first &&
+                        e.thirdChain &&
+                        !e.thirdChain?.hash
+                      ) {
+                        e.thirdChain.hash = crosschainResult.data.destTxHash;
+                      }
+                    }
+                    if (
+                      crosschainResult.data.status === ConnextTxStatus.EXECUTED
+                    ) {
+                      if (
+                        first &&
+                        e.secondChain.status !== HistoryEntryStatus.SUCCESS
+                      ) {
+                        e.secondChain.status = HistoryEntryStatus.SUCCESS;
+                      } else if (
+                        !first &&
+                        e.thirdChain &&
+                        e.thirdChain.status !== HistoryEntryStatus.SUCCESS
+                      ) {
+                        e.thirdChain.status = HistoryEntryStatus.SUCCESS;
+                      }
+                    }
+                  })
+                );
+              }
+            };
+
             const result = await watchTransaction(
               entry.sourceChain.chainId,
               hash
@@ -224,75 +343,47 @@ export const useHistory = create<HistoryStore>()(
                 s.entries[hash].sourceChain.status = HistoryEntryStatus.SUCCESS;
               })
             );
-            if (entry.chainCount === 1 && !entry.secondChain) {
+            if (entry.chainCount === 1 || !entry.secondChain) {
               finish(true);
               return;
             }
-            const address = useAuth.getState().address;
-            if (address === entry.address) {
-              triggerUpdatesFromSteps(entry.steps);
-              usePositions.getState().fetchUserPositions();
-              if (!entry.sourceChain.shown) {
-                notify({
-                  type: 'success',
-                  message: formatCrosschainNotificationMessage(
-                    chainName(entry.sourceChain.chainId),
-                    chainName(entry.secondChain?.chainId)
-                  ),
-                  link: getTransactionLink({
-                    hash: entry.hash,
-                    chainId: entry.sourceChain.chainId,
-                  }),
-                });
-                set(
-                  produce((s: HistoryState) => {
-                    s.entries[hash].sourceChain.shown = true;
-                  })
-                );
-              }
+
+            updateIfNeeded(
+              useAuth.getState().address,
+              entry.sourceChain.shown,
+              entry.sourceChain.chainId,
+              entry.secondChain.chainId,
+              entry.hash,
+              true
+            );
+            if (entry.secondChain.status !== HistoryEntryStatus.SUCCESS) {
+              await crossChainWatch(
+                entry.sourceChain.chainId,
+                entry.hash,
+                true
+              );
+            }
+            if (!entry.thirdChain) {
+              finish(true);
+              return;
             }
 
-            let crosschainCallFinished = false;
-            while (!crosschainCallFinished) {
-              await wait(3000); // Wait for three seconds between each call
-              const crosschainResult = await sdk.getConnextTxDetails(
-                entry.sourceChain.chainId,
-                entry.hash
-              );
-              if (!crosschainResult.success) {
-                throw crosschainResult.error;
-              }
-              if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
-                crosschainCallFinished = true;
-              }
-              set(
-                produce((s: HistoryState) => {
-                  const e = s.entries[hash];
-                  if (
-                    crosschainResult.data.connextTransferId &&
-                    crosschainResult.data.status !== ConnextTxStatus.UNKNOWN &&
-                    !e.connext
-                  ) {
-                    e.connext = {
-                      transferId: crosschainResult.data.connextTransferId,
-                      timestamp: Date.now(),
-                    };
-                  }
-                  if (!e.secondChain) return;
-                  if (crosschainResult.data.destTxHash && !e.secondChain.hash) {
-                    e.secondChain.hash = crosschainResult.data.destTxHash;
-                  }
-                  if (
-                    crosschainResult.data.status === ConnextTxStatus.EXECUTED &&
-                    e.secondChain.status !== HistoryEntryStatus.SUCCESS
-                  ) {
-                    e.secondChain.status = HistoryEntryStatus.SUCCESS;
-                  }
-                })
-              );
-            }
+            const secondChain = get().entries[hash].secondChain;
+            if (!secondChain || !secondChain.hash) return;
+
+            updateIfNeeded(
+              useAuth.getState().address,
+              secondChain.shown,
+              secondChain.chainId,
+              entry.thirdChain.chainId,
+              secondChain.hash,
+              false
+            );
+
+            await crossChainWatch(secondChain.chainId, secondChain.hash, false);
             finish(true);
           } catch (e) {
+            console.error(e);
             finish(false);
           } finally {
             remove();

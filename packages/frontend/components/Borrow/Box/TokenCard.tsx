@@ -190,6 +190,7 @@ function TokenCard({
         <TextField
           id="collateral-amount"
           type="number"
+          inputProps={{ step: '0.1', lang: 'en-US' }}
           placeholder="0"
           inputRef={handleRef}
           value={value}
@@ -314,7 +315,7 @@ function TokenCard({
                     cursor: 'pointer',
                   }}
                 >
-                  {toNotSoFixed(recommended())} {debt.token.symbol}
+                  {toNotSoFixed(recommended(), true)} {debt.token.symbol}
                 </Typography>
               </Typography>
             )}
