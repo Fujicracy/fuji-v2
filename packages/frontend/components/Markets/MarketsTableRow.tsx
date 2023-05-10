@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Box } from '@mui/system';
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
@@ -33,14 +33,12 @@ import BestLabel from './BestLabel';
 type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
-  isBest: boolean;
   openedByDefault?: boolean;
 };
 
 function MarketsTableRow({
   row,
   onClick,
-  isBest,
   openedByDefault = false,
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
@@ -50,6 +48,10 @@ function MarketsTableRow({
     evt.stopPropagation();
     setExpandRow(!expandRow);
   };
+
+  useEffect(() => {
+    setExpandRow(openedByDefault);
+  }, [openedByDefault]);
 
   const loaderOrError = (status: Status) =>
     status === Status.Loading ? (
@@ -143,12 +145,17 @@ function MarketsTableRow({
                 isVisible={Boolean(row.isChild && row.children)}
                 onClick={handleExpand}
               />
-              <Stack direction="row" alignItems="center" flexWrap="nowrap">
+              <Stack
+                direction="row"
+                alignItems="center"
+                flexWrap="nowrap"
+                data-cy="market-row-network"
+              >
                 <NetworkIcon network={row.chain.value} width={24} height={24} />
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {(isBest || !row.isChild) && <BestLabel />}
+                {row.isBest && <BestLabel />}
               </Stack>
             </Stack>
           )}
@@ -288,11 +295,7 @@ function MarketsTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsTableRow
-                    row={collapsedRow}
-                    onClick={onClick}
-                    isBest={i === 0}
-                  />
+                  <MarketsTableRow row={collapsedRow} onClick={onClick} />
                 </TableBody>
               </Table>
             ))}
