@@ -22,6 +22,15 @@ import {IERC20Metadata} from
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 
 contract BorrowingVaultFactory is VaultDeployer {
+  struct BVaultData {
+    bytes bytecode;
+    address asset;
+    address debtAsset;
+    string name;
+    string symbol;
+    bytes32 salt;
+  }
+
   /// @dev Custom Errors
   error BorrowingVaultFactory__deployVault_failed();
 
@@ -58,36 +67,57 @@ contract BorrowingVaultFactory is VaultDeployer {
    * - Must be called from {Chief} contract only.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
-    (address asset, address debtAsset, address oracle, ILendingProvider[] memory providers) =
-      abi.decode(deployData, (address, address, address, ILendingProvider[]));
+    BVaultData memory vdata;
+    ///@dev Scoped section created to avoid stack too big error.
+    {
+      (
+        address asset,
+        address debtAsset,
+        address oracle,
+        ILendingProvider[] memory providers,
+        uint256 maxLtv,
+        uint256 liqRatio
+      ) = abi.decode(deployData, (address, address, address, ILendingProvider[], uint256, uint256));
 
-    string memory assetSymbol = IERC20Metadata(asset).symbol();
-    string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
+      vdata.asset = asset;
+      vdata.debtAsset = debtAsset;
 
-    // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault".
-    string memory name =
-      string(abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault"));
-    // Example of `symbol_`: "fbvWETHDAI".
-    string memory symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol));
+      string memory assetSymbol = IERC20Metadata(asset).symbol();
+      string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
 
-    bytes32 salt = keccak256(abi.encode(deployData, nonce));
-    nonce++;
+      // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault".
+      vdata.name =
+        string(abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault"));
+      // Example of `symbol_`: "fbvWETHDAI".
+      vdata.symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol));
 
-    bytes memory creationCode =
-      LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
+      vdata.salt = keccak256(abi.encode(deployData, nonce));
+      nonce++;
 
-    bytes memory bytecode = abi.encodePacked(
-      creationCode, abi.encode(asset, debtAsset, oracle, chief, name, symbol, providers)
-    );
+      bytes memory creationCode =
+        LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
+
+      vdata.bytecode = abi.encodePacked(
+        creationCode,
+        abi.encode(
+          asset, debtAsset, oracle, chief, vdata.name, vdata.symbol, providers, maxLtv, liqRatio
+        )
+      );
+    }
+
+    bytes32 salt_ = vdata.salt;
+    bytes memory bytecode_ = vdata.bytecode;
 
     assembly {
-      vault := create2(0, add(bytecode, 32), mload(bytecode), salt)
+      vault := create2(0, add(bytecode_, 32), mload(bytecode_), salt_)
     }
     if (vault == address(0)) revert BorrowingVaultFactory__deployVault_failed();
 
-    _registerVault(vault, asset, salt);
+    _registerVault(vault, vdata.asset, vdata.salt);
 
-    emit DeployBorrowingVault(vault, asset, debtAsset, name, symbol, salt);
+    emit DeployBorrowingVault(
+      vault, vdata.asset, vdata.debtAsset, vdata.name, vdata.symbol, vdata.salt
+    );
   }
 
   /**
