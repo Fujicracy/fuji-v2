@@ -50,7 +50,7 @@ describe('Sdk', () => {
 
   describe('#getTokenBalancesFor', () => {
     it('returns multiple balances', async () => {
-      const bals = await sdk.getTokenBalancesFor(
+      const bals = await sdk.getBalancesFor(
         [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
         // vitalik.eth
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
@@ -65,7 +65,7 @@ describe('Sdk', () => {
     });
 
     it('fails with tokens from different chains', async () => {
-      const result = await sdk.getTokenBalancesFor(
+      const result = await sdk.getBalancesFor(
         [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.MATIC]],
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
         ChainId.ETHEREUM
@@ -76,7 +76,7 @@ describe('Sdk', () => {
     });
 
     it('fails when tokens and chain differ', async () => {
-      const result = await sdk.getTokenBalancesFor(
+      const result = await sdk.getBalancesFor(
         [WNATIVE[ChainId.ETHEREUM], USDC[ChainId.ETHEREUM]],
         Address.from('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'),
         ChainId.MATIC
