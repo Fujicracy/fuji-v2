@@ -142,12 +142,12 @@ function MarketFiltersHeader({
           sx={{
             width: '100%',
             '& .MuiInputBase-input': {
-              p: '0.6rem 1rem 0.6rem 2.5rem',
+              p: '0.75rem 1rem 0.75rem 2.5rem',
               fontSize: '0.875rem',
               lineHeight: '1.5rem',
             },
             '& .MuiInputLabel-root:not(.MuiInputLabel-shrink)': {
-              transform: 'translate(37px, 7px) scale(1)',
+              transform: 'translate(37px, 10px) scale(1)',
               fontSize: '0.875rem',
               lineHeight: '1.5rem',
               color: palette.info.dark,
