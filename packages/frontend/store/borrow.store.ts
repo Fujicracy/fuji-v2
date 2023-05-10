@@ -214,8 +214,6 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeAll(collateral, debt, vault) {
-          if (!(collateral instanceof Token) || !(debt instanceof Token))
-            return;
           const collaterals = sdk.getCollateralForChain(collateral.chainId);
           const debts = sdk.getDebtForChain(debt.chainId);
           set(
@@ -517,10 +515,6 @@ export const useBorrow = create<BorrowStore>()(
 
           const collateral = get().collateral.currency;
           const debt = get().debt.currency;
-          if (!(collateral instanceof Token) || !(debt instanceof Token)) {
-            set({ availableVaultsStatus: 'error' });
-            return;
-          }
           const result = await sdk.getBorrowingVaultsFor(collateral, debt);
 
           if (!result.success) {
