@@ -1,7 +1,7 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
-import { chainName, chains } from './chains';
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
+import { chainName, chains } from './chains';
 
 export enum Status {
   Ready,

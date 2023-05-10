@@ -31,6 +31,10 @@ import {
   LtvMeta,
   recommendedLTV,
 } from '../../../helpers/assets';
+import {
+  isNativeOrWrapped,
+  nativeAndWrappedPair,
+} from '../../../helpers/currencies';
 import { BasePosition } from '../../../helpers/positions';
 import {
   formatValue,
@@ -96,6 +100,15 @@ function CurrencyCard({
     undefined
   );
   const [focused, setFocused] = useState<boolean>(false);
+
+  const shouldShowNativeWrappedPair =
+    isEditing &&
+    type === 'collateral' &&
+    isNativeOrWrapped(currency, selectableCurrencies);
+
+  const currencyList = shouldShowNativeWrappedPair
+    ? nativeAndWrappedPair(selectableCurrencies)
+    : selectableCurrencies;
 
   const handleRef = useCallback((node: HTMLInputElement) => {
     setTextInput(node);
@@ -211,10 +224,10 @@ function CurrencyCard({
         />
         <ButtonBase
           id={`select-${type}-button`}
-          disabled={isExecuting || disabled}
+          disabled={isExecuting || (disabled && !shouldShowNativeWrappedPair)}
           onClick={open}
         >
-          {currency && disabled ? (
+          {disabled && !shouldShowNativeWrappedPair ? (
             <>
               <CurrencyIcon currency={currency} height={24} width={24} />
               <Typography ml={1} variant="h6">
@@ -236,7 +249,7 @@ function CurrencyCard({
           onClose={close}
           TransitionComponent={Fade}
         >
-          {selectableCurrencies.map((currency) => (
+          {currencyList.map((currency) => (
             <CurrencyItem
               key={currency.name}
               currency={currency}
