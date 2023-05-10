@@ -10,7 +10,7 @@ import {
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
-import TokenCard from './CurrencyCard';
+import CurrencyCard from './CurrencyCard';
 
 type BorrowBoxProps = {
   isEditing: boolean;
@@ -83,7 +83,7 @@ function BorrowBox({
             : changeDebtChain(chainId, !isEditing)
         }
       />
-      <TokenCard
+      <CurrencyCard
         type={type}
         showMax={showMax}
         maxAmount={maxAmount}
