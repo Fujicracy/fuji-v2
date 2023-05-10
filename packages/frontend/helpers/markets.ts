@@ -219,10 +219,35 @@ export const setLlamas = (
   }
 };
 
-export const groupByPair = (
-  rows: MarketRow[],
-  initial?: boolean
-): MarketRow[] => {
+export const setBest = (rows: MarketRow[]): MarketRow[] => {
+  const result: MarketRow[] = [];
+  const done = new Set<string>();
+
+  for (const row of rows) {
+    const key = `${row.debt}/${row.collateral}`;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter(
+      (r) => r.debt === row.debt && r.collateral === row.collateral
+    );
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending);
+      const children = groupByChain(sorted);
+      children[0].isBest = true;
+      if (children[0].children) {
+        children[0].children[0].isBest = true;
+      }
+      result.push(...children);
+    } else {
+      result.push(entries[0]);
+    }
+  }
+
+  return result;
+};
+
+export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
   const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
   const grouped: MarketRow[] = [];
 
@@ -240,7 +265,6 @@ export const groupByPair = (
         sorted.map((r, i) => ({
           ...r,
           isChild: true,
-          isBest: initial ? i === 0 : r.isBest,
         }))
       );
       grouped.push({ ...sorted[0], children });
@@ -267,7 +291,6 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
       const children = sorted.map((r, i) => ({
         ...r,
         isChild: true,
-        isBest: i === 0,
       }));
       grouped.push({ ...sorted[0], children });
     } else {

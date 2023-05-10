@@ -150,7 +150,7 @@ function MarketsTableRow({
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {(row.isBest || !row.isChild) && <BestLabel />}
+                {row.isBest && <BestLabel />}
               </Stack>
             </Stack>
           )}

@@ -19,9 +19,9 @@ import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import { chains } from '../../helpers/chains';
 import {
   filterMarketRows,
-  groupByPair,
   MarketRow,
   setBase,
+  setBest,
   setFinancials,
   setLlamas,
   Status,
@@ -52,7 +52,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
 
     const vaults = sdk.getAllBorrowingVaults();
     const rowsBase = vaults.map(setBase);
-    setRows(groupByPair(rowsBase));
+    setRows(rowsBase);
 
     (async () => {
       const result = await getAllBorrowingVaultFinancials(addr);
@@ -68,7 +68,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
         const rows = rowsBase
           .map((r) => setFinancials(r, Status.Error))
           .map((r) => setLlamas(r, Status.Error));
-        setRows(rows);
+        setRows(setBest(rows));
         return;
       }
 
@@ -76,7 +76,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
       const rowsFin = financials.map((fin, i) =>
         setFinancials(rowsBase[i], Status.Ready, fin)
       );
-      setRows(rowsFin);
+      setRows(setBest(rowsFin));
 
       const llamaResult = await sdk.getLlamaFinancials(financials);
       if (!llamaResult.success) {
@@ -85,14 +85,14 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
           message: llamaResult.error.message,
         });
         const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
-        setRows(rows);
+        setRows(setBest(rows));
         return;
       }
 
       const rowsLlama = llamaResult.data.map((llama, i) =>
         setLlamas(rowsFin[i], Status.Ready, llama)
       );
-      setRows(rowsLlama);
+      setRows(setBest(rowsLlama));
     })().finally(() => {
       setIsLoading(false);
     });
