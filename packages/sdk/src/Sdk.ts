@@ -5,6 +5,7 @@ import { Call } from '@hovoh/ethcall';
 import axios from 'axios';
 
 import {
+  BN_ZERO,
   CHAIN,
   COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
@@ -407,10 +408,14 @@ export class Sdk {
         args,
       ]);
 
+    const first = actionParams[0];
+    const txValue =
+      first?.action !== RouterAction.DEPOSIT_ETH ? BN_ZERO : first.amount;
     return new FujiResultSuccess({
       from: account.value,
       to: CONNEXT_ROUTER_ADDRESS[srcChainId].value,
       data: callData,
+      value: txValue,
       chainId: srcChainId,
     });
   }

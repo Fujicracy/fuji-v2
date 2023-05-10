@@ -66,6 +66,15 @@ export type XTransferWithCallParams = BaseRouterActionParams & {
   innerActions: RouterActionParams[];
 };
 
+export type WrapNativeParams = BaseRouterActionParams & {
+  action: RouterAction.DEPOSIT_ETH;
+};
+
+export type UnwrapNativeParams = BaseRouterActionParams & {
+  action: RouterAction.WITHDRAW_ETH;
+  receiver: Address;
+};
+
 export type RouterActionParams =
   | DepositParams
   | BorrowParams
@@ -73,4 +82,6 @@ export type RouterActionParams =
   | WithdrawParams
   | PermitParams
   | XTransferParams
-  | XTransferWithCallParams;
+  | XTransferWithCallParams
+  | WrapNativeParams
+  | UnwrapNativeParams;

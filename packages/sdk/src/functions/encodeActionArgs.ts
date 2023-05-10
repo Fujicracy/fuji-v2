@@ -104,6 +104,13 @@ export function encodeActionArgs(
         callData,
       ]
     );
+  } else if (params.action === RouterAction.DEPOSIT_ETH) {
+    result = defaultAbiCoder.encode(['uint256'], [params.amount.toString()]);
+  } else if (params.action === RouterAction.WITHDRAW_ETH) {
+    result = defaultAbiCoder.encode(
+      ['uint256', 'address'],
+      [params.amount.toString(), params.receiver.value]
+    );
   } else {
     return new FujiResultError('Unsupported action!');
   }
