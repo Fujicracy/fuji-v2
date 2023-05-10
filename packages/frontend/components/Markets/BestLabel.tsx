@@ -9,6 +9,7 @@ function BestLabel() {
   return (
     <TooltipWrapper title="Lowest borrow APR" placement="top">
       <Stack
+        data-cy="best-label"
         direction="row"
         alignItems="center"
         gap="0.25rem"
