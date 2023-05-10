@@ -32,6 +32,9 @@ contract MockingSetup is CoreRoles, Test {
   address public collateralAsset;
   address public debtAsset;
 
+  uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
+  uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
+
   // CHainlink type prices in 8 decimals.
   uint256 public constant USD_PER_ETH_PRICE = 2000e8;
   uint256 public constant USD_PER_DAI_PRICE = 1e8;
@@ -74,8 +77,14 @@ contract MockingSetup is CoreRoles, Test {
       address(chief),
       "Fuji-V2 tWETH-tDAI BorrowingVault",
       "fbvtWETHtDAI",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
   }
 
   function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {

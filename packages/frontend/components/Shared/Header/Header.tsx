@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
   AppBar,
   Box,
-  Button,
   Chip,
   Divider,
   Fade,
@@ -21,6 +20,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
@@ -106,10 +106,10 @@ const Header = () => {
     setAccountModalEl(element);
   };
 
-  const handleLogin = (testing: boolean) => {
-    const options: ConnectOptions | undefined = testing
-      ? { autoSelect: { label: 'MetaMask', disableModals: true } }
-      : undefined;
+  const handleLogin = () => {
+    const options: ConnectOptions | undefined = (window as any).Cypress && {
+      autoSelect: { label: 'MetaMask', disableModals: true },
+    };
     login(options);
   };
 
@@ -177,6 +177,7 @@ const Header = () => {
                 {status === 'disconnected' && (
                   <>
                     <Chip
+                      data-cy="header-login"
                       label="Connect wallet"
                       variant="gradient"
                       sx={{
@@ -185,15 +186,8 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={() => handleLogin(false)}
+                      onClick={handleLogin}
                     />
-                    <Button
-                      data-cy="login"
-                      onClick={() => handleLogin(true)}
-                      sx={{ position: 'absolute', visibility: 'hidden' }}
-                    >
-                      e2e
-                    </Button>
                   </>
                 )}
                 {status === 'connected' && <ChainSelect />}
@@ -329,15 +323,8 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={() => handleLogin(false)}
+                  onClick={handleLogin}
                 />
-                <Button
-                  data-cy="login"
-                  onClick={() => handleLogin(true)}
-                  sx={{ position: 'absolute', visibility: 'hidden' }}
-                >
-                  e2e
-                </Button>
               </>
             )}
             {status === 'connected' && address && (

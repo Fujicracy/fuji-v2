@@ -84,6 +84,8 @@ interface IConnext {
     returns (bool success, bytes memory returnData);
 
   function bumpTransfer(bytes32 transferId) external payable;
+
+  function forceUpdateSlippage(TransferInfo calldata _params, uint256 _slippage) external;
 }
 
 interface IXReceiver {

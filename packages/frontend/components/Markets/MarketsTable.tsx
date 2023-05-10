@@ -7,6 +7,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
   useTheme,
 } from '@mui/material';
 import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
@@ -15,10 +16,12 @@ import { useEffect, useState } from 'react';
 
 import { NOTIFICATION_MESSAGES } from '../../constants';
 import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
+import { chains } from '../../helpers/chains';
 import {
-  groupByPair,
+  filterMarketRows,
   MarketRow,
   setBase,
+  setBest,
   setFinancials,
   setLlamas,
   Status,
@@ -30,13 +33,15 @@ import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import { MarketFilters } from './MarketFiltersHeader';
 import MarketsTableRow from './MarketsTableRow';
 
-function MarketsTable() {
+function MarketsTable({ filters }: { filters: MarketFilters }) {
   const { palette } = useTheme();
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([]);
+  const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
@@ -47,7 +52,7 @@ function MarketsTable() {
 
     const vaults = sdk.getAllBorrowingVaults();
     const rowsBase = vaults.map(setBase);
-    setRows(groupByPair(rowsBase));
+    setRows(rowsBase);
 
     (async () => {
       const result = await getAllBorrowingVaultFinancials(addr);
@@ -63,7 +68,7 @@ function MarketsTable() {
         const rows = rowsBase
           .map((r) => setFinancials(r, Status.Error))
           .map((r) => setLlamas(r, Status.Error));
-        setRows(groupByPair(rows));
+        setRows(setBest(rows));
         return;
       }
 
@@ -71,7 +76,7 @@ function MarketsTable() {
       const rowsFin = financials.map((fin, i) =>
         setFinancials(rowsBase[i], Status.Ready, fin)
       );
-      setRows(groupByPair(rowsFin));
+      setRows(setBest(rowsFin));
 
       const llamaResult = await sdk.getLlamaFinancials(financials);
       if (!llamaResult.success) {
@@ -80,25 +85,30 @@ function MarketsTable() {
           message: llamaResult.error.message,
         });
         const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
-        setRows(groupByPair(rows));
+        setRows(setBest(rows));
         return;
       }
 
       const rowsLlama = llamaResult.data.map((llama, i) =>
         setLlamas(rowsFin[i], Status.Ready, llama)
       );
-      setRows(groupByPair(rowsLlama));
+      setRows(setBest(rowsLlama));
     })().finally(() => {
       setIsLoading(false);
     });
   }, [address]);
+
+  // Filters original rows depends on search or chain
+  useEffect(() => {
+    setFilteredRows(filterMarketRows(rows.slice(), filters));
+  }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
     showPosition(router, walletChain?.id as string, entity);
   };
 
   return (
-    <TableContainer>
+    <TableContainer sx={{ mt: '0.75rem' }}>
       <Table
         aria-label="Markets table"
         // border-collapse fix bug on borders on firefox with sticky column
@@ -200,20 +210,60 @@ function MarketsTable() {
                 </TableCell>
               ))}
             </TableRow>
+          ) : filteredRows.length > 0 ? (
+            filteredRows.map((row, i) => {
+              return (
+                <MarketsTableRow
+                  key={i}
+                  row={row}
+                  onClick={handleClick}
+                  openedByDefault={Boolean(i === 0 && row.children)}
+                />
+              );
+            })
           ) : (
-            rows.map((row, i) => (
-              <MarketsTableRow
-                key={i}
-                row={row}
-                onClick={handleClick}
-                openedByDefault={i === 0}
-                isBest={i === 0}
-              />
-            ))
+            <EmptyRowsState
+              withFilters={Boolean(
+                filters.searchQuery || filters.chains.length !== chains.length
+              )}
+            />
           )}
         </TableBody>
       </Table>
     </TableContainer>
+  );
+}
+
+function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
+  const message = withFilters
+    ? 'No results found'
+    : 'No data available at the moment';
+
+  return (
+    <TableRow>
+      <TableCell
+        sx={{
+          height: '10rem',
+        }}
+        colSpan={8}
+      >
+        <Stack
+          data-cy="market-empty-state"
+          alignItems="center"
+          justifyContent="center"
+          sx={{
+            width: '100%',
+          }}
+        >
+          <Typography variant="body" fontWeight={500}>
+            No data
+          </Typography>
+          <Typography mt="0.25rem" variant="smallDark">
+            {message}
+          </Typography>
+        </Stack>
+      </TableCell>
+    </TableRow>
   );
 }
 

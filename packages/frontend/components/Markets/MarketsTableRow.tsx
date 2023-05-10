@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Box } from '@mui/system';
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
@@ -33,14 +33,12 @@ import BestLabel from './BestLabel';
 type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
-  isBest: boolean;
   openedByDefault?: boolean;
 };
 
 function MarketsTableRow({
   row,
   onClick,
-  isBest,
   openedByDefault = false,
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
@@ -50,6 +48,10 @@ function MarketsTableRow({
     evt.stopPropagation();
     setExpandRow(!expandRow);
   };
+
+  useEffect(() => {
+    setExpandRow(openedByDefault);
+  }, [openedByDefault]);
 
   const loaderOrError = (status: Status) =>
     status === Status.Loading ? (
@@ -70,6 +72,7 @@ function MarketsTableRow({
   return (
     <>
       <TableRow
+        data-cy="market-row"
         onClick={() => onClick(row.entity)}
         sx={{
           height: '3.438rem',
@@ -99,7 +102,12 @@ function MarketsTableRow({
                 isVisible={Boolean(row.children && row.children.length > 0)}
                 onClick={handleExpand}
               />
-              <Stack direction="row" alignItems="center" flexWrap="nowrap">
+              <Stack
+                direction="row"
+                alignItems="center"
+                flexWrap="nowrap"
+                data-cy="market-row-debt"
+              >
                 <CurrencyIcon currency={row.debt} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
                   {row.debt}
@@ -110,7 +118,12 @@ function MarketsTableRow({
         </SizableTableCell>
         <SizableTableCell width="120px">
           {row.collateral && isHighLevelRow && (
-            <Stack direction="row" alignItems="center" flexWrap="nowrap">
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="nowrap"
+              data-cy="market-row-collateral"
+            >
               <CurrencyIcon currency={row.collateral} height={32} width={32} />
               <Typography ml="0.5rem" variant="small">
                 {row.collateral}
@@ -121,18 +134,28 @@ function MarketsTableRow({
         <SizableTableCell width="200px">
           {loaderOrError(row.chain.status)}
           {shouldNetworkColumnBeShown && (
-            <Stack direction="row" gap={0.5} alignItems="center">
+            <Stack
+              direction="row"
+              gap={0.5}
+              alignItems="center"
+              data-cy="market-row-network"
+            >
               <Toggle
                 expandRow={expandRow}
                 isVisible={Boolean(row.isChild && row.children)}
                 onClick={handleExpand}
               />
-              <Stack direction="row" alignItems="center" flexWrap="nowrap">
+              <Stack
+                direction="row"
+                alignItems="center"
+                flexWrap="nowrap"
+                data-cy="market-row-network"
+              >
                 <NetworkIcon network={row.chain.value} width={24} height={24} />
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {(isBest || !row.isChild) && <BestLabel />}
+                {row.isBest && <BestLabel />}
               </Stack>
             </Stack>
           )}
@@ -272,11 +295,7 @@ function MarketsTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsTableRow
-                    row={collapsedRow}
-                    onClick={onClick}
-                    isBest={i === 0}
-                  />
+                  <MarketsTableRow row={collapsedRow} onClick={onClick} />
                 </TableBody>
               </Table>
             ))}
@@ -301,7 +320,12 @@ function Toggle(props: ToggleProps) {
   const visibility = isVisible ? 'visible' : 'hidden';
 
   return (
-    <IconButton onClick={onClick} size="small" sx={{ visibility }}>
+    <IconButton
+      onClick={onClick}
+      size="small"
+      sx={{ visibility }}
+      data-cy="market-toggle"
+    >
       {expandRow ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
     </IconButton>
   );

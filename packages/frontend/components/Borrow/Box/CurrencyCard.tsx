@@ -42,7 +42,7 @@ import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
 import { CurrencyIcon } from '../../Shared/Icons';
 
-type SelectTokenCardProps = {
+type SelectCurrencyCardProps = {
   type: AssetType;
   actionType: ActionType;
   assetChange: AssetChange;
@@ -74,7 +74,7 @@ function CurrencyCard({
   basePosition,
   isEditing,
   isFocusedByDefault,
-}: SelectTokenCardProps) {
+}: SelectCurrencyCardProps) {
   const { palette } = useTheme();
 
   const { currency, usdPrice, balances, selectableCurrencies } = assetChange;
@@ -342,6 +342,7 @@ const CurrencyItem = ({
 }: CurrencyItem) => {
   return (
     <MenuItem
+      data-cy="currency-select"
       key={currency.name}
       value={currency.symbol}
       onClick={() => onClick && onClick(currency)}

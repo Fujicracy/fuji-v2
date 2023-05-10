@@ -26,7 +26,7 @@ contract DeployGnosis is ScriptPlus {
   FujiOracle oracle;
   ConnextRouter connextRouter;
 
-  AgaveGnosis agaveGnosis;
+  AgaveGnosis agave;
 
   IConnext connextHandler = IConnext(0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109);
   IWETH9 WETH = IWETH9(0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1);
@@ -41,9 +41,9 @@ contract DeployGnosis is ScriptPlus {
   function run() public {
     vm.startBroadcast();
 
-    agaveGnosis = AgaveGnosis(getAddress("AgaveGnosis"));
-    /*agaveGnosis = new AgaveGnosis();*/
-    /*saveAddress("AgaveGnosis", address(agaveGnosis));*/
+    agave = AgaveGnosis(getAddress("AgaveGnosis"));
+    /*agave = new AgaveGnosis();*/
+    /*saveAddress("AgaveGnosis", address(agave));*/
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -123,16 +123,36 @@ contract DeployGnosis is ScriptPlus {
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, ARBITRUM_DOMAIN, arbitrumRouter)*/
     /*);*/
 
+    _setVaultNewProviders("BorrowingVault-WETHUSDC");
+    _setVaultNewRating("BorrowingVault-WETHUSDC", 55);
+
     vm.stopBroadcast();
   }
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = agaveGnosis;
+    providers[0] = agave;
     address vault = chief.deployVault(
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
     );
     saveAddress(name, vault);
+  }
+
+  function _setVaultNewProviders(string memory vaultName) internal {
+    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
+
+    ILendingProvider[] memory providers = new ILendingProvider[](1);
+    providers[0] = agave;
+    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    /*_scheduleWithTimelock(address(vault), callData);*/
+    _executeWithTimelock(address(vault), callData);
+  }
+
+  function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
+    bytes memory callData =
+      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
+    /*_scheduleWithTimelock(address(chief), callData);*/
+    _executeWithTimelock(address(chief), callData);
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

@@ -51,6 +51,7 @@ function ChainSelect() {
     <>
       {networkName && isSupported(chainId) ? (
         <Chip
+          data-cy="network-button"
           label={
             <Stack direction="row" alignItems="center" spacing={1}>
               <ListItem
@@ -67,6 +68,7 @@ function ChainSelect() {
         />
       ) : (
         <Chip
+          data-cy="header-unsupported-network"
           label={
             <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
@@ -93,6 +95,7 @@ function ChainSelect() {
       >
         {chains.map((chain) => (
           <MenuItem
+            data-cy="network-menu-item"
             key={chain.chainId}
             onClick={() => selectChain(chain.chainId)}
           >
@@ -125,6 +128,7 @@ const ListItem = (props: ListItemProps) => {
       </ListItemIcon>
       {!onMobile && (
         <ListItemText
+          data-cy="header-network"
           sx={{
             '& .MuiTypography-root': {
               fontSize: '0.875rem',
