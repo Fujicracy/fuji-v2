@@ -33,7 +33,7 @@ import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
-import { MarketFilters } from './MarketFilters';
+import { MarketFilters } from './MarketFiltersHeader';
 import MarketsTableRow from './MarketsTableRow';
 
 function MarketsTable({ filters }: { filters: MarketFilters }) {

@@ -5,8 +5,8 @@ import { chains } from '../../helpers/chains';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending';
-import { MarketFilters } from './MarketFilters';
-import MarketFiltersHeader from './MarketFilters';
+import { MarketFilters } from './MarketFiltersHeader';
+import MarketFiltersHeader from './MarketFiltersHeader';
 import MarketsTable from './MarketsTable';
 
 function Markets() {

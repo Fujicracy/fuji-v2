@@ -34,6 +34,15 @@ describe('Markets', () => {
       .find('[data-cy="best-label"]')
       .should('exist');
   });
+  it('should search', () => {
+    cy.get('[data-cy="market-row"]')
+      .first()
+      .find('[data-cy="market-row-debt"]')
+      .invoke('text')
+      .then((debt) => {
+        cy.get('propSizeSel').clear().type(debt);
+      });
+  });
   it('should toggle last high-level row', () => {
     cy.get('[data-cy="market-row"]')
       .last()

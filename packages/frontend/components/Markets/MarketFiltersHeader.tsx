@@ -11,7 +11,6 @@ export type MarketFilters = {
   searchQuery: string;
   chains: string[];
 };
-
 function MarketFiltersHeader({
   filters,
   setFilters,
@@ -135,6 +134,7 @@ function MarketFiltersHeader({
         }}
       >
         <TextField
+          data-cy="market-search"
           label="Filter by token, protocol"
           type="text"
           variant="outlined"
