@@ -72,7 +72,7 @@ describe('Sdk', () => {
       );
       expect(result.success).toBeFalsy();
       if (result.success) return;
-      expect(result.error.message).toEqual('Token from a different chain!');
+      expect(result.error.message).toEqual('Currency from a different chain!');
     });
 
     it('fails when tokens and chain differ', async () => {
@@ -83,7 +83,7 @@ describe('Sdk', () => {
       );
       expect(result.success).toBeFalsy();
       if (result.success) return;
-      expect(result.error.message).toEqual('Token from a different chain!');
+      expect(result.error.message).toEqual('Currency from a different chain!');
     });
   });
 
