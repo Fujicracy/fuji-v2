@@ -51,6 +51,7 @@ function MarketFiltersHeader({
   }) => {
     return (
       <Stack
+        data-cy="market-network-filter"
         alignItems="center"
         justifyContent="center"
         sx={{

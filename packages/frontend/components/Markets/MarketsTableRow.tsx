@@ -145,7 +145,12 @@ function MarketsTableRow({
                 isVisible={Boolean(row.isChild && row.children)}
                 onClick={handleExpand}
               />
-              <Stack direction="row" alignItems="center" flexWrap="nowrap">
+              <Stack
+                direction="row"
+                alignItems="center"
+                flexWrap="nowrap"
+                data-cy="market-row-network"
+              >
                 <NetworkIcon network={row.chain.value} width={24} height={24} />
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}

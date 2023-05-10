@@ -35,12 +35,66 @@ describe('Markets', () => {
       .should('exist');
   });
   it('should search', () => {
+    let startLength, resultLength, query;
     cy.get('[data-cy="market-row"]')
+      .then((value) => {
+        startLength = value.length;
+      })
       .first()
       .find('[data-cy="market-row-debt"]')
       .invoke('text')
       .then((debt) => {
-        cy.get('propSizeSel').clear().type(debt);
+        query = debt;
+        cy.get('[data-cy="market-search"]').find('input').clear().type(query);
+        cy.get('[data-cy="market-row"]')
+          .then((value) => {
+            resultLength = value.length;
+          })
+          .first()
+          .find('[data-cy="market-row-debt"]')
+          .then((content) => {
+            expect(content).to.have.text(query);
+            expect(resultLength).to.not.eq(startLength);
+            cy.get('[data-cy="market-search"]').find('input').clear();
+            cy.get('[data-cy="market-row"]').then((value) => {
+              expect(value.length).to.eq(startLength);
+            });
+          });
+      });
+  });
+  it('should filter by chain', () => {
+    let startLength, resultLength, chainName;
+    // getting initial rows length.
+    cy.get('[data-cy="market-row"]').then((value) => {
+      startLength = value.length;
+    });
+
+    // clicking second network filter button.
+    cy.get('[data-cy="market-network-filter"]')
+      .next()
+      .find('img')
+      .then((img) => {
+        chainName = img.attr('alt');
+      })
+      .click();
+    // checking rows count changes.
+    cy.get('[data-cy="market-row"]')
+      .then((value) => {
+        resultLength = value.length;
+        expect(resultLength).to.not.eq(startLength);
+      })
+      .first()
+      .find('[data-cy="market-row-network"]')
+      .first()
+      .then((network) => {
+        // checking rows filtered by network properly.
+        expect(network).to.have.text(chainName);
+        // clicking first network filter button which is ALL.
+        cy.get('[data-cy="market-network-filter"]').first().click();
+        // checking rows count is same as in default state.
+        cy.get('[data-cy="market-row"]').then((value) => {
+          expect(value.length).to.eq(startLength);
+        });
       });
   });
   it('should toggle last high-level row', () => {
