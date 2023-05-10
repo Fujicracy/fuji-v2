@@ -15,3 +15,7 @@ export const nativeAndWrappedPair = (list: Currency[]): Currency[] => {
   if (!native) return [];
   return [native, native.wrapped];
 };
+
+export const wrappedSymbol = (currency: Currency): string => {
+  return currency.isNative ? currency.wrapped.symbol : currency.symbol;
+};
