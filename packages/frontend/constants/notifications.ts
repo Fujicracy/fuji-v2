@@ -5,6 +5,7 @@ export enum NOTIFICATION_MESSAGES {
   SIGNATURE_PENDING = 'Please, sign the permit from your wallet.',
   SIGNATURE_CANCELLED = 'You rejected signing the permit.',
   POSITIONS_FAILURE = `We're having a hard time fetching some on-chain data and some of the positions may be inaccurate.`,
+  TX_INSUFFICIENT_FUNDS = 'You have insufficient funds to execute the transaction.',
   TX_CANCELLED = 'You rejected the transaction.',
   TX_PENDING = 'The transaction is waiting for you to confirm in your wallet.',
   TX_SENT = 'Your transaction was submitted successfully and is waiting to get confirmed.',
