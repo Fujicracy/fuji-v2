@@ -4,7 +4,6 @@ import {
   BridgeFee as FujiBridgeFee,
   Currency,
   FujiResult,
-  FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
   PreviewName,
@@ -12,7 +11,6 @@ import {
   RouterActionParams,
   RoutingStep,
   RoutingStepDetails,
-  Token,
 } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
@@ -45,9 +43,6 @@ export const fetchRoutes = async (
   recommended: boolean,
   slippage: number
 ): FujiResultPromise<RouteMeta> => {
-  if (!(collateralToken instanceof Token) || !(debtToken instanceof Token)) {
-    return new FujiResultError('We do not support native tokens yet');
-  }
   let result: FujiResult<PreviewResult>;
   switch (mode) {
     case Mode.DEPOSIT_AND_BORROW:
