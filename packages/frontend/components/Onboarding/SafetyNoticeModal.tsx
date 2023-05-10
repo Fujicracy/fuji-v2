@@ -76,7 +76,7 @@ export function SafetyNoticeModal() {
     agreementsBoxes.every((item: AgreementBox) => item.checked);
 
   return !isExploreModalShown ? (
-    <Dialog open={!hasPreviouslyAcceptedTerms}>
+    <Dialog data-cy="disclaimer-modal" open={!hasPreviouslyAcceptedTerms}>
       <Paper
         variant="outlined"
         sx={{
@@ -114,6 +114,7 @@ export function SafetyNoticeModal() {
             }
             control={
               <Checkbox
+                data-cy={`disclaimer-check-${agreements.length}`}
                 checked={hasAcceptedTerms}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
                   setHasAcceptedTerms(event.target.checked);
@@ -143,6 +144,7 @@ export function SafetyNoticeModal() {
               }
               control={
                 <Checkbox
+                  data-cy={`disclaimer-check-${i}`}
                   checked={agreementsBoxes[i].checked}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => {
                     onOtherAgreementChange(i, event.target.checked);
@@ -162,7 +164,7 @@ export function SafetyNoticeModal() {
           onClick={onAcceptClick}
           disabled={!areAllAccepted}
           fullWidth
-          data-cy="safety-notice-accept"
+          data-cy="disclaimer-button"
           sx={{ mt: '1.5rem' }}
         >
           Agree

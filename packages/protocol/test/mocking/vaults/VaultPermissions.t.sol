@@ -144,6 +144,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     );
     do_deposit(depositAmount_, vault, owner);
 
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
+
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
       owner: owner,
@@ -151,7 +153,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       receiver: receiver,
       amount: withdrawDelegated_,
       nonce: vault.nonces(owner),
-      deadline: block.timestamp + 1 days
+      deadline: block.timestamp + 1 days,
+      actionArgsHash: pretendedActionArgsHash
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
@@ -162,7 +165,9 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     // This message signing is supposed to be off-chain
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
     vm.prank(operator);
-    vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
+    vault.permitWithdraw(
+      permit.owner, permit.receiver, permit.amount, permit.deadline, permit.actionArgsHash, v, r, s
+    );
 
     assertEq(vault.withdrawAllowance(owner, operator, receiver), withdrawDelegated_);
 
@@ -193,6 +198,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.assume(borrowDelegated_ > minAmount && borrowDelegated_ <= BORROW_LIMIT);
     do_deposit(10 ether, vault, owner);
 
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
+
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
       owner: owner,
@@ -200,7 +207,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       receiver: receiver,
       amount: borrowDelegated_,
       nonce: vault.nonces(owner),
-      deadline: block.timestamp + 1 days
+      deadline: block.timestamp + 1 days,
+      actionArgsHash: pretendedActionArgsHash
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
@@ -212,7 +220,9 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPkey, digest);
 
     vm.prank(operator);
-    vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
+    vault.permitBorrow(
+      permit.owner, permit.receiver, permit.amount, permit.deadline, permit.actionArgsHash, v, r, s
+    );
 
     assertEq(vault.borrowAllowance(owner, operator, receiver), borrowDelegated_);
 
@@ -295,6 +305,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
   function test_errorExpiredDeadlineWithdrawPermit() public {
     do_deposit(1 ether, vault, owner);
 
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
+
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
       owner: owner,
@@ -302,7 +314,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       receiver: receiver,
       amount: 1 ether,
       nonce: vault.nonces(owner),
-      deadline: block.timestamp + 1 days
+      deadline: block.timestamp + 1 days,
+      actionArgsHash: pretendedActionArgsHash
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
@@ -319,11 +332,15 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(VaultPermissions.VaultPermissions__expiredDeadline.selector);
     vm.prank(operator);
-    vault.permitWithdraw(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
+    vault.permitWithdraw(
+      permit.owner, permit.receiver, permit.amount, permit.deadline, permit.actionArgsHash, v, r, s
+    );
   }
 
   function test_errorExpiredDeadlineBorrowPermit() public {
     do_deposit(1 ether, vault, owner);
+
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
@@ -332,7 +349,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       receiver: receiver,
       amount: BORROW_LIMIT,
       nonce: vault.nonces(owner),
-      deadline: block.timestamp + 1 days
+      deadline: block.timestamp + 1 days,
+      actionArgsHash: pretendedActionArgsHash
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
@@ -349,11 +367,15 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(VaultPermissions.VaultPermissions__expiredDeadline.selector);
     vm.prank(operator);
-    vault.permitBorrow(permit.owner, permit.receiver, permit.amount, permit.deadline, v, r, s);
+    vault.permitBorrow(
+      permit.owner, permit.receiver, permit.amount, permit.deadline, permit.actionArgsHash, v, r, s
+    );
   }
 
   function test_errorVaultPermissions__invalidSignatureWithdrawPermit() public {
     do_deposit(1 ether, vault, owner);
+
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
@@ -362,7 +384,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       receiver: receiver,
       amount: 1 ether,
       nonce: vault.nonces(owner),
-      deadline: block.timestamp + 1 days
+      deadline: block.timestamp + 1 days,
+      actionArgsHash: pretendedActionArgsHash
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
@@ -380,7 +403,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitWithdraw(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change operator
@@ -388,7 +418,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitWithdraw(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change receiver
@@ -396,7 +433,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitWithdraw(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change amount
@@ -404,7 +448,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitWithdraw(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change deadline
@@ -412,12 +463,21 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitWithdraw(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
   }
 
   function test_errorVaultPermissions__invalidSignatureBorrowPermit() public {
     do_deposit(1 ether, vault, owner);
+
+    bytes32 pretendedActionArgsHash = keccak256(abi.encode(1));
 
     LibSigUtils.Permit memory permit = LibSigUtils.Permit({
       chainid: block.chainid,
@@ -426,7 +486,8 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
       receiver: receiver,
       amount: 1 ether,
       nonce: vault.nonces(owner),
-      deadline: block.timestamp + 1 days
+      deadline: block.timestamp + 1 days,
+      actionArgsHash: pretendedActionArgsHash
     });
 
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
@@ -444,7 +505,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitBorrow(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change operator
@@ -452,7 +520,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitBorrow(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change receiver
@@ -460,7 +535,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitBorrow(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change amount
@@ -468,7 +550,14 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitBorrow(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
 
     // Change deadline
@@ -476,7 +565,47 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     vm.expectRevert(VaultPermissions.VaultPermissions__invalidSignature.selector);
     vm.prank(operator);
     vault.permitBorrow(
-      wrongPermit.owner, wrongPermit.receiver, wrongPermit.amount, wrongPermit.deadline, v, r, s
+      wrongPermit.owner,
+      wrongPermit.receiver,
+      wrongPermit.amount,
+      wrongPermit.deadline,
+      wrongPermit.actionArgsHash,
+      v,
+      r,
+      s
     );
+  }
+
+  function testFail_spendAllowanceIssue() public {
+    do_deposit(1 ether, vault, owner);
+
+    vm.startPrank(owner);
+    vault.approve(receiver, 1 ether);
+    uint256 allowance1 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    vm.startPrank(receiver);
+    vault.transferFrom(owner, receiver, 1 ether);
+    uint256 allowance2 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    assertEq(allowance1, allowance2);
+  }
+
+  function test_spendAllowanceIssue() public {
+    do_deposit(1 ether, vault, owner);
+
+    vm.startPrank(owner);
+    vault.approve(receiver, 1 ether);
+    uint256 allowance1 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    vm.startPrank(receiver);
+    vault.transferFrom(owner, receiver, 1 ether);
+    uint256 allowance2 = vault.allowance(owner, receiver);
+    vm.stopPrank();
+
+    assertEq(allowance1, 1 ether);
+    assertEq(allowance2, 0);
   }
 }

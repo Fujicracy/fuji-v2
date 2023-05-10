@@ -10,6 +10,7 @@ packages/protocol/*.txt
 
 # Config files
 .env
+packages/frontend/cypress.env.json
 
 # Avoid ignoring gitkeep
 !/**/.gitkeep
