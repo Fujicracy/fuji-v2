@@ -248,6 +248,7 @@ function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
         colSpan={8}
       >
         <Stack
+          data-cy="market-empty-state"
           alignItems="center"
           justifyContent="center"
           sx={{

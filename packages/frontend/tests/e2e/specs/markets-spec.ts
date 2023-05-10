@@ -62,6 +62,19 @@ describe('Markets', () => {
           });
       });
   });
+  it('should display no data on wrong search', () => {
+    const randomImpossibleSearch = 'cwecwievhwoe2335irvhwiohoh234voihoih';
+    cy.get('[data-cy="market-search"]')
+      .find('input')
+      .clear()
+      .type(randomImpossibleSearch);
+    cy.get('[data-cy="market-row"]').should('not.exist');
+    cy.get('[data-cy="market-empty-state"]').should(
+      'contain.text',
+      'No results found'
+    );
+    cy.get('[data-cy="market-search"]').find('input').clear();
+  });
   it('should filter by chain', () => {
     let startLength, resultLength, chainName;
     // getting initial rows length.
