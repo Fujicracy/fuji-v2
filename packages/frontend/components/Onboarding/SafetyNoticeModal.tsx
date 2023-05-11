@@ -76,13 +76,16 @@ export function SafetyNoticeModal() {
     agreementsBoxes.every((item: AgreementBox) => item.checked);
 
   return !isExploreModalShown ? (
-    <Dialog open={!hasPreviouslyAcceptedTerms}>
+    <Dialog data-cy="disclaimer-modal" open={!hasPreviouslyAcceptedTerms}>
       <Paper
         variant="outlined"
         sx={{
           maxWidth: '30rem',
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
+          '& .MuiCheckbox-root:hover': {
+            background: 'inherit',
+          },
         }}
       >
         <Typography variant="h5" color={palette.text.primary}>
@@ -111,12 +114,13 @@ export function SafetyNoticeModal() {
             }
             control={
               <Checkbox
+                data-cy={`disclaimer-check-${agreements.length}`}
                 checked={hasAcceptedTerms}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
                   setHasAcceptedTerms(event.target.checked);
                 }}
                 color="default"
-                sx={{ p: '0 0.5rem 0 0' }}
+                sx={{ p: '0', mr: '0.5rem' }}
               />
             }
             sx={{ alignItems: 'start', m: 0 }}
@@ -140,12 +144,13 @@ export function SafetyNoticeModal() {
               }
               control={
                 <Checkbox
+                  data-cy={`disclaimer-check-${i}`}
                   checked={agreementsBoxes[i].checked}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => {
                     onOtherAgreementChange(i, event.target.checked);
                   }}
                   color="default"
-                  sx={{ p: '0 0.5rem 0 0' }}
+                  sx={{ p: '0', mr: '0.5rem' }}
                 />
               }
               sx={{ alignItems: 'start', m: 0 }}
@@ -159,7 +164,7 @@ export function SafetyNoticeModal() {
           onClick={onAcceptClick}
           disabled={!areAllAccepted}
           fullWidth
-          data-cy="safety-notice-accept"
+          data-cy="disclaimer-button"
           sx={{ mt: '1.5rem' }}
         >
           Agree

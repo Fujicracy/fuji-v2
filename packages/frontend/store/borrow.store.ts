@@ -27,6 +27,7 @@ import {
   DEFAULT_LTV_MAX,
   DEFAULT_LTV_THRESHOLD,
   NOTIFICATION_MESSAGES,
+  TRANSACTION_META_DEBOUNCE_INTERVAL,
 } from '../constants';
 import {
   AllowanceStatus,
@@ -188,7 +189,7 @@ const initialState: BorrowState = {
 
   transactionMeta: {
     status: 'initial',
-    bridgeFee: 0,
+    bridgeFees: undefined,
     gasFees: 0,
     estimateTime: 0,
     estimateSlippage: 0,
@@ -388,7 +389,7 @@ export const useBorrow = create<BorrowStore>()(
             produce((state: BorrowState) => {
               state.transactionMeta.status = 'ready';
               state.needsSignature = Sdk.needSignature(route.actions);
-              state.transactionMeta.bridgeFee = route.bridgeFee;
+              state.transactionMeta.bridgeFees = route.bridgeFees;
               state.transactionMeta.estimateTime = route.estimateTime;
               state.transactionMeta.steps = route.steps;
               state.actions = route.actions;
@@ -604,7 +605,9 @@ export const useBorrow = create<BorrowStore>()(
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
-              formType === 'create' ? availableVaults : [activeVault];
+              formType === 'create' && availableVaults.length > 0
+                ? availableVaults
+                : [activeVault];
 
             const results = await Promise.all(
               vaults.map((v, i) => {
@@ -664,7 +667,7 @@ export const useBorrow = create<BorrowStore>()(
 
         updateTransactionMetaDebounced: debounce(
           () => get().updateTransactionMeta(),
-          500
+          TRANSACTION_META_DEBOUNCE_INTERVAL
         ),
 
         updateLtv() {

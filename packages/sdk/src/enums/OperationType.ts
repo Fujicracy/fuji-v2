@@ -1,0 +1,6 @@
+export enum OperationType {
+  ONE_CHAIN,
+  TWO_CHAIN_VAULT_ON_SRC,
+  TWO_CHAIN_VAULT_ON_DEST,
+  THREE_CHAIN,
+}

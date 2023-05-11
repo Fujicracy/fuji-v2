@@ -11,6 +11,8 @@ import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {AaveV3Optimism} from "../src/providers/optimism/AaveV3Optimism.sol";
+import {DForceOptimism} from "../src/providers/optimism/DForceOptimism.sol";
+import {WePiggyOptimism} from "../src/providers/optimism/WePiggyOptimism.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -26,7 +28,9 @@ contract DeployOptimism is ScriptPlus {
   FujiOracle oracle;
   ConnextRouter connextRouter;
 
-  AaveV3Optimism aaveV3Optimism;
+  AaveV3Optimism aaveV3;
+  DForceOptimism dforce;
+  WePiggyOptimism wePiggy;
 
   IConnext connextHandler = IConnext(0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA);
   IWETH9 WETH = IWETH9(0x4200000000000000000000000000000000000006);
@@ -41,9 +45,7 @@ contract DeployOptimism is ScriptPlus {
   function run() public {
     vm.startBroadcast();
 
-    aaveV3Optimism = AaveV3Optimism(getAddress("AaveV3Optimism"));
-    /*aaveV3Optimism = new AaveV3Optimism();*/
-    /*saveAddress("AaveV3Optimism", address(aaveV3Optimism));*/
+    _handleLendingProviders();
 
     chief = Chief(getAddress("Chief"));
     /*chief = new Chief(true, false);*/
@@ -95,6 +97,27 @@ contract DeployOptimism is ScriptPlus {
     /*_deployVault(address(WETH), address(USDC), "BorrowingVault-WETHUSDC");*/
     /*_deployVault(address(WETH), address(USDT), "BorrowingVault-WETHUSDT");*/
 
+    /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
+    _setVaultNewRating("BorrowingVault-WETHUSDC", 65);
+
+    vm.stopBroadcast();
+  }
+
+  function _handleLendingProviders() internal {
+    aaveV3 = AaveV3Optimism(getAddress("AaveV3Optimism"));
+    /*aaveV3 = new AaveV3Optimism();*/
+    /*saveAddress("AaveV3Optimism", address(aaveV3));*/
+
+    dforce = DForceOptimism(getAddress("DForceOptimism"));
+    /*dforce = new DForceOptimism();*/
+    /*saveAddress("DForceOptimism", address(dforce));*/
+
+    wePiggy = WePiggyOptimism(getAddress("WePiggyOptimism"));
+    /*wePiggy = new WePiggyOptimism();*/
+    /*saveAddress("WePiggyOptimism", address(wePiggy));*/
+  }
+
+  function _setRouters() internal {
     /*address polygonRouter = getAddressAt("ConnextRouter", "polygon");*/
     /*address arbitrumRouter = getAddressAt("ConnextRouter", "arbitrum");*/
     /*address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");*/
@@ -123,8 +146,6 @@ contract DeployOptimism is ScriptPlus {
     /*address(connextRouter),*/
     /*abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)*/
     /*);*/
-
-    vm.stopBroadcast();
   }
 
   function _setNewPriceFeed(address asset, address feed) internal {
@@ -139,11 +160,30 @@ contract DeployOptimism is ScriptPlus {
 
   function _deployVault(address collateral, address debtAsset, string memory name) internal {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = aaveV3Optimism;
+    providers[0] = aaveV3;
     address vault = chief.deployVault(
       address(factory), abi.encode(collateral, debtAsset, address(oracle), providers), 95
     );
     saveAddress(name, vault);
+  }
+
+  function _setVaultNewProviders(string memory vaultName) internal {
+    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
+
+    ILendingProvider[] memory providers = new ILendingProvider[](3);
+    providers[0] = aaveV3;
+    providers[1] = wePiggy;
+    providers[2] = dforce;
+    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
+    /*_scheduleWithTimelock(address(vault), callData);*/
+    _executeWithTimelock(address(vault), callData);
+  }
+
+  function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
+    bytes memory callData =
+      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
+    _scheduleWithTimelock(address(chief), callData);
+    /*_executeWithTimelock(address(chief), callData);*/
   }
 
   function _scheduleWithTimelock(address target, bytes memory callData) internal {

@@ -15,7 +15,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
 import { ActionType, needsAllowance } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
-import { chainName } from '../../helpers/chains';
+import { chainName, hexToChainId } from '../../helpers/chains';
 import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
@@ -101,17 +101,21 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     );
     const debtNeedsAllowance = needsAllowance(mode, 'debt', debt, debtAmount);
 
+    const startChainId = transactionMeta.steps[0]?.chainId;
     return (
       (collateralAmount || debtAmount) &&
       !(collateralAllowance || debtNeedsAllowance) &&
       availableVaultStatus === 'ready' &&
       !(!isEditing && hasBalanceInVault) &&
+      startChainId === hexToChainId(walletChain?.id) &&
       needsSignature
     );
   }, [
     availableVaultStatus,
     needsSignature,
     hasBalanceInVault,
+    transactionMeta.steps,
+    walletChain,
     isEditing,
     collateral,
     debt,
@@ -124,9 +128,11 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       updateBalances('debt');
       updateAllowance('collateral');
       updateAllowance('debt');
-      updateVault();
+      if (!vault) {
+        updateVault();
+      }
     }
-  }, [address, updateBalances, updateAllowance, updateVault]);
+  }, [address, vault, updateBalances, updateAllowance, updateVault]);
 
   useEffect(() => {
     updateTokenPrice('collateral');
@@ -217,7 +223,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent sx={{ width: '100%', p: '1.5rem 2rem' }}>
           <BorrowHeader
-            chainName={chainName(debt.chainId)}
+            chainName={chainName(vault?.chainId)}
             isEditing={isEditing}
             actionType={actionType}
             onActionTypeChange={(type) => setActionType(type)}
@@ -241,7 +247,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 key={type}
                 index={index}
                 type={type}
-                mode={mode}
                 showMax={!showLtv}
                 maxAmount={maxAmount}
                 assetChange={assetChange}
@@ -311,7 +316,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             transactionMeta={transactionMeta}
             mode={mode}
             isEditing={isEditing}
-            actionType={actionType}
             hasBalanceInVault={hasBalanceInVault}
             onLoginClick={() => login()}
             onChainChangeClick={(chainId) => changeChain(chainId)}

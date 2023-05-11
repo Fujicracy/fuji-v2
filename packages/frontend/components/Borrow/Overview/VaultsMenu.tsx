@@ -5,11 +5,13 @@ import { Box, Chip, Stack } from '@mui/material';
 import { LendingProviderDetails } from '@x-fuji/sdk';
 import React from 'react';
 
+import { ratingToNote } from '../../../helpers/ratings';
 import { ProviderIcon } from '../../Shared/Icons';
 
 type VaultsMenuProps = {
   // vault: BorrowingVault
   providers: LendingProviderDetails[];
+  safetyRating: number;
 };
 
 // Commenting out most of this component and let it
@@ -17,7 +19,7 @@ type VaultsMenuProps = {
 // In the future, it should be turned again into a menu and made
 // responsible to select vaults according their safety rating.
 
-function VaultsMenu({ providers }: VaultsMenuProps) {
+function VaultsMenu({ providers, safetyRating }: VaultsMenuProps) {
   // const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   // const open = (event: React.MouseEvent<HTMLButtonElement>) => {
   // setAnchorEl(event.currentTarget)
@@ -35,7 +37,11 @@ function VaultsMenu({ providers }: VaultsMenuProps) {
 
   return (
     <Stack direction="row" alignItems="center" spacing={1}>
-      <Chip variant="success" label="A+" />
+      <Chip
+        variant={safetyRating > 75 ? 'success' : 'warning'}
+        label={ratingToNote(safetyRating)}
+        sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+      />
       <Box display="flex" alignItems="center">
         {providers &&
           providers.map((p, index) => (

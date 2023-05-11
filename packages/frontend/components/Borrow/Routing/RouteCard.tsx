@@ -8,6 +8,7 @@ import { formatUnits } from 'ethers/lib/utils';
 
 import { chainName } from '../../../helpers/chains';
 import { RouteMeta } from '../../../helpers/routing';
+import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
 import {
   NetworkIcon,
@@ -40,7 +41,11 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   function iconForStep(step: RoutingStepDetails) {
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <NetworkIcon network={chainName(step.chainId)} height={18} width={18} />
+        <NetworkIcon
+          network={chainName(step.token?.chainId)}
+          height={18}
+          width={18}
+        />
       );
     } else if (step.token) {
       return <TokenIcon token={step.token} height={18} width={18} />;
@@ -52,7 +57,6 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     step,
     amount,
     token,
-    chainId,
     lendingProvider,
   }: RoutingStepDetails) {
     switch (step) {
@@ -87,7 +91,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
         );
       case RoutingStep.X_TRANSFER:
         return camelize(
-          `${step.toString()} to ${chainName(chainId)} via Connext`
+          `${step.toString()} to ${chainName(token?.chainId)} via Connext`
         );
       default:
         return camelize(step);
@@ -104,7 +108,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   }
 
   function slippageTextTooltip() {
-    if (!bridgeStep) return '';
+    if (!bridgeStep || !route.estimateSlippage) return '';
     const bridgeIndex = steps.indexOf(bridgeStep);
     const step =
       bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1];
@@ -131,7 +135,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     return (
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
-          {bridgeStep && !isMock && (
+          {bridgeStep && route.bridgeFees && !isMock && (
             <>
               <Chip
                 variant="routing"
@@ -149,7 +153,9 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
                     />
                   }
                   variant="routing"
-                  label={`Bridge Fee ~$${route.bridgeFee.toFixed(2)}`}
+                  label={`Bridge Fee ~$${stringifiedBridgeFeeSum(
+                    route.bridgeFees
+                  )}`}
                 />
               </Tooltip>
             </>

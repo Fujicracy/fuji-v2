@@ -6,14 +6,13 @@ import React from 'react';
 
 import { MINIMUM_DEBT_AMOUNT } from '../../constants';
 import {
-  ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
   Mode,
   needsAllowance,
 } from '../../helpers/assets';
-import { hexToChainId } from '../../helpers/chains';
+import { chainName, hexToChainId } from '../../helpers/chains';
 import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
@@ -33,7 +32,6 @@ type BorrowButtonProps = {
   transactionMeta: TransactionMeta;
   mode: Mode;
   isEditing: boolean;
-  actionType: ActionType;
   hasBalanceInVault: boolean;
   onLoginClick: () => void;
   onChainChangeClick: (chainId: ChainId) => void;
@@ -58,7 +56,6 @@ function BorrowButton({
   transactionMeta,
   mode,
   isEditing,
-  actionType,
   hasBalanceInVault,
   onLoginClick,
   onChainChangeClick,
@@ -137,6 +134,7 @@ function BorrowButton({
     </LoadingButton>
   );
 
+  const firstStep = transactionMeta.steps[0];
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
   } else if (
@@ -144,15 +142,11 @@ function BorrowButton({
     debt.allowance.status === 'allowing'
   ) {
     return loadingButton(false, true);
-  } else if (
-    (actionType === ActionType.ADD ? collateral.chainId : debt.chainId) !==
-    hexToChainId(walletChain?.id)
-  ) {
-    return regularButton('Switch network', () => {
-      onChainChangeClick(
-        actionType === ActionType.ADD ? collateral.chainId : debt.chainId
-      );
-    });
+  } else if (firstStep?.chainId !== hexToChainId(walletChain?.id)) {
+    return regularButton(
+      `Switch to ${chainName(firstStep?.chainId)} Network`,
+      () => onChainChangeClick(firstStep?.chainId)
+    );
   } else if (availableVaultStatus === 'error') {
     return disabledButton('Error fetching on-chain data');
   } else if (
@@ -195,7 +189,7 @@ function BorrowButton({
   ) {
     return disabledButton('Payback more than amount due');
   } else if (
-    mode === Mode.DEPOSIT_AND_BORROW &&
+    (mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW) &&
     debtAmount !== 0 &&
     debtAmount <= MINIMUM_DEBT_AMOUNT
   ) {

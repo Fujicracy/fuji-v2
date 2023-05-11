@@ -1,6 +1,7 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
-import { chainName } from './chains';
+import { chainName, chains } from './chains';
+import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
 
 export enum Status {
   Ready,
@@ -13,6 +14,10 @@ export type MarketRow = {
 
   collateral: string;
   debt: string;
+  safetyRating: {
+    status: Status;
+    value: number;
+  };
 
   chain: {
     status: Status;
@@ -49,10 +54,6 @@ export type MarketRow = {
     status: Status;
     value: string[];
   };
-  safetyRating: {
-    status: Status;
-    value: string;
-  };
   liquidity: {
     status: Status;
     value: number;
@@ -61,11 +62,16 @@ export type MarketRow = {
   children?: MarketRow[];
   isChild: boolean;
   isGrandChild: boolean; // TODO: Not handled
+  isBest: boolean;
 };
 
 const defaultRow: MarketRow = {
   collateral: '',
   debt: '',
+  safetyRating: {
+    status: Status.Loading,
+    value: 0,
+  },
   chain: {
     status: Status.Loading,
     value: '',
@@ -98,16 +104,13 @@ const defaultRow: MarketRow = {
     status: Status.Loading,
     value: [],
   },
-  safetyRating: {
-    status: Status.Loading,
-    value: '',
-  },
   liquidity: {
     status: Status.Loading,
     value: 0,
   },
   isChild: false,
   isGrandChild: false,
+  isBest: false,
 };
 
 export const setBase = (v: BorrowingVault): MarketRow => ({
@@ -115,6 +118,10 @@ export const setBase = (v: BorrowingVault): MarketRow => ({
   entity: v,
   collateral: v.collateral.symbol,
   debt: v.debt.symbol,
+  chain: {
+    status: Status.Ready,
+    value: chainName(v.chainId),
+  },
 });
 
 // set apr and aprBase as being equal
@@ -125,10 +132,9 @@ export const setFinancials = (
   f?: VaultWithFinancials
 ): MarketRow => ({
   ...r,
-  chain: {
-    // chain is always available
-    status: Status.Ready,
-    value: chainName((r.entity as BorrowingVault).chainId),
+  safetyRating: {
+    status,
+    value: Number((r.entity as BorrowingVault).safetyRating?.toString()) ?? 0,
   },
   depositApr: {
     status,
@@ -149,10 +155,6 @@ export const setFinancials = (
   integratedProtocols: {
     status,
     value: f?.allProviders.map((p) => p.name) ?? [],
-  },
-  safetyRating: {
-    status,
-    value: 'A+', // TODO
   },
 });
 
@@ -217,6 +219,34 @@ export const setLlamas = (
   }
 };
 
+export const setBest = (rows: MarketRow[]): MarketRow[] => {
+  const result: MarketRow[] = [];
+  const done = new Set<string>();
+
+  for (const row of rows) {
+    const key = `${row.debt}/${row.collateral}`;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter(
+      (r) => r.debt === row.debt && r.collateral === row.collateral
+    );
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending);
+      const children = groupByChain(sorted);
+      children[0].isBest = true;
+      if (children[0].children) {
+        children[0].children[0].isBest = true;
+      }
+      result.push(...children);
+    } else {
+      result.push(entries[0]);
+    }
+  }
+
+  return result;
+};
+
 export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
   const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
   const grouped: MarketRow[] = [];
@@ -230,10 +260,12 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
       (r) => r.debt === row.debt && r.collateral === row.collateral
     );
     if (entries.length > 1) {
-      // TODO: array should be sorted before being grouped
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
-        sorted.map((r) => ({ ...r, isChild: true }))
+        sorted.map((r, i) => ({
+          ...r,
+          isChild: true,
+        }))
       );
       grouped.push({ ...sorted[0], children });
     } else {
@@ -253,11 +285,13 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
     if (done.has(key)) continue;
     done.add(key);
 
-    const entries = rows.filter((r) => r.chain === row.chain);
+    const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
-      // TODO: array should be sorted before being grouped
       const sorted = entries.sort(sortBy.descending);
-      const children = sorted.map((r) => ({ ...r, isChild: true }));
+      const children = sorted.map((r, i) => ({
+        ...r,
+        isChild: true,
+      }));
       grouped.push({ ...sorted[0], children });
     } else {
       grouped.push(entries[0]);
@@ -266,6 +300,42 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
 
   return grouped;
 };
+
+export function filterMarketRows(
+  rows: MarketRow[],
+  filters: MarketFilters
+): MarketRow[] {
+  if (!filters.searchQuery && filters.chains.length === chains.length)
+    return groupByPair(rows);
+  const filteredRows: MarketRow[] = [];
+
+  function filterRows(rows: MarketRow[], filters: MarketFilters) {
+    rows.forEach((row) => {
+      const chainMatch =
+        filters.chains && filters.chains.length > 0
+          ? filters.chains.includes(row.chain.value)
+          : false;
+
+      const searchQueryMatch =
+        filters.searchQuery &&
+        (row.collateral
+          .toLowerCase()
+          .includes(filters.searchQuery.toLowerCase()) ||
+          row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+          row.integratedProtocols.value.some((protocol) =>
+            protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
+          ));
+
+      if (chainMatch && (!filters.searchQuery || searchQueryMatch)) {
+        filteredRows.push(row);
+      }
+    });
+  }
+
+  filterRows(rows, filters);
+
+  return groupByPair(filteredRows);
+}
 
 type SortBy = 'descending' | 'ascending';
 type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;

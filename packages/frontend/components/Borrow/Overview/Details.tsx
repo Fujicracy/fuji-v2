@@ -48,72 +48,11 @@ function Details({
         )}
 
         <Grid container justifyContent="space-between">
-          <Typography variant="smallDark">LTV liquidation threshold</Typography>
+          <Typography variant="smallDark">
+            Loan-to-Value Liquidation Threshold
+          </Typography>
 
           <Typography variant="small">{ltvThreshold}%</Typography>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">Deposit Interest (APR)</Typography>
-            <InfoTooltip
-              isDark
-              title="APR, or annual percentage rate, represents the price you pay to borrow money."
-            />
-          </div>
-          <TooltipWrapper
-            placement="top-end"
-            title={<ProvidersTooltip providers={providers} />}
-          >
-            <Box sx={{ alignItems: 'center' }}>
-              {providers?.length ? (
-                <Typography variant="small">
-                  <span style={{ color: palette.success.main }}>
-                    {(
-                      parseFloat(formatUnits(providers[0].depositRate, 27)) *
-                      100
-                    ).toFixed(2)}
-                    %
-                  </span>
-                </Typography>
-              ) : (
-                'n/a'
-              )}
-            </Box>
-          </TooltipWrapper>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">Borrow Interest (APR)</Typography>
-            <InfoTooltip
-              isDark
-              title="APR, or annual percentage rate, represents the price you pay to borrow money."
-            />
-          </div>
-          <TooltipWrapper
-            placement="top-end"
-            title={<ProvidersTooltip providers={providers} isBorrow />}
-          >
-            <Box sx={{ alignItems: 'center' }}>
-              {providers?.length ? (
-                <Typography variant="small">
-                  <span style={{ color: palette.warning.main }}>
-                    {(
-                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
-                    ).toFixed(2)}
-                    %
-                  </span>
-                </Typography>
-              ) : (
-                'n/a'
-              )}
-            </Box>
-          </TooltipWrapper>
         </Grid>
 
         <DetailDivider isMobile={isMobile} />
@@ -146,6 +85,73 @@ function Details({
               'n/a'
             )}
           </Grid>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="smallDark">
+              Collateral Interest Rate (APY)
+            </Typography>
+            <InfoTooltip
+              isDark
+              title="APR, or annual percentage rate, represents the price you pay to borrow money."
+            />
+          </div>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.success.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].depositRate, 27)) *
+                      100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
+        </Grid>
+
+        <DetailDivider isMobile={isMobile} />
+
+        <Grid container justifyContent="space-between">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="smallDark">
+              Borrow Interest Rate (APR)
+            </Typography>
+            <InfoTooltip
+              isDark
+              title="APR, or annual percentage rate, represents the price you pay to borrow money."
+            />
+          </div>
+          <TooltipWrapper
+            placement="top-end"
+            title={<ProvidersTooltip providers={providers} isBorrow />}
+          >
+            <Box sx={{ alignItems: 'center' }}>
+              {providers?.length ? (
+                <Typography variant="small">
+                  <span style={{ color: palette.warning.main }}>
+                    {(
+                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </Typography>
+              ) : (
+                'n/a'
+              )}
+            </Box>
+          </TooltipWrapper>
         </Grid>
       </DetailContainer>
     </>

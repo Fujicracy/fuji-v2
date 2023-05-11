@@ -11,15 +11,16 @@ pragma solidity 0.8.15;
  */
 
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
+import {IRouter} from "../interfaces/IRouter.sol";
 
 library LibSigUtils {
   // solhint-disable-next-line var-name-mixedcase
   bytes32 internal constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
-    "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline,bytes32 actionArgsHash)"
   );
   // solhint-disable-next-line var-name-mixedcase
   bytes32 internal constant PERMIT_BORROW_TYPEHASH = keccak256(
-    "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline)"
+    "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline,bytes32 actionArgsHash)"
   );
 
   struct Permit {
@@ -30,6 +31,33 @@ library LibSigUtils {
     uint256 amount;
     uint256 nonce;
     uint256 deadline;
+    bytes32 actionArgsHash;
+  }
+
+  function getZeroPermitEncodedArgs(
+    address vault,
+    address owner,
+    address receiver,
+    uint256 amount
+  )
+    public
+    pure
+    returns (bytes memory)
+  {
+    bytes32 ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    return abi.encode(vault, owner, receiver, amount, 0, 0, ZERO_BYTES32, ZERO_BYTES32);
+  }
+
+  ///@notice Returns the hash of the arguments required in {BaseRouter._internalBundle}
+  function getActionArgsHash(
+    IRouter.Action[] memory actions,
+    bytes[] memory args
+  )
+    public
+    pure
+    returns (bytes32)
+  {
+    return keccak256(abi.encode(actions, args));
   }
 
   /// @notice Returns the struct type of a permit used for `borrow()` or `withdraw()`.
@@ -39,7 +67,8 @@ library LibSigUtils {
     address receiver,
     uint256 amount,
     uint256 plusNonce,
-    address vault_
+    address vault_,
+    bytes32 actionArgsHash
   )
     public
     view
@@ -52,6 +81,7 @@ library LibSigUtils {
     permit.amount = amount;
     permit.nonce = IVaultPermissions(vault_).nonces(owner) + plusNonce;
     permit.deadline = block.timestamp + 1 days;
+    permit.actionArgsHash = actionArgsHash;
   }
 
   /// @notice Returns the hash of a permit-withdraw.
@@ -65,7 +95,8 @@ library LibSigUtils {
         permit.receiver,
         permit.amount,
         permit.nonce,
-        permit.deadline
+        permit.deadline,
+        permit.actionArgsHash
       )
     );
   }
@@ -81,7 +112,8 @@ library LibSigUtils {
         permit.receiver,
         permit.amount,
         permit.nonce,
-        permit.deadline
+        permit.deadline,
+        permit.actionArgsHash
       )
     );
   }

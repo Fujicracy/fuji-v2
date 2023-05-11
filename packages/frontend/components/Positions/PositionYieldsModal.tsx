@@ -4,6 +4,7 @@ import {
   Button,
   Dialog,
   Divider,
+  Grid,
   Paper,
   Stack,
   Typography,
@@ -77,10 +78,12 @@ export function PositionYieldsModal({
 
         <Divider sx={{ m: '1.375rem 0' }} />
 
-        <BorrowLendingTabNavigation
-          onChange={(tab) => setCurrentTab(tab)}
-          isLendingDisabled
-        />
+        <Grid container mb="1rem">
+          <BorrowLendingTabNavigation
+            onChange={(tab) => setCurrentTab(tab)}
+            isLendingDisabled
+          />
+        </Grid>
 
         <Stack
           alignItems="end"

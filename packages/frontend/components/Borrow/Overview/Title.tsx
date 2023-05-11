@@ -53,7 +53,10 @@ function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
             <Typography variant="smallDark" ml={0.5} mr={1}>
               Safety rating:
             </Typography>
-            <VaultsMenu providers={providers} />
+            <VaultsMenu
+              providers={providers}
+              safetyRating={Number(vault?.safetyRating?.toString())}
+            />
           </Stack>
         )}
       </Stack>

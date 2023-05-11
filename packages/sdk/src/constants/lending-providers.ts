@@ -25,6 +25,18 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    '0xd3346737E370119961C444c0C1b10d7C3fcDf36C': {
+      name: '0VIX',
+      llamaKey: '0vix',
+    },
+    '0x2beeCC93A095208375b89547EFd4b3dCa826a927': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
+    '0x79D4155045a3CE87051B84E12E398Ad4383F034f': {
+      name: 'Compound V3',
+      llamaKey: 'compound-v3',
+    },
   },
   [ChainId.MATIC_MUMBAI]: {
     '0xC69176FADFeF7A1570540a99Faf827b3138659D1': {
@@ -42,11 +54,27 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    '0x8755bE098D54Cd16687B7c0D39791Cd899E4dD8c': {
+      name: 'Radiant',
+      llamaKey: 'radiant',
+    },
+    '0x12e5BD64CC72C5B2643c3D2C8A88dD05c361e513': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
   },
   [ChainId.OPTIMISM]: {
     '0xB5BeccF2734c97221379a6C08B718D82023b1498': {
       name: 'Aave V3',
       llamaKey: 'aave-v3',
+    },
+    '0x77F535F7B2785FE0fD310dD97d30C5A4E020019A': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
+    '0xd3346737E370119961C444c0C1b10d7C3fcDf36C': {
+      name: 'WePiggy',
+      llamaKey: 'abcd',
     },
   },
   [ChainId.OPTIMISM_GOERLI]: {

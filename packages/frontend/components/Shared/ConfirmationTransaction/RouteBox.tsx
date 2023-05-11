@@ -29,47 +29,62 @@ function RouteBox({
         ? 'to'
         : 'from';
       return (
-        <Typography
-          align="center"
-          variant="xsmall"
-          fontSize="0.75rem"
-          sx={{ display: 'flex', gap: '0.25rem' }}
+        <span
+          style={{
+            display: 'inline',
+            gap: '0.25rem',
+            marginLeft: '0.25rem',
+            alignItems: 'center',
+          }}
         >
           {`${preposition} ${step.lendingProvider.name} on `}
           <NetworkIcon
             network={chainName(step.chainId)}
             height={14}
             width={14}
+            style={{ margin: '0 0.25rem -0.15rem 0', alignSelf: 'center' }}
           />
-        </Typography>
+        </span>
       );
     }
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <Stack flexDirection="row" alignItems="center" gap="0.25rem">
-          <Typography align="center" variant="xsmall" fontSize="0.75rem">
-            from
-          </Typography>
-          <NetworkIcon
-            network={chainName(step.token?.chainId)}
-            height={14}
-            width={14}
-          />
-          <Typography align="center" variant="xsmall" fontSize="0.75rem">
-            to
-          </Typography>
+        <span
+          style={{
+            display: 'inline',
+            gap: '0.25rem',
+            marginLeft: '0.25rem',
+            textAlign: 'center',
+          }}
+        >
+          from
           <NetworkIcon
             network={chainName(step.chainId)}
             height={14}
             width={14}
+            style={{
+              margin: '0 0.25rem -0.15rem 0.25rem',
+              alignSelf: 'center',
+            }}
           />
-        </Stack>
+          to
+          <NetworkIcon
+            network={chainName(step.token?.chainId)}
+            height={14}
+            width={14}
+            style={{
+              margin: '0 0.25rem -0.15rem 0.25rem',
+              alignSelf: 'center',
+            }}
+          />
+        </span>
       );
     }
 
     return <></>;
   }
 
+  // TODO: formatting here since it brakes markup
   function textForStep({ step, amount, token }: RoutingStepDetails) {
     switch (step) {
       case RoutingStep.DEPOSIT:
@@ -78,7 +93,8 @@ function RouteBox({
       case RoutingStep.WITHDRAW:
         return camelize(
           `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
+            formatUnits(amount ?? 0, token?.decimals || 18),
+            true
           )} ${token?.symbol}`
         );
       case RoutingStep.X_TRANSFER:
@@ -110,7 +126,15 @@ function RouteBox({
         <Typography variant="small">Route</Typography>
 
         {isCrossChain && (
-          <Typography variant="small">via Connext Network</Typography>
+          <Stack direction="row" alignItems="center">
+            <Typography variant="small">via</Typography>
+            <Image
+              src="/assets/images/logo/connext-title.svg"
+              height={16}
+              width={95}
+              alt="Connext logo"
+            />
+          </Stack>
         )}
       </Stack>
 
@@ -124,16 +148,40 @@ function RouteBox({
           maxWidth: '38rem',
           flexWrap: 'wrap',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: 'center',
-          justifyContent: { xs: 'center', sm: 'space-between' },
+          alignItems: 'start',
+          justifyContent: 'start',
           gap: '0.5rem',
         }}
       >
         {stepsToShow.map((step, i) => (
-          <React.Fragment key={i}>
-            {i !== 0 && (
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{ flex: 1, width: { xs: '100%', sm: 'unset' } }}
+            key={i}
+          >
+            <Stack
+              direction="column"
+              sx={{
+                p: '0.375rem 0.7rem',
+                backgroundColor: '#35353B',
+                borderRadius: '6px',
+                minWidth: {
+                  xs: '95%',
+                  sm: stepsToShow.length > 3 ? '13rem' : '8rem',
+                },
+                flex: 1,
+              }}
+            >
+              <Typography align="left" variant="xsmall" fontSize="0.75rem">
+                {textForStep(step)}
+                {description(step)}
+              </Typography>
+            </Stack>
+            {i !== stepsToShow.length - 1 ? (
               <Box
                 sx={{
+                  m: '0 0.5rem',
                   ['@media screen and (max-width: 600px)']: {
                     transform: 'rotate(90deg)',
                   },
@@ -146,26 +194,10 @@ function RouteBox({
                   width={9}
                 />
               </Box>
+            ) : (
+              <Box sx={{ width: { xs: '1.5rem', sm: '0' } }} />
             )}
-            <Stack
-              direction="column"
-              sx={{
-                p: '0.375rem 0.45rem',
-                backgroundColor: '#35353B',
-                borderRadius: '6px',
-                minWidth: '8rem',
-                flex: 1,
-                width: { xs: '100%', sm: 'unset' },
-              }}
-            >
-              <Typography align="left" variant="xsmall">
-                {textForStep(step)}
-              </Typography>
-              <Typography align="left" variant="xsmall" mt={0.5}>
-                {description(step)}
-              </Typography>
-            </Stack>
-          </React.Fragment>
+          </Stack>
         ))}
       </Stack>
     </Card>

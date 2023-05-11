@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
   AppBar,
   Box,
-  Button,
   Chip,
   Divider,
   Fade,
@@ -21,23 +20,37 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
-import AccountModal from '../AccountModal';
+import AccountModal from '../AccountModal/AccountModal';
 import ChainSelect from '../ChainSelect';
 import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
 import BalanceAddon from './BalanceAddon';
+import Banner, { BannerConfig } from './Banner';
+
+export const BANNERS: BannerConfig[] = [
+  {
+    key: 'betaTest',
+    message:
+      'We are in beta, some bugs may arise. We appreciate your feedback as we work diligently to improve the dApp user experience.',
+  },
+];
 
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
+  const [banners, setBanners] = useState<BannerConfig[]>([]);
+
+  const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
+  const dismissBanner = useAuth((state) => state.dismissBanner);
 
   const { address, ens, status, balance, login } = useAuth(
     (state) => ({
@@ -53,6 +66,14 @@ const Header = () => {
   const { palette } = theme;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentPage = router.asPath;
+
+  useEffect(() => {
+    const filteredBanners = BANNERS.filter((banner) =>
+      getBannerVisibility(banner.key)
+    );
+
+    setBanners(filteredBanners);
+  }, [getBannerVisibility]);
 
   const isPageActive = useCallback(
     (path: string) => {
@@ -85,15 +106,24 @@ const Header = () => {
     setAccountModalEl(element);
   };
 
-  const handleLogin = (testing: boolean) => {
-    const options: ConnectOptions | undefined = testing
-      ? { autoSelect: { label: 'MetaMask', disableModals: true } }
-      : undefined;
+  const handleLogin = () => {
+    const options: ConnectOptions | undefined = (window as any).Cypress && {
+      autoSelect: { label: 'MetaMask', disableModals: true },
+    };
     login(options);
   };
 
   return (
     <AppBar position="static">
+      <Stack
+        sx={{
+          width: '100%',
+        }}
+      >
+        {banners.map((banner) => (
+          <Banner banner={banner} key={banner.key} onDismiss={dismissBanner} />
+        ))}
+      </Stack>
       <Box
         p="0 1.25rem"
         sx={{
@@ -147,6 +177,7 @@ const Header = () => {
                 {status === 'disconnected' && (
                   <>
                     <Chip
+                      data-cy="header-login"
                       label="Connect wallet"
                       variant="gradient"
                       sx={{
@@ -155,15 +186,8 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={() => handleLogin(false)}
+                      onClick={handleLogin}
                     />
-                    <Button
-                      data-cy="login"
-                      onClick={() => handleLogin(true)}
-                      sx={{ position: 'absolute', visibility: 'hidden' }}
-                    >
-                      e2e
-                    </Button>
                   </>
                 )}
                 {status === 'connected' && <ChainSelect />}
@@ -224,7 +248,11 @@ const Header = () => {
                           );
                         }}
                       >
-                        <ListItemText>
+                        <ListItemText
+                          onClick={(e) => {
+                            handleOpenAccountModal(true, e.currentTarget);
+                          }}
+                        >
                           <Stack direction="row" justifyContent="space-between">
                             <Typography variant="small">
                               {formattedAddress}
@@ -255,14 +283,15 @@ const Header = () => {
                 <MenuItem
                   sx={{
                     lineHeight: '160%',
-                    fontSize: '1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
                     color: isPageActive(page.path.toLowerCase())
                       ? palette.text.primary
                       : palette.info.main,
                     background: isPageActive(page.path.toLowerCase())
                       ? alpha('#25262A', 0.7)
                       : 'transparent',
-                    p: '0.25rem 1rem',
+                    p: '0.375rem 1rem',
                     borderRadius: '10px',
                     '&:hover': {
                       color: palette.text.primary,
@@ -294,15 +323,8 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={() => handleLogin(false)}
+                  onClick={handleLogin}
                 />
-                <Button
-                  data-cy="login"
-                  onClick={() => handleLogin(true)}
-                  sx={{ position: 'absolute', visibility: 'hidden' }}
-                >
-                  e2e
-                </Button>
               </>
             )}
             {status === 'connected' && address && (

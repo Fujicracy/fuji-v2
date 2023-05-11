@@ -33,6 +33,9 @@ function TabChip({ selected, label, onClick, size }: TabChipProps) {
         lineHeight="160%"
         textAlign="center"
         sx={{
+          ['@media screen and (max-width: 980px)']: {
+            fontSize: '0.8rem',
+          },
           ['@media screen and (max-width: 390px)']: {
             fontSize: '0.7rem',
           },

@@ -185,6 +185,7 @@ const theme = createTheme(colorTheme, {
     xsmall: {
       fontWeight: 400,
       fontSize: '0.75rem',
+      lineHeight: '150%',
       color: colorTheme.palette.text.primary,
     },
     xsmallDark: {
@@ -237,6 +238,7 @@ const theme = createTheme(colorTheme, {
             boxShadow: '0rem 0.063rem 0.125rem rgba(16, 24, 40, 0.05)',
             padding: '0.75rem 1.25rem',
             fontSize: '1rem',
+            fontWeight: 400,
           },
         },
         {
@@ -246,6 +248,7 @@ const theme = createTheme(colorTheme, {
           style: {
             background: colorTheme.palette.secondary.dark,
             border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
+            fontWeight: 400,
           },
         },
         {
@@ -287,6 +290,7 @@ const theme = createTheme(colorTheme, {
             border: `1px solid ${colorTheme.palette.primary.light}`,
             textTransform: 'none',
             fontSize: '1rem',
+            fontWeight: 400,
           },
         },
         {

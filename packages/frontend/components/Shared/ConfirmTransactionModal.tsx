@@ -12,7 +12,10 @@ import {
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
 import { isCrossChainTransaction } from '../../helpers/routing';
-import { TransactionMeta } from '../../helpers/transactions';
+import {
+  stringifiedBridgeFeeSum,
+  TransactionMeta,
+} from '../../helpers/transactions';
 import { formatValue } from '../../helpers/values';
 import { useBorrow } from '../../store/borrow.store';
 import AssetBox from './ConfirmationTransaction/AssetBox';
@@ -59,8 +62,8 @@ export function ConfirmTransactionModal({
   };
 
   const estCost =
-    transactionMeta.status === 'ready'
-      ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
+    transactionMeta.status === 'ready' && transactionMeta.bridgeFees
+      ? `~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`
       : 'n/a';
 
   const positionBorrowLimit = remainingBorrowLimit(
@@ -83,7 +86,9 @@ export function ConfirmTransactionModal({
 
   const isCrossChain = isCrossChainTransaction(steps);
   const isEstimatedSlippageBiggerThanSelected = useMemo(
-    () => transactionMeta.estimateSlippage > slippage / 100,
+    () =>
+      transactionMeta.estimateSlippage &&
+      transactionMeta.estimateSlippage > slippage / 100,
     [transactionMeta.estimateSlippage, slippage]
   );
 
@@ -101,14 +106,14 @@ export function ConfirmTransactionModal({
         },
         '& .MuiDialog-paper': {
           maxWidth: '40rem',
-          width: { xs: '80%', sm: '40rem' },
+          width: { xs: '80%', sm: '35rem', md: '40rem' },
         },
       }}
     >
       <Paper
         variant="outlined"
         sx={{
-          width: { xs: 'auto', sm: '40rem' },
+          width: { xs: 'auto', sm: '35rem', md: '40rem' },
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
