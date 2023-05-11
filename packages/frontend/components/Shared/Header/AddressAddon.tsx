@@ -10,10 +10,10 @@ const AddressAddon = () => {
   const changeWallet = useAuth((state) => state.changeWallet);
 
   useEffect(() => {
-    if (connectedWallets.length > 0 && status === 'initial') {
+    if (connectedWallets.length > 0) {
       changeWallet(connectedWallets);
     }
-  }, [connectedWallets, changeWallet, status]);
+  }, [connectedWallets, status, changeWallet]);
 
   return <></>;
 };

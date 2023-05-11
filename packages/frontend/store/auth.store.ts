@@ -6,6 +6,7 @@ import {
 } from '@web3-onboard/core/dist/types';
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
+import produce from 'immer';
 import { create, StoreApi } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -34,6 +35,7 @@ type AuthState = {
 type AuthActions = {
   login: (options?: ConnectOptions) => void;
   changeWallet: (wallets: WalletState[]) => void;
+  updateWallet: (wallets: WalletState[]) => void;
   init: () => void;
   logout: () => void;
   acceptTermsOfUse: () => void;
@@ -64,7 +66,6 @@ export const useAuth = create<AuthStore>()(
 
       init: async () => {
         reconnect(set, get);
-        onOnboardChange(set, get);
         set({ started: true });
       },
 
@@ -79,6 +80,54 @@ export const useAuth = create<AuthStore>()(
 
         const json = JSON.stringify(wallets.map(({ label }) => label));
         localStorage.setItem('connectedWallets', json);
+      },
+
+      updateWallet(wallets) {
+        set(
+          produce((state) => {
+            if (
+              !wallets[0] ||
+              !wallets[0].accounts[0] ||
+              get().status === 'disconnected'
+            ) {
+              return;
+            }
+
+            const chain = wallets[0].chains[0];
+            if (chain.id !== state.chain?.id) {
+              state.chain = chain;
+            }
+
+            const balance = wallets[0].accounts[0].balance;
+            if (balance && balance !== get().balance) {
+              state.balance = balance;
+            }
+
+            const address = wallets[0].accounts[0].address;
+            if (address && address !== get().address) {
+              state.address = utils.getAddress(address);
+            }
+
+            // TODO: how to !== new provider from old ?
+            const provider = new ethers.providers.Web3Provider(
+              wallets[0].provider
+            );
+            if (provider) {
+              state.provider = provider;
+            }
+
+            const ens = wallets[0].accounts[0].ens?.name;
+            if (ens !== get().ens) {
+              state.ens = ens;
+            }
+
+            const walletName = wallets[0].label;
+
+            if (walletName) {
+              state.walletName = walletName;
+            }
+          })
+        );
       },
 
       login: async (options) => {
@@ -167,54 +216,5 @@ function reconnect(
   const wallets = JSON.parse(previouslyConnectedWallets);
   get().login({
     autoSelect: { label: wallets[0], disableModals: true },
-  });
-}
-
-function onOnboardChange(
-  set: StoreApi<AuthState & AuthActions>['setState'],
-  get: StoreApi<AuthState & AuthActions>['getState']
-) {
-  onboard.state.select('wallets').subscribe((w: WalletState[]) => {
-    const updates: Partial<AuthState> = {};
-
-    if (!w[0] || !w[0].accounts[0] || get().status === 'disconnected') {
-      return;
-    }
-
-    const chain = w[0].chains[0];
-    if (chain.id !== get().chain?.id) {
-      updates.chain = chain;
-    }
-
-    const balance = w[0].accounts[0].balance;
-    if (balance && balance !== get().balance) {
-      updates.balance = balance;
-    }
-
-    const address = w[0].accounts[0].address;
-    if (address && address !== get().address) {
-      updates.address = utils.getAddress(address);
-    }
-
-    // TODO: how to !== new provider from old ?
-    const provider = new ethers.providers.Web3Provider(w[0].provider);
-    if (provider) {
-      updates.provider = provider;
-    }
-
-    const ens = w[0].accounts[0].ens?.name;
-    if (ens !== get().ens) {
-      updates.ens = ens;
-    }
-
-    const walletName = w[0].label;
-
-    if (walletName) {
-      updates.walletName = walletName;
-    }
-
-    if (Object.entries(updates).length > 0) {
-      set(updates);
-    }
   });
 }
