@@ -61,7 +61,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     return (
       <MyPositionsBorrowTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(7).fill('').map((_, index) => (
+          {new Array(8).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
