@@ -151,9 +151,10 @@ function BorrowButton({
     return disabledButton('Error fetching on-chain data');
   } else if (
     collateral.chainId !== debt.chainId &&
-    debt.currency.symbol === 'DAI'
+    (debt.currency.symbol === 'DAI' || collateral.currency.symbol === 'MaticX')
   ) {
-    return disabledButton('Cross-chain DAI not supported');
+    const name = debt.currency.symbol === 'DAI' ? 'DAI' : 'MaticX';
+    return disabledButton(`${name}: not supported cross-chain`);
   } else if (
     !isEditing &&
     hasBalanceInVault &&
