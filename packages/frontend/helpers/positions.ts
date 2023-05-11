@@ -76,6 +76,7 @@ export const getPositionsWithBalance = async (
       p.liquidationPrice === 0
         ? 0
         : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    p.activeProviderName = v.activeProvider.name;
     return p;
   });
 
@@ -126,6 +127,8 @@ export type PositionRow = {
   address: string | undefined;
   ltv: number | 0;
   ltvMax: number | 0;
+  safetyRating: number | 0;
+  activeProviderName?: string;
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -133,6 +136,8 @@ export function getRows(positions: Position[]): PositionRow[] {
     return [];
   } else {
     return positions.map((pos: Position) => ({
+      safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
+      activeProviderName: pos.activeProviderName,
       address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
       debt: {
