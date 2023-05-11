@@ -33,6 +33,7 @@ import ChainSelect from '../ChainSelect';
 import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
+import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
 import Banner, { BannerConfig } from './Banner';
 
@@ -52,12 +53,13 @@ const Header = () => {
   const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
   const dismissBanner = useAuth((state) => state.dismissBanner);
 
-  const { address, ens, status, balance, login } = useAuth(
+  const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
+      started: state.started,
       login: state.login,
     }),
     shallow
@@ -356,6 +358,7 @@ const Header = () => {
           address={address}
         />
       )}
+      {started && <AddressAddon />}
     </AppBar>
   );
 };

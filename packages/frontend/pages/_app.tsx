@@ -96,7 +96,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
     changeERC20PollingPolicy(should);
   }
-
+  if (!startedRef.current) return <></>;
   return (
     <>
       <Script id="google-tag-manager" strategy="afterInteractive">

@@ -1,8 +1,8 @@
 import coinbaseModule from '@web3-onboard/coinbase';
+import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
 import ledgerModule from '@web3-onboard/ledger';
 import mewWallet from '@web3-onboard/mew-wallet';
-import { init } from '@web3-onboard/react';
 import trezorModule from '@web3-onboard/trezor';
 import walletConnectModule, {
   WalletConnectOptions,
@@ -11,7 +11,6 @@ import xdefiWalletModule from '@web3-onboard/xdefi';
 
 import { FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
-
 const wcV1InitOptions: WalletConnectOptions = {
   version: 1,
   qrcodeModalOptions: {
@@ -41,7 +40,7 @@ const trezor = trezorModule({
 });
 const xdefiWallet = xdefiWalletModule();
 
-export const web3onboard = init({
+export const web3onboard = Onboard({
   chains: onboardChains,
   wallets: [
     injectedModule(),

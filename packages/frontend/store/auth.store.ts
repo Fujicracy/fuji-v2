@@ -20,37 +20,20 @@ type OnboardStatus = {
   isExploreInfoSkipped?: boolean;
 };
 
-type ConnectedState = {
-  status: 'connected';
-  address: string;
+type AuthState = {
+  status: 'initial' | 'connected' | 'disconnected';
+  address: string | undefined;
   ens: string | undefined;
-  balance: Balances;
-  chain: ConnectedChain;
-  provider: ethers.providers.Web3Provider;
-  walletName: string;
+  balance: Balances | undefined;
+  chain: ConnectedChain | undefined;
+  provider: ethers.providers.Web3Provider | undefined;
+  walletName: string | undefined;
+  started: boolean;
 };
-type InitialState = {
-  status: 'initial';
-  address: undefined;
-  ens: undefined;
-  balance: undefined;
-  chain: undefined;
-  provider: undefined;
-  walletName: undefined;
-};
-type DisconnectedState = {
-  status: 'disconnected';
-  address: undefined;
-  ens: undefined;
-  balance: undefined;
-  chain: undefined;
-  provider: undefined;
-  walletName: undefined;
-};
-type State = InitialState | ConnectedState | DisconnectedState;
 
-type Action = {
+type AuthActions = {
   login: (options?: ConnectOptions) => void;
+  changeWallet: (wallets: WalletState[]) => void;
   init: () => void;
   logout: () => void;
   acceptTermsOfUse: () => void;
@@ -61,9 +44,9 @@ type Action = {
   changeChain: (chainId: ChainId) => void;
 };
 
-type AuthStore = State & Action;
+type AuthStore = AuthState & AuthActions;
 
-const initialState: InitialState = {
+const initialState: AuthState = {
   status: 'initial',
   address: undefined,
   ens: undefined,
@@ -71,6 +54,7 @@ const initialState: InitialState = {
   chain: undefined,
   provider: undefined,
   walletName: undefined,
+  started: false,
 };
 
 export const useAuth = create<AuthStore>()(
@@ -81,6 +65,20 @@ export const useAuth = create<AuthStore>()(
       init: async () => {
         reconnect(set, get);
         onOnboardChange(set, get);
+        set({ started: true });
+      },
+
+      changeWallet(wallets) {
+        const balance = wallets[0].accounts[0].balance;
+        const ens = wallets[0].accounts[0].ens?.name;
+        const address = utils.getAddress(wallets[0].accounts[0].address);
+        const chain = wallets[0].chains[0];
+        const provider = new ethers.providers.Web3Provider(wallets[0].provider);
+
+        set({ status: 'connected', address, balance, chain, ens, provider });
+
+        const json = JSON.stringify(wallets.map(({ label }) => label));
+        localStorage.setItem('connectedWallets', json);
       },
 
       login: async (options) => {
@@ -90,16 +88,7 @@ export const useAuth = create<AuthStore>()(
           set({ status: 'disconnected' });
           return;
         }
-
-        const balance = wallets[0].accounts[0].balance;
-        const address = utils.getAddress(wallets[0].accounts[0].address);
-        const chain = wallets[0].chains[0];
-        const provider = new ethers.providers.Web3Provider(wallets[0].provider);
-
-        set({ status: 'connected', address, balance, chain, provider });
-
-        const json = JSON.stringify(wallets.map(({ label }) => label));
-        localStorage.setItem('connectedWallets', json);
+        get().changeWallet(wallets);
       },
 
       logout: async () => {
@@ -166,9 +155,9 @@ export const useAuth = create<AuthStore>()(
   )
 );
 
-async function reconnect(
-  set: StoreApi<State & Action>['setState'],
-  get: StoreApi<State & Action>['getState']
+function reconnect(
+  set: StoreApi<AuthState & AuthActions>['setState'],
+  get: StoreApi<AuthState & AuthActions>['getState']
 ) {
   const previouslyConnectedWallets = localStorage.getItem('connectedWallets');
 
@@ -176,17 +165,17 @@ async function reconnect(
     return set({ status: 'disconnected' });
   }
   const wallets = JSON.parse(previouslyConnectedWallets);
-  await get().login({
+  get().login({
     autoSelect: { label: wallets[0], disableModals: true },
   });
 }
 
 function onOnboardChange(
-  set: StoreApi<State & Action>['setState'],
-  get: StoreApi<State & Action>['getState']
+  set: StoreApi<AuthState & AuthActions>['setState'],
+  get: StoreApi<AuthState & AuthActions>['getState']
 ) {
   onboard.state.select('wallets').subscribe((w: WalletState[]) => {
-    const updates: Partial<ConnectedState> = {};
+    const updates: Partial<AuthState> = {};
 
     if (!w[0] || !w[0].accounts[0] || get().status === 'disconnected') {
       return;
