@@ -182,6 +182,28 @@ function MyPositionsBorrowTableHeader() {
         <TableCell>Borrow Amount</TableCell>
         <TableCell>Collateral Amount</TableCell>
         <TableCell align="center">Borrow APR</TableCell>
+        <TableCell align="right">
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            <InfoTooltip
+              title={
+                'In the background, Fuji rebalances between these protocols to provide the best terms.'
+              }
+              isLeft
+            />
+            Protocol
+          </Stack>
+        </TableCell>
+        <TableCell align="right">
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            <InfoTooltip
+              title={
+                'We are in the process of developing a general risk framework that will consider various factors in the different money markets and will provide a comprehensive safety score for each Fuji vault.'
+              }
+              isLeft
+            />
+            Rating
+          </Stack>
+        </TableCell>
         <TableCell align="center">Oracle price</TableCell>
         <TableCell align="right">
           <Stack direction="row" alignItems="center" justifyContent="right">

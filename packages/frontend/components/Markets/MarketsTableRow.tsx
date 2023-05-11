@@ -14,20 +14,15 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { Box } from '@mui/system';
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
 import { formatValue } from '../../helpers/values';
-import {
-  CurrencyIcon,
-  DropletIcon,
-  NetworkIcon,
-  ProviderIcon,
-} from '../Shared/Icons';
+import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
+import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
 import BestLabel from './BestLabel';
 
 type MarketsTableRowProps = {
@@ -214,43 +209,8 @@ function MarketsTableRow({
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
           {loaderOrError(row.integratedProtocols.status)}
-          {row.integratedProtocols.status === Status.Ready && !expandRow && (
-            <Stack
-              direction="row"
-              justifyContent="right"
-              alignItems="center"
-              flexWrap="nowrap"
-              sx={{
-                mr: row.integratedProtocols.value.length > 1 ? '-0.25rem' : '0',
-              }}
-            >
-              {row.integratedProtocols.value.map((name, i) => (
-                <Tooltip key={name} title={name} arrow>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      right: `${i * 0.25}rem`,
-                      zIndex: 4 - i,
-                      height: '24px',
-                    }}
-                  >
-                    {i <= 2 && (
-                      <ProviderIcon provider={name} height={24} width={24} />
-                    )}
-                  </Box>
-                </Tooltip>
-              ))}
-              {row.integratedProtocols.value.length >= 4 && (
-                <Chip
-                  label={
-                    <Stack direction="row" justifyContent="center">
-                      +{row.integratedProtocols.value.length - 3}
-                    </Stack>
-                  }
-                  variant="number"
-                />
-              )}
-            </Stack>
+          {!expandRow && (
+            <IntegratedProtocols protocols={row.integratedProtocols} />
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
