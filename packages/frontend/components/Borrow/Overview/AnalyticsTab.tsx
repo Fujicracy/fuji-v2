@@ -1,4 +1,4 @@
-import { Box, Grid, Stack, Typography } from '@mui/material';
+import { Box, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
@@ -29,10 +29,12 @@ function AnalyticsTab() {
 
   const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
   const [selectedPeriod, setSelectedPeriod] = useState(1);
+  const [data, setData] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   return (
     <>
-      <AnalyticsHeader collateral={collateral} debt={debt} />
+      <AnalyticsHeader collateral={collateral} debt={debt} loading={loading} />
 
       <Stack flexDirection="row" justifyContent="space-between">
         <TabSwitch
@@ -44,7 +46,32 @@ function AnalyticsTab() {
         <PeriodOptions onChange={setSelectedPeriod} isDayExcluded={true} />
       </Stack>
 
-      {false ? (
+      {loading ? (
+        <>
+          <Skeleton
+            sx={{
+              width: '3.5rem',
+              height: '3rem',
+              m: '-1rem 0',
+            }}
+          />
+          <Skeleton
+            sx={{
+              width: '5.5rem',
+              height: '3rem',
+              m: '-1rem 0',
+            }}
+          />
+
+          <Skeleton
+            sx={{
+              width: '100%',
+              height: '38rem',
+              m: '-8rem 0 -6rem 0',
+            }}
+          />
+        </>
+      ) : !data ? (
         <>
           <Typography
             variant="body2"
@@ -73,6 +100,7 @@ function AnalyticsTab() {
           <InfoBlock
             tooltip="test"
             label="Active Provider"
+            loading={loading}
             value={
               <Stack flexDirection="row" alignItems="center" gap="0.25rem">
                 <ProviderIcon provider={'test'} height={24} width={24} />
@@ -83,16 +111,25 @@ function AnalyticsTab() {
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
           <InfoBlock
+            loading={loading}
             tooltip="test"
             label="Borrow APR"
             value={<Typography color={palette.warning.main}>2.55%</Typography>}
           />
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
-          <InfoBlock label="Total Borrow Amount" value={'$820.1K'} />
+          <InfoBlock
+            label="Total Borrow Amount"
+            value={'$820.1K'}
+            loading={loading}
+          />
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
-          <InfoBlock label="Available Liquidity" value={'$250.0K'} />
+          <InfoBlock
+            label="Available Liquidity"
+            value={'$250.0K'}
+            loading={loading}
+          />
         </Grid>
       </Grid>
 

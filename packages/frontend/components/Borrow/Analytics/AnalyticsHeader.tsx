@@ -9,9 +9,10 @@ import LinkIcon from '../../Shared/Icons/LinkIcon';
 type AnalyticsHeaderProps = {
   collateral: AssetMeta;
   debt: AssetMeta;
+  loading: boolean;
 };
 
-function AnalyticsHeader({ collateral, debt }: AnalyticsHeaderProps) {
+function AnalyticsHeader({ collateral, debt, loading }: AnalyticsHeaderProps) {
   const { palette } = useTheme();
 
   return (
