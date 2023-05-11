@@ -4,6 +4,7 @@ import { ChainId } from '@x-fuji/sdk';
 
 import { AssetType } from '../../../helpers/assets';
 import { chains } from '../../../helpers/chains';
+import { sdk } from '../../../services/sdk';
 import { NetworkIcon } from '../../Shared/Icons';
 
 type ChainSelectProps = {
@@ -58,6 +59,15 @@ function ChainSelectContent({
   labelId: string;
   onChange: (chainId: ChainId) => void;
 }) {
+  // Pass isEditing and also check, otherwise return all chains
+  const supportedChains = chains.filter(async (chain) => {
+    const currencies =
+      type === 'debt'
+        ? sdk.getDebtForChain(chain.chainId)
+        : sdk.getCollateralForChain(chain.chainId);
+    return currencies.some((currency) => currency.symbol === 'TOKEN'); // We should pass the selected token symbol as parameter
+  });
+
   const selectId = `${type}-chain-select`;
   const menuId = `${type}-chain-menu`;
   return (
@@ -72,7 +82,7 @@ function ChainSelectContent({
       disableUnderline
       MenuProps={{ TransitionComponent: Fade, id: menuId }}
     >
-      {chains.map((chain) => {
+      {supportedChains.map((chain) => {
         return (
           <MenuItem key={chain.chainId} value={chain.chainId}>
             <Grid container alignItems="center">

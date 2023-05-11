@@ -279,6 +279,11 @@ export const useBorrow = create<BorrowStore>()(
               ? sdk.getDebtForChain(chainId)
               : sdk.getCollateralForChain(chainId);
 
+          if (symbol && !currencies.some((c) => c.symbol === symbol)) {
+            // also symbol.isBridgeable
+            // show notification
+            return;
+          }
           set(
             produce((state: BorrowState) => {
               const t = type === 'debt' ? state.debt : state.collateral;
