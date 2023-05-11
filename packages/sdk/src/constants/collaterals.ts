@@ -1,11 +1,11 @@
 import { ChainId } from '../enums';
 import { ChainTokenList } from '../types';
-import { WETH9, WNATIVE } from './tokens';
+import { MATICX, WETH9, WNATIVE } from './tokens';
 
 export const COLLATERAL_LIST: ChainTokenList = {
   [ChainId.ETHEREUM]: [WNATIVE[ChainId.ETHEREUM]],
   [ChainId.GOERLI]: [WETH9[ChainId.GOERLI]],
-  [ChainId.MATIC]: [WETH9[ChainId.MATIC]],
+  [ChainId.MATIC]: [WETH9[ChainId.MATIC], MATICX],
   [ChainId.MATIC_MUMBAI]: [WETH9[ChainId.MATIC_MUMBAI]],
   [ChainId.FANTOM]: [WNATIVE[ChainId.FANTOM], WETH9[ChainId.FANTOM]],
   [ChainId.ARBITRUM]: [WNATIVE[ChainId.ARBITRUM]],
