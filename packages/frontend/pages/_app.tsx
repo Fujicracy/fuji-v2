@@ -42,9 +42,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   const entry = address && currentTxHash && entries[currentTxHash];
   const prevAddressRef = useRef<string | undefined>(undefined);
 
+  const startedRef = useRef(false);
+
   useEffect(() => {
-    initErrorReporting();
-    initAuth();
+    if (!startedRef.current) {
+      startedRef.current = true;
+      initErrorReporting();
+      initAuth();
+    }
   }, [initAuth]);
 
   useEffect(() => {

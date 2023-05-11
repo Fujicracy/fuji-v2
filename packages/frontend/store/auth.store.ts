@@ -91,15 +91,15 @@ export const useAuth = create<AuthStore>()(
           return;
         }
 
-        const json = JSON.stringify(wallets.map(({ label }) => label));
-        localStorage.setItem('connectedWallets', json);
-
         const balance = wallets[0].accounts[0].balance;
         const address = utils.getAddress(wallets[0].accounts[0].address);
         const chain = wallets[0].chains[0];
         const provider = new ethers.providers.Web3Provider(wallets[0].provider);
 
         set({ status: 'connected', address, balance, chain, provider });
+
+        const json = JSON.stringify(wallets.map(({ label }) => label));
+        localStorage.setItem('connectedWallets', json);
       },
 
       logout: async () => {
@@ -188,11 +188,8 @@ function onOnboardChange(
   onboard.state.select('wallets').subscribe((w: WalletState[]) => {
     const updates: Partial<ConnectedState> = {};
 
-    if (!w[0] && get().status === 'disconnected') {
+    if (!w[0] || !w[0].accounts[0] || get().status === 'disconnected') {
       return;
-    } else if (!w[0] || !w[0].accounts[0]) {
-      // Triggered when user disconnects from its wallet
-      return get().logout();
     }
 
     const chain = w[0].chains[0];
