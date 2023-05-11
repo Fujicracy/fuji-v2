@@ -1,5 +1,4 @@
 import {
-  Chip,
   Skeleton,
   Stack,
   Table,
@@ -22,13 +21,13 @@ import {
   PositionRow,
   vaultFromAddress,
 } from '../../helpers/positions';
-import { ratingToNote } from '../../helpers/ratings';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
+import SafetyRating from '../Shared/Table/SafetyRating';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
@@ -157,11 +156,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                 />
               </TableCell>
               <TableCell align="center">
-                <Chip
-                  variant={row.safetyRating > 75 ? 'success' : 'warning'}
-                  label={ratingToNote(row.safetyRating)}
-                  sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
-                />
+                <SafetyRating rating={row.safetyRating} />
               </TableCell>
               <TableCell align="center">
                 {formatValue(row.oraclePrice, {

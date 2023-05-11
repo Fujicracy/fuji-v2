@@ -2,7 +2,6 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import {
-  Chip,
   Collapse,
   IconButton,
   Skeleton,
@@ -18,11 +17,11 @@ import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
-import { ratingToNote } from '../../helpers/ratings';
 import { formatValue } from '../../helpers/values';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
+import SafetyRating from '../Shared/Table/SafetyRating';
 import BestLabel from './BestLabel';
 
 type MarketsTableRowProps = {
@@ -218,11 +217,7 @@ function MarketsTableRow({
             <>
               {loaderOrError(row.safetyRating.status)}
               {row.safetyRating.status === Status.Ready && (
-                <Chip
-                  variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
-                  label={ratingToNote(row.safetyRating?.value)}
-                  sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
-                />
+                <SafetyRating rating={row.safetyRating?.value} />
               )}
             </>
           )}
