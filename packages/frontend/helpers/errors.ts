@@ -1,8 +1,14 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { SOCIAL_URL } from '../constants';
+import { NOTIFICATION_MESSAGES, SOCIAL_URL } from '../constants';
 import { NotificationLink, notify } from './notifications';
+
+enum ErrorCode {
+  CANCELLED,
+  INSUFFICIENT_FUNDS,
+  OTHER,
+}
 
 export const initErrorReporting = () => {
   if (process.env.NEXT_PUBLIC_APP_ENV !== 'production') {
@@ -15,21 +21,34 @@ export const initErrorReporting = () => {
   });
 };
 
-export const handleCancelableMMActionError = (
+export const handleTransactionError = (
   error: unknown,
   cancelledMessage: string,
   failureMessage?: string
 ) => {
-  const userCancelled =
-    error instanceof Error &&
-    'code' in error &&
-    error['code'] === 'ACTION_REJECTED';
-  const message = userCancelled
-    ? cancelledMessage
-    : failureMessage ?? String(error);
-  const link: NotificationLink | undefined = userCancelled
-    ? undefined
-    : { url: SOCIAL_URL.DISCORD, type: 'discord' };
+  // error.code is a bit useless there, there are only a handful of them
+  const code: ErrorCode =
+    error instanceof Error
+      ? error.message.includes('user rejected')
+        ? ErrorCode.CANCELLED
+        : error.message.includes('insufficient funds')
+        ? ErrorCode.INSUFFICIENT_FUNDS
+        : ErrorCode.OTHER
+      : ErrorCode.OTHER;
+
+  const message =
+    code === ErrorCode.CANCELLED
+      ? cancelledMessage
+      : ErrorCode.INSUFFICIENT_FUNDS
+      ? NOTIFICATION_MESSAGES.TX_INSUFFICIENT_FUNDS
+      : failureMessage ||
+        (error instanceof Error ? error.message : String(error));
+
+  const link: NotificationLink | undefined =
+    code === ErrorCode.OTHER
+      ? { url: SOCIAL_URL.DISCORD, type: 'discord' }
+      : undefined;
+
   notify({
     type: 'error',
     message,
