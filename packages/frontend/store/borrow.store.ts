@@ -284,7 +284,7 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableTokens = tokens;
-              t.token = tokens[0];
+              if (updateVault) t.token = tokens[0];
             })
           );
           get().updateTokenPrice(type);
