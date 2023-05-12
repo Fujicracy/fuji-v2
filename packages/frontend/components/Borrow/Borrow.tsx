@@ -9,6 +9,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
+import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -59,6 +60,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const vault = useBorrow((state) => state.activeVault);
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
+  const changeCollateralChain = useBorrow(
+    (state) => state.changeCollateralChain
+  );
+  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
   const updateBalances = useBorrow((state) => state.updateBalances);
   const updateVault = useBorrow((state) => state.updateVault);
@@ -124,15 +129,32 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   useEffect(() => {
     if (address) {
-      updateBalances('collateral');
-      updateBalances('debt');
-      updateAllowance('collateral');
-      updateAllowance('debt');
       if (!vault) {
-        updateVault();
+        debounce(() => {
+          if (walletChainId && walletChainId !== collateral.chainId) {
+            changeCollateralChain(walletChainId, true);
+            changeDebtChain(walletChainId, false);
+          } else {
+            updateBalances('collateral');
+            updateBalances('debt');
+            updateAllowance('collateral');
+            updateAllowance('debt');
+            updateVault();
+          }
+        }, 500);
       }
     }
-  }, [address, vault, updateBalances, updateAllowance, updateVault]);
+  }, [
+    address,
+    collateral,
+    walletChainId,
+    vault,
+    changeCollateralChain,
+    changeDebtChain,
+    updateBalances,
+    updateAllowance,
+    updateVault,
+  ]);
 
   useEffect(() => {
     updateCurrencyPrice('collateral');
