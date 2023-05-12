@@ -16,7 +16,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
 import { ActionType, needsAllowance } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
-import { chainName } from '../../helpers/chains';
+import { chainName, isSupported } from '../../helpers/chains';
 import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
@@ -131,7 +131,11 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     if (address) {
       if (!vault) {
         debounce(() => {
-          if (walletChainId && walletChainId !== collateral.chainId) {
+          if (
+            walletChainId &&
+            walletChainId !== collateral.chainId &&
+            isSupported(walletChainId)
+          ) {
             changeCollateralChain(walletChainId, true);
             changeDebtChain(walletChainId, false);
           } else {
