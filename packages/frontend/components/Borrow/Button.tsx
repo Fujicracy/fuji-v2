@@ -148,13 +148,12 @@ function BorrowButton({
       () => onChainChangeClick(firstStep?.chainId)
     );
   } else if (availableVaultStatus === 'error') {
-    return disabledButton('Error fetching on-chain data');
+    return disabledButton('Unsupported pair');
   } else if (
-    collateral.chainId !== debt.chainId &&
-    (debt.token.symbol === 'DAI' || collateral.token.symbol === 'MaticX')
+    collateral.token.chainId !== collateral.chainId &&
+    collateral.token.symbol === 'MaticX'
   ) {
-    const name = debt.token.symbol === 'DAI' ? 'DAI' : 'MaticX';
-    return disabledButton(`${name}: not supported cross-chain`);
+    return disabledButton('MaticX: not supported cross-chain');
   } else if (
     !isEditing &&
     hasBalanceInVault &&

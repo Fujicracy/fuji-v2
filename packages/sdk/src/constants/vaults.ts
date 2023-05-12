@@ -71,7 +71,7 @@ export const VAULT_LIST: ChainVaultList = {
       USDC[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0x7C9631346D39a3b10519711F7507ebd5D7D850E0'),
+      Address.from('0xC8054218c5fbA84E18C6F26f51Ec691Ee9725e49'),
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
