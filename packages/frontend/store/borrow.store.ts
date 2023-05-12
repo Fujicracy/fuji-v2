@@ -51,6 +51,7 @@ import {
   notify,
 } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
+import { storeOptions } from '../helpers/stores';
 import { TransactionMeta } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -909,10 +910,7 @@ export const useBorrow = create<BorrowStore>()(
           set({ allowChainOverride });
         },
       }),
-      {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-        name: 'xFuji/borrow',
-      }
+      storeOptions('borrow')
     ),
     {
       name: 'xFuji/borrow',

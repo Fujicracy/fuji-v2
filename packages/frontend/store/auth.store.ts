@@ -11,6 +11,7 @@ import { devtools } from 'zustand/middleware';
 
 import { web3onboard } from '../helpers/auth';
 import { chainIdToHex } from '../helpers/chains';
+import { storeOptions } from '../helpers/stores';
 
 export const onboard = web3onboard;
 
@@ -159,10 +160,7 @@ export const useAuth = create<AuthStore>()(
         await onboard.setChain({ chainId: hexChainId });
       },
     }),
-    {
-      enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-      name: 'xFuji/auth',
-    }
+    storeOptions('auth')
   )
 );
 

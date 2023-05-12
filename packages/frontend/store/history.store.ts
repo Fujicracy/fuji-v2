@@ -24,6 +24,7 @@ import {
   NotificationDuration,
   notify,
 } from '../helpers/notifications';
+import { storeOptions } from '../helpers/stores';
 import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -436,10 +437,7 @@ export const useHistory = create<HistoryStore>()(
           set({ currentTxHash: '', isHistoricalTransaction: false });
         },
       }),
-      {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-        name: 'xFuji/history',
-      }
+      storeOptions('history')
     ),
 
     {

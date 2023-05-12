@@ -9,6 +9,7 @@ import {
   getPositionsWithBalance,
   getTotalSum,
 } from '../helpers/positions';
+import { storeOptions } from '../helpers/stores';
 import { useAuth } from './auth.store';
 import { Position } from './models/Position';
 
@@ -93,9 +94,6 @@ export const usePositions = create<PositionsStore>()(
         });
       },
     }),
-    {
-      enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-      name: 'fuji-v2/positions',
-    }
+    storeOptions('positions')
   )
 );

@@ -18,7 +18,7 @@ import { Box } from '@mui/system';
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, Status } from '../../helpers/markets';
+import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
 import { formatValue } from '../../helpers/values';
 import {
@@ -53,10 +53,10 @@ function MarketsTableRow({
     setExpandRow(openedByDefault);
   }, [openedByDefault]);
 
-  const loaderOrError = (status: Status) =>
-    status === Status.Loading ? (
+  const loaderOrError = (status: MarketRowStatus) =>
+    status === MarketRowStatus.Loading ? (
       <Skeleton />
-    ) : status === Status.Error ? (
+    ) : status === MarketRowStatus.Error ? (
       <Tooltip title="Error loading data" arrow>
         <ErrorOutlineIcon />
       </Tooltip>
@@ -66,7 +66,7 @@ function MarketsTableRow({
 
   const isHighLevelRow = !row.isChild && !row.isGrandChild;
   const shouldNetworkColumnBeShown =
-    row.chain.status === Status.Ready &&
+    row.chain.status === MarketRowStatus.Ready &&
     (!isHighLevelRow || (isHighLevelRow && !expandRow));
 
   return (
@@ -166,7 +166,7 @@ function MarketsTableRow({
           sx={{ color: palette.warning.main }}
         >
           {loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === Status.Ready && !expandRow && (
+          {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.borrowAprReward?.value > 0 && (
                 <Tooltip
@@ -192,7 +192,7 @@ function MarketsTableRow({
           sx={{ color: palette.success.main }}
         >
           {loaderOrError(row.depositApr.status)}
-          {row.depositApr.status === Status.Ready && !expandRow && (
+          {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.depositAprReward?.value > 0 && (
                 <Tooltip
@@ -214,50 +214,52 @@ function MarketsTableRow({
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
           {loaderOrError(row.integratedProtocols.status)}
-          {row.integratedProtocols.status === Status.Ready && !expandRow && (
-            <Stack
-              direction="row"
-              justifyContent="right"
-              alignItems="center"
-              flexWrap="nowrap"
-              sx={{
-                mr: row.integratedProtocols.value.length > 1 ? '-0.25rem' : '0',
-              }}
-            >
-              {row.integratedProtocols.value.map((name, i) => (
-                <Tooltip key={name} title={name} arrow>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      right: `${i * 0.25}rem`,
-                      zIndex: 4 - i,
-                      height: '24px',
-                    }}
-                  >
-                    {i <= 2 && (
-                      <ProviderIcon provider={name} height={24} width={24} />
-                    )}
-                  </Box>
-                </Tooltip>
-              ))}
-              {row.integratedProtocols.value.length >= 4 && (
-                <Chip
-                  label={
-                    <Stack direction="row" justifyContent="center">
-                      +{row.integratedProtocols.value.length - 3}
-                    </Stack>
-                  }
-                  variant="number"
-                />
-              )}
-            </Stack>
-          )}
+          {row.integratedProtocols.status === MarketRowStatus.Ready &&
+            !expandRow && (
+              <Stack
+                direction="row"
+                justifyContent="right"
+                alignItems="center"
+                flexWrap="nowrap"
+                sx={{
+                  mr:
+                    row.integratedProtocols.value.length > 1 ? '-0.25rem' : '0',
+                }}
+              >
+                {row.integratedProtocols.value.map((name, i) => (
+                  <Tooltip key={name} title={name} arrow>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        right: `${i * 0.25}rem`,
+                        zIndex: 4 - i,
+                        height: '24px',
+                      }}
+                    >
+                      {i <= 2 && (
+                        <ProviderIcon provider={name} height={24} width={24} />
+                      )}
+                    </Box>
+                  </Tooltip>
+                ))}
+                {row.integratedProtocols.value.length >= 4 && (
+                  <Chip
+                    label={
+                      <Stack direction="row" justifyContent="center">
+                        +{row.integratedProtocols.value.length - 3}
+                      </Stack>
+                    }
+                    variant="number"
+                  />
+                )}
+              </Stack>
+            )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           {!expandRow && (
             <>
               {loaderOrError(row.safetyRating.status)}
-              {row.safetyRating.status === Status.Ready && (
+              {row.safetyRating.status === MarketRowStatus.Ready && (
                 <Chip
                   variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
                   label={ratingToNote(row.safetyRating?.value)}
@@ -269,7 +271,7 @@ function MarketsTableRow({
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           {!expandRow && loaderOrError(row.liquidity.status)}
-          {row.liquidity.status === Status.Ready &&
+          {row.liquidity.status === MarketRowStatus.Ready &&
             !expandRow &&
             formatValue(row.liquidity.value, {
               maximumSignificantDigits: 3,
