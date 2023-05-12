@@ -31,13 +31,21 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
       const coloredFooter = (
         <span
           style={{
-            color: data?.amount
-              ? belowPriceColor(data.amount, data.recommended, palette)
-              : palette.info.dark,
-            marginLeft: '3px',
+            color: palette.info.dark,
+            marginLeft: '5px',
           }}
         >
-          ({footer.split('below current price')[0]}
+          (
+          <span
+            style={{
+              color: data?.amount
+                ? belowPriceColor(data.amount, data.recommended, palette)
+                : palette.info.dark,
+            }}
+          >
+            {' '}
+            {footer.split('below current price')[0]}{' '}
+          </span>
           {footer.split('%')[1]})
         </span>
       );
