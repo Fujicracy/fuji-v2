@@ -15,7 +15,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
 import { ActionType, needsAllowance } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
-import { chainName, hexToChainId } from '../../helpers/chains';
+import { chainName } from '../../helpers/chains';
 import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
@@ -41,7 +41,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const onMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const address = useAuth((state) => state.address);
-  const walletChain = useAuth((state) => state.chain);
+  const walletChainId = useAuth((state) => state.chainId);
   const changeChain = useAuth((state) => state.changeChain);
   const login = useAuth((state) => state.login);
 
@@ -107,7 +107,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       !(collateralAllowance || debtNeedsAllowance) &&
       availableVaultStatus === 'ready' &&
       !(!isEditing && hasBalanceInVault) &&
-      startChainId === hexToChainId(walletChain?.id) &&
+      startChainId === walletChainId &&
       needsSignature
     );
   }, [
@@ -115,7 +115,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     needsSignature,
     hasBalanceInVault,
     transactionMeta.steps,
-    walletChain,
+    walletChainId,
     isEditing,
     collateral,
     debt,
@@ -306,7 +306,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             collateral={collateral}
             debt={debt}
             position={position}
-            walletChain={walletChain}
+            walletChainId={walletChainId}
             ltvMeta={dynamicLtvMeta}
             metaStatus={metaStatus}
             needsSignature={needsSignature}
@@ -324,7 +324,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               if (borrow) {
                 showBorrow(router);
               } else {
-                showPosition(router, walletChain?.id, vault, false);
+                showPosition(router, walletChainId, vault, false);
               }
             }}
             onClick={signAndExecute}

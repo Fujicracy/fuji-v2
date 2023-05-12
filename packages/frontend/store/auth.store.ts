@@ -1,16 +1,12 @@
 import { ConnectOptions } from '@web3-onboard/core';
-import {
-  Balances,
-  ConnectedChain,
-  WalletState,
-} from '@web3-onboard/core/dist/types';
+import { Balances, WalletState } from '@web3-onboard/core/dist/types';
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
 import { create, StoreApi } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { web3onboard } from '../helpers/auth';
-import { chainIdToHex } from '../helpers/chains';
+import { chainIdToHex, hexToChainId } from '../helpers/chains';
 
 export const onboard = web3onboard;
 
@@ -25,7 +21,7 @@ type ConnectedState = {
   address: string;
   ens: string | undefined;
   balance: Balances;
-  chain: ConnectedChain;
+  chainId: ChainId;
   provider: ethers.providers.Web3Provider;
   walletName: string;
 };
@@ -34,7 +30,7 @@ type InitialState = {
   address: undefined;
   ens: undefined;
   balance: undefined;
-  chain: undefined;
+  chainId: undefined;
   provider: undefined;
   walletName: undefined;
 };
@@ -43,7 +39,7 @@ type DisconnectedState = {
   address: undefined;
   ens: undefined;
   balance: undefined;
-  chain: undefined;
+  chainId: undefined;
   provider: undefined;
   walletName: undefined;
 };
@@ -68,7 +64,7 @@ const initialState: InitialState = {
   address: undefined,
   ens: undefined,
   balance: undefined,
-  chain: undefined,
+  chainId: undefined,
   provider: undefined,
   walletName: undefined,
 };
@@ -96,10 +92,10 @@ export const useAuth = create<AuthStore>()(
 
         const balance = wallets[0].accounts[0].balance;
         const address = utils.getAddress(wallets[0].accounts[0].address);
-        const chain = wallets[0].chains[0];
+        const chainId = hexToChainId(wallets[0].chains[0]?.id);
         const provider = new ethers.providers.Web3Provider(wallets[0].provider);
 
-        set({ status: 'connected', address, balance, chain, provider });
+        set({ status: 'connected', address, balance, chainId, provider });
       },
 
       logout: async () => {
@@ -196,8 +192,8 @@ function onOnboardChange(
     }
 
     const chain = w[0].chains[0];
-    if (chain.id !== get().chain?.id) {
-      updates.chain = chain;
+    if (hexToChainId(chain.id) !== get().chainId) {
+      updates.chainId = hexToChainId(chain.id);
     }
 
     const balance = w[0].accounts[0].balance;
