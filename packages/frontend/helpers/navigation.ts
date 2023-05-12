@@ -10,7 +10,7 @@ import { PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { usePositions } from '../store/positions.store';
-import { chainName } from './chains';
+import { isSupported } from './chains';
 
 type Page = {
   title: string;
@@ -41,8 +41,7 @@ export const showPosition = async (
   if (!vault) return;
 
   const changeAll = useBorrow.getState().changeAll;
-  const isSupported = walletChainId && chainName(walletChainId) !== '';
-  if (isSupported) {
+  if (walletChainId && isSupported(walletChainId)) {
     const collaterals = sdk.getCollateralForChain(walletChainId);
     const collateralCurrency = collaterals.find(
       (t: Currency) => t.symbol === vault.collateral.symbol
