@@ -176,6 +176,7 @@ interface IVaultPermissions {
    * @param receiver who can spend the allowance
    * @param amount of allowance
    * @param deadline timestamp limit for the execution of signed permit
+   * @param actionArgsHash keccak256 of the abi.encoded(args,actions) to be performed in {BaseRouter._internalBundle}
    * @param v signature value
    * @param r signature value
    * @param s signature value
@@ -193,6 +194,7 @@ interface IVaultPermissions {
     address receiver,
     uint256 amount,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s
@@ -208,6 +210,7 @@ interface IVaultPermissions {
    * @param receiver address who can spend the allowance
    * @param amount of allowance
    * @param deadline timestamp limit for the execution of signed permit
+   * @param actionArgsHash keccak256 of the abi.encoded(args,actions) to be performed in {BaseRouter._internalBundle}
    * @param v signature value
    * @param r signature value
    * @param s signature value
@@ -226,6 +229,7 @@ interface IVaultPermissions {
     address receiver,
     uint256 amount,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s

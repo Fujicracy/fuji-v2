@@ -11,7 +11,7 @@ contract SignOptimismGoerliBorrow is ScriptPlus {
     chainName = "optimism-goerli";
   }
 
-  function run(address receiver) public {
+  function run(address receiver, bytes32 actionArgsHash_) public {
     address vault = getAddress("BorrowingVault");
     uint256 borrowAmount = 10e18; // 10 DAI
 
@@ -24,8 +24,10 @@ contract SignOptimismGoerliBorrow is ScriptPlus {
       receiver: receiver,
       amount: borrowAmount,
       nonce: IVaultPermissions(vault).nonces(msg.sender),
-      deadline: deadline
+      deadline: deadline,
+      actionArgsHash: actionArgsHash_
     });
+
     bytes32 digest = LibSigUtils.getHashTypedDataV4Digest(
       IVaultPermissions(vault).DOMAIN_SEPARATOR(), LibSigUtils.getStructHashBorrow(permit)
     );

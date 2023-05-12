@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
-import { PATH } from '../../constants';
+import { showBorrow } from '../../helpers/navigation';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -28,9 +28,9 @@ type MetricSummary = {
 };
 
 const initialKeyMetrics: MetricSummary[] = [
-  { name: 'Total Deposits', value: '-', valueSym: '$' },
-  { name: 'Total Debt', value: '-', valueSym: '$' },
-  { name: 'Net APY', value: '-', valueSym: '%', action: 'View yields' }, // TODO: tooltip
+  { name: 'Total Deposits Value', value: '-', valueSym: '$' },
+  { name: 'Total Debt Value', value: '-', valueSym: '$' },
+  { name: 'Net APY', value: '-', valueSym: '%', action: 'Details' },
   {
     name: 'Available to Borrow',
     value: '-',
@@ -47,25 +47,25 @@ function updateKeyMetricsSummary(
 ): MetricSummary[] {
   return [
     {
-      name: 'Total Deposits',
-      value: totalDeposits_ === undefined ? '-' : totalDeposits_,
+      name: 'Total Deposits Value',
+      value: totalDeposits_ ?? '-',
       valueSym: '$',
     },
     {
-      name: 'Total Debt',
-      value: totalDebt_ === undefined ? '-' : totalDebt_,
+      name: 'Total Debt Value',
+      value: totalDebt_ ?? '-',
       valueSym: '$',
     },
     {
-      name: 'Net APY',
-      value: totalAPY_ === undefined ? '-' : totalAPY_,
+      name: 'Total Net APY',
+      value: totalAPY_ ?? '-',
       valueSym: '%',
       tooltip: true,
-      action: 'View yields',
+      action: 'Details',
     },
     {
       name: 'Available to Borrow',
-      value: availableBorrow_ === undefined ? '-' : availableBorrow_,
+      value: availableBorrow_ ?? '-',
       valueSym: '$',
       action: 'Borrow',
     },
@@ -107,14 +107,12 @@ function MyPositionsSummary() {
   const mappedActions: {
     [key: string]: () => void;
   } = {
-    ['Borrow']: () => router.push(PATH.BORROW),
-    ['View yields']: () => setIsPositionsYieldsModalShown(true),
+    ['Borrow']: () => showBorrow(router),
+    ['Details']: () => setIsPositionsYieldsModalShown(true),
   };
 
-  const getAction = (actionName?: string): (() => void) => {
-    return actionName
-      ? mappedActions[actionName]
-      : () => console.error('no action provided'); // TODO: add notification
+  const getAction = (actionName?: string): (() => void) | undefined => {
+    return actionName ? mappedActions[actionName] : undefined;
   };
 
   return (
@@ -148,7 +146,7 @@ export default MyPositionsSummary;
 type MetricProps = {
   metric: MetricSummary;
   borderLeft: boolean;
-  onClick: () => void;
+  onClick: (() => void) | undefined;
 };
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
@@ -191,7 +189,6 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
         )}
       </Typography>
 
-      {/* TODO: use helper to format balance */}
       <Stack
         display="flex"
         direction="row"

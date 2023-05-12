@@ -1,4 +1,4 @@
 {
-  "**/*.ts?(x)": ["eslint --fix", "prettier --write"],
+  "**/*.ts?(x)": ["next lint . --fix", "prettier --write"],
   "**/*.css?(x)": ["prettier --write"]
 }

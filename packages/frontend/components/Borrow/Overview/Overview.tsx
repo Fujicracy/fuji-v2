@@ -2,7 +2,7 @@ import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
-import { borrowLimit, recommendedLTV } from '../../../helpers/assets';
+import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import Container from './Container';
@@ -18,7 +18,7 @@ type OverviewProps = {
 
 function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
+  const isMobile = useMediaQuery(breakpoints.down('md'));
 
   const { position, editedPosition } = basePosition;
   const {
@@ -35,7 +35,6 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const vault = useBorrow((state) => state.activeVault);
   const providers =
     allProviders && vault ? allProviders[vault.address.value] : [];
-  const mode = useBorrow((state) => state.mode);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
@@ -43,10 +42,8 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
 
-  const limit = borrowLimit(
-    mode,
-    editedPosition ? editedPosition.collateral.amount : 0,
-    Number(collateralInput),
+  const borrowLimit = maxBorrowLimit(
+    editedPosition ? editedPosition.collateral.amount : Number(collateralInput),
     collateral.usdPrice,
     ltvMax
   );
@@ -69,7 +66,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
       />
 
       <LTVProgressBar
-        borrowLimit={limit}
+        borrowLimit={borrowLimit}
         value={dynamicLtv > ltvMax ? ltvMax : dynamicLtv}
         maxLTV={ltvMax}
         recommendedLTV={recommendedLtv}

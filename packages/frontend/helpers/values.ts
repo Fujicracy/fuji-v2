@@ -62,12 +62,40 @@ export const formatNumber = (
   return parseFloat(num.toFixed(decimals));
 };
 
-export const toNotSoFixed = (v: number | string | undefined): string => {
-  if (!v) return '0';
-  const value: number = typeof v === 'number' ? v : Number(v);
-  const leadingZeroes = -Math.floor(Math.log(value) / Math.log(10) + 1); // Account leading zeroes
-  const to = leadingZeroes > 0 ? 1 + leadingZeroes : 2;
-  return Number(value.toFixed(to)).toString(); // Remove trailing zeroes
+export const toNotSoFixed = (
+  v: number | string | undefined,
+  stopAtFirstNonZero = false
+): string => {
+  if (!v) return '0.00';
+  const value: number = typeof v === 'number' ? v : parseFloat(v);
+  if (isNaN(value)) return '0.00';
+
+  const stringValue = value.toString();
+  const decimalIndex = stringValue.indexOf('.');
+  if (decimalIndex === -1) return stringValue;
+
+  let digitsAfterDecimal = stringValue.length - decimalIndex - 1;
+  let lastNonZeroIndex = stringValue.length - 1;
+  for (let i = stringValue.length - 1; i > decimalIndex; i--) {
+    if (stringValue[i] !== '0') {
+      lastNonZeroIndex = i;
+      break;
+    }
+    digitsAfterDecimal--;
+  }
+
+  if (stopAtFirstNonZero) {
+    for (let i = decimalIndex + 1; i < lastNonZeroIndex; i++) {
+      if (stringValue[i] !== '0') {
+        digitsAfterDecimal = i - decimalIndex;
+        break;
+      }
+    }
+  }
+
+  return value
+    .toFixed(digitsAfterDecimal < 2 ? 2 : digitsAfterDecimal)
+    .replace(/\.?0+$/, '');
 };
 
 export const camelize = (str: string) => {

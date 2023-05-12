@@ -32,6 +32,21 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
+   * @dev Struct used internally containing the arguments of a IRouter.Action.Permit* to store
+   * and pass in memory and avoid "stack too deep" errors.
+   */
+  struct PermitArgs {
+    IVaultPermissions vault;
+    address owner;
+    address receiver;
+    uint256 amount;
+    uint256 deadline;
+    uint8 v;
+    bytes32 r;
+    bytes32 s;
+  }
+
+  /**
    * @dev Emitted when `caller` is updated according to `allowed` boolean
    * to perform cross-chain calls.
    *
@@ -47,13 +62,21 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_noBalanceChange();
   error BaseRouter__bundleInternal_insufficientETH();
   error BaseRouter__bundleInternal_notBeneficiary();
+  error BaseRouter__checkVaultInput_notActiveVault();
+  error BaseRouter__bundleInternal_notAllowedSwapper();
+  error BaseRouter__bundleInternal_notAllowedFlasher();
+  error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
   error BaseRouter__allowCaller_zeroAddress();
   error BaseRouter__allowCaller_noAllowChange();
+  error BaseRouter__bundleInternal_insufficientFlashloanBalance();
 
   IWETH9 public immutable WETH9;
+
+  bytes32 private constant ZERO_BYTES32 =
+    0x0000000000000000000000000000000000000000000000000000000000000000;
 
   /// @dev Apply it on entry cross-chain calls functions as required.
   mapping(address => bool) public isAllowedCaller;
@@ -76,7 +99,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   /// @inheritdoc IRouter
   function xBundle(Action[] calldata actions, bytes[] calldata args) external payable override {
-    _bundleInternal(actions, args);
+    _bundleInternal(actions, args, 0);
   }
 
   /**
@@ -111,8 +134,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    *
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
    */
-  function _bundleInternal(Action[] memory actions, bytes[] memory args) internal {
+  function _bundleInternal(
+    Action[] memory actions,
+    bytes[] memory args,
+    uint256 beforeSlipped
+  )
+    internal
+  {
     uint256 len = actions.length;
     if (len != args.length) {
       revert BaseRouter__bundleInternal_paramsMismatch();
@@ -124,6 +154,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
      * or owners on WITHDRAW and BORROW.
      */
     address beneficiary;
+
+    /**
+     * @dev Hash generated during execution of "_bundleInternal()" that should
+     * match the signed permit.
+     * This argument is used in {VaultPermissions-PermitWithdraw} and
+     * {VaultPermissions-PermitBorrow}
+     */
+    bytes32 actionArgsHash;
 
     /**
      * @dev Stores token balances of this contract at a given moment.
@@ -146,10 +184,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        _checkVaultInput(address(vault));
+
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
         tokensToCheck = _addTokenToList(token, tokensToCheck);
-        _safePullTokenFrom(token, sender, receiver, amount);
+        _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.deposit(amount, receiver);
@@ -157,6 +197,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         // WITHDRAW
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
+
+        _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
         tokensToCheck = _addTokenToList(vault.asset(), tokensToCheck);
@@ -167,6 +209,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address owner) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        _checkVaultInput(address(vault));
+
         beneficiary = _checkBeneficiary(beneficiary, owner);
         tokensToCheck = _addTokenToList(vault.debtAsset(), tokensToCheck);
 
@@ -176,46 +220,33 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         (IVault vault, uint256 amount, address receiver, address sender) =
           abi.decode(args[i], (IVault, uint256, address, address));
 
+        _checkVaultInput(address(vault));
+
         address token = vault.debtAsset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
         tokensToCheck = _addTokenToList(token, tokensToCheck);
-        _safePullTokenFrom(token, sender, receiver, amount);
+        _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.payback(amount, receiver);
       } else if (action == Action.PermitWithdraw) {
         // PERMIT WITHDRAW
-        (
-          IVaultPermissions vault,
-          address owner,
-          address receiver,
-          uint256 amount,
-          uint256 deadline,
-          uint8 v,
-          bytes32 r,
-          bytes32 s
-        ) = abi.decode(
-          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
-        );
-        vault.permitWithdraw(owner, receiver, amount, deadline, v, r, s);
-        beneficiary = _checkBeneficiary(beneficiary, owner);
+        if (actionArgsHash == ZERO_BYTES32) {
+          actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
+        }
+
+        // Scoped code in new private function to avoid "Stack too deep"
+        address owner_ = _handlePermitAction(action, args[i], actionArgsHash);
+        beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.PermitBorrow) {
         // PERMIT BORROW
-        (
-          IVaultPermissions vault,
-          address owner,
-          address receiver,
-          uint256 amount,
-          uint256 deadline,
-          uint8 v,
-          bytes32 r,
-          bytes32 s
-        ) = abi.decode(
-          args[i], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
-        );
+        if (actionArgsHash == ZERO_BYTES32) {
+          actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
+        }
 
-        vault.permitBorrow(owner, receiver, amount, deadline, v, r, s);
-        beneficiary = _checkBeneficiary(beneficiary, owner);
+        // Scoped code in new private function to avoid "Stack too deep"
+        address owner_ = _handlePermitAction(action, args[i], actionArgsHash);
+        beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 
@@ -232,24 +263,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           revert BaseRouter__bundleInternal_swapNotFirstAction();
         }
 
-        (
-          ISwapper swapper,
-          address assetIn,
-          address assetOut,
-          uint256 amountIn,
-          uint256 amountOut,
-          address receiver,
-          address sweeper,
-          uint256 minSweepOut
-        ) = abi.decode(
-          args[i], (ISwapper, address, address, uint256, uint256, address, address, uint256)
-        );
-
-        tokensToCheck = _addTokenToList(assetIn, tokensToCheck);
-        tokensToCheck = _addTokenToList(assetOut, tokensToCheck);
-        _safeApprove(assetIn, address(swapper), amountIn);
-
-        swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
+        (beneficiary, tokensToCheck) = _handleSwapAction(args[i], beneficiary, tokensToCheck);
       } else if (action == Action.Flashloan) {
         // FLASHLOAN
 
@@ -262,6 +276,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           bytes memory requestorCalldata
         ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
 
+        if (!chief.allowedFlasher(address(flasher))) {
+          revert BaseRouter__bundleInternal_notAllowedFlasher();
+        }
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
@@ -295,6 +312,202 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
+   * @dev Handles both permit actions logic flow.
+   * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
+   *
+   * @param action either IRouter.Action.PermitWithdraw (6), or IRouter.Action.PermitBorrow (7)
+   * @param arg of the ongoing action
+   * @param actionArgsHash_ created previously withing `_bundleInternal()` to be used in permit check
+   */
+  function _handlePermitAction(
+    IRouter.Action action,
+    bytes memory arg,
+    bytes32 actionArgsHash_
+  )
+    private
+    returns (address)
+  {
+    PermitArgs memory permitArgs;
+    {
+      (
+        permitArgs.vault,
+        permitArgs.owner,
+        permitArgs.receiver,
+        permitArgs.amount,
+        permitArgs.deadline,
+        permitArgs.v,
+        permitArgs.r,
+        permitArgs.s
+      ) = abi.decode(
+        arg, (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+      );
+    }
+
+    _checkVaultInput(address(permitArgs.vault));
+
+    if (action == IRouter.Action.PermitWithdraw) {
+      permitArgs.vault.permitWithdraw(
+        permitArgs.owner,
+        permitArgs.receiver,
+        permitArgs.amount,
+        permitArgs.deadline,
+        actionArgsHash_,
+        permitArgs.v,
+        permitArgs.r,
+        permitArgs.s
+      );
+    } else if (action == IRouter.Action.PermitBorrow) {
+      permitArgs.vault.permitBorrow(
+        permitArgs.owner,
+        permitArgs.receiver,
+        permitArgs.amount,
+        permitArgs.deadline,
+        actionArgsHash_,
+        permitArgs.v,
+        permitArgs.r,
+        permitArgs.s
+      );
+    } else {
+      revert BaseRouter__handlePermit_notPermitAction();
+    }
+
+    return permitArgs.owner;
+  }
+
+  /**
+   * @dev Returns the `zeroPermitEncodedArgs` which is required to create
+   * the `actionArgsHash` used during permit signature
+   *
+   * @param vault that will execute action
+   * @param owner owner of the assets
+   * @param receiver of the assets after action
+   * @param amount of assets being permitted in action
+   */
+  function _getZeroPermitEncodedArgs(
+    IVaultPermissions vault,
+    address owner,
+    address receiver,
+    uint256 amount
+  )
+    private
+    pure
+    returns (bytes memory)
+  {
+    return abi.encode(vault, owner, receiver, amount, 0, 0, ZERO_BYTES32, ZERO_BYTES32);
+  }
+
+  /**
+   * @dev Returns the `actionsArgsHash` required in
+   * {VaultPermissions-permitWithdraw} or {VaultPermissions-permitBorrow}.
+   * Requirements:
+   * - Must replace arguments in IRouter.Action.PermitWithdraw for "zeroPermit".
+   * - Must replace arguments in IRouter.Action.PermitBorrow for "zeroPermit".
+   * - Must replace `beforeSlipped` amount in cross-chain txs that had slippage.
+   *
+   *
+   * @param actions being executed in this `_bundleInternal`
+   * @param args provided in `_bundleInternal`
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
+   */
+  function _getActionArgsHash(
+    IRouter.Action[] memory actions,
+    bytes[] memory args,
+    uint256 beforeSlipped
+  )
+    private
+    pure
+    returns (bytes32)
+  {
+    uint256 len = actions.length;
+
+    /**
+     * @dev We intend to ONLY modify the new bytes array.
+     * "memory" in solidity persists within internal calls.
+     */
+    bytes[] memory modArgs = new bytes[](len);
+    for (uint256 i; i < len; i++) {
+      modArgs[i] = args[i];
+      if (
+        i == 0 && beforeSlipped != 0
+          && (actions[i] == IRouter.Action.Deposit || actions[i] == IRouter.Action.Payback)
+      ) {
+        /**
+         * @dev Replace slippage values in the first ( i==0 ) "value" transfer
+         * action in the destination chain (deposit or to payback).
+         * If `beforeSlipped` == 0, it means there was no slippage in the attempted cross-chain tx
+         * or the tx is single chain; thereore, not requiring any replacement.
+         * Then, if beforeSlipped != 0 and beforeSlipped != slippedAmount, function should replace
+         * to obtain the "original" intended transfer value signed in `actionArgsHash`.
+         */
+        (IVault vault, uint256 slippedAmount, address receiver, address sender) =
+          abi.decode(modArgs[i], (IVault, uint256, address, address));
+        if (beforeSlipped != slippedAmount) {
+          modArgs[i] = abi.encode(vault, beforeSlipped, receiver, sender);
+        }
+      }
+      if (actions[i] == IRouter.Action.PermitWithdraw || actions[i] == IRouter.Action.PermitBorrow)
+      {
+        // Need to replace permit `args` at `index` with the `zeroPermitArg`.
+        (IVaultPermissions vault, address owner, address receiver, uint256 amount,,,,) = abi.decode(
+          modArgs[i],
+          (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
+        );
+        modArgs[i] = _getZeroPermitEncodedArgs(vault, owner, receiver, amount);
+      }
+    }
+    return keccak256(abi.encode(actions, modArgs));
+  }
+
+  /**
+   * @dev Handles swap actions logic flow.
+   * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
+   * Requirements:
+   * - Must return updated "beneficiary" and "tokensToCheck".
+   *
+   * @param arg of the ongoing action
+   * @param beneficiary_ passed through `_bundleInternal()`
+   * @param tokensToCheck_ passed through `_bundleInternal()`
+   */
+  function _handleSwapAction(
+    bytes memory arg,
+    address beneficiary_,
+    Snapshot[] memory tokensToCheck_
+  )
+    internal
+    returns (address, Snapshot[] memory)
+  {
+    (
+      ISwapper swapper,
+      address assetIn,
+      address assetOut,
+      uint256 amountIn,
+      uint256 amountOut,
+      address receiver,
+      address sweeper,
+      uint256 minSweepOut
+    ) = abi.decode(arg, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+
+    if (!chief.allowedSwapper(address(swapper))) {
+      revert BaseRouter__bundleInternal_notAllowedSwapper();
+    }
+
+    tokensToCheck_ = _addTokenToList(assetIn, tokensToCheck_);
+    tokensToCheck_ = _addTokenToList(assetOut, tokensToCheck_);
+    _safeApprove(assetIn, address(swapper), amountIn);
+
+    if (receiver != address(this) && !chief.allowedFlasher(receiver)) {
+      beneficiary_ = _checkBeneficiary(beneficiary_, receiver);
+    }
+
+    if (sweeper != address(this)) {
+      beneficiary_ = _checkBeneficiary(beneficiary_, sweeper);
+    }
+
+    swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
+    return (beneficiary_, tokensToCheck_);
+  }
+
+  /**
    * @dev Helper function to transfer ETH.
    *
    * @param receiver address to receive the ETH
@@ -315,18 +528,10 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    *
    * @param token ERC-20 token address
    * @param sender address to pull tokens from
-   * @param owner address on the behalf of which we act
    * @param amount amount of tokens to be pulled
    */
-  function _safePullTokenFrom(
-    address token,
-    address sender,
-    address owner,
-    uint256 amount
-  )
-    internal
-  {
-    if (sender != address(this) && (sender == owner || sender == msg.sender)) {
+  function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
+    if (sender != address(this) && sender == msg.sender) {
       SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
     }
   }
@@ -480,6 +685,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       revert BaseRouter__bundleInternal_notBeneficiary();
     } else {
       return user;
+    }
+  }
+
+  function _checkVaultInput(address vault_) internal view {
+    if (!chief.isVaultActive(vault_)) {
+      revert BaseRouter__checkVaultInput_notActiveVault();
     }
   }
 

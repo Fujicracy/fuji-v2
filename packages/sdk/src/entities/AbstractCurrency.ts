@@ -7,12 +7,18 @@ import invariant from 'tiny-invariant';
 
 import { FUJI_ORACLE_ADDRESS, WNATIVE_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
+import { TOKEN_CACHE_TIMEOUT } from '../constants/common';
 import { ChainId } from '../enums';
-import { ChainConfig, ChainConnectionDetails } from '../types';
+import {
+  ChainConfig,
+  ChainConnectionDetails,
+  FujiResultPromise,
+} from '../types';
 import { FujiOracle__factory } from '../types/contracts/factories/src/FujiOracle__factory';
 import { Address } from './Address';
 import { Chain } from './Chain';
 import { Currency } from './Currency';
+import { FujiResultError, FujiResultSuccess } from './FujiError';
 import { Token } from './Token';
 
 /**
@@ -71,6 +77,16 @@ export abstract class AbstractCurrency {
   multicallRpcProvider?: IMulticallProvider;
 
   /**
+   * Timestamp when the last price was updated
+   */
+  cacheTimestamp?: number;
+
+  /**
+   * Last price in USD
+   */
+  lastPriceUSD?: number;
+
+  /**
    * Constructs an instance of the base class `BaseCurrency`.
    * @param address - the address of the currency
    * @param chainId - the chain ID on which this currency resides
@@ -123,25 +139,43 @@ export abstract class AbstractCurrency {
    * @param owner - address of currency owner, wrapped in {@link Address}
    * @param spender - address of spender, wrapped in {@link Address}
    *
-   * @returns alllowed amount for token, but if currency is native, returns MaxUint256
+   * @returns allowed amount for token, but if currency is native, returns MaxUint256
    */
   abstract allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
   /**
    * Fetch currency price in USD.
    */
-  async getPriceUSD(): Promise<number> {
-    invariant(this.rpcProvider, 'Connection not set!');
+  async getPriceUSD(latest = false): FujiResultPromise<number> {
+    if (!this.rpcProvider) {
+      return new FujiResultError('Connection not set!');
+    }
+    if (
+      !latest &&
+      this.lastPriceUSD &&
+      this.cacheTimestamp &&
+      Date.now() - this.cacheTimestamp < TOKEN_CACHE_TIMEOUT
+    ) {
+      return new FujiResultSuccess(this.lastPriceUSD);
+    }
     const addr = this.isNative ? WNATIVE_ADDRESS[this.chainId] : this.address;
 
-    return FujiOracle__factory.connect(
-      FUJI_ORACLE_ADDRESS[this.chainId].value,
-      this.rpcProvider
-    )
-      .getPriceOf(AddressZero, addr.value, this.decimals)
-      .then((price) =>
-        parseFloat(formatUnits(price.toString(), this.decimals))
-      );
+    try {
+      const result = await FujiOracle__factory.connect(
+        FUJI_ORACLE_ADDRESS[this.chainId].value,
+        this.rpcProvider
+      )
+        .getPriceOf(AddressZero, addr.value, this.decimals)
+        .then((price) =>
+          parseFloat(formatUnits(price.toString(), this.decimals))
+        );
+
+      this.cacheTimestamp = Date.now();
+      this.lastPriceUSD = result;
+      return new FujiResultSuccess(result);
+    } catch (error) {
+      return new FujiResultError('Error getting token USD price');
+    }
   }
 
   /**

@@ -1,5 +1,24 @@
 import { ChainId } from '../enums';
 
+export const POKT_RPC_URL: Record<ChainId, (id: string) => string> = {
+  [ChainId.ETHEREUM]: (id: string) =>
+    `https://eth-mainnet.gateway.pokt.network/v1/lb/${id}`,
+  [ChainId.MATIC]: (id: string) =>
+    `https://poly-mainnet.gateway.pokt.network/v1/lb/${id}`,
+  [ChainId.ARBITRUM]: (id: string) =>
+    `https://arbitrum-one.gateway.pokt.network/v1/lb/${id}`,
+  [ChainId.OPTIMISM]: (id: string) =>
+    `https://optimism-mainnet.gateway.pokt.network/v1/lb/${id}`,
+  [ChainId.FANTOM]: (_: string) => 'https://rpc.ftm.tools/',
+  [ChainId.GOERLI]: (id: string) =>
+    `https://eth-goerli.gateway.pokt.network/v1/lb/${id}`,
+  [ChainId.MATIC_MUMBAI]: (id: string) =>
+    `https://polygon-mumbai.gateway.pokt.network/v1/lb/${id}`,
+  [ChainId.OPTIMISM_GOERLI]: (_: string) => ``,
+  [ChainId.GNOSIS]: (id: string) =>
+    `https://poa-xdai.gateway.pokt.network/v1/lb/${id}`,
+};
+
 export const INFURA_RPC_URL: Record<ChainId, (id: string) => string> = {
   [ChainId.ETHEREUM]: (id: string) => `https://mainnet.infura.io/v3/${id}`,
   [ChainId.MATIC]: (id: string) => `https://polygon-mainnet.infura.io/v3/${id}`,

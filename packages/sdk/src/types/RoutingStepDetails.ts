@@ -16,6 +16,5 @@ export type RoutingStepDetails = {
   chainId: ChainId;
   amount?: BigNumber;
   token?: Token;
-  txHash?: Promise<string>;
   lendingProvider?: LendingProviderBase;
 };

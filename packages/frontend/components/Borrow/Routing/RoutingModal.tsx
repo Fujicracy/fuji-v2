@@ -7,11 +7,12 @@ import { useBorrow } from '../../../store/borrow.store';
 import RouteCard from './RouteCard';
 
 type RoutingModalProps = {
+  isEditing: boolean;
   open: boolean;
   handleClose: () => void;
 };
 
-function RoutingModal({ open, handleClose }: RoutingModalProps) {
+function RoutingModal({ isEditing, open, handleClose }: RoutingModalProps) {
   const { palette } = useTheme();
   const [selectedRoute, setSelectedRoute] = useState(0);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
@@ -54,6 +55,7 @@ function RoutingModal({ open, handleClose }: RoutingModalProps) {
             key={i}
             onChange={() => didSelectRoute(i)}
             route={route}
+            isEditing={isEditing}
             selected={i === selectedRoute}
           />
         ))}

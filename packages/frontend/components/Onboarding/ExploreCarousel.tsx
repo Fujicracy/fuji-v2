@@ -28,19 +28,19 @@ function ExploreCarousel({
       id: 1,
       image: '/assets/images/onboarding/onboarding_1.svg',
       title: 'Welcome To Fuji Finance',
-      text: 'Optimize yield on your lend & borrow position.',
+      text: 'Optimize your DeFi lending and borrowing positions.',
     },
     {
       id: 2,
       image: '/assets/images/onboarding/onboarding_2.svg',
       title: 'Money Market Aggregator',
-      text: 'Aggregating the best money market rates for you and potentially saving you up to 40% per year on refinance costs.',
+      text: 'Aggregating the best money markets for you and helping to save up to 40% per year on your borrow rates.',
     },
     {
       id: 3,
       image: '/assets/images/onboarding/onboarding_3.svg',
       title: 'Cross-Chain Lending And Borrowing',
-      text: 'Select your desired collateral and borrow assets pairs; Fuji will scan and provide you the best rate available in the market.',
+      text: 'Select your collateral and borrow assets; Fuji scans the money markets and routes you to the best rates available.',
     },
   ];
 
@@ -129,6 +129,7 @@ function ExploreCarousel({
           </Button>
 
           <Typography
+            data-cy={'skip-explore'}
             sx={{
               m: '1.25rem 0',
               textDecoration: 'underline',

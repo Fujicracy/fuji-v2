@@ -1,9 +1,9 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending/Lending';
+import Lending from '../Shared/Lending';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
 
@@ -21,11 +21,15 @@ function MyPositions() {
         My Positions
       </Typography>
       <Typography variant="body">
-        Fuji manages your borrowing and lending positions for maximum capital
-        efficiency
+        Fuji rebalances your lending and borrowing positions to get you the best
+        terms
       </Typography>
+
       <MyPositionsSummary />
-      <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+
+      <Grid container mt="2.5rem" mb="1rem">
+        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+      </Grid>
 
       {currentTab === 0 ? (
         <MyPositionsBorrowTable loading={isLoading} />

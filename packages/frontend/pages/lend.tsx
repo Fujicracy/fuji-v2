@@ -10,9 +10,9 @@ import Head from 'next/head';
 
 import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
-import Lending from '../components/Shared/Lending/Lending';
+import Lending from '../components/Shared/Lending';
 
-const MarketsPage: NextPage = () => {
+const LendingPage: NextPage = () => {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
@@ -35,7 +35,7 @@ const MarketsPage: NextPage = () => {
 
       <Container
         sx={{
-          mt: { xs: '0', sm: '4rem' },
+          mt: { xs: '0', sm: '5rem' },
           mb: { xs: '7rem', sm: '0' },
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },
@@ -52,4 +52,4 @@ const MarketsPage: NextPage = () => {
   );
 };
 
-export default MarketsPage;
+export default LendingPage;

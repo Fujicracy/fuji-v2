@@ -1,15 +1,18 @@
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
+  alpha,
   Card,
   CircularProgress,
   Collapse,
   Stack,
+  Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
-import { toNotSoFixed } from '../../helpers/values';
+import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
 import { useBorrow } from '../../store/borrow.store';
 
 function Fees() {
@@ -27,6 +30,22 @@ function Fees() {
     }
   };
 
+  const bridgeTooltip = () => {
+    if (
+      !transactionMeta.bridgeFees ||
+      transactionMeta.bridgeFees.length === 0 ||
+      transactionMeta.bridgeFees[0].amount === 0
+    )
+      return undefined;
+    let outputString = '';
+    for (const fee of transactionMeta.bridgeFees) {
+      const amount =
+        fee.amount < 0.000001 ? '< 0.000001' : fee.amount.toString();
+      outputString += `${amount} ${fee.token.symbol}\n`;
+    }
+    return outputString;
+  };
+
   return (
     <Card
       variant="outlined"
@@ -40,7 +59,7 @@ function Fees() {
         {transactionMeta.status === 'ready' && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
-              {`~$${transactionMeta.bridgeFee.toFixed(2)} + gas`}
+              {`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`}
             </Typography>
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
@@ -59,11 +78,15 @@ function Fees() {
       </Stack>
 
       <Collapse in={show} sx={{ width: '100%' }}>
-        {crossChainTx && (
+        {crossChainTx && transactionMeta.bridgeFees && (
           <Fee
             label="Bridge fee"
-            value={`~$${toNotSoFixed(transactionMeta.bridgeFee)}`}
+            value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
+            tooltip={bridgeTooltip()}
           />
+        )}
+        {crossChainTx && (
+          <Fee label="Relayer Fee" value={'Sponsored by Fuji'} sponsored />
         )}
         <Fee
           label="Est. processing time"
@@ -85,11 +108,49 @@ export default Fees;
 type FeeProps = {
   label: string;
   value: string | ReactNode;
+  sponsored: boolean;
+  tooltip?: string;
 };
 
-const Fee = ({ label, value }: FeeProps) => (
-  <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
-    <Typography variant="small">{label}</Typography>
+const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
+  const { palette } = useTheme();
+  const valueComponent = sponsored ? (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap="0.25rem"
+      sx={{
+        backgroundColor: alpha(palette.success.main, 0.2),
+        p: '0.2rem 0.5rem',
+        borderRadius: '100px',
+      }}
+    >
+      <Typography
+        variant="xsmall"
+        color={palette.success.main}
+        fontWeight={500}
+      >
+        {value}
+      </Typography>
+    </Stack>
+  ) : (
     <Typography variant="small">{value}</Typography>
-  </Stack>
-);
+  );
+
+  return (
+    <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
+      <Typography variant="small">{label}</Typography>
+      {tooltip ? (
+        <Tooltip title={tooltip} placement="top">
+          {valueComponent}
+        </Tooltip>
+      ) : (
+        valueComponent
+      )}
+    </Stack>
+  );
+};
+
+Fee.defaultProps = {
+  sponsored: false,
+};

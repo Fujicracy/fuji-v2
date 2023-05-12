@@ -15,7 +15,12 @@ import {
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
-import { chainName, chains, hexToChainId } from '../../helpers/chains';
+import {
+  chainName,
+  chains,
+  hexToChainId,
+  isSupported,
+} from '../../helpers/chains';
 import { useAuth } from '../../store/auth.store';
 import { NetworkIcon } from './Icons';
 
@@ -29,7 +34,6 @@ function ChainSelect() {
   ]);
   const chainId = hexToChainId(hexChainId);
   const networkName = chainName(chainId);
-  const isSupported = chains.some((chain) => chain.chainId === chainId);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isOpen = Boolean(anchorEl);
@@ -45,8 +49,9 @@ function ChainSelect() {
 
   return (
     <>
-      {networkName && isSupported ? (
+      {networkName && isSupported(chainId) ? (
         <Chip
+          data-cy="network-button"
           label={
             <Stack direction="row" alignItems="center" spacing={1}>
               <ListItem
@@ -63,6 +68,7 @@ function ChainSelect() {
         />
       ) : (
         <Chip
+          data-cy="header-unsupported-network"
           label={
             <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
@@ -89,6 +95,7 @@ function ChainSelect() {
       >
         {chains.map((chain) => (
           <MenuItem
+            data-cy="network-menu-item"
             key={chain.chainId}
             onClick={() => selectChain(chain.chainId)}
           >
@@ -120,7 +127,18 @@ const ListItem = (props: ListItemProps) => {
         <NetworkIcon network={chainName} height={20} width={20} />
       </ListItemIcon>
       {!onMobile && (
-        <ListItemText sx={{ fontSize: '0.875rem' }}>{chainName}</ListItemText>
+        <ListItemText
+          data-cy="header-network"
+          sx={{
+            '& .MuiTypography-root': {
+              fontSize: '0.875rem',
+              lineHeight: '1.5rem',
+              fontWeight: 500,
+            },
+          }}
+        >
+          {chainName}
+        </ListItemText>
       )}
 
       {selected && (

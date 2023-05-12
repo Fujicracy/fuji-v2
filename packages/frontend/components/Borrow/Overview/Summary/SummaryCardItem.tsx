@@ -43,8 +43,8 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
         <Stack
           direction="row"
           alignItems="right"
-          justifyContent={'center-vertical'}
-          sx={{ textAlign: 'right' }}
+          justifyContent="start"
+          sx={{ textAlign: 'left' }}
         >
           <Typography variant="regularH4" mb="0.5rem">
             {amount}

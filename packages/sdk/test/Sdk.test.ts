@@ -6,7 +6,7 @@ import { BigNumber, utils, Wallet } from 'ethers';
 
 import { NATIVE, USDC, VAULT_LIST, WETH9, WNATIVE } from '../src/constants';
 import { Address, BorrowingVault, Token } from '../src/entities';
-import { ChainId, RouterAction } from '../src/enums';
+import { ChainId, PreviewName, RouterAction } from '../src/enums';
 import { Sdk } from '../src/Sdk';
 import {
   BorrowParams,
@@ -119,7 +119,11 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.MATIC);
     });
 
@@ -153,7 +157,11 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      expect(result.success).toBeTruthy();
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
@@ -187,7 +195,10 @@ describe('Sdk', () => {
       const collateralA = WNATIVE[ChainId.OPTIMISM];
       const debtB = USDC[ChainId.OPTIMISM];
 
-      const vaults = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
     });
 
@@ -198,7 +209,10 @@ describe('Sdk', () => {
         .mockImplementation(() => []);
       const collateral = WNATIVE[ChainId.MATIC];
       const debt = new Token(ChainId.MATIC, ADDRESS_BOB, 6, 'Bob');
-      const vaults = await sdk.getBorrowingVaultsFor(collateral, debt);
+      const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+      if (!result.success) return;
+
+      const vaults = result.data;
       expect(vaults.length).toEqual(0);
     });
   });
@@ -361,15 +375,16 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const preview = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.get({
+        name: PreviewName.DEPOSIT_AND_BORROW,
         vault,
-        parseUnits('1'),
-        parseUnits('1', 6),
-        WETH9[ChainId.MATIC],
-        USDC[ChainId.MATIC],
-        Address.from(owner.address),
-        123456789
-      );
+        srcChainId: ChainId.MATIC,
+        amountIn: parseUnits('1'),
+        amountOut: parseUnits('1', 6),
+        tokenIn: WETH9[ChainId.MATIC],
+        tokenOut: USDC[ChainId.MATIC],
+        account: Address.from(owner.address),
+      });
 
       expect(preview.success).toBeTruthy();
       if (!preview.success) return;
@@ -402,15 +417,17 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const preview = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.get({
+        name: PreviewName.DEPOSIT_AND_BORROW,
         vault,
-        parseUnits('1', 6),
-        parseUnits('1'),
-        USDC[ChainId.OPTIMISM],
-        WETH9[ChainId.MATIC],
-        Address.from(owner.address),
-        123456789
-      );
+        srcChainId: ChainId.OPTIMISM,
+        amountOut: parseUnits('1'),
+        amountIn: parseUnits('1', 6),
+        tokenOut: WETH9[ChainId.MATIC],
+        tokenIn: USDC[ChainId.OPTIMISM],
+        account: Address.from(owner.address),
+      });
+
       expect(preview.success).toBeTruthy();
       if (!preview.success) return;
       const { actions } = preview.data;
@@ -437,15 +454,17 @@ describe('Sdk', () => {
 
       const owner = new Wallet(JUNK_KEY);
 
-      const preview = await sdk.previews.depositAndBorrow(
+      const preview = await sdk.previews.get({
+        name: PreviewName.DEPOSIT_AND_BORROW,
         vault,
-        parseUnits('1', 6),
-        parseUnits('1'),
-        USDC[ChainId.OPTIMISM],
-        WETH9[ChainId.MATIC],
-        Address.from(owner.address),
-        123456789
-      );
+        srcChainId: ChainId.OPTIMISM,
+        amountOut: parseUnits('1'),
+        amountIn: parseUnits('1', 6),
+        tokenOut: WETH9[ChainId.MATIC],
+        tokenIn: USDC[ChainId.OPTIMISM],
+        account: Address.from(owner.address),
+      });
+
       expect(preview.success).toBeTruthy();
       if (!preview.success) return;
       const { actions } = preview.data;

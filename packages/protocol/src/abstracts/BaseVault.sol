@@ -580,6 +580,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 shares
   )
     internal
+    virtual
     whenNotPaused(VaultActions.Withdraw)
   {
     _burn(owner, shares);
@@ -769,6 +770,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param receiver address whom spending borrow allowance will be set
    * @param value amount of borrow allowance
    * @param deadline timestamp at when this permit expires
+   * @param actionArgsHash keccak256 of the abi.encoded(args,actions) to be performed in {BaseRouter._internalBundle}
    * @param v signature value
    * @param r signature value
    * @param s signature value
@@ -781,6 +783,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address receiver,
     uint256 value,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s
