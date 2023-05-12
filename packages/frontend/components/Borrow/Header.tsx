@@ -2,6 +2,7 @@ import { Box, Divider, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 
 import { ActionType } from '../../helpers/assets';
+import { wrappedSymbol } from '../../helpers/currencies';
 import { useBorrow } from '../../store/borrow.store';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import SlippageSettings from '../Shared/SlippageSettings';
@@ -60,7 +61,7 @@ function BorrowHeader({
                 fontSize="0.875rem"
                 lineHeight="22.4px"
               >
-                Collateral: {collateral.currency.symbol}
+                Collateral: {wrappedSymbol(collateral.currency)}
               </Typography>
             </Box>
           </Stack>

@@ -42,7 +42,7 @@ import {
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { isSupported, testChains } from '../helpers/chains';
-import { handleCancelableMMActionError } from '../helpers/errors';
+import { handleTransactionError } from '../helpers/errors';
 import {
   dismiss,
   getTransactionLink,
@@ -109,14 +109,23 @@ type BorrowActions = {
   changeAssetChain: (
     type: AssetType,
     chainId: ChainId,
-    updateVault: boolean
+    updateVault: boolean,
+    symbol?: string
   ) => void;
   changeAssetCurrency: (type: AssetType, currency: Currency) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
-  changeDebtChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
+  changeDebtChain: (
+    chainId: ChainId,
+    updateVault: boolean,
+    symbol?: string
+  ) => void; // Convenience
   changeDebtCurrency: (currency: Currency) => void; // Convenience
   changeDebtValue: (val: string) => void; // Convenience
-  changeCollateralChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
+  changeCollateralChain: (
+    chainId: ChainId,
+    updateVault: boolean,
+    symbol?: string
+  ) => void; // Convenience
   changeCollateralCurrency: (currency: Currency) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
   changeActiveVault: (v: BorrowingVault) => void;
@@ -263,7 +272,7 @@ export const useBorrow = create<BorrowStore>()(
           ]);
         },
 
-        changeAssetChain(type, chainId: ChainId, updateVault) {
+        changeAssetChain(type, chainId, updateVault, symbol) {
           if (!isSupported(chainId)) return;
 
           const currencies =
@@ -276,7 +285,7 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = defaultCurrency(currencies);
+              t.currency = defaultCurrency(currencies, symbol);
             })
           );
           get().updateCurrencyPrice(type);
@@ -321,8 +330,8 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId: ChainId, updateVault) {
-          get().changeAssetChain('collateral', chainId, updateVault);
+        changeCollateralChain(chainId, updateVault, symbol) {
+          get().changeAssetChain('collateral', chainId, updateVault, symbol);
         },
 
         changeCollateralCurrency(currency) {
@@ -333,8 +342,8 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAssetValue('collateral', value);
         },
 
-        changeDebtChain(chainId: ChainId, updateVault) {
-          get().changeAssetChain('debt', chainId, updateVault);
+        changeDebtChain(chainId, updateVault, symbol) {
+          get().changeAssetChain('debt', chainId, updateVault, symbol);
         },
 
         changeDebtCurrency(currency) {
@@ -350,6 +359,7 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeActiveVault(vault) {
+          console.log(`changeActiveVault, ${vault.chainId}`);
           const providers = await vault.getProviders();
 
           const ltvMax = vault.maxLtv
@@ -772,10 +782,11 @@ export const useBorrow = create<BorrowStore>()(
             });
           } catch (e) {
             get().changeAllowance(type, 'error');
-            notify({
-              message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
-              type: 'error',
-            });
+            handleTransactionError(
+              e,
+              NOTIFICATION_MESSAGES.TX_CANCELLED,
+              NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE
+            );
           }
         },
 
@@ -810,7 +821,7 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ signature });
           } catch (e) {
-            handleCancelableMMActionError(
+            handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
             );
@@ -877,7 +888,7 @@ export const useBorrow = create<BorrowStore>()(
             }
             return tx;
           } catch (e) {
-            handleCancelableMMActionError(
+            handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.TX_CANCELLED,
               NOTIFICATION_MESSAGES.TX_NOT_SENT

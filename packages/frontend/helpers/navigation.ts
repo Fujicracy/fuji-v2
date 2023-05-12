@@ -1,11 +1,16 @@
-import { BorrowingVault, Currency, VaultWithFinancials } from '@x-fuji/sdk';
+import {
+  BorrowingVault,
+  ChainId,
+  Currency,
+  VaultWithFinancials,
+} from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
 
 import { PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { usePositions } from '../store/positions.store';
-import { chainName, hexToChainId } from './chains';
+import { isSupported } from './chains';
 
 type Page = {
   title: string;
@@ -28,7 +33,7 @@ export const isTopLevelUrl = (url: string) =>
 
 export const showPosition = async (
   router: NextRouter,
-  walletChainId: string | undefined,
+  walletChainId: ChainId | undefined,
   entity?: BorrowingVault | VaultWithFinancials,
   reset = true
 ) => {
@@ -36,10 +41,8 @@ export const showPosition = async (
   if (!vault) return;
 
   const changeAll = useBorrow.getState().changeAll;
-  const isSupported =
-    walletChainId && chainName(hexToChainId(walletChainId)) !== '';
-  if (isSupported) {
-    const collaterals = sdk.getCollateralForChain(Number(walletChainId));
+  if (walletChainId && isSupported(walletChainId)) {
+    const collaterals = sdk.getCollateralForChain(walletChainId);
     const collateralCurrency = collaterals.find(
       (t: Currency) => t.symbol === vault.collateral.symbol
     );

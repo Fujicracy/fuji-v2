@@ -15,12 +15,7 @@ import {
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
-import {
-  chainName,
-  chains,
-  hexToChainId,
-  isSupported,
-} from '../../helpers/chains';
+import { chainName, chains, isSupported } from '../../helpers/chains';
 import { useAuth } from '../../store/auth.store';
 import { NetworkIcon } from './Icons';
 
@@ -28,11 +23,10 @@ function ChainSelect() {
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [hexChainId, setChainId] = useAuth((state) => [
-    state.chain?.id,
+  const [chainId, setChainId] = useAuth((state) => [
+    state.chainId,
     state.changeChain,
   ]);
-  const chainId = hexToChainId(hexChainId);
   const networkName = chainName(chainId);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);

@@ -58,9 +58,13 @@ export enum ActionType {
   REMOVE = 1,
 }
 
-// Idea is to rename to defaultCurrencyForType and having different currencies for debt and collateral
-export const defaultCurrency = (currencies: Currency[]): Currency => {
-  return currencies[0];
+export const defaultCurrency = (
+  currencies: Currency[],
+  symbol?: string
+): Currency => {
+  return (
+    (symbol && currencies.find((c) => c.symbol === symbol)) || currencies[0]
+  );
 };
 
 export const defaultAssetForType = (type: AssetType): AssetChange => {

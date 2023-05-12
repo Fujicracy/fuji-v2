@@ -35,10 +35,9 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   const isLoading = useMarkets((state) => state.loading);
   const vaults = useMarkets((state) => state.vaults);
   const rows = useMarkets((state) => state.rows);
-
   const fetchMarkets = useMarkets((state) => state.fetchMarkets);
 
-  const walletChain = useAuth((state) => state.chain);
+  const walletChainId = useAuth((state) => state.chainId);
 
   useEffect(() => {
     fetchMarkets();
@@ -50,7 +49,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showPosition(router, walletChain?.id as string, entity);
+    showPosition(router, walletChainId, entity);
   };
 
   return (

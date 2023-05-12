@@ -1,6 +1,5 @@
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Button } from '@mui/material';
-import { ConnectedChain } from '@web3-onboard/core';
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
@@ -12,7 +11,7 @@ import {
   Mode,
   needsAllowance,
 } from '../../helpers/assets';
-import { chainName, hexToChainId } from '../../helpers/chains';
+import { chainName } from '../../helpers/chains';
 import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
@@ -22,7 +21,7 @@ type BorrowButtonProps = {
   collateral: AssetChange;
   debt: AssetChange;
   position: Position;
-  walletChain: ConnectedChain | undefined;
+  walletChainId: ChainId | undefined;
   ltvMeta: LtvMeta;
   metaStatus: FetchStatus;
   needsSignature: boolean;
@@ -46,7 +45,7 @@ function BorrowButton({
   collateral,
   debt,
   position,
-  walletChain,
+  walletChainId,
   ltvMeta,
   metaStatus,
   needsSignature,
@@ -142,18 +141,18 @@ function BorrowButton({
     debt.allowance.status === 'allowing'
   ) {
     return loadingButton(false, true);
-  } else if (firstStep && firstStep.chainId !== hexToChainId(walletChain?.id)) {
+  } else if (firstStep && firstStep.chainId !== walletChainId) {
     return regularButton(
       `Switch to ${chainName(firstStep?.chainId)} Network`,
       () => onChainChangeClick(firstStep?.chainId)
     );
   } else if (availableVaultStatus === 'error') {
-    return disabledButton('Error fetching on-chain data');
+    return disabledButton('Unsupported pair');
   } else if (
-    collateral.chainId !== debt.chainId &&
-    debt.currency.symbol === 'DAI'
+    collateral.currency.chainId !== collateral.chainId &&
+    collateral.currency.symbol === 'MaticX'
   ) {
-    return disabledButton('Cross-chain DAI not supported');
+    return disabledButton('MaticX: not supported cross-chain');
   } else if (
     !isEditing &&
     hasBalanceInVault &&
