@@ -2,6 +2,8 @@
 pragma solidity 0.8.15;
 
 import {Test} from "forge-std/Test.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
@@ -81,6 +83,25 @@ contract MockingSetup is CoreRoles, Test {
       DEFAULT_MAX_LTV,
       DEFAULT_LIQ_RATIO
     );
+
+    _initalizeVault(address(vault), address(this));
+  }
+
+  function _initalizeVault(address vault_, address initializer) internal {
+    BorrowingVault bVault = BorrowingVault(payable(vault_));
+    address collatAsset_ = bVault.asset();
+    address debtAsset_ = bVault.debtAsset();
+
+    uint256 minAmount = bVault.minAmount();
+
+    deal(collatAsset_, initializer, minAmount);
+    deal(debtAsset_, initializer, minAmount);
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, minAmount);
+    SafeERC20.safeApprove(IERC20(debtAsset), vault_, minAmount);
+    bVault.initializeVaultShares(minAmount, minAmount);
+    vm.stopPrank();
   }
 
   function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {

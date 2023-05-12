@@ -534,9 +534,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 shares)
   {
     uint256 supply = totalSupply();
-    return (assets == 0 || supply == 0)
-      ? assets
-      : assets.mulDiv(supply, totalAssets_ + 10 ** (decimals()), rounding);
+    return (assets == 0 || supply == 0) ? assets : assets.mulDiv(supply, totalAssets_, rounding);
   }
 
   /**
@@ -558,8 +556,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256 assets)
   {
     uint256 supply = totalSupply();
-    return
-      (supply == 0) ? shares : shares.mulDiv(totalAssets_ + 10 ** (decimals()), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalAssets_, supply, rounding);
   }
 
   /**

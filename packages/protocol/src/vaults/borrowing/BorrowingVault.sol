@@ -572,9 +572,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 shares)
   {
     uint256 supply = debtSharesSupply;
-    return (debt == 0 || supply == 0)
-      ? debt
-      : debt.mulDiv(supply, totalDebt_ + 10 ** (_debtDecimals), rounding);
+    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt_, rounding);
   }
 
   /**
@@ -596,8 +594,7 @@ contract BorrowingVault is BaseVault {
     returns (uint256 assets)
   {
     uint256 supply = debtSharesSupply;
-    return
-      (supply == 0) ? shares : shares.mulDiv(totalDebt_ + 10 ** (_debtDecimals), supply, rounding);
+    return (supply == 0) ? shares : shares.mulDiv(totalDebt_, supply, rounding);
   }
 
   /**
