@@ -19,3 +19,15 @@ export const nativeAndWrappedPair = (list: Currency[]): Currency[] => {
 export const wrappedSymbol = (currency: Currency): string => {
   return currency.isNative ? currency.wrapped.symbol : currency.symbol;
 };
+
+// Temp helper functions
+export const isCurrencyBridgeable = ({ symbol }: Currency): boolean => {
+  return symbol !== 'DAI' && symbol !== 'MaticX';
+};
+
+export const isCurrencyPairBridgeable = (
+  collateral: Currency,
+  debt: Currency
+): boolean => {
+  return isCurrencyBridgeable(collateral) && isCurrencyBridgeable(debt);
+};

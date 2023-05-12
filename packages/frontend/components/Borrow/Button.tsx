@@ -13,6 +13,10 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { chainName, hexToChainId } from '../../helpers/chains';
+import {
+  isCurrencyBridgeable,
+  isCurrencyPairBridgeable,
+} from '../../helpers/currencies';
 import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
@@ -150,10 +154,15 @@ function BorrowButton({
   } else if (availableVaultStatus === 'error') {
     return disabledButton('Unsupported pair');
   } else if (
-    collateral.currency.chainId !== collateral.chainId &&
-    collateral.currency.symbol === 'MaticX'
+    debt.chainId !== collateral.chainId &&
+    !isCurrencyPairBridgeable(collateral.currency, debt.currency)
   ) {
-    return disabledButton('MaticX: not supported cross-chain');
+    const currency = !isCurrencyBridgeable(collateral.currency)
+      ? collateral.currency
+      : debt.currency;
+    return disabledButton(
+      `${currency.name || currency.symbol}: not supported cross-chain`
+    );
   } else if (
     !isEditing &&
     hasBalanceInVault &&
