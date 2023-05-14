@@ -42,7 +42,7 @@ import {
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { isSupported, testChains } from '../helpers/chains';
-import { handleCancelableMMActionError } from '../helpers/errors';
+import { handleTransactionError } from '../helpers/errors';
 import {
   dismiss,
   getTransactionLink,
@@ -358,6 +358,7 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeActiveVault(vault) {
+          console.log(`changeActiveVault, ${vault.chainId}`);
           const providers = await vault.getProviders();
 
           const ltvMax = vault.maxLtv
@@ -780,10 +781,11 @@ export const useBorrow = create<BorrowStore>()(
             });
           } catch (e) {
             get().changeAllowance(type, 'error');
-            notify({
-              message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
-              type: 'error',
-            });
+            handleTransactionError(
+              e,
+              NOTIFICATION_MESSAGES.TX_CANCELLED,
+              NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE
+            );
           }
         },
 
@@ -818,7 +820,7 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ signature });
           } catch (e) {
-            handleCancelableMMActionError(
+            handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
             );
@@ -885,7 +887,7 @@ export const useBorrow = create<BorrowStore>()(
             }
             return tx;
           } catch (e) {
-            handleCancelableMMActionError(
+            handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.TX_CANCELLED,
               NOTIFICATION_MESSAGES.TX_NOT_SENT

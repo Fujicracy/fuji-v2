@@ -1,9 +1,5 @@
 import { ConnectOptions } from '@web3-onboard/core';
-import {
-  Balances,
-  ConnectedChain,
-  WalletState,
-} from '@web3-onboard/core/dist/types';
+import { Balances, WalletState } from '@web3-onboard/core/dist/types';
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
 import produce from 'immer';
@@ -11,7 +7,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { web3onboard } from '../helpers/auth';
-import { chainIdToHex } from '../helpers/chains';
+import { chainIdToHex, hexToChainId } from '../helpers/chains';
 
 export const onboard = web3onboard;
 
@@ -33,7 +29,7 @@ type AuthState = {
   address?: string;
   ens?: string;
   balance?: Balances;
-  chain?: ConnectedChain;
+  chainId?: ChainId;
   provider?: ethers.providers.Web3Provider;
   walletName?: string;
 };
@@ -84,14 +80,14 @@ export const useAuth = create<AuthStore>()(
         const balance = wallets[0].accounts[0].balance;
         const ens = wallets[0].accounts[0].ens?.name;
         const address = utils.getAddress(wallets[0].accounts[0].address);
-        const chain = wallets[0].chains[0];
+        const chainId = hexToChainId(wallets[0].chains[0]?.id);
         const provider = new ethers.providers.Web3Provider(wallets[0].provider);
 
         set({
           status: AuthStatus.Connected,
           address,
           balance,
-          chain,
+          chainId,
           ens,
           provider,
         });
