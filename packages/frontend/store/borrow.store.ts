@@ -42,7 +42,7 @@ import {
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { isSupported, testChains } from '../helpers/chains';
-import { isCurrencyBridgeable } from '../helpers/currencies';
+import { isBridgeable } from '../helpers/currencies';
 import { handleTransactionError } from '../helpers/errors';
 import {
   dismiss,
@@ -281,16 +281,14 @@ export const useBorrow = create<BorrowStore>()(
               : sdk.getCollateralForChain(chainId);
 
           if (
-            get().formType !== 'create' &&
+            get().formType === 'edit' &&
             currency &&
-            (!isCurrencyBridgeable(currency) ||
-              !currencies.some((c) => c.symbol === currency.symbol))
+            (!isBridgeable(currency) ||
+              !currencies.find((c) => c.symbol === currency.symbol))
           ) {
             notify({
               type: 'error',
-              message: `${
-                currency.name || currency.symbol
-              } not supported cross-chain`,
+              message: `${currency.symbol} not supported cross-chain.`,
             });
             return;
           }
@@ -299,7 +297,7 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = defaultCurrency(currencies, currency?.symbol);
+              t.currency = defaultCurrency(currencies, currency);
             })
           );
           get().updateCurrencyPrice(type);

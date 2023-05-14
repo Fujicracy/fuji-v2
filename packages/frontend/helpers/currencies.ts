@@ -21,13 +21,6 @@ export const wrappedSymbol = (currency: Currency): string => {
 };
 
 // Temp helper functions
-export const isCurrencyBridgeable = ({ symbol }: Currency): boolean => {
+export const isBridgeable = ({ symbol }: Currency): boolean => {
   return symbol !== 'DAI' && symbol !== 'MaticX';
-};
-
-export const isCurrencyPairBridgeable = (
-  collateral: Currency,
-  debt: Currency
-): boolean => {
-  return isCurrencyBridgeable(collateral) && isCurrencyBridgeable(debt);
 };

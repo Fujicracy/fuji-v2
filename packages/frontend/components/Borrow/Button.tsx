@@ -1,7 +1,7 @@
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Button } from '@mui/material';
 import { ConnectedChain } from '@web3-onboard/core';
-import { ChainId } from '@x-fuji/sdk';
+import { ChainId, RoutingStep } from '@x-fuji/sdk';
 import React from 'react';
 
 import { MINIMUM_DEBT_AMOUNT } from '../../constants';
@@ -13,10 +13,7 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { chainName, hexToChainId } from '../../helpers/chains';
-import {
-  isCurrencyBridgeable,
-  isCurrencyPairBridgeable,
-} from '../../helpers/currencies';
+import { isBridgeable } from '../../helpers/currencies';
 import { TransactionMeta } from '../../helpers/transactions';
 import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
@@ -139,6 +136,9 @@ function BorrowButton({
   );
 
   const firstStep = transactionMeta.steps[0];
+  const bridgeStep = transactionMeta.steps.find(
+    (s) => s.step === RoutingStep.X_TRANSFER
+  );
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
   } else if (
@@ -153,15 +153,9 @@ function BorrowButton({
     );
   } else if (availableVaultStatus === 'error') {
     return disabledButton('Unsupported pair');
-  } else if (
-    debt.chainId !== collateral.chainId &&
-    !isCurrencyPairBridgeable(collateral.currency, debt.currency)
-  ) {
-    const currency = !isCurrencyBridgeable(collateral.currency)
-      ? collateral.currency
-      : debt.currency;
+  } else if (bridgeStep?.token && !isBridgeable(bridgeStep.token)) {
     return disabledButton(
-      `${currency.name || currency.symbol}: not supported cross-chain`
+      `${bridgeStep.token.symbol}: not supported cross-chain`
     );
   } else if (
     !isEditing &&
