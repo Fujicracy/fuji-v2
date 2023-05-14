@@ -26,7 +26,7 @@ import { shallow } from 'zustand/shallow';
 
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
-import { useAuth } from '../../../store/auth.store';
+import { AuthStatus, useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
 import AccountModal from '../AccountModal/AccountModal';
 import ChainSelect from '../ChainSelect';
@@ -176,7 +176,7 @@ const Header = () => {
                   alignItems: 'center',
                 }}
               >
-                {status === 'disconnected' && (
+                {status === AuthStatus.Disconnected && (
                   <>
                     <Chip
                       data-cy="header-login"
@@ -192,7 +192,7 @@ const Header = () => {
                     />
                   </>
                 )}
-                {status === 'connected' && <ChainSelect />}
+                {status === AuthStatus.Connected && <ChainSelect />}
 
                 <IconButton
                   aria-label="account of current user"
@@ -314,7 +314,7 @@ const Header = () => {
             alignItems="center"
             sx={{ display: { xs: 'none', md: 'flex' } }}
           >
-            {status === 'disconnected' && (
+            {status === AuthStatus.Disconnected && (
               <>
                 <Chip
                   label="Connect wallet"
@@ -329,7 +329,7 @@ const Header = () => {
                 />
               </>
             )}
-            {status === 'connected' && address && (
+            {status === AuthStatus.Connected && address && (
               <>
                 <Grid item>
                   <ChainSelect />

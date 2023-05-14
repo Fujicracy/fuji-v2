@@ -7,7 +7,7 @@ import {
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
 import produce from 'immer';
-import { create, StoreApi } from 'zustand';
+import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { web3onboard } from '../helpers/auth';
@@ -21,15 +21,21 @@ type OnboardStatus = {
   isExploreInfoSkipped?: boolean;
 };
 
+export enum AuthStatus {
+  Initial,
+  Connected,
+  Disconnected,
+}
+
 type AuthState = {
-  status: 'initial' | 'connected' | 'disconnected';
-  address: string | undefined;
-  ens: string | undefined;
-  balance: Balances | undefined;
-  chain: ConnectedChain | undefined;
-  provider: ethers.providers.Web3Provider | undefined;
-  walletName: string | undefined;
+  status: AuthStatus;
   started: boolean;
+  address?: string;
+  ens?: string;
+  balance?: Balances;
+  chain?: ConnectedChain;
+  provider?: ethers.providers.Web3Provider;
+  walletName?: string;
 };
 
 type AuthActions = {
@@ -49,13 +55,7 @@ type AuthActions = {
 type AuthStore = AuthState & AuthActions;
 
 const initialState: AuthState = {
-  status: 'initial',
-  address: undefined,
-  ens: undefined,
-  balance: undefined,
-  chain: undefined,
-  provider: undefined,
-  walletName: undefined,
+  status: AuthStatus.Initial,
   started: false,
 };
 
@@ -65,8 +65,19 @@ export const useAuth = create<AuthStore>()(
       ...initialState,
 
       init: async () => {
-        reconnect(set, get);
         set({ started: true });
+
+        const previouslyConnectedWallets =
+          localStorage.getItem('connectedWallets');
+
+        if (!previouslyConnectedWallets) {
+          set({ status: AuthStatus.Disconnected });
+          return;
+        }
+        const wallets = JSON.parse(previouslyConnectedWallets);
+        get().login({
+          autoSelect: { label: wallets[0], disableModals: true },
+        });
       },
 
       changeWallet(wallets) {
@@ -76,7 +87,14 @@ export const useAuth = create<AuthStore>()(
         const chain = wallets[0].chains[0];
         const provider = new ethers.providers.Web3Provider(wallets[0].provider);
 
-        set({ status: 'connected', address, balance, chain, ens, provider });
+        set({
+          status: AuthStatus.Connected,
+          address,
+          balance,
+          chain,
+          ens,
+          provider,
+        });
 
         const json = JSON.stringify(wallets.map(({ label }) => label));
         localStorage.setItem('connectedWallets', json);
@@ -88,7 +106,7 @@ export const useAuth = create<AuthStore>()(
             if (
               !wallets[0] ||
               !wallets[0].accounts[0] ||
-              get().status === 'disconnected'
+              get().status === AuthStatus.Disconnected
             ) {
               return;
             }
@@ -134,7 +152,7 @@ export const useAuth = create<AuthStore>()(
         const wallets = await onboard.connectWallet(options);
 
         if (!wallets[0] || !wallets[0].accounts[0]) {
-          set({ status: 'disconnected' });
+          set({ status: AuthStatus.Disconnected });
           return;
         }
         get().changeWallet(wallets);
@@ -148,7 +166,7 @@ export const useAuth = create<AuthStore>()(
 
         localStorage.removeItem('connectedWallets');
 
-        set({ ...initialState, status: 'disconnected' });
+        set({ ...initialState, status: AuthStatus.Disconnected });
       },
 
       acceptTermsOfUse: () => {
@@ -203,18 +221,3 @@ export const useAuth = create<AuthStore>()(
     }
   )
 );
-
-function reconnect(
-  set: StoreApi<AuthState & AuthActions>['setState'],
-  get: StoreApi<AuthState & AuthActions>['getState']
-) {
-  const previouslyConnectedWallets = localStorage.getItem('connectedWallets');
-
-  if (!previouslyConnectedWallets) {
-    return set({ status: 'disconnected' });
-  }
-  const wallets = JSON.parse(previouslyConnectedWallets);
-  get().login({
-    autoSelect: { label: wallets[0], disableModals: true },
-  });
-}
