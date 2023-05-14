@@ -2,7 +2,6 @@ import { NextPage } from 'next';
 import { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
-import { hexToChainId } from '../helpers/chains';
 import { useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
 
@@ -15,7 +14,7 @@ const BorrowPage: NextPage = () => {
 
   const allowChainOverride = useBorrow((state) => state.allowChainOverride);
 
-  const walletChain = useAuth((state) => state.chain);
+  const chainId = useAuth((state) => state.chainId);
   const [hasChain, setHasChain] = useState(false);
 
   useEffect(() => {
@@ -23,9 +22,8 @@ const BorrowPage: NextPage = () => {
   }, [changeFormType]);
 
   useEffect(() => {
-    if (walletChain && !hasChain) {
+    if (chainId && !hasChain) {
       setHasChain(true);
-      const chainId = hexToChainId(walletChain.id);
       if (!allowChainOverride || !chainId) return;
       changeCollateralChain(chainId, false);
       changeDebtChain(chainId, true);
@@ -33,7 +31,7 @@ const BorrowPage: NextPage = () => {
   }, [
     allowChainOverride,
     hasChain,
-    walletChain,
+    chainId,
     changeCollateralChain,
     changeDebtChain,
   ]);

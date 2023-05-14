@@ -371,6 +371,7 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeActiveVault(vault) {
+          console.log(`changeActiveVault, ${vault.chainId}`);
           const providers = await vault.getProviders();
 
           const ltvMax = vault.maxLtv
