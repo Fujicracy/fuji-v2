@@ -157,7 +157,10 @@ function BorrowButton({
     return regularButton('Manage position', () => {
       onRedirectClick(false);
     });
-  } else if (firstStep?.chainId !== hexToChainId(walletChain?.id)) {
+  } else if (
+    firstStep &&
+    firstStep?.chainId !== hexToChainId(walletChain?.id)
+  ) {
     return regularButton(
       `Switch to ${chainName(firstStep?.chainId)} Network`,
       () => onChainChangeClick(firstStep?.chainId)
