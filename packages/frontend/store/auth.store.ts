@@ -2,7 +2,6 @@ import { ConnectOptions } from '@web3-onboard/core';
 import { Balances, WalletState } from '@web3-onboard/core/dist/types';
 import { ChainId } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
-import produce from 'immer';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -31,9 +30,9 @@ type AuthState = {
 type AuthActions = {
   login: (options?: ConnectOptions) => void;
   changeWallet: (wallets: WalletState[]) => void;
-  updateWallet: (wallets: WalletState[]) => void;
   init: () => void;
   logout: () => void;
+  disconnect: () => void;
   changeChain: (chainId: ChainId) => void;
 };
 
@@ -85,54 +84,6 @@ export const useAuth = create<AuthStore>()(
         localStorage.setItem('connectedWallets', json);
       },
 
-      updateWallet(wallets) {
-        set(
-          produce((state) => {
-            if (
-              !wallets[0] ||
-              !wallets[0].accounts[0] ||
-              get().status === AuthStatus.Disconnected
-            ) {
-              return;
-            }
-
-            const chain = wallets[0].chains[0];
-            if (chain.id !== state.chain?.id) {
-              state.chain = chain;
-            }
-
-            const balance = wallets[0].accounts[0].balance;
-            if (balance && balance !== get().balance) {
-              state.balance = balance;
-            }
-
-            const address = wallets[0].accounts[0].address;
-            if (address && address !== get().address) {
-              state.address = utils.getAddress(address);
-            }
-
-            // TODO: how to !== new provider from old ?
-            const provider = new ethers.providers.Web3Provider(
-              wallets[0].provider
-            );
-            if (provider) {
-              state.provider = provider;
-            }
-
-            const ens = wallets[0].accounts[0].ens?.name;
-            if (ens !== get().ens) {
-              state.ens = ens;
-            }
-
-            const walletName = wallets[0].label;
-
-            if (walletName) {
-              state.walletName = walletName;
-            }
-          })
-        );
-      },
-
       login: async (options) => {
         const wallets = await onboard.connectWallet(options);
 
@@ -148,9 +99,11 @@ export const useAuth = create<AuthStore>()(
         for (const { label } of wallets) {
           await onboard.disconnectWallet({ label });
         }
+        get().disconnect();
+      },
 
+      disconnect() {
         localStorage.removeItem('connectedWallets');
-
         set({ ...initialState, status: AuthStatus.Disconnected });
       },
 
