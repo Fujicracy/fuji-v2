@@ -24,6 +24,7 @@ import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
@@ -50,9 +51,6 @@ const Header = () => {
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
 
-  const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
-  const dismissBanner = useAuth((state) => state.dismissBanner);
-
   const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
       status: state.status,
@@ -75,7 +73,7 @@ const Header = () => {
     );
 
     setBanners(filteredBanners);
-  }, [getBannerVisibility]);
+  }, []);
 
   const isPageActive = useCallback(
     (path: string) => {
