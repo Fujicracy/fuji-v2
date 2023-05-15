@@ -12,4 +12,7 @@ describe('Borrow', () => {
       .last()
       .should('contain.text', 'Optimism');
   });
+  it('should not show routes button', () => {
+    cy.get('[data-cy="borrow-routes-button"]').should('not.exist');
+  });
 });
