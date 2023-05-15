@@ -7,3 +7,7 @@ Cypress.Commands.add('dismissDisclaimer', () => {
   cy.get(`[data-cy="disclaimer-button"]`).click({ force: true });
   cy.get(`[data-cy="skip-explore"]`).click({ force: true });
 });
+
+Cypress.Commands.add('login', () => {
+    cy.get('[data-cy="header-login"]').click({ force: true });
+});

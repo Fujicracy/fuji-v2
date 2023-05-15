@@ -18,7 +18,7 @@ describe('Account', () => {
       .and('contain.text', 'Connect wallet');
   });
   it('should login', () => {
-    cy.get('[data-cy="header-login"]').click({ force: true });
+    cy.login();
     cy.acceptMetamaskAccess().then((connected) => {
       expect(connected).to.be.true;
     });

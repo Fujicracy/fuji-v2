@@ -2,7 +2,7 @@ describe('Borrow', () => {
   before(() => {
     cy.visit('/borrow');
     cy.dismissDisclaimer();
-    cy.get('[data-cy="header-login"]').click({ force: true });
+    cy.login();
   });
   it('should load right chain', () => {
     cy.get('[data-cy="borrow-chain-select"]')
