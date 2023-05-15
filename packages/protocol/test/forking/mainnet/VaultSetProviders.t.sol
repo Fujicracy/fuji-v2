@@ -35,6 +35,8 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
     providers[0] = aaveV3; // activeProvider
     providers[1] = aaveV2;
 
+    // Using USDT as the debt asset.
+    // because USDT reverts on approve if they already have an allowance
     debtAsset = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     deploy(providers);
   }
