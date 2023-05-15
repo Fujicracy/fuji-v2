@@ -4,27 +4,27 @@ import React from 'react';
 import { MarketRowStatus } from '../../../helpers/markets';
 import { ProviderIcon } from '../Icons';
 
-function IntegratedProtocols({
-  protocols,
-}: {
-  protocols: {
+type IntegratedProvidersProps = {
+  providers: {
     status: MarketRowStatus;
     value: string[];
   };
-}) {
+};
+
+function IntegratedProviders({ providers }: IntegratedProvidersProps) {
   return (
     <>
-      {protocols.status === MarketRowStatus.Ready && (
+      {providers.status === MarketRowStatus.Ready && (
         <Stack
           direction="row"
           justifyContent="right"
           alignItems="center"
           flexWrap="nowrap"
           sx={{
-            mr: protocols.value.length > 1 ? '-0.25rem' : '0',
+            mr: providers.value.length > 1 ? '-0.25rem' : '0',
           }}
         >
-          {protocols.value.map((name, i) => (
+          {providers.value.map((name, i) => (
             <Tooltip key={name} title={name} arrow>
               <Box
                 sx={{
@@ -40,11 +40,11 @@ function IntegratedProtocols({
               </Box>
             </Tooltip>
           ))}
-          {protocols.value.length >= 4 && (
+          {providers.value.length >= 4 && (
             <Chip
               label={
                 <Stack direction="row" justifyContent="center">
-                  +{protocols.value.length - 3}
+                  +{providers.value.length - 3}
                 </Stack>
               }
               variant="number"
@@ -56,4 +56,4 @@ function IntegratedProtocols({
   );
 }
 
-export default IntegratedProtocols;
+export default IntegratedProviders;

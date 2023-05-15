@@ -4,9 +4,11 @@ import { formatUnits } from 'ethers/lib/utils';
 
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
-import APRTooltip from '../../Shared/Tooltips/APRTooltip';
-import ProvidersTooltip from '../../Shared/Tooltips/ProvidersTooltip';
-import TooltipWrapper from '../../Shared/Tooltips/TooltipWrapper';
+import {
+  APRTooltip,
+  ProvidersTooltip,
+  TooltipWrapper,
+} from '../../Shared/Tooltips';
 
 type DetailsProps = {
   ltv: number;

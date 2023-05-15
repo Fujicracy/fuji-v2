@@ -20,8 +20,7 @@ import { showPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import SizableTableCell from '../Shared/SizableTableCell';
-import { DocsTooltip } from '../Shared/Tooltips';
-import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import { DocsTooltip, RebalanceTooltip } from '../Shared/Tooltips';
 import { MarketFilters } from './MarketFiltersHeader';
 import MarketsTableRow from './MarketsTableRow';
 
@@ -94,7 +93,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
                 //   )
                 // }
               >
-                <span>Borrow APR</span>
+                Borrow APR
                 {/* {appSorting === "descending" ? (
                   <KeyboardArrowUpIcon
                     sx={{ color: palette.info.main, fontSize: "0.875rem" }}
@@ -110,19 +109,9 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
               Collateral APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing="0.0rem"
-                justifyContent="right"
-              >
-                <InfoTooltip
-                  title={
-                    'In the background, Fuji rebalances between these protocols to provide the best terms.'
-                  }
-                  isLeft
-                />
-                <span>Protocols</span>
+              <Stack direction="row" alignItems="center" justifyContent="right">
+                <RebalanceTooltip />
+                Protocols
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px">
@@ -133,7 +122,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
                 justifyContent="right"
               >
                 <DocsTooltip />
-                <span>Safety Rating</span>
+                Safety Rating
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">

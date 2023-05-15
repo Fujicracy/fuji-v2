@@ -7,7 +7,7 @@ import { useBorrow } from '../../store/borrow.store';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import SlippageSettings from '../Shared/SlippageSettings';
 import TabChip from '../Shared/TabChip';
-import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
+import { TooltipWrapper } from '../Shared/Tooltips';
 
 type BorrowHeaderProps = {
   isEditing: boolean;

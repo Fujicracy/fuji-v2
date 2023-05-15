@@ -50,7 +50,7 @@ export type MarketRow = {
     value: number;
   };
 
-  integratedProtocols: {
+  integratedProviders: {
     status: MarketRowStatus;
     value: string[];
   };
@@ -100,7 +100,7 @@ const defaultRow: MarketRow = {
     status: MarketRowStatus.Loading,
     value: 0,
   },
-  integratedProtocols: {
+  integratedProviders: {
     status: MarketRowStatus.Loading,
     value: [],
   },
@@ -152,7 +152,7 @@ export const setFinancials = (
     status,
     value: f?.activeProvider.borrowAprBase ?? 0,
   },
-  integratedProtocols: {
+  integratedProviders: {
     status,
     value: f?.allProviders.map((p) => p.name) ?? [],
   },
@@ -322,8 +322,8 @@ export function filterMarketRows(
           .toLowerCase()
           .includes(filters.searchQuery.toLowerCase()) ||
           row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-          row.integratedProtocols.value.some((protocol) =>
-            protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
+          row.integratedProviders.value.some((provider) =>
+            provider.toLowerCase().includes(filters.searchQuery.toLowerCase())
           ));
 
       if (chainMatch && (!filters.searchQuery || searchQueryMatch)) {

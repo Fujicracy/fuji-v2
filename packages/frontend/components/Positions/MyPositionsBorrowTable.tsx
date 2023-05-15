@@ -26,9 +26,9 @@ import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
-import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
+import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
-import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import { InfoTooltip, RebalanceTooltip } from '../Shared/Tooltips';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
 
@@ -148,8 +148,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                 </Typography>
               </TableCell>
               <TableCell align="right">
-                <IntegratedProtocols
-                  protocols={{
+                <IntegratedProviders
+                  providers={{
                     status: 0,
                     value: row.activeProvidersNames || [],
                   }}
@@ -197,12 +197,7 @@ function MyPositionsBorrowTableHeader() {
         <TableCell align="center">Borrow APR</TableCell>
         <TableCell align="right">
           <Stack direction="row" alignItems="center" justifyContent="right">
-            <InfoTooltip
-              title={
-                'In the background, Fuji rebalances between these protocols to provide the best terms.'
-              }
-              isLeft
-            />
+            <RebalanceTooltip />
             Protocols
           </Stack>
         </TableCell>

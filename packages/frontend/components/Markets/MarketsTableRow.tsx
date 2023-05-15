@@ -20,7 +20,7 @@ import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
-import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
+import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
 import BestLabel from './BestLabel';
 
@@ -207,9 +207,9 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
-          {loaderOrError(row.integratedProtocols.status)}
+          {loaderOrError(row.integratedProviders.status)}
           {!expandRow && (
-            <IntegratedProtocols protocols={row.integratedProtocols} />
+            <IntegratedProviders providers={row.integratedProviders} />
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
