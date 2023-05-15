@@ -42,6 +42,7 @@ import {
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { isSupported, testChains } from '../helpers/chains';
+import { isBridgeable } from '../helpers/currencies';
 import { handleTransactionError } from '../helpers/errors';
 import {
   dismiss,
@@ -109,21 +110,21 @@ type BorrowActions = {
     type: AssetType,
     chainId: ChainId,
     updateVault: boolean,
-    symbol?: string
+    currency?: Currency
   ) => void;
   changeAssetCurrency: (type: AssetType, currency: Currency) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
   changeDebtChain: (
     chainId: ChainId,
     updateVault: boolean,
-    symbol?: string
+    currency?: Currency
   ) => void; // Convenience
   changeDebtCurrency: (currency: Currency) => void; // Convenience
   changeDebtValue: (val: string) => void; // Convenience
   changeCollateralChain: (
     chainId: ChainId,
     updateVault: boolean,
-    symbol?: string
+    currency?: Currency
   ) => void; // Convenience
   changeCollateralCurrency: (currency: Currency) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
@@ -271,7 +272,7 @@ export const useBorrow = create<BorrowStore>()(
           ]);
         },
 
-        changeAssetChain(type, chainId, updateVault, symbol) {
+        changeAssetChain(type, chainId, updateVault, currency) {
           if (!isSupported(chainId)) return;
 
           const currencies =
@@ -279,12 +280,24 @@ export const useBorrow = create<BorrowStore>()(
               ? sdk.getDebtForChain(chainId)
               : sdk.getCollateralForChain(chainId);
 
+          if (
+            get().formType === 'edit' &&
+            currency &&
+            (!isBridgeable(currency) ||
+              !currencies.find((c) => c.symbol === currency.symbol))
+          ) {
+            notify({
+              type: 'error',
+              message: `${currency.symbol} not supported cross-chain.`,
+            });
+            return;
+          }
           set(
             produce((state: BorrowState) => {
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = defaultCurrency(currencies, symbol);
+              t.currency = defaultCurrency(currencies, currency);
             })
           );
           get().updateCurrencyPrice(type);
@@ -329,8 +342,8 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId, updateVault, symbol) {
-          get().changeAssetChain('collateral', chainId, updateVault, symbol);
+        changeCollateralChain(chainId, updateVault, currency) {
+          get().changeAssetChain('collateral', chainId, updateVault, currency);
         },
 
         changeCollateralCurrency(currency) {
@@ -341,8 +354,8 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAssetValue('collateral', value);
         },
 
-        changeDebtChain(chainId, updateVault, symbol) {
-          get().changeAssetChain('debt', chainId, updateVault, symbol);
+        changeDebtChain(chainId, updateVault, currency) {
+          get().changeAssetChain('debt', chainId, updateVault, currency);
         },
 
         changeDebtCurrency(currency) {

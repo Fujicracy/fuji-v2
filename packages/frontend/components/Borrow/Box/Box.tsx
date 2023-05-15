@@ -79,12 +79,8 @@ function BorrowBox({
         disabled={isExecuting}
         onChange={(chainId) =>
           type === 'collateral'
-            ? changeCollateralChain(
-                chainId,
-                !isEditing,
-                assetChange.currency.symbol
-              )
-            : changeDebtChain(chainId, !isEditing, assetChange.currency.symbol)
+            ? changeCollateralChain(chainId, !isEditing, assetChange.currency)
+            : changeDebtChain(chainId, !isEditing, assetChange.currency)
         }
       />
       <CurrencyCard
