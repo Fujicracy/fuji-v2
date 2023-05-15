@@ -11,6 +11,13 @@ import xdefiWalletModule from '@web3-onboard/xdefi';
 
 import { FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
+
+type OnboardStatus = {
+  hasAcceptedTerms: boolean;
+  date?: Date | string;
+  isExploreInfoSkipped?: boolean;
+};
+
 const wcV1InitOptions: WalletConnectOptions = {
   version: 1,
   qrcodeModalOptions: {
@@ -65,3 +72,44 @@ export const web3onboard = Onboard({
   },
   theme: 'dark',
 });
+
+export function acceptTermsOfUse() {
+  const onboardStatus: OnboardStatus = {
+    hasAcceptedTerms: true,
+    date: new Date().toJSON(),
+  };
+  const json = JSON.stringify(onboardStatus);
+  localStorage.setItem('termsAccepted', json);
+}
+
+export function getOnboardStatus(): OnboardStatus {
+  const onboardStatusJson = localStorage.getItem('termsAccepted');
+  if (!onboardStatusJson) return { hasAcceptedTerms: false };
+
+  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+
+  return {
+    hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
+    date: onboardStatus.date && new Date(onboardStatus.date),
+    isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
+  };
+}
+
+export function setExploreInfoSkipped(isExploreInfoSkipped: boolean) {
+  const onboardStatusJson = localStorage.getItem('termsAccepted');
+  if (!onboardStatusJson) return;
+
+  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+
+  const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
+  localStorage.setItem('termsAccepted', json);
+}
+
+export function dismissBanner(key: string): void {
+  localStorage.setItem(`${key}BannerDismissed`, 'true');
+}
+
+export function getBannerVisibility(key: string): boolean {
+  const statusJson = localStorage.getItem(`${key}BannerDismissed`);
+  return !statusJson || statusJson !== 'true';
+}

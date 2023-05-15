@@ -8,7 +8,7 @@ import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
-import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
+import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
 import Notification from '../components/Shared/Notification';
 import { PATH } from '../constants';
 import {
@@ -120,7 +120,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               isHistoricalTransaction={isHistoricalTransaction}
             />
           )}
-          <SafetyNoticeModal />
+          <DisclaimerModal />
           <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>

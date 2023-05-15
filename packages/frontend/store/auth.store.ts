@@ -11,12 +11,6 @@ import { chainIdToHex, hexToChainId } from '../helpers/chains';
 
 export const onboard = web3onboard;
 
-type OnboardStatus = {
-  hasAcceptedTerms: boolean;
-  date?: Date | string;
-  isExploreInfoSkipped?: boolean;
-};
-
 export enum AuthStatus {
   Initial,
   Connected,
@@ -40,11 +34,6 @@ type AuthActions = {
   updateWallet: (wallets: WalletState[]) => void;
   init: () => void;
   logout: () => void;
-  acceptTermsOfUse: () => void;
-  getOnboardStatus: () => OnboardStatus;
-  dismissBanner: (key: string) => void;
-  getBannerVisibility: (key: string) => boolean;
-  setExploreInfoSkipped: (value: boolean) => void;
   changeChain: (chainId: ChainId) => void;
 };
 
@@ -163,47 +152,6 @@ export const useAuth = create<AuthStore>()(
         localStorage.removeItem('connectedWallets');
 
         set({ ...initialState, status: AuthStatus.Disconnected });
-      },
-
-      acceptTermsOfUse: () => {
-        const onboardStatus: OnboardStatus = {
-          hasAcceptedTerms: true,
-          date: new Date().toJSON(),
-        };
-        const json = JSON.stringify(onboardStatus);
-        localStorage.setItem('termsAccepted', json);
-      },
-
-      getOnboardStatus: (): OnboardStatus => {
-        const onboardStatusJson = localStorage.getItem('termsAccepted');
-        if (!onboardStatusJson) return { hasAcceptedTerms: false };
-
-        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
-
-        return {
-          hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
-          date: onboardStatus.date && new Date(onboardStatus.date),
-          isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
-        };
-      },
-
-      setExploreInfoSkipped: (isExploreInfoSkipped: boolean) => {
-        const onboardStatusJson = localStorage.getItem('termsAccepted');
-        if (!onboardStatusJson) return;
-
-        const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
-
-        const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
-        localStorage.setItem('termsAccepted', json);
-      },
-
-      dismissBanner: (key: string): void => {
-        localStorage.setItem(`${key}BannerDismissed`, 'true');
-      },
-
-      getBannerVisibility: (key: string): boolean => {
-        const statusJson = localStorage.getItem(`${key}BannerDismissed`);
-        return !statusJson || statusJson !== 'true';
       },
 
       changeChain: async (chainId) => {
