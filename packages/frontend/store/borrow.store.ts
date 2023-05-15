@@ -371,7 +371,6 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeActiveVault(vault) {
-          console.log(`changeActiveVault, ${vault.chainId}`);
           const providers = await vault.getProviders();
 
           const ltvMax = vault.maxLtv
@@ -499,7 +498,6 @@ export const useBorrow = create<BorrowStore>()(
         async updateAllowance(type) {
           const currency = get().assetForType(type).currency;
           const address = useAuth.getState().address;
-          console.log(address, currency);
 
           if (!address) {
             return;
@@ -511,14 +509,12 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAllowance(type, 'fetching');
           try {
             if (!(currency instanceof Token)) {
-              console.log('llll');
               return;
             }
             const res = await sdk.getAllowanceFor(
               currency,
               Address.from(address)
             );
-            console.log(res);
 
             const currentCurrency = get().assetForType(type).currency;
             if (
@@ -528,7 +524,6 @@ export const useBorrow = create<BorrowStore>()(
               return;
 
             const value = parseFloat(formatUnits(res, currency.decimals));
-            console.log(value);
             get().changeAllowance(type, 'ready', value);
           } catch (e) {
             // TODO: how to handle the case where we can't fetch allowance ?
@@ -882,8 +877,6 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
           const txRequest = result.data;
-
-          console.log(txRequest.data);
 
           try {
             const signer = provider.getSigner();
