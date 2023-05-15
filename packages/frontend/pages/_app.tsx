@@ -33,9 +33,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const isHistoricalTransaction = useHistory(
     (state) => state.isHistoricalTransaction
   );
-  const ongoingTransactions = useHistory((state) => state.ongoingTransactions);
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
+  const closeModal = useHistory((state) => state.closeModal);
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
@@ -63,7 +63,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       watchAll(address);
     }
     prevAddressRef.current = address;
-  }, [address, ongoingTransactions, watchAll]);
+  }, [address, watchAll]);
+
+  useEffect(() => {
+    if (
+      currentTxHash &&
+      ((address && prevAddressRef.current !== address) ||
+        (!address && prevAddressRef.current))
+    ) {
+      closeModal(); // Makes sure the modal is closed when the user changes address
+    }
+  }, [address, currentTxHash, closeModal]);
 
   useEffect(() => {
     if (address) {
