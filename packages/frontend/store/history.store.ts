@@ -55,6 +55,10 @@ type HistoryActions = {
   watch: (transaction: HistoryTransaction) => void;
   clearStore: () => void;
 
+  changeTxHash: (
+    currentTxHash: string,
+    isHistoricalTransaction?: boolean
+  ) => void;
   openModal: (hash: string, isHistorical?: boolean) => void;
   closeModal: () => void;
 };
@@ -428,12 +432,16 @@ export const useHistory = create<HistoryStore>()(
           });
         },
 
+        changeTxHash(currentTxHash, isHistoricalTransaction) {
+          set({ currentTxHash, isHistoricalTransaction });
+        },
+
         openModal(hash, isHistorical = false) {
-          set({ currentTxHash: hash, isHistoricalTransaction: isHistorical });
+          get().changeTxHash(hash, isHistorical);
         },
 
         closeModal() {
-          set({ currentTxHash: '', isHistoricalTransaction: false });
+          get().changeTxHash('', false);
         },
       }),
       {
