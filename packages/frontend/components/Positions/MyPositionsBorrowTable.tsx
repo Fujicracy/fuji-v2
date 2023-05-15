@@ -151,7 +151,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                 <IntegratedProtocols
                   protocols={{
                     status: 0,
-                    value: [row.activeProviderName || ''],
+                    value: row.activeProvidersNames || [],
                   }}
                 />
               </TableCell>

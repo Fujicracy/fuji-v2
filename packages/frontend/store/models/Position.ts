@@ -29,6 +29,6 @@ export type Position = {
   liquidationDiff: number;
 
   activeProvider?: LendingProviderDetails;
-  activeProviderName?: string;
+  activeProvidersNames: string[];
   providers?: LendingProviderDetails[];
 };
