@@ -351,7 +351,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryFoeSweepToken(address foe) public {
-    vm.assume(foe != address(chief));
+    vm.assume(foe != address(chief) && foe != address(simpleRouter));
     vm.expectRevert(
       SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
     );
