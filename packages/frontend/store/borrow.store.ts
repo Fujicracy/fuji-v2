@@ -14,7 +14,6 @@ import {
   LendingProviderDetails,
   RouterActionParams,
   Sdk,
-  Token,
 } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { BigNumber, ethers, Signature } from 'ethers';
@@ -36,6 +35,7 @@ import {
   AssetType,
   defaultAssetForType,
   defaultCurrency,
+  foundCurrency,
   LiquidationMeta,
   LtvMeta,
   Mode,
@@ -298,7 +298,9 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === 'debt' ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = defaultCurrency(currencies, currency);
+              const found = foundCurrency(t.selectableCurrencies, t.currency);
+              if (found) t.currency = found;
+              else if (state.formType === 'create') t.currency = currencies[0];
             })
           );
           get().updateCurrencyPrice(type);
@@ -509,9 +511,6 @@ export const useBorrow = create<BorrowStore>()(
           }
           get().changeAllowance(type, 'fetching');
           try {
-            if (!(currency instanceof Token)) {
-              return;
-            }
             const res = await sdk.getAllowanceFor(
               currency,
               Address.from(address)
@@ -543,6 +542,14 @@ export const useBorrow = create<BorrowStore>()(
           if (!result.success) {
             console.error(result.error.message);
             set({ availableVaultsStatus: 'error' });
+            return;
+          }
+          // check if currencies already changed before the previous async call completed
+          if (
+            !collateral.equals(get().collateral.currency) ||
+            !debt.equals(get().debt.currency)
+          ) {
+            await get().updateVault();
             return;
           }
 
@@ -758,7 +765,7 @@ export const useBorrow = create<BorrowStore>()(
 
         /**
          * Allow fuji contract to spend on behalf of the user an amount
-         * Token are deduced from collateral or debt
+         * Currency are deduced from collateral or debt
          * @param type
          */
         async allow(type) {

@@ -58,14 +58,18 @@ export enum ActionType {
   REMOVE = 1,
 }
 
+export const foundCurrency = (
+  selectable: Currency[],
+  updated?: Currency
+): Currency | undefined => {
+  return updated && selectable.find((c) => c.symbol === updated.symbol);
+};
+
 export const defaultCurrency = (
   selectable: Currency[],
   updated?: Currency
 ): Currency => {
-  return (
-    (updated && selectable.find((c) => c.symbol === updated.symbol)) ||
-    selectable[0]
-  );
+  return foundCurrency(selectable, updated) || selectable[0];
 };
 
 export const defaultAssetForType = (type: AssetType): AssetChange => {
