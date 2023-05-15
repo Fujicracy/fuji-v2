@@ -254,21 +254,33 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IERC4626
   function maxDeposit(address) public view virtual override returns (uint256) {
+    if (paused(VaultActions.Deposit)) {
+      return 0;
+    }
     return depositCap - totalAssets();
   }
 
   /// @inheritdoc IERC4626
   function maxMint(address) public view virtual override returns (uint256) {
+    if (paused(VaultActions.Deposit)) {
+      return 0;
+    }
     return convertToShares(maxDeposit(address(0)));
   }
 
   /// @inheritdoc IERC4626
   function maxWithdraw(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
     return _computeFreeAssets(owner);
   }
 
   /// @inheritdoc IERC4626
   function maxRedeem(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
     return convertToShares(maxWithdraw(owner));
   }
 
