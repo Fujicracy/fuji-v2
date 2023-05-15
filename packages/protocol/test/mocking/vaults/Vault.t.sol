@@ -252,10 +252,10 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_setMinAmount(uint256 min) public {
+    vm.prank(chief.timelock());
     vm.expectEmit(true, false, false, false);
     emit MinAmountChanged(min);
-    bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
+    vault.setMinAmount(min);
   }
 
   function test_tryLessThanMinAmount(uint128 min, uint128 amount) public {
@@ -271,11 +271,11 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   function test_setMaxCap(uint256 maxCap) public {
     uint256 minAmount = vault.minAmount();
     vm.assume(maxCap > minAmount);
+
+    vm.prank(chief.timelock());
     vm.expectEmit(true, false, false, false);
     emit DepositCapChanged(maxCap);
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
+    vault.setDepositCap(maxCap);
   }
 
   function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {

@@ -320,12 +320,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     args[1] =
       abi.encode(address(vault), ALICE, address(connextRouter), borrowAmount, deadline, v, r, s);
 
-    vm.expectEmit(true, true, true, true);
-    emit Deposit(address(connextRouter), ALICE, amount, amount);
-
-    vm.expectEmit(true, true, true, true);
-    emit Borrow(address(connextRouter), address(connextRouter), ALICE, borrowAmount, borrowAmount);
-
     /*MockERC20(collateralAsset).mint(ALICE, amount);*/
     deal(collateralAsset, ALICE, amount);
 
@@ -345,6 +339,11 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), amount);
+
+    vm.expectEmit(true, true, true, true);
+    emit Deposit(address(connextRouter), ALICE, amount, amount);
+    vm.expectEmit(true, true, true, true);
+    emit Borrow(address(connextRouter), address(connextRouter), ALICE, borrowAmount, borrowAmount);
 
     connextRouter.xBundle(actions, args);
     vm.stopPrank();
