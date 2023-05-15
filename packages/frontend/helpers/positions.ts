@@ -76,6 +76,7 @@ export const getPositionsWithBalance = async (
       p.liquidationPrice === 0
         ? 0
         : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    p.activeProvidersNames = v.allProviders.map((provider) => provider.name);
     return p;
   });
 
@@ -126,6 +127,8 @@ export type PositionRow = {
   address: string | undefined;
   ltv: number | 0;
   ltvMax: number | 0;
+  safetyRating: number | 0;
+  activeProvidersNames: string[];
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -133,6 +136,7 @@ export function getRows(positions: Position[]): PositionRow[] {
     return [];
   } else {
     return positions.map((pos: Position) => ({
+      safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
       address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
       debt: {
@@ -153,6 +157,7 @@ export function getRows(positions: Position[]): PositionRow[] {
       percentPriceDiff: pos.liquidationDiff,
       ltv: pos.ltv * 100,
       ltvMax: pos.ltvMax * 100,
+      activeProvidersNames: pos.activeProvidersNames,
     }));
   }
 }
@@ -170,7 +175,7 @@ function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
  *
  * @param collateral input changes as `AssetChange`
  * @param debt input changes as `AssetChange`
- * @param position
+ * @param current
  * @param mode
  */
 export function viewEditedPosition(
@@ -212,7 +217,6 @@ export function viewEditedPosition(
   const debtUsdValue = future.debt.amount * future.debt.usdPrice;
   const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
 
-  future.ltvMax = future.ltvMax;
   future.ltv = (debtUsdValue / collatUsdValue) * 100;
 
   future.liquidationPrice =
@@ -259,6 +263,7 @@ export function viewDynamicPosition(
       liquidationPrice: position
         ? position.liquidationPrice
         : baseLiquidation.liquidationPrice,
+      activeProvidersNames: position?.activeProvidersNames || [],
     },
     editedPosition,
   };

@@ -50,7 +50,9 @@ function Details({
 
         <Grid container justifyContent="space-between">
           <Typography variant="smallDark">
-            Loan-to-Value Liquidation Threshold
+            {isMobile
+              ? 'Liquidation Threshold'
+              : 'Loan-to-Value Liquidation Threshold'}
           </Typography>
 
           <Typography variant="small">{ltvThreshold}%</Typography>
@@ -163,5 +165,9 @@ function DetailContainer({ children, isMobile }: DetailContainerProps) {
 }
 
 function DetailDivider({ isMobile }: { isMobile: boolean }) {
-  return isMobile ? <></> : <Divider sx={{ mt: 2, mb: 2 }} />;
+  return isMobile ? (
+    <Box sx={{ m: '0.375rem 0' }} />
+  ) : (
+    <Divider sx={{ mt: 2, mb: 2 }} />
+  );
 }

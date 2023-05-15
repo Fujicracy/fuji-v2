@@ -44,6 +44,7 @@ import {
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { isSupported, testChains } from '../helpers/chains';
+import { isBridgeable } from '../helpers/currencies';
 import { handleTransactionError } from '../helpers/errors';
 import {
   dismiss,
@@ -111,21 +112,21 @@ type BorrowActions = {
     type: AssetType,
     chainId: ChainId,
     updateVault: boolean,
-    symbol?: string
+    currency?: Currency
   ) => void;
   changeAssetCurrency: (type: AssetType, currency: Currency) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
   changeDebtChain: (
     chainId: ChainId,
     updateVault: boolean,
-    symbol?: string
+    currency?: Currency
   ) => void; // Convenience
   changeDebtCurrency: (currency: Currency) => void; // Convenience
   changeDebtValue: (val: string) => void; // Convenience
   changeCollateralChain: (
     chainId: ChainId,
     updateVault: boolean,
-    symbol?: string
+    currency?: Currency
   ) => void; // Convenience
   changeCollateralCurrency: (currency: Currency) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
@@ -286,7 +287,7 @@ export const useBorrow = create<BorrowStore>()(
           ]);
         },
 
-        changeAssetChain(type, chainId, updateVault, symbol) {
+        changeAssetChain(type, chainId, updateVault, currency) {
           if (!isSupported(chainId)) return;
 
           const currencies =
@@ -294,12 +295,24 @@ export const useBorrow = create<BorrowStore>()(
               ? sdk.getDebtForChain(chainId)
               : sdk.getCollateralForChain(chainId);
 
+          if (
+            get().formType === FormType.Edit &&
+            currency &&
+            (!isBridgeable(currency) ||
+              !currencies.find((c) => c.symbol === currency.symbol))
+          ) {
+            notify({
+              type: 'error',
+              message: `${currency.symbol} not supported cross-chain.`,
+            });
+            return;
+          }
           set(
             produce((state: BorrowState) => {
               const t = type === AssetType.Debt ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = defaultCurrency(currencies, symbol);
+              t.currency = defaultCurrency(currencies, currency);
             })
           );
           get().updateCurrencyPrice(type);
@@ -344,12 +357,12 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId, updateVault, symbol) {
+        changeCollateralChain(chainId, updateVault, currency) {
           get().changeAssetChain(
             AssetType.Collateral,
             chainId,
             updateVault,
-            symbol
+            currency
           );
         },
 
@@ -361,8 +374,13 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAssetValue(AssetType.Collateral, value);
         },
 
-        changeDebtChain(chainId, updateVault, symbol) {
-          get().changeAssetChain(AssetType.Debt, chainId, updateVault, symbol);
+        changeDebtChain(chainId, updateVault, currency) {
+          get().changeAssetChain(
+            AssetType.Debt,
+            chainId,
+            updateVault,
+            currency
+          );
         },
 
         changeDebtCurrency(currency) {
@@ -384,8 +402,6 @@ export const useBorrow = create<BorrowStore>()(
           depositBalance,
           borrowBalance,
         }) {
-          console.log(`changeActiveVault, ${vault.chainId}`);
-
           const ltvMax = vault.maxLtv
             ? parseInt(formatUnits(vault.maxLtv, 16))
             : DEFAULT_LTV_MAX;
@@ -473,10 +489,10 @@ export const useBorrow = create<BorrowStore>()(
             produce((s: BorrowState) => {
               if (type === AssetType.Debt) {
                 s.debt.allowance.status = status;
-                if (amount) s.debt.allowance.value = amount;
+                if (amount !== undefined) s.debt.allowance.value = amount;
               } else {
                 s.collateral.allowance.status = status;
-                if (amount) s.collateral.allowance.value = amount;
+                if (amount !== undefined) s.collateral.allowance.value = amount;
               }
             })
           );

@@ -70,11 +70,12 @@ export enum ActionType {
 }
 
 export const defaultCurrency = (
-  currencies: Currency[],
-  symbol?: string
+  selectable: Currency[],
+  updated?: Currency
 ): Currency => {
   return (
-    (symbol && currencies.find((c) => c.symbol === symbol)) || currencies[0]
+    (updated && selectable.find((c) => c.symbol === updated.symbol)) ||
+    selectable[0]
   );
 };
 
