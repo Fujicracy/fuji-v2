@@ -203,7 +203,7 @@ function MyPositionsBorrowTableHeader() {
               }
               isLeft
             />
-            Protocol
+            Protocols
           </Stack>
         </TableCell>
         <TableCell align="right">
