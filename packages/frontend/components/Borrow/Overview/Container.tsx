@@ -41,7 +41,14 @@ function Container({ children, isMobile }: ContainerProps) {
         }}
       >
         <CardContent sx={{ p: 0, width: '100%', mb: '0.8rem' }}>
-          <CardActionArea onClick={openPreviewTransaction}>
+          <CardActionArea
+            onClick={openPreviewTransaction}
+            sx={{
+              '.MuiCardActionArea-focusHighlight': {
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
             <Grid container justifyContent="space-between">
               <Typography onClick={openPreviewTransaction} variant="body2">
                 Overview
