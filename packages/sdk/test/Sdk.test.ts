@@ -124,7 +124,7 @@ describe('Sdk', () => {
       if (!result.success) return;
 
       const vaults = result.data;
-      expect(vaults[0].chainId).toEqual(ChainId.MATIC);
+      expect(vaults[0].vault.chainId).toEqual(ChainId.MATIC);
     });
 
     it('returns a first vault from chainB based on an APR check', async () => {
@@ -162,7 +162,7 @@ describe('Sdk', () => {
       if (!result.success) return;
 
       const vaults = result.data;
-      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
+      expect(vaults[0].vault.chainId).toEqual(ChainId.OPTIMISM);
     });
 
     it('returns a first vault from same chain although it is with the highest borrow rate', async () => {
@@ -199,7 +199,7 @@ describe('Sdk', () => {
       if (!result.success) return;
 
       const vaults = result.data;
-      expect(vaults[0].chainId).toEqual(ChainId.OPTIMISM);
+      expect(vaults[0].vault.chainId).toEqual(ChainId.OPTIMISM);
     });
 
     it('cannot find a vault', async () => {

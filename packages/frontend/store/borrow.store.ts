@@ -11,10 +11,11 @@ import {
   FujiResult,
   FujiResultError,
   FujiResultSuccess,
-  LendingProviderDetails,
+  LendingProviderWithFinancials,
   RouterActionParams,
   Sdk,
   Token,
+  VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { BigNumber, ethers, Signature } from 'ethers';
@@ -65,13 +66,12 @@ type BorrowState = {
   formType: FormType;
   mode: Mode;
 
-  availableVaults: BorrowingVault[];
+  availableVaults: VaultWithFinancials[];
   availableVaultsStatus: FetchStatus;
-  // Providers are mapped with their vault address
-  allProviders: Record<string, LendingProviderDetails[]>;
 
   activeVault: BorrowingVault | undefined;
-  activeProvider: LendingProviderDetails | undefined;
+  activeProvider: LendingProviderWithFinancials | undefined;
+  allProviders: LendingProviderWithFinancials[] | [];
 
   collateral: AssetChange;
   debt: AssetChange;
@@ -127,7 +127,7 @@ type BorrowActions = {
   ) => void; // Convenience
   changeCollateralCurrency: (currency: Currency) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
-  changeActiveVault: (v: BorrowingVault) => void;
+  changeActiveVault: (v: VaultWithFinancials) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
   changeBalances: (type: AssetType, balances: Record<string, number>) => void;
@@ -137,7 +137,6 @@ type BorrowActions = {
     amount?: number
   ) => void;
 
-  updateAllProviders: () => void;
   updateCurrencyPrice: (type: AssetType) => void;
   updateBalances: (type: AssetType) => void;
   updateAllowance: (type: AssetType) => void;
@@ -146,7 +145,6 @@ type BorrowActions = {
   updateTransactionMetaDebounced: () => void;
   updateLtv: () => void;
   updateLiquidation: () => void;
-  updateVaultBalance: () => void;
   allow: (type: AssetType) => void;
   updateAvailableRoutes: (routes: RouteMeta[]) => void;
   sign: () => void;
@@ -162,7 +160,7 @@ const initialState: BorrowState = {
 
   availableVaults: [],
   availableVaultsStatus: 'initial',
-  allProviders: {},
+  allProviders: [],
 
   activeVault: undefined,
   activeProvider: undefined,
@@ -227,7 +225,7 @@ export const useBorrow = create<BorrowStore>()(
           const debts = sdk.getDebtForChain(debt.chainId);
           set(
             produce((state: BorrowState) => {
-              state.activeVault = vault; // Need to test this
+              state.activeVault = vault;
 
               state.collateral.chainId = collateral.chainId;
               state.collateral.selectableCurrencies = collaterals;
@@ -238,16 +236,21 @@ export const useBorrow = create<BorrowStore>()(
               state.debt.currency = debt;
             })
           );
+
           get().updateCurrencyPrice('collateral');
-          get().updateBalances('collateral');
           get().updateCurrencyPrice('debt');
+          get().updateBalances('collateral');
           get().updateBalances('debt');
           get().updateAllowance('collateral');
           get().updateAllowance('debt');
 
-          await get().changeActiveVault(vault);
-
-          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+          const addr = useAuth.getState().address;
+          const account = addr ? Address.from(addr) : undefined;
+          const result = await sdk.getBorrowingVaultsFor(
+            collateral,
+            debt,
+            account
+          );
 
           if (!result.success) {
             console.error(result.error.message);
@@ -257,10 +260,18 @@ export const useBorrow = create<BorrowStore>()(
           const availableVaults = result.data;
           set({ availableVaults });
 
-          await Promise.all([
-            get().updateAllProviders(),
-            get().updateTransactionMeta(),
-          ]);
+          const e = availableVaults.find(
+            (r) => r.vault.address === vault.address
+          );
+          if (!e) {
+            console.error('Vault not found');
+            set({ availableVaultsStatus: 'error' });
+            return;
+          }
+
+          get().changeActiveVault(e);
+
+          get().updateTransactionMeta();
           set({ availableVaultsStatus: 'ready' });
         },
 
@@ -357,23 +368,36 @@ export const useBorrow = create<BorrowStore>()(
           set({ slippage });
         },
 
-        async changeActiveVault(vault) {
+        changeActiveVault({
+          vault,
+          activeProvider,
+          allProviders,
+          depositBalance,
+          borrowBalance,
+        }) {
           console.log(`changeActiveVault, ${vault.chainId}`);
-          const providers = await vault.getProviders();
 
           const ltvMax = vault.maxLtv
-            ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
+            ? parseInt(formatUnits(vault.maxLtv, 16))
             : DEFAULT_LTV_MAX;
           const ltvThreshold = vault.liqRatio
-            ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
+            ? parseInt(formatUnits(vault.liqRatio, 16))
             : DEFAULT_LTV_THRESHOLD;
 
           set(
             produce((s: BorrowState) => {
               s.activeVault = vault;
-              s.activeProvider = providers.find((p) => p.active);
+              s.activeProvider = activeProvider;
+              s.allProviders = allProviders;
               s.ltv.ltvMax = ltvMax;
               s.ltv.ltvThreshold = ltvThreshold;
+              const dec = vault.collateral.decimals;
+              s.collateral.amount = parseFloat(
+                formatUnits(depositBalance, dec)
+              );
+
+              const dec2 = s.debt.currency.decimals;
+              s.debt.amount = parseFloat(formatUnits(borrowBalance, dec2));
             })
           );
           const route = get().availableRoutes.find(
@@ -382,10 +406,9 @@ export const useBorrow = create<BorrowStore>()(
           if (route) {
             get().changeTransactionMeta(route);
           }
-          await get().updateVaultBalance();
         },
 
-        async changeTransactionMeta(route) {
+        changeTransactionMeta(route) {
           set(
             produce((state: BorrowState) => {
               state.transactionMeta.status = 'ready';
@@ -525,7 +548,14 @@ export const useBorrow = create<BorrowStore>()(
 
           const collateral = get().collateral.currency;
           const debt = get().debt.currency;
-          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+          const addr = useAuth.getState().address;
+          const account = addr ? Address.from(addr) : undefined;
+
+          const result = await sdk.getBorrowingVaultsFor(
+            collateral,
+            debt,
+            account
+          );
 
           if (!result.success) {
             console.error(result.error.message);
@@ -534,32 +564,18 @@ export const useBorrow = create<BorrowStore>()(
           }
 
           const availableVaults = result.data;
-          const [vault] = availableVaults;
-          if (!vault) {
+
+          if (availableVaults.length === 0) {
             console.error('No available vault');
             set({ availableVaultsStatus: 'error' });
             return;
           }
+
           set({ availableVaults });
+          get().changeActiveVault(availableVaults[0]);
 
-          await get().changeActiveVault(vault);
-          await Promise.all([
-            get().updateAllProviders(),
-            get().updateTransactionMeta(),
-          ]);
+          get().updateTransactionMeta();
           set({ availableVaultsStatus: 'ready' });
-        },
-
-        async updateAllProviders() {
-          const { availableVaults } = get();
-
-          const allProviders: Record<string, LendingProviderDetails[]> = {};
-          for (const v of availableVaults) {
-            const providers = await v.getProviders();
-            allProviders[v.address.value] = providers;
-          }
-
-          set({ allProviders });
         },
 
         async updateTransactionMeta() {
@@ -600,7 +616,7 @@ export const useBorrow = create<BorrowStore>()(
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
               formType === 'create' && availableVaults.length > 0
-                ? availableVaults
+                ? availableVaults.map((e) => e.vault)
                 : [activeVault];
 
             const results = await Promise.all(
@@ -714,31 +730,6 @@ export const useBorrow = create<BorrowStore>()(
             produce((s: BorrowState) => {
               s.liquidationMeta.liquidationPrice = liquidationPrice;
               s.liquidationMeta.liquidationDiff = liquidationDiff;
-            })
-          );
-        },
-
-        async updateVaultBalance() {
-          const vault = get().activeVault;
-          const address = useAuth.getState().address;
-          if (!vault || !address) {
-            return;
-          }
-
-          const { deposit, borrow } = await vault.getBalances(
-            Address.from(address)
-          );
-
-          const currentVault = get().activeVault;
-          if (vault.address.value !== currentVault?.address.value) return;
-
-          set(
-            produce((s: BorrowState) => {
-              const dec = s.collateral.currency.decimals;
-              s.collateral.amount = parseFloat(formatUnits(deposit, dec));
-
-              const dec2 = s.debt.currency.decimals;
-              s.debt.amount = parseFloat(formatUnits(borrow, dec2));
             })
           );
         },

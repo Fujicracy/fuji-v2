@@ -22,7 +22,7 @@ function RoutingModal({ isEditing, open, handleClose }: RoutingModalProps) {
   function didSelectRoute(i: number) {
     if (selectedRoute !== i) {
       const vault = availableVaults.find(
-        (v) => v.address.value === availableRoutes[i].address
+        (v) => v.vault.address.value === availableRoutes[i].address
       );
       if (!vault) return;
       changeActiveVault(vault);
