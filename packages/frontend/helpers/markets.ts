@@ -262,7 +262,7 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
-        sorted.map((r, i) => ({
+        sorted.map((r) => ({
           ...r,
           isChild: true,
         }))
@@ -288,7 +288,7 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
     const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
-      const children = sorted.map((r, i) => ({
+      const children = sorted.map((r) => ({
         ...r,
         isChild: true,
       }));

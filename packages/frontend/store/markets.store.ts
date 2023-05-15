@@ -39,7 +39,7 @@ export type MarketsStore = MarketsState & MarketsActions;
 
 export const useMarkets = create<MarketsStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
       fetchMarkets: async () => {
@@ -47,7 +47,10 @@ export const useMarkets = create<MarketsStore>()(
         const vaults = sdk.getAllBorrowingVaults();
 
         const rowsBase = vaults.map(setBase);
-        set({ vaults, rows: rowsBase });
+        set({ vaults });
+        if (get().rows.length === 0) {
+          set({ rows: rowsBase });
+        }
 
         const address = useAuth.getState().address;
         const result = await getAllBorrowingVaultFinancials(
