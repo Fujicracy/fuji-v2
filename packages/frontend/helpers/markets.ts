@@ -240,7 +240,7 @@ export const setBest = (rows: MarketRow[]): MarketRow[] => {
       }
       result.push(...children);
     } else {
-      result.push(entries[0]);
+      result.push({ ...entries[0], isBest: true });
     }
   }
 
