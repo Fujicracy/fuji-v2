@@ -31,7 +31,7 @@ const agreements: AgreementBox[] = [
   },
 ];
 
-export function SafetyNoticeModal() {
+export function DisclaimerModal() {
   const { palette } = useTheme();
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true);
@@ -172,4 +172,4 @@ export function SafetyNoticeModal() {
   );
 }
 
-export default SafetyNoticeModal;
+export default DisclaimerModal;
