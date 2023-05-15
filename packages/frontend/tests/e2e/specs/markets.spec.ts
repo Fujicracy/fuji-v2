@@ -6,6 +6,7 @@ describe('Markets', () => {
   it('should load table data', () => {
     cy.get('[data-cy="market-row"]').should('exist');
   });
+  // We hope that first row always will be having children
   it('should first table row be unfolded', () => {
     // checking first row to be unfolded so have no network column.
     cy.get('[data-cy="market-row"]')
@@ -127,31 +128,22 @@ describe('Markets', () => {
         });
       });
   });
-  it('should toggle last high-level row', () => {
-    // checking last row exist and folded.
-    cy.get('[data-cy="market-row"]')
-      .last()
-      .as('lastRow', { type: 'static' })
-      .find('[data-cy="market-row-network"]')
-      .should('exist');
-    // finding its toggle button.
-    cy.get('[data-cy="market-toggle"]')
-      .last()
-      .as('lastToggle', { type: 'query' });
+  it('should toggle first high-level row', () => {
+    // finding first row.
+    cy.get('[data-cy="market-row"]').first().as('firstRow', { type: 'static' });
     // clicking toggle button.
-    cy.get('@lastToggle').click({ force: true });
-    // checking last is unfolded.
-    cy.get('@lastRow')
+    cy.get('@firstRow')
+      .find('[data-cy="market-toggle"]')
+      .first()
+      .click({ force: true });
+    // checking first is folded.
+    cy.get('@firstRow').find('[data-cy="market-row-network"]').should('exist');
+    // clicking toggle button.
+    cy.get('@firstRow').find('[data-cy="market-toggle"]').first().click();
+    // checking first is unfolded again.
+    cy.get('@firstRow')
       .find('[data-cy="market-row-network"]')
       .should('not.exist');
-    cy.get('[data-cy="market-row"]')
-      .last()
-      .find('[data-cy="market-row-network"]')
-      .should('exist');
-    // clicking toggle button.
-    cy.get('@lastRow').find('[data-cy="market-toggle"]').first().click();
-    // checking last is folded.
-    cy.get('@lastRow').find('[data-cy="market-row-network"]').should('exist');
   });
   it('should redirect after click with correct currency prefill', () => {
     let collateralCurrency, debtCurrency;
